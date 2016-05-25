@@ -1,0 +1,5 @@
+configure_file( a1.obj a1.obj COPYONLY )
+configure_file( a2.obj a2.obj COPYONLY )
+configure_file( a3.obj a3.obj COPYONLY )
+configure_file( a4.obj a4.obj COPYONLY )
+configure_file( a5.obj a5.obj COPYONLY )
