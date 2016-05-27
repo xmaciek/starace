@@ -256,3 +256,24 @@ void SHADER::draw( uint32_t type, uint32_t buffer, uint32_t size ) {
     glDrawArrays( type, 0, size );
 }
 
+uint32_t SHADER::getQuad( uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2 ) {
+    double arr[18] = { 0 };
+    arr[0] = x1; arr[1] = y1;
+    arr[3] = x2; arr[4] = y1;
+    arr[6] = x2; arr[7] = y2;
+    arr[9] = x1; arr[10] = y1;
+    arr[12] = x2; arr[13] = y2;
+    arr[15] = x1; arr[16] = y2;
+    return SHADER::makeBuffer( arr, 18 );
+}
+
+uint32_t SHADER::getQuadTextureCoord( double x1, double y1, double x2, double y2 ) {
+    double arr[12];
+    arr[0] = x1; arr[1] = y1;
+    arr[2] = x2; arr[3] = y1;
+    arr[4] = x2; arr[5] = y2;
+    arr[5] = x1; arr[7] = y1;
+    arr[8] = x2; arr[9] = y2;
+    arr[10] = x1; arr[11] = y2;
+    return SHADER::makeBuffer( arr, 12 );
+}

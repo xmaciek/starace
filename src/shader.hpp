@@ -37,6 +37,9 @@ public:
     static void setOrtho( double minX,  double maxX,  double minY,  double maxY,  double minZ = -1.0,  double maxZ = 1.0 );
     static void setPerspective( double fovY, double ratio, double min, double max );
 
+    static uint32_t getQuad( uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2 );
+    static uint32_t getQuadTextureCoord( double x1, double y1, double x2, double y2 );
+    
 private:
     SHADER();
     SHADER( SHADER& );
