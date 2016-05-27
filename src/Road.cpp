@@ -1,12 +1,12 @@
 #include "Road.h"
 
-
 using namespace std;
 
 
-  const Uint32 Road::Time_Interval = (1000*DELTATIME);
+const Uint32 Road::Time_Interval = (1000*DELTATIME);
 
-  Road::Road() {
+Road::Road() {
+    
     cout<<Time_Interval<<"\n";
     Display = NULL;
     
@@ -225,6 +225,7 @@ bool Road::OnInit() {
     return false;
   }
 //   return false;
+  SHADER::init();
   InitRoadAdditionsGL();
   OnResize(SCREEN_WIDTH, SCREEN_HEIGHT);
   return true;

@@ -16,10 +16,8 @@
 // #include <thread>
 using namespace std;
 
-
+#include "shader.hpp"
 #ifdef __linux__
-  #include <GL/gl.h>
-  #include <GL/glu.h>
   #include <SDL/SDL.h>
   #include <SDL/SDL_ttf.h>
   #include <SDL/SDL_thread.h>
