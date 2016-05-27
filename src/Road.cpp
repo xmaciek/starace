@@ -1075,11 +1075,7 @@ void Road::UpdateClouds() {
 }
 
 void Road::SetOrtho() {
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  glOrtho(0, SCREEN_WIDTH, 0, SCREEN_HEIGHT, -192, 192);
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
+  SHADER::setOrtho( 0, SCREEN_WIDTH, 0, SCREEN_HEIGHT, -192, 192 );
 }
 
 void Road::SetPerspective(const GLdouble &Angle) {

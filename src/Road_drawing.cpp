@@ -38,7 +38,7 @@
 //   }
   
   void Road::DrawAxis() {
-    glPushMatrix();
+    SHADER::pushMatrix();
       glBegin(GL_LINES);
         glColor3f(1,0,0);
         glVertex3d(-0.1,0,0);
@@ -52,7 +52,7 @@
         glVertex3d(0,0,-0.1);
         glVertex3d(0,0,0.1);
       glEnd();
-    glPopMatrix();
+    SHADER::popMatrix();
   }
   
   
@@ -64,14 +64,14 @@
 
 
   void Road::DrawLine(GLdouble X, GLdouble Y) {
-    glPushMatrix();
+    SHADER::pushMatrix();
       glBegin(GL_LINES);
-        glColor4f(1, 0.4f, 0, 0);
+        SHADER::setColor(1, 0.4f, 0, 0);
         glVertex3d(X, Y, -100);
-        glColor4f(1, 0.4f, 0, 1);
+        SHADER::setColor(1, 0.4f, 0, 1);
         glVertex3d(X, Y, 1);
       glEnd();
-    glPopMatrix();
+    SHADER::popMatrix();
   }
 
 
@@ -79,90 +79,90 @@
 
 
   void Road::DrawHudRect(GLdouble X, GLdouble Y, GLdouble W, GLdouble H) {
-    glPushMatrix();
-      glTranslated(X,Y,0);
+    SHADER::pushMatrix();
+      SHADER::translate(X,Y,0);
       glBegin(GL_QUADS);
         glVertex2d(0,0);
         glVertex2d(0,H);
         glVertex2d(W,H);
         glVertex2d(W,0);
       glEnd();
-    glPopMatrix();
+    SHADER::popMatrix();
   }
 
   void Road::DrawHUDLine(GLdouble X1, GLdouble Y1, GLdouble X2, GLdouble Y2, GLdouble T) {
     glLineWidth(T);
-    glPushMatrix();;
+    SHADER::pushMatrix();;
       glBegin(GL_LINES);
         glVertex2d(X1, Y1);
         glVertex2d(X2, Y2);
       glEnd();
-    glPopMatrix();
+    SHADER::popMatrix();
 
     glLineWidth(1.0f);
   }
 
   void Road::DrawHUDPiece(GLdouble X, GLdouble Y, GLdouble RotAngleZ) {
-    glPushMatrix();
-      glRotated(RotAngleZ,0,0,1);
-      glColor4f(1,0,0,1);
+    SHADER::pushMatrix();
+      SHADER::rotate(RotAngleZ,0,0,1);
+      SHADER::setColor(1,0,0,1);
       glBegin(GL_TRIANGLES);
         glVertex2d(0,0);
         glVertex2d(0,10);
         glVertex2d(2,10);
       glEnd();
-    glPopMatrix();
+    SHADER::popMatrix();
   }
 
   
   
   void Road::DrawCyberRings() {
-    glPushMatrix();
-    glTranslated(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 0);
+    SHADER::pushMatrix();
+    SHADER::translate(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 0);
     for (drawing_i=0; drawing_i<3; drawing_i++) {
-    glPushMatrix();
+    SHADER::pushMatrix();
       glBindTexture(GL_TEXTURE_2D, cyber_ring_texture[drawing_i]);
       glColor4fv(cyber_ring_color[drawing_i]);
-      glRotated(cyber_ring_rotation[drawing_i],0,0,1);
-      glTranslated(max_dimention*-0.5, max_dimention*-0.5, 0);
+      SHADER::rotate(cyber_ring_rotation[drawing_i],0,0,1);
+      SHADER::translate(max_dimention*-0.5, max_dimention*-0.5, 0);
       glBegin(GL_QUADS);
         glTexCoord2f(1,1); glVertex2d(max_dimention, max_dimention);
         glTexCoord2f(0,1); glVertex2d(0, max_dimention);
         glTexCoord2f(0,0); glVertex2d(0, 0);
         glTexCoord2f(1,0); glVertex2d(max_dimention, 0);
       glEnd();   
-    glPopMatrix();
+    SHADER::popMatrix();
     }/*
-    glPushMatrix();
+    SHADER::pushMatrix();
       glBindTexture(GL_TEXTURE_2D, cyber_ring_texture[3]);
       glColor4fv(cyber_ring_color[3]);
-      glRotated(60,1,0,0);
-      glRotated(cyber_ring_rotation[3],0,0,1);
-      glTranslated(max_dimention*-0.5, max_dimention*-0.5, 0);
+      SHADER::rotate(60,1,0,0);
+      SHADER::rotate(cyber_ring_rotation[3],0,0,1);
+      SHADER::translate(max_dimention*-0.5, max_dimention*-0.5, 0);
       glBegin(GL_QUADS);
         glTexCoord2f(1,1); glVertex2d(max_dimention, max_dimention);
         glTexCoord2f(0,1); glVertex2d(0, max_dimention);
         glTexCoord2f(0,0); glVertex2d(0, 0);
         glTexCoord2f(1,0); glVertex2d(max_dimention, 0);
       glEnd();   
-    glPopMatrix();*/
+    SHADER::popMatrix();*/
     
     
-    glPopMatrix();
+    SHADER::popMatrix();
     
     
   }
   
     void Road::DrawCyberRingsMini() {
-    glPushMatrix();
-    glTranslated(SCREEN_WIDTH/2, SCREEN_HEIGHT/2-8, 0);
+    SHADER::pushMatrix();
+    SHADER::translate(SCREEN_WIDTH/2, SCREEN_HEIGHT/2-8, 0);
     for (drawing_i=0; drawing_i<3; drawing_i++) {
-    glPushMatrix();
+    SHADER::pushMatrix();
       glEnable(GL_TEXTURE_2D);
       glEnable(GL_BLEND);
       glBindTexture(GL_TEXTURE_2D, cyber_ring_texture[drawing_i]);
-      glColor4f(HUD_Color_4fv[HUD_Color][0], HUD_Color_4fv[HUD_Color][1], HUD_Color_4fv[HUD_Color][2], cyber_ring_color[drawing_i][3]);
-      glRotated(cyber_ring_rotation[drawing_i],0,0,1);
+      SHADER::setColor(HUD_Color_4fv[HUD_Color][0], HUD_Color_4fv[HUD_Color][1], HUD_Color_4fv[HUD_Color][2], cyber_ring_color[drawing_i][3]);
+      SHADER::rotate(cyber_ring_rotation[drawing_i],0,0,1);
       glBegin(GL_QUADS);
         glTexCoord2f(1,1); glVertex2d(32, 32);
         glTexCoord2f(0,1); glVertex2d(-32, 32);
@@ -171,17 +171,17 @@
       glEnd();   
       glDisable(GL_TEXTURE_2D);
       glDisable(GL_BLEND);
-    glPopMatrix();
+    SHADER::popMatrix();
     }  
-    glPopMatrix();
+    SHADER::popMatrix();
   }
   
   
   
   
   void Road::DrawHUDBar(const GLuint &X, const GLuint &Y, const GLuint &W, const GLuint &H, const GLuint &Current, const GLuint &Max) {
-    glPushMatrix();
-      glTranslated(X,Y,0);
+    SHADER::pushMatrix();
+      SHADER::translate(X,Y,0);
       glColor4fv(HUD_Color_4fv[HUD_Color]);
       glBegin(GL_LINES);
         glVertex2d(-4, H+4);
@@ -197,9 +197,9 @@
 //     DrawHUDLine(X+W+4, SCREEN_HEIGHT-8, X+W+4, SCREEN_HEIGHT-112, 2);  
 //     DrawHUDLine(X+W+4, SCREEN_HEIGHT-112, X-4, SCREEN_HEIGHT-112, 2);  
     glBegin(GL_QUADS);
-//       glColor4f(1.0f, (GLfloat)Current/Max, 0, 0.8f);
+//       SHADER::setColor(1.0f, (GLfloat)Current/Max, 0, 0.8f);
 //     (1.0f-(GLfloat)health/1000)+colorhalf((1.0f-(GLfloat)health/1000)),
-//           glColor4f(1-(jet->energy/100) + colorhalf(1-jet->energy/100), colorhalf(jet->energy/100)+(GLfloat)jet->energy/100, 0, 0.8);
+//           SHADER::setColor(1-(jet->energy/100) + colorhalf(1-jet->energy/100), colorhalf(jet->energy/100)+(GLfloat)jet->energy/100, 0, 0.8);
       glColor3f((1.0f-(GLfloat)Current/Max)+colorhalf((1.0f-(GLfloat)Current/Max)), (GLfloat)Current/Max+colorhalf((GLfloat)Current/Max), 0);
 
       glVertex2d(0, 0);
@@ -207,16 +207,16 @@
       glVertex2d(W, (((GLdouble)Current/Max)*H));
       glVertex2d(0, (((GLdouble)Current/Max)*H));
     glEnd();  
-    glPopMatrix();
+    SHADER::popMatrix();
   }
 
   void Road::DrawPauseText() {
-    glPushMatrix();
+    SHADER::pushMatrix();
         glEnable(GL_BLEND);
         glEnable(GL_TEXTURE_2D);
         DrawCyberRings();
         glBindTexture(GL_TEXTURE_2D, HUDtex);
-        glColor4f(0.1f, 0.4f, 0.9f, 0.8f);
+        SHADER::setColor(0.1f, 0.4f, 0.9f, 0.8f);
         glBegin(GL_QUADS);
           glTexCoord2f(0,0);
           glVertex2d(0,0);
@@ -231,19 +231,19 @@
         
 //         btnChangeFiltering.Draw();
         btnQuitMission.Draw();
-      glColor4f(1.0f,1.0f,0.0f,1.0f);
+      SHADER::setColor(1.0f,1.0f,0.0f,1.0f);
       char PAUSED[] = {"PAUSED"};
       font_pause_txt->PrintTekst(SCREEN_WIDTH/2-font_pause_txt->GetTextLength(PAUSED)/2, SCREEN_HEIGHT-128, PAUSED);
       glDisable(GL_TEXTURE_2D);
       glDisable(GL_BLEND);
-    glPopMatrix();
+    SHADER::popMatrix();
   }
   
 
   void Road::RenderHUD() {
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_FOG);
-    glPushMatrix();
+    SHADER::pushMatrix();
       SetOrtho();
         
         glColor4fv(HUD_Color_4fv[HUD_Color]);
@@ -257,10 +257,10 @@
 //         DrawHUDLine(192, SCREEN_HEIGHT-128, 320, SCREEN_HEIGHT-48, 3);
 //         DrawHUDLine(320, SCREEN_HEIGHT-48, SCREEN_WIDTH, SCREEN_HEIGHT-48, 3);
       
-//       glPopMatrix();
+//       SHADER::popMatrix();
 // 
 //       
-//       glPushMatrix();
+//       SHADER::pushMatrix();
         
         snprintf(HUDMESSAGE, sizeof(HUDMESSAGE), "X: %.3f", jet->getX());
         font_gui_txt->PrintTekst(8,SCREEN_HEIGHT-16, HUDMESSAGE);
@@ -282,11 +282,11 @@
         jet->quaternion.CreateMatrix(matrice);
 //         jet->rotation.CreateMatrix(matrice);
           
-        glPushMatrix();
+        SHADER::pushMatrix();
           glEnable(GL_DEPTH_TEST);
-          glTranslated(SCREEN_WIDTH-80, 80, 0);
+          SHADER::translate(SCREEN_WIDTH-80, 80, 0);
 
-          glMultMatrixf(matrice);
+          SHADER::multMatrix(matrice);
 	  
 	  glBegin(GL_LINES);
             glVertex3d(24,24,24);
@@ -342,7 +342,7 @@
           glDisable(GL_DEPTH_TEST);
 	  Vertex cursor = jet->GetDirection() * 92;
 	  glLineWidth(3);
-	  glColor4f(1,1,0,0.9);
+	  SHADER::setColor(1,1,0,0.9);
 	  glBegin(GL_LINES);
 	    glVertex3d(0,0,0);
 // 	    glVertex3d(0,0,-92);
@@ -350,16 +350,16 @@
 	  glEnd();
 	  glLineWidth(1);
 	  
-        glPopMatrix();
+        SHADER::popMatrix();
         
 	glColor4fv(HUD_Color_4fv[HUD_Color]);
 	
-	glPushMatrix();
-	  glTranslated(32, SCREEN_HEIGHT/2, 0);
+	SHADER::pushMatrix();
+	  SHADER::translate(32, SCREEN_HEIGHT/2, 0);
 	  snprintf(HUDMESSAGE, sizeof(HUDMESSAGE), "SPEED: %d", (int)(jet->GetSpeed()*270));
 	  font_gui_txt->PrintTekst(38, 0, HUDMESSAGE);
-	  glPushMatrix();
-	  glRotated(speed_anim, 0, 0, 1);
+	  SHADER::pushMatrix();
+	  SHADER::rotate(speed_anim, 0, 0, 1);
 	  glBegin(GL_POLYGON);
 	    glVertex2d(-3,0);
 	    glVertex2d(3,0);
@@ -374,13 +374,13 @@
 	    glVertex2d(3,0);
 	    glVertex2d(-3,0);
 	  glEnd();
-	  glPopMatrix();
+	  SHADER::popMatrix();
 	  glBegin(GL_LINE_LOOP);
 	    for (drawing_i=0; drawing_i<speed_fan_ring->GetSegments(); drawing_i++) {
 	      glVertex2d(speed_fan_ring->GetX(drawing_i), speed_fan_ring->GetY(drawing_i));
 	    }
 	  glEnd();
-	glPopMatrix();
+	SHADER::popMatrix();
 	
 	
         DrawCyberRingsMini();
@@ -397,7 +397,7 @@
 	font_pause_txt->PrintTekst(10, 102, "ENG");
 	font_pause_txt->PrintTekst(66, 102, "HP");
 	
-        glPopMatrix();
+        SHADER::popMatrix();
         
       
   }
@@ -412,13 +412,13 @@
     GLdouble cX = -jet->getX(), cY = -jet->getY(), cZ = -jet->getZ();
     
 //     glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-      glTranslated(0, -0.225, -1);
-      glPushMatrix();
+    SHADER::pushMatrix();
+      SHADER::translate(0, -0.225, -1);
+      SHADER::pushMatrix();
         GLfloat matrice[16];
         jet->rotation.CreateMatrix(matrice);
-        glMultMatrixf(matrice);
-        glTranslated(cX,cY,cZ);
+        SHADER::multMatrix(matrice);
+        SHADER::translate(cX,cY,cZ);
         map->Draw(); 
         for (drawing_i=0; drawing_i<enemies.size(); drawing_i++) {
           enemies[drawing_i]->Draw(); 
@@ -433,15 +433,15 @@
         }
         glLineWidth(1);
 	glDisable(GL_BLEND);
-      glPopMatrix();
+      SHADER::popMatrix();
       jet->Draw();
-    glPopMatrix();
+    SHADER::popMatrix();
     
   }
  
  
   void Road::DrawMainMenu() {
-    glPushMatrix();
+    SHADER::pushMatrix();
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_FOG);
     glEnable(GL_BLEND);
@@ -453,7 +453,7 @@
     DrawCyberRings();
         
         glBindTexture(GL_TEXTURE_2D, HUDtex);
-        glColor4f(0.1f, 0.4f, 0.9f, 0.8f);
+        SHADER::setColor(0.1f, 0.4f, 0.9f, 0.8f);
         glBegin(GL_QUADS);
           glTexCoord2f(0,0); glVertex2d(0, 0);
           glTexCoord2f(1,0); glVertex2d(SCREEN_WIDTH, 0);
@@ -468,7 +468,7 @@
    
       
       
-    glPopMatrix();
+    SHADER::popMatrix();
     
     
   }
@@ -476,20 +476,20 @@
 void Road::DrawClouds() {
   glEnable(GL_BLEND);
   glEnable(GL_TEXTURE_2D);
-  glPushMatrix();
+  SHADER::pushMatrix();
     glBindTexture(GL_TEXTURE_2D, menu_background);
     glBegin(GL_QUADS);
-      glColor4f(0.1f, 0.4f, 0.9f, 1);
+      SHADER::setColor(0.1f, 0.4f, 0.9f, 1);
       glTexCoord2f(0,0); glVertex2d(0, 0);
-      glColor4f(0.9f, 0.4f, 0.1f, 1);
+      SHADER::setColor(0.9f, 0.4f, 0.1f, 1);
       glTexCoord2f(1,0); glVertex2d(SCREEN_WIDTH, 0);
-      glColor4f(0.1f, 0.9f, 0.4f, 1);
+      SHADER::setColor(0.1f, 0.9f, 0.4f, 1);
       glTexCoord2f(1,1); glVertex2d(SCREEN_WIDTH, SCREEN_HEIGHT);
-      glColor4f(0.4f, 0.1f, 0.9f, 1);
+      SHADER::setColor(0.4f, 0.1f, 0.9f, 1);
       glTexCoord2f(0,1); glVertex2d(0, SCREEN_HEIGHT);
     glEnd();   
     glBindTexture(GL_TEXTURE_2D, menu_background_overlay);
-    glColor4f(1, 1, 1, alpha_value);
+    SHADER::setColor(1, 1, 1, alpha_value);
     glBegin(GL_QUADS);
       glTexCoord2f(0,0); glVertex2d(0, 0);
       glTexCoord2f(1,0); glVertex2d(SCREEN_WIDTH, 0);
@@ -498,21 +498,21 @@ void Road::DrawClouds() {
     glEnd();   
           
     glBindTexture(GL_TEXTURE_2D, starfield_texture);
-    glColor4f(1, 1, 1, alpha_value);
+    SHADER::setColor(1, 1, 1, alpha_value);
     glBegin(GL_QUADS);
       glTexCoord2f(0,0); glVertex2d(0, 0);
       glTexCoord2f(1,0); glVertex2d(max_dimention, 0);
       glTexCoord2f(1,1); glVertex2d(max_dimention, max_dimention);
       glTexCoord2f(0,1); glVertex2d(0, max_dimention);
     glEnd(); 
-  glPopMatrix();
+  SHADER::popMatrix();
 }
   
   void Road::WinScreen() {
     GameScreen();
     glEnable(GL_BLEND);
     glEnable(GL_TEXTURE_2D);
-    glPushMatrix();
+    SHADER::pushMatrix();
     DrawCyberRings();
     glColor4fv(HUD_Color_4fv[0]);
     glBindTexture(GL_TEXTURE_2D, HUDtex);
@@ -522,7 +522,7 @@ void Road::DrawClouds() {
       glTexCoord2f(1,1); glVertex2d(SCREEN_WIDTH, SCREEN_HEIGHT);
       glTexCoord2f(0,1); glVertex2d(0, SCREEN_HEIGHT);
     glEnd(); 
-    glPopMatrix();
+    SHADER::popMatrix();
     
     glColor3f(1,1,1);
     font_big->PrintTekst((SCREEN_WIDTH/2)-font_big->GetTextLength("MISSION SUCCESSFUL")/2, SCREEN_HEIGHT-128, "MISSION SUCCESSFUL");
@@ -538,7 +538,7 @@ void Road::DrawClouds() {
     GameScreen();
     glEnable(GL_BLEND);
     glEnable(GL_TEXTURE_2D);
-    glPushMatrix();
+    SHADER::pushMatrix();
     DrawCyberRings();
     glColor4fv(HUD_Color_4fv[2]);
     glBindTexture(GL_TEXTURE_2D, HUDtex);
@@ -548,7 +548,7 @@ void Road::DrawClouds() {
       glTexCoord2f(1,1); glVertex2d(SCREEN_WIDTH, SCREEN_HEIGHT);
       glTexCoord2f(0,1); glVertex2d(0, SCREEN_HEIGHT);
     glEnd(); 
-    glPopMatrix();
+    SHADER::popMatrix();
     
     glColor3f(1,1,1);
     font_big->PrintTekst((SCREEN_WIDTH/2)-font_big->GetTextLength("MISSION FAILED")/2, SCREEN_HEIGHT-128, "MISSION FAILED");
@@ -562,14 +562,14 @@ void Road::DrawClouds() {
   }
   
   void Road::MissionSelectionScreen() {
-    glPushMatrix();
+    SHADER::pushMatrix();
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_FOG);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     SetOrtho();
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
-	glPushMatrix();
+	SHADER::pushMatrix();
 	  if (maps_container.at(current_map).preview_image==0) { 
 	    maps_container.at(current_map).preview_image =  LoadTexture(maps_container.at(current_map).preview_image_location.c_str()); }
 	  glBindTexture(GL_TEXTURE_2D, maps_container.at(current_map).preview_image);
@@ -586,7 +586,7 @@ void Road::DrawClouds() {
 	  snprintf(HUDMESSAGE, sizeof(HUDMESSAGE), "Enemies: %d", maps_container.at(current_map).enemies);
 	  font_pause_txt->PrintTekst(SCREEN_WIDTH/2-font_pause_txt->GetTextLength(HUDMESSAGE)/2, SCREEN_HEIGHT-148, HUDMESSAGE);
 	  
-	glPopMatrix();
+	SHADER::popMatrix();
 	
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
@@ -608,7 +608,7 @@ void Road::DrawClouds() {
       
       
       
-    glPopMatrix();
+    SHADER::popMatrix();
   }
   
    void Road::GameScreenBriefing() {
@@ -616,7 +616,7 @@ void Road::DrawClouds() {
      GameScreen();
      glEnable(GL_BLEND);
      glEnable(GL_TEXTURE_2D);
-     glPushMatrix();
+     SHADER::pushMatrix();
         DrawCyberRings();
         glColor3f(1,1,1);
         font_pause_txt->PrintTekst(192,SCREEN_HEIGHT-292, "Movement: AWSD QE");
@@ -636,7 +636,7 @@ void Road::DrawClouds() {
           glTexCoord2f(0,1); glVertex2d(0, SCREEN_HEIGHT);
         glEnd(); 
         btnGO.Draw();
-      glPopMatrix();
+      SHADER::popMatrix();
 	
   } 
  
@@ -658,14 +658,14 @@ void Road::ScreenCustomize() {
   font_big->PrintTekst(SCREEN_WIDTH/2-font_big->GetTextLength(jets_container.at(current_jet).name.c_str())/2, 
 			     SCREEN_HEIGHT-64, jets_container.at(current_jet).name.c_str());
   SetPerspective(angle);
-  glPushMatrix();
-    glTranslated(0,-0.1,-1.25);
-    glRotated(15,1,0,0);
-    glRotated(model_rotation, 0, 1, 0);
+  SHADER::pushMatrix();
+    SHADER::translate(0,-0.1,-1.25);
+    SHADER::rotate(15,1,0,0);
+    SHADER::rotate(model_rotation, 0, 1, 0);
     glEnable(GL_DEPTH_TEST);
     preview_model.Draw();
     glDisable(GL_DEPTH_TEST);
-  glPopMatrix();
+  SHADER::popMatrix();
   SetOrtho();
   btnNextJet.Draw();
   btnPrevJet.Draw();
