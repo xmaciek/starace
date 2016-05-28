@@ -1,183 +1,119 @@
 #include "Texture.h"
 
+#include "shader.hpp"
 
-GLuint LoadDefault() {
-  GLubyte DEF[64*64*3];
-  bool c=false;
-  GLuint d=0;
-  for (GLuint i=0; i<64*64*3; i++) {
-    if (i%(64*3*8)==0) {c=!c;}
-    if ((d<8 && c) || (d>=8 && !c)) {
-    DEF[i]=255;
-    DEF[i+1]=0;
-    DEF[i+2]=192;
+#include <string.h>
+
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <vector>
+
+Texture::Texture() :
+    m_width( 0 ),
+    m_height( 0 ),
+    m_owidth( 0 ),
+    m_oheight( 0 ),
+    m_type( 0 ),
+    m_bpp( 0 ),
+    m_ID( 0 ),
+    m_resized( false )
+{
+}
+
+void Texture::use() const {
+  glBindTexture( GL_TEXTURE_2D, m_ID );
+}
+
+void Texture::erase() {
+  glDeleteTextures( 1, &m_ID );
+  m_width = m_height = m_type = m_bpp = m_ID = 0;
+}
+
+static uint32_t pow2( uint32_t a ) {
+    uint32_t r = 4;
+    while ( r < a ) { r *= 2; }
+    return r;
+}
+
+void Texture::fromData( uint8_t* data, uint32_t w, uint32_t h, uint32_t b, uint32_t t ) {
+    assert( data );
+    m_fileName.clear();
+    m_width = w;
+    m_owidth = w;
+    m_height = h;
+    m_oheight = h;
+    m_width = pow2( m_width );
+    m_height = pow2( m_height );
+    m_bpp = b;
+    if ( m_oheight != m_height || m_owidth != m_width ) {
+        m_resized = true;
+        uint8_t* newData = new uint8_t[ m_width * m_height * m_bpp ];
+        uint8_t* oldData = data;
+        memset( newData, 0, m_width * m_height * m_bpp );
+        for ( uint32_t i = 0; i < m_oheight; i++ ) {
+            memcpy( newData + ( i * m_width * m_bpp ), oldData + ( i * m_owidth * m_bpp), m_bpp * m_owidth );
+        }
+        data = newData;
+        delete[] oldData;
     }
-    else {
-      DEF[i] = DEF[i+1] = DEF[i+2] = 0;
+
+    m_type = t;
+    glGenTextures( 1, &m_ID );
+    glBindTexture( GL_TEXTURE_2D, m_ID );
+    glTexImage2D( GL_TEXTURE_2D, 0, m_type, m_width, m_height, 0, m_type, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap( GL_TEXTURE_2D );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,GL_REPEAT );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,GL_REPEAT );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0f );
+    delete[] data;
+}
+
+void Texture::load( const std::string &src ) {
+    m_fileName = src;
+    std::fstream file( src.c_str(), std::fstream::in | std::fstream::binary );
+    if ( !file.is_open() ) {
+        fprintf( stderr, "No such file: %s\n", src.c_str() );
+        return;
     }
-    i+=2;
-    d++;
-    if(d>=16) {d=0;}
-  }
-  GLuint textureID=0;
-  glGenTextures(1, &textureID);
-  glBindTexture(GL_TEXTURE_2D, textureID);
-  setTextureFiltering(-1);
-  gluBuild2DMipmaps( GL_TEXTURE_2D, 3, 64, 64, GL_RGB, GL_UNSIGNED_BYTE, DEF );
-  
-//   glTexImage2D(GL_TEXTURE_2D, 0, 3, 64, 64, 0, GL_RGB, GL_UNSIGNED_BYTE, DEF);
-  return textureID;
-}
 
+    std::vector<uint8_t> header( 12, 0 );
+    file.read( reinterpret_cast<char*>( &header[0] ), 12 );
+    file.read( reinterpret_cast<char*>( &m_width ), 2 );
+    file.read( reinterpret_cast<char*>( &m_height ), 2 );
+    file.read( reinterpret_cast<char*>( &m_bpp ), 2 );
 
+    m_bpp /= 8;
+    m_type = ( m_bpp == 3 ) ? GL_RGB : GL_RGBA;
 
-void setAllTexturesFiltering(GLint type) {
-  
+    const uint32_t size = m_width * m_height * m_bpp;
+    uint8_t* loadedData = new uint8_t[size];
+    file.read( reinterpret_cast<char*>( loadedData ), size );
+    file.close();
 
-  for (GLuint i=0; i<1000; i++) {
-    if (glIsTexture(i)) {
-//       cout<<"Tex: "<<i<<"\n";
-      glBindTexture(GL_TEXTURE_2D, i);
-      setTextureFiltering(type);
+    uint8_t swap;
+    for ( uint32_t i = 0; i < size; i += m_bpp ) {
+        swap = loadedData[i + 2];
+        loadedData[i + 2] = loadedData[i];
+        loadedData[i] = swap;
     }
-  }
+
+    fromData( loadedData, m_width, m_height, m_bpp, m_type );
 }
 
-void setTextureFiltering(GLint type) {
-
-  static GLint TEX_FILTER = FILTERING_TRILINEAR; /*trilinear by default*/
-  if ((type>=FILTERING_TRILINEAR) && (type<=FILTERING_ANISOTROPIC_X16)) { TEX_FILTER = type; }
-   
-//   cout<<"Filtering: "<<TEX_FILTER<<"\n";
-  
-  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,GL_REPEAT);
-  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,GL_REPEAT);
-  glHint(GL_GENERATE_MIPMAP_HINT, GL_NICEST); 
-//   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,0.0f);
-  switch (TEX_FILTER) {
-    case FILTERING_NONE: 
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0f);
-      break;
-    case FILTERING_LINEAR:
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0f);
-      break;
-    case FILTERING_BILINEAR:
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0f);
-      break;
-    case FILTERING_TRILINEAR:
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0f);
-      break;
-    case FILTERING_ANISOTROPIC_X2:
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,2.0f);
-      break;
-    case FILTERING_ANISOTROPIC_X4:
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,4.0f);
-      break;
-    case FILTERING_ANISOTROPIC_X8:
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,8.0f);
-      break;
-    case FILTERING_ANISOTROPIC_X16:
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,16.0f);
-      break;
-    default: break;
-  }
+bool Texture::operator<( const std::string& txt ) const {
+  return m_fileName < txt;
 }
 
-GLuint LoadTexture(const char* filename) {
-  cout<<"loading texture "<<filename<<" ... ";
-  GLubyte HEADER[12];// = new GLubyte[12];
-  GLubyte UNCOMPRESSED[12] = {0,0,2,0,0,0,0,0,0,0,0,0};
-  FILE* TGAfile = fopen(filename, "rb");
-  if (TGAfile==NULL) {
-    cout<<"file not found, loading default.\n";
-    return LoadDefault();
-  }
-  fread(HEADER,12,1,TGAfile);
-  if (memcmp(HEADER, UNCOMPRESSED,12)!=0) { 
-    fclose(TGAfile);
-//     delete[] HEADER;
-    cout << "File "<< filename << " is not uncompressed RLE! Using default.\n";
-    return LoadDefault();
-  }
-  TGA tga;
-  fread(tga.header,6,1,TGAfile);
-  tga.width  = tga.header[1] * 256 + tga.header[0];
-  tga.height = tga.header[3] * 256 + tga.header[2];
-  tga.bpp = tga.header[4];
-  
-  if ((tga.width <= 0) || (tga.height <= 0) || (((tga.bpp != 24)) && (tga.bpp !=32))) {
-    fclose(TGAfile);
-    cout << "Texture file has invalid dimension or has invalid bit depth. Using default.\n";
-    return LoadDefault();    
-  }
-  
-  if (tga.bpp == 24) { tga.type = GL_RGB; }
-  else { tga.type = GL_RGBA; }
-  tga.bytesPerPixel = tga.bpp / 8;
-  tga.imageSize = tga.bytesPerPixel * tga.width * tga.height;
-  cout<<" "<<tga.width<<"x"<<tga.height<<":"<<tga.bpp<<"\n";
-  tga.data = new GLubyte[tga.imageSize];
-  fread(tga.data,tga.imageSize,1,TGAfile);
-  fclose(TGAfile);
-  GLubyte swap;
-//   for (GLuint x=0; x<tga.imageSize; x++) { printf("%X ", tga.data[x]); }
-  for(GLuint C = 0; C < tga.imageSize; C += tga.bytesPerPixel) {
-    swap = tga.data[C+2];
-    tga.data[C+2] = tga.data[C];
-    tga.data[C] = swap;
-    
-  }
-  
-  if (tga.bytesPerPixel==3) { tga.type = GL_RGB; }
-    else { tga.type = GL_RGBA; }
-  GLuint textureID;
-  glGenTextures(1, &textureID);
-  glBindTexture(GL_TEXTURE_2D, textureID);
-  setTextureFiltering(-1); 
-  gluBuild2DMipmaps( GL_TEXTURE_2D, tga.bytesPerPixel, tga.width, tga.height, tga.type, GL_UNSIGNED_BYTE, tga.data );
-  delete[] tga.data;  
-  
-  glBindTexture(GL_TEXTURE_2D, 0);
-  return textureID;
+bool Texture::operator>( const std::string& txt ) const {
+  return m_fileName > txt;
 }
 
-void DrawSprite(const GLuint &spriteID, const GLdouble &spriteSize) {
-  static GLfloat matrix[16];
-  glPushMatrix();
-    glMatrixMode(GL_PROJECTION);
-    glGetFloatv(GL_PROJECTION, matrix);
-    glLoadIdentity();
-    glOrtho(-1, 1, -1, 1, -1, 1);
-    glMatrixMode(GL_MODELVIEW);
-    glBindTexture(GL_TEXTURE_2D, spriteID);
-    glBegin(GL_QUADS);
-      glTexCoord2f(0, 1);
-      glVertex2d(-spriteSize, -spriteSize);
-      glTexCoord2f(1, 1);
-      glVertex2d(spriteSize, -spriteSize);
-      glTexCoord2f(1, 0);
-      glVertex2d(spriteSize, spriteSize);
-      glTexCoord2f(0, 0);
-      glVertex2d(-spriteSize, spriteSize);
-    glEnd();
-    glMatrixMode(GL_PROJECTION);
-    glLoadMatrixf(matrix); 
-    glMatrixMode(GL_MODELVIEW);
-  glPopMatrix();
+bool Texture::operator==( const std::string& txt ) const {
+  return m_fileName == txt;
 }
+
+
+
