@@ -14,8 +14,6 @@ bool Button::IsClicked( uint32_t x, uint32_t y ) {
 
 
 void Button::Draw() {
-    SHADER::pushMatrix();
-    SHADER::translate( m_x, m_y, 0 );
     if ( m_enabled ) {
         SHADER::setColor( 0, 0.75, 1, 1 );
     } else {
@@ -23,20 +21,18 @@ void Button::Draw() {
     }
     // TODO: reenable texture
 //     glBindTexture(GL_TEXTURE_2D, textureID);
-    if ( !m_bufferID ) {
-        m_bufferID = SHADER::getQuad( 0, 0, m_width, m_height );
+
+    SHADER::pushMatrix();
+    SHADER::translate( m_x, m_y, 0 );
+    if ( m_bufferID == 0 ) {
+        SetSize( m_width, m_height );
     }
     SHADER::draw( GL_TRIANGLES, m_bufferID, 6 );
-    // TODO: reenable font rendering
-#if 0
-    if (font!=NULL) { 
-      glColor4f(1.0f,1.0f,1.0f,1.0f);
-      glTranslated(width/2-text_length, 0, 0);
-      font->PrintTekst(0, height/2-font->GetMiddlePoint(), text.c_str()); 
-    }
-#endif
-    SHADER::popMatrix();
 
+    if ( m_font ) {
+      m_font->PrintTekst( m_width / 2 - m_text_length, m_height / 2 - m_font->GetMiddlePoint(), text );
+    }
+    SHADER::popMatrix();
 }
 
 void Button::MouseOver( uint32_t x, uint32_t y ) {};
