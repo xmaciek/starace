@@ -100,9 +100,9 @@ using namespace std;
       glMultMatrixf(matrix);
       
       model.Draw();
-      for (drawing_i=0; drawing_i<model.thrusters.size(); drawing_i++) { 
-        thruster->DrawAt(model.thrusters[drawing_i].x, model.thrusters[drawing_i].y, model.thrusters[drawing_i].z); 
-      }
+//       for (drawing_i=0; drawing_i<model.thrusters.size(); drawing_i++) { 
+//         thruster->DrawAt(model.thrusters[drawing_i].x, model.thrusters[drawing_i].y, model.thrusters[drawing_i].z); 
+//       }
     glPopMatrix();
     
     
@@ -295,14 +295,14 @@ using namespace std;
     bool Jet::IsShooting(GLuint WeaponNum) { return shooting[WeaponNum]; }
     void Jet::Shoot(GLuint WeaponNum, bool doit) { shooting[WeaponNum] = doit; }
     Vertex Jet::GetWeaponPoint(GLuint wID) { 
-      Vertex w = model.weapons[wID]; 
-      quaternion.RotateVector(w);
-      w = w + position;
-      return w;
+//       Vertex w = model.weapons[wID]; 
+//       quaternion.RotateVector(w);
+//       w = w + position;
+      return Vertex();
     }
     Bullet* Jet::GetWeaponType(GLuint wID) { 
       BulletProto tmp = Weapon[wID]; 
-      Vertex w = model.weapons[wID]; 
+      Vertex w;// = model.weapons[wID]; 
       quaternion.RotateVector(w);
       w = w + position;
       
@@ -337,9 +337,6 @@ using namespace std;
       shotfactor[wID] = 0;
     }
   
-    void Jet::DrawWireframe() {
-      model.DrawWireframe();
-    }
   
   
 void Jet::ProcessCollision(vector<Bullet*> &Bullets) {

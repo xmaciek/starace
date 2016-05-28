@@ -21,7 +21,6 @@ public:
   ~Jet();
   
   void Draw();
-  void DrawWireframe();
   void Update();
   void RollLeft(bool doit);
   void RollRight(bool doit);
