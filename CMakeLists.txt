@@ -10,7 +10,7 @@ find_package( SDL_mixer REQUIRED)
 find_package( SDL_ttf REQUIRED)
 find_package( OpenGL REQUIRED )
 
-add_compile_options( -Wall -O0 -g )
+add_compile_options( -Wall -O0 -g -std=c++11 )
 
 add_subdirectory( misc )
 add_subdirectory( models )
