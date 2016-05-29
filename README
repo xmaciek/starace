@@ -4,8 +4,7 @@ Although this game is made using OpenGL 2 specification, it was only due to my q
 Also in mid 2013 I suffered hard disk failure and I lost every further improvements like billboarding and sprites support. So I didn't do anything more with it.
 
 Now the roadmap for this project is:
-1: to port it to use cmake instead of custom compile script
-2: port away all OpenGL 2 into newer version or to Vulkan
+1: port away all OpenGL 2 into newer version or to Vulkan
 
 
 This project is under GNU GPLv3 license.
