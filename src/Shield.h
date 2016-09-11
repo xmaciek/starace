@@ -6,9 +6,7 @@
 
 class Shield {
 public:
-  Shield();
-  Shield(GLdouble RadiustA, GLdouble RadiustB);
-  ~Shield();
+  Shield( double radiustA, double radiustB );
   void Draw();
   void Update();
   void SetRadiust();
@@ -16,7 +14,7 @@ public:
   
 private:
   GLdouble rotangle, radiust;
-  Circle *circle;
+  Circle circle;
 };
 
 
