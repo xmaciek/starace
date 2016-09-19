@@ -6,15 +6,16 @@
 
 class Shield {
 public:
-  Shield( double radiustA, double radiustB );
-  void Draw();
-  void Update();
-  void SetRadiust();
-  GLdouble GetRadiust();
-  
+    Shield( double radiustA, double radiustB );
+    void Draw();
+    void Update();
+    void SetRadiust();
+    double GetRadiust() const;
+
 private:
-  GLdouble rotangle, radiust;
-  Circle circle;
+    double m_rotAngle, m_radiust;
+    static uint64_t s_segment;
+    Circle m_circle;
 };
 
 
