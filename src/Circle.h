@@ -1,28 +1,26 @@
-#ifndef SA_CIRCLE
-#define SA_CIRCLE
+#pragma once
+#include <cstdint>
+#include <vector>
+#include <utility>
 
-#include "SA.h"
 class Circle {
 public:
-  Circle();
-  Circle(GLuint Segments, GLdouble Radiust);
-  ~Circle();
-  GLdouble GetX(GLuint a);
-  GLdouble GetY(GLuint a);
-  void SetSegments(GLuint Segments);
-  void SetRadiust(GLdouble Radiust);
-  GLuint GetSegments();
-  GLdouble GetRadiust();
-  
+    Circle( uint64_t segs = 64, double rad = 1.0 );
+    inline double GetX( uint64_t i ) const { return m_coord[i].first; }
+    inline double GetY( uint64_t i ) const { return m_coord[i].second; }
+    inline double x( uint64_t i ) const { return m_coord[i].first; }
+    inline double y( uint64_t i ) const { return m_coord[i].second; }
+
+    inline uint64_t GetSegments() const { return m_coord.size(); }
+    inline double GetRadiust() const { return m_radiust; }
+    inline uint64_t segments() const { return m_coord.size(); }
+    inline double radiust() const { return m_radiust; }
+
+    void SetSegments( uint64_t segs );
+    void SetRadiust( double rads );
+
 private:
-   GLdouble DEGinRAD;
-   GLdouble radiust;
-   GLuint segments;
-   GLuint update_i, drawing_i;
-   std::vector<GLdouble> X, Y;
-   void init();
+   double m_radiust;
+   std::vector< std::pair<double, double> > m_coord;
+
 };
-
-
-
-#endif

@@ -1,50 +1,33 @@
 #include "Circle.h"
 
-void Circle::init() {
-  X.clear();
-  Y.clear();
-  GLdouble ANGLE = (360.0/segments) / 180.0 * PI;
-  for (GLubyte i=0; i<segments; i++) {
-    DEGinRAD = (i * ANGLE);
-    X.push_back((GLdouble)sin(DEGinRAD) * radiust);
-    Y.push_back((GLdouble)cos(DEGinRAD) * radiust);
-  }
+#include <cassert>
+#include <cmath>
+
+static void init( std::vector< std::pair<double, double> > *coord, uint64_t segs, double rads )
+{
+    assert( coord );
+    coord->clear();
+    const double angle = ( 360.0 / segs ) / ( 180.0 * atan( 1 ) * 4 );
+    for ( uint64_t i=0; i<segs; i++ ) {
+        const double deg = i * angle;
+        coord->push_back( std::make_pair( sin( deg ) * rads, cos( deg ) * rads ) );
+    }
 }
 
 
-Circle::Circle() {
-  radiust = 1.0;
-  segments = 32;
-  init();
+Circle::Circle( uint64_t segs, double rads ) :
+    m_radiust( rads )
+{
+    init( &m_coord, segs, rads );
 }
 
-Circle::Circle(GLuint Segments, GLdouble Radiust) {
-  radiust = Radiust;
-  segments = Segments;
-  init();   
+void Circle::SetSegments( uint64_t segs )
+{
+    init( &m_coord, segs, m_radiust );
 }
 
-Circle::~Circle() {}
-
-GLdouble Circle::GetX(GLuint a) {
-  if (a<segments) { return X[a]; }
-  return 0;
-}
-
-GLdouble Circle::GetY(GLuint a) {
-  if (a<segments) { return Y[a]; }
-  return 0;
-}
-
-GLuint Circle::GetSegments() { return segments; }
-GLdouble Circle::GetRadiust() { return radiust; }
-
-void Circle::SetSegments(GLuint Segments) {
-  segments = Segments;
-  init();
-}
-
-void Circle::SetRadiust(GLdouble Radiust) {
-  radiust = Radiust;
-  init();
+void Circle::SetRadiust( double rads )
+{
+    m_radiust = rads;
+    init( &m_coord, m_coord.size(), rads );
 }
