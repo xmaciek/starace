@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include <vector>
 #include <GL/glew.h>
 
 #define GLM_FORCE_RADIANS
@@ -27,6 +28,7 @@ public:
     static void setColor( double r,  double g,  double b,  double a );
     static void setColorArray( uint32_t index );
 
+    static uint64_t makeBuffer( const std::vector<double> &array );
     static uint32_t makeBuffer( const double* array, uint32_t size );
     static void deleteBuffer( uint32_t buffer );
 

@@ -239,6 +239,12 @@ void SHADER::setColorArray( uint32_t index ) {
     glVertexAttribPointer( ptr->colorArrayLocation, 4, GL_DOUBLE, GL_TRUE, 0, (void*)0 );
 }
 
+uint64_t SHADER::makeBuffer( const std::vector<double> &array )
+{
+    assert( !array.empty() );
+    return SHADER::makeBuffer( &array[0], array.size() );
+}
+
 uint32_t SHADER::makeBuffer( const double* array, uint32_t size ) {
     assert( array );
     uint32_t location = 0;
