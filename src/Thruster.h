@@ -1,27 +1,24 @@
-#ifndef SA_THRUSTER
-#define SA_THRUSTER
+#pragma once
 
-#include "SA.h"
 #include "Circle.h"
+#include <cstdint>
 
 class Thruster {
 public:
-  Thruster(GLdouble Length, GLdouble Radiust);
-  ~Thruster();
-//   void Draw();
-  void DrawAt(const GLdouble &X, const GLdouble &Y, const GLdouble &Z);
-  void Update();
-  void SetColor(GLuint Num, GLfloat* ColorData);
-  void SetLength(const GLdouble &newLength);
-  
+    Thruster( double length, double radiust );
+    void DrawAt( double x, double y, double z );
+    void Update();
+    void SetColor( uint64_t num, float* colorData );
+    void SetLength( double newLength );
+
 private:
-  GLdouble length, length_shorter, Len, radiust;
-  GLuint update_i, drawing_i;
-  GLfloat color[4][4];
-  Circle *inner, *outer;
-  
-  
+    uint64_t m_inner, m_outter;
+    uint64_t m_innerColor, m_outterColor;
+    uint64_t m_scaleSwitcher;
+    double m_scale, m_length;
+    double m_radiust;
+    float m_color[4][4];
+    Circle m_innerCircle, m_outterCircle;
+
+
 };
-
-
-#endif
