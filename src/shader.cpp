@@ -8,6 +8,8 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <stack>
+
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -17,7 +19,21 @@
 #define TEXTURE_COLOR 2
 
 
-SHADER* SHADER::ptr = 0;
+class ShaderPrivate {
+public:
+    ShaderPrivate();
+    uint32_t programID;
+    uint32_t vertexArrayID;
+    static ShaderPrivate* ptr;
+    std::stack<glm::mat4> modelMatrix, viewMatrix, projectionMatrix;
+
+    uint32_t modelMatrixLocation, viewMatrixLocation, projectionMatrixLocation;
+    uint32_t vertexLocation, vertexUVlocation;
+    uint32_t colorStanceLocation, colorValueLocation, colorArrayLocation;
+};
+
+
+ShaderPrivate* SHADER::ptr = 0;
 const double SHADER::deg2rad = atan( 1 ) * 4.0 / 180.0;
 
 static std::string getFileContent( const char fileName[] ) {
@@ -99,7 +115,7 @@ static uint32_t loadShaders( const char vertexShader[], const char fragmentShade
     return programID;
 }
 
-SHADER::SHADER() {
+ShaderPrivate::ShaderPrivate() {
     glGenVertexArrays( 1, &vertexArrayID );
     glBindVertexArray( vertexArrayID );
 
@@ -122,9 +138,6 @@ SHADER::SHADER() {
     projectionMatrix.push( glm::mat4( 1 ) );
 }
 
-SHADER::~SHADER() {
-}
-
 bool SHADER::init() {
     if ( !ptr ) {
         glewExperimental = true;
@@ -133,7 +146,7 @@ bool SHADER::init() {
             return false;
         }
 
-        ptr = new SHADER();
+        ptr = new ShaderPrivate();
         glEnableVertexAttribArray( ptr->vertexLocation );
         return true;
     }

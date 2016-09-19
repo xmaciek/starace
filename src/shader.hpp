@@ -1,15 +1,14 @@
 #pragma once
-
-#include <stack>
-
+#include <stdint.h>
 #include <GL/glew.h>
 
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 
+class ShaderPrivate;
+
 class SHADER {
 public:
-    ~SHADER();
     static bool init();
 
     static void pushMatrix();
@@ -39,19 +38,12 @@ public:
 
     static uint32_t getQuad( uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2 );
     static uint32_t getQuadTextureCoord( double x1, double y1, double x2, double y2 );
-    
+
 private:
     SHADER();
     SHADER( SHADER& );
     SHADER& operator=( SHADER& );
 
-    uint32_t programID;
-    uint32_t vertexArrayID;
-    static SHADER* ptr;
-    std::stack<glm::mat4> modelMatrix, viewMatrix, projectionMatrix;
-
-    uint32_t modelMatrixLocation, viewMatrixLocation, projectionMatrixLocation;
-    uint32_t vertexLocation, vertexUVlocation;
-    uint32_t colorStanceLocation, colorValueLocation, colorArrayLocation;
+    static ShaderPrivate* ptr;
 
 };
