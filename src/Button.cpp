@@ -6,10 +6,7 @@ bool Button::IsClicked( uint32_t x, uint32_t y ) {
     if ( !m_enabled ) {
         return false;
     }
-    if ( ( x >= m_x ) && ( x <= m_x + m_width ) && ( y >= m_y ) && ( y <= m_y + m_height ) ) {
-        return true;
-    }
-    return false;
+    return ( x >= m_x ) && ( x <= m_x + m_width ) && ( y >= m_y ) && ( y <= m_y + m_height );
 }
 
 
