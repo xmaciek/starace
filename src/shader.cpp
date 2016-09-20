@@ -180,12 +180,12 @@ void SHADER::translate( double x, double y, double z ) {
 
 void SHADER::rotate( double angle, bool x, bool y, bool z ) {
     assert( ptr );
-    rotateRad( angle * deg2rad, x, y, z );
+    rotateRad( glm::radians( angle ), x, y, z );
 }
 
-void SHADER::rotateRad( double angle, bool x, bool y, bool z ) {
+void SHADER::rotateRad( float angle, bool x, bool y, bool z ) {
     assert( ptr );
-    ptr->modelMatrix.top() = glm::rotate( ptr->modelMatrix.top(), (float)angle, glm::vec3( x, y, z ) );
+    ptr->modelMatrix.top() = glm::rotate( ptr->modelMatrix.top(), angle, glm::vec3( x, y, z ) );
     syncMatrix();
 }
 
@@ -239,7 +239,7 @@ void SHADER::setColorArray( uint32_t index ) {
     glVertexAttribPointer( ptr->colorArrayLocation, 4, GL_DOUBLE, GL_TRUE, 0, (void*)0 );
 }
 
-uint64_t SHADER::makeBuffer( const std::vector<double> &array )
+uint32_t SHADER::makeBuffer( const std::vector<double> &array )
 {
     assert( !array.empty() );
     return SHADER::makeBuffer( &array[0], array.size() );
@@ -275,24 +275,26 @@ void SHADER::draw( uint32_t type, uint32_t buffer, uint32_t size ) {
     glDrawArrays( type, 0, size );
 }
 
-uint32_t SHADER::getQuad( uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2 ) {
-    double arr[18] = { 0 };
-    arr[0] = x1; arr[1] = y1;
-    arr[3] = x2; arr[4] = y1;
-    arr[6] = x2; arr[7] = y2;
-    arr[9] = x1; arr[10] = y1;
-    arr[12] = x2; arr[13] = y2;
-    arr[15] = x1; arr[16] = y2;
-    return SHADER::makeBuffer( arr, 18 );
+uint32_t SHADER::getQuad( double x1, double y1, double x2, double y2 ) {
+    std::vector<double> arr;
+    arr.push_back( x1 ); arr.push_back( y1 ); arr.push_back( 0 );
+    arr.push_back( x2 ); arr.push_back( y1 ); arr.push_back( 0 );
+    arr.push_back( x2 ); arr.push_back( y2 ); arr.push_back( 0 );
+
+    arr.push_back( x2 ); arr.push_back( y2 ); arr.push_back( 0 );
+    arr.push_back( x1 ); arr.push_back( y2 ); arr.push_back( 0 );
+    arr.push_back( x1 ); arr.push_back( y1 ); arr.push_back( 0 );
+    return SHADER::makeBuffer( arr );
 }
 
 uint32_t SHADER::getQuadTextureCoord( double x1, double y1, double x2, double y2 ) {
-    double arr[12];
-    arr[0] = x1; arr[1] = y1;
-    arr[2] = x2; arr[3] = y1;
-    arr[4] = x2; arr[5] = y2;
-    arr[5] = x1; arr[7] = y1;
-    arr[8] = x2; arr[9] = y2;
-    arr[10] = x1; arr[11] = y2;
-    return SHADER::makeBuffer( arr, 12 );
+    std::vector<double> arr;
+    arr.push_back( x1 ); arr.push_back( y1 );
+    arr.push_back( x2 ); arr.push_back( y1 );
+    arr.push_back( x2 ); arr.push_back( y2 );
+
+    arr.push_back( x2 ); arr.push_back( y2 );
+    arr.push_back( x1 ); arr.push_back( y2 );
+    arr.push_back( x1 ); arr.push_back( y1 );
+    return SHADER::makeBuffer( arr );
 }
