@@ -32,7 +32,7 @@ void Texture::erase() {
 
 static uint32_t pow2( uint32_t a ) {
     uint32_t r = 4;
-    while ( r < a ) { r *= 2; }
+    while ( r <= a ) { r *= 2; }
     return r;
 }
 
@@ -43,20 +43,20 @@ void Texture::fromData( uint8_t* data, uint32_t w, uint32_t h, uint32_t b, uint3
     m_owidth = w;
     m_height = h;
     m_oheight = h;
-    m_width = pow2( m_width );
-    m_height = pow2( m_height );
+//     m_width = pow2( m_width );
+//     m_height = pow2( m_height );
     m_bpp = b;
-    if ( m_oheight != m_height || m_owidth != m_width ) {
-        m_resized = true;
-        uint8_t* newData = new uint8_t[ m_width * m_height * m_bpp ];
-        uint8_t* oldData = data;
-        memset( newData, 0, m_width * m_height * m_bpp );
-        for ( uint32_t i = 0; i < m_oheight; i++ ) {
-            memcpy( newData + ( i * m_width * m_bpp ), oldData + ( i * m_owidth * m_bpp), m_bpp * m_owidth );
-        }
-        data = newData;
-        delete[] oldData;
-    }
+//     if ( m_oheight != m_height || m_owidth != m_width ) {
+//         m_resized = true;
+//         uint8_t* newData = new uint8_t[ m_width * m_height * m_bpp ];
+//         uint8_t* oldData = data;
+//         memset( newData, 0, m_width * m_height * m_bpp );
+//         for ( uint32_t i = 0; i < m_oheight; i++ ) {
+//             memcpy( newData + ( i * m_width * m_bpp ), oldData + ( i * m_owidth * m_bpp), m_bpp * m_owidth );
+//         }
+//         data = newData;
+//         delete[] oldData;
+//     }
 
     m_type = t;
     glGenTextures( 1, &m_ID );
