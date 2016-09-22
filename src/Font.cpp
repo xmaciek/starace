@@ -90,7 +90,9 @@ uint32_t Font::GetTextLength( const std::string& text ) const {
     return length;
 }
 
-void Font::PrintTekst( double x, double y, const std::string& text ) const {
+void Font::PrintTekst( double x, double y, const std::string& text ) const
+{
+    SHADER::pushMatrix();
     SHADER::translate( x, y, 0 );
     std::string::const_iterator it = text.begin();
     while ( it != text.end() ) {
@@ -103,6 +105,7 @@ void Font::PrintTekst( double x, double y, const std::string& text ) const {
         }
         it++;
     }
+    SHADER::popMatrix();
 }
 
 
