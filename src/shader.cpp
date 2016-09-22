@@ -159,6 +159,7 @@ void SHADER::pushMatrix() {
     ptr->modelMatrix.push( ptr->modelMatrix.top() );
     ptr->viewMatrix.push( ptr->viewMatrix.top() );
     ptr->projectionMatrix.push( ptr->projectionMatrix.top() );
+    syncMatrix();
 }
 
 void SHADER::popMatrix() {
