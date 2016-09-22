@@ -106,9 +106,6 @@ Road::Road() {
     if (Radar!=NULL) { delete Radar; }
     glDeleteTextures(1, &HUDtex);
     glDeleteTextures(1, &ButtonTexture);
-    glDeleteTextures(1, &menu_background);
-    glDeleteTextures(1, &menu_background_overlay);
-    glDeleteTextures(1, &starfield_texture);
     for (GLuint i=0; i<maps_container.size(); i++) {
       glDeleteTextures(1, &maps_container.at(i).preview_image);
     }
@@ -360,12 +357,10 @@ void Road::OnResize(GLint w, GLint h) {
     TimePassed = time(NULL);
     HUDtex = LoadTexture("textures/HUDtex.tga");
 
-    menu_background = LoadTexture("textures/background.tga");
-    menu_background_overlay = LoadTexture("textures/background-overlay.tga");
-    starfield_texture = LoadTexture("textures/star_field_transparent.tga");
-    alpha_value = 1;
-    background_effect_equation = false;
-    
+    m_menuBackground.load( "textures/background.tga" );
+    m_menuBackgroundOverlay.load( "textures/background-overlay.tga" );
+    m_menuBackgroundStarField.load( "textures/star_field_transparent.tga" );
+
     speed_fan_ring = new Circle(32, 26);
 
     m_ringTextureA.load( "textures/cyber_ring1.tga" );
@@ -793,12 +788,10 @@ void Road::OnResize(GLint w, GLint h) {
     
   }
 
-  void Road::UpdateMainMenu() {
-
-    UpdateClouds();
+void Road::UpdateMainMenu()
+{
     UpdateCyberRings();
-    
-  }
+}
 
   
   void Road::GameScreenBriefingUpdate() {
@@ -1064,14 +1057,6 @@ void Road::SaveConfig() {
   cout<<"done.\n";
 }
 
-void Road::UpdateClouds() {
-  if (background_effect_equation) { alpha_value += 0.1*DELTATIME; }
-    else { alpha_value -= 0.1*DELTATIME; }
-    
-  if (alpha_value>=1) { background_effect_equation = false; }
-  if (alpha_value<=0.2) { background_effect_equation = true; }
-}
-
 void Road::SetOrtho() {
   SHADER::setOrtho( 0, SCREEN_WIDTH, 0, SCREEN_HEIGHT, -192, 192 );
 }
@@ -1085,7 +1070,6 @@ void Road::SetPerspective(const GLdouble &Angle) {
 }
 
 void Road::UpdateCustomize() {
-  UpdateClouds();
   UpdateCyberRings();
   model_rotation += 30.0*DELTATIME;
   if (model_rotation>=360.0) { model_rotation-= 360.0; }
@@ -1098,8 +1082,8 @@ void Road::PlaySound(Mix_Chunk *sound) {
   }
 }
 
-void Road::WinUpdate() {
-//   UpdateClouds();
+void Road::WinUpdate()
+{
   UpdateCyberRings();
 }
 

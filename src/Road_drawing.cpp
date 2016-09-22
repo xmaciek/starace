@@ -473,38 +473,27 @@ void Road::DrawCyberRingsMini()
   }
   
 void Road::DrawClouds() {
-  glEnable(GL_BLEND);
-  glEnable(GL_TEXTURE_2D);
-  SHADER::pushMatrix();
-    glBindTexture(GL_TEXTURE_2D, menu_background);
-    glBegin(GL_QUADS);
-      SHADER::setColor(0.1f, 0.4f, 0.9f, 1);
-      glTexCoord2f(0,0); glVertex2d(0, 0);
-      SHADER::setColor(0.9f, 0.4f, 0.1f, 1);
-      glTexCoord2f(1,0); glVertex2d(SCREEN_WIDTH, 0);
-      SHADER::setColor(0.1f, 0.9f, 0.4f, 1);
-      glTexCoord2f(1,1); glVertex2d(SCREEN_WIDTH, SCREEN_HEIGHT);
-      SHADER::setColor(0.4f, 0.1f, 0.9f, 1);
-      glTexCoord2f(0,1); glVertex2d(0, SCREEN_HEIGHT);
-    glEnd();   
-    glBindTexture(GL_TEXTURE_2D, menu_background_overlay);
-    SHADER::setColor(1, 1, 1, alpha_value);
-    glBegin(GL_QUADS);
-      glTexCoord2f(0,0); glVertex2d(0, 0);
-      glTexCoord2f(1,0); glVertex2d(SCREEN_WIDTH, 0);
-      glTexCoord2f(1,1); glVertex2d(SCREEN_WIDTH, SCREEN_HEIGHT);
-      glTexCoord2f(0,1); glVertex2d(0, SCREEN_HEIGHT);
-    glEnd();   
-          
-    glBindTexture(GL_TEXTURE_2D, starfield_texture);
-    SHADER::setColor(1, 1, 1, alpha_value);
-    glBegin(GL_QUADS);
-      glTexCoord2f(0,0); glVertex2d(0, 0);
-      glTexCoord2f(1,0); glVertex2d(max_dimention, 0);
-      glTexCoord2f(1,1); glVertex2d(max_dimention, max_dimention);
-      glTexCoord2f(0,1); glVertex2d(0, max_dimention);
-    glEnd(); 
-  SHADER::popMatrix();
+    SHADER::pushMatrix();
+
+    const double wr = 0.5 * SCREEN_WIDTH / max_dimention;
+    const double hr = 0.5 * SCREEN_HEIGHT / max_dimention;
+    SHADER::setOrtho( -wr, wr, -hr, hr );
+
+    static const uint32_t quad = SHADER::getQuad( -0.5, -0.5, 0.5, 0.5 );
+    static const uint32_t quadCoord = SHADER::getQuadTextureCoord( 0, 0, 1, 1 );
+
+    SHADER::setTextureCoord( quadCoord );
+
+    m_menuBackground.use();
+    SHADER::draw( GL_TRIANGLES, quad, 6 );
+
+    m_menuBackgroundOverlay.use();
+    SHADER::draw( GL_TRIANGLES, quad, 6 );
+
+    m_menuBackgroundStarField.use();
+    SHADER::draw( GL_TRIANGLES, quad, 6 );
+
+    SHADER::popMatrix();
 }
   
   void Road::WinScreen() {

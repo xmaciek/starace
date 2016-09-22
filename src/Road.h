@@ -129,11 +129,8 @@ private:
   
   GLint max_dimention, min_dimention;
   
-  GLuint menu_background, menu_background_overlay;
-  GLfloat alpha_value;
-  bool background_effect_equation;
-
-  GLuint starfield_texture;
+    Texture m_menuBackground, m_menuBackgroundOverlay;
+    Texture m_menuBackgroundStarField;
   
     Texture m_ringTextureA, m_ringTextureB, m_ringTextureC;
   GLdouble cyber_ring_rotation[3];
