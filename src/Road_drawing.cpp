@@ -439,39 +439,21 @@ void Road::DrawCyberRingsMini()
   }
  
  
-  void Road::DrawMainMenu() {
+void Road::DrawMainMenu() {
     SHADER::pushMatrix();
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_FOG);
-    glEnable(GL_BLEND);
-    glEnable(GL_TEXTURE_2D);
-    glClear(GL_COLOR_BUFFER_BIT| GL_DEPTH_BUFFER_BIT);
-    SetOrtho();
-    
+    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
     DrawClouds();
     DrawCyberRings();
-        
-        glBindTexture(GL_TEXTURE_2D, HUDtex);
-        SHADER::setColor(0.1f, 0.4f, 0.9f, 0.8f);
-        glBegin(GL_QUADS);
-          glTexCoord2f(0,0); glVertex2d(0, 0);
-          glTexCoord2f(1,0); glVertex2d(SCREEN_WIDTH, 0);
-          glTexCoord2f(1,1); glVertex2d(SCREEN_WIDTH, SCREEN_HEIGHT);
-          glTexCoord2f(0,1); glVertex2d(0, SCREEN_HEIGHT);
-        glEnd();   
-        
-        
-        btnSelectMission.Draw();
-        btnExit.Draw();
-        btnCustomize.Draw();
-   
-      
-      
+
+    SHADER::setOrtho( 0, SCREEN_WIDTH, 0, SCREEN_HEIGHT );
+    btnSelectMission.Draw();
+    btnExit.Draw();
+    btnCustomize.Draw();
+
     SHADER::popMatrix();
-    
-    
-  }
-  
+}
+
 void Road::DrawClouds() {
     SHADER::pushMatrix();
 
