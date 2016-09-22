@@ -8,6 +8,8 @@
 
 class ShaderPrivate;
 
+struct Axis { enum Enum { X, Y, Z }; };
+
 class SHADER {
 public:
     static bool init();
@@ -20,6 +22,7 @@ public:
 
 
     static const double deg2rad;
+    static void rotate( double angle, Axis::Enum axis );
     static void rotate( double angle, bool x, bool y, bool z );
     static void rotateRad( float angle, bool x, bool y, bool z );
     static void translate( double x, double y, double z );

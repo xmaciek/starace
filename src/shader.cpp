@@ -177,9 +177,11 @@ void SHADER::translate( double x, double y, double z ) {
     syncMatrix();
 }
 
+void SHADER::rotate( double angle, Axis::Enum axis ) {
+    rotate( angle, axis == Axis::X, axis == Axis::Y, axis == Axis::Z );
+}
 
 void SHADER::rotate( double angle, bool x, bool y, bool z ) {
-    assert( ptr );
     rotateRad( glm::radians( angle ), x, y, z );
 }
 
