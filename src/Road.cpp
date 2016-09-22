@@ -108,7 +108,6 @@ Road::Road() {
     glDeleteTextures(1, &ButtonTexture);
     glDeleteTextures(1, &menu_background);
     glDeleteTextures(1, &menu_background_overlay);
-    glDeleteTextures(3, cyber_ring_texture);
     glDeleteTextures(1, &starfield_texture);
     for (GLuint i=0; i<maps_container.size(); i++) {
       glDeleteTextures(1, &maps_container.at(i).preview_image);
@@ -368,11 +367,10 @@ void Road::OnResize(GLint w, GLint h) {
     background_effect_equation = false;
     
     speed_fan_ring = new Circle(32, 26);
-    
-    cyber_ring_texture[0] = LoadTexture("textures/cyber_ring1.tga");
-    cyber_ring_texture[1] = LoadTexture("textures/cyber_ring2.tga");
-    cyber_ring_texture[2] = LoadTexture("textures/cyber_ring3.tga");
-//     cyber_ring_texture[3] = LoadTexture("textures/cyber_ring4.tga");
+
+    m_ringTextureA.load( "textures/cyber_ring1.tga" );
+    m_ringTextureB.load( "textures/cyber_ring2.tga" );
+    m_ringTextureC.load( "textures/cyber_ring3.tga" );
     cyber_ring_rotation[0] = 0;
     cyber_ring_rotation[1] = 0;
     cyber_ring_rotation[2] = 0;

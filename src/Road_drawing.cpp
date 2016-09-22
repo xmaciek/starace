@@ -114,71 +114,70 @@
     SHADER::popMatrix();
   }
 
-  
-  
-  void Road::DrawCyberRings() {
+void Road::DrawCyberRings()
+{
     SHADER::pushMatrix();
-    SHADER::translate(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 0);
-    for (drawing_i=0; drawing_i<3; drawing_i++) {
+
+    const double wr = 0.5 * SCREEN_WIDTH / max_dimention;
+    const double hr = 0.5 * SCREEN_HEIGHT / max_dimention;
+    SHADER::setOrtho( -wr, wr, -hr, hr );
+
+    static const uint32_t ring = SHADER::getQuad( -0.5, -0.5, 0.5, 0.5 );
+    static const uint32_t ringCoord = SHADER::getQuadTextureCoord( 0, 0, 1, 1 );
+
+    SHADER::setTextureCoord( ringCoord );
+
     SHADER::pushMatrix();
-      glBindTexture(GL_TEXTURE_2D, cyber_ring_texture[drawing_i]);
-      glColor4fv(cyber_ring_color[drawing_i]);
-      SHADER::rotate(cyber_ring_rotation[drawing_i],0,0,1);
-      SHADER::translate(max_dimention*-0.5, max_dimention*-0.5, 0);
-      glBegin(GL_QUADS);
-        glTexCoord2f(1,1); glVertex2d(max_dimention, max_dimention);
-        glTexCoord2f(0,1); glVertex2d(0, max_dimention);
-        glTexCoord2f(0,0); glVertex2d(0, 0);
-        glTexCoord2f(1,0); glVertex2d(max_dimention, 0);
-      glEnd();   
+        m_ringTextureA.use();
+        SHADER::rotate( cyber_ring_rotation[0], 0, 0, 1 );
+        SHADER::draw( GL_TRIANGLES, ring, 6 );
     SHADER::popMatrix();
-    }/*
+
     SHADER::pushMatrix();
-      glBindTexture(GL_TEXTURE_2D, cyber_ring_texture[3]);
-      glColor4fv(cyber_ring_color[3]);
-      SHADER::rotate(60,1,0,0);
-      SHADER::rotate(cyber_ring_rotation[3],0,0,1);
-      SHADER::translate(max_dimention*-0.5, max_dimention*-0.5, 0);
-      glBegin(GL_QUADS);
-        glTexCoord2f(1,1); glVertex2d(max_dimention, max_dimention);
-        glTexCoord2f(0,1); glVertex2d(0, max_dimention);
-        glTexCoord2f(0,0); glVertex2d(0, 0);
-        glTexCoord2f(1,0); glVertex2d(max_dimention, 0);
-      glEnd();   
-    SHADER::popMatrix();*/
-    
-    
+        m_ringTextureB.use();
+        SHADER::rotate( cyber_ring_rotation[1], 0, 0, 1 );
+        SHADER::draw( GL_TRIANGLES, ring, 6 );
     SHADER::popMatrix();
-    
-    
-  }
-  
-    void Road::DrawCyberRingsMini() {
+
     SHADER::pushMatrix();
-    SHADER::translate(SCREEN_WIDTH/2, SCREEN_HEIGHT/2-8, 0);
-    for (drawing_i=0; drawing_i<3; drawing_i++) {
+        m_ringTextureC.use();
+        SHADER::rotate( cyber_ring_rotation[2], 0, 0, 1 );
+        SHADER::draw( GL_TRIANGLES, ring, 6 );
+    SHADER::popMatrix();
+
+    SHADER::popMatrix();
+}
+
+void Road::DrawCyberRingsMini()
+{
     SHADER::pushMatrix();
-      glEnable(GL_TEXTURE_2D);
-      glEnable(GL_BLEND);
-      glBindTexture(GL_TEXTURE_2D, cyber_ring_texture[drawing_i]);
-      SHADER::setColor(HUD_Color_4fv[HUD_Color][0], HUD_Color_4fv[HUD_Color][1], HUD_Color_4fv[HUD_Color][2], cyber_ring_color[drawing_i][3]);
-      SHADER::rotate(cyber_ring_rotation[drawing_i],0,0,1);
-      glBegin(GL_QUADS);
-        glTexCoord2f(1,1); glVertex2d(32, 32);
-        glTexCoord2f(0,1); glVertex2d(-32, 32);
-        glTexCoord2f(0,0); glVertex2d(-32, -32);
-        glTexCoord2f(1,0); glVertex2d(32, -32);
-      glEnd();   
-      glDisable(GL_TEXTURE_2D);
-      glDisable(GL_BLEND);
+    SHADER::translate( SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 0 );
+    static const uint32_t ring = SHADER::getQuad( -32, -32, 32, 32 );
+    static const uint32_t ringCoord = SHADER::getQuadTextureCoord( 0, 0, 1, 1 );
+
+    SHADER::setTextureCoord( ringCoord );
+
+    SHADER::pushMatrix();
+        m_ringTextureA.use();
+        SHADER::rotate( cyber_ring_rotation[0], 0, 0, 1 );
+        SHADER::draw( GL_TRIANGLES, ring, 6 );
     SHADER::popMatrix();
-    }  
+
+    SHADER::pushMatrix();
+        m_ringTextureB.use();
+        SHADER::rotate( cyber_ring_rotation[1], 0, 0, 1 );
+        SHADER::draw( GL_TRIANGLES, ring, 6 );
     SHADER::popMatrix();
-  }
-  
-  
-  
-  
+
+    SHADER::pushMatrix();
+        m_ringTextureC.use();
+        SHADER::rotate( cyber_ring_rotation[2], 0, 0, 1 );
+        SHADER::draw( GL_TRIANGLES, ring, 6 );
+    SHADER::popMatrix();
+
+    SHADER::popMatrix();
+}
+
   void Road::DrawHUDBar(const GLuint &X, const GLuint &Y, const GLuint &W, const GLuint &H, const GLuint &Current, const GLuint &Max) {
     SHADER::pushMatrix();
       SHADER::translate(X,Y,0);

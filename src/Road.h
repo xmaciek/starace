@@ -135,7 +135,7 @@ private:
 
   GLuint starfield_texture;
   
-  GLuint cyber_ring_texture[3];
+    Texture m_ringTextureA, m_ringTextureB, m_ringTextureC;
   GLdouble cyber_ring_rotation[3];
   GLfloat cyber_ring_color[3][4];
   bool cyber_ring_rotation_direction[3];
