@@ -7,10 +7,10 @@ static void init( std::vector< std::pair<double, double> > *coord, uint64_t segs
 {
     assert( coord );
     coord->clear();
-    const double angle = ( 360.0 / segs ) / ( 180.0 * atan( 1 ) * 4 );
+    const double angle = ( 360.0 / segs ) * ( atan( 1 ) * 4 / 180);
     for ( uint64_t i=0; i<segs; i++ ) {
         const double deg = i * angle;
-        coord->push_back( std::make_pair( sin( deg ) * rads, cos( deg ) * rads ) );
+        coord->push_back( std::make_pair( cos( deg ) * rads, sin( deg ) * rads ) );
     }
 }
 
