@@ -612,37 +612,29 @@ void Road::DrawClouds() {
  
  
 void Road::ScreenCustomize() {
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  SetOrtho();
-  DrawClouds();
-  DrawCyberRings();
-  glBindTexture(GL_TEXTURE_2D, HUDtex);
-  glBegin(GL_QUADS);
-    glColor3f(0,0.75,1);
-    glTexCoord2f(0,0); glVertex2d(0, 0);
-    glTexCoord2f(1,0); glVertex2d(SCREEN_WIDTH, 0);
-    glTexCoord2f(1,1); glVertex2d(SCREEN_WIDTH, SCREEN_HEIGHT);
-    glTexCoord2f(0,1); glVertex2d(0, SCREEN_HEIGHT);
-  glEnd();
-  glColor3f(1,1,1);
-  font_big->PrintTekst(SCREEN_WIDTH/2-font_big->GetTextLength(jets_container.at(current_jet).name.c_str())/2, 
-			     SCREEN_HEIGHT-64, jets_container.at(current_jet).name.c_str());
-  SetPerspective(angle);
-  SHADER::pushMatrix();
-    SHADER::translate(0,-0.1,-1.25);
-    SHADER::rotate(15,1,0,0);
-    SHADER::rotate(model_rotation, 0, 1, 0);
-    glEnable(GL_DEPTH_TEST);
-    preview_model.Draw();
-    glDisable(GL_DEPTH_TEST);
-  SHADER::popMatrix();
-  SetOrtho();
-  btnNextJet.Draw();
-  btnPrevJet.Draw();
-  btnCustomizeReturn.Draw();
-  btnWeap1.Draw();
-  btnWeap2.Draw();
-  btnWeap3.Draw();
+    SHADER::pushMatrix();
+    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+    DrawClouds();
+    DrawCyberRings();
+    SetOrtho();
+    font_big->PrintTekst( SCREEN_WIDTH / 2 - font_big->GetTextLength( jets_container.at( current_jet ).name.c_str() ) / 2,
+                          SCREEN_HEIGHT - 64, jets_container.at( current_jet ).name.c_str() );
+
+    SHADER::pushMatrix();
+        SetPerspective( angle );
+        SHADER::translate( 0, -0.1, -1.25 );
+        SHADER::rotate( 15, Axis::X );
+        SHADER::rotate( model_rotation, Axis::Y );
+        preview_model.Draw();
+    SHADER::popMatrix();
+//     SetOrtho();
+    btnNextJet.Draw();
+    btnPrevJet.Draw();
+    btnCustomizeReturn.Draw();
+    btnWeap1.Draw();
+    btnWeap2.Draw();
+    btnWeap3.Draw();
+    SHADER::popMatrix();
 }
  
  

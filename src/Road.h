@@ -225,7 +225,7 @@ private:
   void DrawMainMenu();
   
   void SetOrtho();
-  void SetPerspective(const GLdouble &Angle);
+  void SetPerspective( double angle );
     
 };
 

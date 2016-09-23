@@ -732,7 +732,7 @@ void Road::OnResize(GLint w, GLint h) {
 	  btnPrevJet.Enable();
 	  preview_model.Load_OBJ(jets_container.at(current_jet).model_file.c_str());
 	  preview_model.CalculateNormal();
-	  preview_model.BindTexture(LoadTexture(jets_container.at(current_jet).model_texture.c_str()));
+	  preview_model.setTexture( jets_container.at( current_jet ).model_texture );
 	  break;
 	}
 	if (btnPrevJet.IsClicked(X, Y)) { 
@@ -742,7 +742,7 @@ void Road::OnResize(GLint w, GLint h) {
 	  if (jets_container.size()>1) { btnNextJet.Enable(); }
 	  preview_model.Load_OBJ(jets_container.at(current_jet).model_file.c_str());
 	  preview_model.CalculateNormal();
-	  preview_model.BindTexture(LoadTexture(jets_container.at(current_jet).model_texture.c_str()));
+	  preview_model.setTexture( jets_container.at( current_jet ).model_texture );
 	  break;
 	}
 	if (btnCustomizeReturn.IsClicked(X, Y)) {
@@ -885,7 +885,7 @@ void Road::ChangeScreen(GLubyte SCR) {
       cout<<current_jet<<" "<<jets_container.size()<<"\n";
       cout<<jets_container.at(current_jet).name.c_str()<<"\n";
       preview_model.Load_OBJ(jets_container.at(current_jet).model_file.c_str());
-      preview_model.BindTexture(LoadTexture(jets_container.at(current_jet).model_texture.c_str()));
+      preview_model.setTexture( jets_container.at( current_jet ).model_texture );
       preview_model.CalculateNormal();
       SCREEN = SCR; 
       break;
@@ -1057,16 +1057,14 @@ void Road::SaveConfig() {
   cout<<"done.\n";
 }
 
-void Road::SetOrtho() {
-  SHADER::setOrtho( 0, SCREEN_WIDTH, 0, SCREEN_HEIGHT, -192, 192 );
+void Road::SetOrtho()
+{
+  SHADER::setOrtho( 0, SCREEN_WIDTH, 0, SCREEN_HEIGHT );
 }
 
-void Road::SetPerspective(const GLdouble &Angle) {
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  gluPerspective(Angle, (GLdouble)SCREEN_WIDTH/(GLdouble)SCREEN_HEIGHT, 0.001, 2000);
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
+void Road::SetPerspective( double angle )
+{
+    SHADER::setPerspective( angle, (double)SCREEN_WIDTH / SCREEN_HEIGHT, 0.001, 2000 );
 }
 
 void Road::UpdateCustomize() {
