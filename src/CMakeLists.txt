@@ -12,6 +12,7 @@ set( STARACE_HEADERS
     Road.h
     SA.h
     SAObject.h
+    settings.hpp
     shader.hpp
     Shield.h
     Texture.h
@@ -33,6 +34,7 @@ set( STARACE_SOURCES
     Road_drawing.cpp
     Road_keyboard.cpp
     SAObject.cpp
+    settings.cpp
     shader.cpp
     Shield.cpp
     Texture.cpp
