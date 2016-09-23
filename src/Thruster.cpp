@@ -13,7 +13,7 @@ Thruster::Thruster( double length, double radiust ) :
     m_scale( 1.0 ),
     m_length( length ),
     m_radiust( radiust ),
-    m_innerCircle( 32, radiust * 0.6 ),
+    m_innerCircle( 32, radiust * 0.4 ),
     m_outterCircle( 32, radiust )
 {
 }
@@ -76,11 +76,13 @@ void Thruster::DrawAt( double x, double y, double z ) {
     if ( !m_inner ) { m_inner = coneForCircle( m_innerCircle ); }
     if ( !m_outter ) { m_outter = coneForCircle( m_outterCircle ); }
     SHADER::pushMatrix();
+        glEnable( GL_DEPTH_TEST );
         SHADER::translate( x, y, z );
         SHADER::scale( 1.0, 1.0, m_scale );
         SHADER::setColorArray( m_innerColor );
         SHADER::draw( GL_TRIANGLE_FAN, m_inner, m_innerCircle.segments() + 2 );
         SHADER::setColorArray( m_outterColor );
         SHADER::draw( GL_TRIANGLE_FAN, m_outter, m_outterCircle.segments() + 2 );
+        glDisable( GL_DEPTH_TEST );
     SHADER::popMatrix();
 }
