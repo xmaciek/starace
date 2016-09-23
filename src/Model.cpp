@@ -119,6 +119,8 @@ void Model::Load_OBJ( const std::string& fileName ) {
     std::vector<uint32_t> verticesMap;
     std::vector<double> uv;
     std::vector<uint32_t> uvMap;
+    m_weaponBanks.clear();
+    m_thrusterBanks.clear();
 
     FileSection::Enum fileSection = FileSection::Unknown;
 
