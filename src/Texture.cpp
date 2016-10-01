@@ -21,8 +21,14 @@ Texture::Texture() :
 {
 }
 
-void Texture::use() const {
-  glBindTexture( GL_TEXTURE_2D, m_ID );
+Texture::operator Material () const
+{
+    return Material( m_ID, Material::Texture );
+}
+
+void Texture::use() const
+{
+    SHADER::setMaterial( *this );
 }
 
 void Texture::erase() {

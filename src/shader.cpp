@@ -225,6 +225,28 @@ void SHADER::multMatrix( const float* matrix ) {
     syncMatrix();
 }
 
+static void bindTexture( uint32_t texture, uint32_t id )
+{
+    glActiveTexture( texture );
+    glBindTexture( GL_TEXTURE_2D, id );
+}
+
+void SHADER::setMaterial( const Material& material )
+{
+    assert( ptr );
+    assert( material );
+    switch ( material.m_type ) {
+        case Material::Unknown:
+            assert( !"Unknown material type" );
+            return;
+        case Material::MultiColor:
+            setColorArray( material.m_id );
+            break;
+        case Material::Texture:
+            bindTexture( GL_TEXTURE0, material.m_id );
+            break;
+    }
+}
 
 void SHADER::setColor( double r, double g, double b, double a ) {
     assert( ptr );
@@ -240,6 +262,11 @@ void SHADER::setColorArray( uint32_t index ) {
     glUniform1i( ptr->colorStanceLocation, ARRAY_COLOR );
     glBindBuffer( GL_ARRAY_BUFFER, index );
     glVertexAttribPointer( ptr->colorArrayLocation, 4, GL_DOUBLE, GL_TRUE, 0, (void*)0 );
+}
+
+Buffer SHADER::makeBuffer( const std::vector<double> &array, Buffer::Type type )
+{
+    return Buffer( makeBuffer( array ), type, array.size() / 3 );
 }
 
 uint32_t SHADER::makeBuffer( const std::vector<double> &array )
@@ -272,6 +299,7 @@ void SHADER::setTextureCoord( uint32_t buffer ) {
 
 void SHADER::drawBuffer( const Buffer &buffer )
 {
+    assert( buffer );
     draw( buffer.m_type, buffer.m_id, buffer.m_verticesCount );
 }
 

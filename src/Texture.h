@@ -15,6 +15,7 @@
 #define FILTERING_ANISOTROPIC_X16 7
 #define LoadTexture( x ) 0
 
+#include "material.hpp"
 
 class Texture {
 //private:
@@ -33,6 +34,9 @@ public:
     void erase();
     void load( const std::string& src );
     void fromData( uint8_t* data, uint32_t w, uint32_t h, uint32_t b, uint32_t t );
+
+    inline operator bool () const { return m_ID; }
+    operator Material () const;
 
     bool operator<( const std::string& txt ) const;
     bool operator>( const std::string& txt ) const;
