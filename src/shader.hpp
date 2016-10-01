@@ -41,8 +41,8 @@ public:
 
     static void setTextureCoord( uint32_t buffer );
     static void draw( uint32_t type, uint32_t buffer, uint32_t size );
-    static void drawBuffer( const Buffer &b );
-    static void setMaterial( const Material &m );
+    static void drawBuffer( const Buffer& b );
+    static void setMaterial( const Material& m );
 
     static void setOrtho( double minX,  double maxX,  double minY,  double maxY,  double minZ = -1.0,  double maxZ = 1.0 );
     static void setPerspective( double fovY, double ratio, double min, double max );

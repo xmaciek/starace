@@ -255,6 +255,7 @@ void SHADER::setColor( double r, double g, double b, double a ) {
     glUniform1i( ptr->colorStanceLocation, SINGLE_COLOR );
     glUniform4f( ptr->colorValueLocation, (float)r, (float)g, (float)b, (float)a );
 }
+
 void SHADER::setColorArray( uint32_t index ) {
     assert( ptr );
     glDisableVertexAttribArray( ptr->vertexUVlocation );
@@ -264,12 +265,12 @@ void SHADER::setColorArray( uint32_t index ) {
     glVertexAttribPointer( ptr->colorArrayLocation, 4, GL_DOUBLE, GL_TRUE, 0, (void*)0 );
 }
 
-Buffer SHADER::makeBuffer( const std::vector<double> &array, Buffer::Type type )
+Buffer SHADER::makeBuffer( const std::vector<double>& array, Buffer::Type type )
 {
     return Buffer( makeBuffer( array ), type, array.size() / 3 );
 }
 
-uint32_t SHADER::makeBuffer( const std::vector<double> &array )
+uint32_t SHADER::makeBuffer( const std::vector<double>& array )
 {
     assert( !array.empty() );
     return SHADER::makeBuffer( &array[0], array.size() );
