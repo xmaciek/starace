@@ -6,6 +6,8 @@
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 
+#include "buffer.hpp"
+
 class ShaderPrivate;
 
 struct Axis { enum Enum { X, Y, Z }; };
@@ -37,11 +39,12 @@ public:
 
     static void setTextureCoord( uint32_t buffer );
     static void draw( uint32_t type, uint32_t buffer, uint32_t size );
+    static void drawBuffer( const Buffer &b );
 
     static void setOrtho( double minX,  double maxX,  double minY,  double maxY,  double minZ = -1.0,  double maxZ = 1.0 );
     static void setPerspective( double fovY, double ratio, double min, double max );
 
-    static uint32_t getQuad( double x1, double y1, double x2, double y2 );
+    static Buffer getQuad( double x1, double y1, double x2, double y2 );
     static uint32_t getQuadTextureCoord( double x1, double y1, double x2, double y2 );
 
 private:

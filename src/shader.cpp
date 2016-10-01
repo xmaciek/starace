@@ -270,6 +270,11 @@ void SHADER::setTextureCoord( uint32_t buffer ) {
     glVertexAttribPointer( ptr->vertexUVlocation, 2, GL_DOUBLE, GL_TRUE, 0, (void*)0 );
 }
 
+void SHADER::drawBuffer( const Buffer &buffer )
+{
+    draw( buffer.m_type, buffer.m_id, buffer.m_verticesCount );
+}
+
 
 void SHADER::draw( uint32_t type, uint32_t buffer, uint32_t size ) {
     assert( ptr );
@@ -278,7 +283,7 @@ void SHADER::draw( uint32_t type, uint32_t buffer, uint32_t size ) {
     glDrawArrays( type, 0, size );
 }
 
-uint32_t SHADER::getQuad( double x1, double y1, double x2, double y2 ) {
+Buffer SHADER::getQuad( double x1, double y1, double x2, double y2 ) {
     std::vector<double> arr;
     arr.push_back( x1 ); arr.push_back( y1 ); arr.push_back( 0 );
     arr.push_back( x2 ); arr.push_back( y1 ); arr.push_back( 0 );
@@ -287,7 +292,7 @@ uint32_t SHADER::getQuad( double x1, double y1, double x2, double y2 ) {
     arr.push_back( x2 ); arr.push_back( y2 ); arr.push_back( 0 );
     arr.push_back( x1 ); arr.push_back( y2 ); arr.push_back( 0 );
     arr.push_back( x1 ); arr.push_back( y1 ); arr.push_back( 0 );
-    return SHADER::makeBuffer( arr );
+    return Buffer( SHADER::makeBuffer( arr ), Buffer::Triangles, 6 );
 }
 
 uint32_t SHADER::getQuadTextureCoord( double x1, double y1, double x2, double y2 ) {
