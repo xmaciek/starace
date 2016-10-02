@@ -1,0 +1,5 @@
+configure_file( nebula.cfg nebula.cfg COPYONLY )
+configure_file( dark.cfg dark.cfg COPYONLY )
+configure_file( dark2.cfg dark2.cfg COPYONLY )
+configure_file( atmosphere.cfg atmosphere.cfg COPYONLY )
+configure_file( red.cfg red.cfg COPYONLY )

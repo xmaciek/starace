@@ -12,6 +12,7 @@ find_package( OpenGL REQUIRED )
 
 add_compile_options( -Wall -O0 -g -std=c++11 )
 
+add_subdirectory( maps )
 add_subdirectory( misc )
 add_subdirectory( models )
 add_subdirectory( sounds )
