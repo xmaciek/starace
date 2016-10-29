@@ -1,7 +1,9 @@
 #include "Map.h"
 
-void Map::Draw() {
-  glPushMatrix();
+void Map::Draw()
+{
+#if 0
+    glPushMatrix();
     glDisable(GL_FOG);
     glEnable(GL_TEXTURE_2D);
 
@@ -117,53 +119,116 @@ void Map::Draw() {
         
       }
     }
+#endif
   }
 
-  
-  
-  Map::Map(const MapProto &data) {
-//     textureID = LoadTexture(tex);
+Map::Map( const MapProto &data ) :
+    m_coordQuad( 0 )
+{
+}
 
-    TOP = LoadTexture(data.TOP.c_str());
-    BOTTOM = LoadTexture(data.BOTTOM.c_str());
-    LEFT = LoadTexture(data.LEFT.c_str());
-    RIGHT = LoadTexture(data.RIGHT.c_str());
-    FRONT = LoadTexture(data.FRONT.c_str());
-    BACK = LoadTexture(data.BACK.c_str());
-    
-    min = 0.00125;
-    max = 0.99875;
-    
-    Vertex particle_tmp;
-    for (GLuint map_I=0; map_I<100; map_I++) {
-      particle_tmp.x = random_range(-1, 1);
-      particle_tmp.y = random_range(-1, 1); 
-      particle_tmp.z = random_range(-1, 1);
-      particle.push_back(particle_tmp);
+Map::Map( const std::string& fileName ) :
+    m_settings( fileName ),
+    m_coordQuad( 0 )
+{
+}
+
+void Map::Update()
+{
+
+}
+
+void Map::drawPreview()
+{
+    if ( !m_previewBuffer ) {
+        m_previewBuffer = SHADER::getQuad( -0.5, -0.5, 0.5, 0.5 );
+        m_coordQuad = SHADER::getQuadTextureCoord( 0, 0, 1, 1 );
+        fprintf( stderr, "preview is: %s\n", m_settings.get( "preview" ).c_str() );
+        m_previewTexture.load( m_settings.get( "preview" ) );
     }
-    
-    v1 = 1000;
-    v2 = 100;
-    
-  }
-  
-  void Map::GetJetData(const Vertex &Position, const Vertex &Velocity) {
-    jetPosition = Position;
-    jetVelocity = Velocity;
-    particleLength = jetVelocity*0.05;
-    jetVelocity = jetVelocity*-0.1*DELTATIME;
-  }
-  
-  Map::~Map() { 
-    cout<<"+-- Deleting Map\n";
-    glDeleteTextures(1, &TOP);
-    glDeleteTextures(1, &BOTTOM);
-    glDeleteTextures(1, &LEFT);
-    glDeleteTextures(1, &RIGHT);
-    glDeleteTextures(1, &FRONT);
-    glDeleteTextures(1, &BACK);
-//     glDeleteTextures(1, &textureID);
-//     glDeleteTextures(1,&skyboxBACK);
-//     glDeleteTextures(1,&skyboxFRONT);
-//     glDeleteTextures(1,&skyboxLEFT);
-  }
+
+    SHADER::pushMatrix();
+        SHADER::setMaterial( m_previewTexture );
+        SHADER::setTextureCoord( m_coordQuad );
+        SHADER::drawBuffer( m_previewBuffer );
+    SHADER::popMatrix();
+}
+
+static const double TEXCOORD = 1024.0;
+
+void Map::draw()
+{
+    if ( !m_coordQuad ) {
+        m_coordQuad = SHADER::getQuadTextureCoord( 0, 0, 1, 1 );
+    }
+
+    if ( !m_topBuffer ) {
+        m_topBuffer = SHADER::getQuad( -TEXCOORD, TEXCOORD, -TEXCOORD, TEXCOORD );
+        m_topTexture.load( m_settings.get( "top" ) );
+
+        m_bottomBuffer = SHADER::getQuad( -TEXCOORD, TEXCOORD, -TEXCOORD, TEXCOORD );
+        m_bottomTexture.load( m_settings.get( "bottom" ) );
+
+        m_leftBuffer = SHADER::getQuad( -TEXCOORD, TEXCOORD, -TEXCOORD, TEXCOORD );
+        m_leftTexture.load( m_settings.get( "left" ) );
+
+        m_rightBuffer = SHADER::getQuad( -TEXCOORD, TEXCOORD, -TEXCOORD, TEXCOORD );
+        m_rightTexture.load( m_settings.get( "right" ) );
+
+        m_frontBuffer = SHADER::getQuad( -TEXCOORD, TEXCOORD, -TEXCOORD, TEXCOORD );
+        m_frontTexture.load( m_settings.get( "front" ) );
+
+        m_backBuffer = SHADER::getQuad( -TEXCOORD, TEXCOORD, -TEXCOORD, TEXCOORD );
+        m_backTexture.load( m_settings.get( "back" ) );
+    }
+
+    SHADER::pushMatrix();
+        SHADER::setTextureCoord( m_coordQuad );
+
+        SHADER::pushMatrix();
+            SHADER::rotate( 270, Axis::X );
+            SHADER::translate( 0, TEXCOORD, 0 );
+            SHADER::setMaterial( m_topTexture );
+            SHADER::drawBuffer( m_topBuffer );
+        SHADER::popMatrix();
+
+        SHADER::pushMatrix();
+            SHADER::rotate( 90, Axis::X );
+            SHADER::translate( 0, -TEXCOORD, 0 );
+            SHADER::setMaterial( m_bottomTexture );
+            SHADER::drawBuffer( m_bottomBuffer );
+        SHADER::popMatrix();
+
+        SHADER::pushMatrix();
+            SHADER::rotate( 90, Axis::Y );
+            SHADER::translate( -TEXCOORD, 0, 0 );
+            SHADER::setMaterial( m_leftTexture );
+            SHADER::drawBuffer( m_leftBuffer );
+        SHADER::popMatrix();
+
+        SHADER::pushMatrix();
+            SHADER::rotate( 270, Axis::Y );
+            SHADER::translate( TEXCOORD, 0, 0 );
+            SHADER::setMaterial( m_rightTexture );
+            SHADER::drawBuffer( m_rightBuffer );
+        SHADER::popMatrix();
+
+        SHADER::pushMatrix();
+            SHADER::rotate( 180, Axis::Y );
+            SHADER::translate( 0, 0, TEXCOORD );
+            SHADER::setMaterial( m_frontTexture );
+            SHADER::drawBuffer( m_frontBuffer );
+        SHADER::popMatrix();
+
+        SHADER::pushMatrix();
+            SHADER::translate( 0, 0, -TEXCOORD );
+            SHADER::setMaterial( m_leftTexture );
+            SHADER::drawBuffer( m_leftBuffer );
+        SHADER::popMatrix();
+    SHADER::popMatrix();
+}
+
+void Map::GetJetData( const Vertex &Position, const Vertex &Velocity )
+{
+
+}

@@ -686,27 +686,32 @@ void Road::OnResize(GLint w, GLint h) {
 	  break; }
 	  break;
       case SA_MISSIONSELECTION:
-	if (btnStartMission.IsClicked(X, Y)) {  
-	  PlaySound(click);
-	  ChangeScreen(SA_GAMESCREEN_BRIEFING); 
-	  break; }
-	if (btnReturnToMainMenu.IsClicked(X, Y)) {  
-	  PlaySound(click);
-	  ChangeScreen(SA_MAINMENU); 
-	  break; }
-	if (btnNextMap.IsClicked(X, Y)) { 
-	  current_map++; 
-	  if (current_map==maps_container.size()-1) { btnNextMap.Disable(); }
-	  btnPrevMap.Enable();
-      PlaySound(click);
-	  break; }
-	if (btnPrevMap.IsClicked(X, Y)) {
-	  current_map--; 
-	  if (current_map==0) { btnPrevMap.Disable(); }
-	  if (maps_container.size()>1) { btnNextMap.Enable(); }
-      PlaySound(click);
-	  break; }
-	  break;
+	if ( btnStartMission.IsClicked( X, Y ) ) {
+            PlaySound( click );
+            ChangeScreen( SA_GAMESCREEN_BRIEFING );
+        } else if ( btnReturnToMainMenu.IsClicked( X, Y ) ) {
+            PlaySound( click );
+            ChangeScreen( SA_MAINMENU );
+        } else if ( btnNextMap.IsClicked( X, Y ) ) {
+            if ( m_currentMap + 1 != m_maps.end() ) {
+                m_currentMap++;
+                PlaySound( click );
+            }
+            if ( m_currentMap + 1 == m_maps.end() ) {
+                btnNextMap.Disable();
+            }
+            btnPrevMap.Enable();
+        } else if ( btnPrevMap.IsClicked( X, Y ) ) {
+            if ( m_currentMap != m_maps.begin() ) {
+                m_currentMap--;
+                PlaySound( click );
+            }
+            if ( m_currentMap == m_maps.begin() ) {
+                btnPrevMap.Disable();
+            }
+            btnNextMap.Enable();
+        }
+        break;
       case SA_DEADSCREEN:
 	if (btnReturnToMissionSelection.IsClicked(X, Y)) {  
 	  PlaySound(click);
@@ -919,36 +924,53 @@ bool Road::InitNewSurface(GLint W, GLint H, GLint D, bool F) {
   if (tmp!=NULL) { SDL_FreeSurface(tmp); }
   return true;
 }
- 
-void Road::LoadMapProto() {
-  cout<<"Loadings maps... ";
-  maps_container.clear();
-  MapProto map;
-  fstream MapFile("maps.cfg", fstream::in);
-  char value_1[48], value_2[48];
-  string line;
-  while (getline(MapFile, line)) {
-    sscanf(line.c_str(), "%s %s", value_1, value_2);
-    if (strcmp(value_1, "[MAP]")==0) { maps_container.push_back(map); }
-    if (strcmp(value_1, "name")==0) { maps_container.at(maps_container.size()-1).name = value_2; }
-    if (strcmp(value_1, "enemies")==0) { maps_container.at(maps_container.size()-1).enemies = atoi(value_2); }
-    if (strcmp(value_1, "top")==0) { maps_container.at(maps_container.size()-1).TOP = value_2; }
-    if (strcmp(value_1, "bottom")==0) { maps_container.at(maps_container.size()-1).BOTTOM = value_2; }
-    if (strcmp(value_1, "left")==0) { maps_container.at(maps_container.size()-1).LEFT = value_2; }
-    if (strcmp(value_1, "right")==0) { maps_container.at(maps_container.size()-1).RIGHT = value_2; }
-    if (strcmp(value_1, "front")==0) { maps_container.at(maps_container.size()-1).FRONT = value_2; }
-    if (strcmp(value_1, "back")==0) { maps_container.at(maps_container.size()-1).BACK = value_2; }
-    if (strcmp(value_1, "preview")==0) { maps_container.at(maps_container.size()-1).preview_image_location = value_2; }
 
-  } 
-  MapFile.close();
-  if (maps_container.size()==0) { 
-    maps_container.push_back(map); 
-    btnNextMap.Disable();
-  }
-  current_map = 0;
-  btnPrevMap.Disable();
-  cout<<"done\n";
+#include <dirent.h>
+static std::vector<std::string> getDirEntry( const std::string& dirName )
+{
+    std::vector<std::string> dirEntries;
+    DIR *dir = opendir( dirName.c_str() );
+    if ( !dir ) {
+        return dirEntries;
+    }
+    struct dirent *ent = 0;
+    while ( ( ent = readdir( dir ) ) ) {
+        dirEntries.push_back( ent->d_name );
+    }
+    closedir( dir );
+    return dirEntries;
+}
+
+static bool endsWith( const std::string& str, const std::string& ends )
+{
+    if ( str.size() < ends.size() ) {
+        return false;
+    }
+    std::string::const_reverse_iterator eit = ends.rbegin();
+    std::string::const_reverse_iterator sit = str.rbegin();
+    while ( eit != ends.rend() ) {
+        if ( *eit != *sit ) {
+            return false;
+        }
+        eit++;
+        sit++;
+    }
+    return true;
+}
+
+void Road::LoadMapProto() {
+    const std::string cfgExtension( ".cfg" );
+    const std::string mapsDir( "maps/" );
+    const std::vector<std::string> dirEntries = getDirEntry( mapsDir );
+    std::vector<std::string>::const_iterator it = dirEntries.begin();
+    while ( it != dirEntries.end() ) {
+        if ( endsWith( *it, cfgExtension ) ) {
+            m_maps.push_back( Map( mapsDir + *it ) );
+        }
+        it++;
+    }
+    m_currentMap = m_maps.begin();
+    btnPrevMap.Disable();
 }
 
 void Road::LoadJetProto() {

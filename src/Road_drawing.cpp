@@ -531,53 +531,31 @@ void Road::DrawClouds() {
     
   }
   
-  void Road::MissionSelectionScreen() {
+void Road::MissionSelectionScreen()
+{
+    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+    const double wr = 0.5 * SCREEN_WIDTH / max_dimention;
+    const double hr = 0.5 * SCREEN_HEIGHT / max_dimention;
     SHADER::pushMatrix();
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_FOG);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    SetOrtho();
-	glEnable(GL_TEXTURE_2D);
-	glEnable(GL_BLEND);
-	SHADER::pushMatrix();
-	  if (maps_container.at(current_map).preview_image==0) { 
-	    maps_container.at(current_map).preview_image =  LoadTexture(maps_container.at(current_map).preview_image_location.c_str()); }
-	  glBindTexture(GL_TEXTURE_2D, maps_container.at(current_map).preview_image);
+        SHADER::setOrtho( -wr, wr, -hr, hr );
+        if ( m_currentMap != m_maps.end() ) {
+            m_currentMap->drawPreview();
+        }
+    SHADER::popMatrix();
 
-	  glBegin(GL_QUADS);
-	    glColor3f(1,1,1);
-	    glTexCoord2f(0,0); glVertex2d(0, 0);
-	    glTexCoord2f(1,0); glVertex2d(max_dimention, 0);
-	    glTexCoord2f(1,1); glVertex2d(max_dimention, max_dimention);
-	    glTexCoord2f(0,1); glVertex2d(0, max_dimention);
-	  glEnd(); 
+#if 0
 	  snprintf(HUDMESSAGE, sizeof(HUDMESSAGE), "Map: %s", maps_container.at(current_map).name.c_str());
 	  font_pause_txt->PrintTekst(SCREEN_WIDTH/2-font_pause_txt->GetTextLength(HUDMESSAGE)/2, SCREEN_HEIGHT-128, HUDMESSAGE);
 	  snprintf(HUDMESSAGE, sizeof(HUDMESSAGE), "Enemies: %d", maps_container.at(current_map).enemies);
 	  font_pause_txt->PrintTekst(SCREEN_WIDTH/2-font_pause_txt->GetTextLength(HUDMESSAGE)/2, SCREEN_HEIGHT-148, HUDMESSAGE);
 	  
-	SHADER::popMatrix();
-	
-	glEnable(GL_TEXTURE_2D);
-	glEnable(GL_BLEND);
-	DrawCyberRings();
-        glBindTexture(GL_TEXTURE_2D, HUDtex);
-	glBegin(GL_QUADS);
-	  glColor3f(0,0.75,1);
-	  glTexCoord2f(0,0); glVertex2d(0, 0);
-	  glTexCoord2f(1,0); glVertex2d(SCREEN_WIDTH, 0);
-	  glTexCoord2f(1,1); glVertex2d(SCREEN_WIDTH, SCREEN_HEIGHT);
-	  glTexCoord2f(0,1); glVertex2d(0, SCREEN_HEIGHT);
-	glEnd(); 
-	
-	
+#endif
+    SHADER::pushMatrix();
+        SetOrtho();
         btnStartMission.Draw();
 	btnReturnToMainMenu.Draw();
 	btnNextMap.Draw();
 	btnPrevMap.Draw();
-      
-      
-      
     SHADER::popMatrix();
   }
   

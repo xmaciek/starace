@@ -3,10 +3,29 @@
 
 #include "SA.h"
 #include "Texture.h"
-// #include "Enemy.h"
+
+#include "settings.hpp"
+#include "shader.hpp"
+
+#include <cstdint>
+#include <string>
 
 class Map {
 private:
+    Settings m_settings;
+    Texture m_topTexture, m_bottomTexture;
+    Texture m_leftTexture, m_rightTexture;
+    Texture m_frontTexture, m_backTexture;
+    Texture m_previewTexture;
+
+    Buffer m_topBuffer, m_bottomBuffer;
+    Buffer m_leftBuffer, m_rightBuffer;
+    Buffer m_frontBuffer, m_backBuffer;
+    Buffer m_previewBuffer;
+    uint32_t m_coordQuad;
+
+    std::string m_name;
+
   GLuint length;
   char name[32];
   GLuint TOP, BOTTOM, LEFT, RIGHT, FRONT, BACK;
@@ -22,10 +41,13 @@ private:
   
 public:
   Map(const MapProto &data);
-  ~Map();
+  Map( const std::string& fileName );
   void GetJetData(const Vertex &Position, const Vertex &Velocity);
   void Update();
   void Draw();
+    void drawPreview();
+    void draw();
+    void releaseResources();
 };
 
 

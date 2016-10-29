@@ -124,6 +124,8 @@ private:
 
   vector<Bullet*> bullet, enemybullet, Bgarbage;
 
+    std::vector<Map> m_maps;
+    std::vector<Map>::iterator m_currentMap;
   vector<MapProto> maps_container;
   GLuint current_map;
   
