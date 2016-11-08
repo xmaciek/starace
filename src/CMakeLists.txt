@@ -13,6 +13,7 @@ set( STARACE_HEADERS
     SA.h
     SAObject.h
     Shield.h
+    tail.hpp
     Texture.h
     Thruster.h
 )
@@ -33,6 +34,7 @@ set( STARACE_SOURCES
     Road_keyboard.cpp
     SAObject.cpp
     Shield.cpp
+    tail.cpp
     Texture.cpp
     Thruster.cpp
     utils.cpp
