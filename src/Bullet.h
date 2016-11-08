@@ -3,16 +3,16 @@
 
 #include "SA.h"
 #include "Model.h"
+#include "tail.hpp"
 #include "Texture.h"
 #include "SAObject.h"
-// #define PI 3.14159265
+
+
 typedef struct {
   GLdouble x,y,z;
   GLdouble speed, length, damage, delay;
   GLuint type, texture1, texture2, energy, score_per_hit;
-//   GLuint owner;
   GLfloat color1[4], color2[4];
-//   GLubyte name[16];
 } BulletProto;
 
 class Bullet : public SAObject {
@@ -20,7 +20,7 @@ private:
   GLdouble length;
   GLdouble max_range, range;
   
-  Vertex trail[24];
+    Tail m_tail;
   GLdouble rotX, rotY, rotZ;
   GLuint owner, type;
   GLdouble damage;

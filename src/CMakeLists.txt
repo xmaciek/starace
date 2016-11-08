@@ -15,6 +15,7 @@ set( STARACE_HEADERS
     settings.hpp
     shader.hpp
     Shield.h
+    tail.hpp
     Texture.h
     Thruster.h
 )
@@ -37,6 +38,7 @@ set( STARACE_SOURCES
     settings.cpp
     shader.cpp
     Shield.cpp
+    tail.cpp
     Texture.cpp
     Thruster.cpp
     utils.cpp

@@ -29,28 +29,29 @@ struct Vertex{
   GLdouble x;
   GLdouble y;
   GLdouble z;
-  
-  Vertex() {
-    x=0;
-    y=0;
-    z=0;
-  }
-  
-  Vertex operator +(const Vertex &a) {
+
+Vertex( GLdouble X = 0.0, GLdouble Y = 0.0, GLdouble Z = 0.0 ) :
+    x( X ),
+    y( Y ),
+    z( Z )
+{
+}
+
+  Vertex operator +(const Vertex &a) const {
     Vertex v;
     v.x = x + a.x;
     v.y = y + a.y;
     v.z = z + a.z;
     return v; 
   };
-  Vertex operator -(const Vertex &a) {
+  Vertex operator -(const Vertex &a) const {
     Vertex v;
     v.x = x - a.x;
     v.y = y - a.y;
     v.z = z - a.z;
     return v;
   };
-  Vertex operator *(const GLfloat &a) {
+  Vertex operator *(const GLfloat &a) const {
     Vertex v;
     v.x = x * a;
     v.y = y * a;
