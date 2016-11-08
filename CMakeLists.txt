@@ -18,7 +18,7 @@ add_subdirectory( sounds )
 add_subdirectory( src )
 add_subdirectory( textures )
 
-configure_file( README README COPYONLY )
+configure_file( README.md README.md COPYONLY )
 configure_file( LICENSE LICENSE COPYONLY )
 configure_file( config.cfg config.cfg COPYONLY )
 configure_file( jets.cfg jets.cfg COPYONLY )
