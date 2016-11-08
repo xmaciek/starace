@@ -1,8 +1,18 @@
 #include "Bullet.h"
 
+static uint16_t typeToSegments( GLuint t )
+{
+    switch ( t ) {
+        case Bullet::TORPEDO: return 24;
+        case Bullet::BLASTER: return 9;
+        case Bullet::SLUG: return 2;
+        default: return 0;
+    }
+}
 
-
-Bullet::Bullet(BulletProto bp) {
+Bullet::Bullet(BulletProto bp) :
+    m_tail( typeToSegments( bp.type ), Vertex( bp.x, bp.y, bp.z ) )
+{
 //     cout<<"Creating bullet.\n";
     CollisionDistance = 0;
     CollisionFlag = true;
@@ -33,9 +43,6 @@ Bullet::Bullet(BulletProto bp) {
     rotZ = 0;
     rotation = rand()%360;
     
-    for (GLuint i=0; i<24; i++) {
-      trail[i]= position;
-    }
     range = 0;
     max_range=150;
     
@@ -45,56 +52,58 @@ Bullet::Bullet(BulletProto bp) {
   
   Bullet::~Bullet(){ /*cout<<"Deleting Bullet.\n";*/ };
   
-  inline void Bullet::Draw1() {
+inline void Bullet::Draw1() {
+    Tail::const_iterator it = m_tail.begin();
     glPushMatrix();
     glColor4fv(color1);
-      glBegin(GL_LINES);
-        glVertex3d(trail[0].x, trail[0].y, trail[0].z);
-        glVertex3d(trail[3].x, trail[3].y, trail[3].z);
-      glEnd();
-      glBegin(GL_LINES);
+    glBegin(GL_LINES);
+        glVertex3d( (*it).x, (*it).y, (*it).z );
+        it += 3;
+        glVertex3d( (*it).x, (*it).y, (*it).z );
+    glEnd();
+    glBegin(GL_LINES);
         glColor4f(color1[0], color1[1], color1[2], 1);
-        glVertex3d(trail[3].x, trail[3].y, trail[3].z);
+        glVertex3d( (*it).x, (*it).y, (*it).z );
+        it += 5;
         glColor4f(color1[0], color1[1], color1[2], 0);
-        glVertex3d(trail[8].x, trail[8].y, trail[8].z);
-      glEnd();  
-      
- 
+        glVertex3d( (*it).x, (*it).y, (*it).z );
+    glEnd();  
     glPopMatrix();
-  };
+};
   
   
   inline void Bullet::DrawLaser() {
+    Tail::const_iterator it = m_tail.begin();
     glPushMatrix();
-//       glLineWidth(10);
       glBegin(GL_LINES);
         glColor4fv(color1);
-        glVertex3d(trail[0].x, trail[0].y, trail[0].z);
-//         glColor4fv(color2);
-        glVertex3d(trail[1].x, trail[1].y, trail[1].z);
+        glVertex3d( (*it).x, (*it).y, (*it).z );
+        it++;
+        glVertex3d( (*it).x, (*it).y, (*it).z );
       glEnd();
-//       glLineWidth(1);
     glPopMatrix();
   }
-  
-  inline void Bullet::Draw2() {
+
+inline void Bullet::Draw2() {
+    Tail::const_iterator it = m_tail.begin();
     glPushMatrix();
-    
     glColor4fv(color1);
-      glBegin(GL_LINES);
-        glVertex3d(trail[0].x, trail[0].y, trail[0].z);
-        glVertex3d(trail[1].x, trail[1].y, trail[1].z);
-      glEnd();
-      glColor4f(1,1,1,1);
-    for (drawing_i=1; drawing_i<23; drawing_i++) {
-//       glColor4f(1,1,1, (1.0/23)*(23-drawing_i));
-      glBegin(GL_LINES);
-        glVertex3d(trail[drawing_i].x, trail[drawing_i].y, trail[drawing_i].z);
-        glColor4f(1,1,1, 1.0/drawing_i);
-        glVertex3d(trail[drawing_i+1].x, trail[drawing_i+1].y, trail[drawing_i+1].z);
-      glEnd();
-      
-      }
+    glBegin(GL_LINES);
+    glVertex3d( (*it).x, (*it).y, (*it).z );
+    it++;
+    glVertex3d( (*it).x, (*it).y, (*it).z );
+    glEnd();
+    glColor4f(1,1,1,1);
+    uint16_t alphaIt = 1;
+    const Tail::const_iterator end = m_tail.end();
+    glBegin( GL_LINE_STRIP );
+    while ( it != end ) {
+        glVertex3d( (*it).x, (*it).y, (*it).z );
+        glColor4f( 1, 1, 1, 1.0 / alphaIt );
+        alphaIt++;
+        it++;
+    }
+    glEnd();
 
     glPopMatrix();
     
@@ -127,8 +136,7 @@ Bullet::Bullet(BulletProto bp) {
         InterceptTarget();/*no break*/
       case BLASTER:
         position = position + velocity*DELTATIME;
-        for (update_i=23; update_i>0; update_i-=1) { trail[update_i] = trail[update_i-1]; }
-        trail[0]=position;
+        m_tail.insert( position );
         range+=speed*DELTATIME;
         break;
       case WAVE: break;
@@ -140,33 +148,37 @@ Bullet::Bullet(BulletProto bp) {
   };
   
 
-  
+static uint16_t offsetForType( uint16_t t ) {
+    switch ( t ) {
+        case Bullet::BLASTER: return 3;
+        default: return 1;
+    }
+}
+
 void Bullet::ProcessCollision(SAObject &Object) {
   if (!Object.CanCollide()) { return; }
   if (status == DEAD) { return; }
   if (Object.GetStatus() != ALIVE) { return; }
 
-  Vertex v;
   Vertex p = Object.GetPosition();
-  
-  if (type==BLASTER) { v = trail[3] - trail[0]; }
-  else { v = trail[1] - trail[0]; }
-  Vertex w = p - trail[0];
+    const Tail::const_iterator it = m_tail.begin();
+    const Vertex v = *( it + offsetForType( type ) ) - *it;
+    const Vertex w = p - *it;
   
   
   GLdouble dist;
   tmp2 = dot_product(w, v);
   if (tmp2 <= 0) {
-    dist = length_v(p - trail[0]);
+    dist = length_v( p - *it );
   }
   else {
     tmp3 = dot_product(v,v);
     if (tmp3<=tmp2) {
-      dist = length_v(p - trail[0]);
+      dist = length_v( p - *it );
     }
     else {
       GLdouble b = tmp2/tmp3;
-      Vertex Pb = trail[0] + (v*b);
+      Vertex Pb = *it + (v*b);
       dist = length_v(p - Pb);
     }
   }
@@ -204,7 +216,7 @@ void Bullet::ProcessCollision(SAObject &Object) {
     normalise_v(direction);
     velocity = direction * speed;
     if (type==SLUG) { 
-      trail[1]=position+(direction*1000);
+      m_tail.insert( position + ( direction * 1000 ) );
     }
   }
   
