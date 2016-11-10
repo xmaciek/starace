@@ -26,6 +26,9 @@ private:
   GLdouble damage;
   GLuint rotation, texture1, texture2;
   GLfloat color1[4], color2[4];
+
+    virtual Vertex collisionRay() const;
+    virtual bool collisionTest( const SAObject* object ) const;
   inline void Draw1();
   inline void Draw2();
   inline void DrawLaser();
@@ -39,7 +42,7 @@ public:
   GLuint getDamage();
   GLuint GetType();
   
-  void ProcessCollision(SAObject &Object);
+  virtual void ProcessCollision( SAObject* object );
   
   static const GLuint SLUG = 0;
   static const GLuint BLASTER = 1;

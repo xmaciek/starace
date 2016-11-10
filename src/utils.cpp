@@ -11,15 +11,15 @@ GLfloat colorhalf(GLfloat col) {
 }
 
 GLdouble length_v(const Vertex &v) {
-  return sqrt((v.x*v.x) + (v.y*v.y) + (v.z*v.z));
+  return sqrt( dot_product( v, v ) );
 }
 
 Vertex cross_product(const Vertex &a, const Vertex &b) {
-  Vertex v;
-  v.x = (a.y*b.z) - (a.z*b.y);
-  v.y = (a.z*b.x) - (a.x*b.z);
-  v.z = (a.x*b.y) - (a.y*b.x);
-  return v;
+    return Vertex(
+        (a.y*b.z) - (a.z*b.y),
+        (a.z*b.x) - (a.x*b.z),
+        (a.x*b.y) - (a.y*b.x)
+    );
 };
 
 GLdouble dot_product(const Vertex &a, const Vertex &b) {

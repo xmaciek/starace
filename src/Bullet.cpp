@@ -1,5 +1,7 @@
 #include "Bullet.h"
 
+#include <cassert>
+
 static uint16_t typeToSegments( GLuint t )
 {
     switch ( t ) {
@@ -148,68 +150,59 @@ inline void Bullet::Draw2() {
   };
   
 
-static uint16_t offsetForType( uint16_t t ) {
-    switch ( t ) {
-        case Bullet::BLASTER: return 3;
-        default: return 1;
+bool Bullet::collisionTest( const SAObject* object ) const {
+    assert( object );
+    if ( !object->CanCollide() || status == DEAD || object->GetStatus() != ALIVE ) {
+        return false;
     }
+
+    const Vertex collRay = collisionRay();
+    const Vertex dir = object->GetPosition() - position;
+    const double tmp = dot_product( dir, collRay );
+    double dist;
+
+    if ( tmp <= 0 ) {
+        dist = length_v( dir );
+    } else {
+        const double tmp2 = dot_product( collRay, collRay );
+        if ( tmp2 <= tmp ) {
+            dist = length_v( dir );
+        } else {
+            const Vertex Pb = position + ( collRay * ( tmp / tmp2 ) );
+            dist = length_v( object->GetPosition() - Pb );
+        }
+    }
+
+    return dist < ( CollisionDistance + object->GetCollisionDistance() );
 }
 
-void Bullet::ProcessCollision(SAObject &Object) {
-  if (!Object.CanCollide()) { return; }
-  if (status == DEAD) { return; }
-  if (Object.GetStatus() != ALIVE) { return; }
-
-  Vertex p = Object.GetPosition();
-    const Tail::const_iterator it = m_tail.begin();
-    const Vertex v = *( it + offsetForType( type ) ) - *it;
-    const Vertex w = p - *it;
-  
-  
-  GLdouble dist;
-  tmp2 = dot_product(w, v);
-  if (tmp2 <= 0) {
-    dist = length_v( p - *it );
-  }
-  else {
-    tmp3 = dot_product(v,v);
-    if (tmp3<=tmp2) {
-      dist = length_v( p - *it );
+void Bullet::ProcessCollision( SAObject* object ) {
+    assert( object );
+    if ( collisionTest( object ) ) {
+        object->AddScore( score );
+        switch (type) {
+            case SLUG: 
+                object->Damage( damage * color1[3] ); 
+                break;
+            default:
+                object->Damage( damage );
+                status = DEAD;
+                break;
+        }
     }
-    else {
-      GLdouble b = tmp2/tmp3;
-      Vertex Pb = *it + (v*b);
-      dist = length_v(p - Pb);
-    }
-  }
-  
-  GLdouble col = CollisionDistance + Object.GetCollisionDistance();
-  if (dist<=col) {
-  Object.AddScore(score);
-  switch (type) {
-    case SLUG: { 
-      Object.Damage(damage*color1[3]); 
-      break;
-    }
-    case BLASTER: {
-      Object.Damage(damage);
-      status = DEAD;
-      break;
-    }
-    case TORPEDO: {
-      Object.Damage(damage);
-      status = DEAD;
-      break;
-    }
-    case WAVE: {}
-    case MINE: {}
-    default: break;
-  }
-  }
-  
 }
   
-  
+Vertex Bullet::collisionRay() const
+{
+    switch ( type ) {
+        case BLASTER: return direction * speed * DELTATIME * 3;
+        case TORPEDO: return direction * speed * DELTATIME;
+        case SLUG: return direction * 1000;
+        default:
+            assert( !"unreachable" );
+            return Vertex();
+    }
+}
   
   void Bullet::SetDirection(Vertex v) {
     direction = v;

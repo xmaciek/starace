@@ -39,13 +39,18 @@ Vertex( GLdouble X = 0.0, GLdouble Y = 0.0, GLdouble Z = 0.0 ) :
 {
 }
 
-  Vertex operator +(const Vertex &a) const {
-    Vertex v;
-    v.x = x + a.x;
-    v.y = y + a.y;
-    v.z = z + a.z;
-    return v; 
-  };
+
+Vertex& operator += ( const Vertex& v ) {
+    x += v.x;
+    y += v.y;
+    z += v.z;
+    return *this;
+}
+
+Vertex operator + ( const Vertex& a) const {
+    return Vertex( *this ) += a;
+};
+
   Vertex operator -(const Vertex &a) const {
     Vertex v;
     v.x = x - a.x;
@@ -53,7 +58,8 @@ Vertex( GLdouble X = 0.0, GLdouble Y = 0.0, GLdouble Z = 0.0 ) :
     v.z = z - a.z;
     return v;
   };
-  Vertex operator *(const GLfloat &a) const {
+  
+  Vertex operator * ( const double& a ) const {
     Vertex v;
     v.x = x * a;
     v.y = y * a;
