@@ -567,7 +567,7 @@ void Road::OnResize(GLint w, GLint h) {
     
 
     for (update_i=0; update_i<enemybullet.size(); update_i++) {
-      enemybullet.at(update_i)->ProcessCollision(*jet);
+      enemybullet.at( update_i )->ProcessCollision( jet );
     }
     
     jet->Update();
@@ -579,7 +579,7 @@ void Road::OnResize(GLint w, GLint h) {
     for (update_i=0; update_i<bullet.size(); update_i++) { 
       
       for (update_i2=0; update_i2<enemies.size(); update_i2++) {
-	bullet.at(update_i)->ProcessCollision(*enemies.at(update_i2));
+	bullet.at( update_i )->ProcessCollision( enemies.at( update_i2 ) );
       }
       
       bullet.at(update_i)->Update(); 

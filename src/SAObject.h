@@ -7,30 +7,30 @@ class SAObject {
 public:
    SAObject();
   virtual ~SAObject();
-  GLdouble getX();
-  GLdouble getY();
-  GLdouble getZ();
-  GLuint GetStatus();
+  GLdouble getX() const;
+  GLdouble getY() const;
+  GLdouble getZ() const;
+  GLuint GetStatus() const;
   void SetStatus(const GLuint &s);
   void SetTarget(SAObject *t);
-  Vertex GetPosition();
-  Vertex GetDirection();
-  Vertex GetVelocity();
-  GLdouble GetSpeed();
+  Vertex GetPosition() const;
+  Vertex GetDirection() const;
+  Vertex GetVelocity() const;
+  GLdouble GetSpeed() const;
   bool DeleteMe();
   void Kill();
   void Damage(const GLdouble &d);
   void TargetMe(const bool &doit);
   GLdouble GetHealth();
   
-  virtual void ProcessCollision(SAObject &Object);
-  bool CanCollide();
-  GLdouble GetCollisionDistance();
+    virtual void ProcessCollision( SAObject* Object );
+  bool CanCollide() const;
+  GLdouble GetCollisionDistance() const;
   
   GLint GetScore();
   virtual void AddScore(const GLint &s, bool b=false);
   
-  GLdouble GetCollisionDamage();
+  GLdouble GetCollisionDamage() const;
   
   static const GLuint DEAD=0;
   static const GLuint ALIVE=1;
@@ -59,7 +59,7 @@ protected:
   
 
   
-  GLdouble tmp1, tmp2, tmp3;
+//   GLdouble tmp1, tmp2, tmp3;
 
   
 };

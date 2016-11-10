@@ -1,5 +1,7 @@
 #include "Enemy.h"
 
+#include <cassert>
+
 Enemy::Enemy() {
 //   static int c=0;
 //   cout<<"Creating default Enemy "<<c<<".\n";
@@ -135,13 +137,14 @@ void Enemy::DrawRadarPosition(const Vertex &Modifier, const GLdouble &RadarScale
   glPopMatrix();
 }
 
-void Enemy::ProcessCollision(SAObject &Object) {
-  if (!Object.CanCollide()) { return; }
-  if (status == DEAD) { return; }
-  if (Object.GetStatus() != ALIVE) { return; }
+void Enemy::ProcessCollision( SAObject* object ) {
+    assert( object );
+    if ( !object->CanCollide() || status == DEAD || object->GetStatus() != ALIVE ) {
+        return;
+    }
 
-  if (distance_v(position, Object.GetPosition()) <= CollisionDistance+Object.GetCollisionDistance()) {
-    Damage(CollisionDamage + Object.GetCollisionDamage());
-    Object.Damage(CollisionDamage + Object.GetCollisionDamage());
-  }
+    if ( distance_v( position, object->GetPosition() ) <= CollisionDistance + object->GetCollisionDistance() ) {
+        Damage( CollisionDamage + object->GetCollisionDamage() );
+        object->Damage( CollisionDamage + object->GetCollisionDamage() );
+    }
 }  

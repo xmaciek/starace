@@ -26,7 +26,7 @@ public:
 //   GLfloat getY();
 //   GLfloat getZ();
 
-  void ProcessCollision(SAObject &Object);
+    virtual void ProcessCollision( SAObject* Object );
   
 private:
   void ReinitCoordinates();
