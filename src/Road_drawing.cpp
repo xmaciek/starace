@@ -201,6 +201,65 @@ void Road::DrawCyberRingsMini()
     SHADER::popMatrix();
 }
 
+static Buffer getFanRotorRing()
+{
+    std::vector<double> arr;
+    Circle circle( 32, 26.5 );
+    for ( int i=0; i<circle.segments(); i++ ) {
+        arr.push_back( circle.x( i ) );
+        arr.push_back( circle.y( i ) );
+        arr.push_back( 0 );
+    }
+    return SHADER::makeBuffer( arr, Buffer::LineLoop );
+}
+
+static Buffer getFanRotorPetals()
+{
+    std::vector<double> arr;
+
+    arr.push_back( 0 );
+    arr.push_back( 0 );
+    arr.push_back( 0 );
+
+    arr.push_back( 3 );
+    arr.push_back( 0 );
+    arr.push_back( 0 );
+
+    arr.push_back( 12 );
+    arr.push_back( 24 );
+    arr.push_back( 0 );
+
+    arr.push_back( 0 );
+    arr.push_back( 26.5 );
+    arr.push_back( 0 );
+
+    arr.push_back( -12 );
+    arr.push_back( 24 );
+    arr.push_back( 0 );
+
+    arr.push_back( -3 );
+    arr.push_back( 0 );
+    arr.push_back( 0 );
+
+    arr.push_back( -12 );
+    arr.push_back( -24 );
+    arr.push_back( 0 );
+
+    arr.push_back( 0 );
+    arr.push_back( -26.5 );
+    arr.push_back( 0 );
+
+    arr.push_back( 12 );
+    arr.push_back( -24 );
+    arr.push_back( 0 );
+
+    arr.push_back( 3 );
+    arr.push_back( 0 );
+    arr.push_back( 0 );
+
+    return SHADER::makeBuffer( arr, Buffer::TriangleFan );
+}
+
   void Road::DrawHUDBar(const GLuint &X, const GLuint &Y, const GLuint &W, const GLuint &H, const GLuint &Current, const GLuint &Max) {
     SHADER::pushMatrix();
       SHADER::translate(X,Y,0);
@@ -350,37 +409,21 @@ void Road::DrawCyberRingsMini()
         SHADER::popMatrix();
         
 	glColor4fv(HUD_Color_4fv[HUD_Color]);
-	
-// 	SHADER::pushMatrix();
-//             SHADER::translate(32, SCREEN_HEIGHT/2, 0);
-            m_lblSpeed.clear();
-            m_lblSpeed << "SPEED: " << ( jet->GetSpeed() * 270 );
-            m_lblSpeed.draw();
-// 	  SHADER::pushMatrix();
-// 	  SHADER::rotate(speed_anim, 0, 0, 1);
-// 	  glBegin(GL_POLYGON);
-// 	    glVertex2d(-3,0);
-// 	    glVertex2d(3,0);
-// 	    glVertex2d(12,24);
-// 	    glVertex2d(0,26.5);
-// 	    glVertex2d(-12,24);
-// 	  glEnd();
-// 	  glBegin(GL_POLYGON);
-// 	    glVertex2d(-12,-24);
-// 	    glVertex2d(0,-26.5);
-// 	    glVertex2d(12,-24);
-// 	    glVertex2d(3,0);
-// 	    glVertex2d(-3,0);
-// 	  glEnd();
-// 	  SHADER::popMatrix();
-// 	  glBegin(GL_LINE_LOOP);
-// 	    for (drawing_i=0; drawing_i<speed_fan_ring->GetSegments(); drawing_i++) {
-// 	      glVertex2d(speed_fan_ring->GetX(drawing_i), speed_fan_ring->GetY(drawing_i));
-// 	    }
-// 	  glEnd();
-// 	SHADER::popMatrix();
-	
-	
+
+        m_lblSpeed.clear();
+        m_lblSpeed << "SPEED: " << ( jet->GetSpeed() * 270 );
+        m_lblSpeed.draw();
+
+        SHADER::pushMatrix();
+        SHADER::setColor( 1, 1, 1, 1 );
+            SHADER::translate( 32, SCREEN_HEIGHT / 2, 0 );
+            static const Buffer fanRing = getFanRotorRing();
+            SHADER::drawBuffer( fanRing );
+            SHADER::rotate( speed_anim, Axis::Z );
+            static const Buffer fanPetals = getFanRotorPetals();
+            SHADER::drawBuffer( fanPetals );
+        SHADER::popMatrix();
+
         DrawCyberRingsMini();
         
         DrawHUDBar(12, 12, 36, 96, jet->energy, 100);

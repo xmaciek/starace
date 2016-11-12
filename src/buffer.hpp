@@ -3,7 +3,11 @@
 #include <cstdint>
 
 typedef struct Buffer_t {
-    enum Type { Unknown, Triangles = GL_TRIANGLES };
+    enum Type { Unknown,
+        LineLoop = GL_LINE_LOOP,
+        TriangleFan = GL_TRIANGLE_FAN,
+        Triangles = GL_TRIANGLES
+    };
 
     inline Buffer_t( uint32_t id = 0, Type t = Unknown, uint32_t v = 0 ) :
         m_id( id ), m_type( t ), m_verticesCount( v ) {};
