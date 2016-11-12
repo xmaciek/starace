@@ -136,6 +136,9 @@ ShaderPrivate::ShaderPrivate() {
     modelMatrix.push( glm::mat4( 1 ) );
     viewMatrix.push( glm::mat4( 1 ) );
     projectionMatrix.push( glm::mat4( 1 ) );
+
+    glEnable( GL_BLEND );
+    glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 }
 
 bool SHADER::init() {
