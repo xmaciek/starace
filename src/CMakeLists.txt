@@ -4,6 +4,7 @@ set( STARACE_HEADERS
     Button.h
     Circle.h
     Enemy.h
+    fanrotor.hpp
     Font.h
     Jet.h
     label.hpp
@@ -27,6 +28,7 @@ set( STARACE_SOURCES
     Button.cpp
     Circle.cpp
     Enemy.cpp
+    fanrotor.cpp
     Font.cpp
     Jet.cpp
     label.cpp
