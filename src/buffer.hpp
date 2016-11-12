@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include <GL/glew.h>
+
 typedef struct Buffer_t {
     enum Type { Unknown,
         LineLoop = GL_LINE_LOOP,
