@@ -19,6 +19,7 @@ set( STARACE_HEADERS
     tail.hpp
     Texture.h
     Thruster.h
+    widget.hpp
 )
 
 set( STARACE_SOURCES
@@ -44,6 +45,7 @@ set( STARACE_SOURCES
     Texture.cpp
     Thruster.cpp
     utils.cpp
+    widget.cpp
 )
 
 set( STARACE_BINNAME "starace" )
