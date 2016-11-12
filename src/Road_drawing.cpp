@@ -15,13 +15,21 @@
       TimePassed++;
     }
   }
-  
-  void Road::GameScreenPaused() {
-    
+
+void Road::GameScreenPaused()
+{
     GameScreen();
-    DrawPauseText();
-  }
-  
+    DrawCyberRings();
+    drawHudGlow();
+    SHADER::pushMatrix();
+        SetOrtho();
+        btnQuitMission.Draw();
+        const char txtPaused[] = "PAUSED";
+        const uint32_t textLength = font_pause_txt->GetTextLength( txtPaused );
+        font_pause_txt->PrintTekst( SCREEN_WIDTH / 2 - textLength / 2, SCREEN_HEIGHT - 128, txtPaused );
+    SHADER::popMatrix();
+}
+
   
   
   
@@ -223,36 +231,6 @@ void Road::DrawCyberRingsMini()
     glEnd();  
     SHADER::popMatrix();
   }
-
-  void Road::DrawPauseText() {
-    SHADER::pushMatrix();
-        glEnable(GL_BLEND);
-        glEnable(GL_TEXTURE_2D);
-        DrawCyberRings();
-        glBindTexture(GL_TEXTURE_2D, HUDtex);
-        SHADER::setColor(0.1f, 0.4f, 0.9f, 0.8f);
-        glBegin(GL_QUADS);
-          glTexCoord2f(0,0);
-          glVertex2d(0,0);
-          glTexCoord2f(1,0);
-          glVertex2d(SCREEN_WIDTH,0);
-          glTexCoord2f(1,1);
-          glVertex2d(SCREEN_WIDTH,SCREEN_HEIGHT);
-          glTexCoord2f(0,1);
-          glVertex2d(0,SCREEN_HEIGHT);
-        glEnd();    
-        
-        
-//         btnChangeFiltering.Draw();
-        btnQuitMission.Draw();
-      SHADER::setColor(1.0f,1.0f,0.0f,1.0f);
-      char PAUSED[] = {"PAUSED"};
-      font_pause_txt->PrintTekst(SCREEN_WIDTH/2-font_pause_txt->GetTextLength(PAUSED)/2, SCREEN_HEIGHT-128, PAUSED);
-      glDisable(GL_TEXTURE_2D);
-      glDisable(GL_BLEND);
-    SHADER::popMatrix();
-  }
-  
 
   void Road::RenderHUD() {
     glDisable(GL_DEPTH_TEST);

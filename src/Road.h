@@ -207,7 +207,6 @@ private:
   void DrawHUDLine(GLdouble X1, GLdouble Y1, GLdouble X2, GLdouble Y2, GLdouble T);
   void DrawHUDPiece(GLdouble X, GLdouble Y, GLdouble RotAngleZ);
   void DrawHUDBar(const GLuint &X, const GLuint &Y, const GLuint &W, const GLuint &H, const GLuint &Current, const GLuint &Max);
-  void DrawPauseText(); 
   void RenderHUD();
   void Render3D();
   
