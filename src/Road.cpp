@@ -257,6 +257,8 @@ void Road::OnResize(GLint w, GLint h) {
     m_lblScore.move( 64, SCREEN_HEIGHT - 100 );
     m_lblShotsDone.move( 320, SCREEN_HEIGHT - 16 );
     m_lblSpeed.move( 70, SCREEN_HEIGHT / 2 );
+    m_fanRotor.move( 32, SCREEN_HEIGHT / 2 );
+
   btnWeap1.UpdateCoord(SCREEN_WIDTH/2-196-96, SCREEN_HEIGHT*0.15+52-76);
   btnWeap2.UpdateCoord(SCREEN_WIDTH/2-96, SCREEN_HEIGHT*0.15+52-76);
   btnWeap3.UpdateCoord(SCREEN_WIDTH/2+100, SCREEN_HEIGHT*0.15+52-76);
@@ -586,7 +588,7 @@ void Road::OnResize(GLint w, GLint h) {
     }
     
     jet->Update();
-    speed_anim += jet->GetSpeed()*(270.0*DELTATIME);
+    m_fanRotor.setRotation( jet->GetSpeed()*(270.0*DELTATIME) );
     if (speed_anim>=360) { speed_anim -= 360; }
     map->GetJetData(jet->GetPosition(), jet->GetVelocity());
     map->Update();

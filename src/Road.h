@@ -3,6 +3,7 @@
 
 #include "SA.h"
 
+#include "fanrotor.hpp"
 #include "Jet.h"
 #include "Bullet.h"
 #include "label.hpp"
@@ -242,6 +243,8 @@ private:
     Label m_lblFps;
     Label m_lblScore;
     Label m_lblSpeed;
+
+    FanRotor m_fanRotor;
 };
 
 #endif

@@ -201,64 +201,6 @@ void Road::DrawCyberRingsMini()
     SHADER::popMatrix();
 }
 
-static Buffer getFanRotorRing()
-{
-    std::vector<double> arr;
-    Circle circle( 32, 26.5 );
-    for ( int i=0; i<circle.segments(); i++ ) {
-        arr.push_back( circle.x( i ) );
-        arr.push_back( circle.y( i ) );
-        arr.push_back( 0 );
-    }
-    return SHADER::makeBuffer( arr, Buffer::LineLoop );
-}
-
-static Buffer getFanRotorPetals()
-{
-    std::vector<double> arr;
-
-    arr.push_back( 0 );
-    arr.push_back( 0 );
-    arr.push_back( 0 );
-
-    arr.push_back( 3 );
-    arr.push_back( 0 );
-    arr.push_back( 0 );
-
-    arr.push_back( 12 );
-    arr.push_back( 24 );
-    arr.push_back( 0 );
-
-    arr.push_back( 0 );
-    arr.push_back( 26.5 );
-    arr.push_back( 0 );
-
-    arr.push_back( -12 );
-    arr.push_back( 24 );
-    arr.push_back( 0 );
-
-    arr.push_back( -3 );
-    arr.push_back( 0 );
-    arr.push_back( 0 );
-
-    arr.push_back( -12 );
-    arr.push_back( -24 );
-    arr.push_back( 0 );
-
-    arr.push_back( 0 );
-    arr.push_back( -26.5 );
-    arr.push_back( 0 );
-
-    arr.push_back( 12 );
-    arr.push_back( -24 );
-    arr.push_back( 0 );
-
-    arr.push_back( 3 );
-    arr.push_back( 0 );
-    arr.push_back( 0 );
-
-    return SHADER::makeBuffer( arr, Buffer::TriangleFan );
-}
 
   void Road::DrawHUDBar(const GLuint &X, const GLuint &Y, const GLuint &W, const GLuint &H, const GLuint &Current, const GLuint &Max) {
     SHADER::pushMatrix();
@@ -414,15 +356,8 @@ static Buffer getFanRotorPetals()
         m_lblSpeed << "SPEED: " << ( jet->GetSpeed() * 270 );
         m_lblSpeed.draw();
 
-        SHADER::pushMatrix();
         SHADER::setColor( 1, 1, 1, 1 );
-            SHADER::translate( 32, SCREEN_HEIGHT / 2, 0 );
-            static const Buffer fanRing = getFanRotorRing();
-            SHADER::drawBuffer( fanRing );
-            SHADER::rotate( speed_anim, Axis::Z );
-            static const Buffer fanPetals = getFanRotorPetals();
-            SHADER::drawBuffer( fanPetals );
-        SHADER::popMatrix();
+        m_fanRotor.draw();
 
         DrawCyberRingsMini();
         
