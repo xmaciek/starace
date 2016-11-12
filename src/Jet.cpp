@@ -48,7 +48,7 @@ using namespace std;
       anglespeedY = 10;
       anglespeedX = 15;
       model.Load_OBJ(model_data.model_file.c_str());
-//       model.setTexture( model_data.model_texture );
+      model.setTexture( model_data.model_texture );
       model.Scale(model_data.scale);
       model.CalculateNormal();
 //       temprotshield = 0;

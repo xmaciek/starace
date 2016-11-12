@@ -48,6 +48,7 @@ public:
     void drawPreview();
     void draw();
     void releaseResources();
+    uint32_t numOfEnemies() const;
 };
 
 

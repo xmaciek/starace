@@ -232,3 +232,13 @@ void Map::GetJetData( const Vertex &Position, const Vertex &Velocity )
 {
 
 }
+
+void Map::releaseResources()
+{
+    
+}
+
+uint32_t Map::numOfEnemies() const
+{
+    return std::stoi( m_settings.get( "enemies" ) );
+}

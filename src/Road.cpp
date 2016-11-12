@@ -832,7 +832,7 @@ void Road::UpdateMainMenu()
     }
     Bgarbage.clear();
     cout<<"Cleaning garbage: done.\n";
-    if (map!=NULL) { delete map; map = NULL; }
+    m_currentMap->releaseResources();
     if (jet!=NULL) { delete jet; jet = NULL; }
     
   }
@@ -840,16 +840,15 @@ void Road::UpdateMainMenu()
   
   
   
-  void Road::CreateMapData(MapProto map_data, ModelProto model_data) {
+  void Road::CreateMapData( ModelProto model_data ) {
     ShotsDone = 0;
     HUD_Color = 0;
     jet = new Jet(model_data);
-    map = new Map(map_data);
     jet->SetWeapon(Weapons[Weap1], 0);
     jet->SetWeapon(Weapons[Weap2], 1);
     jet->SetWeapon(Weapons[Weap3], 2);    
 
-    for (GLuint i=0; i<map_data.enemies; i++) {
+    for (GLuint i = 0; i < m_currentMap->numOfEnemies(); i++ ) {
       enemies.push_back(new Enemy());
       enemies.at(i)->SetTarget(jet);
       enemies.at(i)->SetWeapon(Weapons[3]);
@@ -867,43 +866,26 @@ void Road::MissionSelectionUpdate() {
 }  
   
   
-void Road::ChangeScreen(GLubyte SCR) {
-  if (SCR==SA_GAMESCREEN) { SDL_ShowCursor(0); }
-    else { SDL_ShowCursor(1); }
-  switch (SCR) {
-    case SA_GAMESCREEN: SCREEN = SCR; break;
-    case SA_GAMESCREEN_PAUSED: SCREEN = SCR; break;
-    case SA_GAMESCREEN_BRIEFING: 
-      CreateMapData(maps_container.at(current_map), jets_container.at(current_jet));
-      SCREEN = SCR; 
-      break;
-    case SA_MISSIONSELECTION:
-      ClearMapData();
-      SCREEN = SCR;
-      break;
-    case SA_DEADSCREEN:
-      SCREEN = SCR; 
-      break;
-    case SA_MAINMENU: SCREEN = SCR; break;
-    case SA_CUSTOMIZE: 
-      model_rotation = 135.0; 
-      cout<<current_jet<<" "<<jets_container.size()<<"\n";
-      cout<<jets_container.at(current_jet).name.c_str()<<"\n";
-      preview_model.Load_OBJ(jets_container.at(current_jet).model_file.c_str());
-      preview_model.setTexture( jets_container.at( current_jet ).model_texture );
-      preview_model.CalculateNormal();
-      SCREEN = SCR; 
-      break;
-    case SA_WINSCREEN: 
-      SCREEN = SCR;
-      break;
-    default: break;
-  }
-  
-  
-}  
-  
-  
+void Road::ChangeScreen( GLubyte SCR ) {
+    SDL_ShowCursor( SCR != SA_GAMESCREEN );
+    switch ( SCR ) {
+        case SA_GAMESCREEN_BRIEFING: 
+            assert( m_currentMap != m_maps.end() );
+            CreateMapData( jets_container.at( current_jet ) );
+            break;
+        case SA_MISSIONSELECTION:
+            ClearMapData();
+            break;
+        case SA_CUSTOMIZE: 
+            model_rotation = 135.0; 
+            preview_model.Load_OBJ( jets_container.at( current_jet ).model_file.c_str() );
+            preview_model.setTexture( jets_container.at( current_jet ).model_texture );
+            break;
+        default:
+            break;
+    }
+    SCREEN = SCR;
+}
 
 void Road::GoFullscreen(bool &b) {
   b=!b;

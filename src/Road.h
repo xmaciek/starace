@@ -193,7 +193,7 @@ private:
   void Retarget();
     
   void ClearMapData();
-  void CreateMapData(MapProto map_data, ModelProto model_data);
+  void CreateMapData( ModelProto model_data);
   void LoadMapProto();
   
   void LoadConfig();
