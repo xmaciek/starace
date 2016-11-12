@@ -1,22 +1,13 @@
 #pragma once
 
 #include "Font.h"
+#include "widget.hpp"
 
-struct Alignment {
-    enum Horizontal { Left, Center, Right };
-    enum Vertical { Top, Middle, Bottom };
-};
-
-class Label {
+class Label : public Widget {
 private:
     const Font* m_font;
     std::string m_text;
-    double m_x, m_y;
-    double m_xOffset, m_yOffset;
-    bool m_isVisible;
-    Alignment::Horizontal m_alignmentHorizontal;
-    Alignment::Vertical m_alignmentVertical;
-    void recalcOffset();
+    virtual void recalcAlignmentOffset();
 
 public:
     Label( const Font* font = 0, const std::string& str = std::string() );
@@ -31,16 +22,11 @@ public:
         std::string t;
         std::getline( xx, t );
         m_text += t;
-        recalcOffset();
+        recalcAlignmentOffset();
         return *this;
     }
 
-    void setAlignment( Alignment::Horizontal horizontal, Alignment::Vertical vertical = Alignment::Bottom );
 
     void setFont( const Font* f );
-    void move( double x, double y );
-    void setVisible( bool b );
-    bool isVisible() const;
-
     void draw() const;
 };
