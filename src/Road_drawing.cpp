@@ -114,6 +114,21 @@
     SHADER::popMatrix();
   }
 
+void Road::drawHudGlow()
+{
+    if ( !m_textureHudGlow ) {
+        loadHudGlow();
+    }
+    SHADER::pushMatrix();
+    const double wr = 0.5 * SCREEN_WIDTH / max_dimention;
+    const double hr = 0.5 * SCREEN_HEIGHT / max_dimention;
+    SHADER::setOrtho( -wr, wr, -hr, hr );
+    SHADER::setMaterial( m_textureHudGlow );
+    SHADER::setTextureCoord( m_bufferHudGlowUV );
+    SHADER::drawBuffer( m_bufferHudGlow );
+    SHADER::popMatrix();
+}
+
 void Road::DrawCyberRings()
 {
     SHADER::pushMatrix();
@@ -403,7 +418,6 @@ void Road::DrawCyberRingsMini()
   
   void Road::Render3D() {
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_FOG);
     glClear(GL_COLOR_BUFFER_BIT| GL_DEPTH_BUFFER_BIT);
     SetPerspective(angle+jet->GetSpeed()*6);
 //     gluPerspective(angle+jet->GetSpeed()*6, (GLdouble)SCREEN_WIDTH/(GLdouble)SCREEN_HEIGHT, 0.001, 2000);
@@ -422,7 +436,6 @@ void Road::DrawCyberRingsMini()
         for (drawing_i=0; drawing_i<enemies.size(); drawing_i++) {
           enemies[drawing_i]->Draw(); 
         }
-        glEnable(GL_BLEND);
         glLineWidth(2);
         for (drawing_i=0; drawing_i<bullet.size(); drawing_i++) { 
           bullet[drawing_i]->Draw(); 
@@ -431,7 +444,6 @@ void Road::DrawCyberRingsMini()
           enemybullet[drawing_i]->Draw(); 
         }
         glLineWidth(1);
-	glDisable(GL_BLEND);
       SHADER::popMatrix();
       jet->Draw();
     SHADER::popMatrix();
@@ -558,37 +570,26 @@ void Road::MissionSelectionScreen()
 	btnPrevMap.Draw();
     SHADER::popMatrix();
   }
-  
-   void Road::GameScreenBriefing() {
-     
-     GameScreen();
-     glEnable(GL_BLEND);
-     glEnable(GL_TEXTURE_2D);
-     SHADER::pushMatrix();
+
+void Road::GameScreenBriefing()
+{
+    // draw 3d environment
+    GameScreen();
+
+    SHADER::pushMatrix();
         DrawCyberRings();
-        glColor3f(1,1,1);
+        drawHudGlow();
+        SetOrtho();
         font_pause_txt->PrintTekst(192,SCREEN_HEIGHT-292, "Movement: AWSD QE");
         font_pause_txt->PrintTekst(192,SCREEN_HEIGHT-310, "Speed controll: UO");
         font_pause_txt->PrintTekst(192,SCREEN_HEIGHT-328, "Weapons: JKL");
         font_pause_txt->PrintTekst(192,SCREEN_HEIGHT-346, "Targeting: I");
         font_pause_txt->PrintTekst(192,SCREEN_HEIGHT-380, "Press space to launch...");
-        
-        glEnable(GL_BLEND);
-        glEnable(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, HUDtex);
-        glBegin(GL_QUADS);
-          glColor3f(0,0.75,1);
-          glTexCoord2f(0,0); glVertex2d(0, 0);
-          glTexCoord2f(1,0); glVertex2d(SCREEN_WIDTH, 0);
-          glTexCoord2f(1,1); glVertex2d(SCREEN_WIDTH, SCREEN_HEIGHT);
-          glTexCoord2f(0,1); glVertex2d(0, SCREEN_HEIGHT);
-        glEnd(); 
         btnGO.Draw();
-      SHADER::popMatrix();
-	
-  } 
- 
- 
+    SHADER::popMatrix();
+}
+
+
 void Road::ScreenCustomize() {
     SHADER::pushMatrix();
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );

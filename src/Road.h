@@ -228,7 +228,12 @@ private:
   
   void SetOrtho();
   void SetPerspective( double angle );
-    
+
+    Texture m_textureHudGlow;
+    Buffer m_bufferHudGlow;
+    uint32_t m_bufferHudGlowUV;
+    void drawHudGlow();
+    void loadHudGlow();
 };
 
 #endif

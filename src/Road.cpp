@@ -1092,3 +1092,13 @@ void Road::WinUpdate()
 void Road::DeadScreenUpdate() {
   UpdateCyberRings();
 }
+
+void Road::loadHudGlow()
+{
+    if ( m_textureHudGlow ) {
+        return;
+    }
+    m_textureHudGlow.load( "textures/HUDtex.tga" );
+    m_bufferHudGlow = SHADER::getQuad( -0.5, -0.5, 0.5, 0.5 );
+    m_bufferHudGlowUV = SHADER::getQuadTextureCoord( 0, 0, 1, 1 );
+}
