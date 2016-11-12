@@ -249,7 +249,14 @@ void Road::OnResize(GLint w, GLint h) {
   btnCustomizeReturn.UpdateCoord((SCREEN_WIDTH/2)-96, SCREEN_HEIGHT*0.15+52);
   btnNextJet.UpdateCoord(SCREEN_WIDTH-240, SCREEN_HEIGHT/2-24);
   btnPrevJet.UpdateCoord(48, SCREEN_HEIGHT/2-24);
-  
+
+    m_lblFps.move( SCREEN_WIDTH / 2, SCREEN_HEIGHT - 28 );
+    m_lblPosX.move( 8, SCREEN_HEIGHT - 16 );
+    m_lblPosY.move( 108, SCREEN_HEIGHT - 16 );
+    m_lblPosZ.move( 208, SCREEN_HEIGHT - 16 );
+    m_lblScore.move( 64, SCREEN_HEIGHT - 100 );
+    m_lblShotsDone.move( 320, SCREEN_HEIGHT - 16 );
+    m_lblSpeed.move( 70, SCREEN_HEIGHT / 2 );
   btnWeap1.UpdateCoord(SCREEN_WIDTH/2-196-96, SCREEN_HEIGHT*0.15+52-76);
   btnWeap2.UpdateCoord(SCREEN_WIDTH/2-96, SCREEN_HEIGHT*0.15+52-76);
   btnWeap3.UpdateCoord(SCREEN_WIDTH/2+100, SCREEN_HEIGHT*0.15+52-76);
@@ -269,7 +276,15 @@ void Road::OnResize(GLint w, GLint h) {
     font_gui_txt = new Font("misc/DejaVuSans-Bold.ttf", 12);
     font_big = new Font("misc/DejaVuSans-Bold.ttf", 32);
     TTF_Quit(); 
-    
+    m_lblFps.setFont( font_gui_txt );
+    m_lblFps.setAlignment( Alignment::Center );
+    m_lblPosX.setFont( font_gui_txt );
+    m_lblPosY.setFont( font_gui_txt );
+    m_lblPosZ.setFont( font_gui_txt );
+    m_lblScore.setFont( font_gui_txt );
+    m_lblShotsDone.setFont( font_gui_txt );
+    m_lblSpeed.setFont( font_gui_txt );
+
     ButtonTexture = LoadTexture("textures/button1.tga");
     
     btnChangeFiltering.SetFont(font_gui_txt);

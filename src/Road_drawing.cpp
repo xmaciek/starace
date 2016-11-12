@@ -254,21 +254,26 @@ void Road::DrawCyberRingsMini()
 //       
 //       SHADER::pushMatrix();
         
-        snprintf(HUDMESSAGE, sizeof(HUDMESSAGE), "X: %.3f", jet->getX());
-        font_gui_txt->PrintTekst(8,SCREEN_HEIGHT-16, HUDMESSAGE);
-       
-        snprintf(HUDMESSAGE, sizeof(HUDMESSAGE), "Y: %.3f", jet->getY());
-        font_gui_txt->PrintTekst(108, SCREEN_HEIGHT-16, HUDMESSAGE);
-        
-        snprintf(HUDMESSAGE, sizeof(HUDMESSAGE), "Z: %.3f", jet->getZ());
-        font_gui_txt->PrintTekst(208, SCREEN_HEIGHT-16, HUDMESSAGE);
-        
-        snprintf(HUDMESSAGE, sizeof(HUDMESSAGE), "Shots: %d", ShotsDone);
-        font_gui_txt->PrintTekst(320, SCREEN_HEIGHT-16, HUDMESSAGE);
-        
-        snprintf(HUDMESSAGE, sizeof(HUDMESSAGE), "SCORE: %d",jet->GetScore());
-        font_gui_txt->PrintTekst(64, SCREEN_HEIGHT-100, HUDMESSAGE);
-        
+        m_lblPosX.clear();
+        m_lblPosX << "X: " << jet->getX();
+        m_lblPosX.draw();
+
+        m_lblPosY.clear();
+        m_lblPosY << "Y: " << jet->getY();
+        m_lblPosY.draw();
+
+        m_lblPosZ.clear();
+        m_lblPosZ << "Z: " << jet->getY();
+        m_lblPosZ.draw();
+
+        m_lblShotsDone.clear();
+        m_lblShotsDone << "Shots: " << ShotsDone;
+        m_lblShotsDone.draw();
+
+        m_lblScore.clear();
+        m_lblScore << "SCORE: " << jet->GetScore();
+        m_lblScore.draw();
+
         /*radar*/
         GLfloat matrice[16];
         jet->quaternion.CreateMatrix(matrice);
@@ -346,33 +351,34 @@ void Road::DrawCyberRingsMini()
         
 	glColor4fv(HUD_Color_4fv[HUD_Color]);
 	
-	SHADER::pushMatrix();
-	  SHADER::translate(32, SCREEN_HEIGHT/2, 0);
-	  snprintf(HUDMESSAGE, sizeof(HUDMESSAGE), "SPEED: %d", (int)(jet->GetSpeed()*270));
-	  font_gui_txt->PrintTekst(38, 0, HUDMESSAGE);
-	  SHADER::pushMatrix();
-	  SHADER::rotate(speed_anim, 0, 0, 1);
-	  glBegin(GL_POLYGON);
-	    glVertex2d(-3,0);
-	    glVertex2d(3,0);
-	    glVertex2d(12,24);
-	    glVertex2d(0,26.5);
-	    glVertex2d(-12,24);
-	  glEnd();
-	  glBegin(GL_POLYGON);
-	    glVertex2d(-12,-24);
-	    glVertex2d(0,-26.5);
-	    glVertex2d(12,-24);
-	    glVertex2d(3,0);
-	    glVertex2d(-3,0);
-	  glEnd();
-	  SHADER::popMatrix();
-	  glBegin(GL_LINE_LOOP);
-	    for (drawing_i=0; drawing_i<speed_fan_ring->GetSegments(); drawing_i++) {
-	      glVertex2d(speed_fan_ring->GetX(drawing_i), speed_fan_ring->GetY(drawing_i));
-	    }
-	  glEnd();
-	SHADER::popMatrix();
+// 	SHADER::pushMatrix();
+//             SHADER::translate(32, SCREEN_HEIGHT/2, 0);
+            m_lblSpeed.clear();
+            m_lblSpeed << "SPEED: " << ( jet->GetSpeed() * 270 );
+            m_lblSpeed.draw();
+// 	  SHADER::pushMatrix();
+// 	  SHADER::rotate(speed_anim, 0, 0, 1);
+// 	  glBegin(GL_POLYGON);
+// 	    glVertex2d(-3,0);
+// 	    glVertex2d(3,0);
+// 	    glVertex2d(12,24);
+// 	    glVertex2d(0,26.5);
+// 	    glVertex2d(-12,24);
+// 	  glEnd();
+// 	  glBegin(GL_POLYGON);
+// 	    glVertex2d(-12,-24);
+// 	    glVertex2d(0,-26.5);
+// 	    glVertex2d(12,-24);
+// 	    glVertex2d(3,0);
+// 	    glVertex2d(-3,0);
+// 	  glEnd();
+// 	  SHADER::popMatrix();
+// 	  glBegin(GL_LINE_LOOP);
+// 	    for (drawing_i=0; drawing_i<speed_fan_ring->GetSegments(); drawing_i++) {
+// 	      glVertex2d(speed_fan_ring->GetX(drawing_i), speed_fan_ring->GetY(drawing_i));
+// 	    }
+// 	  glEnd();
+// 	SHADER::popMatrix();
 	
 	
         DrawCyberRingsMini();
@@ -382,9 +388,9 @@ void Road::DrawCyberRingsMini()
 
         glColor4fv(HUD_Color_4fv[HUD_Color]);
       
-
-        snprintf(HUDMESSAGE, sizeof(HUDMESSAGE), "FPS done: %d, calculated: %.2f", FPS, CalculatedFPS);
-        font_gui_txt->PrintTekst(SCREEN_WIDTH/2-font_gui_txt->GetTextLength("FPS done: XX, calculated: xxxx.xx")/2, SCREEN_HEIGHT-28, HUDMESSAGE);
+        m_lblFps.clear();
+        m_lblFps << "FPS done: " << FPS << ", calculated: " << CalculatedFPS;
+        m_lblFps.draw();
 	
 	font_pause_txt->PrintTekst(10, 102, "ENG");
 	font_pause_txt->PrintTekst(66, 102, "HP");

@@ -5,6 +5,7 @@
 
 #include "Jet.h"
 #include "Bullet.h"
+#include "label.hpp"
 #include "Map.h"
 #include "Texture.h"
 #include "Font.h"
@@ -233,6 +234,14 @@ private:
     uint32_t m_bufferHudGlowUV;
     void drawHudGlow();
     void loadHudGlow();
+
+    Label m_lblPosX;
+    Label m_lblPosY;
+    Label m_lblPosZ;
+    Label m_lblShotsDone;
+    Label m_lblFps;
+    Label m_lblScore;
+    Label m_lblSpeed;
 };
 
 #endif
