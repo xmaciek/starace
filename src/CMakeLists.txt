@@ -6,6 +6,7 @@ set( STARACE_HEADERS
     Enemy.h
     Font.h
     Jet.h
+    label.hpp
     Map.h
     Model.h
     Quaternion.h
@@ -27,6 +28,7 @@ set( STARACE_SOURCES
     Enemy.cpp
     Font.cpp
     Jet.cpp
+    label.cpp
     main.cpp
     Map.cpp
     Model.cpp
