@@ -7,6 +7,7 @@
 typedef struct Buffer_t {
     enum Type { Unknown,
         LineLoop = GL_LINE_LOOP,
+        LineStrip = GL_LINE_STRIP,
         TriangleFan = GL_TRIANGLE_FAN,
         Triangles = GL_TRIANGLES
     };

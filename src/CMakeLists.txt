@@ -20,6 +20,7 @@ set( STARACE_HEADERS
     tail.hpp
     Texture.h
     Thruster.h
+    valuebar.hpp
     widget.hpp
 )
 
@@ -47,6 +48,7 @@ set( STARACE_SOURCES
     Texture.cpp
     Thruster.cpp
     utils.cpp
+    valuebar.cpp
     widget.cpp
 )
 
