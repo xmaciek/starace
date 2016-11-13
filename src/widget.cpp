@@ -39,6 +39,11 @@ double Widget::x() const
     return m_x;
 }
 
+double Widget::right() const
+{
+    return x() + width();
+}
+
 double Widget::y() const
 {
     return m_y;

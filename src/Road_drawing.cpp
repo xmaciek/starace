@@ -201,38 +201,6 @@ void Road::DrawCyberRingsMini()
     SHADER::popMatrix();
 }
 
-
-  void Road::DrawHUDBar(const GLuint &X, const GLuint &Y, const GLuint &W, const GLuint &H, const GLuint &Current, const GLuint &Max) {
-    SHADER::pushMatrix();
-      SHADER::translate(X,Y,0);
-      glColor4fv(HUD_Color_4fv[HUD_Color]);
-      glBegin(GL_LINES);
-        glVertex2d(-4, H+4);
-        glVertex2d(W+4, H+4);
-        
-        glVertex2d(W+4, H+4);
-        glVertex2d(W+4, -4);
-        
-        glVertex2d(W+4, -4);
-        glVertex2d(-4, -4);
-      glEnd();
-//     DrawHUDLine(X-4, SCREEN_HEIGHT-8, X+W+4, SCREEN_HEIGHT-8, 2); 
-//     DrawHUDLine(X+W+4, SCREEN_HEIGHT-8, X+W+4, SCREEN_HEIGHT-112, 2);  
-//     DrawHUDLine(X+W+4, SCREEN_HEIGHT-112, X-4, SCREEN_HEIGHT-112, 2);  
-    glBegin(GL_QUADS);
-//       SHADER::setColor(1.0f, (GLfloat)Current/Max, 0, 0.8f);
-//     (1.0f-(GLfloat)health/1000)+colorhalf((1.0f-(GLfloat)health/1000)),
-//           SHADER::setColor(1-(jet->energy/100) + colorhalf(1-jet->energy/100), colorhalf(jet->energy/100)+(GLfloat)jet->energy/100, 0, 0.8);
-      glColor3f((1.0f-(GLfloat)Current/Max)+colorhalf((1.0f-(GLfloat)Current/Max)), (GLfloat)Current/Max+colorhalf((GLfloat)Current/Max), 0);
-
-      glVertex2d(0, 0);
-      glVertex2d(W, 0);
-      glVertex2d(W, (((GLdouble)Current/Max)*H));
-      glVertex2d(0, (((GLdouble)Current/Max)*H));
-    glEnd();  
-    SHADER::popMatrix();
-  }
-
   void Road::RenderHUD() {
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_FOG);
@@ -361,18 +329,19 @@ void Road::DrawCyberRingsMini()
 
         DrawCyberRingsMini();
         
-        DrawHUDBar(12, 12, 36, 96, jet->energy, 100);
-        DrawHUDBar(64, 12, 36, 96, jet->GetHealth(), 100);
-
         glColor4fv(HUD_Color_4fv[HUD_Color]);
       
         m_lblFps.clear();
         m_lblFps << "FPS done: " << FPS << ", calculated: " << CalculatedFPS;
         m_lblFps.draw();
 	
-	font_pause_txt->PrintTekst(10, 102, "ENG");
-	font_pause_txt->PrintTekst(66, 102, "HP");
-	
+        SHADER::setColor( 1, 1, 1, 1 );
+        m_barHp.setValue( jet->GetHealth() / 100 );
+        m_barHp.draw();
+        SHADER::setColor( 1, 1, 1, 1 );
+        m_barPower.setValue( jet->energy / 100 );
+        m_barPower.draw();
+
         SHADER::popMatrix();
         
       

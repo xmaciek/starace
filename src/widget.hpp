@@ -24,7 +24,8 @@ public:
     virtual double height() const;
     virtual double x() const;
     virtual double y() const;
-
+    virtual double right() const;
+    
     virtual void setVisible( bool b );
     virtual bool isVisible() const;
 

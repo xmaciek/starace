@@ -12,6 +12,7 @@
 #include "Font.h"
 #include "Button.h"
 #include "Enemy.h"
+#include "valuebar.hpp"
 
 #define TAB 9
 #define ESC 27
@@ -245,6 +246,8 @@ private:
     Label m_lblSpeed;
 
     FanRotor m_fanRotor;
+    ValueBar m_barPower;
+    ValueBar m_barHp;
 };
 
 #endif

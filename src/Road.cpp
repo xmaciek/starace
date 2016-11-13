@@ -258,6 +258,8 @@ void Road::OnResize(GLint w, GLint h) {
     m_lblShotsDone.move( 320, SCREEN_HEIGHT - 16 );
     m_lblSpeed.move( 70, SCREEN_HEIGHT / 2 );
     m_fanRotor.move( 32, SCREEN_HEIGHT / 2 );
+    m_barPower.move( 12, 12 );
+    m_barHp.move( m_barPower.right() + 4, 12 );
 
   btnWeap1.UpdateCoord(SCREEN_WIDTH/2-196-96, SCREEN_HEIGHT*0.15+52-76);
   btnWeap2.UpdateCoord(SCREEN_WIDTH/2-96, SCREEN_HEIGHT*0.15+52-76);
@@ -286,6 +288,8 @@ void Road::OnResize(GLint w, GLint h) {
     m_lblScore.setFont( font_gui_txt );
     m_lblShotsDone.setFont( font_gui_txt );
     m_lblSpeed.setFont( font_gui_txt );
+    m_barHp.setText( "HP", font_gui_txt );
+    m_barPower.setText( "PWR", font_gui_txt );
 
     ButtonTexture = LoadTexture("textures/button1.tga");
     
