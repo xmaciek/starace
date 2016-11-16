@@ -13,5 +13,8 @@ Right now I am considering this project to be kind of a sandbox for my ideas.
 ### Requirments:
 Linux, SDL 1.2
 
+### Mid-Long term goals:
+After porting to OpenGL 3.3 is done, move the OpenGL specific implementation to a separate library.
+This will allow implementing Vulkan backend. To follow Valve general advice, game engine should be unaware of rendering context.
 
-This project is under GNU GPLv3 license.
+###### This project is under GNU GPLv3 license.
