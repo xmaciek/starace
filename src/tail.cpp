@@ -17,7 +17,7 @@ Tail::const_iterator Tail::end() const
     return m_segments.end();
 }
 
-void Tail::insert( const Vertex &v )
+void Tail::insert( const Vertex& v )
 {
     m_segments.push_front( v );
     m_segments.pop_back();
