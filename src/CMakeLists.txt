@@ -43,6 +43,7 @@ set( STARACE_SOURCES
 set( STARACE_BINNAME "starace" )
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
 
+set( CMAKE_CXX_STANDARD 11 )
 add_executable( ${STARACE_BINNAME} ${STARACE_SOURCES} )
 target_link_libraries( ${STARACE_BINNAME} SDL SDL_ttf SDL_mixer GL GLU )
 target_compile_options( ${STARACE_BINNAME} PRIVATE -Werror -Wall -Wextra )
