@@ -7,24 +7,36 @@
 #include "texture.hpp"
 #include "tail.hpp"
 
-typedef struct {
-    GLdouble x, y, z;
-    GLdouble speed, length, damage, delay;
-    GLuint type, texture1, texture2, energy, score_per_hit;
-    GLfloat color1[ 4 ], color2[ 4 ];
-} BulletProto;
+struct BulletProto {
+    GLdouble x = 0.0f;
+    GLdouble y = 0.0f;
+    GLdouble z = 0.0f;
+    GLdouble speed = 0.0f;
+    GLdouble damage = 0.0f;
+    GLdouble delay = 0.0f;
+    GLuint type = 0;
+    GLuint texture1 = 0;
+    GLuint texture2 = 0;
+    GLuint energy = 0;
+    GLuint score_per_hit = 0;
+    GLfloat color1[ 4 ] {};
+    GLfloat color2[ 4 ] {};
+};
 
 class Bullet : public SAObject {
 private:
-    GLdouble length;
-    GLdouble max_range, range;
+    GLdouble max_range = 0.0f;
+    GLdouble range = 0.0f;
 
-    Tail m_tail;
-    GLdouble rotX, rotY, rotZ;
-    GLuint owner, type;
-    GLdouble damage;
-    GLuint rotation, texture1, texture2;
-    GLfloat color1[ 4 ], color2[ 4 ];
+    Tail m_tail{};
+    GLdouble rotX = 0.0f;
+    GLdouble rotY = 0.0f;
+    GLdouble rotZ = 0.0f;
+    GLuint type = 0;
+    GLdouble damage = 0.0f;
+    GLuint rotation = 0;
+    GLfloat color1[ 4 ]{};
+    GLfloat color2[ 4 ]{};
 
     virtual Vertex collisionRay() const;
     virtual bool collisionTest( const SAObject* object ) const;

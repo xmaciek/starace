@@ -7,6 +7,7 @@
 
 class Tail {
 public:
+    Tail() = default;
     Tail( uint16_t segments, const Vertex& v );
     typedef std::deque<Vertex>::const_iterator const_iterator;
     const_iterator begin() const;
