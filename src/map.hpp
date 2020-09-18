@@ -3,22 +3,25 @@
 
 #include "sa.hpp"
 #include "texture.hpp"
-// #include "Enemy.h"
 
 class Map {
 private:
-    GLuint length;
-    char name[ 32 ];
-    GLuint TOP, BOTTOM, LEFT, RIGHT, FRONT, BACK;
-    GLuint drawing_i, update_I;
-    GLdouble v1, v2;
-    GLdouble min, max;
+    GLuint TOP = 0;
+    GLuint BOTTOM = 0;
+    GLuint LEFT = 0;
+    GLuint RIGHT = 0;
+    GLuint FRONT = 0;
+    GLuint BACK = 0;
+    GLdouble v1 = 0.0;
+    GLdouble v2 = 0.0;
+    GLdouble min = 0.0;
+    GLdouble max = 0.0;
 
-    vector<Vertex> particle;
+    std::vector<Vertex> particle{};
 
-    Vertex jetPosition, jetVelocity, particleLength, tmp;
-
-    //   vector<Enemy> ememies;
+    Vertex jetPosition{};
+    Vertex jetVelocity{};
+    Vertex particleLength{};
 
 public:
     Map( const MapProto& data );

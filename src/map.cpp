@@ -92,9 +92,9 @@ void Map::Draw()
     glEnable( GL_BLEND );
     glColor4f( 1, 1, 1, 0.4 );
     glBegin( GL_LINES );
-    for ( drawing_i = 0; drawing_i < particle.size(); drawing_i++ ) {
-        glVertex3d( particle.at( drawing_i ).x, particle.at( drawing_i ).y, particle.at( drawing_i ).z );
-        glVertex3d( particle.at( drawing_i ).x + particleLength.x, particle.at( drawing_i ).y + particleLength.y, particle.at( drawing_i ).z + particleLength.z );
+    for ( size_t i = 0; i < particle.size(); i++ ) {
+        glVertex3d( particle.at( i ).x, particle.at( i ).y, particle.at( i ).z );
+        glVertex3d( particle.at( i ).x + particleLength.x, particle.at( i ).y + particleLength.y, particle.at( i ).z + particleLength.z );
     }
     glEnd();
     glDisable( GL_BLEND );
@@ -104,12 +104,12 @@ void Map::Draw()
 
 void Map::Update()
 {
-    for ( update_I = 0; update_I < particle.size(); update_I++ ) {
-        particle.at( update_I ) = particle.at( update_I ) + jetVelocity;
-        if ( distance_v( particle.at( update_I ), jetPosition ) >= 1.5 ) {
-            particle.at( update_I ).x = random_range( jetPosition.x - 1, jetPosition.x + 1 );
-            particle.at( update_I ).y = random_range( jetPosition.y - 1, jetPosition.y + 1 );
-            particle.at( update_I ).z = random_range( jetPosition.z - 1, jetPosition.z + 1 );
+    for ( size_t i = 0; i < particle.size(); i++ ) {
+        particle.at( i ) = particle.at( i ) + jetVelocity;
+        if ( distance_v( particle.at( i ), jetPosition ) >= 1.5 ) {
+            particle.at( i ).x = random_range( jetPosition.x - 1, jetPosition.x + 1 );
+            particle.at( i ).y = random_range( jetPosition.y - 1, jetPosition.y + 1 );
+            particle.at( i ).z = random_range( jetPosition.z - 1, jetPosition.z + 1 );
         }
     }
 }
@@ -128,12 +128,9 @@ Map::Map( const MapProto& data )
     min = 0.00125;
     max = 0.99875;
 
-    Vertex particle_tmp;
-    for ( GLuint map_I = 0; map_I < 100; map_I++ ) {
-        particle_tmp.x = random_range( -1, 1 );
-        particle_tmp.y = random_range( -1, 1 );
-        particle_tmp.z = random_range( -1, 1 );
-        particle.push_back( particle_tmp );
+    particle.reserve( 100 );
+    for ( int i = 0; i < 100; i++ ) {
+        particle.emplace_back( random_range( -1, 1 ), random_range( -1, 1 ), random_range( -1, 1 ) );
     }
 
     v1 = 1000;
