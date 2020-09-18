@@ -1,6 +1,6 @@
 #include "road.hpp"
 
-int main( int argc, char** argv )
+int main( [[maybe_unused]] int argc, [[maybe_unused]] char** argv )
 {
     cout << "Launching...\n";
     srand( (unsigned)time( NULL ) );
