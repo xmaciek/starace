@@ -6,11 +6,14 @@
 
 class Button {
 private:
-    GLuint x, y, width, height, textureID;
-    Font* font;
-    GLfloat color[ 3 ];
-    bool enabled;
-    GLuint text_length;
+    GLuint x = 0;
+    GLuint y = 0;
+    GLuint width = 0;
+    GLuint height = 0;
+    GLuint textureID = 0;
+    Font* font = nullptr;
+    bool enabled = false;
+    GLuint text_length = 0;
 
 public:
     Button();

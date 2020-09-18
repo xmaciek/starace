@@ -47,7 +47,7 @@ void Button::Draw()
     glDisable( GL_BLEND );
 }
 
-void Button::MouseOver( GLuint X, GLuint Y ){};
+void Button::MouseOver( GLuint, GLuint ){};
 
 void Button::UpdateCoord( GLuint X, GLuint Y )
 {
