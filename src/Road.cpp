@@ -384,7 +384,7 @@ void Road::OnResize(GLint w, GLint h) {
     
     GLfloat temp_colors[4][4] = { {1,1,1,0.8}, {1,1,1,0.7}, {1,1,1,0.6}, {1,1,1,0.7}}; 
     
-    memcpy(cyber_ring_color, temp_colors, sizeof(GLfloat)*16);
+    memcpy(cyber_ring_color, temp_colors, sizeof(GLfloat)*12);
     
     
     glEnable(GL_BLEND); 
