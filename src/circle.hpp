@@ -16,11 +16,11 @@ public:
     GLdouble GetRadiust();
 
 private:
-    GLdouble DEGinRAD;
-    GLdouble radiust;
-    GLuint segments;
-    GLuint update_i, drawing_i;
-    std::vector<GLdouble> X, Y;
+    GLdouble DEGinRAD = 0.0;
+    GLdouble radiust = 0.0;
+    GLuint segments = 0;
+    std::vector<GLdouble> X{};
+    std::vector<GLdouble> Y{};
     void init();
 };
 
