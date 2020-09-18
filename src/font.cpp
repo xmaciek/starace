@@ -38,7 +38,7 @@ GLuint Font::pow2( GLint a )
 
 void Font::make_dlist( TTF_Font* font, GLuint ch )
 {
-    SDL_Color col = { 255, 255, 255 };
+    SDL_Color col = { 255, 255, 255, 255 };
     SDL_Surface* tmp = NULL;
 
     tmp = TTF_RenderGlyph_Blended( font, (Uint16)ch, col );
@@ -95,7 +95,7 @@ GLuint Font::GetTextLength( const char* tekst )
     string txt = tekst;
     GLuint length = 0;
     for ( GLuint i = 0; i < txt.size(); i++ ) {
-        length += char_length[ txt[ i ] ];
+        length += char_length[ (int)txt[ i ] ];
     }
     return length;
 }
