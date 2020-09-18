@@ -92,7 +92,7 @@ void Road::DrawHUDLine( GLdouble X1, GLdouble Y1, GLdouble X2, GLdouble Y2, GLdo
     glLineWidth( 1.0f );
 }
 
-void Road::DrawHUDPiece( GLdouble X, GLdouble Y, GLdouble RotAngleZ )
+void Road::DrawHUDPiece( GLdouble, GLdouble, GLdouble RotAngleZ )
 {
     glPushMatrix();
     glRotated( RotAngleZ, 0, 0, 1 );
@@ -109,11 +109,11 @@ void Road::DrawCyberRings()
 {
     glPushMatrix();
     glTranslated( SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 0 );
-    for ( drawing_i = 0; drawing_i < 3; drawing_i++ ) {
+    for ( size_t i = 0; i < 3; i++ ) {
         glPushMatrix();
-        glBindTexture( GL_TEXTURE_2D, cyber_ring_texture[ drawing_i ] );
-        glColor4fv( cyber_ring_color[ drawing_i ] );
-        glRotated( cyber_ring_rotation[ drawing_i ], 0, 0, 1 );
+        glBindTexture( GL_TEXTURE_2D, cyber_ring_texture[ i ] );
+        glColor4fv( cyber_ring_color[ i ] );
+        glRotated( cyber_ring_rotation[ i ], 0, 0, 1 );
         glTranslated( max_dimention * -0.5, max_dimention * -0.5, 0 );
         glBegin( GL_QUADS );
         glTexCoord2f( 1, 1 );
@@ -148,13 +148,13 @@ void Road::DrawCyberRingsMini()
 {
     glPushMatrix();
     glTranslated( SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 8, 0 );
-    for ( drawing_i = 0; drawing_i < 3; drawing_i++ ) {
+    for ( size_t i = 0; i < 3; i++ ) {
         glPushMatrix();
         glEnable( GL_TEXTURE_2D );
         glEnable( GL_BLEND );
-        glBindTexture( GL_TEXTURE_2D, cyber_ring_texture[ drawing_i ] );
-        glColor4f( HUD_Color_4fv[ HUD_Color ][ 0 ], HUD_Color_4fv[ HUD_Color ][ 1 ], HUD_Color_4fv[ HUD_Color ][ 2 ], cyber_ring_color[ drawing_i ][ 3 ] );
-        glRotated( cyber_ring_rotation[ drawing_i ], 0, 0, 1 );
+        glBindTexture( GL_TEXTURE_2D, cyber_ring_texture[ i ] );
+        glColor4f( HUD_Color_4fv[ HUD_Color ][ 0 ], HUD_Color_4fv[ HUD_Color ][ 1 ], HUD_Color_4fv[ HUD_Color ][ 2 ], cyber_ring_color[ i ][ 3 ] );
+        glRotated( cyber_ring_rotation[ i ], 0, 0, 1 );
         glBegin( GL_QUADS );
         glTexCoord2f( 1, 1 );
         glVertex2d( 32, 32 );
@@ -312,24 +312,24 @@ void Road::RenderHUD()
 
     glColor3f( 0.3, 0.3, 1 );
     glBegin( GL_LINE_LOOP );
-    for ( drawing_i = 0; drawing_i < Radar->GetSegments(); drawing_i++ ) {
-        glVertex3d( Radar->GetX( drawing_i ), Radar->GetY( drawing_i ), 0 );
+    for ( size_t i = 0; i < Radar->GetSegments(); i++ ) {
+        glVertex3d( Radar->GetX( i ), Radar->GetY( i ), 0 );
     }
     glEnd();
     glColor3f( 0, 1, 0 );
     glBegin( GL_LINE_LOOP );
-    for ( drawing_i = 0; drawing_i < Radar->GetSegments(); drawing_i++ ) {
-        glVertex3d( Radar->GetX( drawing_i ), 0, Radar->GetY( drawing_i ) );
+    for ( size_t i = 0; i < Radar->GetSegments(); i++ ) {
+        glVertex3d( Radar->GetX( i ), 0, Radar->GetY( i ) );
     }
     glEnd();
     glColor3f( 1, 0, 0 );
     glBegin( GL_LINE_LOOP );
-    for ( drawing_i = 0; drawing_i < Radar->GetSegments(); drawing_i++ ) {
-        glVertex3d( 0, Radar->GetX( drawing_i ), Radar->GetY( drawing_i ) );
+    for ( size_t i = 0; i < Radar->GetSegments(); i++ ) {
+        glVertex3d( 0, Radar->GetX( i ), Radar->GetY( i ) );
     }
     glEnd();
-    for ( drawing_i = 0; drawing_i < enemies.size(); drawing_i++ ) {
-        enemies.at( drawing_i )->DrawRadarPosition( jet->GetPosition(), 92 );
+    for ( size_t i = 0; i < enemies.size(); i++ ) {
+        enemies.at( i )->DrawRadarPosition( jet->GetPosition(), 92 );
     }
 
     glDisable( GL_DEPTH_TEST );
@@ -369,8 +369,8 @@ void Road::RenderHUD()
     glEnd();
     glPopMatrix();
     glBegin( GL_LINE_LOOP );
-    for ( drawing_i = 0; drawing_i < speed_fan_ring->GetSegments(); drawing_i++ ) {
-        glVertex2d( speed_fan_ring->GetX( drawing_i ), speed_fan_ring->GetY( drawing_i ) );
+    for ( size_t i = 0; i < speed_fan_ring->GetSegments(); i++ ) {
+        glVertex2d( speed_fan_ring->GetX( i ), speed_fan_ring->GetY( i ) );
     }
     glEnd();
     glPopMatrix();
@@ -410,16 +410,16 @@ void Road::Render3D()
     glMultMatrixf( matrice );
     glTranslated( cX, cY, cZ );
     map->Draw();
-    for ( drawing_i = 0; drawing_i < enemies.size(); drawing_i++ ) {
-        enemies[ drawing_i ]->Draw();
+    for ( size_t i = 0; i < enemies.size(); i++ ) {
+        enemies[ i ]->Draw();
     }
     glEnable( GL_BLEND );
     glLineWidth( 2 );
-    for ( drawing_i = 0; drawing_i < bullet.size(); drawing_i++ ) {
-        bullet[ drawing_i ]->Draw();
+    for ( size_t i = 0; i < bullet.size(); i++ ) {
+        bullet[ i ]->Draw();
     }
-    for ( drawing_i = 0; drawing_i < enemybullet.size(); drawing_i++ ) {
-        enemybullet[ drawing_i ]->Draw();
+    for ( size_t i = 0; i < enemybullet.size(); i++ ) {
+        enemybullet[ i ]->Draw();
     }
     glLineWidth( 1 );
     glDisable( GL_BLEND );

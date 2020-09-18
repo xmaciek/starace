@@ -425,11 +425,9 @@ void Road::InitRoadAdditionsGL()
     cyber_ring_rotation[ 0 ] = 0;
     cyber_ring_rotation[ 1 ] = 0;
     cyber_ring_rotation[ 2 ] = 0;
-    cyber_ring_rotation[ 3 ] = 0;
     cyber_ring_rotation_direction[ 0 ] = false;
     cyber_ring_rotation_direction[ 1 ] = false;
     cyber_ring_rotation_direction[ 2 ] = false;
-    cyber_ring_rotation_direction[ 3 ] = false;
 
     GLfloat temp_colors[ 4 ][ 4 ] = { { 1, 1, 1, 0.8 }, { 1, 1, 1, 0.7 }, { 1, 1, 1, 0.6 }, { 1, 1, 1, 0.7 } };
 
@@ -658,22 +656,22 @@ void Road::GameUpdate()
         AddBullet( 2 );
     }
 
-    for ( update_i = 0; update_i < enemies.size(); update_i++ ) {
-        enemies.at( update_i )->Update();
-        if ( enemies.at( update_i )->IsWeaponReady() ) {
-            enemybullet.push_back( enemies.at( update_i )->GetWeapon() );
+    for ( size_t i = 0; i < enemies.size(); i++ ) {
+        enemies.at( i )->Update();
+        if ( enemies.at( i )->IsWeaponReady() ) {
+            enemybullet.push_back( enemies.at( i )->GetWeapon() );
         }
-        if ( enemies.at( update_i )->GetStatus() == Enemy::DEAD ) {
+        if ( enemies.at( i )->GetStatus() == Enemy::DEAD ) {
             //         cout<<"Moving Enemy to Garbage.\n";
-            jet->AddScore( enemies.at( update_i )->GetScore(), true );
-            Egarbage.push_back( enemies.at( update_i ) );
-            enemies.erase( enemies.begin() + update_i );
-            //         update_i-=1;
+            jet->AddScore( enemies.at( i )->GetScore(), true );
+            Egarbage.push_back( enemies.at( i ) );
+            enemies.erase( enemies.begin() + i );
+            //         i-=1;
         }
     }
 
-    for ( update_i = 0; update_i < enemybullet.size(); update_i++ ) {
-        enemybullet.at( update_i )->ProcessCollision( jet );
+    for ( size_t i = 0; i < enemybullet.size(); i++ ) {
+        enemybullet.at( i )->ProcessCollision( jet );
     }
 
     jet->Update();
@@ -684,43 +682,43 @@ void Road::GameUpdate()
     map->GetJetData( jet->GetPosition(), jet->GetVelocity() );
     map->Update();
 
-    for ( update_i = 0; update_i < bullet.size(); update_i++ ) {
-        for ( update_i2 = 0; update_i2 < enemies.size(); update_i2++ ) {
-            bullet.at( update_i )->ProcessCollision( enemies.at( update_i2 ) );
+    for ( size_t i = 0; i < bullet.size(); i++ ) {
+        for ( size_t i2 = 0; i2 < enemies.size(); i2++ ) {
+            bullet.at( i )->ProcessCollision( enemies.at( i2 ) );
         }
 
-        bullet.at( update_i )->Update();
-        if ( bullet.at( update_i )->GetStatus() == Bullet::DEAD ) {
+        bullet.at( i )->Update();
+        if ( bullet.at( i )->GetStatus() == Bullet::DEAD ) {
             //         cout<<"Moving Bullet to Garbage. \n";
-            Bgarbage.push_back( bullet.at( update_i ) );
-            bullet.erase( bullet.begin() + update_i );
-            //         update_i-=1;
+            Bgarbage.push_back( bullet.at( i ) );
+            bullet.erase( bullet.begin() + i );
+            //         i-=1;
         }
     }
-    for ( update_i = 0; update_i < enemybullet.size(); update_i++ ) {
-        enemybullet.at( update_i )->Update();
-        if ( enemybullet.at( update_i )->GetStatus() == Bullet::DEAD ) {
+    for ( size_t i = 0; i < enemybullet.size(); i++ ) {
+        enemybullet.at( i )->Update();
+        if ( enemybullet.at( i )->GetStatus() == Bullet::DEAD ) {
             //         cout<<"Moving Bullet to Garbage. \n";
-            Bgarbage.push_back( enemybullet.at( update_i ) );
-            enemybullet.erase( enemybullet.begin() + update_i );
-            //         update_i-=1;
+            Bgarbage.push_back( enemybullet.at( i ) );
+            enemybullet.erase( enemybullet.begin() + i );
+            //         i-=1;
         }
     }
 
-    for ( update_i = 0; update_i < Egarbage.size(); update_i++ ) {
-        if ( Egarbage.at( update_i )->DeleteMe() ) {
+    for ( size_t i = 0; i < Egarbage.size(); i++ ) {
+        if ( Egarbage.at( i )->DeleteMe() ) {
             //         cout<<"Enemy garbage size: "<<Egarbage.size()<<", Deleting from garbage: ";
-            delete Egarbage.at( update_i );
-            Egarbage.erase( Egarbage.begin() + update_i );
-            //         update_i-=1;
+            delete Egarbage.at( i );
+            Egarbage.erase( Egarbage.begin() + i );
+            //         i-=1;
         }
     }
-    for ( update_i = 0; update_i < Bgarbage.size(); update_i++ ) {
-        if ( Bgarbage.at( update_i )->DeleteMe() ) {
+    for ( size_t i = 0; i < Bgarbage.size(); i++ ) {
+        if ( Bgarbage.at( i )->DeleteMe() ) {
             //         cout<<"Bullet garbage size: "<<Bgarbage.size()<<", Deleting from garbage: ";
-            delete Bgarbage.at( update_i );
-            Bgarbage.erase( Bgarbage.begin() + update_i );
-            //         update_i-=1;
+            delete Bgarbage.at( i );
+            Bgarbage.erase( Bgarbage.begin() + i );
+            //         i-=1;
         }
     }
     UpdateCyberRings();

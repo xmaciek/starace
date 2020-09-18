@@ -22,9 +22,9 @@ public:
     GLint OnExecute();
 
 private:
-    bool Running;
-    SDL_Surface* Display;
-    SDL_Thread* thread;
+    bool Running = false;
+    SDL_Surface* Display = nullptr;
+    SDL_Thread* thread = nullptr;
 
     bool OnInit();
     void OnEvent( SDL_Event& Event );
@@ -43,9 +43,10 @@ private:
 
     void InitRoadAdditionsGL();
 
-    bool doUpdate, WaitForEnd;
+    bool doUpdate = false;
+    bool WaitForEnd = false;
 
-    BulletProto Weapons[ 4 ];
+    BulletProto Weapons[ 4 ]{};
 
     static const GLubyte SA_GAMESCREEN = 0;
     static const GLubyte SA_GAMESCREEN_BRIEFING = 1;
@@ -57,100 +58,116 @@ private:
     static const GLubyte SA_MAINMENU = 100;
     static const GLubyte SA_OPTIONS = 110;
 
-    GLubyte SCREEN;
-    GLuint RESOLUTIONS[ 4 ][ 2 ];
-    GLint current_resolution;
+    GLubyte SCREEN = 0;
+    GLuint RESOLUTIONS[ 4 ][ 2 ]{};
+    GLint current_resolution = 0;
 
     void ChangeScreen( GLubyte SCR );
 
-    Jet* jet;
-    Map* map;
-    vector<Enemy*> enemies, Egarbage;
-    Font* font_pause_txt;
-    Font* font_gui_txt;
-    Font* font_big;
-    GLuint ButtonTexture;
+    Jet* jet = nullptr;
+    Map* map = nullptr;
+    std::vector<Enemy*> enemies{};
+    std::vector<Enemy*> Egarbage{};
+    Font* font_pause_txt = nullptr;
+    Font* font_gui_txt = nullptr;
+    Font* font_big = nullptr;
+    GLuint ButtonTexture = 0;
 
-    GLint current_filtering;
+    GLint current_filtering = 0;
+    GLdouble Rotation = 0.0;
+    GLint angle = 0;
+    bool DynamicCamera = false;
+    Uint32 timeS = 0;
+    Uint32 nextTick = 0;
+    Uint32 nextFrame = 0;
 
-    GLdouble Rotation;
-    GLint angle;
-    GLint drawing_i, update_i, update_i2;
-    bool DynamicCamera;
-    Uint32 timeS, nextTick, nextFrame;
-
-    bool play_sound;
-    Mix_Chunk *laser, *blaster, *torpedo, *click;
+    bool play_sound = false;
+    Mix_Chunk* laser = nullptr;
+    Mix_Chunk* blaster = nullptr;
+    Mix_Chunk* torpedo = nullptr;
+    Mix_Chunk* click = nullptr;
     void PlaySound( Mix_Chunk* sound );
 
-    Circle* Radar;
-    Button btnExit;
-    Button btnChangeFiltering;
-    Button btnSelectMission;
-    Button btnSelectMissionCancel;
-    Button btnReturnToMissionSelection;
-    Button btnReturnToMainMenu;
-    Button btnQuitMission;
-    Button btnStartMission;
-    Button btnGO;
-    Button Options;
+    Circle* Radar = nullptr;
+    Button btnExit{};
+    Button btnChangeFiltering{};
+    Button btnSelectMission{};
+    Button btnSelectMissionCancel{};
+    Button btnReturnToMissionSelection{};
+    Button btnReturnToMainMenu{};
+    Button btnQuitMission{};
+    Button btnStartMission{};
+    Button btnGO{};
+    Button Options{};
 
-    Button btnNextMap, btnPrevMap;
-    Button btnNextJet, btnPrevJet, btnCustomizeReturn;
-    Button btnCustomize;
+    Button btnNextMap{};
+    Button btnPrevMap{};
+    Button btnNextJet{};
+    Button btnPrevJet{};
+    Button btnCustomizeReturn{};
+    Button btnCustomize{};
 
-    Button btnWeap1, btnWeap2, btnWeap3;
-    GLubyte Weap1, Weap2, Weap3;
+    Button btnWeap1{};
+    Button btnWeap2{};
+    Button btnWeap3{};
+    GLubyte Weap1 = 0;
+    GLubyte Weap2 = 0;
+    GLubyte Weap3 = 0;
 
-    GLuint HUDtex;
+    GLuint HUDtex = 0;
 
-    GLint SCREEN_WIDTH;
-    GLint SCREEN_HEIGHT;
-    GLint SCREEN_DEPTH;
+    GLint SCREEN_WIDTH = 0;
+    GLint SCREEN_HEIGHT = 0;
+    GLint SCREEN_DEPTH = 0;
 
-    GLuint FramesDone;
-    GLuint ShotsDone;
-    time_t TimePassed;
-    GLuint FPS;
-    GLdouble CalculatedFPS, tempFPS;
-    GLfloat LightAmbient[ 4 ];
-    GLfloat LightDiffuse[ 4 ];
-    GLfloat LightPosition[ 4 ];
+    GLuint FramesDone = 0;
+    GLuint ShotsDone = 0;
+    time_t TimePassed{};
+    GLuint FPS = 0;
+    GLdouble CalculatedFPS = 0.0;
+    GLdouble tempFPS = 0.0;
+    GLfloat LightAmbient[ 4 ]{};
+    GLfloat LightDiffuse[ 4 ]{};
+    GLfloat LightPosition[ 4 ]{};
 
-    vector<Bullet*> bullet, enemybullet, Bgarbage;
+    std::vector<Bullet*> bullet{};
+    std::vector<Bullet*> enemybullet{};
+    std::vector<Bullet*> Bgarbage{};
 
-    vector<MapProto> maps_container;
-    GLuint current_map;
+    std::vector<MapProto> maps_container{};
+    GLuint current_map = 0;
 
-    GLint max_dimention, min_dimention;
+    GLint max_dimention = 0;
+    GLint min_dimention = 0;
 
-    GLuint menu_background, menu_background_overlay;
-    GLfloat alpha_value;
-    bool background_effect_equation;
+    GLuint menu_background = 0;
+    GLuint menu_background_overlay = 0;
+    GLfloat alpha_value = 0.0f;
+    bool background_effect_equation = false;
 
-    GLuint starfield_texture;
+    GLuint starfield_texture = 0;
 
-    GLuint cyber_ring_texture[ 3 ];
-    GLdouble cyber_ring_rotation[ 3 ];
-    GLfloat cyber_ring_color[ 3 ][ 4 ];
-    bool cyber_ring_rotation_direction[ 3 ];
+    GLuint cyber_ring_texture[ 3 ]{};
+    GLdouble cyber_ring_rotation[ 3 ]{};
+    GLfloat cyber_ring_color[ 3 ][ 4 ]{};
+    bool cyber_ring_rotation_direction[ 3 ]{};
 
-    vector<ModelProto> jet_models_proto;
-    vector<ModelProto> jets_container;
-    Model preview_model;
-    GLuint current_jet;
-    GLdouble model_rotation;
-    string LastSelectedJetName;
+    std::vector<ModelProto> jet_models_proto{};
+    std::vector<ModelProto> jets_container{};
+    Model preview_model{};
+    GLuint current_jet = 0;
+    GLdouble model_rotation = 0.0;
+    std::string LastSelectedJetName{};
 
-    GLdouble speed_anim;
-    Circle* speed_fan_ring;
+    GLdouble speed_anim = 0.0;
+    Circle* speed_fan_ring = nullptr;
 
-    GLfloat HUD_Color_4fv[ 3 ][ 4 ];
-    GLuint HUD_Color;
+    GLfloat HUD_Color_4fv[ 3 ][ 4 ]{};
+    GLuint HUD_Color = 0.0;
 
-    bool FULLSCREEN;
+    bool FULLSCREEN = false;
 
-    char HUDMESSAGE[ 48 ];
+    char HUDMESSAGE[ 48 ]{};
 
     void Pause();
     void Unpause();

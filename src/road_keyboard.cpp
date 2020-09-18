@@ -1,6 +1,6 @@
 #include "road.hpp"
 
-void Road::OnKeyDown( SDLKey sym, SDLMod mod, Uint16 unicode )
+void Road::OnKeyDown( SDLKey sym, SDLMod, Uint16 )
 {
     switch ( sym ) {
     case SDLK_F11:
@@ -24,7 +24,7 @@ void Road::OnKeyDown( SDLKey sym, SDLMod mod, Uint16 unicode )
     }
 }
 
-void Road::OnKeyUp( SDLKey sym, SDLMod mod, Uint16 unicode )
+void Road::OnKeyUp( SDLKey sym, SDLMod, Uint16 )
 {
     switch ( SCREEN ) {
     case SA_GAMESCREEN:
