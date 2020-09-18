@@ -2,6 +2,8 @@
 
 using namespace std;
 
+#include <cassert>
+
 Jet::Jet( const ModelProto& model_data )
 {
     cout << "+-+ Creating Jet...";
@@ -442,6 +444,11 @@ void Jet::ProcessCollision( vector<Bullet*>& Bullets )
         }
     }
 }
+
+void Jet::ProcessCollision( SAObject* )
+{
+    assert( !"shall not be called" );
+};
 
 void Jet::AddScore( const GLint& s, bool b )
 {

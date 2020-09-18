@@ -40,7 +40,8 @@ public:
     void SetWeapon( BulletProto bp, GLuint ID );
     void TakeEnergy( GLuint wID );
     void ProcessCollision( vector<Bullet*>& Bullets );
-    void AddScore( const GLint& s, bool b = false );
+    virtual void ProcessCollision( SAObject* ) override;
+    virtual void AddScore( const GLint& s, bool b = false ) override;
 
 private:
     GLdouble roll, pitch, yaw, rotZ, rotX, rotY;
