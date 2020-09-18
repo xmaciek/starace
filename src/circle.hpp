@@ -1,7 +1,8 @@
 #ifndef SA_CIRCLE
 #define SA_CIRCLE
 
-#include "SA.h"
+#include "sa.hpp"
+
 class Circle {
 public:
     Circle();

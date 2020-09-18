@@ -1,8 +1,8 @@
 #ifndef SA_THRUSTER
 #define SA_THRUSTER
 
-#include "Circle.h"
-#include "SA.h"
+#include "circle.hpp"
+#include "sa.hpp"
 
 class Thruster {
 public:

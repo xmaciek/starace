@@ -1,8 +1,8 @@
 #ifndef SA_BUTTON
 #define SA_BUTTON
 
-#include "Font.h"
-#include "SA.h"
+#include "font.hpp"
+#include "sa.hpp"
 
 class Button {
 private:

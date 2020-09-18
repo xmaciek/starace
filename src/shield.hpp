@@ -1,8 +1,8 @@
 #ifndef SA_SHIELD_H
 #define SA_SHIELD_H
 
-#include "Circle.h"
-#include "SA.h"
+#include "circle.hpp"
+#include "sa.hpp"
 
 class Shield {
 public:

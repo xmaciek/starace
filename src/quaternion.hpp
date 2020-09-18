@@ -1,7 +1,7 @@
 #ifndef SA_QUATERNION_H
 #define SA_QUATERNION_H
 
-#include "SA.h"
+#include "sa.hpp"
 
 class Quaternion {
 public:

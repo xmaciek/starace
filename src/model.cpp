@@ -1,5 +1,5 @@
-#include "Model.h"
-#include "SA.h"
+#include "model.hpp"
+#include "sa.hpp"
 
 using namespace std;
 

@@ -1,42 +1,42 @@
 
 set( STARACE_HEADERS
-    Bullet.h
-    Button.h
-    Circle.h
-    Enemy.h
-    Font.h
-    Jet.h
-    Map.h
-    Model.h
-    Quaternion.h
-    Road.h
-    SA.h
-    SAObject.h
-    Shield.h
+    bullet.hpp
+    button.hpp
+    circle.hpp
+    enemy.hpp
+    font.hpp
+    jet.hpp
+    map.hpp
+    model.hpp
+    quaternion.hpp
+    road.hpp
+    sa.hpp
+    saobject.hpp
+    shield.hpp
     tail.hpp
-    Texture.h
-    Thruster.h
+    texture.hpp
+    thruster.hpp
 )
 
 set( STARACE_SOURCES
-    Bullet.cpp
-    Button.cpp
-    Circle.cpp
-    Enemy.cpp
-    Font.cpp
-    Jet.cpp
+    bullet.cpp
+    button.cpp
+    circle.cpp
+    enemy.cpp
+    font.cpp
+    jet.cpp
     main.cpp
-    Map.cpp
-    Model.cpp
-    Quaternion.cpp
-    Road.cpp
-    Road_drawing.cpp
-    Road_keyboard.cpp
-    SAObject.cpp
-    Shield.cpp
+    map.cpp
+    model.cpp
+    quaternion.cpp
+    road.cpp
+    road_drawing.cpp
+    road_keyboard.cpp
+    saobject.cpp
+    shield.cpp
     tail.cpp
-    Texture.cpp
-    Thruster.cpp
+    texture.cpp
+    thruster.cpp
     utils.cpp
 )
 

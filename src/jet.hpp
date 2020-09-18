@@ -1,15 +1,15 @@
 #ifndef SA_JET_H
 #define SA_JET_H
 
-#include "Bullet.h"
-#include "Circle.h"
-#include "Model.h"
-#include "Quaternion.h"
-#include "SA.h"
-#include "SAObject.h"
-#include "Shield.h"
-#include "Texture.h"
-#include "Thruster.h"
+#include "bullet.hpp"
+#include "circle.hpp"
+#include "model.hpp"
+#include "quaternion.hpp"
+#include "sa.hpp"
+#include "saobject.hpp"
+#include "shield.hpp"
+#include "texture.hpp"
+#include "thruster.hpp"
 
 class Jet : public SAObject {
 public:

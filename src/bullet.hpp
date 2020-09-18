@@ -1,10 +1,10 @@
 #ifndef SA_BULLET_H
 #define SA_BULLET_H
 
-#include "Model.h"
-#include "SA.h"
-#include "SAObject.h"
-#include "Texture.h"
+#include "model.hpp"
+#include "sa.hpp"
+#include "saobject.hpp"
+#include "texture.hpp"
 #include "tail.hpp"
 
 typedef struct {

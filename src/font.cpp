@@ -1,4 +1,5 @@
-#include "Font.h"
+#include "font.hpp"
+
 Font::Font( const char* fontname, GLuint h )
 {
     std::cout << "+-- Creating Font " << fontname << ":" << h << "\n";

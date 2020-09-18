@@ -1,4 +1,4 @@
-#include "Button.h"
+#include "button.hpp"
 
 bool Button::IsClicked( GLuint X, GLuint Y )
 {

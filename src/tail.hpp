@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SA.h"
+#include "sa.hpp"
 
 #include <cstdint>
 #include <deque>

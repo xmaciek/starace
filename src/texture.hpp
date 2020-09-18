@@ -1,6 +1,7 @@
 #ifndef SA_Texture_H
 #define SA_Texture_H
-#include "SA.h"
+#include "sa.hpp"
+
 using namespace std;
 typedef struct
 {

@@ -1,8 +1,8 @@
 #ifndef SA_MAP_H
 #define SA_MAP_H
 
-#include "SA.h"
-#include "Texture.h"
+#include "sa.hpp"
+#include "texture.hpp"
 // #include "Enemy.h"
 
 class Map {

@@ -1,4 +1,4 @@
-#include "SA.h"
+#include "sa.hpp"
 
 GLdouble random_range( GLdouble a, GLdouble b )
 {

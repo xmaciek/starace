@@ -1,4 +1,4 @@
-#include "Texture.h"
+#include "texture.hpp"
 
 GLuint LoadDefault()
 {

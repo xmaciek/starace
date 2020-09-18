@@ -1,15 +1,15 @@
 #ifndef StarAce_ROAD
 #define StarAce_ROAD
 
-#include "SA.h"
+#include "sa.hpp"
 
-#include "Bullet.h"
-#include "Button.h"
-#include "Enemy.h"
-#include "Font.h"
-#include "Jet.h"
-#include "Map.h"
-#include "Texture.h"
+#include "bullet.hpp"
+#include "button.hpp"
+#include "enemy.hpp"
+#include "font.hpp"
+#include "jet.hpp"
+#include "map.hpp"
+#include "texture.hpp"
 
 #define TAB 9
 #define ESC 27

@@ -1,7 +1,7 @@
 #ifndef MODEL_H
 #define MODEL_H
-#include "SA.h"
-#include "Texture.h"
+#include "sa.hpp"
+#include "texture.hpp"
 
 struct UV {
     UV()

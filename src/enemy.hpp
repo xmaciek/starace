@@ -1,11 +1,11 @@
 #ifndef SA_ENEMY_H
 #define SA_ENEMY_H
 
-#include "Bullet.h"
-#include "Model.h"
-#include "SA.h"
-#include "SAObject.h"
-#include "Shield.h"
+#include "bullet.hpp"
+#include "model.hpp"
+#include "sa.hpp"
+#include "saobject.hpp"
+#include "shield.hpp"
 
 class Enemy : public SAObject {
 public:

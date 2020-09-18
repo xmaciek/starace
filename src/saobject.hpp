@@ -1,7 +1,7 @@
 #ifndef SA_TARGET_H
 #define SA_TARGET_H
 
-#include "SA.h"
+#include "sa.hpp"
 
 class SAObject {
 public:

@@ -1,8 +1,8 @@
 #ifndef SA_FONT
 #define SA_FONT
 
-#include "SA.h"
-#include "Texture.h"
+#include "sa.hpp"
+#include "texture.hpp"
 
 class Font {
 private:

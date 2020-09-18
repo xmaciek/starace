@@ -1,4 +1,4 @@
-#include "Shield.h"
+#include "shield.hpp"
 
 Shield::Shield( GLdouble RadiustA, GLdouble RadiustB )
 {

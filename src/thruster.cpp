@@ -1,4 +1,4 @@
-#include "Thruster.h"
+#include "thruster.hpp"
 
 Thruster::~Thruster()
 {
