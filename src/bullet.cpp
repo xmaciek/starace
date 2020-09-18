@@ -22,7 +22,6 @@ Bullet::Bullet( BulletProto bp )
     //     cout<<"Creating bullet.\n";
     CollisionDistance = 0;
     CollisionFlag = true;
-    target = NULL;
     type = bp.type;
     speed = bp.speed;
     damage = bp.damage;

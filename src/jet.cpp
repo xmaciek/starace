@@ -107,8 +107,8 @@ void Jet::Draw()
     glMultMatrixf( matrix );
 
     model.Draw();
-    for ( drawing_i = 0; drawing_i < model.thrusters.size(); drawing_i++ ) {
-        thruster->DrawAt( model.thrusters[ drawing_i ].x, model.thrusters[ drawing_i ].y, model.thrusters[ drawing_i ].z );
+    for ( size_t i = 0; i < model.thrusters.size(); i++ ) {
+        thruster->DrawAt( model.thrusters[ i ].x, model.thrusters[ i ].y, model.thrusters[ i ].z );
     }
     glPopMatrix();
 }
@@ -431,11 +431,11 @@ void Jet::ProcessCollision( vector<Bullet*>& Bullets )
     if ( status == DEAD ) {
         return;
     }
-    for ( update_i = 0; update_i < Bullets.size(); update_i++ ) {
-        if ( Bullets[ update_i ]->GetStatus() == ALIVE ) {
-            if ( distance_v( position, Bullets[ update_i ]->GetPosition() ) <= 0.1 ) {
-                health -= Bullets[ update_i ]->getDamage();
-                Bullets[ update_i ]->Kill();
+    for ( size_t i = 0; i < Bullets.size(); i++ ) {
+        if ( Bullets[ i ]->GetStatus() == ALIVE ) {
+            if ( distance_v( position, Bullets[ i ]->GetPosition() ) <= 0.1 ) {
+                health -= Bullets[ i ]->getDamage();
+                Bullets[ i ]->Kill();
                 if ( health <= 0 ) {
                     status = DEAD;
                     return;

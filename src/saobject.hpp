@@ -38,26 +38,26 @@ public:
     static const GLuint NOT_VISIBLE = 3;
 
 protected:
-    SAObject* target;
-    bool ImTargeted;
-    bool CollisionFlag;
-    GLdouble CollisionDistance;
-    GLdouble CollisionDamage;
-    GLint score;
+    SAObject* target = nullptr;
+    bool ImTargeted = false;
+    bool CollisionFlag = false;
+    GLdouble CollisionDistance = 0.0;
+    GLdouble CollisionDamage = 0.0;
+    GLint score = 0;
 
-    GLdouble speed;
-    GLuint status;
-    GLdouble health;
+    GLdouble speed = 0;
+    GLuint status = 0;
+    GLdouble health = 0.0;
 
-    Vertex position, direction, velocity;
-    GLuint update_i, drawing_i;
+    Vertex position{};
+    Vertex direction{};
+    Vertex velocity{};
 
-    GLuint ttl;
+    GLuint ttl = 0;
 
-    GLdouble turnrate_in_rads;
+    GLdouble turnrate_in_rads = 0;
     void InterceptTarget();
 
-    //   GLdouble tmp1, tmp2, tmp3;
 };
 
 #endif
