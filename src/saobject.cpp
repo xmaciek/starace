@@ -4,58 +4,71 @@ SAObject::SAObject()
 {
     target = NULL;
 }
+
 SAObject::~SAObject() { }
+
 GLdouble SAObject::getX() const
 {
     return position.x;
 }
+
 GLdouble SAObject::getY() const
 {
     return position.y;
 }
+
 GLdouble SAObject::getZ() const
 {
     return position.z;
 }
+
 GLuint SAObject::GetStatus() const
 {
     return status;
 }
+
 Vertex SAObject::GetPosition() const
 {
     return position;
 }
+
 Vertex SAObject::GetDirection() const
 {
     return direction;
 }
+
 Vertex SAObject::GetVelocity() const
 {
     return velocity;
 }
+
 GLdouble SAObject::GetSpeed() const
 {
     return speed;
 }
+
 void SAObject::SetStatus( const GLuint& s )
 {
     status = s;
 }
 
-void SAObject::ProcessCollision( SAObject* Object ) { }
+void SAObject::ProcessCollision( SAObject* ) { }
 
 void SAObject::SetTarget( SAObject* t )
 {
     target = t;
 }
+
 void SAObject::TargetMe( const bool& doit )
 {
     ImTargeted = doit;
 }
+
 void SAObject::Kill()
 {
     status = DEAD;
 }
+
 void SAObject::Damage( const GLdouble& d )
 {
     health -= d;
@@ -63,6 +76,7 @@ void SAObject::Damage( const GLdouble& d )
         status = DEAD;
     }
 }
+
 GLdouble SAObject::GetHealth()
 {
     return health;
@@ -109,20 +123,19 @@ GLdouble SAObject::GetCollisionDamage() const
 
 bool SAObject::DeleteMe()
 {
-    if ( ttl <= 0 ) {
+    if ( ttl == 0 ) {
         return true;
     }
-    else {
-        ttl -= 1;
-        return false;
-    }
+    ttl--;
+    return false;
 }
 
 GLint SAObject::GetScore()
 {
     return score;
 }
-void SAObject::AddScore( const GLint& s, bool b )
+
+void SAObject::AddScore( const GLint& s, bool )
 {
     score += s;
 }
