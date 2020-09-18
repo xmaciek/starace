@@ -40,6 +40,13 @@ set( STARACE_SOURCES
     utils.cpp
 )
 
+
+set( CMAKE_CXX_CLANG_TIDY
+    clang-tidy;
+    -header-filter=.;
+    -checks=*,-modernize-use-trailing-return-type;
+)
+
 set( STARACE_BINNAME "starace" )
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
 
