@@ -8,6 +8,8 @@ set( STARACE_PATCH_VERSION 0 )
 find_package( SDL REQUIRED)
 find_package( SDL_mixer REQUIRED)
 find_package( SDL_ttf REQUIRED)
+
+set( OpenGL_GL_PREFERENCE "GLVND" )
 find_package( OpenGL REQUIRED )
 
 add_compile_options( -Wall -O3 )
