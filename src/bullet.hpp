@@ -22,18 +22,17 @@ struct BulletProto {
 
 class Bullet : public SAObject {
 private:
-    GLdouble max_range = 0.0;
-    GLdouble range = 0.0;
-
     Tail m_tail{};
-    GLdouble rotX = 0.0;
-    GLdouble rotY = 0.0;
-    GLdouble rotZ = 0.0;
-    GLuint type = 0;
-    GLdouble damage = 0.0;
-    GLuint rotation = 0;
-    GLfloat color1[ 4 ]{};
-    GLfloat color2[ 4 ]{};
+    GLdouble m_maxRange = 0.0;
+    GLdouble m_range = 0.0;
+    GLdouble m_rotX = 0.0;
+    GLdouble m_rotY = 0.0;
+    GLdouble m_rotZ = 0.0;
+    GLdouble m_damage = 0.0;
+    GLuint m_type = 0;
+    GLuint m_rotation = 0;
+    GLfloat m_color1[ 4 ]{};
+    GLfloat m_color2[ 4 ]{};
 
     virtual Vertex collisionRay() const;
     virtual bool collisionTest( const SAObject* object ) const;
