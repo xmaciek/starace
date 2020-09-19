@@ -24,7 +24,7 @@ private:
     Vertex particleLength{};
 
 public:
-    Map( const MapProto& data );
+    explicit Map( const MapProto& data );
     ~Map();
     void GetJetData( const Vertex& Position, const Vertex& Velocity );
     void Update();

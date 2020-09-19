@@ -92,9 +92,9 @@ void Map::Draw()
     glEnable( GL_BLEND );
     glColor4f( 1, 1, 1, 0.4 );
     glBegin( GL_LINES );
-    for ( size_t i = 0; i < particle.size(); i++ ) {
-        glVertex3d( particle.at( i ).x, particle.at( i ).y, particle.at( i ).z );
-        glVertex3d( particle.at( i ).x + particleLength.x, particle.at( i ).y + particleLength.y, particle.at( i ).z + particleLength.z );
+    for ( const auto& it : particle ) {
+        glVertex3d( it.x, it.y, it.z );
+        glVertex3d( it.x + particleLength.x, it.y + particleLength.y, it.z + particleLength.z );
     }
     glEnd();
     glDisable( GL_BLEND );
@@ -104,12 +104,12 @@ void Map::Draw()
 
 void Map::Update()
 {
-    for ( size_t i = 0; i < particle.size(); i++ ) {
-        particle.at( i ) = particle.at( i ) + jetVelocity;
-        if ( distance_v( particle.at( i ), jetPosition ) >= 1.5 ) {
-            particle.at( i ).x = random_range( jetPosition.x - 1, jetPosition.x + 1 );
-            particle.at( i ).y = random_range( jetPosition.y - 1, jetPosition.y + 1 );
-            particle.at( i ).z = random_range( jetPosition.z - 1, jetPosition.z + 1 );
+    for ( auto& it : particle ) {
+        it += jetVelocity;
+        if ( distance_v( it, jetPosition ) >= 1.5 ) {
+            it.x = random_range( jetPosition.x - 1, jetPosition.x + 1 );
+            it.y = random_range( jetPosition.y - 1, jetPosition.y + 1 );
+            it.z = random_range( jetPosition.z - 1, jetPosition.z + 1 );
         }
     }
 }
