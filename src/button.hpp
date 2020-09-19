@@ -5,20 +5,20 @@
 
 class Button {
 private:
-    GLuint x = 0;
-    GLuint y = 0;
-    GLuint width = 192;
-    GLuint height = 48;
-    GLuint textureID = 0;
-    Font* font = nullptr;
-    bool enabled = true;
-    GLuint text_length = 0;
+    std::string m_text{};
+    Font* m_font = nullptr;
+    GLuint m_x = 0;
+    GLuint m_y = 0;
+    GLuint m_width = 192;
+    GLuint m_height = 48;
+    GLuint m_textureID = 0;
+    GLuint m_textLength = 0;
+    bool m_enabled = true;
 
 public:
     ~Button() = default;
     Button() = default;
     Button( Font* F, GLuint X, GLuint Y, GLuint W, GLuint H );
-    std::string text;
     void SetTexture( GLuint t );
     bool IsClicked( GLuint X, GLuint Y ) const;
     void MouseOver( GLuint X, GLuint Y );

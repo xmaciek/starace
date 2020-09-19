@@ -2,10 +2,11 @@
 
 bool Button::IsClicked( GLuint X, GLuint Y ) const
 {
-    if ( !enabled ) {
-        return false;
-    }
-    return ( X >= x ) && ( X <= x + width ) && ( Y >= y ) && ( Y <= y + height );
+    return m_enabled
+        && ( X >= m_x )
+        && ( X <= m_x + m_width )
+        && ( Y >= m_y )
+        && ( Y <= m_y + m_height );
 }
 
 void Button::Draw()
@@ -13,9 +14,9 @@ void Button::Draw()
     glEnable( GL_BLEND );
     glEnable( GL_TEXTURE_2D );
     glPushMatrix();
-    glTranslated( x, y, 0 );
-    glBindTexture( GL_TEXTURE_2D, textureID );
-    if ( enabled ) {
+    glTranslated( m_x, m_y, 0 );
+    glBindTexture( GL_TEXTURE_2D, m_textureID );
+    if ( m_enabled ) {
         glColor3f( 0, 0.75, 1 );
     }
     else {
@@ -23,19 +24,19 @@ void Button::Draw()
     }
     glBegin( GL_QUADS );
     glTexCoord2d( 0, 0 );
-    glVertex2d( 0, height );
+    glVertex2d( 0, m_height );
     glTexCoord2d( 0, 1 );
     glVertex2d( 0, 0 );
     glTexCoord2d( 1, 1 );
-    glVertex2d( width, 0 );
+    glVertex2d( m_width, 0 );
     glTexCoord2d( 1, 0 );
-    glVertex2d( width, height );
+    glVertex2d( m_width, m_height );
     glEnd();
 
-    if ( font ) {
+    if ( m_font ) {
         glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
-        glTranslated( static_cast<float>( width ) / 2 - text_length, 0, 0 );
-        font->PrintTekst( 0, static_cast<float>( height ) / 2 - font->GetMiddlePoint(), text.c_str() );
+        glTranslated( static_cast<float>( m_width ) / 2 - m_textLength, 0, 0 );
+        m_font->PrintTekst( 0, static_cast<float>( m_height ) / 2 - m_font->GetMiddlePoint(), m_text.c_str() );
     }
     glPopMatrix();
     glDisable( GL_TEXTURE_2D );
@@ -46,63 +47,63 @@ void Button::MouseOver( GLuint, GLuint ){};
 
 void Button::UpdateCoord( GLuint X, GLuint Y )
 {
-    x = X;
-    y = Y;
+    m_x = X;
+    m_y = Y;
 };
 
 void Button::SetTexture( GLuint t )
 {
-    textureID = t;
+    m_textureID = t;
 }
 
 Button::Button( Font* F, GLuint X, GLuint Y, GLuint W, GLuint H )
+: m_font{ F }
+, m_x{ X }
+, m_y{ Y }
+, m_width{ W }
+, m_height{ H }
 {
-    x = X;
-    y = Y;
-    width = W;
-    height = H;
-    font = F;
 }
 
 void Button::SetSize( const GLuint& W, const GLuint& H )
 {
-    width = W;
-    height = H;
+    m_width = W;
+    m_height = H;
 }
 
 void Button::SetFont( Font* F )
 {
-    font = F;
-    if ( font ) {
-        text_length = font->GetTextLength( text.c_str() ) / 2;
+    m_font = F;
+    if ( m_font ) {
+        m_textLength = m_font->GetTextLength( m_text.c_str() ) / 2;
     }
 }
 
 void Button::Enable( const bool& B )
 {
-    enabled = B;
+    m_enabled = B;
 }
 void Button::Enable()
 {
-    enabled = true;
+    m_enabled = true;
 }
 void Button::Disable()
 {
-    enabled = false;
+    m_enabled = false;
 }
 
 bool Button::IsEnabled() const
 {
-    return enabled;
+    return m_enabled;
 }
 
 void Button::SetText( const char* txt )
 {
-    text = txt;
-    if ( font ) {
-        text_length = font->GetTextLength( text.c_str() ) / 2;
+    m_text = txt;
+    if ( m_font ) {
+        m_textLength = m_font->GetTextLength( m_text.c_str() ) / 2;
     }
     else {
-        text_length = 0;
+        m_textLength = 0;
     }
 }
