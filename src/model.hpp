@@ -13,14 +13,14 @@ struct UV {
 };
 
 struct Face {
-    vector<Vertex> vertex;
-    vector<UV> texcoord;
+    std::vector<Vertex> vertex;
+    std::vector<UV> texcoord;
     GLfloat normal[ 3 ];
 };
 
 class Model {
 private:
-    vector<Face> faces;
+    std::vector<Face> faces;
     GLuint i, j;
     GLuint textureID;
 
@@ -29,7 +29,7 @@ public:
     ~Model();
 
     Vertex weapons[ 3 ];
-    vector<Vertex> thrusters;
+    std::vector<Vertex> thrusters;
     void Draw();
     void DrawWireframe();
     void Load_OBJ( const char* filename );

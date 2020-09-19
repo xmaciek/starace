@@ -105,19 +105,19 @@ void setTextureFiltering( GLint type )
 
 GLuint LoadTexture( const char* filename )
 {
-    cout << "loading texture " << filename << " ... ";
+    std::cout << "loading texture " << filename << " ... ";
     GLubyte HEADER[ 12 ]; // = new GLubyte[12];
     GLubyte UNCOMPRESSED[ 12 ] = { 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     FILE* TGAfile = fopen( filename, "rb" );
     if ( TGAfile == NULL ) {
-        cout << "file not found, loading default.\n";
+        std::cout << "file not found, loading default.\n";
         return LoadDefault();
     }
     fread( HEADER, 12, 1, TGAfile );
     if ( memcmp( HEADER, UNCOMPRESSED, 12 ) != 0 ) {
         fclose( TGAfile );
         //     delete[] HEADER;
-        cout << "File " << filename << " is not uncompressed RLE! Using default.\n";
+        std::cout << "File " << filename << " is not uncompressed RLE! Using default.\n";
         return LoadDefault();
     }
     TGA tga;
@@ -128,7 +128,7 @@ GLuint LoadTexture( const char* filename )
 
     if ( ( tga.width <= 0 ) || ( tga.height <= 0 ) || ( ( ( tga.bpp != 24 ) ) && ( tga.bpp != 32 ) ) ) {
         fclose( TGAfile );
-        cout << "Texture file has invalid dimension or has invalid bit depth. Using default.\n";
+        std::cout << "Texture file has invalid dimension or has invalid bit depth. Using default.\n";
         return LoadDefault();
     }
 
@@ -140,7 +140,7 @@ GLuint LoadTexture( const char* filename )
     }
     tga.bytesPerPixel = tga.bpp / 8;
     tga.imageSize = tga.bytesPerPixel * tga.width * tga.height;
-    cout << " " << tga.width << "x" << tga.height << ":" << tga.bpp << "\n";
+    std::cout << " " << tga.width << "x" << tga.height << ":" << tga.bpp << "\n";
     tga.data = new GLubyte[ tga.imageSize ];
     fread( tga.data, tga.imageSize, 1, TGAfile );
     fclose( TGAfile );

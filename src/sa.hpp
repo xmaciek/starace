@@ -12,8 +12,6 @@
 #include <string>
 #include <vector>
 
-using namespace std;
-
 #ifdef __linux__
 #include <GL/gl.h>
 #include <GL/glu.h>
@@ -69,36 +67,24 @@ struct Vertex {
 };
 
 struct MapProto {
-    GLuint enemies;
-    GLuint preview_image;
-    string name;
-    string texture_location;
-    string TOP, BOTTOM, LEFT, RIGHT, FRONT, BACK;
-    string preview_image_location;
-    MapProto()
-    {
-        enemies = 0;
-        preview_image = 0;
-        name = "unnamed map";
-        TOP = BOTTOM = LEFT = RIGHT = FRONT = BACK = "";
-        texture_location = "";
-        preview_image_location = "";
-    };
+    GLuint enemies = 0;
+    GLuint preview_image = 0;
+    std::string name{ "unnamed map" };
+    std::string texture_location{};
+    std::string TOP{};
+    std::string BOTTOM{};
+    std::string LEFT{};
+    std::string RIGHT{};
+    std::string FRONT{};
+    std::string BACK{};
+    std::string preview_image_location{};
 };
 
 struct ModelProto {
-    string name;
-    string model_file;
-    string model_texture;
-    GLfloat scale;
-    ModelProto()
-    {
-        //     cout<<"Adding";
-        scale = 1;
-        name = "Unnamed Jet";
-        model_file = "";
-        model_texture = "";
-    };
+    std::string name{ "Unnamed Jet" };
+    std::string model_file{};
+    std::string model_texture{};
+    GLfloat scale = 1.0f;
 };
 
 // const GLdouble DELTATIME = 1.0/60;

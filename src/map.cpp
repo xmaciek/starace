@@ -147,7 +147,7 @@ void Map::GetJetData( const Vertex& Position, const Vertex& Velocity )
 
 Map::~Map()
 {
-    cout << "+-- Deleting Map\n";
+    std::cout << "+-- Deleting Map\n";
     glDeleteTextures( 1, &TOP );
     glDeleteTextures( 1, &BOTTOM );
     glDeleteTextures( 1, &LEFT );

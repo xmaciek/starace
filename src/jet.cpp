@@ -1,12 +1,9 @@
 #include "jet.hpp"
 
-using namespace std;
-
 #include <cassert>
 
 Jet::Jet( const ModelProto& model_data )
 {
-    cout << "+-+ Creating Jet...";
     target = NULL;
     status = ALIVE;
     health = 100;
@@ -79,11 +76,9 @@ Jet::Jet( const ModelProto& model_data )
 
 Jet::~Jet()
 {
-    cout << "+-+ Deleting Jet\n| ";
     if ( thruster != NULL ) {
         delete thruster;
         thruster = NULL;
-        cout << "| ";
     }
     if ( shield != NULL ) {
         delete shield;
@@ -426,7 +421,7 @@ void Jet::DrawWireframe()
     model.DrawWireframe();
 }
 
-void Jet::ProcessCollision( vector<Bullet*>& Bullets )
+void Jet::ProcessCollision( std::vector<Bullet*>& Bullets )
 {
     if ( status == DEAD ) {
         return;

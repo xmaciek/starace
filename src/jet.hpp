@@ -39,7 +39,7 @@ public:
     Bullet* GetWeaponType( GLuint wID );
     void SetWeapon( BulletProto bp, GLuint ID );
     void TakeEnergy( GLuint wID );
-    void ProcessCollision( vector<Bullet*>& Bullets );
+    void ProcessCollision( std::vector<Bullet*>& Bullets );
     virtual void ProcessCollision( SAObject* ) override;
     virtual void AddScore( const GLint& s, bool b = false ) override;
 

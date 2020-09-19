@@ -2,15 +2,15 @@
 
 Thruster::~Thruster()
 {
-    cout << "+-+ Deleting Thruster\n";
+    std::cout << "+-+ Deleting Thruster\n";
     if ( inner != NULL ) {
-        cout << "|  ";
+        std::cout << "|  ";
         delete inner;
         inner = NULL;
     }
 
     if ( outer != NULL ) {
-        cout << "|  ";
+        std::cout << "|  ";
         delete outer;
         outer = NULL;
     }

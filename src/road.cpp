@@ -1,12 +1,10 @@
 #include "road.hpp"
 
-using namespace std;
-
 const Uint32 Road::Time_Interval = ( 1000 * DELTATIME );
 
 Road::Road()
 {
-    cout << Time_Interval << "\n";
+    std::cout << Time_Interval << "\n";
     Display = NULL;
 
     FULLSCREEN = false;
@@ -121,7 +119,7 @@ Road::~Road()
     for ( GLuint i = 0; i < maps_container.size(); i++ ) {
         glDeleteTextures( 1, &maps_container.at( i ).preview_image );
     }
-    cout << "HERE OK\n"
+    std::cout << "HERE OK\n"
          << "Exiting game should be successful.\n";
 }
 
@@ -140,12 +138,12 @@ GLint Road::OnExecute()
             }
             OnRender();
         }
-        cout << "Waiting for update thread... ";
+        std::cout << "Waiting for update thread... ";
         SDL_WaitThread( thread, NULL );
-        cout << "done.\n";
+        std::cout << "done.\n";
     }
     else {
-        cout << "-= Unable to start Update thread, terminating! =-\n"
+        std::cout << "-= Unable to start Update thread, terminating! =-\n"
              << SDL_GetError() << "\n";
     }
     OnCleanup();
@@ -186,7 +184,7 @@ void Road::OnCleanup()
     //   Mix_HaltMusic();
     Mix_HaltChannel( -1 );
 
-    cout << Mix_GetError() << "\n";
+    std::cout << Mix_GetError() << "\n";
     Mix_FreeChunk( laser );
     laser = NULL;
     Mix_FreeChunk( blaster );
@@ -199,7 +197,7 @@ void Road::OnCleanup()
 
     Mix_Quit();
 
-    cout << "HERE OK\n"
+    std::cout << "HERE OK\n"
          << Mix_GetError() << "\n";
 
     SDL_FreeSurface( Display );
@@ -210,7 +208,7 @@ void Road::OnCleanup()
 bool Road::OnInit()
 {
     if ( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO ) < 0 ) {
-        cout << "Unable to init SDL\n"
+        std::cout << "Unable to init SDL\n"
              << SDL_GetError() << "\n";
         return false;
     }
@@ -236,7 +234,7 @@ bool Road::OnInit()
     //   GLint audio_buffers = 4096;
     //  Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers)
     if ( Mix_OpenAudio( 22050, AUDIO_S16SYS, 2, 4096 ) != 0 ) {
-        fprintf( stderr, "Unable to initialize audio: %s\n", Mix_GetError() );
+        std::fprintf( stderr, "Unable to initialize audio: %s\n", Mix_GetError() );
         return false;
     }
 
@@ -298,7 +296,7 @@ void Road::InitRoadAdditionsGL()
     //   init functons
 
     if ( TTF_Init() < 0 ) {
-        cout << "Unable to initialize library: " << TTF_GetError() << "\n";
+        std::cout << "Unable to initialize library: " << TTF_GetError() << "\n";
     }
     //     setTextureFiltering(FILTERING_ANISOTROPIC_X16);
     font_pause_txt = new Font( "misc/DejaVuSans-Bold.ttf", 18 );
@@ -950,12 +948,12 @@ void Road::GameScreenBriefingUpdate()
 
 void Road::ClearMapData()
 {
-    cout << "Moving all enemies to garbage.\n";
+    std::cout << "Moving all enemies to garbage.\n";
     for ( GLuint i = 0; i < enemies.size(); i++ ) {
         Egarbage.push_back( enemies.at( i ) );
     }
     enemies.clear();
-    cout << "Moving all bullets to garbage.\n";
+    std::cout << "Moving all bullets to garbage.\n";
     for ( GLuint i = 0; i < bullet.size(); i++ ) {
         Bgarbage.push_back( bullet.at( i ) );
     }
@@ -965,7 +963,7 @@ void Road::ClearMapData()
     }
     enemybullet.clear();
 
-    cout << "Cleaning garbage...\n";
+    std::cout << "Cleaning garbage...\n";
     for ( GLuint i = 0; i < Egarbage.size(); i++ ) {
         delete Egarbage.at( i );
     }
@@ -975,7 +973,7 @@ void Road::ClearMapData()
         delete Bgarbage.at( i );
     }
     Bgarbage.clear();
-    cout << "Cleaning garbage: done.\n";
+    std::cout << "Cleaning garbage: done.\n";
     if ( map != NULL ) {
         delete map;
         map = NULL;
@@ -1043,8 +1041,8 @@ void Road::ChangeScreen( GLubyte SCR )
         break;
     case SA_CUSTOMIZE:
         model_rotation = 135.0;
-        cout << current_jet << " " << jets_container.size() << "\n";
-        cout << jets_container.at( current_jet ).name.c_str() << "\n";
+        std::cout << current_jet << " " << jets_container.size() << "\n";
+        std::cout << jets_container.at( current_jet ).name.c_str() << "\n";
         preview_model.Load_OBJ( jets_container.at( current_jet ).model_file.c_str() );
         preview_model.BindTexture( LoadTexture( jets_container.at( current_jet ).model_texture.c_str() ) );
         preview_model.CalculateNormal();
@@ -1074,9 +1072,9 @@ bool Road::InitNewSurface( GLint W, GLint H, GLint D, bool F )
         tmp2 = SDL_SetVideoMode( W, H, D, SDL_DOUBLEBUF | SDL_OPENGL | SDL_RESIZABLE );
     }
     if ( tmp2 == NULL ) {
-        cout << "Unable to create display surface:\n";
-        string error( SDL_GetError() );
-        cout << error << "\n";
+        std::cout << "Unable to create display surface:\n";
+        std::string error( SDL_GetError() );
+        std::cout << error << "\n";
         return false;
     }
     Display = tmp2;
@@ -1088,14 +1086,14 @@ bool Road::InitNewSurface( GLint W, GLint H, GLint D, bool F )
 
 void Road::LoadMapProto()
 {
-    cout << "Loadings maps... ";
+    std::cout << "Loadings maps... ";
     maps_container.clear();
     MapProto map;
-    fstream MapFile( "maps.cfg", fstream::in );
+    std::ifstream MapFile( "maps.cfg" );
     char value_1[ 48 ], value_2[ 48 ];
-    string line;
+    std::string line;
     while ( getline( MapFile, line ) ) {
-        sscanf( line.c_str(), "%s %s", value_1, value_2 );
+        std::sscanf( line.c_str(), "%s %s", value_1, value_2 );
         if ( strcmp( value_1, "[MAP]" ) == 0 ) {
             maps_container.push_back( map );
         }
@@ -1134,19 +1132,19 @@ void Road::LoadMapProto()
     }
     current_map = 0;
     btnPrevMap.Disable();
-    cout << "done\n";
+    std::cout << "done\n";
 }
 
 void Road::LoadJetProto()
 {
-    cout << "Loadings jets... ";
+    std::cout << "Loadings jets... ";
     jets_container.clear();
     ModelProto mod;
-    fstream JetFile( "jets.cfg", fstream::in );
+    std::ifstream JetFile( "jets.cfg" );
     char value_1[ 48 ], value_2[ 48 ];
-    string line;
+    std::string line;
     while ( getline( JetFile, line ) ) {
-        sscanf( line.c_str(), "%s %s", value_1, value_2 );
+        std::sscanf( line.c_str(), "%s %s", value_1, value_2 );
         //     cout<<value_1<<" "<<value_2<<"\n";
         if ( strcmp( value_1, "[JET]" ) == 0 ) {
             jets_container.push_back( mod );
@@ -1166,13 +1164,13 @@ void Road::LoadJetProto()
     }
     JetFile.close();
     if ( jets_container.size() == 0 ) {
-        cout << "no jets\n";
+        std::cout << "no jets\n";
         jets_container.push_back( mod );
     }
     if ( jets_container.size() == 1 ) {
         btnNextJet.Disable();
     }
-    cout << "size " << jets_container.size() << "\n";
+    std::cout << "size " << jets_container.size() << "\n";
     current_jet = 0;
     for ( GLuint i = 0; i < jets_container.size(); i++ ) {
         if ( LastSelectedJetName == jets_container.at( i ).name ) {
@@ -1186,17 +1184,17 @@ void Road::LoadJetProto()
         btnNextJet.Disable();
     }
 
-    cout << "done\n";
+    std::cout << "done\n";
 }
 
 void Road::LoadConfig()
 {
-    cout << "Loading from configuration file... ";
-    fstream ConfigFile( "config.cfg", ios::in );
+    std::cout << "Loading from configuration file... ";
+    std::ifstream ConfigFile( "config.cfg" );
     char value_1[ 48 ], value_2[ 48 ];
-    string line;
+    std::string line;
     while ( getline( ConfigFile, line ) ) {
-        sscanf( line.c_str(), "%s %s", value_1, value_2 );
+        std::sscanf( line.c_str(), "%s %s", value_1, value_2 );
         if ( strcmp( value_1, "width" ) == 0 ) {
             SCREEN_WIDTH = atoi( value_2 );
         }
@@ -1250,15 +1248,15 @@ void Road::LoadConfig()
         }
     }
     ConfigFile.close();
-    cout << "done.\n";
+    std::cout << "done.\n";
     LoadMapProto();
     LoadJetProto();
 }
 
 void Road::SaveConfig()
 {
-    cout << "Saving to configuration file... ";
-    fstream ConfigFile( "config.cfg", ios::out );
+    std::cout << "Saving to configuration file... ";
+    std::ofstream ConfigFile( "config.cfg" );
     ConfigFile << "width " << SCREEN_WIDTH << "\n";
     ConfigFile << "height " << SCREEN_HEIGHT << "\n";
     ConfigFile << "fullscreen " << FULLSCREEN << "\n";
@@ -1302,7 +1300,7 @@ void Road::SaveConfig()
         break;
     }
     ConfigFile.close();
-    cout << "done.\n";
+    std::cout << "done.\n";
 }
 
 void Road::UpdateClouds()

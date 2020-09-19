@@ -2,7 +2,6 @@
 #define SA_Texture_H
 #include "sa.hpp"
 
-using namespace std;
 typedef struct
 {
     GLubyte header[ 6 ];

@@ -92,7 +92,7 @@ void Font::make_dlist( TTF_Font* font, GLuint ch )
 
 GLuint Font::GetTextLength( const char* tekst )
 {
-    string txt = tekst;
+    std::string txt = tekst;
     GLuint length = 0;
     for ( GLuint i = 0; i < txt.size(); i++ ) {
         length += char_length[ (int)txt[ i ] ];

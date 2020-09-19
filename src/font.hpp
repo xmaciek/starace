@@ -6,12 +6,13 @@
 
 class Font {
 private:
-    string stringtxt;
-    string name;
-    GLuint height, middlepoint;
-    GLuint* textures;
-    GLuint* char_length;
-    GLuint list_base;
+    std::string stringtxt{};
+    std::string name{};
+    GLuint height = 0;
+    GLuint middlepoint = 0;
+    GLuint* textures = nullptr;
+    GLuint* char_length = nullptr;
+    GLuint list_base = 0;
     void make_dlist( TTF_Font* font, GLuint ch );
     GLuint pow2( GLint a );
 
@@ -22,7 +23,7 @@ public:
     GLuint GetMiddlePoint();
     void PrintTekst( const GLdouble& x, const GLdouble& y, const char* tekst );
     GLuint GetTextLength( const char* tekst );
-    GLuint GetTextLength( const string& tekst );
+    GLuint GetTextLength( const std::string& tekst );
 };
 
 #endif

@@ -1,11 +1,9 @@
 #include "model.hpp"
 #include "sa.hpp"
 
-using namespace std;
-
 Model::Model()
 {
-    cout << "Creating default model.\n";
+    std::cout << "Creating default model.\n";
     textureID = 0;
 }
 
@@ -50,22 +48,22 @@ void Model::DrawWireframe()
 
 void Model::Load_OBJ( const char* filename )
 {
-    cout << "loading model: " << filename << " ... ";
+    std::cout << "loading model: " << filename << " ... ";
 
     Vertex tmpv;
-    vector<Vertex> vertices;
+    std::vector<Vertex> vertices;
     faces.clear();
     UV tmpt;
-    vector<UV> tex;
+    std::vector<UV> tex;
     bool containsTex = false;
     GLubyte wID = 0;
-    vector<GLuint> tmpui;
+    std::vector<GLuint> tmpui;
     Face tmpf;
     GLubyte dataType;
     GLuint v, t;
-    fstream OBJfile( filename, ios::in );
-    string line, tmpline;
-    stringstream ssline;
+    std::ifstream OBJfile( filename );
+    std::string line, tmpline;
+    std::stringstream ssline;
     while ( getline( OBJfile, line ) ) {
         //         cout<<" "<<line.c_str()<<"\n";
         if ( line.substr( 0, 2 ) == "o " ) {
@@ -93,7 +91,7 @@ void Model::Load_OBJ( const char* filename )
             }
         }
         else if ( line.substr( 0, 2 ) == "v " ) {
-            sscanf( line.c_str(), "v %lf %lf %lf ", &tmpv.x, &tmpv.y, &tmpv.z );
+            std::sscanf( line.c_str(), "v %lf %lf %lf ", &tmpv.x, &tmpv.y, &tmpv.z );
             vertices.push_back( tmpv );
             switch ( dataType ) {
             case 1:
@@ -115,7 +113,7 @@ void Model::Load_OBJ( const char* filename )
         }
         else if ( line.substr( 0, 2 ) == "vt" ) {
             containsTex = true;
-            sscanf( line.c_str(), "vt %f %f ", &tmpt.u, &tmpt.v );
+            std::sscanf( line.c_str(), "vt %f %f ", &tmpt.u, &tmpt.v );
             tex.push_back( tmpt );
         }
         else if ( line.substr( 0, 2 ) == "f " ) {
@@ -140,13 +138,13 @@ void Model::Load_OBJ( const char* filename )
     }
     OBJfile.close();
 
-    cout << "done.\n";
+    std::cout << "done.\n";
     NormalizeSize();
 }
 
 void Model::CalculateNormal()
 {
-    cout << "| +-- calclulating normals... ";
+    std::cout << "| +-- calclulating normals... ";
     GLfloat wektor1[ 3 ], wektor2[ 3 ], length;
     for ( GLuint k = 0; k < faces.size(); k++ ) {
         wektor1[ 0 ] = faces[ k ].vertex[ 0 ].x - faces[ k ].vertex[ 1 ].x;
@@ -170,12 +168,12 @@ void Model::CalculateNormal()
         faces[ k ].normal[ 1 ] /= length;
         faces[ k ].normal[ 2 ] /= length;
     }
-    cout << "done.\n";
+    std::cout << "done.\n";
 }
 
 void Model::NormalizeSize()
 {
-    cout << "| +-- normalizing model... ";
+    std::cout << "| +-- normalizing model... ";
     GLuint k, l;
     GLdouble maxZ = faces[ 0 ].vertex[ 0 ].z, minZ = faces[ 0 ].vertex[ 0 ].z;
 
@@ -201,8 +199,8 @@ void Model::NormalizeSize()
         total = 1.0f;
     }
     GLdouble factor = 1.0f / total;
-    cout << "max: " << maxZ << " min: " << minZ << " ";
-    cout << "factor: " << factor << " ... ";
+    std::cout << "max: " << maxZ << " min: " << minZ << " ";
+    std::cout << "factor: " << factor << " ... ";
     for ( k = 0; k < faces.size(); k++ ) {
         for ( l = 0; l < faces[ k ].vertex.size(); l++ ) {
             faces[ k ].vertex[ l ].x *= factor;
@@ -222,7 +220,7 @@ void Model::NormalizeSize()
         weapons[ k ].z *= factor;
     }
 
-    cout << "done.\n";
+    std::cout << "done.\n";
 }
 
 void Model::BindTexture( GLuint TX )
@@ -235,7 +233,7 @@ void Model::BindTexture( GLuint TX )
 
 void Model::Scale( GLfloat scale )
 {
-    cout << "| +-- scaling model to " << scale << " ... ";
+    std::cout << "| +-- scaling model to " << scale << " ... ";
     for ( GLuint k = 0; k < faces.size(); k++ ) {
         for ( GLuint l = 0; l < faces[ k ].vertex.size(); l++ ) {
             faces[ k ].vertex[ l ].x *= scale;
@@ -254,5 +252,5 @@ void Model::Scale( GLfloat scale )
         weapons[ k ].z *= scale;
     }
 
-    cout << "done.\n";
+    std::cout << "done.\n";
 }
