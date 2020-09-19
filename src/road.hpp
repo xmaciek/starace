@@ -11,8 +11,8 @@
 #include "map.hpp"
 #include "texture.hpp"
 
-#define TAB 9
-#define ESC 27
+constexpr static int TAB = 9;
+constexpr static int ESC = 27;
 
 class Road {
 public:
