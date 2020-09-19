@@ -1,44 +1,24 @@
 #include "road.hpp"
 
+#include <algorithm>
+#include <random>
+
 const Uint32 Road::Time_Interval = ( 1000 * DELTATIME );
 
 Road::Road()
 {
-    std::cout << Time_Interval << "\n";
-    Display = NULL;
-
-    FULLSCREEN = false;
     SCREEN_WIDTH = 960;
     SCREEN_HEIGHT = 540;
     SCREEN_DEPTH = 32;
-
-    laser = blaster = torpedo = NULL;
 
     play_sound = true;
 
     Running = true;
 
-    doUpdate = true;
     WaitForEnd = true;
-    nextTick = 0;
-    nextFrame = 0;
-
-    Weap1 = Weap2 = Weap3 = 0;
-
     Radar = new Circle( 48, 64 );
-    Rotation = 0;
-    //     angle = 36;
-    //     angle = 60;
     angle = 55;
-    //     angle = 27;
     DynamicCamera = true;
-    FramesDone = 0;
-    ShotsDone = 0;
-    CalculatedFPS = 0;
-    tempFPS = 0;
-    FPS = 0;
-
-    speed_anim = 0;
 
     HUD_Color_4fv[ 0 ][ 0 ] = 0.0275f;
     HUD_Color_4fv[ 0 ][ 1 ] = 1.0f;
@@ -55,10 +35,6 @@ Road::Road()
     HUD_Color_4fv[ 2 ][ 2 ] = 0.1f;
     HUD_Color_4fv[ 2 ][ 3 ] = 1.0f;
 
-    HUD_Color = 0;
-
-    speed_fan_ring = NULL;
-
     ChangeScreen( SA_MAINMENU );
 
     enemies.reserve( 100 );
@@ -70,80 +46,50 @@ Road::Road()
 
 Road::~Road()
 {
-    doUpdate = false;
-
     ClearMapData();
-    btnExit.SetFont( NULL );
-    btnQuitMission.SetFont( NULL );
-    btnChangeFiltering.SetFont( NULL );
-    btnSelectMission.SetFont( NULL );
-    btnGO.SetFont( NULL );
-    btnStartMission.SetFont( NULL );
-    btnReturnToMainMenu.SetFont( NULL );
-    btnReturnToMissionSelection.SetFont( NULL );
-    btnNextMap.SetFont( NULL );
-    btnPrevMap.SetFont( NULL );
-    btnCustomize.SetFont( NULL );
-    btnCustomizeReturn.SetFont( NULL );
-    btnNextJet.SetFont( NULL );
-    btnPrevJet.SetFont( NULL );
 
-    if ( font_pause_txt != NULL ) {
-        delete font_pause_txt;
-        font_pause_txt = NULL;
-    }
-    if ( font_gui_txt != NULL ) {
-        delete font_gui_txt;
-        font_gui_txt = NULL;
-    }
-    if ( font_big != NULL ) {
-        delete font_big;
-        font_big = NULL;
-    }
+    delete font_pause_txt;
+    delete font_gui_txt;
+    delete font_big;
+    delete speed_fan_ring;
+    delete Radar;
 
-    if ( speed_fan_ring != NULL ) {
-        delete speed_fan_ring;
-    }
-
-    if ( Radar != NULL ) {
-        delete Radar;
-    }
     glDeleteTextures( 1, &HUDtex );
     glDeleteTextures( 1, &ButtonTexture );
     glDeleteTextures( 1, &menu_background );
     glDeleteTextures( 1, &menu_background_overlay );
     glDeleteTextures( 3, cyber_ring_texture );
     glDeleteTextures( 1, &starfield_texture );
-    for ( GLuint i = 0; i < maps_container.size(); i++ ) {
-        glDeleteTextures( 1, &maps_container.at( i ).preview_image );
+    for ( auto& it : maps_container ) {
+        glDeleteTextures( 1, &it.preview_image );
     }
-    std::cout << "HERE OK\n"
-         << "Exiting game should be successful.\n";
 }
 
 GLint Road::OnExecute()
 {
-    if ( OnInit() == false ) {
+    if ( !OnInit() ) {
         return -1;
     }
-    SDL_Event Event;
-    //   int (*fptr)(void*) = (int(*)(void*))&(Road::OnUpdate); // ((Road*)this)->Road::SCREENSARRAY
+
     thread = SDL_CreateThread( OnUpdateStatic, this );
-    if ( thread != NULL ) {
-        while ( Running ) {
-            while ( SDL_PollEvent( &Event ) ) {
-                OnEvent( Event );
-            }
-            OnRender();
+    if ( !thread ) {
+        std::cout << "-= Unable to start Update thread, terminating! =-\n" << SDL_GetError() << "\n";
+        OnCleanup();
+        return 0;
+    }
+
+    SDL_Event Event{};
+    while ( Running ) {
+        while ( SDL_PollEvent( &Event ) ) {
+            OnEvent( Event );
         }
-        std::cout << "Waiting for update thread... ";
-        SDL_WaitThread( thread, NULL );
-        std::cout << "done.\n";
+        OnRender();
     }
-    else {
-        std::cout << "-= Unable to start Update thread, terminating! =-\n"
-             << SDL_GetError() << "\n";
-    }
+
+    std::cout << "Waiting for update thread... ";
+    SDL_WaitThread( thread, nullptr );
+    std::cout << "done.\n";
+
     OnCleanup();
     return 0;
 }
@@ -169,6 +115,7 @@ void Road::OnEvent( SDL_Event& Event )
         InitNewSurface( SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_DEPTH, FULLSCREEN );
         OnResize( SCREEN_WIDTH, SCREEN_HEIGHT );
         break;
+
     case SDL_MOUSEBUTTONDOWN:
         if ( Event.button.button == SDL_BUTTON_LEFT ) {
             OnMouseClickLeft( Event.button.x, Event.button.y );
@@ -184,19 +131,12 @@ void Road::OnCleanup()
 
     std::cout << Mix_GetError() << "\n";
     Mix_FreeChunk( laser );
-    laser = NULL;
     Mix_FreeChunk( blaster );
-    blaster = NULL;
     Mix_FreeChunk( torpedo );
-    torpedo = NULL;
     Mix_FreeChunk( click );
-    click = NULL;
     Mix_CloseAudio();
 
     Mix_Quit();
-
-    std::cout << "HERE OK\n"
-         << Mix_GetError() << "\n";
 
     SDL_FreeSurface( Display );
     SDL_Quit();
@@ -206,10 +146,10 @@ void Road::OnCleanup()
 bool Road::OnInit()
 {
     if ( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO ) < 0 ) {
-        std::cout << "Unable to init SDL\n"
-             << SDL_GetError() << "\n";
+        std::cout << "Unable to init SDL\n" << SDL_GetError() << "\n";
         return false;
     }
+
     SDL_GL_SetAttribute( SDL_GL_RED_SIZE, 8 );
     SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, 8 );
     SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE, 8 );
@@ -246,7 +186,7 @@ bool Road::OnInit()
     if ( !InitNewSurface( SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_DEPTH, FULLSCREEN ) ) {
         return false;
     }
-    //   return false;
+
     InitRoadAdditionsGL();
     OnResize( SCREEN_WIDTH, SCREEN_HEIGHT );
     return true;
@@ -254,9 +194,6 @@ bool Road::OnInit()
 
 void Road::OnResize( GLint w, GLint h )
 {
-    //   SCREEN_WIDTH = w;
-    //   SCREEN_HEIGHT = h;
-
     if ( w > h ) {
         max_dimention = w;
         min_dimention = h;
@@ -378,6 +315,7 @@ void Road::InitRoadAdditionsGL()
         btnWeap1.SetText( "Torpedo" );
         break;
     }
+
     switch ( Weap2 ) {
     case 0:
         btnWeap2.SetText( "Laser" );
@@ -389,6 +327,7 @@ void Road::InitRoadAdditionsGL()
         btnWeap2.SetText( "Torpedo" );
         break;
     }
+
     switch ( Weap3 ) {
     case 0:
         btnWeap3.SetText( "Laser" );
@@ -401,7 +340,7 @@ void Road::InitRoadAdditionsGL()
         break;
     }
 
-    TimePassed = time( NULL );
+    TimePassed = time( nullptr );
     HUDtex = LoadTexture( "textures/HUDtex.tga" );
 
     menu_background = LoadTexture( "textures/background.tga" );
@@ -595,7 +534,8 @@ void Road::OnUpdate()
 
 int Road::OnUpdateStatic( void* param )
 {
-    ( (Road*)param )->OnUpdate();
+    Road* r = reinterpret_cast<Road*>( param );
+    r->OnUpdate();
     return 0;
 }
 
@@ -630,7 +570,7 @@ void Road::GameUpdate()
     if ( jet->GetStatus() == SAObject::DEAD ) {
         ChangeScreen( SA_DEADSCREEN );
     }
-    if ( enemies.size() == 0 ) {
+    if ( enemies.empty() ) {
         ChangeScreen( SA_WINSCREEN );
     }
     if ( jet->GetHealth() <= 20 ) {
@@ -650,22 +590,28 @@ void Road::GameUpdate()
         AddBullet( 2 );
     }
 
-    for ( size_t i = 0; i < enemies.size(); i++ ) {
-        enemies.at( i )->Update();
-        if ( enemies.at( i )->IsWeaponReady() ) {
-            enemybullet.push_back( enemies.at( i )->GetWeapon() );
+    {
+        std::lock_guard<std::mutex> lg( m_mutexEnemy );
+        for ( Enemy*& e : enemies ) {
+            e->Update();
+            if ( e->IsWeaponReady() ) {
+                std::lock_guard<std::mutex> lg( m_mutexEnemyBullet );
+                enemybullet.push_back( e->GetWeapon() );
+            }
+            if ( e->GetStatus() == Enemy::DEAD ) {
+                jet->AddScore( e->GetScore(), true );
+                Egarbage.push_back( e );
+                e = nullptr;
+            }
         }
-        if ( enemies.at( i )->GetStatus() == Enemy::DEAD ) {
-            //         cout<<"Moving Enemy to Garbage.\n";
-            jet->AddScore( enemies.at( i )->GetScore(), true );
-            Egarbage.push_back( enemies.at( i ) );
-            enemies.erase( enemies.begin() + i );
-            //         i-=1;
-        }
+        enemies.erase( std::remove( enemies.begin(), enemies.end(), nullptr ), enemies.end() );
     }
 
-    for ( size_t i = 0; i < enemybullet.size(); i++ ) {
-        enemybullet.at( i )->ProcessCollision( jet );
+    {
+        std::lock_guard<std::mutex> lg( m_mutexEnemyBullet );
+        for ( Bullet* it : enemybullet ) {
+            it->ProcessCollision( jet );
+        }
     }
 
     jet->Update();
@@ -676,45 +622,51 @@ void Road::GameUpdate()
     map->GetJetData( jet->GetPosition(), jet->GetVelocity() );
     map->Update();
 
-    for ( size_t i = 0; i < bullet.size(); i++ ) {
-        for ( size_t i2 = 0; i2 < enemies.size(); i2++ ) {
-            bullet.at( i )->ProcessCollision( enemies.at( i2 ) );
-        }
+    {
+        std::lock_guard<std::mutex> lg( m_mutexBullet );
+        for ( Bullet*& b : bullet ) {
+            for ( Enemy* e : enemies ) {
+                b->ProcessCollision( e );
+            }
 
-        bullet.at( i )->Update();
-        if ( bullet.at( i )->GetStatus() == Bullet::DEAD ) {
-            //         cout<<"Moving Bullet to Garbage. \n";
-            Bgarbage.push_back( bullet.at( i ) );
-            bullet.erase( bullet.begin() + i );
-            //         i-=1;
+            b->Update();
+            if ( b->GetStatus() == Bullet::DEAD ) {
+                Bgarbage.push_back( b );
+                b = nullptr;
+                //         i-=1;
+            }
         }
-    }
-    for ( size_t i = 0; i < enemybullet.size(); i++ ) {
-        enemybullet.at( i )->Update();
-        if ( enemybullet.at( i )->GetStatus() == Bullet::DEAD ) {
-            //         cout<<"Moving Bullet to Garbage. \n";
-            Bgarbage.push_back( enemybullet.at( i ) );
-            enemybullet.erase( enemybullet.begin() + i );
-            //         i-=1;
-        }
+        bullet.erase( std::remove( bullet.begin(), bullet.end(), nullptr ), bullet.end() );
     }
 
-    for ( size_t i = 0; i < Egarbage.size(); i++ ) {
-        if ( Egarbage.at( i )->DeleteMe() ) {
-            //         cout<<"Enemy garbage size: "<<Egarbage.size()<<", Deleting from garbage: ";
-            delete Egarbage.at( i );
-            Egarbage.erase( Egarbage.begin() + i );
-            //         i-=1;
+    {
+        std::lock_guard<std::mutex> lg( m_mutexEnemyBullet );
+        for ( Bullet*& b : enemybullet ) {
+            b->Update();
+            if ( b->GetStatus() == Bullet::DEAD ) {
+                Bgarbage.push_back( b );
+                b = nullptr;
+            }
+        }
+        enemybullet.erase( std::remove( enemybullet.begin(), enemybullet.end(), nullptr ), enemybullet.end() );
+    }
+
+    for ( Enemy*& e : Egarbage ) {
+        if ( e->DeleteMe() ) {
+            delete e;
+            e = nullptr;
         }
     }
-    for ( size_t i = 0; i < Bgarbage.size(); i++ ) {
-        if ( Bgarbage.at( i )->DeleteMe() ) {
-            //         cout<<"Bullet garbage size: "<<Bgarbage.size()<<", Deleting from garbage: ";
-            delete Bgarbage.at( i );
-            Bgarbage.erase( Bgarbage.begin() + i );
-            //         i-=1;
+    Egarbage.erase( std::remove( Egarbage.begin(), Egarbage.end(), nullptr ), Egarbage.end() );
+
+    for ( Bullet*& b : Bgarbage ) {
+        if ( b->DeleteMe() ) {
+            delete b;
+            b = nullptr;
         }
     }
+    Bgarbage.erase( std::remove( Bgarbage.begin(), Bgarbage.end(), nullptr ), Bgarbage.end() );
+
     UpdateCyberRings();
 }
 
@@ -925,10 +877,12 @@ void Road::OnMouseClickLeft( GLint X, GLint Y )
 
 void Road::Retarget()
 {
-    if ( enemies.size() == 0 ) {
+    std::lock_guard<std::mutex> lg( m_mutexEnemy );
+    if ( enemies.empty() ) {
         return;
     }
-    jet->LockTarget( enemies[ rand() % enemies.size() ] );
+    static std::mt19937_64 random{ std::random_device()() };
+    jet->LockTarget( enemies[ random() % enemies.size() ] );
 }
 
 void Road::UpdateMainMenu()
@@ -945,42 +899,50 @@ void Road::GameScreenBriefingUpdate()
 void Road::ClearMapData()
 {
     std::cout << "Moving all enemies to garbage.\n";
-    for ( GLuint i = 0; i < enemies.size(); i++ ) {
-        Egarbage.push_back( enemies.at( i ) );
+    {
+        std::lock_guard<std::mutex> lg( m_mutexEnemy );
+        for ( Enemy* e : enemies ) {
+            delete e;
+        }
+        enemies.clear();
     }
-    enemies.clear();
+
     std::cout << "Moving all bullets to garbage.\n";
-    for ( GLuint i = 0; i < bullet.size(); i++ ) {
-        Bgarbage.push_back( bullet.at( i ) );
+    {
+        std::lock_guard<std::mutex> lg( m_mutexBullet );
+        for ( Bullet* b : bullet ) {
+            delete b;
+        }
+        bullet.clear();
     }
-    bullet.clear();
-    for ( GLuint i = 0; i < enemybullet.size(); i++ ) {
-        Bgarbage.push_back( enemybullet.at( i ) );
+
+    {
+        std::lock_guard<std::mutex> lg( m_mutexEnemyBullet );
+        for ( Bullet* b : enemybullet ) {
+            delete b;
+        }
+        enemybullet.clear();
     }
-    enemybullet.clear();
 
     std::cout << "Cleaning garbage...\n";
-    for ( GLuint i = 0; i < Egarbage.size(); i++ ) {
-        delete Egarbage.at( i );
+    for ( Enemy* e : Egarbage ) {
+        delete e;
     }
     Egarbage.clear();
 
-    for ( GLuint i = 0; i < Bgarbage.size(); i++ ) {
-        delete Bgarbage.at( i );
+    for ( Bullet* b : Bgarbage ) {
+        delete b;
     }
     Bgarbage.clear();
+
     std::cout << "Cleaning garbage: done.\n";
-    if ( map != NULL ) {
-        delete map;
-        map = NULL;
-    }
-    if ( jet != NULL ) {
-        delete jet;
-        jet = NULL;
-    }
+    delete map;
+    map = nullptr;
+    delete jet;
+    jet = nullptr;
 }
 
-void Road::CreateMapData( MapProto map_data, ModelProto model_data )
+void Road::CreateMapData( const MapProto& map_data, const ModelProto& model_data )
 {
     ShotsDone = 0;
     HUD_Color = 0;
@@ -990,14 +952,18 @@ void Road::CreateMapData( MapProto map_data, ModelProto model_data )
     jet->SetWeapon( Weapons[ Weap2 ], 1 );
     jet->SetWeapon( Weapons[ Weap3 ], 2 );
 
-    for ( GLuint i = 0; i < map_data.enemies; i++ ) {
-        enemies.push_back( new Enemy() );
-        enemies.at( i )->SetTarget( jet );
-        enemies.at( i )->SetWeapon( Weapons[ 3 ] );
+    {
+        std::lock_guard<std::mutex> lg( m_mutexEnemy );
+        for ( GLuint i = 0; i < map_data.enemies; i++ ) {
+            enemies.push_back( new Enemy() );
+            enemies.at( i )->SetTarget( jet );
+            enemies.at( i )->SetWeapon( Weapons[ 3 ] );
+        }
     }
-    for ( GLuint i = 0; i < maps_container.size(); i++ ) {
-        glDeleteTextures( 1, &maps_container.at( i ).preview_image );
-        maps_container.at( i ).preview_image = 0;
+
+    for ( MapProto& it : maps_container ) {
+        glDeleteTextures( 1, &it.preview_image );
+        it.preview_image = 0;
     }
 }
 
@@ -1008,33 +974,27 @@ void Road::MissionSelectionUpdate()
 
 void Road::ChangeScreen( GLubyte SCR )
 {
-    if ( SCR == SA_GAMESCREEN ) {
-        SDL_ShowCursor( 0 );
-    }
-    else {
-        SDL_ShowCursor( 1 );
-    }
+    SDL_ShowCursor( SCR != SA_GAMESCREEN );
+
     switch ( SCR ) {
     case SA_GAMESCREEN:
-        SCREEN = SCR;
-        break;
     case SA_GAMESCREEN_PAUSED:
+    case SA_DEADSCREEN:
+    case SA_MAINMENU:
+    case SA_WINSCREEN:
         SCREEN = SCR;
         break;
+
     case SA_GAMESCREEN_BRIEFING:
         CreateMapData( maps_container.at( current_map ), jets_container.at( current_jet ) );
         SCREEN = SCR;
         break;
+
     case SA_MISSIONSELECTION:
         ClearMapData();
         SCREEN = SCR;
         break;
-    case SA_DEADSCREEN:
-        SCREEN = SCR;
-        break;
-    case SA_MAINMENU:
-        SCREEN = SCR;
-        break;
+
     case SA_CUSTOMIZE:
         model_rotation = 135.0;
         std::cout << current_jet << " " << jets_container.size() << "\n";
@@ -1044,9 +1004,7 @@ void Road::ChangeScreen( GLubyte SCR )
         preview_model.CalculateNormal();
         SCREEN = SCR;
         break;
-    case SA_WINSCREEN:
-        SCREEN = SCR;
-        break;
+
     default:
         break;
     }
@@ -1060,21 +1018,22 @@ void Road::GoFullscreen( bool& b )
 
 bool Road::InitNewSurface( GLint W, GLint H, GLint D, bool F )
 {
-    SDL_Surface *tmp = Display, *tmp2 = NULL;
+    SDL_Surface *tmp = Display;
+    SDL_Surface* tmp2 = nullptr;
     if ( F ) {
         tmp2 = SDL_SetVideoMode( W, H, D, SDL_DOUBLEBUF | SDL_OPENGL | SDL_FULLSCREEN );
     }
     else {
         tmp2 = SDL_SetVideoMode( W, H, D, SDL_DOUBLEBUF | SDL_OPENGL | SDL_RESIZABLE );
     }
-    if ( tmp2 == NULL ) {
+    if ( !tmp2 ) {
         std::cout << "Unable to create display surface:\n";
         std::string error( SDL_GetError() );
         std::cout << error << "\n";
         return false;
     }
     Display = tmp2;
-    if ( tmp != NULL ) {
+    if ( tmp ) {
         SDL_FreeSurface( tmp );
     }
     return true;
@@ -1086,7 +1045,8 @@ void Road::LoadMapProto()
     maps_container.clear();
     MapProto map;
     std::ifstream MapFile( "maps.cfg" );
-    char value_1[ 48 ], value_2[ 48 ];
+    char value_1[ 48 ]{};
+    char value_2[ 48 ]{};
     std::string line;
     while ( getline( MapFile, line ) ) {
         std::sscanf( line.c_str(), "%s %s", value_1, value_2 );
@@ -1094,35 +1054,35 @@ void Road::LoadMapProto()
             maps_container.push_back( map );
         }
         if ( strcmp( value_1, "name" ) == 0 ) {
-            maps_container.at( maps_container.size() - 1 ).name = value_2;
+            maps_container.back().name = value_2;
         }
         if ( strcmp( value_1, "enemies" ) == 0 ) {
-            maps_container.at( maps_container.size() - 1 ).enemies = atoi( value_2 );
+            maps_container.back().enemies = atoi( value_2 );
         }
         if ( strcmp( value_1, "top" ) == 0 ) {
-            maps_container.at( maps_container.size() - 1 ).TOP = value_2;
+            maps_container.back().TOP = value_2;
         }
         if ( strcmp( value_1, "bottom" ) == 0 ) {
-            maps_container.at( maps_container.size() - 1 ).BOTTOM = value_2;
+            maps_container.back().BOTTOM = value_2;
         }
         if ( strcmp( value_1, "left" ) == 0 ) {
-            maps_container.at( maps_container.size() - 1 ).LEFT = value_2;
+            maps_container.back().LEFT = value_2;
         }
         if ( strcmp( value_1, "right" ) == 0 ) {
-            maps_container.at( maps_container.size() - 1 ).RIGHT = value_2;
+            maps_container.back().RIGHT = value_2;
         }
         if ( strcmp( value_1, "front" ) == 0 ) {
-            maps_container.at( maps_container.size() - 1 ).FRONT = value_2;
+            maps_container.back().FRONT = value_2;
         }
         if ( strcmp( value_1, "back" ) == 0 ) {
-            maps_container.at( maps_container.size() - 1 ).BACK = value_2;
+            maps_container.back().BACK = value_2;
         }
         if ( strcmp( value_1, "preview" ) == 0 ) {
-            maps_container.at( maps_container.size() - 1 ).preview_image_location = value_2;
+            maps_container.back().preview_image_location = value_2;
         }
     }
     MapFile.close();
-    if ( maps_container.size() == 0 ) {
+    if ( maps_container.empty() ) {
         maps_container.push_back( map );
         btnNextMap.Disable();
     }
@@ -1137,7 +1097,8 @@ void Road::LoadJetProto()
     jets_container.clear();
     ModelProto mod;
     std::ifstream JetFile( "jets.cfg" );
-    char value_1[ 48 ], value_2[ 48 ];
+    char value_1[ 48 ]{};
+    char value_2[ 48 ]{};
     std::string line;
     while ( getline( JetFile, line ) ) {
         std::sscanf( line.c_str(), "%s %s", value_1, value_2 );
@@ -1146,20 +1107,20 @@ void Road::LoadJetProto()
             jets_container.push_back( mod );
         }
         if ( strcmp( value_1, "name" ) == 0 ) {
-            jets_container.at( jets_container.size() - 1 ).name = value_2;
+            jets_container.back().name = value_2;
         }
         if ( strcmp( value_1, "texture" ) == 0 ) {
-            jets_container.at( jets_container.size() - 1 ).model_texture = value_2;
+            jets_container.back().model_texture = value_2;
         }
         if ( strcmp( value_1, "model" ) == 0 ) {
-            jets_container.at( jets_container.size() - 1 ).model_file = value_2;
+            jets_container.back().model_file = value_2;
         }
         if ( strcmp( value_1, "scale" ) == 0 ) {
-            jets_container.at( jets_container.size() - 1 ).scale = atof( value_2 );
+            jets_container.back().scale = atof( value_2 );
         }
     }
     JetFile.close();
-    if ( jets_container.size() == 0 ) {
+    if ( jets_container.empty() ) {
         std::cout << "no jets\n";
         jets_container.push_back( mod );
     }
@@ -1187,7 +1148,8 @@ void Road::LoadConfig()
 {
     std::cout << "Loading from configuration file... ";
     std::ifstream ConfigFile( "config.cfg" );
-    char value_1[ 48 ], value_2[ 48 ];
+    char value_1[ 48 ]{};
+    char value_2[ 48 ]{};
     std::string line;
     while ( getline( ConfigFile, line ) ) {
         std::sscanf( line.c_str(), "%s %s", value_1, value_2 );
@@ -1198,7 +1160,7 @@ void Road::LoadConfig()
             SCREEN_HEIGHT = atoi( value_2 );
         }
         if ( strcmp( value_1, "fullscreen" ) == 0 ) {
-            FULLSCREEN = (bool)atoi( value_2 );
+            FULLSCREEN = atoi( value_2 ) != 0;
         }
         if ( strcmp( value_1, "texturefiltering" ) == 0 ) {
             current_filtering = atoi( value_2 );
@@ -1240,7 +1202,7 @@ void Road::LoadConfig()
             }
         }
         if ( strcmp( value_1, "sound" ) == 0 ) {
-            play_sound = (bool)atoi( value_2 );
+            play_sound = atoi( value_2 ) != 0;
         }
     }
     ConfigFile.close();
@@ -1316,7 +1278,7 @@ void Road::UpdateClouds()
     }
 }
 
-void Road::SetOrtho()
+void Road::SetOrtho() const
 {
     glMatrixMode( GL_PROJECTION );
     glLoadIdentity();
@@ -1325,11 +1287,11 @@ void Road::SetOrtho()
     glLoadIdentity();
 }
 
-void Road::SetPerspective( const GLdouble& Angle )
+void Road::SetPerspective( GLdouble Angle ) const
 {
     glMatrixMode( GL_PROJECTION );
     glLoadIdentity();
-    gluPerspective( Angle, (GLdouble)SCREEN_WIDTH / (GLdouble)SCREEN_HEIGHT, 0.001, 2000 );
+    gluPerspective( Angle, static_cast<GLdouble>( SCREEN_WIDTH ) / static_cast<GLdouble>( SCREEN_HEIGHT ), 0.001, 2000 );
     glMatrixMode( GL_MODELVIEW );
     glLoadIdentity();
 }
@@ -1344,7 +1306,7 @@ void Road::UpdateCustomize()
     }
 }
 
-void Road::PlaySound( Mix_Chunk* sound )
+void Road::PlaySound( Mix_Chunk* sound ) const
 {
     if ( play_sound ) {
         Mix_Playing( Mix_PlayChannel( -1, sound, 0 ) );

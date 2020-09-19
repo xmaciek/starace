@@ -11,6 +11,8 @@
 #include "map.hpp"
 #include "texture.hpp"
 
+#include <mutex>
+
 constexpr static int TAB = 9;
 constexpr static int ESC = 27;
 
@@ -39,7 +41,7 @@ private:
     void OnMouseClickLeft( GLint X, GLint Y );
 
     static const Uint32 Time_Interval;
-    Uint32 Delay();
+    static Uint32 Delay();
 
     void InitRoadAdditionsGL();
 
@@ -66,6 +68,7 @@ private:
 
     Jet* jet = nullptr;
     Map* map = nullptr;
+    std::mutex m_mutexEnemy{};
     std::vector<Enemy*> enemies{};
     std::vector<Enemy*> Egarbage{};
     Font* font_pause_txt = nullptr;
@@ -86,7 +89,7 @@ private:
     Mix_Chunk* blaster = nullptr;
     Mix_Chunk* torpedo = nullptr;
     Mix_Chunk* click = nullptr;
-    void PlaySound( Mix_Chunk* sound );
+    void PlaySound( Mix_Chunk* sound ) const;
 
     Circle* Radar = nullptr;
     Button btnExit{};
@@ -130,6 +133,8 @@ private:
     GLfloat LightDiffuse[ 4 ]{};
     GLfloat LightPosition[ 4 ]{};
 
+    std::mutex m_mutexBullet{};
+    std::mutex m_mutexEnemyBullet{};
     std::vector<Bullet*> bullet{};
     std::vector<Bullet*> enemybullet{};
     std::vector<Bullet*> Bgarbage{};
@@ -203,7 +208,7 @@ private:
     void Retarget();
 
     void ClearMapData();
-    void CreateMapData( MapProto map_data, ModelProto model_data );
+    void CreateMapData( const MapProto& map_data, const ModelProto& model_data );
     void LoadMapProto();
 
     void LoadConfig();
@@ -236,8 +241,8 @@ private:
 
     void DrawMainMenu();
 
-    void SetOrtho();
-    void SetPerspective( const GLdouble& Angle );
+    void SetOrtho() const;
+    void SetPerspective( GLdouble Angle ) const;
 };
 
 #endif

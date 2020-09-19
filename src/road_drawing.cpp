@@ -426,16 +426,27 @@ void Road::Render3D()
     glMultMatrixf( matrice );
     glTranslated( cX, cY, cZ );
     map->Draw();
-    for ( const Enemy* it : enemies ) {
-        it->Draw();
+
+    {
+        std::lock_guard<std::mutex> lg( m_mutexEnemy );
+        for ( const Enemy* it : enemies ) {
+            it->Draw();
+        }
     }
     glEnable( GL_BLEND );
     glLineWidth( 2 );
-    for ( const Bullet* it : bullet ) {
-        it->Draw();
+    {
+        std::lock_guard<std::mutex> lg( m_mutexBullet );
+        for ( const Bullet* it : bullet ) {
+            it->Draw();
+        }
     }
-    for ( const Bullet* it : enemybullet ) {
-        it->Draw();
+    {
+        std::lock_guard<std::mutex> lg1( m_mutexEnemy );
+        std::lock_guard<std::mutex> lg2( m_mutexEnemyBullet );
+        for ( const Bullet* it : enemybullet ) {
+            it->Draw();
+        }
     }
     glLineWidth( 1 );
     glDisable( GL_BLEND );
