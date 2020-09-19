@@ -1,15 +1,16 @@
 #include "sa.hpp"
 
+#include <random>
+
 GLdouble random_range( GLdouble a, GLdouble b )
 {
-    return ( ( b - a ) * ( (GLdouble)rand() / RAND_MAX ) ) + a;
+    static std::mt19937 random( std::random_device{}() );
+    return ( b - a ) * static_cast<GLdouble>( random() ) / std::mt19937::max() + a;
 }
 
 GLfloat colorhalf( GLfloat col )
 {
-    if ( col >= 0.5 )
-        return 1.0 - col;
-    return col;
+    return ( col >= 0.5 ) ? 1.0 - col : col;
 }
 
 GLdouble length_v( const Vertex& v )
@@ -19,10 +20,11 @@ GLdouble length_v( const Vertex& v )
 
 Vertex cross_product( const Vertex& a, const Vertex& b )
 {
-    return Vertex(
-        ( a.y * b.z ) - ( a.z * b.y ),
-        ( a.z * b.x ) - ( a.x * b.z ),
-        ( a.x * b.y ) - ( a.y * b.x ) );
+    return {
+        a.y * b.z - a.z * b.y,
+        a.z * b.x - a.x * b.z,
+        a.x * b.y - a.y * b.x
+    };
 };
 
 GLdouble dot_product( const Vertex& a, const Vertex& b )
@@ -33,7 +35,7 @@ GLdouble dot_product( const Vertex& a, const Vertex& b )
 void normalise_v( Vertex& v )
 {
     GLdouble length = length_v( v );
-    if ( length == 0 ) {
+    if ( length < 0.00001 ) {
         length = 1;
     }
     v.x /= length;

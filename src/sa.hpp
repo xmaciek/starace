@@ -100,6 +100,6 @@ Vertex cross_product( const Vertex& a, const Vertex& b );
 GLdouble dot_product( const Vertex& a, const Vertex& b );
 GLdouble length_v( const Vertex& v );
 void normalise_v( Vertex& v );
-GLdouble distance_v( const Vertex& a, const Vertex& b );
+GLdouble distance_v( const Vertex&, const Vertex& );
 
 #endif
