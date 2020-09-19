@@ -1,12 +1,6 @@
 #include "model.hpp"
 #include "sa.hpp"
 
-Model::Model()
-{
-    std::cout << "Creating default model.\n";
-    textureID = 0;
-}
-
 Model::~Model()
 {
     glDeleteTextures( 1, &textureID );
@@ -19,13 +13,12 @@ void Model::Draw()
     glEnable( GL_TEXTURE_2D );
     glColor3f( 1, 1, 1 );
     glBindTexture( GL_TEXTURE_2D, textureID );
-    for ( i = 0; i < faces.size(); i++ ) {
+    for ( const Face& f : faces ) {
         glBegin( GL_POLYGON );
-        glNormal3f( faces[ i ].normal[ 0 ], faces[ i ].normal[ 1 ], faces[ i ].normal[ 2 ] );
-        for ( j = 0; j < faces[ i ].vertex.size(); j++ ) {
-            glTexCoord2f( faces[ i ].texcoord[ j ].u, faces[ i ].texcoord[ j ].v );
-            //           cout<<faces[i].texcoord[j].v<<"\n";
-            glVertex3d( faces[ i ].vertex[ j ].x, faces[ i ].vertex[ j ].y, faces[ i ].vertex[ j ].z );
+        glNormal3fv( f.normal );
+        for ( size_t j = 0; j < f.vertex.size(); j++ ) {
+            glTexCoord2f( f.texcoord[ j ].u, f.texcoord[ j ].v );
+            glVertex3d( f.vertex[ j ].x, f.vertex[ j ].y, f.vertex[ j ].z );
         }
         glEnd();
     }
@@ -36,11 +29,11 @@ void Model::Draw()
 
 void Model::DrawWireframe()
 {
-    for ( i = 0; i < faces.size(); i++ ) {
+    for ( const Face& f : faces ) {
         glBegin( GL_LINES );
-        for ( j = 0; j < faces[ i ].vertex.size() - 1; j++ ) {
-            glVertex3d( faces[ i ].vertex[ j ].x, faces[ i ].vertex[ j ].y, faces[ i ].vertex[ j ].z );
-            glVertex3d( faces[ i ].vertex[ j + 1 ].x, faces[ i ].vertex[ j + 1 ].y, faces[ i ].vertex[ j + 1 ].z );
+        for ( size_t j = 0; j < f.vertex.size() - 1; j++ ) {
+            glVertex3d( f.vertex[ j ].x, f.vertex[ j ].y, f.vertex[ j ].z );
+            glVertex3d( f.vertex[ j + 1 ].x, f.vertex[ j + 1 ].y, f.vertex[ j + 1 ].z );
         }
         glEnd();
     }
@@ -50,20 +43,22 @@ void Model::Load_OBJ( const char* filename )
 {
     std::cout << "loading model: " << filename << " ... ";
 
-    Vertex tmpv;
-    std::vector<Vertex> vertices;
+    Vertex tmpv{};
+    std::vector<Vertex> vertices{};
     faces.clear();
-    UV tmpt;
-    std::vector<UV> tex;
+    UV tmpt{};
+    std::vector<UV> tex{};
     bool containsTex = false;
     GLubyte wID = 0;
-    std::vector<GLuint> tmpui;
-    Face tmpf;
-    GLubyte dataType;
-    GLuint v, t;
+    std::vector<GLuint> tmpui{};
+    Face tmpf{};
+    GLubyte dataType = 0;
+    GLuint v = 0;
+    GLuint t = 0;
     std::ifstream OBJfile( filename );
-    std::string line, tmpline;
-    std::stringstream ssline;
+    std::string line{};
+    std::string tmpline{};
+    std::stringstream ssline{};
     while ( getline( OBJfile, line ) ) {
         //         cout<<" "<<line.c_str()<<"\n";
         if ( line.substr( 0, 2 ) == "o " ) {
@@ -94,10 +89,6 @@ void Model::Load_OBJ( const char* filename )
             std::sscanf( line.c_str(), "v %lf %lf %lf ", &tmpv.x, &tmpv.y, &tmpv.z );
             vertices.push_back( tmpv );
             switch ( dataType ) {
-            case 1:
-                break;
-            case 2:
-                break;
             case 3:
                 if ( wID < 3 ) {
                     weapons[ wID ] = tmpv;
@@ -145,28 +136,30 @@ void Model::Load_OBJ( const char* filename )
 void Model::CalculateNormal()
 {
     std::cout << "| +-- calclulating normals... ";
-    GLfloat wektor1[ 3 ], wektor2[ 3 ], length;
-    for ( GLuint k = 0; k < faces.size(); k++ ) {
-        wektor1[ 0 ] = faces[ k ].vertex[ 0 ].x - faces[ k ].vertex[ 1 ].x;
-        wektor1[ 1 ] = faces[ k ].vertex[ 0 ].y - faces[ k ].vertex[ 1 ].y;
-        wektor1[ 2 ] = faces[ k ].vertex[ 0 ].z - faces[ k ].vertex[ 1 ].z;
+    GLfloat vector1[ 3 ]{};
+    GLfloat vector2[ 3 ]{};
+    GLfloat length = 0.0f;
+    for ( Face& f : faces ) {
+        vector1[ 0 ] = f.vertex[ 0 ].x - f.vertex[ 1 ].x;
+        vector1[ 1 ] = f.vertex[ 0 ].y - f.vertex[ 1 ].y;
+        vector1[ 2 ] = f.vertex[ 0 ].z - f.vertex[ 1 ].z;
 
-        //       wektor1[0] = (faces[k].vertex[0] - faces[k].vertex[1]).x;
+        //       vector1[0] = (faces[k].vertex[0] - faces[k].vertex[1]).x;
 
-        wektor2[ 0 ] = faces[ k ].vertex[ 1 ].x - faces[ k ].vertex[ 2 ].x;
-        wektor2[ 1 ] = faces[ k ].vertex[ 1 ].y - faces[ k ].vertex[ 2 ].y;
-        wektor2[ 2 ] = faces[ k ].vertex[ 1 ].z - faces[ k ].vertex[ 2 ].z;
+        vector2[ 0 ] = f.vertex[ 1 ].x - f.vertex[ 2 ].x;
+        vector2[ 1 ] = f.vertex[ 1 ].y - f.vertex[ 2 ].y;
+        vector2[ 2 ] = f.vertex[ 1 ].z - f.vertex[ 2 ].z;
 
-        faces[ k ].normal[ 0 ] = ( wektor1[ 1 ] * wektor2[ 2 ] ) - ( wektor1[ 2 ] * wektor2[ 1 ] );
-        faces[ k ].normal[ 1 ] = ( wektor1[ 2 ] * wektor2[ 0 ] ) - ( wektor1[ 0 ] * wektor2[ 2 ] );
-        faces[ k ].normal[ 2 ] = ( wektor1[ 0 ] * wektor2[ 1 ] ) - ( wektor1[ 1 ] * wektor2[ 0 ] );
-        length = (GLfloat)sqrt( ( faces[ k ].normal[ 0 ] * faces[ k ].normal[ 0 ] ) + ( faces[ k ].normal[ 1 ] * faces[ k ].normal[ 1 ] ) + ( faces[ k ].normal[ 2 ] * faces[ k ].normal[ 2 ] ) );
-        if ( length == 0 ) {
+        f.normal[ 0 ] = ( vector1[ 1 ] * vector2[ 2 ] ) - ( vector1[ 2 ] * vector2[ 1 ] );
+        f.normal[ 1 ] = ( vector1[ 2 ] * vector2[ 0 ] ) - ( vector1[ 0 ] * vector2[ 2 ] );
+        f.normal[ 2 ] = ( vector1[ 0 ] * vector2[ 1 ] ) - ( vector1[ 1 ] * vector2[ 0 ] );
+        length = std::sqrt( ( f.normal[ 0 ] * f.normal[ 0 ] ) + ( f.normal[ 1 ] * f.normal[ 1 ] ) + ( f.normal[ 2 ] * f.normal[ 2 ] ) );
+        if ( length < 0.0001f ) {
             length = 1.0f;
         }
-        faces[ k ].normal[ 0 ] /= length;
-        faces[ k ].normal[ 1 ] /= length;
-        faces[ k ].normal[ 2 ] /= length;
+        f.normal[ 0 ] /= length;
+        f.normal[ 1 ] /= length;
+        f.normal[ 2 ] /= length;
     }
     std::cout << "done.\n";
 }
@@ -174,17 +167,13 @@ void Model::CalculateNormal()
 void Model::NormalizeSize()
 {
     std::cout << "| +-- normalizing model... ";
-    GLuint k, l;
-    GLdouble maxZ = faces[ 0 ].vertex[ 0 ].z, minZ = faces[ 0 ].vertex[ 0 ].z;
+    GLdouble maxZ = faces[ 0 ].vertex[ 0 ].z;
+    GLdouble minZ = faces[ 0 ].vertex[ 0 ].z;
 
-    for ( k = 0; k < faces.size(); k++ ) {
-        for ( l = 0; l < faces[ k ].vertex.size(); l++ ) {
-            if ( faces[ k ].vertex[ l ].z > maxZ ) {
-                maxZ = faces[ k ].vertex[ l ].z;
-            }
-            if ( faces[ k ].vertex[ l ].z < minZ ) {
-                minZ = faces[ k ].vertex[ l ].z;
-            }
+    for ( const Face& f : faces ) {
+        for ( const Vertex& v : f.vertex ) {
+            maxZ = std::max( maxZ, v.z );
+            minZ = std::min( minZ, v.z );
         }
     }
 
@@ -201,23 +190,23 @@ void Model::NormalizeSize()
     GLdouble factor = 1.0f / total;
     std::cout << "max: " << maxZ << " min: " << minZ << " ";
     std::cout << "factor: " << factor << " ... ";
-    for ( k = 0; k < faces.size(); k++ ) {
-        for ( l = 0; l < faces[ k ].vertex.size(); l++ ) {
-            faces[ k ].vertex[ l ].x *= factor;
-            faces[ k ].vertex[ l ].y *= factor;
-            faces[ k ].vertex[ l ].z *= factor;
+    for ( Face& f : faces ) {
+        for ( Vertex& v : f.vertex ) {
+            v.x *= factor;
+            v.y *= factor;
+            v.z *= factor;
         }
     }
-    for ( GLuint k = 0; k < thrusters.size(); k++ ) {
-        thrusters[ k ].x *= factor;
-        thrusters[ k ].y *= factor;
-        thrusters[ k ].z *= factor;
+    for ( Vertex& v : thrusters ) {
+        v.x *= factor;
+        v.y *= factor;
+        v.z *= factor;
     }
 
-    for ( GLuint k = 0; k < 3; k++ ) {
-        weapons[ k ].x *= factor;
-        weapons[ k ].y *= factor;
-        weapons[ k ].z *= factor;
+    for ( Vertex& v : weapons ) {
+        v.x *= factor;
+        v.y *= factor;
+        v.z *= factor;
     }
 
     std::cout << "done.\n";
@@ -234,22 +223,23 @@ void Model::BindTexture( GLuint TX )
 void Model::Scale( GLfloat scale )
 {
     std::cout << "| +-- scaling model to " << scale << " ... ";
-    for ( GLuint k = 0; k < faces.size(); k++ ) {
-        for ( GLuint l = 0; l < faces[ k ].vertex.size(); l++ ) {
-            faces[ k ].vertex[ l ].x *= scale;
-            faces[ k ].vertex[ l ].y *= scale;
-            faces[ k ].vertex[ l ].z *= scale;
+    for ( Face& f : faces ) {
+        for ( Vertex& v : f.vertex ) {
+            v.x *= scale;
+            v.y *= scale;
+            v.z *= scale;
         }
     }
-    for ( GLuint k = 0; k < thrusters.size(); k++ ) {
-        thrusters[ k ].x *= scale;
-        thrusters[ k ].y *= scale;
-        thrusters[ k ].z *= scale;
+    for ( Vertex& v : thrusters ) {
+        v.x *= scale;
+        v.y *= scale;
+        v.z *= scale;
     }
-    for ( GLuint k = 0; k < 3; k++ ) {
-        weapons[ k ].x *= scale;
-        weapons[ k ].y *= scale;
-        weapons[ k ].z *= scale;
+
+    for ( Vertex& v : weapons ) {
+        v.x *= scale;
+        v.y *= scale;
+        v.z *= scale;
     }
 
     std::cout << "done.\n";
