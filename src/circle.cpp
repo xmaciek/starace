@@ -5,7 +5,7 @@ void Circle::init()
     X.clear();
     Y.clear();
     GLdouble ANGLE = ( 360.0 / segments ) / 180.0 * PI;
-    for ( GLubyte i = 0; i < segments; i++ ) {
+    for ( GLuint i = 0; i < segments; i++ ) {
         DEGinRAD = ( i * ANGLE );
         X.push_back( (GLdouble)sin( DEGinRAD ) * radiust );
         Y.push_back( (GLdouble)cos( DEGinRAD ) * radiust );
