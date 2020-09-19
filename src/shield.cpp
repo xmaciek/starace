@@ -19,7 +19,7 @@ void Shield::Update()
     }
 }
 
-void Shield::Draw()
+void Shield::Draw() const
 {
     if ( !circle ) {
         return;

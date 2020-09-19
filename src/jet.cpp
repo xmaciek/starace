@@ -80,7 +80,7 @@ Jet::~Jet()
     delete crosshair;
 }
 
-void Jet::Draw()
+void Jet::Draw() const
 {
     glPushMatrix();
 

@@ -197,9 +197,9 @@ private:
     void DrawBullets();
     void AddBullet( GLuint wID );
     void DrawCrosshair();
-    void DrawAxis();
+    static void DrawAxis();
     void setCamera();
-    void DrawLine( GLdouble X, GLdouble Y );
+    static void DrawLine( GLdouble X, GLdouble Y );
     void Retarget();
 
     void ClearMapData();
@@ -213,9 +213,9 @@ private:
 
     void GoFullscreen( bool& b );
     bool InitNewSurface( GLint W, GLint H, GLint D, bool F );
-    void DrawHudRect( GLdouble X, GLdouble Y, GLdouble W, GLdouble H );
-    void DrawHUDLine( GLdouble X1, GLdouble Y1, GLdouble X2, GLdouble Y2, GLdouble T );
-    void DrawHUDPiece( GLdouble X, GLdouble Y, GLdouble RotAngleZ );
+    static void DrawHudRect( GLdouble X, GLdouble Y, GLdouble W, GLdouble H );
+    static void DrawHUDLine( GLdouble X1, GLdouble Y1, GLdouble X2, GLdouble Y2, GLdouble T );
+    static void DrawHUDPiece( GLdouble X, GLdouble Y, GLdouble RotAngleZ );
     void DrawHUDBar( const GLuint& X, const GLuint& Y, const GLuint& W, const GLuint& H, const GLuint& Current, const GLuint& Max );
     void DrawPauseText();
     void RenderHUD();
@@ -231,7 +231,7 @@ private:
     void WinScreen();
     void WinUpdate();
 
-    void DrawClouds();
+    void DrawClouds() const;
     void UpdateClouds();
 
     void DrawMainMenu();

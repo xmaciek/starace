@@ -9,7 +9,7 @@ public:
     Shield() = default;
     Shield( GLdouble RadiustA, GLdouble RadiustB );
     ~Shield();
-    void Draw();
+    void Draw() const;
     void Update();
     void SetRadiust();
     GLdouble GetRadiust();

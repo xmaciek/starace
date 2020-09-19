@@ -8,8 +8,8 @@ public:
     ~Circle() = default;
     Circle();
     Circle( GLuint Segments, GLdouble Radiust );
-    GLdouble GetX( GLuint a );
-    GLdouble GetY( GLuint a );
+    GLdouble GetX( GLuint a ) const;
+    GLdouble GetY( GLuint a ) const;
     void SetSegments( GLuint Segments );
     void SetRadiust( GLdouble Radiust );
     GLuint GetSegments() const;

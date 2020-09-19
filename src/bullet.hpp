@@ -37,20 +37,20 @@ private:
 
     virtual Vertex collisionRay() const;
     virtual bool collisionTest( const SAObject* object ) const;
-    inline void Draw1();
-    inline void Draw2();
-    inline void DrawLaser();
+    inline void Draw1() const;
+    inline void Draw2() const;
+    inline void DrawLaser() const;
 
 public:
     explicit Bullet( const BulletProto& bp );
     virtual ~Bullet() = default;
     void SetDirection( Vertex v );
-    void Draw();
+    virtual void Draw() const override;
     void Update();
     GLuint getDamage() const;
     GLuint GetType() const;
 
-    virtual void ProcessCollision( SAObject* object );
+    virtual void ProcessCollision( SAObject* object ) override;
 
     static const GLuint SLUG = 0;
     static const GLuint BLASTER = 1;

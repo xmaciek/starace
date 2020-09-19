@@ -25,7 +25,7 @@ Circle::Circle( GLuint Segments, GLdouble Radiust )
 }
 
 
-GLdouble Circle::GetX( GLuint a )
+GLdouble Circle::GetX( GLuint a ) const
 {
     if ( a < segments ) {
         return X[ a ];
@@ -33,7 +33,7 @@ GLdouble Circle::GetX( GLuint a )
     return 0;
 }
 
-GLdouble Circle::GetY( GLuint a )
+GLdouble Circle::GetY( GLuint a ) const
 {
     if ( a < segments ) {
         return Y[ a ];

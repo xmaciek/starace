@@ -18,7 +18,7 @@ public:
     explicit Jet( const ModelProto& model_data );
     ~Jet();
 
-    void Draw();
+    virtual void Draw() const override;
     void DrawWireframe();
     void Update();
     void RollLeft( bool doit );

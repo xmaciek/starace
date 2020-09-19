@@ -25,7 +25,7 @@ public:
 
     Vertex weapons[ 3 ]{};
     std::vector<Vertex> thrusters{};
-    void Draw();
+    void Draw() const;
     void DrawWireframe();
     void Load_OBJ( const char* filename );
     void CalculateNormal();

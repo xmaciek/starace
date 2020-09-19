@@ -37,6 +37,8 @@ public:
     static const GLuint OUT = 2;
     static const GLuint NOT_VISIBLE = 3;
 
+    virtual void Draw() const = 0;
+
 protected:
     SAObject* target = nullptr;
     bool ImTargeted = false;

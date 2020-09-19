@@ -51,11 +51,11 @@ Bullet::Bullet( const BulletProto& bp )
     ttl = 20;
 };
 
-inline void Bullet::Draw1()
+inline void Bullet::Draw1() const
 {
     Tail::const_iterator it = m_tail.begin();
     glPushMatrix();
-    glColor4fv( static_cast<GLfloat*>( color1 ) );
+    glColor4fv( static_cast<const GLfloat*>( color1 ) );
     glBegin( GL_LINES );
     glVertex3d( ( *it ).x, ( *it ).y, ( *it ).z );
     it += 3;
@@ -71,12 +71,12 @@ inline void Bullet::Draw1()
     glPopMatrix();
 };
 
-inline void Bullet::DrawLaser()
+inline void Bullet::DrawLaser() const
 {
     Tail::const_iterator it = m_tail.begin();
     glPushMatrix();
     glBegin( GL_LINES );
-    glColor4fv( static_cast<GLfloat*>( color1 ) );
+    glColor4fv( static_cast<const GLfloat*>( color1 ) );
     glVertex3d( ( *it ).x, ( *it ).y, ( *it ).z );
     it++;
     glVertex3d( ( *it ).x, ( *it ).y, ( *it ).z );
@@ -84,11 +84,11 @@ inline void Bullet::DrawLaser()
     glPopMatrix();
 }
 
-inline void Bullet::Draw2()
+inline void Bullet::Draw2() const
 {
     Tail::const_iterator it = m_tail.begin();
     glPushMatrix();
-    glColor4fv( static_cast<GLfloat*>( color1 ) );
+    glColor4fv( static_cast<const GLfloat*>( color1 ) );
     glBegin( GL_LINES );
     glVertex3d( ( *it ).x, ( *it ).y, ( *it ).z );
     it++;
@@ -109,7 +109,7 @@ inline void Bullet::Draw2()
     glPopMatrix();
 };
 
-void Bullet::Draw()
+void Bullet::Draw() const
 {
     if ( status == DEAD ) {
         return;

@@ -6,7 +6,7 @@ Model::~Model()
     glDeleteTextures( 1, &textureID );
 }
 
-void Model::Draw()
+void Model::Draw() const
 {
     glEnable( GL_LIGHTING );
     glDisable( GL_BLEND );

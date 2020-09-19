@@ -11,7 +11,7 @@ class Enemy : public SAObject {
 public:
     virtual ~Enemy() override = default;
     Enemy();
-    void Draw();
+    virtual void Draw() const override;
     static void DrawCollisionIndicator();
     void Update();
     void SetModel( Model* M );
@@ -19,7 +19,7 @@ public:
     void SetWeapon( const BulletProto& b );
     Bullet* GetWeapon();
     bool IsWeaponReady() const;
-    void DrawRadarPosition( const Vertex& Modifier, const GLdouble& RadarScale );
+    void DrawRadarPosition( const Vertex& Modifier, const GLdouble& RadarScale ) const;
 
     virtual void ProcessCollision( SAObject* Object ) override;
 

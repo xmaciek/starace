@@ -58,7 +58,7 @@ void Enemy::ReinitCoordinates()
     position.z = random_range( -10.0, 10.0 );
 }
 
-void Enemy::Draw()
+void Enemy::Draw() const
 {
     if ( status == ALIVE ) {
         glPushMatrix();
@@ -116,7 +116,7 @@ void Enemy::DrawCollisionIndicator()
     glLineWidth( 1 );
 }
 
-void Enemy::DrawRadarPosition( const Vertex& Modifier, const GLdouble& RadarScale )
+void Enemy::DrawRadarPosition( const Vertex& Modifier, const GLdouble& RadarScale ) const
 {
     if ( status != ALIVE ) {
         return;
