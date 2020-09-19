@@ -1,22 +1,14 @@
 #include "shield.hpp"
 
 Shield::Shield( GLdouble RadiustA, GLdouble RadiustB )
+: radiust( RadiustA )
 {
     circle = new Circle( 6, RadiustB );
-    radiust = RadiustA;
-    rotangle = 0;
-}
-
-Shield::Shield()
-{
-    circle = NULL;
 }
 
 Shield::~Shield()
 {
-    if ( circle != NULL ) {
-        delete circle;
-    }
+    delete circle;
 }
 
 void Shield::Update()
@@ -29,6 +21,9 @@ void Shield::Update()
 
 void Shield::Draw()
 {
+    if ( !circle ) {
+        return;
+    }
     glPushMatrix();
     glRotated( rotangle, 0, 1, 0 );
     for ( GLuint i = 0; i < 8; i++ ) {
