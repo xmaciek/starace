@@ -14,17 +14,8 @@ typedef struct
     GLuint bpp;
     GLubyte* data;
 } TGA;
-#define FILTERING_NONE 0
-#define FILTERING_LINEAR 1
-#define FILTERING_BILINEAR 2
-#define FILTERING_TRILINEAR 3
-#define FILTERING_ANISOTROPIC_X2 4
-#define FILTERING_ANISOTROPIC_X4 5
-#define FILTERING_ANISOTROPIC_X8 6
-#define FILTERING_ANISOTROPIC_X16 7
 
-void setAllTexturesFiltering( GLint type );
-void setTextureFiltering( GLint type );
+void setTextureFiltering();
 GLuint LoadDefault();
 GLuint LoadTexture( const char* filename );
 void DrawSprite( const GLuint& spriteID, const GLdouble& spriteSize );

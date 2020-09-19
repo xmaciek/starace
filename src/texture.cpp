@@ -26,81 +26,23 @@ GLuint LoadDefault()
     GLuint textureID = 0;
     glGenTextures( 1, &textureID );
     glBindTexture( GL_TEXTURE_2D, textureID );
-    setTextureFiltering( -1 );
+    setTextureFiltering();
     gluBuild2DMipmaps( GL_TEXTURE_2D, 3, 64, 64, GL_RGB, GL_UNSIGNED_BYTE, DEF );
 
     //   glTexImage2D(GL_TEXTURE_2D, 0, 3, 64, 64, 0, GL_RGB, GL_UNSIGNED_BYTE, DEF);
     return textureID;
 }
 
-void setAllTexturesFiltering( GLint type )
+
+void setTextureFiltering()
 {
-    for ( GLuint i = 0; i < 1000; i++ ) {
-        if ( glIsTexture( i ) ) {
-            //       cout<<"Tex: "<<i<<"\n";
-            glBindTexture( GL_TEXTURE_2D, i );
-            setTextureFiltering( type );
-        }
-    }
-}
-
-void setTextureFiltering( GLint type )
-{
-    static GLint TEX_FILTER = FILTERING_TRILINEAR; /*trilinear by default*/
-    if ( ( type >= FILTERING_TRILINEAR ) && ( type <= FILTERING_ANISOTROPIC_X16 ) ) {
-        TEX_FILTER = type;
-    }
-
-    //   cout<<"Filtering: "<<TEX_FILTER<<"\n";
-
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
     glHint( GL_GENERATE_MIPMAP_HINT, GL_NICEST );
-    //   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,0.0f);
-    switch ( TEX_FILTER ) {
-    case FILTERING_NONE:
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST );
-        glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0f );
-        break;
-    case FILTERING_LINEAR:
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST );
-        glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0f );
-        break;
-    case FILTERING_BILINEAR:
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST );
-        glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0f );
-        break;
-    case FILTERING_TRILINEAR:
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-        glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0f );
-        break;
-    case FILTERING_ANISOTROPIC_X2:
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-        glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 2.0f );
-        break;
-    case FILTERING_ANISOTROPIC_X4:
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-        glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0f );
-        break;
-    case FILTERING_ANISOTROPIC_X8:
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-        glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 8.0f );
-        break;
-    case FILTERING_ANISOTROPIC_X16:
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-        glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0f );
-        break;
-    default:
-        break;
-    }
+
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0f );
 }
 
 GLuint LoadTexture( const char* filename )
@@ -161,7 +103,7 @@ GLuint LoadTexture( const char* filename )
     GLuint textureID;
     glGenTextures( 1, &textureID );
     glBindTexture( GL_TEXTURE_2D, textureID );
-    setTextureFiltering( -1 );
+    setTextureFiltering();
     gluBuild2DMipmaps( GL_TEXTURE_2D, tga.bytesPerPixel, tga.width, tga.height, tga.type, GL_UNSIGNED_BYTE, tga.data );
     delete[] tga.data;
 

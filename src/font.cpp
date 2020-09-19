@@ -66,7 +66,7 @@ void Font::make_dlist( TTF_Font* font, GLuint ch )
 
     glEnable( GL_TEXTURE_2D );
     glBindTexture( GL_TEXTURE_2D, textures[ ch ] );
-    setTextureFiltering( -1 );
+    setTextureFiltering();
     gluBuild2DMipmaps( GL_TEXTURE_2D, 2, optW, optH, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, pixels );
     SDL_FreeSurface( expanded_data );
     char_length[ ch ] = advance;

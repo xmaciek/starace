@@ -14,8 +14,6 @@ Road::Road()
 
     laser = blaster = torpedo = NULL;
 
-    current_filtering = FILTERING_TRILINEAR;
-
     play_sound = true;
 
     Running = true;
@@ -244,8 +242,6 @@ bool Road::OnInit()
     click = Mix_LoadWAV( "sounds/click.wav" );
 
     LoadConfig();
-
-    setTextureFiltering( current_filtering );
 
     if ( !InitNewSurface( SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_DEPTH, FULLSCREEN ) ) {
         return false;
