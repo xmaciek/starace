@@ -11,10 +11,10 @@ public:
     void Conjugate();
     void Inverse();
     void Normalise();
-    void CreateMatrix( GLfloat* mat );
+    void CreateMatrix( GLfloat* mat ) const;
     void CreateFromAngles( const GLdouble& X, const GLdouble& Y, const GLdouble& Z, const GLdouble& deg );
-    Quaternion operator*( const Quaternion& Q ) const;
-    Quaternion& operator=( const Quaternion& Q );
+    Quaternion operator * ( const Quaternion& Q ) const;
+    Quaternion& operator = ( const Quaternion& ) = default;
     void RotateVector( Vertex& v );
     Vertex GetVector() const;
 

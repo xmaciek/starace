@@ -19,15 +19,16 @@ void Quaternion::CreateFromAngles( const GLdouble& X, const GLdouble& Y, const G
     z = Z * result;
 
     angle = sqrt( w * w + x * x + z * z + y * y );
-    if ( angle == 0 )
+    if ( angle == 0 ) {
         angle = 1;
+    }
     x /= angle;
     y /= angle;
     z /= angle;
     w /= angle;
 }
 
-void Quaternion::CreateMatrix( GLfloat* matrix )
+void Quaternion::CreateMatrix( GLfloat* matrix ) const
 {
     matrix[ 0 ] = 1.0 - 2.0 * ( y * y + z * z );
     matrix[ 1 ] = 2.0 * ( x * y - w * z );
@@ -108,13 +109,4 @@ Quaternion Quaternion::operator*( const Quaternion& Q ) const
     R.z = w * Q.z + z * Q.w + x * Q.y - y * Q.x;
 
     return R;
-}
-
-Quaternion& Quaternion::operator=( const Quaternion& Q )
-{
-    x = Q.x;
-    y = Q.y;
-    z = Q.z;
-    w = Q.w;
-    return *this;
 }
