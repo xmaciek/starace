@@ -1,17 +1,17 @@
 #ifndef SA_H
 #define SA_H
 
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 #include <fstream>
 #include <iostream>
-#include <math.h>
 #include <sstream>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <string>
-#include <time.h>
 #include <vector>
-// #include <thread>
+
 using namespace std;
 
 #ifdef __linux__
@@ -24,11 +24,12 @@ using namespace std;
 #endif
 
 struct Vertex {
-    GLdouble x;
-    GLdouble y;
-    GLdouble z;
+    GLdouble x = 0.0;
+    GLdouble y = 0.0;
+    GLdouble z = 0.0;
 
-    Vertex( GLdouble X = 0.0, GLdouble Y = 0.0, GLdouble Z = 0.0 )
+    Vertex() = default;
+    Vertex( GLdouble X, GLdouble Y, GLdouble Z )
     : x( X )
     , y( Y )
     , z( Z )
@@ -103,7 +104,7 @@ struct ModelProto {
 // const GLdouble DELTATIME = 1.0/60;
 const GLdouble DELTATIME = 0.016;
 // #define PI 3.14159265
-const GLdouble PI = atan( 1 ) * 4;
+const GLdouble PI = M_PI;
 const GLdouble DEG2RAD = PI / 180.0;
 const GLdouble RAD2DEG = PI * 180.0;
 GLdouble random_range( GLdouble a, GLdouble b );

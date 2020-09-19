@@ -1,6 +1,7 @@
 #include "bullet.hpp"
 
 #include <cassert>
+#include <random>
 
 static uint16_t typeToSegments( GLuint t )
 {
@@ -16,29 +17,23 @@ static uint16_t typeToSegments( GLuint t )
     }
 }
 
-Bullet::Bullet( BulletProto bp )
+Bullet::Bullet( const BulletProto& bp )
 : m_tail( typeToSegments( bp.type ), Vertex( bp.x, bp.y, bp.z ) )
 {
-    //     cout<<"Creating bullet.\n";
     CollisionDistance = 0;
     CollisionFlag = true;
     type = bp.type;
     speed = bp.speed;
     damage = bp.damage;
-    //     length = bp.length;
-    memcpy( color1, bp.color1, sizeof( GLfloat ) * 4 );
-    memcpy( color2, bp.color2, sizeof( GLfloat ) * 4 );
+    std::copy( std::begin( bp.color1 ), std::end( bp.color1 ), std::begin( color1 ) );
+    std::copy( std::begin( bp.color2 ), std::end( bp.color2 ), std::begin( color2 ) );
     score = bp.score_per_hit;
 
     if ( type == SLUG ) {
-        memcpy( color2, color1, sizeof( GLfloat ) * 4 );
+        std::copy( std::begin( color1 ), std::end( color1 ), std::begin( color2 ) );
         color1[ 3 ] = 1;
         color2[ 3 ] = 0;
     }
-    //     texture1 = bp.texture1;
-    //     texture2 = bp.texture2;
-    //     std::cout<<texture1;
-    target = NULL;
     position.x = bp.x;
     position.y = bp.y;
     position.z = bp.z;
@@ -46,7 +41,8 @@ Bullet::Bullet( BulletProto bp )
     rotX = 0;
     rotY = 0;
     rotZ = 0;
-    rotation = rand() % 360;
+    static std::mt19937_64 rng{ std::random_device()() };
+    rotation = rng() % 360;
 
     range = 0;
     max_range = 150;
@@ -55,13 +51,11 @@ Bullet::Bullet( BulletProto bp )
     ttl = 20;
 };
 
-Bullet::~Bullet(){ /*cout<<"Deleting Bullet.\n";*/ };
-
 inline void Bullet::Draw1()
 {
     Tail::const_iterator it = m_tail.begin();
     glPushMatrix();
-    glColor4fv( color1 );
+    glColor4fv( static_cast<GLfloat*>( color1 ) );
     glBegin( GL_LINES );
     glVertex3d( ( *it ).x, ( *it ).y, ( *it ).z );
     it += 3;
@@ -82,7 +76,7 @@ inline void Bullet::DrawLaser()
     Tail::const_iterator it = m_tail.begin();
     glPushMatrix();
     glBegin( GL_LINES );
-    glColor4fv( color1 );
+    glColor4fv( static_cast<GLfloat*>( color1 ) );
     glVertex3d( ( *it ).x, ( *it ).y, ( *it ).z );
     it++;
     glVertex3d( ( *it ).x, ( *it ).y, ( *it ).z );
@@ -94,7 +88,7 @@ inline void Bullet::Draw2()
 {
     Tail::const_iterator it = m_tail.begin();
     glPushMatrix();
-    glColor4fv( color1 );
+    glColor4fv( static_cast<GLfloat*>( color1 ) );
     glBegin( GL_LINES );
     glVertex3d( ( *it ).x, ( *it ).y, ( *it ).z );
     it++;
@@ -130,9 +124,7 @@ void Bullet::Draw()
     case TORPEDO:
         Draw2();
         break;
-    case WAVE:
-        break;
-    case MINE:
+    default:
         break;
     }
 };
@@ -161,9 +153,7 @@ void Bullet::Update()
         m_tail.insert( position );
         range += speed * DELTATIME;
         break;
-    case WAVE:
-        break;
-    case MINE:
+    default:
         break;
     }
 };
@@ -178,7 +168,7 @@ bool Bullet::collisionTest( const SAObject* object ) const
     const Vertex collRay = collisionRay();
     const Vertex dir = object->GetPosition() - position;
     const double tmp = dot_product( dir, collRay );
-    double dist;
+    double dist = 0.0;
 
     if ( tmp <= 0 ) {
         dist = length_v( dir );
@@ -201,7 +191,7 @@ void Bullet::ProcessCollision( SAObject* object )
 {
     assert( object );
     if ( collisionTest( object ) ) {
-        object->AddScore( score );
+        object->AddScore( score, false );
         switch ( type ) {
         case SLUG:
             object->Damage( damage * color1[ 3 ] );
@@ -225,7 +215,7 @@ Vertex Bullet::collisionRay() const
         return direction * 1000;
     default:
         assert( !"unreachable" );
-        return Vertex();
+        return Vertex{};
     }
 }
 
@@ -239,13 +229,13 @@ void Bullet::SetDirection( Vertex v )
     }
 }
 
-GLuint Bullet::getDamage()
+GLuint Bullet::getDamage() const
 {
     return damage;
 }
 //   GLFloat[] getCoords() { return {x,y,z}; }
 
-GLuint Bullet::GetType()
+GLuint Bullet::GetType() const
 {
     return type;
 }

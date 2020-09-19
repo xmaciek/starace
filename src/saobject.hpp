@@ -28,7 +28,7 @@ public:
     GLdouble GetCollisionDistance() const;
 
     GLint GetScore();
-    virtual void AddScore( const GLint& s, bool b = false );
+    virtual void AddScore( const GLint& s, bool b );
 
     GLdouble GetCollisionDamage() const;
 
@@ -57,7 +57,6 @@ protected:
 
     GLdouble turnrate_in_rads = 0;
     void InterceptTarget();
-
 };
 
 #endif
