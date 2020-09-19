@@ -3,6 +3,7 @@
 #include <cassert>
 
 Enemy::Enemy()
+: shield( 0.1, 0.02 )
 {
     //   static int c=0;
     //   cout<<"Creating default Enemy "<<c<<".\n";
@@ -12,7 +13,6 @@ Enemy::Enemy()
     out_range = 1.0f;
     status = ALIVE;
     health = 100;
-    shield = new Shield( 0.1, 0.02 );
     health_perc = 1;
     direction.z = 1;
 
@@ -24,19 +24,8 @@ Enemy::Enemy()
     normalise_v( direction );
     velocity = direction * speed;
     turnrate_in_rads = speed * 5 * DEG2RAD * DELTATIME;
-    target = NULL;
     ImTargeted = false;
     ttl = 10;
-}
-
-Enemy::~Enemy()
-{
-    if ( shield != NULL ) {
-        delete shield;
-        shield = NULL;
-    }
-
-    //   cout<<"killing enemy\n";
 }
 
 void Enemy::SetWeapon( const BulletProto& b )
@@ -57,11 +46,9 @@ Bullet* Enemy::GetWeapon()
     return bullet;
 }
 
-bool Enemy::IsWeaponReady()
+bool Enemy::IsWeaponReady() const
 {
-    if ( shotfactor >= weapon.delay )
-        return true;
-    return false;
+    return shotfactor >= weapon.delay;
 }
 
 void Enemy::ReinitCoordinates()
@@ -84,7 +71,7 @@ void Enemy::Draw()
         //       glEnd();
 
         glColor3f( 1.0f - health_perc + colorhalf( 1.0f - health_perc ), colorhalf( health_perc ) + health_perc, 0 );
-        shield->Draw();
+        shield.Draw();
         if ( ImTargeted ) {
             DrawCollisionIndicator();
         }
@@ -95,7 +82,7 @@ void Enemy::Draw()
 void Enemy::Update()
 {
     if ( status == ALIVE ) {
-        shield->Update();
+        shield.Update();
         if ( shotfactor < weapon.delay ) {
             shotfactor += 1.0 * DELTATIME;
         }
@@ -118,7 +105,6 @@ void Enemy::Update()
 
 void Enemy::DrawCollisionIndicator()
 {
-    //   glGet(GL_PERSPECTIVE,
     glColor3f( 1, 0.1, 0.1 );
     glLineWidth( 2 );
     glBegin( GL_LINE_LOOP );
@@ -132,8 +118,9 @@ void Enemy::DrawCollisionIndicator()
 
 void Enemy::DrawRadarPosition( const Vertex& Modifier, const GLdouble& RadarScale )
 {
-    if ( status != ALIVE )
+    if ( status != ALIVE ) {
         return;
+    }
     Vertex RadarPosition = Modifier;
     RadarPosition = ( position - Modifier ) * ( RadarScale / 25 );
     if ( length_v( RadarPosition ) > RadarScale ) {

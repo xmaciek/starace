@@ -9,34 +9,30 @@
 
 class Enemy : public SAObject {
 public:
+    virtual ~Enemy() override = default;
     Enemy();
-    ~Enemy();
     void Draw();
-    void DrawCollisionIndicator();
+    static void DrawCollisionIndicator();
     void Update();
     void SetModel( Model* M );
     void SetVisibleRange( const GLdouble& Range );
     void SetWeapon( const BulletProto& b );
     Bullet* GetWeapon();
-    bool IsWeaponReady();
+    bool IsWeaponReady() const;
     void DrawRadarPosition( const Vertex& Modifier, const GLdouble& RadarScale );
-    //   GLfloat getX();
-    //   GLfloat getY();
-    //   GLfloat getZ();
 
-    virtual void ProcessCollision( SAObject* Object );
+    virtual void ProcessCollision( SAObject* Object ) override;
 
 private:
     void ReinitCoordinates();
-    //   GLfloat x,y,z;
-    GLdouble visible_range, out_range;
+    GLdouble visible_range = 0.0;
+    GLdouble out_range = 0.0;
 
-    BulletProto weapon;
-    GLdouble shotfactor;
-    GLfloat health_perc;
-    GLint shieldstrength;
-    Model* model;
-    Shield* shield;
+    BulletProto weapon{};
+    GLdouble shotfactor = 0.0;
+    GLfloat health_perc = 0.0f;
+    GLint shieldstrength = 0;
+    Shield shield;
 };
 
 #endif
