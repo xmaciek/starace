@@ -1,12 +1,5 @@
 #include "saobject.hpp"
 
-SAObject::SAObject()
-{
-    target = NULL;
-}
-
-SAObject::~SAObject() { }
-
 GLdouble SAObject::getX() const
 {
     return position.x;
@@ -47,7 +40,7 @@ GLdouble SAObject::GetSpeed() const
     return speed;
 }
 
-void SAObject::SetStatus( const GLuint& s )
+void SAObject::SetStatus( GLuint s )
 {
     status = s;
 }
@@ -59,7 +52,7 @@ void SAObject::SetTarget( SAObject* t )
     target = t;
 }
 
-void SAObject::TargetMe( const bool& doit )
+void SAObject::TargetMe( bool doit )
 {
     ImTargeted = doit;
 }
@@ -69,7 +62,7 @@ void SAObject::Kill()
     status = DEAD;
 }
 
-void SAObject::Damage( const GLdouble& d )
+void SAObject::Damage( GLdouble d )
 {
     health -= d;
     if ( health <= 0 ) {
@@ -77,18 +70,18 @@ void SAObject::Damage( const GLdouble& d )
     }
 }
 
-GLdouble SAObject::GetHealth()
+GLdouble SAObject::GetHealth() const
 {
     return health;
 }
 
 void SAObject::InterceptTarget()
 {
-    if ( target == NULL ) {
+    if ( !target ) {
         return;
     }
     if ( target->GetStatus() != ALIVE ) {
-        target = NULL;
+        target = nullptr;
         return;
     }
 
@@ -130,12 +123,12 @@ bool SAObject::DeleteMe()
     return false;
 }
 
-GLint SAObject::GetScore()
+GLint SAObject::GetScore() const
 {
     return score;
 }
 
-void SAObject::AddScore( const GLint& s, bool )
+void SAObject::AddScore( GLint s, bool )
 {
     score += s;
 }

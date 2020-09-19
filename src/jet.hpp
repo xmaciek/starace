@@ -41,7 +41,7 @@ public:
     void TakeEnergy( GLuint wID );
     void ProcessCollision( std::vector<Bullet*>& Bullets );
     virtual void ProcessCollision( SAObject* ) override;
-    virtual void AddScore( const GLint& s, bool b ) override;
+    virtual void AddScore( GLint s, bool b ) override;
 
 private:
     GLdouble roll = 0.0;

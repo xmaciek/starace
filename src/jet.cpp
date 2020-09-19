@@ -435,7 +435,7 @@ void Jet::ProcessCollision( SAObject* )
     assert( !"shall not be called" );
 };
 
-void Jet::AddScore( const GLint& s, bool b )
+void Jet::AddScore( GLint s, bool b )
 {
     if ( b ) {
         score += s;

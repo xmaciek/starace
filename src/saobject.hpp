@@ -5,13 +5,13 @@
 
 class SAObject {
 public:
-    SAObject();
-    virtual ~SAObject();
+    SAObject() = default;
+    virtual ~SAObject() = default;
     GLdouble getX() const;
     GLdouble getY() const;
     GLdouble getZ() const;
     GLuint GetStatus() const;
-    void SetStatus( const GLuint& s );
+    void SetStatus( GLuint s );
     void SetTarget( SAObject* t );
     Vertex GetPosition() const;
     Vertex GetDirection() const;
@@ -19,16 +19,16 @@ public:
     GLdouble GetSpeed() const;
     bool DeleteMe();
     void Kill();
-    void Damage( const GLdouble& d );
-    void TargetMe( const bool& doit );
-    GLdouble GetHealth();
+    void Damage( GLdouble d );
+    void TargetMe( bool );
+    GLdouble GetHealth() const;
 
     virtual void ProcessCollision( SAObject* Object );
     bool CanCollide() const;
     GLdouble GetCollisionDistance() const;
 
-    GLint GetScore();
-    virtual void AddScore( const GLint& s, bool b );
+    GLint GetScore() const;
+    virtual void AddScore( GLint s, bool b );
 
     GLdouble GetCollisionDamage() const;
 
