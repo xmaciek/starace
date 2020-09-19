@@ -44,7 +44,7 @@ set( STARACE_SOURCES
 set( CMAKE_CXX_CLANG_TIDY
     clang-tidy;
     -header-filter=.;
-    -checks=*,-modernize-use-trailing-return-type,-readability-magic-numbers,-cppcoreguidelines-avoid-magic-numbers;
+    -checks=*,-modernize-use-trailing-return-type,-readability-magic-numbers,-cppcoreguidelines-avoid-magic-numbers,-modernize-use-auto,-hicpp-use-auto;
 )
 
 set( STARACE_BINNAME "starace" )
