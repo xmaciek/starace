@@ -32,4 +32,3 @@ public:
     bool IsEnabled() const;
     void SetText( const char* txt );
 };
-

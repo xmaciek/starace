@@ -1,8 +1,7 @@
 #pragma once
 #include "sa.hpp"
 
-struct TGA
-{
+struct TGA {
     GLubyte header[ 6 ];
     GLuint bytesPerPixel;
     GLuint imageSize;

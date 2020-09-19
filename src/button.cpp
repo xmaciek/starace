@@ -64,7 +64,6 @@ Button::Button( Font* F, GLuint X, GLuint Y, GLuint W, GLuint H )
     font = F;
 }
 
-
 void Button::SetSize( const GLuint& W, const GLuint& H )
 {
     width = W;

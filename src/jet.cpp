@@ -419,8 +419,12 @@ void Jet::ProcessCollision( std::vector<Bullet*>& Bullets )
         return;
     }
     for ( Bullet* it : Bullets ) {
-        if ( it->GetStatus() != ALIVE ) { continue; }
-        if ( distance_v( position, it->GetPosition() ) > 0.1 ) { continue; }
+        if ( it->GetStatus() != ALIVE ) {
+            continue;
+        }
+        if ( distance_v( position, it->GetPosition() ) > 0.1 ) {
+            continue;
+        }
         health -= it->getDamage();
         it->Kill();
         if ( health <= 0 ) {

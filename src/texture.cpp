@@ -33,7 +33,6 @@ GLuint LoadDefault()
     return textureID;
 }
 
-
 void setTextureFiltering()
 {
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );

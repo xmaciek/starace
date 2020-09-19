@@ -24,7 +24,6 @@ Circle::Circle( GLuint Segments, GLdouble Radiust )
     init();
 }
 
-
 GLdouble Circle::GetX( GLuint a ) const
 {
     if ( a < segments ) {

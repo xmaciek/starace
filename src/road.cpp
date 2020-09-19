@@ -73,7 +73,8 @@ GLint Road::OnExecute()
 
     thread = SDL_CreateThread( OnUpdateStatic, this );
     if ( !thread ) {
-        std::cout << "-= Unable to start Update thread, terminating! =-\n" << SDL_GetError() << "\n";
+        std::cout << "-= Unable to start Update thread, terminating! =-\n"
+                  << SDL_GetError() << "\n";
         OnCleanup();
         return 0;
     }
@@ -146,7 +147,8 @@ void Road::OnCleanup()
 bool Road::OnInit()
 {
     if ( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO ) < 0 ) {
-        std::cout << "Unable to init SDL\n" << SDL_GetError() << "\n";
+        std::cout << "Unable to init SDL\n"
+                  << SDL_GetError() << "\n";
         return false;
     }
 
@@ -1018,7 +1020,7 @@ void Road::GoFullscreen( bool& b )
 
 bool Road::InitNewSurface( GLint W, GLint H, GLint D, bool F )
 {
-    SDL_Surface *tmp = Display;
+    SDL_Surface* tmp = Display;
     SDL_Surface* tmp2 = nullptr;
     if ( F ) {
         tmp2 = SDL_SetVideoMode( W, H, D, SDL_DOUBLEBUF | SDL_OPENGL | SDL_FULLSCREEN );
