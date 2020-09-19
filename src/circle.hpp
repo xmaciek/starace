@@ -5,9 +5,9 @@
 
 class Circle {
 public:
+    ~Circle() = default;
     Circle();
     Circle( GLuint Segments, GLdouble Radiust );
-    ~Circle();
     GLdouble GetX( GLuint a );
     GLdouble GetY( GLuint a );
     void SetSegments( GLuint Segments );
