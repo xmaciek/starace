@@ -4,7 +4,6 @@
 
 Jet::Jet( const ModelProto& model_data )
 {
-    target = NULL;
     status = ALIVE;
     health = 100;
     position.x = 0;
@@ -76,14 +75,8 @@ Jet::Jet( const ModelProto& model_data )
 
 Jet::~Jet()
 {
-    if ( thruster != NULL ) {
-        delete thruster;
-        thruster = NULL;
-    }
-    if ( shield != NULL ) {
-        delete shield;
-        shield = NULL;
-    }
+    delete thruster;
+    delete shield;
     delete crosshair;
 }
 
@@ -92,7 +85,7 @@ void Jet::Draw()
     glPushMatrix();
 
     //       glColor3f(1,1,1);
-    GLfloat matrix[ 16 ];
+    GLfloat matrix[ 16 ]{};
     //       Vertex v = quaternion.GetVector();
     //       glBegin(GL_LINES);
     //         glVertex3d(0,0,0);
@@ -102,15 +95,15 @@ void Jet::Draw()
     glMultMatrixf( matrix );
 
     model.Draw();
-    for ( size_t i = 0; i < model.thrusters.size(); i++ ) {
-        thruster->DrawAt( model.thrusters[ i ].x, model.thrusters[ i ].y, model.thrusters[ i ].z );
+    for ( const auto& it : model.thrusters ) {
+        thruster->DrawAt( it.x, it.y, it.z );
     }
     glPopMatrix();
 }
 
 void Jet::LockTarget( SAObject* t )
 {
-    if ( target != NULL ) {
+    if ( target ) {
         target->TargetMe( false );
     }
 
@@ -241,7 +234,10 @@ void Jet::Update()
     if ( speed < 3 ) {
         thruster->SetLength( speed / 8 );
     }
-    Quaternion qtmp, qx, qy, qz;
+    Quaternion qtmp{};
+    Quaternion qx{};
+    Quaternion qy{};
+    Quaternion qz{};
 
     qx.CreateFromAngles( 1, 0, 0, rotX );
     qy.CreateFromAngles( 0, 1, 0, -rotY );
@@ -307,10 +303,10 @@ void Jet::Update()
     position = position + velocity * DELTATIME;
     thruster->Update();
     shield->Update();
-    if ( target != NULL ) {
+    if ( target ) {
         if ( target->GetStatus() != ALIVE ) {
             target->TargetMe( false );
-            target = NULL;
+            target = nullptr;
         }
     }
 }
@@ -347,12 +343,7 @@ void Jet::PitchDown( bool doit )
 
 void Jet::SpeedUp( bool doit )
 {
-    if ( doit ) {
-        speed_acc += 1;
-    }
-    else {
-        speed_acc -= 1;
-    }
+    speed_acc += doit ? 1 : -1;
 }
 
 void Jet::SpeedDown( bool doit )
@@ -364,10 +355,12 @@ bool Jet::IsShooting( GLuint WeaponNum )
 {
     return shooting[ WeaponNum ];
 }
+
 void Jet::Shoot( GLuint WeaponNum, bool doit )
 {
     shooting[ WeaponNum ] = doit;
 }
+
 Vertex Jet::GetWeaponPoint( GLuint wID )
 {
     Vertex w = model.weapons[ wID ];
@@ -375,6 +368,7 @@ Vertex Jet::GetWeaponPoint( GLuint wID )
     w = w + position;
     return w;
 }
+
 Bullet* Jet::GetWeaponType( GLuint wID )
 {
     BulletProto tmp = Weapon[ wID ];
@@ -389,7 +383,7 @@ Bullet* Jet::GetWeaponType( GLuint wID )
     Bullet* b = new Bullet( tmp );
     b->SetDirection( direction );
     if ( tmp.type == Bullet::TORPEDO ) {
-        if ( target != NULL ) {
+        if ( target ) {
             if ( target->GetStatus() == ALIVE ) {
                 b->SetTarget( target );
             }
@@ -397,6 +391,7 @@ Bullet* Jet::GetWeaponType( GLuint wID )
     }
     return b;
 }
+
 void Jet::SetWeapon( BulletProto bp, GLuint ID )
 {
     Weapon[ ID ] = bp;
@@ -404,10 +399,7 @@ void Jet::SetWeapon( BulletProto bp, GLuint ID )
 
 bool Jet::IsWeaponReady( GLuint WeaponNum )
 {
-    if ( ( shotfactor[ WeaponNum ] >= Weapon[ WeaponNum ].delay ) && ( energy >= Weapon[ WeaponNum ].energy ) ) {
-        return true;
-    }
-    return false;
+    return ( shotfactor[ WeaponNum ] >= Weapon[ WeaponNum ].delay ) && ( energy >= Weapon[ WeaponNum ].energy );
 }
 
 void Jet::TakeEnergy( GLuint wID )
@@ -426,16 +418,14 @@ void Jet::ProcessCollision( std::vector<Bullet*>& Bullets )
     if ( status == DEAD ) {
         return;
     }
-    for ( size_t i = 0; i < Bullets.size(); i++ ) {
-        if ( Bullets[ i ]->GetStatus() == ALIVE ) {
-            if ( distance_v( position, Bullets[ i ]->GetPosition() ) <= 0.1 ) {
-                health -= Bullets[ i ]->getDamage();
-                Bullets[ i ]->Kill();
-                if ( health <= 0 ) {
-                    status = DEAD;
-                    return;
-                }
-            }
+    for ( Bullet* it : Bullets ) {
+        if ( it->GetStatus() != ALIVE ) { continue; }
+        if ( distance_v( position, it->GetPosition() ) > 0.1 ) { continue; }
+        health -= it->getDamage();
+        it->Kill();
+        if ( health <= 0 ) {
+            status = DEAD;
+            return;
         }
     }
 }

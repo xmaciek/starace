@@ -1,5 +1,4 @@
-#ifndef SA_JET_H
-#define SA_JET_H
+#pragma once
 
 #include "bullet.hpp"
 #include "circle.hpp"
@@ -13,9 +12,10 @@
 
 class Jet : public SAObject {
 public:
-    GLdouble energy;
-    Quaternion quaternion, rotation;
-    Jet( const ModelProto& model_data );
+    GLdouble energy = 0.0;
+    Quaternion quaternion{};
+    Quaternion rotation{};
+    explicit Jet( const ModelProto& model_data );
     ~Jet();
 
     void Draw();
@@ -41,33 +41,46 @@ public:
     void TakeEnergy( GLuint wID );
     void ProcessCollision( std::vector<Bullet*>& Bullets );
     virtual void ProcessCollision( SAObject* ) override;
-    virtual void AddScore( const GLint& s, bool b = false ) override;
+    virtual void AddScore( const GLint& s, bool b ) override;
 
 private:
-    GLdouble roll, pitch, yaw, rotZ, rotX, rotY;
-    BulletProto Weapon[ 3 ];
-    GLint accX, accY, accZ;
-    GLint maxangleX, maxangleY, maxangleZ;
-    GLdouble anglespeedX, anglespeedY, anglespeedZ;
+    GLdouble roll = 0.0;
+    GLdouble pitch = 0.0;
+    GLdouble yaw = 0.0;
+    GLdouble rotZ = 0.0;
+    GLdouble rotX = 0.0;
+    GLdouble rotY = 0.0;
+    BulletProto Weapon[ 3 ]{};
+    GLint accX = 0;
+    GLint accY = 0;
+    GLint accZ = 0;
+    GLint maxangleX = 0;
+    GLint maxangleY = 0;
+    GLint maxangleZ = 0;
+    GLdouble anglespeedX = 0.0;
+    GLdouble anglespeedY = 0.0;
+    GLdouble anglespeedZ = 0.0;
 
-    bool btn_roll_left, btn_roll_right,
-        btn_yaw_left, btn_yaw_right,
-        btn_pitch_up, btn_pitch_down;
+    bool btn_roll_left = false;
+    bool btn_roll_right = false;
+    bool btn_yaw_left = false;
+    bool btn_yaw_right = false;
+    bool btn_pitch_up = false;
+    bool btn_pitch_down = false;
 
-    //   GLfloat speed;
-    Model model;
+    Model model{};
 
-    GLbyte speed_acc;
-    GLdouble max_speed, min_speed, norm_speed;
+    GLbyte speed_acc = 0;
+    GLdouble max_speed = 0.0;
+    GLdouble min_speed = 0.0;
+    GLdouble norm_speed = 0.0;
 
-    Circle* crosshair;
-    Thruster* thruster;
-    Shield* shield;
-    Quaternion animation;
-    GLubyte CIRCLE_LOOP;
-    bool shooting[ 3 ];
-    GLdouble shotfactor[ 3 ];
-    bool target_locked[ 3 ];
+    Circle* crosshair = nullptr;
+    Thruster* thruster = nullptr;
+    Shield* shield = nullptr;
+    Quaternion animation{};
+    GLubyte CIRCLE_LOOP = 0;
+    bool shooting[ 3 ]{};
+    GLdouble shotfactor[ 3 ]{};
+    bool target_locked[ 3 ]{};
 };
-
-#endif

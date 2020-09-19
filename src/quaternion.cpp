@@ -1,22 +1,12 @@
 #include "quaternion.hpp"
 
-Quaternion::Quaternion()
-{
-    x = 0;
-    y = 0;
-    z = 0;
-    w = 1;
-}
-
-Quaternion::Quaternion( Vertex v, GLfloat W )
+Quaternion::Quaternion( const Vertex& v, GLfloat W )
 {
     x = v.x;
     y = v.y;
     z = v.z;
     w = W;
 }
-
-Quaternion::~Quaternion() { }
 
 void Quaternion::CreateFromAngles( const GLdouble& X, const GLdouble& Y, const GLdouble& Z, const GLdouble& deg )
 {
@@ -87,7 +77,7 @@ void Quaternion::Normalise()
     z /= len;
 }
 
-Vertex Quaternion::GetVector()
+Vertex Quaternion::GetVector() const
 {
     Vertex v;
     v.x = x;
@@ -108,7 +98,7 @@ void Quaternion::RotateVector( Vertex& v )
     v = result.GetVector();
 }
 
-Quaternion Quaternion::operator*( const Quaternion& Q )
+Quaternion Quaternion::operator*( const Quaternion& Q ) const
 {
     Quaternion R;
 
@@ -120,7 +110,7 @@ Quaternion Quaternion::operator*( const Quaternion& Q )
     return R;
 }
 
-Quaternion Quaternion::operator=( const Quaternion& Q )
+Quaternion& Quaternion::operator=( const Quaternion& Q )
 {
     x = Q.x;
     y = Q.y;
