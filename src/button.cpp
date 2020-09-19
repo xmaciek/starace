@@ -1,16 +1,11 @@
 #include "button.hpp"
 
-bool Button::IsClicked( GLuint X, GLuint Y )
+bool Button::IsClicked( GLuint X, GLuint Y ) const
 {
     if ( !enabled ) {
         return false;
     }
-    if ( ( X >= x ) && ( X <= x + width ) && ( Y >= y ) && ( Y <= y + height ) ) {
-        return true;
-    }
-    else {
-        return false;
-    }
+    return ( X >= x ) && ( X <= x + width ) && ( Y >= y ) && ( Y <= y + height );
 }
 
 void Button::Draw()
@@ -37,10 +32,10 @@ void Button::Draw()
     glVertex2d( width, height );
     glEnd();
 
-    if ( font != NULL ) {
+    if ( font ) {
         glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
-        glTranslated( width / 2 - text_length, 0, 0 );
-        font->PrintTekst( 0, height / 2 - font->GetMiddlePoint(), text.c_str() );
+        glTranslated( static_cast<float>( width ) / 2 - text_length, 0, 0 );
+        font->PrintTekst( 0, static_cast<float>( height ) / 2 - font->GetMiddlePoint(), text.c_str() );
     }
     glPopMatrix();
     glDisable( GL_TEXTURE_2D );
@@ -67,20 +62,8 @@ Button::Button( Font* F, GLuint X, GLuint Y, GLuint W, GLuint H )
     width = W;
     height = H;
     font = F;
-    enabled = true;
-    textureID = 0;
 }
 
-Button::Button()
-{
-    textureID = 0;
-    x = y = 0;
-    width = 192;
-    height = 48;
-    enabled = true;
-    font = NULL;
-    text_length = 0;
-}
 
 void Button::SetSize( const GLuint& W, const GLuint& H )
 {
@@ -91,11 +74,10 @@ void Button::SetSize( const GLuint& W, const GLuint& H )
 void Button::SetFont( Font* F )
 {
     font = F;
-    if ( font != NULL ) {
+    if ( font ) {
         text_length = font->GetTextLength( text.c_str() ) / 2;
     }
 }
-Button::~Button(){};
 
 void Button::Enable( const bool& B )
 {
@@ -110,7 +92,7 @@ void Button::Disable()
     enabled = false;
 }
 
-bool Button::IsEnabled()
+bool Button::IsEnabled() const
 {
     return enabled;
 }
@@ -118,7 +100,7 @@ bool Button::IsEnabled()
 void Button::SetText( const char* txt )
 {
     text = txt;
-    if ( font != NULL ) {
+    if ( font ) {
         text_length = font->GetTextLength( text.c_str() ) / 2;
     }
     else {

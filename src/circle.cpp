@@ -7,8 +7,8 @@ void Circle::init()
     GLdouble ANGLE = ( 360.0 / segments ) / 180.0 * PI;
     for ( GLuint i = 0; i < segments; i++ ) {
         DEGinRAD = ( i * ANGLE );
-        X.push_back( (GLdouble)sin( DEGinRAD ) * radiust );
-        Y.push_back( (GLdouble)cos( DEGinRAD ) * radiust );
+        X.push_back( std::sin( DEGinRAD ) * radiust );
+        Y.push_back( std::cos( DEGinRAD ) * radiust );
     }
 }
 
