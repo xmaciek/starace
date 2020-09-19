@@ -12,13 +12,12 @@ public:
     GLdouble GetY( GLuint a );
     void SetSegments( GLuint Segments );
     void SetRadiust( GLdouble Radiust );
-    GLuint GetSegments();
-    GLdouble GetRadiust();
+    GLuint GetSegments() const;
+    GLdouble GetRadiust() const;
 
 private:
-    GLdouble DEGinRAD = 0.0;
-    GLdouble radiust = 0.0;
-    GLuint segments = 0;
+    GLdouble radiust = 1.0;
+    GLuint segments = 32;
     std::vector<GLdouble> X{};
     std::vector<GLdouble> Y{};
     void init();

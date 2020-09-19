@@ -6,7 +6,7 @@ void Circle::init()
     Y.clear();
     GLdouble ANGLE = ( 360.0 / segments ) / 180.0 * PI;
     for ( GLuint i = 0; i < segments; i++ ) {
-        DEGinRAD = ( i * ANGLE );
+        const double DEGinRAD = ( i * ANGLE );
         X.push_back( std::sin( DEGinRAD ) * radiust );
         Y.push_back( std::cos( DEGinRAD ) * radiust );
     }
@@ -14,19 +14,16 @@ void Circle::init()
 
 Circle::Circle()
 {
-    radiust = 1.0;
-    segments = 32;
     init();
 }
 
 Circle::Circle( GLuint Segments, GLdouble Radiust )
+: radiust( Radiust )
+, segments( Segments )
 {
-    radiust = Radiust;
-    segments = Segments;
     init();
 }
 
-Circle::~Circle() { }
 
 GLdouble Circle::GetX( GLuint a )
 {
@@ -44,11 +41,12 @@ GLdouble Circle::GetY( GLuint a )
     return 0;
 }
 
-GLuint Circle::GetSegments()
+GLuint Circle::GetSegments() const
 {
     return segments;
 }
-GLdouble Circle::GetRadiust()
+
+GLdouble Circle::GetRadiust() const
 {
     return radiust;
 }
