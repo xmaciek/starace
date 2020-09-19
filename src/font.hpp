@@ -10,17 +10,16 @@ private:
     std::string name{};
     GLuint height = 0;
     GLuint middlepoint = 0;
-    GLuint* textures = nullptr;
-    GLuint* char_length = nullptr;
+    std::vector<GLuint> textures{};
+    std::vector<GLuint> char_length{};
     GLuint list_base = 0;
     void make_dlist( TTF_Font* font, GLuint ch );
-    GLuint pow2( GLint a );
 
 public:
     Font( const char* fontname, GLuint h );
     ~Font();
-    GLuint GetHeight();
-    GLuint GetMiddlePoint();
+    GLuint GetHeight() const;
+    GLuint GetMiddlePoint() const;
     void PrintTekst( const GLdouble& x, const GLdouble& y, const char* tekst );
     GLuint GetTextLength( const char* tekst );
     GLuint GetTextLength( const std::string& tekst );
