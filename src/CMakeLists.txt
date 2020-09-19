@@ -44,7 +44,7 @@ set( STARACE_SOURCES
 set( CMAKE_CXX_CLANG_TIDY
     clang-tidy;
     -header-filter=.;
-    -checks=*,-modernize-use-trailing-return-type,-readability-magic-numbers,-cppcoreguidelines-avoid-magic-numbers,-modernize-use-auto,-hicpp-use-auto,-cppcoreguidelines-pro-bounds-array-to-pointer-decay,-hicpp-no-array-decay,-llvm-header-guard,-hicpp-avoid-c-arrays,-modernize-avoid-c-arrays,-cppcoreguidelines-avoid-c-arrays,-cppcoreguidelines-special-member-functions,-hicpp-special-member-functions,-cppcoreguidelines-explicit-virtual-functions,-modernize-use-override,-hicpp-use-override,-misc-non-private-member-variables-in-classes,-cppcoreguidelines-non-private-member-variables-in-classes,-fuchsia-overloaded-operator,-google-runtime-references,-fuchsia-default-arguments-calls;
+    -checks=*,-modernize-use-trailing-return-type,-readability-magic-numbers,-cppcoreguidelines-avoid-magic-numbers,-modernize-use-auto,-hicpp-use-auto,-cppcoreguidelines-pro-bounds-array-to-pointer-decay,-hicpp-no-array-decay,-llvm-header-guard,-hicpp-avoid-c-arrays,-modernize-avoid-c-arrays,-cppcoreguidelines-avoid-c-arrays,-cppcoreguidelines-special-member-functions,-hicpp-special-member-functions,-cppcoreguidelines-explicit-virtual-functions,-modernize-use-override,-hicpp-use-override,-misc-non-private-member-variables-in-classes,-cppcoreguidelines-non-private-member-variables-in-classes,-fuchsia-overloaded-operator,-google-runtime-references,-fuchsia-default-arguments-calls,-hicpp-uppercase-literal-suffix,-readability-uppercase-literal-suffix;
 )
 
 set( STARACE_BINNAME "starace" )
