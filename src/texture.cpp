@@ -51,7 +51,7 @@ GLuint LoadTexture( const char* filename )
     GLubyte HEADER[ 12 ]; // = new GLubyte[12];
     GLubyte UNCOMPRESSED[ 12 ] = { 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     FILE* TGAfile = fopen( filename, "rb" );
-    if ( TGAfile == NULL ) {
+    if ( !TGAfile ) {
         std::cout << "file not found, loading default.\n";
         return LoadDefault();
     }
@@ -62,7 +62,7 @@ GLuint LoadTexture( const char* filename )
         std::cout << "File " << filename << " is not uncompressed RLE! Using default.\n";
         return LoadDefault();
     }
-    TGA tga;
+    TGA tga{};
     fread( tga.header, 6, 1, TGAfile );
     tga.width = tga.header[ 1 ] * 256 + tga.header[ 0 ];
     tga.height = tga.header[ 3 ] * 256 + tga.header[ 2 ];
@@ -86,7 +86,7 @@ GLuint LoadTexture( const char* filename )
     tga.data = new GLubyte[ tga.imageSize ];
     fread( tga.data, tga.imageSize, 1, TGAfile );
     fclose( TGAfile );
-    GLubyte swap;
+    GLubyte swap = 0;
     //   for (GLuint x=0; x<tga.imageSize; x++) { printf("%X ", tga.data[x]); }
     for ( GLuint C = 0; C < tga.imageSize; C += tga.bytesPerPixel ) {
         swap = tga.data[ C + 2 ];
@@ -100,7 +100,7 @@ GLuint LoadTexture( const char* filename )
     else {
         tga.type = GL_RGBA;
     }
-    GLuint textureID;
+    GLuint textureID = 0;
     glGenTextures( 1, &textureID );
     glBindTexture( GL_TEXTURE_2D, textureID );
     setTextureFiltering();
