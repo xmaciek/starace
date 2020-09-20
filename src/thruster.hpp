@@ -1,27 +1,23 @@
-#ifndef SA_THRUSTER
-#define SA_THRUSTER
+#pragma once
 
 #include "circle.hpp"
 #include "sa.hpp"
 
 class Thruster {
+private:
+    GLdouble m_length = 0.0;
+    GLdouble m_lengthShorter = 0.0;
+    GLdouble m_len = 0.0;
+    GLuint m_wiggle = 0;
+    GLfloat m_color[ 4 ][ 4 ]{};
+    Circle m_inner;
+    Circle m_outer;
+
 public:
-    ~Thruster() = default;
-    Thruster( GLdouble Length, GLdouble Radiust );
-    //   void Draw();
-    void DrawAt( const GLdouble& X, const GLdouble& Y, const GLdouble& Z );
+    Thruster( GLdouble length, GLdouble radius );
+
+    void DrawAt( GLdouble X, GLdouble Y, GLdouble Z );
     void Update();
     void SetColor( GLuint Num, GLfloat* ColorData );
-    void SetLength( const GLdouble& newLength );
-
-private:
-    GLdouble length = 0.0;
-    GLdouble length_shorter = 0.0;
-    GLdouble Len = 0.0;
-    GLuint wiggle = 0;
-    GLfloat color[ 4 ][ 4 ]{};
-    Circle inner;
-    Circle outer;
+    void SetLength( GLdouble newLength );
 };
-
-#endif
