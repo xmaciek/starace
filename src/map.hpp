@@ -1,5 +1,4 @@
-#ifndef SA_MAP_H
-#define SA_MAP_H
+#pragma once
 
 #include "sa.hpp"
 #include "texture.hpp"
@@ -24,9 +23,8 @@ private:
 public:
     ~Map();
     explicit Map( const MapProto& data );
-    void Draw();
-    void GetJetData( const Vertex& Position, const Vertex& Velocity );
-    void Update();
-};
 
-#endif
+    void draw();
+    void setJetData( const Vertex& position, const Vertex& velocity );
+    void update();
+};

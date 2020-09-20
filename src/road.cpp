@@ -609,8 +609,8 @@ void Road::GameUpdate()
     if ( m_speedAnim >= 360 ) {
         m_speedAnim -= 360;
     }
-    m_map->GetJetData( m_jet->GetPosition(), m_jet->GetVelocity() );
-    m_map->Update();
+    m_map->setJetData( m_jet->GetPosition(), m_jet->GetVelocity() );
+    m_map->update();
 
     {
         std::lock_guard<std::mutex> lg( m_mutexEnemy );

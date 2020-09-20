@@ -390,7 +390,7 @@ void Road::Render3D()
     m_jet->rotation().CreateMatrix( matrice );
     glMultMatrixf( matrice );
     glTranslated( cX, cY, cZ );
-    m_map->Draw();
+    m_map->draw();
 
     {
         std::lock_guard<std::mutex> lg( m_mutexEnemy );

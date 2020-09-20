@@ -1,6 +1,6 @@
 #include "map.hpp"
 
-void Map::Draw()
+void Map::draw()
 {
     glPushMatrix();
     glDisable( GL_FOG );
@@ -102,7 +102,7 @@ void Map::Draw()
     glPopMatrix();
 }
 
-void Map::Update()
+void Map::update()
 {
     for ( auto& it : m_particleList ) {
         it += m_jetVelocity;
@@ -137,10 +137,10 @@ Map::Map( const MapProto& data )
     m_v2 = 100;
 }
 
-void Map::GetJetData( const Vertex& Position, const Vertex& Velocity )
+void Map::setJetData( const Vertex& position, const Vertex& velocity )
 {
-    m_jetPosition = Position;
-    m_jetVelocity = Velocity;
+    m_jetPosition = position;
+    m_jetVelocity = velocity;
     m_particleLength = m_jetVelocity * 0.05;
     m_jetVelocity = m_jetVelocity * -0.1 * DELTATIME;
 }
