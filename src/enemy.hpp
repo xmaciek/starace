@@ -8,6 +8,18 @@
 #include "shield.hpp"
 
 class Enemy : public SAObject {
+private:
+    BulletProto m_weapon{};
+    Shield m_shield;
+
+    GLdouble m_visibleRange = 0.0;
+    GLdouble m_outRange = 0.0;
+    GLdouble m_shotFactor = 0.0;
+    GLfloat m_healthPerc = 0.0f;
+    GLint m_shieldStrength = 0;
+
+    void ReinitCoordinates();
+
 public:
     virtual ~Enemy() override = default;
     Enemy();
@@ -23,16 +35,6 @@ public:
 
     virtual void ProcessCollision( SAObject* Object ) override;
 
-private:
-    void ReinitCoordinates();
-    GLdouble visible_range = 0.0;
-    GLdouble out_range = 0.0;
-
-    BulletProto weapon{};
-    GLdouble shotfactor = 0.0;
-    GLfloat health_perc = 0.0f;
-    GLint shieldstrength = 0;
-    Shield shield;
 };
 
 #endif

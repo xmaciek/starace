@@ -3,17 +3,14 @@
 #include <cassert>
 
 Enemy::Enemy()
-: shield( 0.1, 0.02 )
+: m_shield( 0.1, 0.02 )
+, m_outRange{ 1.0 }
+, m_healthPerc{ 1.0f }
 {
-    //   static int c=0;
-    //   cout<<"Creating default Enemy "<<c<<".\n";
-    //   c++;
     ReinitCoordinates();
     speed = 2.1;
-    out_range = 1.0f;
     status = ALIVE;
     health = 100;
-    health_perc = 1;
     direction.z = 1;
 
     score = 0;
@@ -30,25 +27,25 @@ Enemy::Enemy()
 
 void Enemy::SetWeapon( const BulletProto& b )
 {
-    weapon = b;
-    shotfactor = random_range( 0, weapon.delay );
+    m_weapon = b;
+    m_shotFactor = random_range( 0, m_weapon.delay );
 }
 
 Bullet* Enemy::GetWeapon()
 {
-    weapon.x = position.x;
-    weapon.y = position.y;
-    weapon.z = position.z;
-    Bullet* bullet = new Bullet( weapon );
+    m_weapon.x = position.x;
+    m_weapon.y = position.y;
+    m_weapon.z = position.z;
+    Bullet* bullet = new Bullet( m_weapon );
     bullet->SetDirection( direction );
     bullet->SetTarget( target );
-    shotfactor = 0;
+    m_shotFactor = 0;
     return bullet;
 }
 
 bool Enemy::IsWeaponReady() const
 {
-    return shotfactor >= weapon.delay;
+    return m_shotFactor >= m_weapon.delay;
 }
 
 void Enemy::ReinitCoordinates()
@@ -63,15 +60,11 @@ void Enemy::Draw() const
     if ( status == ALIVE ) {
         glPushMatrix();
         glTranslated( position.x, position.y, position.z );
-
-        //       glColor3f(1,1,1);
-        //       glBegin(GL_LINES);
-        //         glVertex3d(0,0,0);
-        //         glVertex3d(direction.x, direction.y, direction.z);
-        //       glEnd();
-
-        glColor3f( 1.0f - health_perc + colorhalf( 1.0f - health_perc ), colorhalf( health_perc ) + health_perc, 0 );
-        shield.Draw();
+        glColor3f(
+            1.0f - m_healthPerc + colorhalf( 1.0f - m_healthPerc )
+            , colorhalf( m_healthPerc ) + m_healthPerc
+            , 0 );
+        m_shield.Draw();
         if ( ImTargeted ) {
             DrawCollisionIndicator();
         }
@@ -82,24 +75,13 @@ void Enemy::Draw() const
 void Enemy::Update()
 {
     if ( status == ALIVE ) {
-        shield.Update();
-        if ( shotfactor < weapon.delay ) {
-            shotfactor += 1.0 * DELTATIME;
+        m_shield.Update();
+        if ( m_shotFactor < m_weapon.delay ) {
+            m_shotFactor += 1.0 * DELTATIME;
         }
         InterceptTarget();
         position = position + velocity * DELTATIME;
-
-        //     if (score>0) {
-        //       score -= 1*DELTATIME;
-        //       if (score<0) { score = 0; }
-        //     }
-        //
-        //     if (health<100) {
-        //       health += 1*DELTATIME;
-        //       if (health>100) { health = 100; }
-        //     }
-
-        health_perc = health / 100;
+        m_healthPerc = health / 100;
     }
 }
 
