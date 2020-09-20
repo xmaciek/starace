@@ -2,47 +2,47 @@
 
 Quaternion::Quaternion( const Vertex& v, GLfloat W )
 {
-    x = v.x;
-    y = v.y;
-    z = v.z;
-    w = W;
+    m_x = v.x;
+    m_y = v.y;
+    m_z = v.z;
+    m_w = W;
 }
 
 void Quaternion::CreateFromAngles( const GLdouble& X, const GLdouble& Y, const GLdouble& Z, const GLdouble& deg )
 {
     GLdouble angle = deg * PI / 180;
     GLdouble result = sin( angle / 2.0 );
-    w = cos( angle / 2.0 );
+    m_w = cos( angle / 2.0 );
 
-    x = X * result;
-    y = Y * result;
-    z = Z * result;
+    m_x = X * result;
+    m_y = Y * result;
+    m_z = Z * result;
 
-    angle = sqrt( w * w + x * x + z * z + y * y );
+    angle = sqrt( m_w * m_w + m_x * m_x + m_z * m_z + m_y * m_y );
     if ( angle == 0 ) {
         angle = 1;
     }
-    x /= angle;
-    y /= angle;
-    z /= angle;
-    w /= angle;
+    m_x /= angle;
+    m_y /= angle;
+    m_z /= angle;
+    m_w /= angle;
 }
 
 void Quaternion::CreateMatrix( GLfloat* matrix ) const
 {
-    matrix[ 0 ] = 1.0 - 2.0 * ( y * y + z * z );
-    matrix[ 1 ] = 2.0 * ( x * y - w * z );
-    matrix[ 2 ] = 2.0 * ( x * z + w * y );
+    matrix[ 0 ] = 1.0 - 2.0 * ( m_y * m_y + m_z * m_z );
+    matrix[ 1 ] = 2.0 * ( m_x * m_y - m_w * m_z );
+    matrix[ 2 ] = 2.0 * ( m_x * m_z + m_w * m_y );
     matrix[ 3 ] = 0;
 
-    matrix[ 4 ] = 2.0 * ( x * y + w * z );
-    matrix[ 5 ] = 1.0 - 2.0 * ( x * x + z * z );
-    matrix[ 6 ] = 2.0 * ( y * z - w * x );
+    matrix[ 4 ] = 2.0 * ( m_x * m_y + m_w * m_z );
+    matrix[ 5 ] = 1.0 - 2.0 * ( m_x * m_x + m_z * m_z );
+    matrix[ 6 ] = 2.0 * ( m_y * m_z - m_w * m_x );
     matrix[ 7 ] = 0;
 
-    matrix[ 8 ] = 2.0 * ( x * z - w * y );
-    matrix[ 9 ] = 2.0 * ( y * z + w * x );
-    matrix[ 10 ] = 1.0 - 2.0 * ( x * x + y * y );
+    matrix[ 8 ] = 2.0 * ( m_x * m_z - m_w * m_y );
+    matrix[ 9 ] = 2.0 * ( m_y * m_z + m_w * m_x );
+    matrix[ 10 ] = 1.0 - 2.0 * ( m_x * m_x + m_y * m_y );
     matrix[ 11 ] = 0;
 
     matrix[ 12 ] = 0;
@@ -53,37 +53,37 @@ void Quaternion::CreateMatrix( GLfloat* matrix ) const
 
 void Quaternion::Inverse()
 {
-    x = -x;
-    y = -y;
-    z = -z;
-    w = -w;
+    m_x = -m_x;
+    m_y = -m_y;
+    m_z = -m_z;
+    m_w = -m_w;
 }
 
 void Quaternion::Conjugate()
 {
-    x = -x;
-    y = -y;
-    z = -z;
+    m_x = -m_x;
+    m_y = -m_y;
+    m_z = -m_z;
 }
 
 void Quaternion::Normalise()
 {
-    GLdouble len = sqrt( w * w + x * x + y * y + z * z );
+    GLdouble len = sqrt( m_w * m_w + m_x * m_x + m_y * m_y + m_z * m_z );
     if ( len == 0 ) {
         len = 1;
     }
-    w /= len;
-    x /= len;
-    y /= len;
-    z /= len;
+    m_w /= len;
+    m_x /= len;
+    m_y /= len;
+    m_z /= len;
 }
 
 Vertex Quaternion::GetVector() const
 {
     Vertex v;
-    v.x = x;
-    v.y = y;
-    v.z = z;
+    v.x = m_x;
+    v.y = m_y;
+    v.z = m_z;
     return v;
 }
 
@@ -91,11 +91,9 @@ void Quaternion::RotateVector( Vertex& v )
 {
     Normalise();
     Quaternion V( v, 0 );
-    //   V.Normalise();
     Quaternion con = *this;
     con.Conjugate();
     Quaternion result = ( con * V * *this );
-    //   result.Normalise();
     v = result.GetVector();
 }
 
@@ -103,10 +101,10 @@ Quaternion Quaternion::operator*( const Quaternion& Q ) const
 {
     Quaternion R;
 
-    R.w = w * Q.w - x * Q.x - y * Q.y - z * Q.z;
-    R.x = w * Q.x + x * Q.w + y * Q.z - z * Q.y;
-    R.y = w * Q.y + y * Q.w + z * Q.x - x * Q.z;
-    R.z = w * Q.z + z * Q.w + x * Q.y - y * Q.x;
+    R.m_w = m_w * Q.m_w - m_x * Q.m_x - m_y * Q.m_y - m_z * Q.m_z;
+    R.m_x = m_w * Q.m_x + m_x * Q.m_w + m_y * Q.m_z - m_z * Q.m_y;
+    R.m_y = m_w * Q.m_y + m_y * Q.m_w + m_z * Q.m_x - m_x * Q.m_z;
+    R.m_z = m_w * Q.m_z + m_z * Q.m_w + m_x * Q.m_y - m_y * Q.m_x;
 
     return R;
 }
