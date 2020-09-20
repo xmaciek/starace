@@ -6,13 +6,13 @@
 
 class Font {
 private:
-    std::string stringtxt{};
-    std::string name{};
-    GLuint height = 0;
-    GLuint middlepoint = 0;
-    std::vector<GLuint> textures{};
-    std::vector<GLuint> char_length{};
-    GLuint list_base = 0;
+    std::string m_name{};
+    std::string m_stringTxt{};
+    std::vector<GLuint> m_charWidth{};
+    std::vector<GLuint> m_textures{};
+    GLuint m_height = 0;
+    GLuint m_listBase = 0;
+    GLuint m_middlePoint = 0;
     void make_dlist( TTF_Font* font, GLuint ch );
 
 public:
