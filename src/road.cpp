@@ -24,7 +24,7 @@ Road::Road()
     m_hudColor4fv[ 2 ][ 2 ] = 0.1f;
     m_hudColor4fv[ 2 ][ 3 ] = 1.0f;
 
-    ChangeScreen( Screen::eMainMenu );
+    changeScreen( Screen::eMainMenu );
 
     m_enemies.reserve( 100 );
     m_enemyGarbage.reserve( 32 );
@@ -35,7 +35,7 @@ Road::Road()
 
 Road::~Road()
 {
-    ClearMapData();
+    clearMapData();
 
     delete m_fontPauseTxt;
     delete m_fontGuiTxt;
@@ -54,66 +54,66 @@ Road::~Road()
     }
 }
 
-GLint Road::OnExecute()
+GLint Road::run()
 {
-    if ( !OnInit() ) {
+    if ( !onInit() ) {
         return -1;
     }
 
-    m_thread = SDL_CreateThread( OnUpdateStatic, this );
+    m_thread = SDL_CreateThread( onUpdateStatic, this );
     if ( !m_thread ) {
         std::cout << "-= Unable to start Update thread, terminating! =-\n"
                   << SDL_GetError() << "\n";
-        OnCleanup();
+        onCleanup();
         return 0;
     }
 
     SDL_Event Event{};
     while ( m_isRunning ) {
         while ( SDL_PollEvent( &Event ) ) {
-            OnEvent( Event );
+            onEvent( Event );
         }
-        OnRender();
+        onRender();
     }
 
     std::cout << "Waiting for update thread... ";
     SDL_WaitThread( m_thread, nullptr );
     std::cout << "done.\n";
 
-    OnCleanup();
+    onCleanup();
     return 0;
 }
 
-void Road::OnEvent( SDL_Event& Event )
+void Road::onEvent( const SDL_Event& event )
 {
-    switch ( Event.type ) {
+    switch ( event.type ) {
     case SDL_QUIT:
         m_isRunning = false;
         break;
 
     case SDL_KEYDOWN:
-        OnKeyDown( Event.key.keysym.sym, Event.key.keysym.mod, Event.key.keysym.unicode );
+        onKeyDown( event.key.keysym.sym, event.key.keysym.mod, event.key.keysym.unicode );
         break;
 
     case SDL_KEYUP:
-        OnKeyUp( Event.key.keysym.sym, Event.key.keysym.mod, Event.key.keysym.unicode );
+        onKeyUp( event.key.keysym.sym, event.key.keysym.mod, event.key.keysym.unicode );
         break;
 
     case SDL_VIDEORESIZE:
-        setViewportSize( Event.resize.w, Event.resize.h );
-        InitNewSurface( viewportWidth(), viewportHeight(), 32, m_isFullscreen );
-        OnResize( viewportWidth(), viewportHeight() );
+        setViewportSize( event.resize.w, event.resize.h );
+        initNewSurface( viewportWidth(), viewportHeight(), 32, m_isFullscreen );
+        onResize( viewportWidth(), viewportHeight() );
         break;
 
     case SDL_MOUSEBUTTONDOWN:
-        if ( Event.button.button == SDL_BUTTON_LEFT ) {
-            OnMouseClickLeft( Event.button.x, Event.button.y );
+        if ( event.button.button == SDL_BUTTON_LEFT ) {
+            onMouseClickLeft( event.button.x, event.button.y );
         }
         break;
     }
 }
 
-void Road::OnCleanup()
+void Road::onCleanup()
 {
     //   Mix_HaltMusic();
     Mix_HaltChannel( -1 );
@@ -129,10 +129,10 @@ void Road::OnCleanup()
 
     SDL_FreeSurface( m_display );
     SDL_Quit();
-    SaveConfig();
+    saveConfig();
 }
 
-bool Road::OnInit()
+bool Road::onInit()
 {
     if ( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO ) < 0 ) {
         std::cout << "Unable to init SDL\n"
@@ -171,18 +171,18 @@ bool Road::OnInit()
     m_torpedo = Mix_LoadWAV( "sounds/torpedo.wav" );
     m_click = Mix_LoadWAV( "sounds/click.wav" );
 
-    LoadConfig();
+    loadConfig();
 
-    if ( !InitNewSurface( viewportWidth(), viewportHeight(), 32, m_isFullscreen ) ) {
+    if ( !initNewSurface( viewportWidth(), viewportHeight(), 32, m_isFullscreen ) ) {
         return false;
     }
 
-    InitRoadAdditionsGL();
-    OnResize( viewportWidth(), viewportHeight() );
+    initRoadAdditionsGL();
+    onResize( viewportWidth(), viewportHeight() );
     return true;
 }
 
-void Road::OnResize( GLint w, GLint h )
+void Road::onResize( GLint w, GLint h )
 {
     if ( w > h ) {
         m_maxDimention = w;
@@ -214,7 +214,7 @@ void Road::OnResize( GLint w, GLint h )
     m_btnWeap3.updateCoord( viewportWidth() / 2 + 100, viewportHeight() * 0.15 + 52 - 76 );
 }
 
-void Road::InitRoadAdditionsGL()
+void Road::initRoadAdditionsGL()
 {
     //   init functons
 
@@ -428,7 +428,7 @@ void Road::InitRoadAdditionsGL()
     m_weapons[ 2 ] = tmpWeapon;
 }
 
-void Road::UpdateCyberRings()
+void Road::updateCyberRings()
 {
     m_cyberRingRotation[ 0 ] += 25.0 * DELTATIME;
     m_cyberRingRotation[ 1 ] -= 15.0 * DELTATIME;
@@ -455,33 +455,33 @@ void Road::UpdateCyberRings()
     //     if (m_cyberRingRotation[3]>=360) { m_cyberRingRotation[3] -= 360; }
 }
 
-void Road::OnRender()
+void Road::onRender()
 {
     m_timeS = SDL_GetTicks();
     switch ( m_currentScreen ) {
     case Screen::eGame:
-        GameScreen();
+        gameScreen();
         break;
     case Screen::eGamePaused:
-        GameScreenPaused();
+        gameScreenPaused();
         break;
     case Screen::eGameBriefing:
-        GameScreenBriefing();
+        gameScreenBriefing();
         break;
     case Screen::eDead:
-        DeadScreen();
+        deadScreen();
         break;
     case Screen::eWin:
-        WinScreen();
+        winScreen();
         break;
     case Screen::eMissionSelection:
-        MissionSelectionScreen();
+        missionSelectionScreen();
         break;
     case Screen::eMainMenu:
-        DrawMainMenu();
+        drawMainMenu();
         break;
     case Screen::eCustomize:
-        ScreenCustomize();
+        screenCustomize();
         break;
     default:
         break;
@@ -489,47 +489,47 @@ void Road::OnRender()
     SDL_GL_SwapBuffers();
 }
 
-void Road::OnUpdate()
+void Road::onUpdate()
 {
     while ( m_isRunning ) {
         switch ( m_currentScreen ) {
         case Screen::eGame:
-            GameUpdate();
+            gameUpdate();
             break;
         case Screen::eGamePaused:
-            GameUpdatePaused();
+            gameUpdatePaused();
             break;
         case Screen::eGameBriefing:
-            GameScreenBriefingUpdate();
+            gameScreenBriefingUpdate();
             break;
         case Screen::eDead:
-            DeadScreenUpdate();
+            deadScreenUpdate();
             break;
         case Screen::eWin:
-            WinUpdate();
+            winUpdate();
             break;
         case Screen::eMissionSelection:
-            MissionSelectionUpdate();
+            missionSelectionUpdate();
             break;
         case Screen::eMainMenu:
-            UpdateMainMenu();
+            updateMainMenu();
             break;
         case Screen::eCustomize:
-            UpdateCustomize();
+            updateCustomize();
             break;
         }
-        SDL_Delay( Delay() );
+        SDL_Delay( delay() );
     }
 }
 
-int Road::OnUpdateStatic( void* param )
+int Road::onUpdateStatic( void* param )
 {
     Road* r = reinterpret_cast<Road*>( param );
-    r->OnUpdate();
+    r->onUpdate();
     return 0;
 }
 
-Uint32 Road::Delay()
+Uint32 Road::delay()
 {
     static Uint32 next = 0;
     Uint32 now = SDL_GetTicks();
@@ -540,28 +540,28 @@ Uint32 Road::Delay()
     return next - now;
 }
 
-void Road::Pause()
+void Road::pause()
 {
-    ChangeScreen( Screen::eGamePaused );
+    changeScreen( Screen::eGamePaused );
 }
 
-void Road::Unpause()
+void Road::unpause()
 {
-    ChangeScreen( Screen::eGame );
+    changeScreen( Screen::eGame );
 }
 
-void Road::GameUpdatePaused()
+void Road::gameUpdatePaused()
 {
-    UpdateCyberRings();
+    updateCyberRings();
 }
 
-void Road::GameUpdate()
+void Road::gameUpdate()
 {
     if ( m_jet->status() == Jet::Status::eDead ) {
-        ChangeScreen( Screen::eDead );
+        changeScreen( Screen::eDead );
     }
     if ( m_enemies.empty() ) {
-        ChangeScreen( Screen::eWin );
+        changeScreen( Screen::eWin );
     }
     if ( m_jet->health() <= 20 ) {
         m_hudColor = 2;
@@ -571,13 +571,13 @@ void Road::GameUpdate()
     }
 
     if ( m_jet->isShooting( 0 ) ) {
-        AddBullet( 0 );
+        addBullet( 0 );
     }
     if ( m_jet->isShooting( 1 ) ) {
-        AddBullet( 1 );
+        addBullet( 1 );
     }
     if ( m_jet->isShooting( 2 ) ) {
-        AddBullet( 2 );
+        addBullet( 2 );
     }
 
     {
@@ -658,10 +658,10 @@ void Road::GameUpdate()
     }
     m_bulletGarbage.erase( std::remove( m_bulletGarbage.begin(), m_bulletGarbage.end(), nullptr ), m_bulletGarbage.end() );
 
-    UpdateCyberRings();
+    updateCyberRings();
 }
 
-void Road::AddBullet( GLuint wID )
+void Road::addBullet( GLuint wID )
 {
     if ( !m_jet->isWeaponReady( wID ) ) {
         return;
@@ -671,66 +671,66 @@ void Road::AddBullet( GLuint wID )
     m_shotsDone++;
     switch ( m_bullets.back()->type() ) {
     case Bullet::Type::eBlaster:
-        PlaySound( m_blaster );
+        playSound( m_blaster );
         break;
     case Bullet::Type::eSlug:
-        PlaySound( m_laser );
+        playSound( m_laser );
         break;
     case Bullet::Type::eTorpedo:
-        PlaySound( m_torpedo );
+        playSound( m_torpedo );
         break;
     }
 }
 
-void Road::OnMouseClickLeft( GLint X, GLint Y )
+void Road::onMouseClickLeft( GLint x, GLint y )
 {
-    Y = viewportHeight() - Y;
+    y = viewportHeight() - y;
     switch ( m_currentScreen ) {
     case Screen::eGamePaused:
-        if ( m_btnQuitMission.isClicked( X, Y ) ) {
-            PlaySound( m_click );
-            ChangeScreen( Screen::eDead );
+        if ( m_btnQuitMission.isClicked( x, y ) ) {
+            playSound( m_click );
+            changeScreen( Screen::eDead );
             break;
         }
 
     case Screen::eMainMenu:
-        if ( m_btnSelectMission.isClicked( X, Y ) ) {
-            PlaySound( m_click );
-            ChangeScreen( Screen::eMissionSelection );
+        if ( m_btnSelectMission.isClicked( x, y ) ) {
+            playSound( m_click );
+            changeScreen( Screen::eMissionSelection );
             break;
         }
-        if ( m_btnExit.isClicked( X, Y ) ) {
-            PlaySound( m_click );
+        if ( m_btnExit.isClicked( x, y ) ) {
+            playSound( m_click );
             m_isRunning = false;
             break;
         }
-        if ( m_btnCustomize.isClicked( X, Y ) ) {
-            PlaySound( m_click );
-            ChangeScreen( Screen::eCustomize );
+        if ( m_btnCustomize.isClicked( x, y ) ) {
+            playSound( m_click );
+            changeScreen( Screen::eCustomize );
             break;
         }
         break;
     case Screen::eMissionSelection:
-        if ( m_btnStartMission.isClicked( X, Y ) ) {
-            PlaySound( m_click );
-            ChangeScreen( Screen::eGameBriefing );
+        if ( m_btnStartMission.isClicked( x, y ) ) {
+            playSound( m_click );
+            changeScreen( Screen::eGameBriefing );
             break;
         }
-        if ( m_btnReturnToMainMenu.isClicked( X, Y ) ) {
-            PlaySound( m_click );
-            ChangeScreen( Screen::eMainMenu );
+        if ( m_btnReturnToMainMenu.isClicked( x, y ) ) {
+            playSound( m_click );
+            changeScreen( Screen::eMainMenu );
             break;
         }
-        if ( m_btnNextMap.isClicked( X, Y ) ) {
+        if ( m_btnNextMap.isClicked( x, y ) ) {
             m_currentMap++;
             if ( m_currentMap == m_mapsContainer.size() - 1 ) {
                 m_btnNextMap.setEnabled( false);
             }
             m_btnPrevMap.setEnabled( true);
-            PlaySound( m_click );
+            playSound( m_click );
             break;
         }
-        if ( m_btnPrevMap.isClicked( X, Y ) ) {
+        if ( m_btnPrevMap.isClicked( x, y ) ) {
             m_currentMap--;
             if ( m_currentMap == 0 ) {
                 m_btnPrevMap.setEnabled( false);
@@ -738,33 +738,33 @@ void Road::OnMouseClickLeft( GLint X, GLint Y )
             if ( m_mapsContainer.size() > 1 ) {
                 m_btnNextMap.setEnabled( true);
             }
-            PlaySound( m_click );
+            playSound( m_click );
             break;
         }
         break;
     case Screen::eDead:
-        if ( m_btnReturnToMissionSelection.isClicked( X, Y ) ) {
-            PlaySound( m_click );
-            ChangeScreen( Screen::eMissionSelection );
+        if ( m_btnReturnToMissionSelection.isClicked( x, y ) ) {
+            playSound( m_click );
+            changeScreen( Screen::eMissionSelection );
             break;
         }
     case Screen::eWin:
-        if ( m_btnReturnToMissionSelection.isClicked( X, Y ) ) {
-            PlaySound( m_click );
-            ChangeScreen( Screen::eMissionSelection );
+        if ( m_btnReturnToMissionSelection.isClicked( x, y ) ) {
+            playSound( m_click );
+            changeScreen( Screen::eMissionSelection );
             break;
         }
         break;
     case Screen::eGameBriefing:
-        if ( m_btnGO.isClicked( X, Y ) ) {
-            PlaySound( m_click );
-            ChangeScreen( Screen::eGame );
+        if ( m_btnGO.isClicked( x, y ) ) {
+            playSound( m_click );
+            changeScreen( Screen::eGame );
             break;
         }
         break;
     case Screen::eCustomize:
-        if ( m_btnNextJet.isClicked( X, Y ) ) {
-            PlaySound( m_click );
+        if ( m_btnNextJet.isClicked( x, y ) ) {
+            playSound( m_click );
             m_currentJet++;
             if ( m_currentJet == m_jetsContainer.size() - 1 ) {
                 m_btnNextJet.setEnabled( false);
@@ -775,8 +775,8 @@ void Road::OnMouseClickLeft( GLint X, GLint Y )
             m_previewModel.bindTexture( loadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() ) );
             break;
         }
-        if ( m_btnPrevJet.isClicked( X, Y ) ) {
-            PlaySound( m_click );
+        if ( m_btnPrevJet.isClicked( x, y ) ) {
+            playSound( m_click );
             m_currentJet--;
             if ( m_currentJet == 0 ) {
                 m_btnPrevJet.setEnabled( false);
@@ -789,13 +789,13 @@ void Road::OnMouseClickLeft( GLint X, GLint Y )
             m_previewModel.bindTexture( loadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() ) );
             break;
         }
-        if ( m_btnCustomizeReturn.isClicked( X, Y ) ) {
-            PlaySound( m_click );
-            ChangeScreen( Screen::eMainMenu );
+        if ( m_btnCustomizeReturn.isClicked( x, y ) ) {
+            playSound( m_click );
+            changeScreen( Screen::eMainMenu );
             break;
         }
-        if ( m_btnWeap1.isClicked( X, Y ) ) {
-            PlaySound( m_click );
+        if ( m_btnWeap1.isClicked( x, y ) ) {
+            playSound( m_click );
             m_weap1++;
             if ( m_weap1 == 3 ) {
                 m_weap1 = 0;
@@ -811,8 +811,8 @@ void Road::OnMouseClickLeft( GLint X, GLint Y )
             }
             break;
         }
-        if ( m_btnWeap2.isClicked( X, Y ) ) {
-            PlaySound( m_click );
+        if ( m_btnWeap2.isClicked( x, y ) ) {
+            playSound( m_click );
             m_weap2++;
             if ( m_weap2 == 3 ) {
                 m_weap2 = 0;
@@ -828,8 +828,8 @@ void Road::OnMouseClickLeft( GLint X, GLint Y )
             }
             break;
         }
-        if ( m_btnWeap3.isClicked( X, Y ) ) {
-            PlaySound( m_click );
+        if ( m_btnWeap3.isClicked( x, y ) ) {
+            playSound( m_click );
             m_weap3++;
             if ( m_weap3 == 3 ) {
                 m_weap3 = 0;
@@ -851,7 +851,7 @@ void Road::OnMouseClickLeft( GLint X, GLint Y )
     }
 }
 
-void Road::Retarget()
+void Road::retarget()
 {
     std::lock_guard<std::mutex> lg( m_mutexEnemy );
     if ( m_enemies.empty() ) {
@@ -861,18 +861,18 @@ void Road::Retarget()
     m_jet->lockTarget( m_enemies[ random() % m_enemies.size() ] );
 }
 
-void Road::UpdateMainMenu()
+void Road::updateMainMenu()
 {
-    UpdateClouds();
-    UpdateCyberRings();
+    updateClouds();
+    updateCyberRings();
 }
 
-void Road::GameScreenBriefingUpdate()
+void Road::gameScreenBriefingUpdate()
 {
-    GameUpdatePaused();
+    gameUpdatePaused();
 }
 
-void Road::ClearMapData()
+void Road::clearMapData()
 {
     std::cout << "Moving all enemies to garbage.\n";
     {
@@ -918,19 +918,21 @@ void Road::ClearMapData()
     m_jet = nullptr;
 }
 
-void Road::CreateMapData( const MapProto& map_data, const ModelProto& model_data )
+void Road::createMapData( const MapProto& mapData, const ModelProto& modelData )
 {
     m_shotsDone = 0;
     m_hudColor = 0;
-    m_jet = new Jet( model_data );
-    m_map = new Map( map_data );
+    m_jet = new Jet( modelData );
+    m_map = new Map( mapData );
     m_jet->setWeapon( m_weapons[ m_weap1 ], 0 );
     m_jet->setWeapon( m_weapons[ m_weap2 ], 1 );
     m_jet->setWeapon( m_weapons[ m_weap3 ], 2 );
 
     {
         std::lock_guard<std::mutex> lg( m_mutexEnemy );
-        for ( GLuint i = 0; i < map_data.enemies; i++ ) {
+        m_enemies.clear();
+        m_enemies.reserve( mapData.enemies );
+        for ( GLuint i = 0; i < mapData.enemies; i++ ) {
             m_enemies.push_back( new Enemy() );
             m_enemies.back()->setTarget( m_jet );
             m_enemies.back()->setWeapon( m_weapons[ 3 ] );
@@ -943,32 +945,32 @@ void Road::CreateMapData( const MapProto& map_data, const ModelProto& model_data
     }
 }
 
-void Road::MissionSelectionUpdate()
+void Road::missionSelectionUpdate()
 {
-    UpdateCyberRings();
+    updateCyberRings();
 }
 
-void Road::ChangeScreen( Screen SCR )
+void Road::changeScreen( Screen scr )
 {
-    SDL_ShowCursor( SCR != Screen::eGame );
+    SDL_ShowCursor( scr != Screen::eGame );
 
-    switch ( SCR ) {
+    switch ( scr ) {
     case Screen::eGame:
     case Screen::eGamePaused:
     case Screen::eDead:
     case Screen::eMainMenu:
     case Screen::eWin:
-        m_currentScreen = SCR;
+        m_currentScreen = scr;
         break;
 
     case Screen::eGameBriefing:
-        CreateMapData( m_mapsContainer.at( m_currentMap ), m_jetsContainer.at( m_currentJet ) );
-        m_currentScreen = SCR;
+        createMapData( m_mapsContainer.at( m_currentMap ), m_jetsContainer.at( m_currentJet ) );
+        m_currentScreen = scr;
         break;
 
     case Screen::eMissionSelection:
-        ClearMapData();
-        m_currentScreen = SCR;
+        clearMapData();
+        m_currentScreen = scr;
         break;
 
     case Screen::eCustomize:
@@ -976,7 +978,7 @@ void Road::ChangeScreen( Screen SCR )
         m_previewModel.loadOBJ( m_jetsContainer.at( m_currentJet ).model_file.c_str() );
         m_previewModel.bindTexture( loadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() ) );
         m_previewModel.calculateNormal();
-        m_currentScreen = SCR;
+        m_currentScreen = scr;
         break;
 
     default:
@@ -984,21 +986,21 @@ void Road::ChangeScreen( Screen SCR )
     }
 }
 
-void Road::GoFullscreen( bool& b )
+void Road::goFullscreen( bool b )
 {
     b = !b;
-    InitNewSurface( viewportWidth(), viewportHeight(), 32, b );
+    initNewSurface( viewportWidth(), viewportHeight(), 32, b );
 }
 
-bool Road::InitNewSurface( GLint W, GLint H, GLint D, bool F )
+bool Road::initNewSurface( GLint w, GLint h, GLint d, bool f )
 {
     SDL_Surface* tmp = m_display;
     SDL_Surface* tmp2 = nullptr;
-    if ( F ) {
-        tmp2 = SDL_SetVideoMode( W, H, D, SDL_DOUBLEBUF | SDL_OPENGL | SDL_FULLSCREEN );
+    if ( f ) {
+        tmp2 = SDL_SetVideoMode( w, h, d, SDL_DOUBLEBUF | SDL_OPENGL | SDL_FULLSCREEN );
     }
     else {
-        tmp2 = SDL_SetVideoMode( W, H, D, SDL_DOUBLEBUF | SDL_OPENGL | SDL_RESIZABLE );
+        tmp2 = SDL_SetVideoMode( w, h, d, SDL_DOUBLEBUF | SDL_OPENGL | SDL_RESIZABLE );
     }
     if ( !tmp2 ) {
         std::cout << "Unable to create display surface:\n";
@@ -1013,9 +1015,8 @@ bool Road::InitNewSurface( GLint W, GLint H, GLint D, bool F )
     return true;
 }
 
-void Road::LoadMapProto()
+void Road::loadMapProto()
 {
-    std::cout << "Loadings maps... ";
     m_mapsContainer.clear();
     MapProto map;
     std::ifstream MapFile( "maps.cfg" );
@@ -1058,16 +1059,14 @@ void Road::LoadMapProto()
     MapFile.close();
     if ( m_mapsContainer.empty() ) {
         m_mapsContainer.push_back( map );
-        m_btnNextMap.setEnabled( false);
+        m_btnNextMap.setEnabled( false );
     }
     m_currentMap = 0;
     m_btnPrevMap.setEnabled( false);
-    std::cout << "done\n";
 }
 
-void Road::LoadJetProto()
+void Road::loadJetProto()
 {
-    std::cout << "Loadings jets... ";
     m_jetsContainer.clear();
     ModelProto mod;
     std::ifstream JetFile( "jets.cfg" );
@@ -1076,7 +1075,6 @@ void Road::LoadJetProto()
     std::string line;
     while ( getline( JetFile, line ) ) {
         std::sscanf( line.c_str(), "%s %s", value_1, value_2 );
-        //     cout<<value_1<<" "<<value_2<<"\n";
         if ( strcmp( value_1, "[JET]" ) == 0 ) {
             m_jetsContainer.push_back( mod );
         }
@@ -1101,7 +1099,6 @@ void Road::LoadJetProto()
     if ( m_jetsContainer.size() == 1 ) {
         m_btnNextJet.setEnabled( false);
     }
-    std::cout << "size " << m_jetsContainer.size() << "\n";
     m_currentJet = 0;
     for ( GLuint i = 0; i < m_jetsContainer.size(); i++ ) {
         if ( m_lastSelectedJetName == m_jetsContainer.at( i ).name ) {
@@ -1114,13 +1111,10 @@ void Road::LoadJetProto()
     if ( m_currentJet == m_jetsContainer.size() - 1 ) {
         m_btnNextJet.setEnabled( false);
     }
-
-    std::cout << "done\n";
 }
 
-void Road::LoadConfig()
+void Road::loadConfig()
 {
-    std::cout << "Loading from configuration file... ";
     std::ifstream ConfigFile( "config.cfg" );
     char value_1[ 48 ]{};
     char value_2[ 48 ]{};
@@ -1177,14 +1171,12 @@ void Road::LoadConfig()
         }
     }
     ConfigFile.close();
-    std::cout << "done.\n";
-    LoadMapProto();
-    LoadJetProto();
+    loadMapProto();
+    loadJetProto();
 }
 
-void Road::SaveConfig()
+void Road::saveConfig()
 {
-    std::cout << "Saving to configuration file... ";
     std::ofstream ConfigFile( "config.cfg" );
     ConfigFile << "width " << viewportWidth() << "\n";
     ConfigFile << "height " << viewportHeight() << "\n";
@@ -1228,10 +1220,9 @@ void Road::SaveConfig()
         break;
     }
     ConfigFile.close();
-    std::cout << "done.\n";
 }
 
-void Road::UpdateClouds()
+void Road::updateClouds()
 {
     if ( m_backgroundEffectEquation ) {
         m_alphaValue += 0.1 * DELTATIME;
@@ -1248,7 +1239,7 @@ void Road::UpdateClouds()
     }
 }
 
-void Road::SetOrtho() const
+void Road::setOrtho() const
 {
     glMatrixMode( GL_PROJECTION );
     glLoadIdentity();
@@ -1257,41 +1248,40 @@ void Road::SetOrtho() const
     glLoadIdentity();
 }
 
-void Road::SetPerspective( GLdouble Angle ) const
+void Road::setPerspective( GLdouble a ) const
 {
     glMatrixMode( GL_PROJECTION );
     glLoadIdentity();
-    gluPerspective( Angle, viewportWidth() / viewportHeight(), 0.001, 2000 );
+    gluPerspective( a, viewportWidth() / viewportHeight(), 0.001, 2000 );
     glMatrixMode( GL_MODELVIEW );
     glLoadIdentity();
 }
 
-void Road::UpdateCustomize()
+void Road::updateCustomize()
 {
-    UpdateClouds();
-    UpdateCyberRings();
+    updateClouds();
+    updateCyberRings();
     m_modelRotation += 30.0 * DELTATIME;
     if ( m_modelRotation >= 360.0 ) {
         m_modelRotation -= 360.0;
     }
 }
 
-void Road::PlaySound( Mix_Chunk* sound ) const
+void Road::playSound( Mix_Chunk* sound ) const
 {
     if ( m_isSoundEnabled ) {
         Mix_Playing( Mix_PlayChannel( -1, sound, 0 ) );
     }
 }
 
-void Road::WinUpdate()
+void Road::winUpdate()
 {
-    //   UpdateClouds();
-    UpdateCyberRings();
+    updateCyberRings();
 }
 
-void Road::DeadScreenUpdate()
+void Road::deadScreenUpdate()
 {
-    UpdateCyberRings();
+    updateCyberRings();
 }
 
 double Road::viewportWidth() const

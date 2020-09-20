@@ -1,9 +1,9 @@
 #include "road.hpp"
 
-void Road::GameScreen()
+void Road::gameScreen()
 {
-    Render3D();
-    RenderHUD();
+    render3D();
+    renderHUD();
     m_framesDone++;
     m_tempFPS += ( SDL_GetTicks() - m_timeS );
     if ( m_timePassed < time( nullptr ) ) {
@@ -15,13 +15,13 @@ void Road::GameScreen()
     }
 }
 
-void Road::GameScreenPaused()
+void Road::gameScreenPaused()
 {
-    GameScreen();
-    DrawPauseText();
+    gameScreen();
+    drawPauseText();
 }
 
-void Road::DrawAxis()
+void Road::drawAxis()
 {
     glPushMatrix();
     glBegin( GL_LINES );
@@ -42,49 +42,49 @@ void Road::DrawAxis()
 
 /* HUD elements */
 
-void Road::DrawLine( GLdouble X, GLdouble Y )
+void Road::drawLine( GLdouble x, GLdouble y )
 {
     glPushMatrix();
     glBegin( GL_LINES );
     glColor4f( 1, 0.4f, 0, 0 );
-    glVertex3d( X, Y, -100 );
+    glVertex3d( x, y, -100 );
     glColor4f( 1, 0.4f, 0, 1 );
-    glVertex3d( X, Y, 1 );
+    glVertex3d( x, y, 1 );
     glEnd();
     glPopMatrix();
 }
 
-void Road::DrawHudRect( GLdouble X, GLdouble Y, GLdouble W, GLdouble H )
+void Road::drawHudRect( GLdouble x, GLdouble y, GLdouble w, GLdouble h )
 {
     glPushMatrix();
-    glTranslated( X, Y, 0 );
+    glTranslated( x, y, 0 );
     glBegin( GL_QUADS );
     glVertex2d( 0, 0 );
-    glVertex2d( 0, H );
-    glVertex2d( W, H );
-    glVertex2d( W, 0 );
+    glVertex2d( 0, h );
+    glVertex2d( w, h );
+    glVertex2d( w, 0 );
     glEnd();
     glPopMatrix();
 }
 
-void Road::DrawHUDLine( GLdouble X1, GLdouble Y1, GLdouble X2, GLdouble Y2, GLdouble T )
+void Road::drawHUDLine( GLdouble x1, GLdouble y1, GLdouble x2, GLdouble y2, GLdouble t )
 {
-    glLineWidth( T );
+    glLineWidth( t );
     glPushMatrix();
     ;
     glBegin( GL_LINES );
-    glVertex2d( X1, Y1 );
-    glVertex2d( X2, Y2 );
+    glVertex2d( x1, y1 );
+    glVertex2d( x2, y2 );
     glEnd();
     glPopMatrix();
 
     glLineWidth( 1.0f );
 }
 
-void Road::DrawHUDPiece( GLdouble, GLdouble, GLdouble RotAngleZ )
+void Road::drawHUDPiece( GLdouble, GLdouble, GLdouble rotAngleZ )
 {
     glPushMatrix();
-    glRotated( RotAngleZ, 0, 0, 1 );
+    glRotated( rotAngleZ, 0, 0, 1 );
     glColor4f( 1, 0, 0, 1 );
     glBegin( GL_TRIANGLES );
     glVertex2d( 0, 0 );
@@ -94,7 +94,7 @@ void Road::DrawHUDPiece( GLdouble, GLdouble, GLdouble RotAngleZ )
     glPopMatrix();
 }
 
-void Road::DrawCyberRings()
+void Road::drawCyberRings()
 {
     glPushMatrix();
     const GLdouble sw = viewportWidth() / 2;
@@ -117,25 +117,12 @@ void Road::DrawCyberRings()
         glVertex2d( m_maxDimention, 0 );
         glEnd();
         glPopMatrix();
-    } /*
-    glPushMatrix();
-      glBindTexture(GL_TEXTURE_2D, m_cyberRingTexture[3]);
-      glColor4fv(m_cyberRingColor[3]);
-      glRotated(60,1,0,0);
-      glRotated(m_cyberRingRotation[3],0,0,1);
-      glTranslated(m_maxDimention*-0.5, m_maxDimention*-0.5, 0);
-      glBegin(GL_QUADS);
-        glTexCoord2f(1,1); glVertex2d(m_maxDimention, m_maxDimention);
-        glTexCoord2f(0,1); glVertex2d(0, m_maxDimention);
-        glTexCoord2f(0,0); glVertex2d(0, 0);
-        glTexCoord2f(1,0); glVertex2d(m_maxDimention, 0);
-      glEnd();   
-    glPopMatrix();*/
+    }
 
     glPopMatrix();
 }
 
-void Road::DrawCyberRingsMini()
+void Road::drawCyberRingsMini()
 {
     glPushMatrix();
     const GLdouble sw = viewportWidth() / 2;
@@ -165,41 +152,41 @@ void Road::DrawCyberRingsMini()
     glPopMatrix();
 }
 
-void Road::DrawHUDBar( const GLuint& X, const GLuint& Y, const GLuint& W, const GLuint& H, const GLuint& Current, const GLuint& Max )
+void Road::drawHUDBar( GLuint x, GLuint y, GLuint w, GLuint h, GLuint current, GLuint max )
 {
     glPushMatrix();
-    glTranslated( X, Y, 0 );
+    glTranslated( x, y, 0 );
     glColor4fv( m_hudColor4fv[ m_hudColor ] );
     glBegin( GL_LINES );
-    glVertex2d( -4, H + 4 );
-    glVertex2d( W + 4, H + 4 );
+    glVertex2d( -4, h + 4 );
+    glVertex2d( w + 4, h + 4 );
 
-    glVertex2d( W + 4, H + 4 );
-    glVertex2d( W + 4, -4 );
+    glVertex2d( w + 4, h + 4 );
+    glVertex2d( w + 4, -4 );
 
-    glVertex2d( W + 4, -4 );
+    glVertex2d( w + 4, -4 );
     glVertex2d( -4, -4 );
     glEnd();
     glBegin( GL_QUADS );
     glColor3f(
-        ( 1.0f - static_cast<GLfloat>( Current ) / Max ) + colorHalf( ( 1.0f - static_cast<GLfloat>( Current ) / Max ) )
-        , static_cast<GLfloat>( Current ) / Max + colorHalf( static_cast<GLfloat>( Current ) / Max )
+        ( 1.0f - static_cast<GLfloat>( current ) / max ) + colorHalf( ( 1.0f - static_cast<GLfloat>( current ) / max ) )
+        , static_cast<GLfloat>( current ) / max + colorHalf( static_cast<GLfloat>( current ) / max )
         , 0 );
 
     glVertex2d( 0, 0 );
-    glVertex2d( W, 0 );
-    glVertex2d( W, ( ( static_cast<GLdouble>( Current ) / Max ) * H ) );
-    glVertex2d( 0, ( ( static_cast<GLdouble>( Current ) / Max ) * H ) );
+    glVertex2d( w, 0 );
+    glVertex2d( w, ( ( static_cast<GLdouble>( current ) / max ) * h ) );
+    glVertex2d( 0, ( ( static_cast<GLdouble>( current ) / max ) * h ) );
     glEnd();
     glPopMatrix();
 }
 
-void Road::DrawPauseText()
+void Road::drawPauseText()
 {
     glPushMatrix();
     glEnable( GL_BLEND );
     glEnable( GL_TEXTURE_2D );
-    DrawCyberRings();
+    drawCyberRings();
     glBindTexture( GL_TEXTURE_2D, m_hudTex );
     glColor4f( 0.1f, 0.4f, 0.9f, 0.8f );
     glBegin( GL_QUADS );
@@ -213,7 +200,6 @@ void Road::DrawPauseText()
     glVertex2d( 0, viewportHeight() );
     glEnd();
 
-    //         m_btnChangeFiltering.Draw();
     m_btnQuitMission.draw();
     glColor4f( 1.0f, 1.0f, 0.0f, 1.0f );
     const char PAUSED[] = "PAUSED";
@@ -224,12 +210,12 @@ void Road::DrawPauseText()
     glPopMatrix();
 }
 
-void Road::RenderHUD()
+void Road::renderHUD()
 {
     glDisable( GL_DEPTH_TEST );
     glDisable( GL_FOG );
     glPushMatrix();
-    SetOrtho();
+    setOrtho();
 
     glColor4fv( m_hudColor4fv[ m_hudColor ] );
 
@@ -347,10 +333,10 @@ void Road::RenderHUD()
     glEnd();
     glPopMatrix();
 
-    DrawCyberRingsMini();
+    drawCyberRingsMini();
 
-    DrawHUDBar( 12, 12, 36, 96, m_jet->energy(), 100 );
-    DrawHUDBar( 64, 12, 36, 96, m_jet->health(), 100 );
+    drawHUDBar( 12, 12, 36, 96, m_jet->energy(), 100 );
+    drawHUDBar( 64, 12, 36, 96, m_jet->health(), 100 );
 
     glColor4fv( m_hudColor4fv[ m_hudColor ] );
 
@@ -369,12 +355,12 @@ void Road::RenderHUD()
     glPopMatrix();
 }
 
-void Road::Render3D()
+void Road::render3D()
 {
     glEnable( GL_DEPTH_TEST );
     glEnable( GL_FOG );
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-    SetPerspective( m_angle + m_jet->speed() * 6 );
+    setPerspective( m_angle + m_jet->speed() * 6 );
 
     const double cX = -m_jet->x();
     const double cY = -m_jet->y();
@@ -417,7 +403,7 @@ void Road::Render3D()
     glPopMatrix();
 }
 
-void Road::DrawMainMenu()
+void Road::drawMainMenu()
 {
     glPushMatrix();
     glDisable( GL_DEPTH_TEST );
@@ -425,10 +411,10 @@ void Road::DrawMainMenu()
     glEnable( GL_BLEND );
     glEnable( GL_TEXTURE_2D );
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-    SetOrtho();
+    setOrtho();
 
-    DrawClouds();
-    DrawCyberRings();
+    drawClouds();
+    drawCyberRings();
 
     glBindTexture( GL_TEXTURE_2D, m_hudTex );
     glColor4f( 0.1f, 0.4f, 0.9f, 0.8f );
@@ -450,7 +436,7 @@ void Road::DrawMainMenu()
     glPopMatrix();
 }
 
-void Road::DrawClouds() const
+void Road::drawClouds() const
 {
     glEnable( GL_BLEND );
     glEnable( GL_TEXTURE_2D );
@@ -498,13 +484,13 @@ void Road::DrawClouds() const
     glPopMatrix();
 }
 
-void Road::WinScreen()
+void Road::winScreen()
 {
-    GameScreen();
+    gameScreen();
     glEnable( GL_BLEND );
     glEnable( GL_TEXTURE_2D );
     glPushMatrix();
-    DrawCyberRings();
+    drawCyberRings();
     glColor4fv( m_hudColor4fv[ 0 ] );
     glBindTexture( GL_TEXTURE_2D, m_hudTex );
     glBegin( GL_QUADS );
@@ -535,13 +521,13 @@ void Road::WinScreen()
     glDisable( GL_BLEND );
 }
 
-void Road::DeadScreen()
+void Road::deadScreen()
 {
-    GameScreen();
+    gameScreen();
     glEnable( GL_BLEND );
     glEnable( GL_TEXTURE_2D );
     glPushMatrix();
-    DrawCyberRings();
+    drawCyberRings();
     glColor4fv( m_hudColor4fv[ 2 ] );
     glBindTexture( GL_TEXTURE_2D, m_hudTex );
     glBegin( GL_QUADS );
@@ -572,13 +558,13 @@ void Road::DeadScreen()
     glDisable( GL_BLEND );
 }
 
-void Road::MissionSelectionScreen()
+void Road::missionSelectionScreen()
 {
     glPushMatrix();
     glDisable( GL_DEPTH_TEST );
     glDisable( GL_FOG );
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-    SetOrtho();
+    setOrtho();
     glEnable( GL_TEXTURE_2D );
     glEnable( GL_BLEND );
     glPushMatrix();
@@ -618,7 +604,7 @@ void Road::MissionSelectionScreen()
 
     glEnable( GL_TEXTURE_2D );
     glEnable( GL_BLEND );
-    DrawCyberRings();
+    drawCyberRings();
     glBindTexture( GL_TEXTURE_2D, m_hudTex );
     glBegin( GL_QUADS );
     glColor3f( 0, 0.75, 1 );
@@ -640,13 +626,13 @@ void Road::MissionSelectionScreen()
     glPopMatrix();
 }
 
-void Road::GameScreenBriefing()
+void Road::gameScreenBriefing()
 {
-    GameScreen();
+    gameScreen();
     glEnable( GL_BLEND );
     glEnable( GL_TEXTURE_2D );
     glPushMatrix();
-    DrawCyberRings();
+    drawCyberRings();
     glColor3f( 1, 1, 1 );
     m_fontPauseTxt->printText( 192, viewportHeight() - 292, "Movement: AWSD QE" );
     m_fontPauseTxt->printText( 192, viewportHeight() - 310, "Speed controll: UO" );
@@ -672,12 +658,12 @@ void Road::GameScreenBriefing()
     glPopMatrix();
 }
 
-void Road::ScreenCustomize()
+void Road::screenCustomize()
 {
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-    SetOrtho();
-    DrawClouds();
-    DrawCyberRings();
+    setOrtho();
+    drawClouds();
+    drawCyberRings();
     glBindTexture( GL_TEXTURE_2D, m_hudTex );
     glBegin( GL_QUADS );
     glColor3f( 0, 0.75, 1 );
@@ -695,7 +681,7 @@ void Road::ScreenCustomize()
         const double posx = viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( m_jetsContainer.at( m_currentJet ).name.c_str() ) ) / 2;
         m_fontBig->printText( posx, viewportHeight() - 64, m_jetsContainer.at( m_currentJet ).name.c_str() );
     }
-    SetPerspective( m_angle );
+    setPerspective( m_angle );
     glPushMatrix();
     glTranslated( 0, -0.1, -1.25 );
     glRotated( 15, 1, 0, 0 );
@@ -704,7 +690,7 @@ void Road::ScreenCustomize()
     m_previewModel.draw();
     glDisable( GL_DEPTH_TEST );
     glPopMatrix();
-    SetOrtho();
+    setOrtho();
     m_btnNextJet.draw();
     m_btnPrevJet.draw();
     m_btnCustomizeReturn.draw();
@@ -713,6 +699,6 @@ void Road::ScreenCustomize()
     m_btnWeap3.draw();
 }
 
-void Road::DrawBullets()
+void Road::drawBullets()
 {
 }

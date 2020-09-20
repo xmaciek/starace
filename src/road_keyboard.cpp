@@ -1,21 +1,21 @@
 #include "road.hpp"
 
-void Road::OnKeyDown( SDLKey sym, SDLMod, Uint16 )
+void Road::onKeyDown( SDLKey sym, SDLMod, Uint16 )
 {
     switch ( sym ) {
     case SDLK_F11:
-        GoFullscreen( m_isFullscreen );
+        goFullscreen( m_isFullscreen );
         break;
     default:
         switch ( m_currentScreen ) {
         case Screen::eGame:
-            GameKeyboardPressed( sym );
+            gameKeyboardPressed( sym );
             break;
         case Screen::eGamePaused:
-            GameKeyboardPausedPressed( sym );
+            gameKeyboardPausedPressed( sym );
             break;
         case Screen::eGameBriefing:
-            GameKeyboardBriefingPressed( sym );
+            gameKeyboardBriefingPressed( sym );
             break;
         default:
             break;
@@ -24,25 +24,25 @@ void Road::OnKeyDown( SDLKey sym, SDLMod, Uint16 )
     }
 }
 
-void Road::OnKeyUp( SDLKey sym, SDLMod, Uint16 )
+void Road::onKeyUp( SDLKey sym, SDLMod, Uint16 )
 {
     switch ( m_currentScreen ) {
     case Screen::eGame:
-        GameKeyboardUnpressed( sym );
+        gameKeyboardUnpressed( sym );
         break;
     case Screen::eGamePaused:
-        GameKeyboardPausedUnpressed( sym );
+        gameKeyboardPausedUnpressed( sym );
         break;
     default:
         break;
     }
 }
 
-void Road::GameKeyboardPressed( SDLKey sym )
+void Road::gameKeyboardPressed( SDLKey sym )
 {
     switch ( sym ) {
     case SDLK_ESCAPE:
-        Pause();
+        pause();
         break;
     case SDLK_a:
         m_jet->rollLeft( true );
@@ -78,14 +78,14 @@ void Road::GameKeyboardPressed( SDLKey sym )
         m_jet->shoot( 2, true );
         break;
     case SDLK_i:
-        Retarget();
+        retarget();
         break;
     default:
         break;
     }
 }
 
-void Road::GameKeyboardUnpressed( SDLKey sym )
+void Road::gameKeyboardUnpressed( SDLKey sym )
 {
     switch ( sym ) {
     case SDLK_a:
@@ -126,30 +126,30 @@ void Road::GameKeyboardUnpressed( SDLKey sym )
     }
 }
 
-void Road::GameKeyboardBriefingPressed( SDLKey sym )
+void Road::gameKeyboardBriefingPressed( SDLKey sym )
 {
     switch ( sym ) {
     case SDLK_SPACE:
-        ChangeScreen( Screen::eGame );
+        changeScreen( Screen::eGame );
         break;
     default:
         break;
     }
 }
 
-void Road::GameKeyboardPausedPressed( SDLKey sym )
+void Road::gameKeyboardPausedPressed( SDLKey sym )
 {
     switch ( sym ) {
     case SDLK_ESCAPE:
-        Unpause();
+        unpause();
         break;
     default:
-        GameKeyboardPressed( sym );
+        gameKeyboardPressed( sym );
         break;
     }
 }
 
-void Road::GameKeyboardPausedUnpressed( SDLKey sym )
+void Road::gameKeyboardPausedUnpressed( SDLKey sym )
 {
-    GameKeyboardUnpressed( sym );
+    gameKeyboardUnpressed( sym );
 }
