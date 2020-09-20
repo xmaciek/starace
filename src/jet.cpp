@@ -264,28 +264,28 @@ void Jet::speedDown( bool doit )
     speedUp( !doit );
 }
 
-bool Jet::isShooting( GLuint WeaponNum ) const
+bool Jet::isShooting( GLuint weaponNum ) const
 {
-    return m_shooting[ WeaponNum ];
+    return m_shooting[ weaponNum ];
 }
 
-void Jet::shoot( GLuint WeaponNum, bool doit )
+void Jet::shoot( GLuint weaponNum, bool doit )
 {
-    m_shooting[ WeaponNum ] = doit;
+    m_shooting[ weaponNum ] = doit;
 }
 
-Vertex Jet::weaponPoint( GLuint wID )
+Vertex Jet::weaponPoint( GLuint weaponNum )
 {
-    Vertex w = m_model.weapon( wID );
+    Vertex w = m_model.weapon( weaponNum );
     m_quaternion.rotateVector( w );
     w = w + position();
     return w;
 }
 
-Bullet* Jet::weapon( GLuint wID )
+Bullet* Jet::weapon( GLuint weaponNum )
 {
-    BulletProto tmp = m_weapon[ wID ];
-    Vertex w = m_model.weapon( wID );
+    BulletProto tmp = m_weapon[ weaponNum ];
+    Vertex w = m_model.weapon( weaponNum );
     m_quaternion.rotateVector( w );
     w = w + position();
 
