@@ -46,10 +46,10 @@ void Thruster::DrawAt( GLdouble X, GLdouble Y, GLdouble Z )
 
     glColor4fv( m_color[ 1 ] );
 
-    for ( size_t i = m_inner.GetSegments() - 1; i > 0; i -= 1 ) {
-        glVertex2d( m_inner.GetX( i ), m_inner.GetY( i ) );
+    for ( size_t i = m_inner.segments() - 1; i > 0; i -= 1 ) {
+        glVertex2d( m_inner.x( i ), m_inner.y( i ) );
     }
-    glVertex2d( m_inner.GetX( m_inner.GetSegments() - 1 ), m_inner.GetY( m_inner.GetSegments() - 1 ) );
+    glVertex2d( m_inner.x( m_inner.segments() - 1 ), m_inner.y( m_inner.segments() - 1 ) );
     glEnd();
 
     glBegin( GL_TRIANGLE_FAN );
@@ -57,10 +57,10 @@ void Thruster::DrawAt( GLdouble X, GLdouble Y, GLdouble Z )
     glVertex3d( 0, 0, m_len );
 
     glColor4fv( m_color[ 3 ] );
-    for ( size_t i = m_outer.GetSegments() - 1; i > 0; i -= 1 ) {
-        glVertex2d( m_outer.GetX( i ), m_outer.GetY( i ) );
+    for ( size_t i = m_outer.segments() - 1; i > 0; i -= 1 ) {
+        glVertex2d( m_outer.x( i ), m_outer.y( i ) );
     }
-    glVertex2d( m_outer.GetX( m_outer.GetSegments() - 1 ), m_outer.GetY( m_outer.GetSegments() - 1 ) );
+    glVertex2d( m_outer.x( m_outer.segments() - 1 ), m_outer.y( m_outer.segments() - 1 ) );
     glEnd();
 
     glPopMatrix();

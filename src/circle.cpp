@@ -19,14 +19,14 @@ Circle::Circle()
     init();
 }
 
-Circle::Circle( GLuint Segments, GLdouble Radiust )
-: m_radiust( Radiust )
-, m_segments( Segments )
+Circle::Circle( GLuint segments, GLdouble radius )
+: m_radiust( radius )
+, m_segments( segments )
 {
     init();
 }
 
-GLdouble Circle::GetX( GLuint a ) const
+GLdouble Circle::x( GLuint a ) const
 {
     if ( a < m_segments ) {
         return m_x[ a ];
@@ -34,7 +34,7 @@ GLdouble Circle::GetX( GLuint a ) const
     return 0;
 }
 
-GLdouble Circle::GetY( GLuint a ) const
+GLdouble Circle::y( GLuint a ) const
 {
     if ( a < m_segments ) {
         return m_y[ a ];
@@ -42,24 +42,24 @@ GLdouble Circle::GetY( GLuint a ) const
     return 0;
 }
 
-GLuint Circle::GetSegments() const
+GLuint Circle::segments() const
 {
     return m_segments;
 }
 
-GLdouble Circle::GetRadiust() const
+GLdouble Circle::radius() const
 {
     return m_radiust;
 }
 
-void Circle::SetSegments( GLuint Segments )
+void Circle::setSegments( GLuint segments )
 {
-    m_segments = Segments;
+    m_segments = segments;
     init();
 }
 
-void Circle::SetRadiust( GLdouble Radiust )
+void Circle::setRadius( GLdouble radius )
 {
-    m_radiust = Radiust;
+    m_radiust = radius;
     init();
 }

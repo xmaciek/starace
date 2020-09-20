@@ -217,7 +217,7 @@ void Road::DrawPauseText()
     glEnd();
 
     //         m_btnChangeFiltering.Draw();
-    m_btnQuitMission.Draw();
+    m_btnQuitMission.draw();
     glColor4f( 1.0f, 1.0f, 0.0f, 1.0f );
     const char PAUSED[] = "PAUSED";
     const double posx = viewportWidth() / 2 - static_cast<double>( m_fontPauseTxt->GetTextLength( PAUSED ) ) / 2;
@@ -284,20 +284,20 @@ void Road::RenderHUD()
 
     glColor3f( 0.3, 0.3, 1 );
     glBegin( GL_LINE_LOOP );
-    for ( size_t i = 0; i < m_radar->GetSegments(); i++ ) {
-        glVertex3d( m_radar->GetX( i ), m_radar->GetY( i ), 0 );
+    for ( size_t i = 0; i < m_radar->segments(); i++ ) {
+        glVertex3d( m_radar->x( i ), m_radar->y( i ), 0 );
     }
     glEnd();
     glColor3f( 0, 1, 0 );
     glBegin( GL_LINE_LOOP );
-    for ( size_t i = 0; i < m_radar->GetSegments(); i++ ) {
-        glVertex3d( m_radar->GetX( i ), 0, m_radar->GetY( i ) );
+    for ( size_t i = 0; i < m_radar->segments(); i++ ) {
+        glVertex3d( m_radar->x( i ), 0, m_radar->y( i ) );
     }
     glEnd();
     glColor3f( 1, 0, 0 );
     glBegin( GL_LINE_LOOP );
-    for ( size_t i = 0; i < m_radar->GetSegments(); i++ ) {
-        glVertex3d( 0, m_radar->GetX( i ), m_radar->GetY( i ) );
+    for ( size_t i = 0; i < m_radar->segments(); i++ ) {
+        glVertex3d( 0, m_radar->x( i ), m_radar->y( i ) );
     }
     glEnd();
     for ( const Enemy* e : m_enemies ) {
@@ -344,8 +344,8 @@ void Road::RenderHUD()
     glEnd();
     glPopMatrix();
     glBegin( GL_LINE_LOOP );
-    for ( size_t i = 0; i < m_speedFanRing->GetSegments(); i++ ) {
-        glVertex2d( m_speedFanRing->GetX( i ), m_speedFanRing->GetY( i ) );
+    for ( size_t i = 0; i < m_speedFanRing->segments(); i++ ) {
+        glVertex2d( m_speedFanRing->x( i ), m_speedFanRing->y( i ) );
     }
     glEnd();
     glPopMatrix();
@@ -446,9 +446,9 @@ void Road::DrawMainMenu()
     glVertex2d( 0, viewportHeight() );
     glEnd();
 
-    m_btnSelectMission.Draw();
-    m_btnExit.Draw();
-    m_btnCustomize.Draw();
+    m_btnSelectMission.draw();
+    m_btnExit.draw();
+    m_btnCustomize.draw();
 
     glPopMatrix();
 }
@@ -532,7 +532,7 @@ void Road::WinScreen()
         const double posx = viewportWidth() / 2 - static_cast<double>( m_fontBig->GetTextLength( str.c_str() ) ) / 2;
         m_fontBig->PrintTekst( posx, viewportHeight() - 128 - 36, str.c_str() );
     }
-    m_btnReturnToMissionSelection.Draw();
+    m_btnReturnToMissionSelection.draw();
 
     glDisable( GL_TEXTURE_2D );
     glDisable( GL_BLEND );
@@ -569,7 +569,7 @@ void Road::DeadScreen()
         const double posx = viewportWidth() / 2 - static_cast<double>( m_fontBig->GetTextLength( str.c_str() ) ) / 2;
         m_fontBig->PrintTekst( posx, viewportHeight() - 128 - 36, str.c_str() );
     }
-    m_btnReturnToMissionSelection.Draw();
+    m_btnReturnToMissionSelection.draw();
 
     glDisable( GL_TEXTURE_2D );
     glDisable( GL_BLEND );
@@ -635,10 +635,10 @@ void Road::MissionSelectionScreen()
     glVertex2d( 0, viewportHeight() );
     glEnd();
 
-    m_btnStartMission.Draw();
-    m_btnReturnToMainMenu.Draw();
-    m_btnNextMap.Draw();
-    m_btnPrevMap.Draw();
+    m_btnStartMission.draw();
+    m_btnReturnToMainMenu.draw();
+    m_btnNextMap.draw();
+    m_btnPrevMap.draw();
 
     glPopMatrix();
 }
@@ -671,7 +671,7 @@ void Road::GameScreenBriefing()
     glTexCoord2f( 0, 1 );
     glVertex2d( 0, viewportHeight() );
     glEnd();
-    m_btnGO.Draw();
+    m_btnGO.draw();
     glPopMatrix();
 }
 
@@ -708,12 +708,12 @@ void Road::ScreenCustomize()
     glDisable( GL_DEPTH_TEST );
     glPopMatrix();
     SetOrtho();
-    m_btnNextJet.Draw();
-    m_btnPrevJet.Draw();
-    m_btnCustomizeReturn.Draw();
-    m_btnWeap1.Draw();
-    m_btnWeap2.Draw();
-    m_btnWeap3.Draw();
+    m_btnNextJet.draw();
+    m_btnPrevJet.draw();
+    m_btnCustomizeReturn.draw();
+    m_btnWeap1.draw();
+    m_btnWeap2.draw();
+    m_btnWeap3.draw();
 }
 
 void Road::DrawBullets()

@@ -20,8 +20,8 @@ void Shield::Draw() const
     glRotated( m_rotAngle, 0, 1, 0 );
     for ( GLuint i = 0; i < 8; i++ ) {
         glBegin( GL_LINE_LOOP );
-        for ( GLuint j = 0; j < m_circle.GetSegments(); j++ ) {
-            glVertex3d( m_circle.GetX( j ), m_circle.GetY( j ), m_radius );
+        for ( GLuint j = 0; j < m_circle.segments(); j++ ) {
+            glVertex3d( m_circle.x( j ), m_circle.y( j ), m_radius );
         }
         glEnd();
         glBegin( GL_LINES );
@@ -34,8 +34,8 @@ void Shield::Draw() const
     glRotated( m_rotAngle, 0, 0, 1 );
     for ( GLuint i = 0; i < 8; i++ ) {
         glBegin( GL_LINE_LOOP );
-        for ( GLuint j = 0; j < m_circle.GetSegments(); j++ ) {
-            glVertex3d( m_circle.GetX( j ), m_circle.GetY( j ), m_radius );
+        for ( GLuint j = 0; j < m_circle.segments(); j++ ) {
+            glVertex3d( m_circle.x( j ), m_circle.y( j ), m_radius );
         }
         glEnd();
         glBegin( GL_LINES );
@@ -48,8 +48,8 @@ void Shield::Draw() const
     glRotated( m_rotAngle, 1, 0, 0 );
     for ( GLuint i = 0; i < 8; i++ ) {
         glBegin( GL_LINE_LOOP );
-        for ( GLuint j = 0; j < m_circle.GetSegments(); j++ ) {
-            glVertex3d( m_circle.GetX( j ), m_circle.GetY( j ), m_radius );
+        for ( GLuint j = 0; j < m_circle.segments(); j++ ) {
+            glVertex3d( m_circle.x( j ), m_circle.y( j ), m_radius );
         }
         glEnd();
         glBegin( GL_LINES );
