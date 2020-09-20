@@ -23,15 +23,17 @@ public:
     GLint OnExecute();
 
 private:
-    static const GLubyte SA_GAMESCREEN = 0;
-    static const GLubyte SA_GAMESCREEN_BRIEFING = 1;
-    static const GLubyte SA_GAMESCREEN_PAUSED = 2;
-    static const GLubyte SA_MISSIONSELECTION = 3;
-    static const GLubyte SA_DEADSCREEN = 4;
-    static const GLubyte SA_WINSCREEN = 5;
-    static const GLubyte SA_CUSTOMIZE = 120;
-    static const GLubyte SA_MAINMENU = 100;
-    static const GLubyte SA_OPTIONS = 110;
+    enum struct Screen {
+        eGame,
+        eGameBriefing,
+        eGamePaused,
+        eMissionSelection,
+        eDead,
+        eWin,
+        eCustomize,
+        eMainMenu,
+    };
+
     static const Uint32 Time_Interval;
 
     Circle* m_radar = nullptr;
@@ -48,7 +50,7 @@ private:
     SDL_Surface* m_display = nullptr;
     SDL_Thread* m_thread = nullptr;
 
-    std::string LastSelectedJetName{};
+    std::string m_lastSelectedJetName{};
     std::vector<Bullet*> m_bulletGarbage{};
     std::vector<Bullet*> m_bullets{};
     std::vector<Bullet*> m_enemyBullets{};
@@ -61,11 +63,11 @@ private:
     std::mutex m_mutexBullet{};
     std::mutex m_mutexEnemyBullet{};
     std::mutex m_mutexEnemy{};
-    time_t TimePassed{};
+    time_t m_timePassed{};
 
-    Model preview_model{};
+    Model m_previewModel{};
 
-    BulletProto Weapons[ 4 ]{};
+    BulletProto m_weapons[ 4 ]{};
     Button m_btnChangeFiltering{};
     Button m_btnCustomizeReturn{};
     Button m_btnCustomize{};
@@ -122,10 +124,10 @@ private:
     Uint32 nextTick = 0;
     Uint32 timeS = 0;
 
-    GLubyte SCREEN = 0;
-    GLubyte Weap1 = 0;
-    GLubyte Weap2 = 0;
-    GLubyte Weap3 = 0;
+    Screen m_currentScreen = Screen::eGame;
+    GLubyte m_weap1 = 0;
+    GLubyte m_weap2 = 0;
+    GLubyte m_weap3 = 0;
     bool m_isDynamicCamera = true;
     bool m_isFullscreen = false;
     bool m_isRunning = true;
@@ -145,7 +147,7 @@ private:
     static void DrawHudRect( GLdouble X, GLdouble Y, GLdouble W, GLdouble H );
     static void DrawLine( GLdouble X, GLdouble Y );
     void AddBullet( GLuint wID );
-    void ChangeScreen( GLubyte SCR );
+    void ChangeScreen( Screen );
     void ClearMapData();
     void CreateMapData( const MapProto& map_data, const ModelProto& model_data );
     void DeadScreen();

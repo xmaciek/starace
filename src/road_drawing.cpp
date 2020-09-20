@@ -6,12 +6,12 @@ void Road::GameScreen()
     RenderHUD();
     FramesDone++;
     tempFPS += ( SDL_GetTicks() - timeS );
-    if ( TimePassed < time( nullptr ) ) {
+    if ( m_timePassed < time( nullptr ) ) {
         FPS = FramesDone;
         CalculatedFPS = 1000.0f / ( tempFPS / FramesDone ); // FramesDone);
         tempFPS = 0;
         FramesDone = 0;
-        TimePassed++;
+        m_timePassed++;
     }
 }
 
@@ -706,7 +706,7 @@ void Road::ScreenCustomize()
     glRotated( 15, 1, 0, 0 );
     glRotated( model_rotation, 0, 1, 0 );
     glEnable( GL_DEPTH_TEST );
-    preview_model.Draw();
+    m_previewModel.Draw();
     glDisable( GL_DEPTH_TEST );
     glPopMatrix();
     SetOrtho();

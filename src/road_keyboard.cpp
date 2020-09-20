@@ -7,14 +7,14 @@ void Road::OnKeyDown( SDLKey sym, SDLMod, Uint16 )
         GoFullscreen( m_isFullscreen );
         break;
     default:
-        switch ( SCREEN ) {
-        case SA_GAMESCREEN:
+        switch ( m_currentScreen ) {
+        case Screen::eGame:
             GameKeyboardPressed( sym );
             break;
-        case SA_GAMESCREEN_PAUSED:
+        case Screen::eGamePaused:
             GameKeyboardPausedPressed( sym );
             break;
-        case SA_GAMESCREEN_BRIEFING:
+        case Screen::eGameBriefing:
             GameKeyboardBriefingPressed( sym );
             break;
         default:
@@ -26,11 +26,11 @@ void Road::OnKeyDown( SDLKey sym, SDLMod, Uint16 )
 
 void Road::OnKeyUp( SDLKey sym, SDLMod, Uint16 )
 {
-    switch ( SCREEN ) {
-    case SA_GAMESCREEN:
+    switch ( m_currentScreen ) {
+    case Screen::eGame:
         GameKeyboardUnpressed( sym );
         break;
-    case SA_GAMESCREEN_PAUSED:
+    case Screen::eGamePaused:
         GameKeyboardPausedUnpressed( sym );
         break;
     default:
@@ -130,7 +130,7 @@ void Road::GameKeyboardBriefingPressed( SDLKey sym )
 {
     switch ( sym ) {
     case SDLK_SPACE:
-        ChangeScreen( SA_GAMESCREEN );
+        ChangeScreen( Screen::eGame );
         break;
     default:
         break;

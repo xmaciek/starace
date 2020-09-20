@@ -29,7 +29,7 @@ Road::Road()
     HUD_Color_4fv[ 2 ][ 2 ] = 0.1f;
     HUD_Color_4fv[ 2 ][ 3 ] = 1.0f;
 
-    ChangeScreen( SA_MAINMENU );
+    ChangeScreen( Screen::eMainMenu );
 
     m_enemies.reserve( 100 );
     m_enemyGarbage.reserve( 32 );
@@ -300,7 +300,7 @@ void Road::InitRoadAdditionsGL()
     m_btnWeap3.SetFont( m_fontGuiTxt );
     m_btnWeap3.SetTexture( ButtonTexture );
 
-    switch ( Weap1 ) {
+    switch ( m_weap1 ) {
     case 0:
         m_btnWeap1.SetText( "Laser" );
         break;
@@ -312,7 +312,7 @@ void Road::InitRoadAdditionsGL()
         break;
     }
 
-    switch ( Weap2 ) {
+    switch ( m_weap2 ) {
     case 0:
         m_btnWeap2.SetText( "Laser" );
         break;
@@ -324,7 +324,7 @@ void Road::InitRoadAdditionsGL()
         break;
     }
 
-    switch ( Weap3 ) {
+    switch ( m_weap3 ) {
     case 0:
         m_btnWeap3.SetText( "Laser" );
         break;
@@ -336,7 +336,7 @@ void Road::InitRoadAdditionsGL()
         break;
     }
 
-    TimePassed = time( nullptr );
+    m_timePassed = time( nullptr );
     HUDtex = LoadTexture( "textures/HUDtex.tga" );
 
     menu_background = LoadTexture( "textures/background.tga" );
@@ -409,7 +409,7 @@ void Road::InitRoadAdditionsGL()
     tmpWeapon.score_per_hit = 1;
     memcpy( tmpWeapon.color1, tempcolor[ 3 ], 4 * sizeof( GLfloat ) );
     memcpy( tmpWeapon.color2, tempcolor[ 1 ], 4 * sizeof( GLfloat ) );
-    Weapons[ 0 ] = tmpWeapon;
+    m_weapons[ 0 ] = tmpWeapon;
 
     tmpWeapon.type = Bullet::BLASTER;
     tmpWeapon.speed = 16;
@@ -418,11 +418,11 @@ void Road::InitRoadAdditionsGL()
     tmpWeapon.delay = 0.2;
     memcpy( tmpWeapon.color1, tempcolor[ 0 ], 4 * sizeof( GLfloat ) );
     tmpWeapon.score_per_hit = 30;
-    Weapons[ 1 ] = tmpWeapon;
+    m_weapons[ 1 ] = tmpWeapon;
 
     memcpy( tmpWeapon.color1, tempcolor[ 1 ], 4 * sizeof( GLfloat ) );
     tmpWeapon.delay = 0.4;
-    Weapons[ 3 ] = tmpWeapon;
+    m_weapons[ 3 ] = tmpWeapon;
 
     tmpWeapon.type = Bullet::TORPEDO;
     tmpWeapon.damage = 1;
@@ -431,7 +431,7 @@ void Road::InitRoadAdditionsGL()
     tmpWeapon.speed = 8;
     tmpWeapon.score_per_hit = 2;
     memcpy( tmpWeapon.color1, tempcolor[ 2 ], 4 * sizeof( GLfloat ) );
-    Weapons[ 2 ] = tmpWeapon;
+    m_weapons[ 2 ] = tmpWeapon;
 }
 
 void Road::UpdateCyberRings()
@@ -464,29 +464,29 @@ void Road::UpdateCyberRings()
 void Road::OnRender()
 {
     timeS = SDL_GetTicks();
-    switch ( SCREEN ) {
-    case SA_GAMESCREEN:
+    switch ( m_currentScreen ) {
+    case Screen::eGame:
         GameScreen();
         break;
-    case SA_GAMESCREEN_PAUSED:
+    case Screen::eGamePaused:
         GameScreenPaused();
         break;
-    case SA_GAMESCREEN_BRIEFING:
+    case Screen::eGameBriefing:
         GameScreenBriefing();
         break;
-    case SA_DEADSCREEN:
+    case Screen::eDead:
         DeadScreen();
         break;
-    case SA_WINSCREEN:
+    case Screen::eWin:
         WinScreen();
         break;
-    case SA_MISSIONSELECTION:
+    case Screen::eMissionSelection:
         MissionSelectionScreen();
         break;
-    case SA_MAINMENU:
+    case Screen::eMainMenu:
         DrawMainMenu();
         break;
-    case SA_CUSTOMIZE:
+    case Screen::eCustomize:
         ScreenCustomize();
         break;
     default:
@@ -498,29 +498,29 @@ void Road::OnRender()
 void Road::OnUpdate()
 {
     while ( m_isRunning ) {
-        switch ( SCREEN ) {
-        case SA_GAMESCREEN:
+        switch ( m_currentScreen ) {
+        case Screen::eGame:
             GameUpdate();
             break;
-        case SA_GAMESCREEN_PAUSED:
+        case Screen::eGamePaused:
             GameUpdatePaused();
             break;
-        case SA_GAMESCREEN_BRIEFING:
+        case Screen::eGameBriefing:
             GameScreenBriefingUpdate();
             break;
-        case SA_DEADSCREEN:
+        case Screen::eDead:
             DeadScreenUpdate();
             break;
-        case SA_WINSCREEN:
+        case Screen::eWin:
             WinUpdate();
             break;
-        case SA_MISSIONSELECTION:
+        case Screen::eMissionSelection:
             MissionSelectionUpdate();
             break;
-        case SA_MAINMENU:
+        case Screen::eMainMenu:
             UpdateMainMenu();
             break;
-        case SA_CUSTOMIZE:
+        case Screen::eCustomize:
             UpdateCustomize();
             break;
         }
@@ -548,12 +548,12 @@ Uint32 Road::Delay()
 
 void Road::Pause()
 {
-    ChangeScreen( SA_GAMESCREEN_PAUSED );
+    ChangeScreen( Screen::eGamePaused );
 }
 
 void Road::Unpause()
 {
-    ChangeScreen( SA_GAMESCREEN );
+    ChangeScreen( Screen::eGame );
 }
 
 void Road::GameUpdatePaused()
@@ -564,10 +564,10 @@ void Road::GameUpdatePaused()
 void Road::GameUpdate()
 {
     if ( m_jet->GetStatus() == SAObject::DEAD ) {
-        ChangeScreen( SA_DEADSCREEN );
+        ChangeScreen( Screen::eDead );
     }
     if ( m_enemies.empty() ) {
-        ChangeScreen( SA_WINSCREEN );
+        ChangeScreen( Screen::eWin );
     }
     if ( m_jet->GetHealth() <= 20 ) {
         HUD_Color = 2;
@@ -691,18 +691,18 @@ void Road::AddBullet( GLuint wID )
 void Road::OnMouseClickLeft( GLint X, GLint Y )
 {
     Y = SCREEN_HEIGHT - Y;
-    switch ( SCREEN ) {
-    case SA_GAMESCREEN_PAUSED:
+    switch ( m_currentScreen ) {
+    case Screen::eGamePaused:
         if ( m_btnQuitMission.IsClicked( X, Y ) ) {
             PlaySound( m_click );
-            ChangeScreen( SA_DEADSCREEN );
+            ChangeScreen( Screen::eDead );
             break;
         }
 
-    case SA_MAINMENU:
+    case Screen::eMainMenu:
         if ( m_btnSelectMission.IsClicked( X, Y ) ) {
             PlaySound( m_click );
-            ChangeScreen( SA_MISSIONSELECTION );
+            ChangeScreen( Screen::eMissionSelection );
             break;
         }
         if ( m_btnExit.IsClicked( X, Y ) ) {
@@ -712,19 +712,19 @@ void Road::OnMouseClickLeft( GLint X, GLint Y )
         }
         if ( m_btnCustomize.IsClicked( X, Y ) ) {
             PlaySound( m_click );
-            ChangeScreen( SA_CUSTOMIZE );
+            ChangeScreen( Screen::eCustomize );
             break;
         }
         break;
-    case SA_MISSIONSELECTION:
+    case Screen::eMissionSelection:
         if ( m_btnStartMission.IsClicked( X, Y ) ) {
             PlaySound( m_click );
-            ChangeScreen( SA_GAMESCREEN_BRIEFING );
+            ChangeScreen( Screen::eGameBriefing );
             break;
         }
         if ( m_btnReturnToMainMenu.IsClicked( X, Y ) ) {
             PlaySound( m_click );
-            ChangeScreen( SA_MAINMENU );
+            ChangeScreen( Screen::eMainMenu );
             break;
         }
         if ( m_btnNextMap.IsClicked( X, Y ) ) {
@@ -748,27 +748,27 @@ void Road::OnMouseClickLeft( GLint X, GLint Y )
             break;
         }
         break;
-    case SA_DEADSCREEN:
+    case Screen::eDead:
         if ( m_btnReturnToMissionSelection.IsClicked( X, Y ) ) {
             PlaySound( m_click );
-            ChangeScreen( SA_MISSIONSELECTION );
+            ChangeScreen( Screen::eMissionSelection );
             break;
         }
-    case SA_WINSCREEN:
+    case Screen::eWin:
         if ( m_btnReturnToMissionSelection.IsClicked( X, Y ) ) {
             PlaySound( m_click );
-            ChangeScreen( SA_MISSIONSELECTION );
+            ChangeScreen( Screen::eMissionSelection );
             break;
         }
         break;
-    case SA_GAMESCREEN_BRIEFING:
+    case Screen::eGameBriefing:
         if ( m_btnGO.IsClicked( X, Y ) ) {
             PlaySound( m_click );
-            ChangeScreen( SA_GAMESCREEN );
+            ChangeScreen( Screen::eGame );
             break;
         }
         break;
-    case SA_CUSTOMIZE:
+    case Screen::eCustomize:
         if ( m_btnNextJet.IsClicked( X, Y ) ) {
             PlaySound( m_click );
             current_jet++;
@@ -776,9 +776,9 @@ void Road::OnMouseClickLeft( GLint X, GLint Y )
                 m_btnNextJet.Disable();
             }
             m_btnPrevJet.Enable();
-            preview_model.Load_OBJ( m_jetsContainer.at( current_jet ).model_file.c_str() );
-            preview_model.CalculateNormal();
-            preview_model.BindTexture( LoadTexture( m_jetsContainer.at( current_jet ).model_texture.c_str() ) );
+            m_previewModel.Load_OBJ( m_jetsContainer.at( current_jet ).model_file.c_str() );
+            m_previewModel.CalculateNormal();
+            m_previewModel.BindTexture( LoadTexture( m_jetsContainer.at( current_jet ).model_texture.c_str() ) );
             break;
         }
         if ( m_btnPrevJet.IsClicked( X, Y ) ) {
@@ -790,63 +790,63 @@ void Road::OnMouseClickLeft( GLint X, GLint Y )
             if ( m_jetsContainer.size() > 1 ) {
                 m_btnNextJet.Enable();
             }
-            preview_model.Load_OBJ( m_jetsContainer.at( current_jet ).model_file.c_str() );
-            preview_model.CalculateNormal();
-            preview_model.BindTexture( LoadTexture( m_jetsContainer.at( current_jet ).model_texture.c_str() ) );
+            m_previewModel.Load_OBJ( m_jetsContainer.at( current_jet ).model_file.c_str() );
+            m_previewModel.CalculateNormal();
+            m_previewModel.BindTexture( LoadTexture( m_jetsContainer.at( current_jet ).model_texture.c_str() ) );
             break;
         }
         if ( m_btnCustomizeReturn.IsClicked( X, Y ) ) {
             PlaySound( m_click );
-            ChangeScreen( SA_MAINMENU );
+            ChangeScreen( Screen::eMainMenu );
             break;
         }
         if ( m_btnWeap1.IsClicked( X, Y ) ) {
             PlaySound( m_click );
-            Weap1++;
-            if ( Weap1 == 3 ) {
-                Weap1 = 0;
+            m_weap1++;
+            if ( m_weap1 == 3 ) {
+                m_weap1 = 0;
             }
-            if ( Weap1 == 0 ) {
+            if ( m_weap1 == 0 ) {
                 m_btnWeap1.SetText( "Laser" );
             }
-            if ( Weap1 == 1 ) {
+            if ( m_weap1 == 1 ) {
                 m_btnWeap1.SetText( "Blaster" );
             }
-            if ( Weap1 == 2 ) {
+            if ( m_weap1 == 2 ) {
                 m_btnWeap1.SetText( "Torpedo" );
             }
             break;
         }
         if ( m_btnWeap2.IsClicked( X, Y ) ) {
             PlaySound( m_click );
-            Weap2++;
-            if ( Weap2 == 3 ) {
-                Weap2 = 0;
+            m_weap2++;
+            if ( m_weap2 == 3 ) {
+                m_weap2 = 0;
             }
-            if ( Weap2 == 0 ) {
+            if ( m_weap2 == 0 ) {
                 m_btnWeap2.SetText( "Laser" );
             }
-            if ( Weap2 == 1 ) {
+            if ( m_weap2 == 1 ) {
                 m_btnWeap2.SetText( "Blaster" );
             }
-            if ( Weap2 == 2 ) {
+            if ( m_weap2 == 2 ) {
                 m_btnWeap2.SetText( "Torpedo" );
             }
             break;
         }
         if ( m_btnWeap3.IsClicked( X, Y ) ) {
             PlaySound( m_click );
-            Weap3++;
-            if ( Weap3 == 3 ) {
-                Weap3 = 0;
+            m_weap3++;
+            if ( m_weap3 == 3 ) {
+                m_weap3 = 0;
             }
-            if ( Weap3 == 0 ) {
+            if ( m_weap3 == 0 ) {
                 m_btnWeap3.SetText( "Laser" );
             }
-            if ( Weap3 == 1 ) {
+            if ( m_weap3 == 1 ) {
                 m_btnWeap3.SetText( "Blaster" );
             }
-            if ( Weap3 == 2 ) {
+            if ( m_weap3 == 2 ) {
                 m_btnWeap3.SetText( "Torpedo" );
             }
             break;
@@ -930,16 +930,16 @@ void Road::CreateMapData( const MapProto& map_data, const ModelProto& model_data
     HUD_Color = 0;
     m_jet = new Jet( model_data );
     m_map = new Map( map_data );
-    m_jet->SetWeapon( Weapons[ Weap1 ], 0 );
-    m_jet->SetWeapon( Weapons[ Weap2 ], 1 );
-    m_jet->SetWeapon( Weapons[ Weap3 ], 2 );
+    m_jet->SetWeapon( m_weapons[ m_weap1 ], 0 );
+    m_jet->SetWeapon( m_weapons[ m_weap2 ], 1 );
+    m_jet->SetWeapon( m_weapons[ m_weap3 ], 2 );
 
     {
         std::lock_guard<std::mutex> lg( m_mutexEnemy );
         for ( GLuint i = 0; i < map_data.enemies; i++ ) {
             m_enemies.push_back( new Enemy() );
             m_enemies.back()->SetTarget( m_jet );
-            m_enemies.back()->SetWeapon( Weapons[ 3 ] );
+            m_enemies.back()->SetWeapon( m_weapons[ 3 ] );
         }
     }
 
@@ -954,35 +954,35 @@ void Road::MissionSelectionUpdate()
     UpdateCyberRings();
 }
 
-void Road::ChangeScreen( GLubyte SCR )
+void Road::ChangeScreen( Screen SCR )
 {
-    SDL_ShowCursor( SCR != SA_GAMESCREEN );
+    SDL_ShowCursor( SCR != Screen::eGame );
 
     switch ( SCR ) {
-    case SA_GAMESCREEN:
-    case SA_GAMESCREEN_PAUSED:
-    case SA_DEADSCREEN:
-    case SA_MAINMENU:
-    case SA_WINSCREEN:
-        SCREEN = SCR;
+    case Screen::eGame:
+    case Screen::eGamePaused:
+    case Screen::eDead:
+    case Screen::eMainMenu:
+    case Screen::eWin:
+        m_currentScreen = SCR;
         break;
 
-    case SA_GAMESCREEN_BRIEFING:
+    case Screen::eGameBriefing:
         CreateMapData( m_mapsContainer.at( current_map ), m_jetsContainer.at( current_jet ) );
-        SCREEN = SCR;
+        m_currentScreen = SCR;
         break;
 
-    case SA_MISSIONSELECTION:
+    case Screen::eMissionSelection:
         ClearMapData();
-        SCREEN = SCR;
+        m_currentScreen = SCR;
         break;
 
-    case SA_CUSTOMIZE:
+    case Screen::eCustomize:
         model_rotation = 135.0;
-        preview_model.Load_OBJ( m_jetsContainer.at( current_jet ).model_file.c_str() );
-        preview_model.BindTexture( LoadTexture( m_jetsContainer.at( current_jet ).model_texture.c_str() ) );
-        preview_model.CalculateNormal();
-        SCREEN = SCR;
+        m_previewModel.Load_OBJ( m_jetsContainer.at( current_jet ).model_file.c_str() );
+        m_previewModel.BindTexture( LoadTexture( m_jetsContainer.at( current_jet ).model_texture.c_str() ) );
+        m_previewModel.CalculateNormal();
+        m_currentScreen = SCR;
         break;
 
     default:
@@ -1110,7 +1110,7 @@ void Road::LoadJetProto()
     std::cout << "size " << m_jetsContainer.size() << "\n";
     current_jet = 0;
     for ( GLuint i = 0; i < m_jetsContainer.size(); i++ ) {
-        if ( LastSelectedJetName == m_jetsContainer.at( i ).name ) {
+        if ( m_lastSelectedJetName == m_jetsContainer.at( i ).name ) {
             current_jet = i;
         }
     }
@@ -1146,39 +1146,39 @@ void Road::LoadConfig()
             current_filtering = atoi( value_2 );
         }
         if ( strcmp( value_1, "jet" ) == 0 ) {
-            LastSelectedJetName = value_2;
+            m_lastSelectedJetName = value_2;
         }
         if ( strcmp( value_1, "weap1" ) == 0 ) {
             if ( strcmp( value_2, "laser" ) == 0 ) {
-                Weap1 = 0;
+                m_weap1 = 0;
             }
             if ( strcmp( value_2, "blaster" ) == 0 ) {
-                Weap1 = 1;
+                m_weap1 = 1;
             }
             if ( strcmp( value_2, "torpedo" ) == 0 ) {
-                Weap1 = 2;
+                m_weap1 = 2;
             }
         }
         if ( strcmp( value_1, "weap2" ) == 0 ) {
             if ( strcmp( value_2, "laser" ) == 0 ) {
-                Weap2 = 0;
+                m_weap2 = 0;
             }
             if ( strcmp( value_2, "blaster" ) == 0 ) {
-                Weap2 = 1;
+                m_weap2 = 1;
             }
             if ( strcmp( value_2, "torpedo" ) == 0 ) {
-                Weap2 = 2;
+                m_weap2 = 2;
             }
         }
         if ( strcmp( value_1, "weap3" ) == 0 ) {
             if ( strcmp( value_2, "laser" ) == 0 ) {
-                Weap3 = 0;
+                m_weap3 = 0;
             }
             if ( strcmp( value_2, "blaster" ) == 0 ) {
-                Weap3 = 1;
+                m_weap3 = 1;
             }
             if ( strcmp( value_2, "torpedo" ) == 0 ) {
-                Weap3 = 2;
+                m_weap3 = 2;
             }
         }
         if ( strcmp( value_1, "sound" ) == 0 ) {
@@ -1202,7 +1202,7 @@ void Road::SaveConfig()
     ConfigFile << "sound " << m_isSoundEnabled << "\n";
     ConfigFile << "jet " << m_jetsContainer.at( current_jet ).name << "\n";
     ConfigFile << "weap1 ";
-    switch ( Weap1 ) {
+    switch ( m_weap1 ) {
     case 0:
         ConfigFile << "laser\n";
         break;
@@ -1214,7 +1214,7 @@ void Road::SaveConfig()
         break;
     }
     ConfigFile << "weap2 ";
-    switch ( Weap2 ) {
+    switch ( m_weap2 ) {
     case 0:
         ConfigFile << "laser\n";
         break;
@@ -1226,7 +1226,7 @@ void Road::SaveConfig()
         break;
     }
     ConfigFile << "weap3 ";
-    switch ( Weap3 ) {
+    switch ( m_weap3 ) {
     case 0:
         ConfigFile << "laser\n";
         break;
