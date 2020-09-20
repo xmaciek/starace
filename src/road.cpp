@@ -11,14 +11,8 @@ Road::Road()
     SCREEN_HEIGHT = 540;
     SCREEN_DEPTH = 32;
 
-    play_sound = true;
-
-    Running = true;
-
-    WaitForEnd = true;
     m_radar = new Circle( 48, 64 );
     angle = 55;
-    DynamicCamera = true;
 
     HUD_Color_4fv[ 0 ][ 0 ] = 0.0275f;
     HUD_Color_4fv[ 0 ][ 1 ] = 1.0f;
@@ -80,7 +74,7 @@ GLint Road::OnExecute()
     }
 
     SDL_Event Event{};
-    while ( Running ) {
+    while ( m_isRunning ) {
         while ( SDL_PollEvent( &Event ) ) {
             OnEvent( Event );
         }
@@ -99,7 +93,7 @@ void Road::OnEvent( SDL_Event& Event )
 {
     switch ( Event.type ) {
     case SDL_QUIT:
-        Running = false;
+        m_isRunning = false;
         break;
 
     case SDL_KEYDOWN:
@@ -113,7 +107,7 @@ void Road::OnEvent( SDL_Event& Event )
     case SDL_VIDEORESIZE:
         SCREEN_WIDTH = Event.resize.w;
         SCREEN_HEIGHT = Event.resize.h;
-        InitNewSurface( SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_DEPTH, FULLSCREEN );
+        InitNewSurface( SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_DEPTH, m_isFullscreen );
         OnResize( SCREEN_WIDTH, SCREEN_HEIGHT );
         break;
 
@@ -185,7 +179,7 @@ bool Road::OnInit()
 
     LoadConfig();
 
-    if ( !InitNewSurface( SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_DEPTH, FULLSCREEN ) ) {
+    if ( !InitNewSurface( SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_DEPTH, m_isFullscreen ) ) {
         return false;
     }
 
@@ -349,7 +343,7 @@ void Road::InitRoadAdditionsGL()
     menu_background_overlay = LoadTexture( "textures/background-overlay.tga" );
     starfield_texture = LoadTexture( "textures/star_field_transparent.tga" );
     alpha_value = 1;
-    background_effect_equation = false;
+    m_backgroundEffectEquation = false;
 
     m_speedFanRing = new Circle( 32, 26 );
 
@@ -360,9 +354,9 @@ void Road::InitRoadAdditionsGL()
     cyber_ring_rotation[ 0 ] = 0;
     cyber_ring_rotation[ 1 ] = 0;
     cyber_ring_rotation[ 2 ] = 0;
-    cyber_ring_rotation_direction[ 0 ] = false;
-    cyber_ring_rotation_direction[ 1 ] = false;
-    cyber_ring_rotation_direction[ 2 ] = false;
+    m_cyberRingRotationDirection[ 0 ] = false;
+    m_cyberRingRotationDirection[ 1 ] = false;
+    m_cyberRingRotationDirection[ 2 ] = false;
 
     GLfloat temp_colors[ 4 ][ 4 ] = { { 1, 1, 1, 0.8 }, { 1, 1, 1, 0.7 }, { 1, 1, 1, 0.6 }, { 1, 1, 1, 0.7 } };
 
@@ -444,7 +438,7 @@ void Road::UpdateCyberRings()
 {
     cyber_ring_rotation[ 0 ] += 25.0 * DELTATIME;
     cyber_ring_rotation[ 1 ] -= 15.0 * DELTATIME;
-    if ( cyber_ring_rotation_direction[ 2 ] ) {
+    if ( m_cyberRingRotationDirection[ 2 ] ) {
         cyber_ring_rotation[ 2 ] += 35.0 * DELTATIME;
     }
     else {
@@ -459,10 +453,10 @@ void Road::UpdateCyberRings()
         cyber_ring_rotation[ 1 ] += 360;
     }
     if ( cyber_ring_rotation[ 2 ] < 0 ) {
-        cyber_ring_rotation_direction[ 2 ] = true;
+        m_cyberRingRotationDirection[ 2 ] = true;
     }
     if ( cyber_ring_rotation[ 2 ] > 90 ) {
-        cyber_ring_rotation_direction[ 2 ] = false;
+        m_cyberRingRotationDirection[ 2 ] = false;
     }
     //     if (cyber_ring_rotation[3]>=360) { cyber_ring_rotation[3] -= 360; }
 }
@@ -503,7 +497,7 @@ void Road::OnRender()
 
 void Road::OnUpdate()
 {
-    while ( Running ) {
+    while ( m_isRunning ) {
         switch ( SCREEN ) {
         case SA_GAMESCREEN:
             GameUpdate();
@@ -713,7 +707,7 @@ void Road::OnMouseClickLeft( GLint X, GLint Y )
         }
         if ( m_btnExit.IsClicked( X, Y ) ) {
             PlaySound( m_click );
-            Running = false;
+            m_isRunning = false;
             break;
         }
         if ( m_btnCustomize.IsClicked( X, Y ) ) {
@@ -1146,7 +1140,7 @@ void Road::LoadConfig()
             SCREEN_HEIGHT = atoi( value_2 );
         }
         if ( strcmp( value_1, "fullscreen" ) == 0 ) {
-            FULLSCREEN = atoi( value_2 ) != 0;
+            m_isFullscreen = atoi( value_2 ) != 0;
         }
         if ( strcmp( value_1, "texturefiltering" ) == 0 ) {
             current_filtering = atoi( value_2 );
@@ -1188,7 +1182,7 @@ void Road::LoadConfig()
             }
         }
         if ( strcmp( value_1, "sound" ) == 0 ) {
-            play_sound = atoi( value_2 ) != 0;
+            m_isSoundEnabled = atoi( value_2 ) != 0;
         }
     }
     ConfigFile.close();
@@ -1203,9 +1197,9 @@ void Road::SaveConfig()
     std::ofstream ConfigFile( "config.cfg" );
     ConfigFile << "width " << SCREEN_WIDTH << "\n";
     ConfigFile << "height " << SCREEN_HEIGHT << "\n";
-    ConfigFile << "fullscreen " << FULLSCREEN << "\n";
+    ConfigFile << "fullscreen " << m_isFullscreen << "\n";
     ConfigFile << "texturefiltering " << current_filtering << "\n";
-    ConfigFile << "sound " << play_sound << "\n";
+    ConfigFile << "sound " << m_isSoundEnabled << "\n";
     ConfigFile << "jet " << m_jetsContainer.at( current_jet ).name << "\n";
     ConfigFile << "weap1 ";
     switch ( Weap1 ) {
@@ -1249,7 +1243,7 @@ void Road::SaveConfig()
 
 void Road::UpdateClouds()
 {
-    if ( background_effect_equation ) {
+    if ( m_backgroundEffectEquation ) {
         alpha_value += 0.1 * DELTATIME;
     }
     else {
@@ -1257,10 +1251,10 @@ void Road::UpdateClouds()
     }
 
     if ( alpha_value >= 1 ) {
-        background_effect_equation = false;
+        m_backgroundEffectEquation = false;
     }
     if ( alpha_value <= 0.2 ) {
-        background_effect_equation = true;
+        m_backgroundEffectEquation = true;
     }
 }
 
@@ -1294,7 +1288,7 @@ void Road::UpdateCustomize()
 
 void Road::PlaySound( Mix_Chunk* sound ) const
 {
-    if ( play_sound ) {
+    if ( m_isSoundEnabled ) {
         Mix_Playing( Mix_PlayChannel( -1, sound, 0 ) );
     }
 }

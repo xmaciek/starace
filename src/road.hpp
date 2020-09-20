@@ -126,14 +126,14 @@ private:
     GLubyte Weap1 = 0;
     GLubyte Weap2 = 0;
     GLubyte Weap3 = 0;
-    bool DynamicCamera = false;
-    bool FULLSCREEN = false;
-    bool Running = false;
-    bool WaitForEnd = false;
-    bool background_effect_equation = false;
-    bool cyber_ring_rotation_direction[ 3 ]{};
-    bool doUpdate = false;
-    bool play_sound = false;
+    bool m_isDynamicCamera = true;
+    bool m_isFullscreen = false;
+    bool m_isRunning = true;
+    bool m_waitForEnd = true;
+    bool m_backgroundEffectEquation = false;
+    bool m_cyberRingRotationDirection[ 3 ]{};
+    bool m_doUpdate = false;
+    bool m_isSoundEnabled = false;
     char HUDMESSAGE[ 48 ]{};
 
     bool InitNewSurface( GLint W, GLint H, GLint D, bool F );

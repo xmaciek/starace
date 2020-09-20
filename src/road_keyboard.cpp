@@ -4,7 +4,7 @@ void Road::OnKeyDown( SDLKey sym, SDLMod, Uint16 )
 {
     switch ( sym ) {
     case SDLK_F11:
-        GoFullscreen( FULLSCREEN );
+        GoFullscreen( m_isFullscreen );
         break;
     default:
         switch ( SCREEN ) {
