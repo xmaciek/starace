@@ -8,81 +8,81 @@ void Map::Draw()
 
     //back
     glColor3f( 1, 1, 1 );
-    glBindTexture( GL_TEXTURE_2D, BACK );
+    glBindTexture( GL_TEXTURE_2D, m_back );
     glBegin( GL_QUADS );
-    glTexCoord2f( min, min );
-    glVertex3d( -v1, -v1, -v1 );
-    glTexCoord2f( max, min );
-    glVertex3d( v1, -v1, -v1 );
-    glTexCoord2f( max, max );
-    glVertex3d( v1, v1, -v1 );
-    glTexCoord2f( min, max );
-    glVertex3d( -v1, v1, -v1 );
+    glTexCoord2f( m_min, m_min );
+    glVertex3d( -m_v1, -m_v1, -m_v1 );
+    glTexCoord2f( m_max, m_min );
+    glVertex3d( m_v1, -m_v1, -m_v1 );
+    glTexCoord2f( m_max, m_max );
+    glVertex3d( m_v1, m_v1, -m_v1 );
+    glTexCoord2f( m_min, m_max );
+    glVertex3d( -m_v1, m_v1, -m_v1 );
     glEnd();
 
     //front
-    glBindTexture( GL_TEXTURE_2D, FRONT );
+    glBindTexture( GL_TEXTURE_2D, m_front );
     glBegin( GL_QUADS );
-    glTexCoord2f( min, max );
-    glVertex3d( -v1, v1, v1 );
-    glTexCoord2f( max, max );
-    glVertex3d( v1, v1, v1 );
-    glTexCoord2f( max, min );
-    glVertex3d( v1, -v1, v1 );
-    glTexCoord2f( min, min );
-    glVertex3d( -v1, -v1, v1 );
+    glTexCoord2f( m_min, m_max );
+    glVertex3d( -m_v1, m_v1, m_v1 );
+    glTexCoord2f( m_max, m_max );
+    glVertex3d( m_v1, m_v1, m_v1 );
+    glTexCoord2f( m_max, m_min );
+    glVertex3d( m_v1, -m_v1, m_v1 );
+    glTexCoord2f( m_min, m_min );
+    glVertex3d( -m_v1, -m_v1, m_v1 );
     glEnd();
 
     //left
-    glBindTexture( GL_TEXTURE_2D, LEFT );
+    glBindTexture( GL_TEXTURE_2D, m_left );
     glBegin( GL_QUADS );
-    glTexCoord2f( min, min );
-    glVertex3d( -v1, -v1, v1 );
-    glTexCoord2f( max, min );
-    glVertex3d( -v1, -v1, -v1 );
-    glTexCoord2f( max, max );
-    glVertex3d( -v1, v1, -v1 );
-    glTexCoord2f( min, max );
-    glVertex3d( -v1, v1, v1 );
+    glTexCoord2f( m_min, m_min );
+    glVertex3d( -m_v1, -m_v1, m_v1 );
+    glTexCoord2f( m_max, m_min );
+    glVertex3d( -m_v1, -m_v1, -m_v1 );
+    glTexCoord2f( m_max, m_max );
+    glVertex3d( -m_v1, m_v1, -m_v1 );
+    glTexCoord2f( m_min, m_max );
+    glVertex3d( -m_v1, m_v1, m_v1 );
     glEnd();
 
     //right
-    glBindTexture( GL_TEXTURE_2D, RIGHT );
+    glBindTexture( GL_TEXTURE_2D, m_right );
     glBegin( GL_QUADS );
-    glTexCoord2f( min, max );
-    glVertex3d( v1, v1, v1 );
-    glTexCoord2f( max, max );
-    glVertex3d( v1, v1, -v1 );
-    glTexCoord2f( max, min );
-    glVertex3d( v1, -v1, -v1 );
-    glTexCoord2f( min, min );
-    glVertex3d( v1, -v1, v1 );
+    glTexCoord2f( m_min, m_max );
+    glVertex3d( m_v1, m_v1, m_v1 );
+    glTexCoord2f( m_max, m_max );
+    glVertex3d( m_v1, m_v1, -m_v1 );
+    glTexCoord2f( m_max, m_min );
+    glVertex3d( m_v1, -m_v1, -m_v1 );
+    glTexCoord2f( m_min, m_min );
+    glVertex3d( m_v1, -m_v1, m_v1 );
     glEnd();
 
     //top
-    glBindTexture( GL_TEXTURE_2D, TOP );
+    glBindTexture( GL_TEXTURE_2D, m_top );
     glBegin( GL_QUADS );
-    glTexCoord2f( min, min );
-    glVertex3d( -v1, v1, v1 );
-    glTexCoord2f( max, min );
-    glVertex3d( -v1, v1, -v1 );
-    glTexCoord2f( max, max );
-    glVertex3d( v1, v1, -v1 );
-    glTexCoord2f( min, max );
-    glVertex3d( v1, v1, v1 );
+    glTexCoord2f( m_min, m_min );
+    glVertex3d( -m_v1, m_v1, m_v1 );
+    glTexCoord2f( m_max, m_min );
+    glVertex3d( -m_v1, m_v1, -m_v1 );
+    glTexCoord2f( m_max, m_max );
+    glVertex3d( m_v1, m_v1, -m_v1 );
+    glTexCoord2f( m_min, m_max );
+    glVertex3d( m_v1, m_v1, m_v1 );
     glEnd();
 
     //bottom
-    glBindTexture( GL_TEXTURE_2D, BOTTOM );
+    glBindTexture( GL_TEXTURE_2D, m_bottom );
     glBegin( GL_QUADS );
-    glTexCoord2f( min, min );
-    glVertex3d( -v1, -v1, v1 );
-    glTexCoord2f( max, min );
-    glVertex3d( v1, -v1, v1 );
-    glTexCoord2f( max, max );
-    glVertex3d( v1, -v1, -v1 );
-    glTexCoord2f( min, max );
-    glVertex3d( -v1, -v1, -v1 );
+    glTexCoord2f( m_min, m_min );
+    glVertex3d( -m_v1, -m_v1, m_v1 );
+    glTexCoord2f( m_max, m_min );
+    glVertex3d( m_v1, -m_v1, m_v1 );
+    glTexCoord2f( m_max, m_max );
+    glVertex3d( m_v1, -m_v1, -m_v1 );
+    glTexCoord2f( m_min, m_max );
+    glVertex3d( -m_v1, -m_v1, -m_v1 );
 
     glEnd();
 
@@ -92,9 +92,9 @@ void Map::Draw()
     glEnable( GL_BLEND );
     glColor4f( 1, 1, 1, 0.4 );
     glBegin( GL_LINES );
-    for ( const auto& it : particle ) {
+    for ( const auto& it : m_particleList ) {
         glVertex3d( it.x, it.y, it.z );
-        glVertex3d( it.x + particleLength.x, it.y + particleLength.y, it.z + particleLength.z );
+        glVertex3d( it.x + m_particleLength.x, it.y + m_particleLength.y, it.z + m_particleLength.z );
     }
     glEnd();
     glDisable( GL_BLEND );
@@ -104,12 +104,12 @@ void Map::Draw()
 
 void Map::Update()
 {
-    for ( auto& it : particle ) {
-        it += jetVelocity;
-        if ( distance_v( it, jetPosition ) >= 1.5 ) {
-            it.x = random_range( jetPosition.x - 1, jetPosition.x + 1 );
-            it.y = random_range( jetPosition.y - 1, jetPosition.y + 1 );
-            it.z = random_range( jetPosition.z - 1, jetPosition.z + 1 );
+    for ( auto& it : m_particleList ) {
+        it += m_jetVelocity;
+        if ( distance_v( it, m_jetPosition ) >= 1.5 ) {
+            it.x = random_range( m_jetPosition.x - 1, m_jetPosition.x + 1 );
+            it.y = random_range( m_jetPosition.y - 1, m_jetPosition.y + 1 );
+            it.z = random_range( m_jetPosition.z - 1, m_jetPosition.z + 1 );
         }
     }
 }
@@ -118,44 +118,39 @@ Map::Map( const MapProto& data )
 {
     //     textureID = LoadTexture(tex);
 
-    TOP = LoadTexture( data.TOP.c_str() );
-    BOTTOM = LoadTexture( data.BOTTOM.c_str() );
-    LEFT = LoadTexture( data.LEFT.c_str() );
-    RIGHT = LoadTexture( data.RIGHT.c_str() );
-    FRONT = LoadTexture( data.FRONT.c_str() );
-    BACK = LoadTexture( data.BACK.c_str() );
+    m_top = LoadTexture( data.TOP.c_str() );
+    m_bottom = LoadTexture( data.BOTTOM.c_str() );
+    m_left = LoadTexture( data.LEFT.c_str() );
+    m_right = LoadTexture( data.RIGHT.c_str() );
+    m_front = LoadTexture( data.FRONT.c_str() );
+    m_back = LoadTexture( data.BACK.c_str() );
 
-    min = 0.00125;
-    max = 0.99875;
+    m_min = 0.00125;
+    m_max = 0.99875;
 
-    particle.reserve( 100 );
+    m_particleList.reserve( 100 );
     for ( int i = 0; i < 100; i++ ) {
-        particle.emplace_back( random_range( -1, 1 ), random_range( -1, 1 ), random_range( -1, 1 ) );
+        m_particleList.emplace_back( random_range( -1, 1 ), random_range( -1, 1 ), random_range( -1, 1 ) );
     }
 
-    v1 = 1000;
-    v2 = 100;
+    m_v1 = 1000;
+    m_v2 = 100;
 }
 
 void Map::GetJetData( const Vertex& Position, const Vertex& Velocity )
 {
-    jetPosition = Position;
-    jetVelocity = Velocity;
-    particleLength = jetVelocity * 0.05;
-    jetVelocity = jetVelocity * -0.1 * DELTATIME;
+    m_jetPosition = Position;
+    m_jetVelocity = Velocity;
+    m_particleLength = m_jetVelocity * 0.05;
+    m_jetVelocity = m_jetVelocity * -0.1 * DELTATIME;
 }
 
 Map::~Map()
 {
-    std::cout << "+-- Deleting Map\n";
-    glDeleteTextures( 1, &TOP );
-    glDeleteTextures( 1, &BOTTOM );
-    glDeleteTextures( 1, &LEFT );
-    glDeleteTextures( 1, &RIGHT );
-    glDeleteTextures( 1, &FRONT );
-    glDeleteTextures( 1, &BACK );
-    //     glDeleteTextures(1, &textureID);
-    //     glDeleteTextures(1,&skyboxBACK);
-    //     glDeleteTextures(1,&skyboxFRONT);
-    //     glDeleteTextures(1,&skyboxLEFT);
+    glDeleteTextures( 1, &m_top );
+    glDeleteTextures( 1, &m_bottom );
+    glDeleteTextures( 1, &m_left );
+    glDeleteTextures( 1, &m_right );
+    glDeleteTextures( 1, &m_front );
+    glDeleteTextures( 1, &m_back );
 }

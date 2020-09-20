@@ -6,29 +6,27 @@
 
 class Map {
 private:
-    GLuint TOP = 0;
-    GLuint BOTTOM = 0;
-    GLuint LEFT = 0;
-    GLuint RIGHT = 0;
-    GLuint FRONT = 0;
-    GLuint BACK = 0;
-    GLdouble v1 = 0.0;
-    GLdouble v2 = 0.0;
-    GLdouble min = 0.0;
-    GLdouble max = 0.0;
-
-    std::vector<Vertex> particle{};
-
-    Vertex jetPosition{};
-    Vertex jetVelocity{};
-    Vertex particleLength{};
+    std::vector<Vertex> m_particleList{};
+    GLdouble m_max = 0.0;
+    GLdouble m_min = 0.0;
+    GLdouble m_v1 = 0.0;
+    GLdouble m_v2 = 0.0;
+    Vertex m_jetPosition{};
+    Vertex m_jetVelocity{};
+    Vertex m_particleLength{};
+    GLuint m_back = 0;
+    GLuint m_bottom = 0;
+    GLuint m_front = 0;
+    GLuint m_left = 0;
+    GLuint m_right = 0;
+    GLuint m_top = 0;
 
 public:
-    explicit Map( const MapProto& data );
     ~Map();
+    explicit Map( const MapProto& data );
+    void Draw();
     void GetJetData( const Vertex& Position, const Vertex& Velocity );
     void Update();
-    void Draw();
 };
 
 #endif
