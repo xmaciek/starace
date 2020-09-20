@@ -331,7 +331,7 @@ void Road::InitRoadAdditionsGL()
     }
 
     m_timePassed = time( nullptr );
-    m_hudTex = LoadTexture( "textures/m_hudTex.tga" );
+    m_hudTex = LoadTexture( "textures/HUDtex.tga" );
 
     m_menuBackground = LoadTexture( "textures/background.tga" );
     m_menuBackgroundOverlay = LoadTexture( "textures/background-overlay.tga" );
