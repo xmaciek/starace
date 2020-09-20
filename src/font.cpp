@@ -8,20 +8,18 @@ Font::Font( const char* fontname, GLuint h )
 , m_textures( 128 )
 , m_height( h )
 {
-    std::cout << "+-- Creating Font " << fontname << ":" << h << "\n";
     m_listBase = glGenLists( 128 );
     glGenTextures( 128, m_textures.data() );
     TTF_Font* font = TTF_OpenFont( fontname, h );
 
     for ( GLubyte i = 0; i < 128; i++ ) {
-        make_dlist( font, i );
+        makeDlist( font, i );
     }
     TTF_CloseFont( font );
 }
 
 Font::~Font()
 {
-    std::cout << "+-- Deleting Font " << m_name << ":" << m_height << "\n";
     glDeleteLists( m_listBase, 128 );
     glDeleteTextures( 128, m_textures.data() );
 }
@@ -35,7 +33,7 @@ static GLuint pow2( GLuint a )
     return r;
 }
 
-void Font::make_dlist( TTF_Font* font, GLuint ch )
+void Font::makeDlist( TTF_Font* font, GLuint ch )
 {
     SDL_Color col = { 255, 255, 255, 255 };
     SDL_Surface* tmp = nullptr;
@@ -93,9 +91,9 @@ void Font::make_dlist( TTF_Font* font, GLuint ch )
     //   glDisable(GL_TEXTURE_2D);
 }
 
-GLuint Font::GetTextLength( const char* tekst )
+GLuint Font::textLength( const char* text )
 {
-    std::string txt = tekst;
+    std::string txt = text;
     GLuint length = 0;
     for ( char i : txt ) {
         length += m_charWidth[ static_cast<size_t>( i ) ];
@@ -103,9 +101,9 @@ GLuint Font::GetTextLength( const char* tekst )
     return length;
 }
 
-void Font::PrintTekst( const GLdouble& x, const GLdouble& y, const char* tekst )
+void Font::printText( GLdouble x, GLdouble y, const char* text )
 {
-    m_stringTxt = tekst;
+    m_stringTxt = text;
     glListBase( m_listBase );
     glPushMatrix();
     glTranslated( x, y, 0 );
@@ -117,12 +115,12 @@ void Font::PrintTekst( const GLdouble& x, const GLdouble& y, const char* tekst )
     glPopMatrix();
 }
 
-GLuint Font::GetHeight() const
+GLuint Font::height() const
 {
     return m_height;
 }
 
-GLuint Font::GetMiddlePoint() const
+GLuint Font::middlePoint() const
 {
     return m_middlePoint;
 }

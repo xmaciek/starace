@@ -36,7 +36,7 @@ void Button::draw()
     if ( m_font ) {
         glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
         glTranslated( static_cast<float>( m_width ) / 2 - m_textLength, 0, 0 );
-        m_font->PrintTekst( 0, static_cast<float>( m_height ) / 2 - m_font->GetMiddlePoint(), m_text.c_str() );
+        m_font->printText( 0, static_cast<float>( m_height ) / 2 - m_font->middlePoint(), m_text.c_str() );
     }
     glPopMatrix();
     glDisable( GL_TEXTURE_2D );
@@ -73,7 +73,7 @@ void Button::setFont( Font* f )
 {
     m_font = f;
     if ( m_font ) {
-        m_textLength = m_font->GetTextLength( m_text.c_str() ) / 2;
+        m_textLength = m_font->textLength( m_text.c_str() ) / 2;
     }
 }
 
@@ -91,7 +91,7 @@ void Button::setText( const char* txt )
 {
     m_text = txt;
     if ( m_font ) {
-        m_textLength = m_font->GetTextLength( m_text.c_str() ) / 2;
+        m_textLength = m_font->textLength( m_text.c_str() ) / 2;
     }
     else {
         m_textLength = 0;
