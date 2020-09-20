@@ -30,6 +30,7 @@ Checks:
     -hicpp-vararg,
     -modernize-avoid-c-arrays,
     -modernize-use-auto,
+    -modernize-use-nodiscard,
     -modernize-use-override,
     -modernize-use-trailing-return-type,
     -readability-implicit-bool-conversion,
