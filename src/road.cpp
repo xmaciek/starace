@@ -8,22 +8,21 @@ const Uint32 Road::Time_Interval = ( 1000 * DELTATIME );
 Road::Road()
 {
     m_radar = new Circle( 48, 64 );
-    angle = 55;
 
-    HUD_Color_4fv[ 0 ][ 0 ] = 0.0275f;
-    HUD_Color_4fv[ 0 ][ 1 ] = 1.0f;
-    HUD_Color_4fv[ 0 ][ 2 ] = 0.075f;
-    HUD_Color_4fv[ 0 ][ 3 ] = 1.0f;
+    m_hudColor4fv[ 0 ][ 0 ] = 0.0275f;
+    m_hudColor4fv[ 0 ][ 1 ] = 1.0f;
+    m_hudColor4fv[ 0 ][ 2 ] = 0.075f;
+    m_hudColor4fv[ 0 ][ 3 ] = 1.0f;
 
-    HUD_Color_4fv[ 1 ][ 0 ] = 1;
-    HUD_Color_4fv[ 1 ][ 1 ] = 0.6f;
-    HUD_Color_4fv[ 1 ][ 2 ] = 0.1f;
-    HUD_Color_4fv[ 1 ][ 3 ] = 0.8f;
+    m_hudColor4fv[ 1 ][ 0 ] = 1;
+    m_hudColor4fv[ 1 ][ 1 ] = 0.6f;
+    m_hudColor4fv[ 1 ][ 2 ] = 0.1f;
+    m_hudColor4fv[ 1 ][ 3 ] = 0.8f;
 
-    HUD_Color_4fv[ 2 ][ 0 ] = 1;
-    HUD_Color_4fv[ 2 ][ 1 ] = 0.1f;
-    HUD_Color_4fv[ 2 ][ 2 ] = 0.1f;
-    HUD_Color_4fv[ 2 ][ 3 ] = 1.0f;
+    m_hudColor4fv[ 2 ][ 0 ] = 1;
+    m_hudColor4fv[ 2 ][ 1 ] = 0.1f;
+    m_hudColor4fv[ 2 ][ 2 ] = 0.1f;
+    m_hudColor4fv[ 2 ][ 3 ] = 1.0f;
 
     ChangeScreen( Screen::eMainMenu );
 
@@ -44,12 +43,12 @@ Road::~Road()
     delete m_speedFanRing;
     delete m_radar;
 
-    glDeleteTextures( 1, &HUDtex );
-    glDeleteTextures( 1, &ButtonTexture );
-    glDeleteTextures( 1, &menu_background );
-    glDeleteTextures( 1, &menu_background_overlay );
-    glDeleteTextures( 3, cyber_ring_texture );
-    glDeleteTextures( 1, &starfield_texture );
+    glDeleteTextures( 1, &m_hudTex );
+    glDeleteTextures( 1, &m_buttonTexture );
+    glDeleteTextures( 1, &m_menuBackground );
+    glDeleteTextures( 1, &m_menuBackgroundOverlay );
+    glDeleteTextures( 3, m_cyberRingTexture );
+    glDeleteTextures( 1, &m_starfieldTexture );
     for ( auto& it : m_mapsContainer ) {
         glDeleteTextures( 1, &it.preview_image );
     }
@@ -186,12 +185,12 @@ bool Road::OnInit()
 void Road::OnResize( GLint w, GLint h )
 {
     if ( w > h ) {
-        max_dimention = w;
-        min_dimention = h;
+        m_maxDimention = w;
+        m_minDimention = h;
     }
     else {
-        max_dimention = h;
-        min_dimention = w;
+        m_maxDimention = h;
+        m_minDimention = w;
     }
 
     glViewport( 0, 0, w, h );
@@ -228,72 +227,72 @@ void Road::InitRoadAdditionsGL()
     m_fontBig = new Font( "misc/DejaVuSans-Bold.ttf", 32 );
     TTF_Quit();
 
-    ButtonTexture = LoadTexture( "textures/button1.tga" );
+    m_buttonTexture = LoadTexture( "textures/button1.tga" );
 
     m_btnChangeFiltering.SetFont( m_fontGuiTxt );
     m_btnChangeFiltering.SetText( "Anisotropic x16" );
-    m_btnChangeFiltering.SetTexture( ButtonTexture );
+    m_btnChangeFiltering.SetTexture( m_buttonTexture );
 
     m_btnExit.SetFont( m_fontGuiTxt );
     m_btnExit.SetText( "Exit Game" );
-    m_btnExit.SetTexture( ButtonTexture );
+    m_btnExit.SetTexture( m_buttonTexture );
 
     m_btnSelectMission.SetFont( m_fontGuiTxt );
     m_btnSelectMission.SetText( "Select Mission" );
-    m_btnSelectMission.SetTexture( ButtonTexture );
+    m_btnSelectMission.SetTexture( m_buttonTexture );
 
     m_btnQuitMission.SetFont( m_fontGuiTxt );
     m_btnQuitMission.SetText( "Quit Mission" );
-    m_btnQuitMission.SetTexture( ButtonTexture );
+    m_btnQuitMission.SetTexture( m_buttonTexture );
 
     m_btnStartMission.SetFont( m_fontGuiTxt );
     m_btnStartMission.SetText( "Start Mission" );
-    m_btnStartMission.SetTexture( ButtonTexture );
+    m_btnStartMission.SetTexture( m_buttonTexture );
 
     m_btnReturnToMissionSelection.SetFont( m_fontGuiTxt );
     m_btnReturnToMissionSelection.SetText( "Return" );
-    m_btnReturnToMissionSelection.SetTexture( ButtonTexture );
+    m_btnReturnToMissionSelection.SetTexture( m_buttonTexture );
 
     m_btnReturnToMainMenu.SetFont( m_fontGuiTxt );
     m_btnReturnToMainMenu.SetText( "Return" );
-    m_btnReturnToMainMenu.SetTexture( ButtonTexture );
+    m_btnReturnToMainMenu.SetTexture( m_buttonTexture );
 
     m_btnGO.SetFont( m_fontGuiTxt );
     m_btnGO.SetText( "GO!" );
-    m_btnGO.SetTexture( ButtonTexture );
+    m_btnGO.SetTexture( m_buttonTexture );
 
     m_btnNextMap.SetFont( m_fontGuiTxt );
     m_btnNextMap.SetText( "Next Map" );
-    m_btnNextMap.SetTexture( ButtonTexture );
+    m_btnNextMap.SetTexture( m_buttonTexture );
 
     m_btnPrevMap.SetFont( m_fontGuiTxt );
     m_btnPrevMap.SetText( "Previous Map" );
-    m_btnPrevMap.SetTexture( ButtonTexture );
+    m_btnPrevMap.SetTexture( m_buttonTexture );
 
     m_btnNextJet.SetFont( m_fontGuiTxt );
     m_btnNextJet.SetText( "Next Jet" );
-    m_btnNextJet.SetTexture( ButtonTexture );
+    m_btnNextJet.SetTexture( m_buttonTexture );
 
     m_btnPrevJet.SetFont( m_fontGuiTxt );
     m_btnPrevJet.SetText( "Previous Jet" );
-    m_btnPrevJet.SetTexture( ButtonTexture );
+    m_btnPrevJet.SetTexture( m_buttonTexture );
 
     m_btnCustomizeReturn.SetFont( m_fontGuiTxt );
     m_btnCustomizeReturn.SetText( "Done" );
-    m_btnCustomizeReturn.SetTexture( ButtonTexture );
+    m_btnCustomizeReturn.SetTexture( m_buttonTexture );
 
     m_btnCustomize.SetFont( m_fontGuiTxt );
     m_btnCustomize.SetText( "Customise" );
-    m_btnCustomize.SetTexture( ButtonTexture );
+    m_btnCustomize.SetTexture( m_buttonTexture );
 
     m_btnWeap1.SetFont( m_fontGuiTxt );
-    m_btnWeap1.SetTexture( ButtonTexture );
+    m_btnWeap1.SetTexture( m_buttonTexture );
 
     m_btnWeap2.SetFont( m_fontGuiTxt );
-    m_btnWeap2.SetTexture( ButtonTexture );
+    m_btnWeap2.SetTexture( m_buttonTexture );
 
     m_btnWeap3.SetFont( m_fontGuiTxt );
-    m_btnWeap3.SetTexture( ButtonTexture );
+    m_btnWeap3.SetTexture( m_buttonTexture );
 
     switch ( m_weap1 ) {
     case 0:
@@ -332,57 +331,57 @@ void Road::InitRoadAdditionsGL()
     }
 
     m_timePassed = time( nullptr );
-    HUDtex = LoadTexture( "textures/HUDtex.tga" );
+    m_hudTex = LoadTexture( "textures/m_hudTex.tga" );
 
-    menu_background = LoadTexture( "textures/background.tga" );
-    menu_background_overlay = LoadTexture( "textures/background-overlay.tga" );
-    starfield_texture = LoadTexture( "textures/star_field_transparent.tga" );
-    alpha_value = 1;
+    m_menuBackground = LoadTexture( "textures/background.tga" );
+    m_menuBackgroundOverlay = LoadTexture( "textures/background-overlay.tga" );
+    m_starfieldTexture = LoadTexture( "textures/star_field_transparent.tga" );
+    m_alphaValue = 1;
     m_backgroundEffectEquation = false;
 
     m_speedFanRing = new Circle( 32, 26 );
 
-    cyber_ring_texture[ 0 ] = LoadTexture( "textures/cyber_ring1.tga" );
-    cyber_ring_texture[ 1 ] = LoadTexture( "textures/cyber_ring2.tga" );
-    cyber_ring_texture[ 2 ] = LoadTexture( "textures/cyber_ring3.tga" );
-    //     cyber_ring_texture[3] = LoadTexture("textures/cyber_ring4.tga");
-    cyber_ring_rotation[ 0 ] = 0;
-    cyber_ring_rotation[ 1 ] = 0;
-    cyber_ring_rotation[ 2 ] = 0;
+    m_cyberRingTexture[ 0 ] = LoadTexture( "textures/cyber_ring1.tga" );
+    m_cyberRingTexture[ 1 ] = LoadTexture( "textures/cyber_ring2.tga" );
+    m_cyberRingTexture[ 2 ] = LoadTexture( "textures/cyber_ring3.tga" );
+    //     m_cyberRingTexture[3] = LoadTexture("textures/cyber_ring4.tga");
+    m_cyberRingRotation[ 0 ] = 0;
+    m_cyberRingRotation[ 1 ] = 0;
+    m_cyberRingRotation[ 2 ] = 0;
     m_cyberRingRotationDirection[ 0 ] = false;
     m_cyberRingRotationDirection[ 1 ] = false;
     m_cyberRingRotationDirection[ 2 ] = false;
 
     GLfloat temp_colors[ 4 ][ 4 ] = { { 1, 1, 1, 0.8 }, { 1, 1, 1, 0.7 }, { 1, 1, 1, 0.6 }, { 1, 1, 1, 0.7 } };
 
-    memcpy( cyber_ring_color, temp_colors, sizeof( GLfloat ) * 12 );
+    memcpy( m_cyberRingColor, temp_colors, sizeof( GLfloat ) * 12 );
 
     glEnable( GL_BLEND );
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
-    LightAmbient[ 0 ] = 0.5f;
-    LightAmbient[ 1 ] = 0.5f;
-    LightAmbient[ 2 ] = 0.5f;
-    LightAmbient[ 3 ] = 1.0f;
+    m_lightAmbient[ 0 ] = 0.5f;
+    m_lightAmbient[ 1 ] = 0.5f;
+    m_lightAmbient[ 2 ] = 0.5f;
+    m_lightAmbient[ 3 ] = 1.0f;
 
-    LightDiffuse[ 0 ] = 0.8f;
-    LightDiffuse[ 1 ] = 0.8f;
-    LightDiffuse[ 2 ] = 0.8f;
-    LightDiffuse[ 3 ] = 1.0f;
+    m_lightDiffuse[ 0 ] = 0.8f;
+    m_lightDiffuse[ 1 ] = 0.8f;
+    m_lightDiffuse[ 2 ] = 0.8f;
+    m_lightDiffuse[ 3 ] = 1.0f;
 
-    LightPosition[ 0 ] = 0;
-    LightPosition[ 1 ] = 1;
-    LightPosition[ 2 ] = 1;
-    LightPosition[ 3 ] = 1;
+    m_lightPosition[ 0 ] = 0;
+    m_lightPosition[ 1 ] = 1;
+    m_lightPosition[ 2 ] = 1;
+    m_lightPosition[ 3 ] = 1;
 
     glEnable( GL_CULL_FACE );
     glFrontFace( GL_CCW );
-    glMaterialfv( GL_FRONT, GL_AMBIENT, LightAmbient );
-    glMaterialfv( GL_FRONT, GL_DIFFUSE, LightDiffuse );
-    glLightfv( GL_LIGHT0, GL_AMBIENT, LightAmbient );
+    glMaterialfv( GL_FRONT, GL_AMBIENT, m_lightAmbient );
+    glMaterialfv( GL_FRONT, GL_DIFFUSE, m_lightDiffuse );
+    glLightfv( GL_LIGHT0, GL_AMBIENT, m_lightAmbient );
 
-    glLightfv( GL_LIGHT0, GL_DIFFUSE, LightDiffuse );
-    glLightfv( GL_LIGHT0, GL_POSITION, LightPosition );
+    glLightfv( GL_LIGHT0, GL_DIFFUSE, m_lightDiffuse );
+    glLightfv( GL_LIGHT0, GL_POSITION, m_lightPosition );
     glEnable( GL_LIGHT0 );
 
     GLfloat fogColor[ 4 ] = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -431,34 +430,34 @@ void Road::InitRoadAdditionsGL()
 
 void Road::UpdateCyberRings()
 {
-    cyber_ring_rotation[ 0 ] += 25.0 * DELTATIME;
-    cyber_ring_rotation[ 1 ] -= 15.0 * DELTATIME;
+    m_cyberRingRotation[ 0 ] += 25.0 * DELTATIME;
+    m_cyberRingRotation[ 1 ] -= 15.0 * DELTATIME;
     if ( m_cyberRingRotationDirection[ 2 ] ) {
-        cyber_ring_rotation[ 2 ] += 35.0 * DELTATIME;
+        m_cyberRingRotation[ 2 ] += 35.0 * DELTATIME;
     }
     else {
-        cyber_ring_rotation[ 2 ] -= 20.0 * DELTATIME;
+        m_cyberRingRotation[ 2 ] -= 20.0 * DELTATIME;
     }
-    //     cyber_ring_rotation[3] += 20.0 * DELTATIME;
+    //     m_cyberRingRotation[3] += 20.0 * DELTATIME;
 
-    if ( cyber_ring_rotation[ 0 ] >= 360 ) {
-        cyber_ring_rotation[ 0 ] -= 360;
+    if ( m_cyberRingRotation[ 0 ] >= 360 ) {
+        m_cyberRingRotation[ 0 ] -= 360;
     }
-    if ( cyber_ring_rotation[ 1 ] < 0 ) {
-        cyber_ring_rotation[ 1 ] += 360;
+    if ( m_cyberRingRotation[ 1 ] < 0 ) {
+        m_cyberRingRotation[ 1 ] += 360;
     }
-    if ( cyber_ring_rotation[ 2 ] < 0 ) {
+    if ( m_cyberRingRotation[ 2 ] < 0 ) {
         m_cyberRingRotationDirection[ 2 ] = true;
     }
-    if ( cyber_ring_rotation[ 2 ] > 90 ) {
+    if ( m_cyberRingRotation[ 2 ] > 90 ) {
         m_cyberRingRotationDirection[ 2 ] = false;
     }
-    //     if (cyber_ring_rotation[3]>=360) { cyber_ring_rotation[3] -= 360; }
+    //     if (m_cyberRingRotation[3]>=360) { m_cyberRingRotation[3] -= 360; }
 }
 
 void Road::OnRender()
 {
-    timeS = SDL_GetTicks();
+    m_timeS = SDL_GetTicks();
     switch ( m_currentScreen ) {
     case Screen::eGame:
         GameScreen();
@@ -565,10 +564,10 @@ void Road::GameUpdate()
         ChangeScreen( Screen::eWin );
     }
     if ( m_jet->GetHealth() <= 20 ) {
-        HUD_Color = 2;
+        m_hudColor = 2;
     }
     else {
-        HUD_Color = 0;
+        m_hudColor = 0;
     }
 
     if ( m_jet->IsShooting( 0 ) ) {
@@ -606,9 +605,9 @@ void Road::GameUpdate()
     }
 
     m_jet->Update();
-    speed_anim += m_jet->GetSpeed() * ( 270.0 * DELTATIME );
-    if ( speed_anim >= 360 ) {
-        speed_anim -= 360;
+    m_speedAnim += m_jet->GetSpeed() * ( 270.0 * DELTATIME );
+    if ( m_speedAnim >= 360 ) {
+        m_speedAnim -= 360;
     }
     m_map->GetJetData( m_jet->GetPosition(), m_jet->GetVelocity() );
     m_map->Update();
@@ -669,7 +668,7 @@ void Road::AddBullet( GLuint wID )
     }
     m_jet->TakeEnergy( wID );
     m_bullets.push_back( m_jet->GetWeaponType( wID ) );
-    ShotsDone++;
+    m_shotsDone++;
     switch ( m_bullets.back()->GetType() ) {
     case Bullet::BLASTER:
         PlaySound( m_blaster );
@@ -723,8 +722,8 @@ void Road::OnMouseClickLeft( GLint X, GLint Y )
             break;
         }
         if ( m_btnNextMap.IsClicked( X, Y ) ) {
-            current_map++;
-            if ( current_map == m_mapsContainer.size() - 1 ) {
+            m_currentMap++;
+            if ( m_currentMap == m_mapsContainer.size() - 1 ) {
                 m_btnNextMap.Disable();
             }
             m_btnPrevMap.Enable();
@@ -732,8 +731,8 @@ void Road::OnMouseClickLeft( GLint X, GLint Y )
             break;
         }
         if ( m_btnPrevMap.IsClicked( X, Y ) ) {
-            current_map--;
-            if ( current_map == 0 ) {
+            m_currentMap--;
+            if ( m_currentMap == 0 ) {
                 m_btnPrevMap.Disable();
             }
             if ( m_mapsContainer.size() > 1 ) {
@@ -766,28 +765,28 @@ void Road::OnMouseClickLeft( GLint X, GLint Y )
     case Screen::eCustomize:
         if ( m_btnNextJet.IsClicked( X, Y ) ) {
             PlaySound( m_click );
-            current_jet++;
-            if ( current_jet == m_jetsContainer.size() - 1 ) {
+            m_currentJet++;
+            if ( m_currentJet == m_jetsContainer.size() - 1 ) {
                 m_btnNextJet.Disable();
             }
             m_btnPrevJet.Enable();
-            m_previewModel.Load_OBJ( m_jetsContainer.at( current_jet ).model_file.c_str() );
+            m_previewModel.Load_OBJ( m_jetsContainer.at( m_currentJet ).model_file.c_str() );
             m_previewModel.CalculateNormal();
-            m_previewModel.BindTexture( LoadTexture( m_jetsContainer.at( current_jet ).model_texture.c_str() ) );
+            m_previewModel.BindTexture( LoadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() ) );
             break;
         }
         if ( m_btnPrevJet.IsClicked( X, Y ) ) {
             PlaySound( m_click );
-            current_jet--;
-            if ( current_jet == 0 ) {
+            m_currentJet--;
+            if ( m_currentJet == 0 ) {
                 m_btnPrevJet.Disable();
             }
             if ( m_jetsContainer.size() > 1 ) {
                 m_btnNextJet.Enable();
             }
-            m_previewModel.Load_OBJ( m_jetsContainer.at( current_jet ).model_file.c_str() );
+            m_previewModel.Load_OBJ( m_jetsContainer.at( m_currentJet ).model_file.c_str() );
             m_previewModel.CalculateNormal();
-            m_previewModel.BindTexture( LoadTexture( m_jetsContainer.at( current_jet ).model_texture.c_str() ) );
+            m_previewModel.BindTexture( LoadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() ) );
             break;
         }
         if ( m_btnCustomizeReturn.IsClicked( X, Y ) ) {
@@ -921,8 +920,8 @@ void Road::ClearMapData()
 
 void Road::CreateMapData( const MapProto& map_data, const ModelProto& model_data )
 {
-    ShotsDone = 0;
-    HUD_Color = 0;
+    m_shotsDone = 0;
+    m_hudColor = 0;
     m_jet = new Jet( model_data );
     m_map = new Map( map_data );
     m_jet->SetWeapon( m_weapons[ m_weap1 ], 0 );
@@ -963,7 +962,7 @@ void Road::ChangeScreen( Screen SCR )
         break;
 
     case Screen::eGameBriefing:
-        CreateMapData( m_mapsContainer.at( current_map ), m_jetsContainer.at( current_jet ) );
+        CreateMapData( m_mapsContainer.at( m_currentMap ), m_jetsContainer.at( m_currentJet ) );
         m_currentScreen = SCR;
         break;
 
@@ -973,9 +972,9 @@ void Road::ChangeScreen( Screen SCR )
         break;
 
     case Screen::eCustomize:
-        model_rotation = 135.0;
-        m_previewModel.Load_OBJ( m_jetsContainer.at( current_jet ).model_file.c_str() );
-        m_previewModel.BindTexture( LoadTexture( m_jetsContainer.at( current_jet ).model_texture.c_str() ) );
+        m_modelRotation = 135.0;
+        m_previewModel.Load_OBJ( m_jetsContainer.at( m_currentJet ).model_file.c_str() );
+        m_previewModel.BindTexture( LoadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() ) );
         m_previewModel.CalculateNormal();
         m_currentScreen = SCR;
         break;
@@ -1061,7 +1060,7 @@ void Road::LoadMapProto()
         m_mapsContainer.push_back( map );
         m_btnNextMap.Disable();
     }
-    current_map = 0;
+    m_currentMap = 0;
     m_btnPrevMap.Disable();
     std::cout << "done\n";
 }
@@ -1103,16 +1102,16 @@ void Road::LoadJetProto()
         m_btnNextJet.Disable();
     }
     std::cout << "size " << m_jetsContainer.size() << "\n";
-    current_jet = 0;
+    m_currentJet = 0;
     for ( GLuint i = 0; i < m_jetsContainer.size(); i++ ) {
         if ( m_lastSelectedJetName == m_jetsContainer.at( i ).name ) {
-            current_jet = i;
+            m_currentJet = i;
         }
     }
-    if ( current_jet == 0 ) {
+    if ( m_currentJet == 0 ) {
         m_btnPrevJet.Disable();
     }
-    if ( current_jet == m_jetsContainer.size() - 1 ) {
+    if ( m_currentJet == m_jetsContainer.size() - 1 ) {
         m_btnNextJet.Disable();
     }
 
@@ -1136,9 +1135,6 @@ void Road::LoadConfig()
         }
         if ( strcmp( value_1, "fullscreen" ) == 0 ) {
             m_isFullscreen = atoi( value_2 ) != 0;
-        }
-        if ( strcmp( value_1, "texturefiltering" ) == 0 ) {
-            current_filtering = atoi( value_2 );
         }
         if ( strcmp( value_1, "jet" ) == 0 ) {
             m_lastSelectedJetName = value_2;
@@ -1193,9 +1189,8 @@ void Road::SaveConfig()
     ConfigFile << "width " << viewportWidth() << "\n";
     ConfigFile << "height " << viewportHeight() << "\n";
     ConfigFile << "fullscreen " << m_isFullscreen << "\n";
-    ConfigFile << "texturefiltering " << current_filtering << "\n";
     ConfigFile << "sound " << m_isSoundEnabled << "\n";
-    ConfigFile << "jet " << m_jetsContainer.at( current_jet ).name << "\n";
+    ConfigFile << "jet " << m_jetsContainer.at( m_currentJet ).name << "\n";
     ConfigFile << "weap1 ";
     switch ( m_weap1 ) {
     case 0:
@@ -1239,16 +1234,16 @@ void Road::SaveConfig()
 void Road::UpdateClouds()
 {
     if ( m_backgroundEffectEquation ) {
-        alpha_value += 0.1 * DELTATIME;
+        m_alphaValue += 0.1 * DELTATIME;
     }
     else {
-        alpha_value -= 0.1 * DELTATIME;
+        m_alphaValue -= 0.1 * DELTATIME;
     }
 
-    if ( alpha_value >= 1 ) {
+    if ( m_alphaValue >= 1 ) {
         m_backgroundEffectEquation = false;
     }
-    if ( alpha_value <= 0.2 ) {
+    if ( m_alphaValue <= 0.2 ) {
         m_backgroundEffectEquation = true;
     }
 }
@@ -1275,9 +1270,9 @@ void Road::UpdateCustomize()
 {
     UpdateClouds();
     UpdateCyberRings();
-    model_rotation += 30.0 * DELTATIME;
-    if ( model_rotation >= 360.0 ) {
-        model_rotation -= 360.0;
+    m_modelRotation += 30.0 * DELTATIME;
+    if ( m_modelRotation >= 360.0 ) {
+        m_modelRotation -= 360.0;
     }
 }
 
