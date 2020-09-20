@@ -13,7 +13,7 @@ struct TGA {
     GLubyte* data = nullptr;
 };
 
+GLuint loadDefault();
+GLuint loadTexture( const char* filename );
+void drawSprite( GLuint spriteID, GLdouble spriteSize );
 void setTextureFiltering();
-GLuint LoadDefault();
-GLuint LoadTexture( const char* filename );
-void DrawSprite( const GLuint& spriteID, const GLdouble& spriteSize );

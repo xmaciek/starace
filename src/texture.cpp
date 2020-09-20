@@ -1,6 +1,6 @@
 #include "texture.hpp"
 
-GLuint LoadDefault()
+GLuint loadDefault()
 {
     GLubyte DEF[ 64 * 64 * 3 ];
     bool c = false;
@@ -42,18 +42,18 @@ void setTextureFiltering()
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0f );
 }
 
-GLuint LoadTexture( const char* filename )
+GLuint loadTexture( const char* filename )
 {
     GLubyte HEADER[ 12 ]{};
     const GLubyte UNCOMPRESSED[ 12 ] = { 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     FILE* TGAfile = fopen( filename, "rb" );
     if ( !TGAfile ) {
-        return LoadDefault();
+        return loadDefault();
     }
     fread( HEADER, 12, 1, TGAfile );
     if ( memcmp( HEADER, UNCOMPRESSED, 12 ) != 0 ) {
         fclose( TGAfile );
-        return LoadDefault();
+        return loadDefault();
     }
     TGA tga{};
     fread( tga.header, 6, 1, TGAfile );
@@ -63,7 +63,7 @@ GLuint LoadTexture( const char* filename )
 
     if ( ( tga.width <= 0 ) || ( tga.height <= 0 ) || ( ( ( tga.bpp != 24 ) ) && ( tga.bpp != 32 ) ) ) {
         fclose( TGAfile );
-        return LoadDefault();
+        return loadDefault();
     }
 
     if ( tga.bpp == 24 ) {
@@ -101,7 +101,7 @@ GLuint LoadTexture( const char* filename )
     return textureID;
 }
 
-void DrawSprite( const GLuint& spriteID, const GLdouble& spriteSize )
+void drawSprite( GLuint spriteID, GLdouble spriteSize )
 {
     GLfloat matrix[ 16 ]{};
     glPushMatrix();

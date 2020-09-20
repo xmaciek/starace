@@ -1,7 +1,10 @@
 #include "jet.hpp"
 
+#include "texture.hpp"
+
 #include <algorithm>
 #include <cassert>
+
 
 Jet::Jet( const ModelProto& model_data )
 {
@@ -19,7 +22,7 @@ Jet::Jet( const ModelProto& model_data )
     status = ALIVE;
 
     m_model.loadOBJ( model_data.model_file.c_str() );
-    m_model.bindTexture( LoadTexture( model_data.model_texture.c_str() ) );
+    m_model.bindTexture( loadTexture( model_data.model_texture.c_str() ) );
     m_model.scale( model_data.scale );
     m_model.calculateNormal();
 

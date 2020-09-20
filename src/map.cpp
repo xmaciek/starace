@@ -116,14 +116,12 @@ void Map::update()
 
 Map::Map( const MapProto& data )
 {
-    //     textureID = LoadTexture(tex);
-
-    m_top = LoadTexture( data.TOP.c_str() );
-    m_bottom = LoadTexture( data.BOTTOM.c_str() );
-    m_left = LoadTexture( data.LEFT.c_str() );
-    m_right = LoadTexture( data.RIGHT.c_str() );
-    m_front = LoadTexture( data.FRONT.c_str() );
-    m_back = LoadTexture( data.BACK.c_str() );
+    m_top = loadTexture( data.TOP.c_str() );
+    m_bottom = loadTexture( data.BOTTOM.c_str() );
+    m_left = loadTexture( data.LEFT.c_str() );
+    m_right = loadTexture( data.RIGHT.c_str() );
+    m_front = loadTexture( data.FRONT.c_str() );
+    m_back = loadTexture( data.BACK.c_str() );
 
     m_min = 0.00125;
     m_max = 0.99875;

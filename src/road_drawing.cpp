@@ -588,7 +588,7 @@ void Road::MissionSelectionScreen()
     {
         MapProto& map = m_mapsContainer[ m_currentMap ];
         if ( map.preview_image == 0 ) {
-            map.preview_image = LoadTexture( map.preview_image_location.c_str() );
+            map.preview_image = loadTexture( map.preview_image_location.c_str() );
         }
         glBindTexture( GL_TEXTURE_2D, map.preview_image );
     }

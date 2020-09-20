@@ -227,7 +227,7 @@ void Road::InitRoadAdditionsGL()
     m_fontBig = new Font( "misc/DejaVuSans-Bold.ttf", 32 );
     TTF_Quit();
 
-    m_buttonTexture = LoadTexture( "textures/button1.tga" );
+    m_buttonTexture = loadTexture( "textures/button1.tga" );
 
     m_btnChangeFiltering.setFont( m_fontGuiTxt );
     m_btnChangeFiltering.setText( "Anisotropic x16" );
@@ -331,19 +331,19 @@ void Road::InitRoadAdditionsGL()
     }
 
     m_timePassed = time( nullptr );
-    m_hudTex = LoadTexture( "textures/HUDtex.tga" );
+    m_hudTex = loadTexture( "textures/HUDtex.tga" );
 
-    m_menuBackground = LoadTexture( "textures/background.tga" );
-    m_menuBackgroundOverlay = LoadTexture( "textures/background-overlay.tga" );
-    m_starfieldTexture = LoadTexture( "textures/star_field_transparent.tga" );
+    m_menuBackground = loadTexture( "textures/background.tga" );
+    m_menuBackgroundOverlay = loadTexture( "textures/background-overlay.tga" );
+    m_starfieldTexture = loadTexture( "textures/star_field_transparent.tga" );
     m_alphaValue = 1;
     m_backgroundEffectEquation = false;
 
     m_speedFanRing = new Circle( 32, 26 );
 
-    m_cyberRingTexture[ 0 ] = LoadTexture( "textures/cyber_ring1.tga" );
-    m_cyberRingTexture[ 1 ] = LoadTexture( "textures/cyber_ring2.tga" );
-    m_cyberRingTexture[ 2 ] = LoadTexture( "textures/cyber_ring3.tga" );
+    m_cyberRingTexture[ 0 ] = loadTexture( "textures/cyber_ring1.tga" );
+    m_cyberRingTexture[ 1 ] = loadTexture( "textures/cyber_ring2.tga" );
+    m_cyberRingTexture[ 2 ] = loadTexture( "textures/cyber_ring3.tga" );
     //     m_cyberRingTexture[3] = LoadTexture("textures/cyber_ring4.tga");
     m_cyberRingRotation[ 0 ] = 0;
     m_cyberRingRotation[ 1 ] = 0;
@@ -772,7 +772,7 @@ void Road::OnMouseClickLeft( GLint X, GLint Y )
             m_btnPrevJet.setEnabled( true);
             m_previewModel.loadOBJ( m_jetsContainer.at( m_currentJet ).model_file.c_str() );
             m_previewModel.calculateNormal();
-            m_previewModel.bindTexture( LoadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() ) );
+            m_previewModel.bindTexture( loadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() ) );
             break;
         }
         if ( m_btnPrevJet.isClicked( X, Y ) ) {
@@ -786,7 +786,7 @@ void Road::OnMouseClickLeft( GLint X, GLint Y )
             }
             m_previewModel.loadOBJ( m_jetsContainer.at( m_currentJet ).model_file.c_str() );
             m_previewModel.calculateNormal();
-            m_previewModel.bindTexture( LoadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() ) );
+            m_previewModel.bindTexture( loadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() ) );
             break;
         }
         if ( m_btnCustomizeReturn.isClicked( X, Y ) ) {
@@ -974,7 +974,7 @@ void Road::ChangeScreen( Screen SCR )
     case Screen::eCustomize:
         m_modelRotation = 135.0;
         m_previewModel.loadOBJ( m_jetsContainer.at( m_currentJet ).model_file.c_str() );
-        m_previewModel.bindTexture( LoadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() ) );
+        m_previewModel.bindTexture( loadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() ) );
         m_previewModel.calculateNormal();
         m_currentScreen = SCR;
         break;
