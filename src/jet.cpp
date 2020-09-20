@@ -50,7 +50,7 @@ Jet::~Jet()
 void Jet::Draw() const
 {
     GLfloat matrix[ 16 ]{};
-    m_animation.CreateMatrix( matrix );
+    m_animation.createMatrix( matrix );
 
     glPushMatrix();
     glMultMatrixf( matrix );
@@ -182,30 +182,30 @@ void Jet::Update()
     Quaternion qy{};
     Quaternion qz{};
 
-    qx.CreateFromAngles( 1, 0, 0, m_rotX );
-    qy.CreateFromAngles( 0, 1, 0, -m_rotY );
-    qz.CreateFromAngles( 0, 0, 1, -m_rotZ );
+    qx.createFromAngles( 1, 0, 0, m_rotX );
+    qy.createFromAngles( 0, 1, 0, -m_rotY );
+    qz.createFromAngles( 0, 0, 1, -m_rotZ );
     qtmp = qy * qtmp; /* yaw */
     qtmp = qx * qtmp; /* pitch */
     qtmp = qz * qtmp; /* roll */
     m_animation = qtmp;
 
-    qx.CreateFromAngles( 1, 0, 0, m_rotX * 4 * DELTATIME );
-    qy.CreateFromAngles( 0, 1, 0, -m_rotY * 2.5 * DELTATIME );
-    qz.CreateFromAngles( 0, 0, 1, -m_rotZ * 2.5 * DELTATIME );
+    qx.createFromAngles( 1, 0, 0, m_rotX * 4 * DELTATIME );
+    qy.createFromAngles( 0, 1, 0, -m_rotY * 2.5 * DELTATIME );
+    qz.createFromAngles( 0, 0, 1, -m_rotZ * 2.5 * DELTATIME );
     qtmp = m_quaternion;
     qtmp = qy * qtmp; /* yaw */
     qtmp = qx * qtmp; /* pitch */
     qtmp = qz * qtmp; /* roll */
     m_quaternion = qtmp;
-    qtmp.Conjugate();
+    qtmp.conjugate();
     m_rotation = qtmp;
 
     Vertex v;
     v.x = 0;
     v.y = 0;
     v.z = -1;
-    m_quaternion.RotateVector( v );
+    m_quaternion.rotateVector( v );
     direction = v;
     normalise_v( direction );
     velocity = direction * speed;
@@ -286,7 +286,7 @@ void Jet::Shoot( GLuint WeaponNum, bool doit )
 Vertex Jet::GetWeaponPoint( GLuint wID )
 {
     Vertex w = m_model.weapon( wID );
-    m_quaternion.RotateVector( w );
+    m_quaternion.rotateVector( w );
     w = w + position;
     return w;
 }
@@ -295,7 +295,7 @@ Bullet* Jet::GetWeaponType( GLuint wID )
 {
     BulletProto tmp = m_weapon[ wID ];
     Vertex w = m_model.weapon( wID );
-    m_quaternion.RotateVector( w );
+    m_quaternion.rotateVector( w );
     w = w + position;
 
     tmp.x = w.x;

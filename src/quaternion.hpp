@@ -11,13 +11,13 @@ private:
 public:
     Quaternion() = default;
     Quaternion( const Vertex& v, GLfloat w );
-    Quaternion operator*( const Quaternion& Q ) const;
+    Quaternion operator*( const Quaternion& ) const;
 
-    Vertex GetVector() const;
-    void Conjugate();
-    void CreateFromAngles( const GLdouble& X, const GLdouble& Y, const GLdouble& Z, const GLdouble& deg );
-    void CreateMatrix( GLfloat* mat ) const;
-    void Inverse();
-    void Normalise();
-    void RotateVector( Vertex& v );
+    Vertex toVector() const;
+    void conjugate();
+    void createFromAngles( GLdouble x, GLdouble y, GLdouble z, GLdouble deg );
+    void createMatrix( GLfloat* mat ) const;
+    void inverse();
+    void normalize();
+    void rotateVector( Vertex& );
 };
