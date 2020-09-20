@@ -1,5 +1,4 @@
-#ifndef SA_H
-#define SA_H
+#pragma once
 
 #include <cmath>
 #include <cstdio>
@@ -27,10 +26,10 @@ struct Vertex {
     GLdouble z = 0.0;
 
     Vertex() = default;
-    Vertex( GLdouble X, GLdouble Y, GLdouble Z )
-    : x( X )
-    , y( Y )
-    , z( Z )
+    Vertex( GLdouble ax, GLdouble ay, GLdouble az )
+    : x( ax )
+    , y( ay )
+    , z( az )
     {
     }
 
@@ -87,19 +86,15 @@ struct ModelProto {
     GLfloat scale = 1.0f;
 };
 
-// const GLdouble DELTATIME = 1.0/60;
 const GLdouble DELTATIME = 0.016;
-// #define PI 3.14159265
 const GLdouble PI = M_PI;
 const GLdouble DEG2RAD = PI / 180.0;
 const GLdouble RAD2DEG = PI * 180.0;
-GLdouble random_range( GLdouble a, GLdouble b );
-GLfloat colorhalf( GLfloat col );
 
-Vertex cross_product( const Vertex& a, const Vertex& b );
-GLdouble dot_product( const Vertex& a, const Vertex& b );
-GLdouble length_v( const Vertex& v );
-void normalise_v( Vertex& v );
-GLdouble distance_v( const Vertex&, const Vertex& );
-
-#endif
+GLdouble distanceV( const Vertex&, const Vertex& );
+GLdouble dotProduct( const Vertex& a, const Vertex& b );
+GLdouble lengthV( const Vertex& v );
+GLdouble randomRange( GLdouble a, GLdouble b );
+GLfloat colorHalf( GLfloat col );
+Vertex crossProduct( const Vertex& a, const Vertex& b );
+void normalizeV( Vertex& v );

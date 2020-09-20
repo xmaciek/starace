@@ -18,7 +18,7 @@ Enemy::Enemy()
     CollisionDistance = 0.1;
     CollisionFlag = true;
 
-    normalise_v( direction );
+    normalizeV( direction );
     velocity = direction * speed;
     turnrate_in_rads = speed * 5 * DEG2RAD * DELTATIME;
     ImTargeted = false;
@@ -28,7 +28,7 @@ Enemy::Enemy()
 void Enemy::SetWeapon( const BulletProto& b )
 {
     m_weapon = b;
-    m_shotFactor = random_range( 0, m_weapon.delay );
+    m_shotFactor = randomRange( 0, m_weapon.delay );
 }
 
 Bullet* Enemy::GetWeapon()
@@ -50,9 +50,9 @@ bool Enemy::IsWeaponReady() const
 
 void Enemy::ReinitCoordinates()
 {
-    position.x = random_range( -10.0, 10.0 );
-    position.y = random_range( -10.0, 10.0 );
-    position.z = random_range( -10.0, 10.0 );
+    position.x = randomRange( -10.0, 10.0 );
+    position.y = randomRange( -10.0, 10.0 );
+    position.z = randomRange( -10.0, 10.0 );
 }
 
 void Enemy::Draw() const
@@ -61,8 +61,8 @@ void Enemy::Draw() const
         glPushMatrix();
         glTranslated( position.x, position.y, position.z );
         glColor3f(
-            1.0f - m_healthPerc + colorhalf( 1.0f - m_healthPerc )
-            , colorhalf( m_healthPerc ) + m_healthPerc
+            1.0f - m_healthPerc + colorHalf( 1.0f - m_healthPerc )
+            , colorHalf( m_healthPerc ) + m_healthPerc
             , 0 );
         m_shield.draw();
         if ( ImTargeted ) {
@@ -105,8 +105,8 @@ void Enemy::DrawRadarPosition( const Vertex& Modifier, const GLdouble& RadarScal
     }
     Vertex RadarPosition = Modifier;
     RadarPosition = ( position - Modifier ) * ( RadarScale / 25 );
-    if ( length_v( RadarPosition ) > RadarScale ) {
-        normalise_v( RadarPosition );
+    if ( lengthV( RadarPosition ) > RadarScale ) {
+        normalizeV( RadarPosition );
         RadarPosition = RadarPosition * RadarScale;
         glColor3f( 1, 0.4, 0.05 );
     }
@@ -129,7 +129,7 @@ void Enemy::ProcessCollision( SAObject* object )
         return;
     }
 
-    if ( distance_v( position, object->GetPosition() ) <= CollisionDistance + object->GetCollisionDistance() ) {
+    if ( distanceV( position, object->GetPosition() ) <= CollisionDistance + object->GetCollisionDistance() ) {
         Damage( CollisionDamage + object->GetCollisionDamage() );
         object->Damage( CollisionDamage + object->GetCollisionDamage() );
     }

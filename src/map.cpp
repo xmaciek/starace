@@ -106,10 +106,10 @@ void Map::update()
 {
     for ( auto& it : m_particleList ) {
         it += m_jetVelocity;
-        if ( distance_v( it, m_jetPosition ) >= 1.5 ) {
-            it.x = random_range( m_jetPosition.x - 1, m_jetPosition.x + 1 );
-            it.y = random_range( m_jetPosition.y - 1, m_jetPosition.y + 1 );
-            it.z = random_range( m_jetPosition.z - 1, m_jetPosition.z + 1 );
+        if ( distanceV( it, m_jetPosition ) >= 1.5 ) {
+            it.x = randomRange( m_jetPosition.x - 1, m_jetPosition.x + 1 );
+            it.y = randomRange( m_jetPosition.y - 1, m_jetPosition.y + 1 );
+            it.z = randomRange( m_jetPosition.z - 1, m_jetPosition.z + 1 );
         }
     }
 }
@@ -128,7 +128,7 @@ Map::Map( const MapProto& data )
 
     m_particleList.reserve( 100 );
     for ( int i = 0; i < 100; i++ ) {
-        m_particleList.emplace_back( random_range( -1, 1 ), random_range( -1, 1 ), random_range( -1, 1 ) );
+        m_particleList.emplace_back( randomRange( -1, 1 ), randomRange( -1, 1 ), randomRange( -1, 1 ) );
     }
 
     m_v1 = 1000;

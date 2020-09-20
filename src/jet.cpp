@@ -210,7 +210,7 @@ void Jet::Update()
     v.z = -1;
     m_quaternion.rotateVector( v );
     direction = v;
-    normalise_v( direction );
+    normalizeV( direction );
     velocity = direction * speed;
 
     if ( m_shotFactor[ 0 ] < m_weapon[ 0 ].delay ) {
@@ -348,7 +348,7 @@ void Jet::ProcessCollision( std::vector<Bullet*>& Bullets )
         if ( it->GetStatus() != ALIVE ) {
             continue;
         }
-        if ( distance_v( position, it->GetPosition() ) > 0.1 ) {
+        if ( distanceV( position, it->GetPosition() ) > 0.1 ) {
             continue;
         }
         health -= it->getDamage();

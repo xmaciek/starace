@@ -180,14 +180,11 @@ void Road::DrawHUDBar( const GLuint& X, const GLuint& Y, const GLuint& W, const 
     glVertex2d( W + 4, -4 );
     glVertex2d( -4, -4 );
     glEnd();
-    //     DrawHUDLine(X-4, viewportHeight()-8, X+W+4, viewportHeight()-8, 2);
-    //     DrawHUDLine(X+W+4, viewportHeight()-8, X+W+4, viewportHeight()-112, 2);
-    //     DrawHUDLine(X+W+4, viewportHeight()-112, X-4, viewportHeight()-112, 2);
     glBegin( GL_QUADS );
-    //       glColor4f(1.0f, (GLfloat)Current/Max, 0, 0.8f);
-    //     (1.0f-(GLfloat)health/1000)+colorhalf((1.0f-(GLfloat)health/1000)),
-    //           glColor4f(1-(m_jet->energy/100) + colorhalf(1-m_jet->energy/100), colorhalf(m_jet->energy/100)+(GLfloat)m_jet->energy/100, 0, 0.8);
-    glColor3f( ( 1.0f - static_cast<GLfloat>( Current ) / Max ) + colorhalf( ( 1.0f - static_cast<GLfloat>( Current ) / Max ) ), static_cast<GLfloat>( Current ) / Max + colorhalf( static_cast<GLfloat>( Current ) / Max ), 0 );
+    glColor3f(
+        ( 1.0f - static_cast<GLfloat>( Current ) / Max ) + colorHalf( ( 1.0f - static_cast<GLfloat>( Current ) / Max ) )
+        , static_cast<GLfloat>( Current ) / Max + colorHalf( static_cast<GLfloat>( Current ) / Max )
+        , 0 );
 
     glVertex2d( 0, 0 );
     glVertex2d( W, 0 );

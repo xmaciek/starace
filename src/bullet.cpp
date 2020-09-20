@@ -50,7 +50,7 @@ Bullet::Bullet( const BulletProto& bp )
     ttl = 20;
 };
 
-inline void Bullet::Draw1() const
+void Bullet::Draw1() const
 {
     Tail::const_iterator it = m_tail.begin();
     glPushMatrix();
@@ -70,7 +70,7 @@ inline void Bullet::Draw1() const
     glPopMatrix();
 };
 
-inline void Bullet::DrawLaser() const
+void Bullet::DrawLaser() const
 {
     Tail::const_iterator it = m_tail.begin();
     glPushMatrix();
@@ -83,7 +83,7 @@ inline void Bullet::DrawLaser() const
     glPopMatrix();
 }
 
-inline void Bullet::Draw2() const
+void Bullet::Draw2() const
 {
     Tail::const_iterator it = m_tail.begin();
     glPushMatrix();
@@ -164,20 +164,20 @@ bool Bullet::collisionTest( const SAObject* object ) const
 
     const Vertex collRay = collisionRay();
     const Vertex dir = object->GetPosition() - position;
-    const double tmp = dot_product( dir, collRay );
+    const double tmp = dotProduct( dir, collRay );
     double dist = 0.0;
 
     if ( tmp <= 0 ) {
-        dist = length_v( dir );
+        dist = lengthV( dir );
     }
     else {
-        const double tmp2 = dot_product( collRay, collRay );
+        const double tmp2 = dotProduct( collRay, collRay );
         if ( tmp2 <= tmp ) {
-            dist = length_v( dir );
+            dist = lengthV( dir );
         }
         else {
             const Vertex Pb = position + ( collRay * ( tmp / tmp2 ) );
-            dist = length_v( object->GetPosition() - Pb );
+            dist = lengthV( object->GetPosition() - Pb );
         }
     }
 
@@ -219,7 +219,7 @@ Vertex Bullet::collisionRay() const
 void Bullet::SetDirection( Vertex v )
 {
     direction = v;
-    normalise_v( direction );
+    normalizeV( direction );
     velocity = direction * speed;
     if ( m_type == SLUG ) {
         m_tail.insert( position + ( direction * 1000 ) );

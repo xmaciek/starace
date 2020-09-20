@@ -36,9 +36,9 @@ private:
 
     virtual Vertex collisionRay() const;
     virtual bool collisionTest( const SAObject* object ) const;
-    inline void Draw1() const;
-    inline void Draw2() const;
-    inline void DrawLaser() const;
+    void Draw1() const;
+    void Draw2() const;
+    void DrawLaser() const;
 
 public:
     explicit Bullet( const BulletProto& bp );

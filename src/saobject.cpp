@@ -88,13 +88,13 @@ void SAObject::InterceptTarget()
     Vertex D = direction;
     Vertex T = target->GetPosition();
     T = position - T;
-    normalise_v( T );
+    normalizeV( T );
 
-    const double tmp = tan( atan( dot_product( D, T ) - turnrate_in_rads ) );
-    D = cross_product( T, cross_product( D, T ) );
+    const double tmp = tan( atan( dotProduct( D, T ) - turnrate_in_rads ) );
+    D = crossProduct( T, crossProduct( D, T ) );
     D = D + ( T * tmp );
 
-    normalise_v( D );
+    normalizeV( D );
     direction = D;
     velocity = direction * speed;
 }
