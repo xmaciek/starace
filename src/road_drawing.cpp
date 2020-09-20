@@ -277,7 +277,7 @@ void Road::RenderHUD()
 
     /*radar*/
     GLfloat matrice[ 16 ];
-    jet->quaternion.CreateMatrix( matrice );
+    jet->quat().CreateMatrix( matrice );
     //         jet->rotation.CreateMatrix(matrice);
 
     glPushMatrix();
@@ -385,7 +385,7 @@ void Road::RenderHUD()
 
     DrawCyberRingsMini();
 
-    DrawHUDBar( 12, 12, 36, 96, jet->energy, 100 );
+    DrawHUDBar( 12, 12, 36, 96, jet->energy(), 100 );
     DrawHUDBar( 64, 12, 36, 96, jet->GetHealth(), 100 );
 
     glColor4fv( HUD_Color_4fv[ HUD_Color ] );
@@ -422,7 +422,7 @@ void Road::Render3D()
     glTranslated( 0, -0.225, -1 );
     glPushMatrix();
     GLfloat matrice[ 16 ];
-    jet->rotation.CreateMatrix( matrice );
+    jet->rotation().CreateMatrix( matrice );
     glMultMatrixf( matrice );
     glTranslated( cX, cY, cZ );
     map->Draw();
