@@ -37,11 +37,11 @@ Road::Road()
 
     ChangeScreen( SA_MAINMENU );
 
-    enemies.reserve( 100 );
-    Egarbage.reserve( 32 );
-    bullet.reserve( 500 );
-    enemybullet.reserve( 1000 );
-    Bgarbage.reserve( 200 );
+    m_enemies.reserve( 100 );
+    m_enemyGarbage.reserve( 32 );
+    m_bullets.reserve( 500 );
+    m_enemyBullets.reserve( 1000 );
+    m_bulletGarbage.reserve( 200 );
 }
 
 Road::~Road()
@@ -60,7 +60,7 @@ Road::~Road()
     glDeleteTextures( 1, &menu_background_overlay );
     glDeleteTextures( 3, cyber_ring_texture );
     glDeleteTextures( 1, &starfield_texture );
-    for ( auto& it : maps_container ) {
+    for ( auto& it : m_mapsContainer ) {
         glDeleteTextures( 1, &it.preview_image );
     }
 }
@@ -572,7 +572,7 @@ void Road::GameUpdate()
     if ( jet->GetStatus() == SAObject::DEAD ) {
         ChangeScreen( SA_DEADSCREEN );
     }
-    if ( enemies.empty() ) {
+    if ( m_enemies.empty() ) {
         ChangeScreen( SA_WINSCREEN );
     }
     if ( jet->GetHealth() <= 20 ) {
@@ -594,24 +594,24 @@ void Road::GameUpdate()
 
     {
         std::lock_guard<std::mutex> lg( m_mutexEnemy );
-        for ( Enemy*& e : enemies ) {
+        for ( Enemy*& e : m_enemies ) {
             e->Update();
             if ( e->IsWeaponReady() ) {
                 std::lock_guard<std::mutex> lg( m_mutexEnemyBullet );
-                enemybullet.push_back( e->GetWeapon() );
+                m_enemyBullets.push_back( e->GetWeapon() );
             }
             if ( e->GetStatus() == Enemy::DEAD ) {
                 jet->AddScore( e->GetScore(), true );
-                Egarbage.push_back( e );
+                m_enemyGarbage.push_back( e );
                 e = nullptr;
             }
         }
-        enemies.erase( std::remove( enemies.begin(), enemies.end(), nullptr ), enemies.end() );
+        m_enemies.erase( std::remove( m_enemies.begin(), m_enemies.end(), nullptr ), m_enemies.end() );
     }
 
     {
         std::lock_guard<std::mutex> lg( m_mutexEnemyBullet );
-        for ( Bullet* it : enemybullet ) {
+        for ( Bullet* it : m_enemyBullets ) {
             it->ProcessCollision( jet );
         }
     }
@@ -625,68 +625,72 @@ void Road::GameUpdate()
     map->Update();
 
     {
-        std::lock_guard<std::mutex> lg( m_mutexBullet );
-        for ( Bullet*& b : bullet ) {
-            for ( Enemy* e : enemies ) {
+        std::lock_guard<std::mutex> lg( m_mutexEnemy );
+        std::lock_guard<std::mutex> lg2( m_mutexBullet );
+        for ( Bullet*& b : m_bullets ) {
+            for ( Enemy* e : m_enemies ) {
                 b->ProcessCollision( e );
             }
 
             b->Update();
             if ( b->GetStatus() == Bullet::DEAD ) {
-                Bgarbage.push_back( b );
+                m_bulletGarbage.push_back( b );
                 b = nullptr;
                 //         i-=1;
             }
         }
-        bullet.erase( std::remove( bullet.begin(), bullet.end(), nullptr ), bullet.end() );
+        m_bullets.erase( std::remove( m_bullets.begin(), m_bullets.end(), nullptr ), m_bullets.end() );
     }
 
     {
         std::lock_guard<std::mutex> lg( m_mutexEnemyBullet );
-        for ( Bullet*& b : enemybullet ) {
+        for ( Bullet*& b : m_enemyBullets ) {
             b->Update();
             if ( b->GetStatus() == Bullet::DEAD ) {
-                Bgarbage.push_back( b );
+                m_bulletGarbage.push_back( b );
                 b = nullptr;
             }
         }
-        enemybullet.erase( std::remove( enemybullet.begin(), enemybullet.end(), nullptr ), enemybullet.end() );
+        m_enemyBullets.erase( std::remove( m_enemyBullets.begin(), m_enemyBullets.end(), nullptr ), m_enemyBullets.end() );
     }
 
-    for ( Enemy*& e : Egarbage ) {
+    for ( Enemy*& e : m_enemyGarbage ) {
         if ( e->DeleteMe() ) {
             delete e;
             e = nullptr;
         }
     }
-    Egarbage.erase( std::remove( Egarbage.begin(), Egarbage.end(), nullptr ), Egarbage.end() );
+    m_enemyGarbage.erase( std::remove( m_enemyGarbage.begin(), m_enemyGarbage.end(), nullptr ), m_enemyGarbage.end() );
 
-    for ( Bullet*& b : Bgarbage ) {
+    for ( Bullet*& b : m_bulletGarbage ) {
         if ( b->DeleteMe() ) {
             delete b;
             b = nullptr;
         }
     }
-    Bgarbage.erase( std::remove( Bgarbage.begin(), Bgarbage.end(), nullptr ), Bgarbage.end() );
+    m_bulletGarbage.erase( std::remove( m_bulletGarbage.begin(), m_bulletGarbage.end(), nullptr ), m_bulletGarbage.end() );
 
     UpdateCyberRings();
 }
 
 void Road::AddBullet( GLuint wID )
 {
-    if ( jet->IsWeaponReady( wID ) ) {
-        jet->TakeEnergy( wID );
-        bullet.push_back( jet->GetWeaponType( wID ) );
-        ShotsDone++;
-        if ( bullet.at( bullet.size() - 1 )->GetType() == Bullet::BLASTER ) {
-            PlaySound( blaster );
-        }
-        if ( bullet.at( bullet.size() - 1 )->GetType() == Bullet::SLUG ) {
-            PlaySound( laser );
-        }
-        if ( bullet.at( bullet.size() - 1 )->GetType() == Bullet::TORPEDO ) {
-            PlaySound( torpedo );
-        }
+    if ( !jet->IsWeaponReady( wID ) ) {
+        return;
+    }
+    jet->TakeEnergy( wID );
+    m_bullets.push_back( jet->GetWeaponType( wID ) );
+    ShotsDone++;
+    switch ( m_bullets.back()->GetType() ) {
+    case Bullet::BLASTER:
+        PlaySound( blaster );
+        break;
+    case Bullet::SLUG:
+        PlaySound( laser );
+        break;
+    case Bullet::TORPEDO:
+        PlaySound( torpedo );
+        break;
     }
 }
 
@@ -731,7 +735,7 @@ void Road::OnMouseClickLeft( GLint X, GLint Y )
         }
         if ( m_btnNextMap.IsClicked( X, Y ) ) {
             current_map++;
-            if ( current_map == maps_container.size() - 1 ) {
+            if ( current_map == m_mapsContainer.size() - 1 ) {
                 m_btnNextMap.Disable();
             }
             m_btnPrevMap.Enable();
@@ -743,7 +747,7 @@ void Road::OnMouseClickLeft( GLint X, GLint Y )
             if ( current_map == 0 ) {
                 m_btnPrevMap.Disable();
             }
-            if ( maps_container.size() > 1 ) {
+            if ( m_mapsContainer.size() > 1 ) {
                 m_btnNextMap.Enable();
             }
             PlaySound( click );
@@ -774,13 +778,13 @@ void Road::OnMouseClickLeft( GLint X, GLint Y )
         if ( m_btnNextJet.IsClicked( X, Y ) ) {
             PlaySound( click );
             current_jet++;
-            if ( current_jet == jets_container.size() - 1 ) {
+            if ( current_jet == m_jetsContainer.size() - 1 ) {
                 m_btnNextJet.Disable();
             }
             m_btnPrevJet.Enable();
-            preview_model.Load_OBJ( jets_container.at( current_jet ).model_file.c_str() );
+            preview_model.Load_OBJ( m_jetsContainer.at( current_jet ).model_file.c_str() );
             preview_model.CalculateNormal();
-            preview_model.BindTexture( LoadTexture( jets_container.at( current_jet ).model_texture.c_str() ) );
+            preview_model.BindTexture( LoadTexture( m_jetsContainer.at( current_jet ).model_texture.c_str() ) );
             break;
         }
         if ( m_btnPrevJet.IsClicked( X, Y ) ) {
@@ -789,12 +793,12 @@ void Road::OnMouseClickLeft( GLint X, GLint Y )
             if ( current_jet == 0 ) {
                 m_btnPrevJet.Disable();
             }
-            if ( jets_container.size() > 1 ) {
+            if ( m_jetsContainer.size() > 1 ) {
                 m_btnNextJet.Enable();
             }
-            preview_model.Load_OBJ( jets_container.at( current_jet ).model_file.c_str() );
+            preview_model.Load_OBJ( m_jetsContainer.at( current_jet ).model_file.c_str() );
             preview_model.CalculateNormal();
-            preview_model.BindTexture( LoadTexture( jets_container.at( current_jet ).model_texture.c_str() ) );
+            preview_model.BindTexture( LoadTexture( m_jetsContainer.at( current_jet ).model_texture.c_str() ) );
             break;
         }
         if ( m_btnCustomizeReturn.IsClicked( X, Y ) ) {
@@ -862,11 +866,11 @@ void Road::OnMouseClickLeft( GLint X, GLint Y )
 void Road::Retarget()
 {
     std::lock_guard<std::mutex> lg( m_mutexEnemy );
-    if ( enemies.empty() ) {
+    if ( m_enemies.empty() ) {
         return;
     }
     static std::mt19937_64 random{ std::random_device()() };
-    jet->LockTarget( enemies[ random() % enemies.size() ] );
+    jet->LockTarget( m_enemies[ random() % m_enemies.size() ] );
 }
 
 void Road::UpdateMainMenu()
@@ -885,39 +889,39 @@ void Road::ClearMapData()
     std::cout << "Moving all enemies to garbage.\n";
     {
         std::lock_guard<std::mutex> lg( m_mutexEnemy );
-        for ( Enemy* e : enemies ) {
+        for ( Enemy* e : m_enemies ) {
             delete e;
         }
-        enemies.clear();
+        m_enemies.clear();
     }
 
     std::cout << "Moving all bullets to garbage.\n";
     {
         std::lock_guard<std::mutex> lg( m_mutexBullet );
-        for ( Bullet* b : bullet ) {
+        for ( Bullet* b : m_bullets ) {
             delete b;
         }
-        bullet.clear();
+        m_bullets.clear();
     }
 
     {
         std::lock_guard<std::mutex> lg( m_mutexEnemyBullet );
-        for ( Bullet* b : enemybullet ) {
+        for ( Bullet* b : m_enemyBullets ) {
             delete b;
         }
-        enemybullet.clear();
+        m_enemyBullets.clear();
     }
 
     std::cout << "Cleaning garbage...\n";
-    for ( Enemy* e : Egarbage ) {
+    for ( Enemy* e : m_enemyGarbage ) {
         delete e;
     }
-    Egarbage.clear();
+    m_enemyGarbage.clear();
 
-    for ( Bullet* b : Bgarbage ) {
+    for ( Bullet* b : m_bulletGarbage ) {
         delete b;
     }
-    Bgarbage.clear();
+    m_bulletGarbage.clear();
 
     std::cout << "Cleaning garbage: done.\n";
     delete map;
@@ -939,13 +943,13 @@ void Road::CreateMapData( const MapProto& map_data, const ModelProto& model_data
     {
         std::lock_guard<std::mutex> lg( m_mutexEnemy );
         for ( GLuint i = 0; i < map_data.enemies; i++ ) {
-            enemies.push_back( new Enemy() );
-            enemies.at( i )->SetTarget( jet );
-            enemies.at( i )->SetWeapon( Weapons[ 3 ] );
+            m_enemies.push_back( new Enemy() );
+            m_enemies.back()->SetTarget( jet );
+            m_enemies.back()->SetWeapon( Weapons[ 3 ] );
         }
     }
 
-    for ( MapProto& it : maps_container ) {
+    for ( MapProto& it : m_mapsContainer ) {
         glDeleteTextures( 1, &it.preview_image );
         it.preview_image = 0;
     }
@@ -970,7 +974,7 @@ void Road::ChangeScreen( GLubyte SCR )
         break;
 
     case SA_GAMESCREEN_BRIEFING:
-        CreateMapData( maps_container.at( current_map ), jets_container.at( current_jet ) );
+        CreateMapData( m_mapsContainer.at( current_map ), m_jetsContainer.at( current_jet ) );
         SCREEN = SCR;
         break;
 
@@ -981,10 +985,8 @@ void Road::ChangeScreen( GLubyte SCR )
 
     case SA_CUSTOMIZE:
         model_rotation = 135.0;
-        std::cout << current_jet << " " << jets_container.size() << "\n";
-        std::cout << jets_container.at( current_jet ).name.c_str() << "\n";
-        preview_model.Load_OBJ( jets_container.at( current_jet ).model_file.c_str() );
-        preview_model.BindTexture( LoadTexture( jets_container.at( current_jet ).model_texture.c_str() ) );
+        preview_model.Load_OBJ( m_jetsContainer.at( current_jet ).model_file.c_str() );
+        preview_model.BindTexture( LoadTexture( m_jetsContainer.at( current_jet ).model_texture.c_str() ) );
         preview_model.CalculateNormal();
         SCREEN = SCR;
         break;
@@ -1026,7 +1028,7 @@ bool Road::InitNewSurface( GLint W, GLint H, GLint D, bool F )
 void Road::LoadMapProto()
 {
     std::cout << "Loadings maps... ";
-    maps_container.clear();
+    m_mapsContainer.clear();
     MapProto map;
     std::ifstream MapFile( "maps.cfg" );
     char value_1[ 48 ]{};
@@ -1035,39 +1037,39 @@ void Road::LoadMapProto()
     while ( getline( MapFile, line ) ) {
         std::sscanf( line.c_str(), "%s %s", value_1, value_2 );
         if ( strcmp( value_1, "[MAP]" ) == 0 ) {
-            maps_container.push_back( map );
+            m_mapsContainer.push_back( map );
         }
         if ( strcmp( value_1, "name" ) == 0 ) {
-            maps_container.back().name = value_2;
+            m_mapsContainer.back().name = value_2;
         }
         if ( strcmp( value_1, "enemies" ) == 0 ) {
-            maps_container.back().enemies = atoi( value_2 );
+            m_mapsContainer.back().enemies = atoi( value_2 );
         }
         if ( strcmp( value_1, "top" ) == 0 ) {
-            maps_container.back().TOP = value_2;
+            m_mapsContainer.back().TOP = value_2;
         }
         if ( strcmp( value_1, "bottom" ) == 0 ) {
-            maps_container.back().BOTTOM = value_2;
+            m_mapsContainer.back().BOTTOM = value_2;
         }
         if ( strcmp( value_1, "left" ) == 0 ) {
-            maps_container.back().LEFT = value_2;
+            m_mapsContainer.back().LEFT = value_2;
         }
         if ( strcmp( value_1, "right" ) == 0 ) {
-            maps_container.back().RIGHT = value_2;
+            m_mapsContainer.back().RIGHT = value_2;
         }
         if ( strcmp( value_1, "front" ) == 0 ) {
-            maps_container.back().FRONT = value_2;
+            m_mapsContainer.back().FRONT = value_2;
         }
         if ( strcmp( value_1, "back" ) == 0 ) {
-            maps_container.back().BACK = value_2;
+            m_mapsContainer.back().BACK = value_2;
         }
         if ( strcmp( value_1, "preview" ) == 0 ) {
-            maps_container.back().preview_image_location = value_2;
+            m_mapsContainer.back().preview_image_location = value_2;
         }
     }
     MapFile.close();
-    if ( maps_container.empty() ) {
-        maps_container.push_back( map );
+    if ( m_mapsContainer.empty() ) {
+        m_mapsContainer.push_back( map );
         m_btnNextMap.Disable();
     }
     current_map = 0;
@@ -1078,7 +1080,7 @@ void Road::LoadMapProto()
 void Road::LoadJetProto()
 {
     std::cout << "Loadings jets... ";
-    jets_container.clear();
+    m_jetsContainer.clear();
     ModelProto mod;
     std::ifstream JetFile( "jets.cfg" );
     char value_1[ 48 ]{};
@@ -1088,40 +1090,40 @@ void Road::LoadJetProto()
         std::sscanf( line.c_str(), "%s %s", value_1, value_2 );
         //     cout<<value_1<<" "<<value_2<<"\n";
         if ( strcmp( value_1, "[JET]" ) == 0 ) {
-            jets_container.push_back( mod );
+            m_jetsContainer.push_back( mod );
         }
         if ( strcmp( value_1, "name" ) == 0 ) {
-            jets_container.back().name = value_2;
+            m_jetsContainer.back().name = value_2;
         }
         if ( strcmp( value_1, "texture" ) == 0 ) {
-            jets_container.back().model_texture = value_2;
+            m_jetsContainer.back().model_texture = value_2;
         }
         if ( strcmp( value_1, "model" ) == 0 ) {
-            jets_container.back().model_file = value_2;
+            m_jetsContainer.back().model_file = value_2;
         }
         if ( strcmp( value_1, "scale" ) == 0 ) {
-            jets_container.back().scale = atof( value_2 );
+            m_jetsContainer.back().scale = atof( value_2 );
         }
     }
     JetFile.close();
-    if ( jets_container.empty() ) {
+    if ( m_jetsContainer.empty() ) {
         std::cout << "no jets\n";
-        jets_container.push_back( mod );
+        m_jetsContainer.push_back( mod );
     }
-    if ( jets_container.size() == 1 ) {
+    if ( m_jetsContainer.size() == 1 ) {
         m_btnNextJet.Disable();
     }
-    std::cout << "size " << jets_container.size() << "\n";
+    std::cout << "size " << m_jetsContainer.size() << "\n";
     current_jet = 0;
-    for ( GLuint i = 0; i < jets_container.size(); i++ ) {
-        if ( LastSelectedJetName == jets_container.at( i ).name ) {
+    for ( GLuint i = 0; i < m_jetsContainer.size(); i++ ) {
+        if ( LastSelectedJetName == m_jetsContainer.at( i ).name ) {
             current_jet = i;
         }
     }
     if ( current_jet == 0 ) {
         m_btnPrevJet.Disable();
     }
-    if ( current_jet == jets_container.size() - 1 ) {
+    if ( current_jet == m_jetsContainer.size() - 1 ) {
         m_btnNextJet.Disable();
     }
 
@@ -1204,7 +1206,7 @@ void Road::SaveConfig()
     ConfigFile << "fullscreen " << FULLSCREEN << "\n";
     ConfigFile << "texturefiltering " << current_filtering << "\n";
     ConfigFile << "sound " << play_sound << "\n";
-    ConfigFile << "jet " << jets_container.at( current_jet ).name << "\n";
+    ConfigFile << "jet " << m_jetsContainer.at( current_jet ).name << "\n";
     ConfigFile << "weap1 ";
     switch ( Weap1 ) {
     case 0:

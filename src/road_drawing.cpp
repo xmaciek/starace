@@ -333,7 +333,7 @@ void Road::RenderHUD()
         glVertex3d( 0, Radar->GetX( i ), Radar->GetY( i ) );
     }
     glEnd();
-    for ( const Enemy* e : enemies ) {
+    for ( const Enemy* e : m_enemies ) {
         e->DrawRadarPosition( jet->GetPosition(), 92 );
     }
 
@@ -343,7 +343,7 @@ void Road::RenderHUD()
     glColor4f( 1, 1, 0, 0.9 );
     glBegin( GL_LINES );
     glVertex3d( 0, 0, 0 );
-    // 	    glVertex3d(0,0,-92);
+
     glVertex3d( cursor.x, cursor.y, cursor.z );
     glEnd();
     glLineWidth( 1 );
@@ -429,7 +429,7 @@ void Road::Render3D()
 
     {
         std::lock_guard<std::mutex> lg( m_mutexEnemy );
-        for ( const Enemy* it : enemies ) {
+        for ( const Enemy* it : m_enemies ) {
             it->Draw();
         }
     }
@@ -437,14 +437,14 @@ void Road::Render3D()
     glLineWidth( 2 );
     {
         std::lock_guard<std::mutex> lg( m_mutexBullet );
-        for ( const Bullet* it : bullet ) {
+        for ( const Bullet* it : m_bullets ) {
             it->Draw();
         }
     }
     {
         std::lock_guard<std::mutex> lg1( m_mutexEnemy );
         std::lock_guard<std::mutex> lg2( m_mutexEnemyBullet );
-        for ( const Bullet* it : enemybullet ) {
+        for ( const Bullet* it : m_enemyBullets ) {
             it->Draw();
         }
     }
@@ -620,10 +620,13 @@ void Road::MissionSelectionScreen()
     glEnable( GL_TEXTURE_2D );
     glEnable( GL_BLEND );
     glPushMatrix();
-    if ( maps_container.at( current_map ).preview_image == 0 ) {
-        maps_container.at( current_map ).preview_image = LoadTexture( maps_container.at( current_map ).preview_image_location.c_str() );
+    {
+        MapProto& map = m_mapsContainer[ current_map ];
+        if ( map.preview_image == 0 ) {
+            map.preview_image = LoadTexture( map.preview_image_location.c_str() );
+        }
+        glBindTexture( GL_TEXTURE_2D, map.preview_image );
     }
-    glBindTexture( GL_TEXTURE_2D, maps_container.at( current_map ).preview_image );
 
     glBegin( GL_QUADS );
     glColor3f( 1, 1, 1 );
@@ -638,13 +641,13 @@ void Road::MissionSelectionScreen()
     glEnd();
     {
         std::string str{ "Map: " };
-        str += maps_container.at( current_map ).name;
+        str += m_mapsContainer.at( current_map ).name;
         const double posx = static_cast<double>( SCREEN_WIDTH ) / 2 - static_cast<double>( font_pause_txt->GetTextLength( str.c_str() ) ) / 2;
         font_pause_txt->PrintTekst( posx, SCREEN_HEIGHT - 128, str.c_str() );
     }
     {
         std::string str{ "Enemies: " };
-        str += std::to_string( maps_container.at( current_map ).enemies );
+        str += std::to_string( m_mapsContainer.at( current_map ).enemies );
         const double posx = static_cast<double>( SCREEN_WIDTH ) / 2 - static_cast<double>( font_pause_txt->GetTextLength( str.c_str() ) ) / 2;
         font_pause_txt->PrintTekst( posx, SCREEN_HEIGHT - 148, str.c_str() );
     }
@@ -727,8 +730,8 @@ void Road::ScreenCustomize()
     glEnd();
     glColor3f( 1, 1, 1 );
     {
-        const double posx = static_cast<double>( SCREEN_WIDTH ) / 2 - static_cast<double>( font_big->GetTextLength( jets_container.at( current_jet ).name.c_str() ) ) / 2;
-        font_big->PrintTekst( posx, SCREEN_HEIGHT - 64, jets_container.at( current_jet ).name.c_str() );
+        const double posx = static_cast<double>( SCREEN_WIDTH ) / 2 - static_cast<double>( font_big->GetTextLength( m_jetsContainer.at( current_jet ).name.c_str() ) ) / 2;
+        font_big->PrintTekst( posx, SCREEN_HEIGHT - 64, m_jetsContainer.at( current_jet ).name.c_str() );
     }
     SetPerspective( angle );
     glPushMatrix();

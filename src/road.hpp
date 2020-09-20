@@ -49,14 +49,14 @@ private:
     SDL_Thread* thread = nullptr;
 
     std::string LastSelectedJetName{};
-    std::vector<Bullet*> Bgarbage{};
-    std::vector<Bullet*> bullet{};
-    std::vector<Bullet*> enemybullet{};
-    std::vector<Enemy*> Egarbage{};
-    std::vector<Enemy*> enemies{};
-    std::vector<MapProto> maps_container{};
-    std::vector<ModelProto> jet_models_proto{};
-    std::vector<ModelProto> jets_container{};
+    std::vector<Bullet*> m_bulletGarbage{};
+    std::vector<Bullet*> m_bullets{};
+    std::vector<Bullet*> m_enemyBullets{};
+    std::vector<Enemy*> m_enemyGarbage{};
+    std::vector<Enemy*> m_enemies{};
+    std::vector<MapProto> m_mapsContainer{};
+    std::vector<ModelProto> m_jetModels{};
+    std::vector<ModelProto> m_jetsContainer{};
 
     std::mutex m_mutexBullet{};
     std::mutex m_mutexEnemyBullet{};
@@ -66,7 +66,6 @@ private:
     Model preview_model{};
 
     BulletProto Weapons[ 4 ]{};
-    Button Options{};
     Button m_btnChangeFiltering{};
     Button m_btnCustomizeReturn{};
     Button m_btnCustomize{};
