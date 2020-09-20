@@ -16,22 +16,24 @@ struct Face {
 
 class Model {
 private:
-    std::vector<Face> faces{};
-    GLuint textureID = 0;
+    std::vector<Face> m_faces{};
+    std::vector<Vertex> m_thrusters{};
+    Vertex m_weapons[ 3 ]{};
+    GLuint m_textureID = 0;
 
 public:
-    Model() = default;
     ~Model();
-
-    Vertex weapons[ 3 ]{};
-    std::vector<Vertex> thrusters{};
+    Model() = default;
+    void BindTexture( GLuint TX );
+    void CalculateNormal();
     void Draw() const;
     void DrawWireframe();
     void Load_OBJ( const char* filename );
-    void CalculateNormal();
     void NormalizeSize();
     void Scale( GLfloat scale );
-    void BindTexture( GLuint TX );
+
+    std::vector<Vertex> thrusters() const;
+    Vertex weapon( uint32_t ) const;
 };
 
 #endif

@@ -56,7 +56,7 @@ void Jet::Draw() const
     glMultMatrixf( matrix );
 
     m_model.Draw();
-    for ( const auto& it : m_model.thrusters ) {
+    for ( const auto& it : m_model.thrusters() ) {
         m_thruster->DrawAt( it.x, it.y, it.z );
     }
     glPopMatrix();
@@ -285,7 +285,7 @@ void Jet::Shoot( GLuint WeaponNum, bool doit )
 
 Vertex Jet::GetWeaponPoint( GLuint wID )
 {
-    Vertex w = m_model.weapons[ wID ];
+    Vertex w = m_model.weapon( wID );
     m_quaternion.RotateVector( w );
     w = w + position;
     return w;
@@ -294,7 +294,7 @@ Vertex Jet::GetWeaponPoint( GLuint wID )
 Bullet* Jet::GetWeaponType( GLuint wID )
 {
     BulletProto tmp = m_weapon[ wID ];
-    Vertex w = m_model.weapons[ wID ];
+    Vertex w = m_model.weapon( wID );
     m_quaternion.RotateVector( w );
     w = w + position;
 

@@ -3,7 +3,7 @@
 
 Model::~Model()
 {
-    glDeleteTextures( 1, &textureID );
+    glDeleteTextures( 1, &m_textureID );
 }
 
 void Model::Draw() const
@@ -12,8 +12,8 @@ void Model::Draw() const
     glDisable( GL_BLEND );
     glEnable( GL_TEXTURE_2D );
     glColor3f( 1, 1, 1 );
-    glBindTexture( GL_TEXTURE_2D, textureID );
-    for ( const Face& f : faces ) {
+    glBindTexture( GL_TEXTURE_2D, m_textureID );
+    for ( const Face& f : m_faces ) {
         glBegin( GL_POLYGON );
         glNormal3fv( f.normal );
         for ( size_t j = 0; j < f.vertex.size(); j++ ) {
@@ -29,7 +29,7 @@ void Model::Draw() const
 
 void Model::DrawWireframe()
 {
-    for ( const Face& f : faces ) {
+    for ( const Face& f : m_faces ) {
         glBegin( GL_LINES );
         for ( size_t j = 0; j < f.vertex.size() - 1; j++ ) {
             glVertex3d( f.vertex[ j ].x, f.vertex[ j ].y, f.vertex[ j ].z );
@@ -41,16 +41,14 @@ void Model::DrawWireframe()
 
 void Model::Load_OBJ( const char* filename )
 {
-    std::cout << "loading model: " << filename << " ... ";
-
-    Vertex tmpv{};
+    m_faces.clear();
     std::vector<Vertex> vertices{};
-    faces.clear();
-    UV tmpt{};
+    std::vector<GLuint> tmpui{};
     std::vector<UV> tex{};
+    Vertex tmpv{};
+    UV tmpt{};
     bool containsTex = false;
     GLubyte wID = 0;
-    std::vector<GLuint> tmpui{};
     Face tmpf{};
     GLubyte dataType = 0;
     GLuint v = 0;
@@ -91,12 +89,12 @@ void Model::Load_OBJ( const char* filename )
             switch ( dataType ) {
             case 3:
                 if ( wID < 3 ) {
-                    weapons[ wID ] = tmpv;
+                    m_weapons[ wID ] = tmpv;
                     wID++;
                 }
                 break;
             case 4:
-                thrusters.push_back( tmpv );
+                m_thrusters.push_back( tmpv );
                 break;
             default:
                 break;
@@ -120,7 +118,7 @@ void Model::Load_OBJ( const char* filename )
                 }
                 tmpf.vertex.push_back( vertices[ v - 1 ] );
             }
-            faces.push_back( tmpf );
+            m_faces.push_back( tmpf );
             tmpf.vertex.clear();
             tmpf.texcoord.clear();
             ssline.clear();
@@ -129,17 +127,15 @@ void Model::Load_OBJ( const char* filename )
     }
     OBJfile.close();
 
-    std::cout << "done.\n";
     NormalizeSize();
 }
 
 void Model::CalculateNormal()
 {
-    std::cout << "| +-- calclulating normals... ";
     GLfloat vector1[ 3 ]{};
     GLfloat vector2[ 3 ]{};
     GLfloat length = 0.0f;
-    for ( Face& f : faces ) {
+    for ( Face& f : m_faces ) {
         vector1[ 0 ] = f.vertex[ 0 ].x - f.vertex[ 1 ].x;
         vector1[ 1 ] = f.vertex[ 0 ].y - f.vertex[ 1 ].y;
         vector1[ 2 ] = f.vertex[ 0 ].z - f.vertex[ 1 ].z;
@@ -161,16 +157,14 @@ void Model::CalculateNormal()
         f.normal[ 1 ] /= length;
         f.normal[ 2 ] /= length;
     }
-    std::cout << "done.\n";
 }
 
 void Model::NormalizeSize()
 {
-    std::cout << "| +-- normalizing model... ";
-    GLdouble maxZ = faces[ 0 ].vertex[ 0 ].z;
-    GLdouble minZ = faces[ 0 ].vertex[ 0 ].z;
+    GLdouble maxZ = m_faces[ 0 ].vertex[ 0 ].z;
+    GLdouble minZ = m_faces[ 0 ].vertex[ 0 ].z;
 
-    for ( const Face& f : faces ) {
+    for ( const Face& f : m_faces ) {
         for ( const Vertex& v : f.vertex ) {
             maxZ = std::max( maxZ, v.z );
             minZ = std::min( minZ, v.z );
@@ -188,59 +182,62 @@ void Model::NormalizeSize()
         total = 1.0f;
     }
     GLdouble factor = 1.0f / total;
-    std::cout << "max: " << maxZ << " min: " << minZ << " ";
-    std::cout << "factor: " << factor << " ... ";
-    for ( Face& f : faces ) {
+    for ( Face& f : m_faces ) {
         for ( Vertex& v : f.vertex ) {
             v.x *= factor;
             v.y *= factor;
             v.z *= factor;
         }
     }
-    for ( Vertex& v : thrusters ) {
+    for ( Vertex& v : m_thrusters ) {
         v.x *= factor;
         v.y *= factor;
         v.z *= factor;
     }
 
-    for ( Vertex& v : weapons ) {
+    for ( Vertex& v : m_weapons ) {
         v.x *= factor;
         v.y *= factor;
         v.z *= factor;
     }
-
-    std::cout << "done.\n";
 }
 
 void Model::BindTexture( GLuint TX )
 {
-    if ( textureID != 0 ) {
-        glDeleteTextures( 1, &textureID );
+    if ( m_textureID != 0 ) {
+        glDeleteTextures( 1, &m_textureID );
     }
-    textureID = TX;
+    m_textureID = TX;
 }
 
 void Model::Scale( GLfloat scale )
 {
-    std::cout << "| +-- scaling model to " << scale << " ... ";
-    for ( Face& f : faces ) {
+    for ( Face& f : m_faces ) {
         for ( Vertex& v : f.vertex ) {
             v.x *= scale;
             v.y *= scale;
             v.z *= scale;
         }
     }
-    for ( Vertex& v : thrusters ) {
+    for ( Vertex& v : m_thrusters ) {
         v.x *= scale;
         v.y *= scale;
         v.z *= scale;
     }
 
-    for ( Vertex& v : weapons ) {
+    for ( Vertex& v : m_weapons ) {
         v.x *= scale;
         v.y *= scale;
         v.z *= scale;
     }
+}
 
-    std::cout << "done.\n";
+std::vector<Vertex> Model::thrusters() const
+{
+    return m_thrusters;
+}
+
+Vertex Model::weapon( uint32_t i ) const
+{
+    return m_weapons[ i >= 3 ? 0 : i ];
 }
