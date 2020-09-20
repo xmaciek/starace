@@ -64,7 +64,7 @@ void Enemy::Draw() const
             1.0f - m_healthPerc + colorhalf( 1.0f - m_healthPerc )
             , colorhalf( m_healthPerc ) + m_healthPerc
             , 0 );
-        m_shield.Draw();
+        m_shield.draw();
         if ( ImTargeted ) {
             DrawCollisionIndicator();
         }
@@ -75,7 +75,7 @@ void Enemy::Draw() const
 void Enemy::Update()
 {
     if ( status == ALIVE ) {
-        m_shield.Update();
+        m_shield.update();
         if ( m_shotFactor < m_weapon.delay ) {
             m_shotFactor += 1.0 * DELTATIME;
         }

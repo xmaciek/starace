@@ -14,10 +14,9 @@ public:
     Shield() = default;
     Shield( GLdouble radiusA, GLdouble radiusB );
 
-    GLdouble GetRadiust();
-    void Draw() const;
-    void SetRadiust();
-    void Update();
+    GLdouble radius();
+    void draw() const;
+    void update();
 };
 
 #endif

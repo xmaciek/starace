@@ -224,7 +224,7 @@ void Jet::Update()
 
     position = position + velocity * DELTATIME;
     m_thruster->update();
-    m_shield->Update();
+    m_shield->update();
     if ( target ) {
         if ( target->GetStatus() != ALIVE ) {
             target->TargetMe( false );

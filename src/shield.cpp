@@ -6,7 +6,7 @@ Shield::Shield( GLdouble radiusA, GLdouble radiusB )
 {
 }
 
-void Shield::Update()
+void Shield::update()
 {
     m_rotAngle += DELTATIME;
     if ( m_rotAngle >= 360 ) {
@@ -14,7 +14,7 @@ void Shield::Update()
     }
 }
 
-void Shield::Draw() const
+void Shield::draw() const
 {
     glPushMatrix();
     glRotated( m_rotAngle, 0, 1, 0 );
