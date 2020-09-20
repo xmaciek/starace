@@ -1,15 +1,15 @@
 #include "button.hpp"
 
-bool Button::IsClicked( GLuint X, GLuint Y ) const
+bool Button::isClicked( GLuint x, GLuint y ) const
 {
     return m_enabled
-        && ( X >= m_x )
-        && ( X <= m_x + m_width )
-        && ( Y >= m_y )
-        && ( Y <= m_y + m_height );
+        && ( x >= m_x )
+        && ( x <= m_x + m_width )
+        && ( y >= m_y )
+        && ( y <= m_y + m_height );
 }
 
-void Button::Draw()
+void Button::draw()
 {
     glEnable( GL_BLEND );
     glEnable( GL_TEXTURE_2D );
@@ -43,61 +43,51 @@ void Button::Draw()
     glDisable( GL_BLEND );
 }
 
-void Button::MouseOver( GLuint, GLuint ){};
-
-void Button::UpdateCoord( GLuint X, GLuint Y )
+void Button::updateCoord( GLuint x, GLuint y )
 {
-    m_x = X;
-    m_y = Y;
+    m_x = x;
+    m_y = y;
 };
 
-void Button::SetTexture( GLuint t )
+void Button::setTexture( GLuint t )
 {
     m_textureID = t;
 }
 
-Button::Button( Font* F, GLuint X, GLuint Y, GLuint W, GLuint H )
-: m_font{ F }
-, m_x{ X }
-, m_y{ Y }
-, m_width{ W }
-, m_height{ H }
+Button::Button( Font* f, GLuint x, GLuint y, GLuint w, GLuint h )
+: m_font{ f }
+, m_x{ x }
+, m_y{ y }
+, m_width{ w }
+, m_height{ h }
 {
 }
 
-void Button::SetSize( const GLuint& W, const GLuint& H )
+void Button::setSize( GLuint w, const GLuint h )
 {
-    m_width = W;
-    m_height = H;
+    m_width = w;
+    m_height = h;
 }
 
-void Button::SetFont( Font* F )
+void Button::setFont( Font* f )
 {
-    m_font = F;
+    m_font = f;
     if ( m_font ) {
         m_textLength = m_font->GetTextLength( m_text.c_str() ) / 2;
     }
 }
 
-void Button::Enable( const bool& B )
+void Button::setEnabled( bool b )
 {
-    m_enabled = B;
-}
-void Button::Enable()
-{
-    m_enabled = true;
-}
-void Button::Disable()
-{
-    m_enabled = false;
+    m_enabled = b;
 }
 
-bool Button::IsEnabled() const
+bool Button::isEnabled() const
 {
     return m_enabled;
 }
 
-void Button::SetText( const char* txt )
+void Button::setText( const char* txt )
 {
     m_text = txt;
     if ( m_font ) {

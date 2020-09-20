@@ -18,17 +18,15 @@ private:
 public:
     ~Button() = default;
     Button() = default;
-    Button( Font* F, GLuint X, GLuint Y, GLuint W, GLuint H );
-    void SetTexture( GLuint t );
-    bool IsClicked( GLuint X, GLuint Y ) const;
-    void MouseOver( GLuint X, GLuint Y );
-    void Draw();
-    void UpdateCoord( GLuint X, GLuint Y );
-    void SetFont( Font* F );
-    void SetSize( const GLuint& W, const GLuint& H );
-    void Enable( const bool& B );
-    void Enable();
-    void Disable();
-    bool IsEnabled() const;
-    void SetText( const char* txt );
+    Button( Font* f, GLuint x, GLuint y, GLuint w, GLuint h );
+
+    bool isClicked( GLuint x, GLuint y ) const;
+    bool isEnabled() const;
+    void draw();
+    void setEnabled( bool );
+    void setFont( Font* f );
+    void setSize( GLuint w, GLuint h );
+    void setText( const char* txt );
+    void setTexture( GLuint t );
+    void updateCoord( GLuint x, GLuint y );
 };
