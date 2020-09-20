@@ -28,8 +28,6 @@ GLuint LoadDefault()
     glBindTexture( GL_TEXTURE_2D, textureID );
     setTextureFiltering();
     gluBuild2DMipmaps( GL_TEXTURE_2D, 3, 64, 64, GL_RGB, GL_UNSIGNED_BYTE, DEF );
-
-    //   glTexImage2D(GL_TEXTURE_2D, 0, 3, 64, 64, 0, GL_RGB, GL_UNSIGNED_BYTE, DEF);
     return textureID;
 }
 
@@ -46,19 +44,15 @@ void setTextureFiltering()
 
 GLuint LoadTexture( const char* filename )
 {
-    std::cout << "loading texture " << filename << " ... ";
-    GLubyte HEADER[ 12 ]; // = new GLubyte[12];
-    GLubyte UNCOMPRESSED[ 12 ] = { 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    GLubyte HEADER[ 12 ]{};
+    const GLubyte UNCOMPRESSED[ 12 ] = { 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     FILE* TGAfile = fopen( filename, "rb" );
     if ( !TGAfile ) {
-        std::cout << "file not found, loading default.\n";
         return LoadDefault();
     }
     fread( HEADER, 12, 1, TGAfile );
     if ( memcmp( HEADER, UNCOMPRESSED, 12 ) != 0 ) {
         fclose( TGAfile );
-        //     delete[] HEADER;
-        std::cout << "File " << filename << " is not uncompressed RLE! Using default.\n";
         return LoadDefault();
     }
     TGA tga{};
@@ -69,7 +63,6 @@ GLuint LoadTexture( const char* filename )
 
     if ( ( tga.width <= 0 ) || ( tga.height <= 0 ) || ( ( ( tga.bpp != 24 ) ) && ( tga.bpp != 32 ) ) ) {
         fclose( TGAfile );
-        std::cout << "Texture file has invalid dimension or has invalid bit depth. Using default.\n";
         return LoadDefault();
     }
 
@@ -81,12 +74,10 @@ GLuint LoadTexture( const char* filename )
     }
     tga.bytesPerPixel = tga.bpp / 8;
     tga.imageSize = tga.bytesPerPixel * tga.width * tga.height;
-    std::cout << " " << tga.width << "x" << tga.height << ":" << tga.bpp << "\n";
     tga.data = new GLubyte[ tga.imageSize ];
     fread( tga.data, tga.imageSize, 1, TGAfile );
     fclose( TGAfile );
     GLubyte swap = 0;
-    //   for (GLuint x=0; x<tga.imageSize; x++) { printf("%X ", tga.data[x]); }
     for ( GLuint C = 0; C < tga.imageSize; C += tga.bytesPerPixel ) {
         swap = tga.data[ C + 2 ];
         tga.data[ C + 2 ] = tga.data[ C ];
@@ -112,7 +103,7 @@ GLuint LoadTexture( const char* filename )
 
 void DrawSprite( const GLuint& spriteID, const GLdouble& spriteSize )
 {
-    static GLfloat matrix[ 16 ];
+    GLfloat matrix[ 16 ]{};
     glPushMatrix();
     glMatrixMode( GL_PROJECTION );
     glGetFloatv( GL_PROJECTION, matrix );

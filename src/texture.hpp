@@ -2,15 +2,15 @@
 #include "sa.hpp"
 
 struct TGA {
-    GLubyte header[ 6 ];
-    GLuint bytesPerPixel;
-    GLuint imageSize;
-    GLuint temp;
-    GLuint type;
-    GLuint height;
-    GLuint width;
-    GLuint bpp;
-    GLubyte* data;
+    GLubyte header[ 6 ]{};
+    GLuint bytesPerPixel = 0;
+    GLuint imageSize = 0;
+    GLuint temp = 0;
+    GLuint type = 0;
+    GLuint height = 0;
+    GLuint width = 0;
+    GLuint bpp = 0;
+    GLubyte* data = nullptr;
 };
 
 void setTextureFiltering();
