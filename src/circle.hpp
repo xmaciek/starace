@@ -16,10 +16,10 @@ public:
     GLdouble GetRadiust() const;
 
 private:
-    GLdouble radiust = 1.0;
-    GLuint segments = 32;
-    std::vector<GLdouble> X{};
-    std::vector<GLdouble> Y{};
+    std::vector<GLdouble> m_x{};
+    std::vector<GLdouble> m_y{};
+    GLdouble m_radiust = 1.0;
+    GLuint m_segments = 32;
     void init();
 };
 
