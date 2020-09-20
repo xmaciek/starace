@@ -770,9 +770,9 @@ void Road::OnMouseClickLeft( GLint X, GLint Y )
                 m_btnNextJet.setEnabled( false);
             }
             m_btnPrevJet.setEnabled( true);
-            m_previewModel.Load_OBJ( m_jetsContainer.at( m_currentJet ).model_file.c_str() );
-            m_previewModel.CalculateNormal();
-            m_previewModel.BindTexture( LoadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() ) );
+            m_previewModel.loadOBJ( m_jetsContainer.at( m_currentJet ).model_file.c_str() );
+            m_previewModel.calculateNormal();
+            m_previewModel.bindTexture( LoadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() ) );
             break;
         }
         if ( m_btnPrevJet.isClicked( X, Y ) ) {
@@ -784,9 +784,9 @@ void Road::OnMouseClickLeft( GLint X, GLint Y )
             if ( m_jetsContainer.size() > 1 ) {
                 m_btnNextJet.setEnabled( true);
             }
-            m_previewModel.Load_OBJ( m_jetsContainer.at( m_currentJet ).model_file.c_str() );
-            m_previewModel.CalculateNormal();
-            m_previewModel.BindTexture( LoadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() ) );
+            m_previewModel.loadOBJ( m_jetsContainer.at( m_currentJet ).model_file.c_str() );
+            m_previewModel.calculateNormal();
+            m_previewModel.bindTexture( LoadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() ) );
             break;
         }
         if ( m_btnCustomizeReturn.isClicked( X, Y ) ) {
@@ -973,9 +973,9 @@ void Road::ChangeScreen( Screen SCR )
 
     case Screen::eCustomize:
         m_modelRotation = 135.0;
-        m_previewModel.Load_OBJ( m_jetsContainer.at( m_currentJet ).model_file.c_str() );
-        m_previewModel.BindTexture( LoadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() ) );
-        m_previewModel.CalculateNormal();
+        m_previewModel.loadOBJ( m_jetsContainer.at( m_currentJet ).model_file.c_str() );
+        m_previewModel.bindTexture( LoadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() ) );
+        m_previewModel.calculateNormal();
         m_currentScreen = SCR;
         break;
 

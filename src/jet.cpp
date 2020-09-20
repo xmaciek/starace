@@ -18,10 +18,10 @@ Jet::Jet( const ModelProto& model_data )
     speed = 2;
     status = ALIVE;
 
-    m_model.Load_OBJ( model_data.model_file.c_str() );
-    m_model.BindTexture( LoadTexture( model_data.model_texture.c_str() ) );
-    m_model.Scale( model_data.scale );
-    m_model.CalculateNormal();
+    m_model.loadOBJ( model_data.model_file.c_str() );
+    m_model.bindTexture( LoadTexture( model_data.model_texture.c_str() ) );
+    m_model.scale( model_data.scale );
+    m_model.calculateNormal();
 
     m_shield = new Shield( 0.15, 0.03 );
     m_thruster = new Thruster( model_data.scale, model_data.scale * 0.04285 );
@@ -55,7 +55,7 @@ void Jet::Draw() const
     glPushMatrix();
     glMultMatrixf( matrix );
 
-    m_model.Draw();
+    m_model.draw();
     for ( const auto& it : m_model.thrusters() ) {
         m_thruster->drawAt( it.x, it.y, it.z );
     }
@@ -333,7 +333,7 @@ void Jet::TakeEnergy( GLuint wID )
 
 void Jet::DrawWireframe()
 {
-    m_model.DrawWireframe();
+    m_model.drawWireframe();
 }
 
 void Jet::ProcessCollision( std::vector<Bullet*>& Bullets )

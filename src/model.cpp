@@ -6,7 +6,7 @@ Model::~Model()
     glDeleteTextures( 1, &m_textureID );
 }
 
-void Model::Draw() const
+void Model::draw() const
 {
     glEnable( GL_LIGHTING );
     glDisable( GL_BLEND );
@@ -27,7 +27,7 @@ void Model::Draw() const
     glEnable( GL_BLEND );
 }
 
-void Model::DrawWireframe()
+void Model::drawWireframe()
 {
     for ( const Face& f : m_faces ) {
         glBegin( GL_LINES );
@@ -39,7 +39,7 @@ void Model::DrawWireframe()
     }
 }
 
-void Model::Load_OBJ( const char* filename )
+void Model::loadOBJ( const char* filename )
 {
     m_faces.clear();
     std::vector<Vertex> vertices{};
@@ -127,10 +127,10 @@ void Model::Load_OBJ( const char* filename )
     }
     OBJfile.close();
 
-    NormalizeSize();
+    normalizeSize();
 }
 
-void Model::CalculateNormal()
+void Model::calculateNormal()
 {
     GLfloat vector1[ 3 ]{};
     GLfloat vector2[ 3 ]{};
@@ -159,7 +159,7 @@ void Model::CalculateNormal()
     }
 }
 
-void Model::NormalizeSize()
+void Model::normalizeSize()
 {
     GLdouble maxZ = m_faces[ 0 ].vertex[ 0 ].z;
     GLdouble minZ = m_faces[ 0 ].vertex[ 0 ].z;
@@ -202,15 +202,15 @@ void Model::NormalizeSize()
     }
 }
 
-void Model::BindTexture( GLuint TX )
+void Model::bindTexture( GLuint tex )
 {
     if ( m_textureID != 0 ) {
         glDeleteTextures( 1, &m_textureID );
     }
-    m_textureID = TX;
+    m_textureID = tex;
 }
 
-void Model::Scale( GLfloat scale )
+void Model::scale( GLfloat scale )
 {
     for ( Face& f : m_faces ) {
         for ( Vertex& v : f.vertex ) {

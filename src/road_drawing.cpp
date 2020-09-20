@@ -704,7 +704,7 @@ void Road::ScreenCustomize()
     glRotated( 15, 1, 0, 0 );
     glRotated( m_modelRotation, 0, 1, 0 );
     glEnable( GL_DEPTH_TEST );
-    m_previewModel.Draw();
+    m_previewModel.draw();
     glDisable( GL_DEPTH_TEST );
     glPopMatrix();
     SetOrtho();

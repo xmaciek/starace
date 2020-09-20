@@ -1,7 +1,6 @@
-#ifndef MODEL_H
-#define MODEL_H
+#pragma once
+
 #include "sa.hpp"
-#include "texture.hpp"
 
 struct UV {
     GLfloat u = 0;
@@ -24,16 +23,15 @@ private:
 public:
     ~Model();
     Model() = default;
-    void BindTexture( GLuint TX );
-    void CalculateNormal();
-    void Draw() const;
-    void DrawWireframe();
-    void Load_OBJ( const char* filename );
-    void NormalizeSize();
-    void Scale( GLfloat scale );
 
-    std::vector<Vertex> thrusters() const;
     Vertex weapon( uint32_t ) const;
+    std::vector<Vertex> thrusters() const;
+    void bindTexture( GLuint );
+    void calculateNormal();
+    void draw() const;
+    void drawWireframe();
+    void loadOBJ( const char* filename );
+    void normalizeSize();
+    void scale( GLfloat scale );
 };
 
-#endif
