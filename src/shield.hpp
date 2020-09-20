@@ -5,19 +5,19 @@
 #include "sa.hpp"
 
 class Shield {
+private:
+    GLdouble m_rotAngle = 0.0;
+    GLdouble m_radius = 0.0;
+    Circle m_circle{};
+
 public:
     Shield() = default;
-    Shield( GLdouble RadiustA, GLdouble RadiustB );
-    ~Shield();
-    void Draw() const;
-    void Update();
-    void SetRadiust();
-    GLdouble GetRadiust();
+    Shield( GLdouble radiusA, GLdouble radiusB );
 
-private:
-    GLdouble rotangle = 0.0;
-    GLdouble radiust = 0.0;
-    Circle* circle = nullptr;
+    GLdouble GetRadiust();
+    void Draw() const;
+    void SetRadiust();
+    void Update();
 };
 
 #endif
