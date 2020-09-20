@@ -206,24 +206,24 @@ void Road::OnResize( GLint w, GLint h )
     }
 
     glViewport( 0, 0, w, h );
-    btnExit.UpdateCoord( ( SCREEN_WIDTH / 2 ) + 4, SCREEN_HEIGHT * 0.15 );
-    btnQuitMission.UpdateCoord( ( SCREEN_WIDTH / 2 ) - 196, SCREEN_HEIGHT * 0.15 );
-    btnChangeFiltering.UpdateCoord( 512, SCREEN_HEIGHT - 192 );
-    btnSelectMission.UpdateCoord( ( SCREEN_WIDTH / 2 ) - 96, SCREEN_HEIGHT * 0.15 + 52 );
-    btnGO.UpdateCoord( ( SCREEN_WIDTH / 2 ) - 96, SCREEN_HEIGHT * 0.15 );
-    btnStartMission.UpdateCoord( ( SCREEN_WIDTH / 2 ) + 4, SCREEN_HEIGHT * 0.15 );
-    btnReturnToMainMenu.UpdateCoord( ( SCREEN_WIDTH / 2 ) - 196, SCREEN_HEIGHT * 0.15 );
-    btnReturnToMissionSelection.UpdateCoord( ( SCREEN_WIDTH / 2 ) - 96, SCREEN_HEIGHT * 0.15 );
-    btnNextMap.UpdateCoord( SCREEN_WIDTH - 240, SCREEN_HEIGHT / 2 - 24 );
-    btnPrevMap.UpdateCoord( 48, SCREEN_HEIGHT / 2 - 24 );
-    btnCustomize.UpdateCoord( ( SCREEN_WIDTH / 2 ) - 196, SCREEN_HEIGHT * 0.15 );
-    btnCustomizeReturn.UpdateCoord( ( SCREEN_WIDTH / 2 ) - 96, SCREEN_HEIGHT * 0.15 + 52 );
-    btnNextJet.UpdateCoord( SCREEN_WIDTH - 240, SCREEN_HEIGHT / 2 - 24 );
-    btnPrevJet.UpdateCoord( 48, SCREEN_HEIGHT / 2 - 24 );
+    m_btnExit.UpdateCoord( ( SCREEN_WIDTH / 2 ) + 4, SCREEN_HEIGHT * 0.15 );
+    m_btnQuitMission.UpdateCoord( ( SCREEN_WIDTH / 2 ) - 196, SCREEN_HEIGHT * 0.15 );
+    m_btnChangeFiltering.UpdateCoord( 512, SCREEN_HEIGHT - 192 );
+    m_btnSelectMission.UpdateCoord( ( SCREEN_WIDTH / 2 ) - 96, SCREEN_HEIGHT * 0.15 + 52 );
+    m_btnGO.UpdateCoord( ( SCREEN_WIDTH / 2 ) - 96, SCREEN_HEIGHT * 0.15 );
+    m_btnStartMission.UpdateCoord( ( SCREEN_WIDTH / 2 ) + 4, SCREEN_HEIGHT * 0.15 );
+    m_btnReturnToMainMenu.UpdateCoord( ( SCREEN_WIDTH / 2 ) - 196, SCREEN_HEIGHT * 0.15 );
+    m_btnReturnToMissionSelection.UpdateCoord( ( SCREEN_WIDTH / 2 ) - 96, SCREEN_HEIGHT * 0.15 );
+    m_btnNextMap.UpdateCoord( SCREEN_WIDTH - 240, SCREEN_HEIGHT / 2 - 24 );
+    m_btnPrevMap.UpdateCoord( 48, SCREEN_HEIGHT / 2 - 24 );
+    m_btnCustomize.UpdateCoord( ( SCREEN_WIDTH / 2 ) - 196, SCREEN_HEIGHT * 0.15 );
+    m_btnCustomizeReturn.UpdateCoord( ( SCREEN_WIDTH / 2 ) - 96, SCREEN_HEIGHT * 0.15 + 52 );
+    m_btnNextJet.UpdateCoord( SCREEN_WIDTH - 240, SCREEN_HEIGHT / 2 - 24 );
+    m_btnPrevJet.UpdateCoord( 48, SCREEN_HEIGHT / 2 - 24 );
 
-    btnWeap1.UpdateCoord( SCREEN_WIDTH / 2 - 196 - 96, SCREEN_HEIGHT * 0.15 + 52 - 76 );
-    btnWeap2.UpdateCoord( SCREEN_WIDTH / 2 - 96, SCREEN_HEIGHT * 0.15 + 52 - 76 );
-    btnWeap3.UpdateCoord( SCREEN_WIDTH / 2 + 100, SCREEN_HEIGHT * 0.15 + 52 - 76 );
+    m_btnWeap1.UpdateCoord( SCREEN_WIDTH / 2 - 196 - 96, SCREEN_HEIGHT * 0.15 + 52 - 76 );
+    m_btnWeap2.UpdateCoord( SCREEN_WIDTH / 2 - 96, SCREEN_HEIGHT * 0.15 + 52 - 76 );
+    m_btnWeap3.UpdateCoord( SCREEN_WIDTH / 2 + 100, SCREEN_HEIGHT * 0.15 + 52 - 76 );
 }
 
 void Road::InitRoadAdditionsGL()
@@ -241,104 +241,104 @@ void Road::InitRoadAdditionsGL()
 
     ButtonTexture = LoadTexture( "textures/button1.tga" );
 
-    btnChangeFiltering.SetFont( font_gui_txt );
-    btnChangeFiltering.SetText( "Anisotropic x16" );
-    btnChangeFiltering.SetTexture( ButtonTexture );
+    m_btnChangeFiltering.SetFont( font_gui_txt );
+    m_btnChangeFiltering.SetText( "Anisotropic x16" );
+    m_btnChangeFiltering.SetTexture( ButtonTexture );
 
-    btnExit.SetFont( font_gui_txt );
-    btnExit.SetText( "Exit Game" );
-    btnExit.SetTexture( ButtonTexture );
+    m_btnExit.SetFont( font_gui_txt );
+    m_btnExit.SetText( "Exit Game" );
+    m_btnExit.SetTexture( ButtonTexture );
 
-    btnSelectMission.SetFont( font_gui_txt );
-    btnSelectMission.SetText( "Select Mission" );
-    btnSelectMission.SetTexture( ButtonTexture );
+    m_btnSelectMission.SetFont( font_gui_txt );
+    m_btnSelectMission.SetText( "Select Mission" );
+    m_btnSelectMission.SetTexture( ButtonTexture );
 
-    btnQuitMission.SetFont( font_gui_txt );
-    btnQuitMission.SetText( "Quit Mission" );
-    btnQuitMission.SetTexture( ButtonTexture );
+    m_btnQuitMission.SetFont( font_gui_txt );
+    m_btnQuitMission.SetText( "Quit Mission" );
+    m_btnQuitMission.SetTexture( ButtonTexture );
 
-    btnStartMission.SetFont( font_gui_txt );
-    btnStartMission.SetText( "Start Mission" );
-    btnStartMission.SetTexture( ButtonTexture );
+    m_btnStartMission.SetFont( font_gui_txt );
+    m_btnStartMission.SetText( "Start Mission" );
+    m_btnStartMission.SetTexture( ButtonTexture );
 
-    btnReturnToMissionSelection.SetFont( font_gui_txt );
-    btnReturnToMissionSelection.SetText( "Return" );
-    btnReturnToMissionSelection.SetTexture( ButtonTexture );
+    m_btnReturnToMissionSelection.SetFont( font_gui_txt );
+    m_btnReturnToMissionSelection.SetText( "Return" );
+    m_btnReturnToMissionSelection.SetTexture( ButtonTexture );
 
-    btnReturnToMainMenu.SetFont( font_gui_txt );
-    btnReturnToMainMenu.SetText( "Return" );
-    btnReturnToMainMenu.SetTexture( ButtonTexture );
+    m_btnReturnToMainMenu.SetFont( font_gui_txt );
+    m_btnReturnToMainMenu.SetText( "Return" );
+    m_btnReturnToMainMenu.SetTexture( ButtonTexture );
 
-    btnGO.SetFont( font_gui_txt );
-    btnGO.SetText( "GO!" );
-    btnGO.SetTexture( ButtonTexture );
+    m_btnGO.SetFont( font_gui_txt );
+    m_btnGO.SetText( "GO!" );
+    m_btnGO.SetTexture( ButtonTexture );
 
-    btnNextMap.SetFont( font_gui_txt );
-    btnNextMap.SetText( "Next Map" );
-    btnNextMap.SetTexture( ButtonTexture );
+    m_btnNextMap.SetFont( font_gui_txt );
+    m_btnNextMap.SetText( "Next Map" );
+    m_btnNextMap.SetTexture( ButtonTexture );
 
-    btnPrevMap.SetFont( font_gui_txt );
-    btnPrevMap.SetText( "Previous Map" );
-    btnPrevMap.SetTexture( ButtonTexture );
+    m_btnPrevMap.SetFont( font_gui_txt );
+    m_btnPrevMap.SetText( "Previous Map" );
+    m_btnPrevMap.SetTexture( ButtonTexture );
 
-    btnNextJet.SetFont( font_gui_txt );
-    btnNextJet.SetText( "Next Jet" );
-    btnNextJet.SetTexture( ButtonTexture );
+    m_btnNextJet.SetFont( font_gui_txt );
+    m_btnNextJet.SetText( "Next Jet" );
+    m_btnNextJet.SetTexture( ButtonTexture );
 
-    btnPrevJet.SetFont( font_gui_txt );
-    btnPrevJet.SetText( "Previous Jet" );
-    btnPrevJet.SetTexture( ButtonTexture );
+    m_btnPrevJet.SetFont( font_gui_txt );
+    m_btnPrevJet.SetText( "Previous Jet" );
+    m_btnPrevJet.SetTexture( ButtonTexture );
 
-    btnCustomizeReturn.SetFont( font_gui_txt );
-    btnCustomizeReturn.SetText( "Done" );
-    btnCustomizeReturn.SetTexture( ButtonTexture );
+    m_btnCustomizeReturn.SetFont( font_gui_txt );
+    m_btnCustomizeReturn.SetText( "Done" );
+    m_btnCustomizeReturn.SetTexture( ButtonTexture );
 
-    btnCustomize.SetFont( font_gui_txt );
-    btnCustomize.SetText( "Customise" );
-    btnCustomize.SetTexture( ButtonTexture );
+    m_btnCustomize.SetFont( font_gui_txt );
+    m_btnCustomize.SetText( "Customise" );
+    m_btnCustomize.SetTexture( ButtonTexture );
 
-    btnWeap1.SetFont( font_gui_txt );
-    btnWeap1.SetTexture( ButtonTexture );
+    m_btnWeap1.SetFont( font_gui_txt );
+    m_btnWeap1.SetTexture( ButtonTexture );
 
-    btnWeap2.SetFont( font_gui_txt );
-    btnWeap2.SetTexture( ButtonTexture );
+    m_btnWeap2.SetFont( font_gui_txt );
+    m_btnWeap2.SetTexture( ButtonTexture );
 
-    btnWeap3.SetFont( font_gui_txt );
-    btnWeap3.SetTexture( ButtonTexture );
+    m_btnWeap3.SetFont( font_gui_txt );
+    m_btnWeap3.SetTexture( ButtonTexture );
 
     switch ( Weap1 ) {
     case 0:
-        btnWeap1.SetText( "Laser" );
+        m_btnWeap1.SetText( "Laser" );
         break;
     case 1:
-        btnWeap1.SetText( "Blaster" );
+        m_btnWeap1.SetText( "Blaster" );
         break;
     case 2:
-        btnWeap1.SetText( "Torpedo" );
+        m_btnWeap1.SetText( "Torpedo" );
         break;
     }
 
     switch ( Weap2 ) {
     case 0:
-        btnWeap2.SetText( "Laser" );
+        m_btnWeap2.SetText( "Laser" );
         break;
     case 1:
-        btnWeap2.SetText( "Blaster" );
+        m_btnWeap2.SetText( "Blaster" );
         break;
     case 2:
-        btnWeap2.SetText( "Torpedo" );
+        m_btnWeap2.SetText( "Torpedo" );
         break;
     }
 
     switch ( Weap3 ) {
     case 0:
-        btnWeap3.SetText( "Laser" );
+        m_btnWeap3.SetText( "Laser" );
         break;
     case 1:
-        btnWeap3.SetText( "Blaster" );
+        m_btnWeap3.SetText( "Blaster" );
         break;
     case 2:
-        btnWeap3.SetText( "Torpedo" );
+        m_btnWeap3.SetText( "Torpedo" );
         break;
     }
 
@@ -692,182 +692,164 @@ void Road::AddBullet( GLuint wID )
 
 void Road::OnMouseClickLeft( GLint X, GLint Y )
 {
-    //     cout<<"X: "<<X<<" Y: "<<Y<<"\n";
-    //     X = SCREEN_WIDTH - X;
     Y = SCREEN_HEIGHT - Y;
     switch ( SCREEN ) {
     case SA_GAMESCREEN_PAUSED:
-        if ( btnQuitMission.IsClicked( X, Y ) ) {
+        if ( m_btnQuitMission.IsClicked( X, Y ) ) {
             PlaySound( click );
             ChangeScreen( SA_DEADSCREEN );
             break;
         }
-        //         if (btnChangeFiltering.IsClicked(X,Y)) {
-        //           PlaySound(click);
-        //           current_filtering++;
-        //           if (current_filtering>7) { current_filtering = FILTERING_TRILINEAR; }
-        //           setAllTexturesFiltering(current_filtering);
-        //           switch (current_filtering) {
-        //             case FILTERING_TRILINEAR: btnChangeFiltering.SetText("Trilinear"); break;
-        //             case FILTERING_ANISOTROPIC_X2: btnChangeFiltering.SetText("Anisotropic x2"); break;
-        //             case FILTERING_ANISOTROPIC_X4: btnChangeFiltering.SetText("Anisotropic x4"); break;
-        //             case FILTERING_ANISOTROPIC_X8: btnChangeFiltering.SetText("Anisotropic x8"); break;
-        //             case FILTERING_ANISOTROPIC_X16: btnChangeFiltering.SetText("Anisotropic x16"); break;
-        // 	    default: btnChangeFiltering.SetText("Trilinear");  current_filtering = FILTERING_TRILINEAR; break;
-        //           }
-        //           break;
-        //
-        //         } break;
 
     case SA_MAINMENU:
-        if ( btnSelectMission.IsClicked( X, Y ) ) {
+        if ( m_btnSelectMission.IsClicked( X, Y ) ) {
             PlaySound( click );
             ChangeScreen( SA_MISSIONSELECTION );
             break;
         }
-        if ( btnExit.IsClicked( X, Y ) ) {
+        if ( m_btnExit.IsClicked( X, Y ) ) {
             PlaySound( click );
             Running = false;
             break;
         }
-        if ( btnCustomize.IsClicked( X, Y ) ) {
+        if ( m_btnCustomize.IsClicked( X, Y ) ) {
             PlaySound( click );
             ChangeScreen( SA_CUSTOMIZE );
             break;
         }
         break;
     case SA_MISSIONSELECTION:
-        if ( btnStartMission.IsClicked( X, Y ) ) {
+        if ( m_btnStartMission.IsClicked( X, Y ) ) {
             PlaySound( click );
             ChangeScreen( SA_GAMESCREEN_BRIEFING );
             break;
         }
-        if ( btnReturnToMainMenu.IsClicked( X, Y ) ) {
+        if ( m_btnReturnToMainMenu.IsClicked( X, Y ) ) {
             PlaySound( click );
             ChangeScreen( SA_MAINMENU );
             break;
         }
-        if ( btnNextMap.IsClicked( X, Y ) ) {
+        if ( m_btnNextMap.IsClicked( X, Y ) ) {
             current_map++;
             if ( current_map == maps_container.size() - 1 ) {
-                btnNextMap.Disable();
+                m_btnNextMap.Disable();
             }
-            btnPrevMap.Enable();
+            m_btnPrevMap.Enable();
             PlaySound( click );
             break;
         }
-        if ( btnPrevMap.IsClicked( X, Y ) ) {
+        if ( m_btnPrevMap.IsClicked( X, Y ) ) {
             current_map--;
             if ( current_map == 0 ) {
-                btnPrevMap.Disable();
+                m_btnPrevMap.Disable();
             }
             if ( maps_container.size() > 1 ) {
-                btnNextMap.Enable();
+                m_btnNextMap.Enable();
             }
             PlaySound( click );
             break;
         }
         break;
     case SA_DEADSCREEN:
-        if ( btnReturnToMissionSelection.IsClicked( X, Y ) ) {
+        if ( m_btnReturnToMissionSelection.IsClicked( X, Y ) ) {
             PlaySound( click );
             ChangeScreen( SA_MISSIONSELECTION );
             break;
         }
     case SA_WINSCREEN:
-        if ( btnReturnToMissionSelection.IsClicked( X, Y ) ) {
+        if ( m_btnReturnToMissionSelection.IsClicked( X, Y ) ) {
             PlaySound( click );
             ChangeScreen( SA_MISSIONSELECTION );
             break;
         }
         break;
     case SA_GAMESCREEN_BRIEFING:
-        if ( btnGO.IsClicked( X, Y ) ) {
+        if ( m_btnGO.IsClicked( X, Y ) ) {
             PlaySound( click );
             ChangeScreen( SA_GAMESCREEN );
             break;
         }
         break;
     case SA_CUSTOMIZE:
-        if ( btnNextJet.IsClicked( X, Y ) ) {
+        if ( m_btnNextJet.IsClicked( X, Y ) ) {
             PlaySound( click );
             current_jet++;
             if ( current_jet == jets_container.size() - 1 ) {
-                btnNextJet.Disable();
+                m_btnNextJet.Disable();
             }
-            btnPrevJet.Enable();
+            m_btnPrevJet.Enable();
             preview_model.Load_OBJ( jets_container.at( current_jet ).model_file.c_str() );
             preview_model.CalculateNormal();
             preview_model.BindTexture( LoadTexture( jets_container.at( current_jet ).model_texture.c_str() ) );
             break;
         }
-        if ( btnPrevJet.IsClicked( X, Y ) ) {
+        if ( m_btnPrevJet.IsClicked( X, Y ) ) {
             PlaySound( click );
             current_jet--;
             if ( current_jet == 0 ) {
-                btnPrevJet.Disable();
+                m_btnPrevJet.Disable();
             }
             if ( jets_container.size() > 1 ) {
-                btnNextJet.Enable();
+                m_btnNextJet.Enable();
             }
             preview_model.Load_OBJ( jets_container.at( current_jet ).model_file.c_str() );
             preview_model.CalculateNormal();
             preview_model.BindTexture( LoadTexture( jets_container.at( current_jet ).model_texture.c_str() ) );
             break;
         }
-        if ( btnCustomizeReturn.IsClicked( X, Y ) ) {
+        if ( m_btnCustomizeReturn.IsClicked( X, Y ) ) {
             PlaySound( click );
             ChangeScreen( SA_MAINMENU );
             break;
         }
-        if ( btnWeap1.IsClicked( X, Y ) ) {
+        if ( m_btnWeap1.IsClicked( X, Y ) ) {
             PlaySound( click );
             Weap1++;
             if ( Weap1 == 3 ) {
                 Weap1 = 0;
             }
             if ( Weap1 == 0 ) {
-                btnWeap1.SetText( "Laser" );
+                m_btnWeap1.SetText( "Laser" );
             }
             if ( Weap1 == 1 ) {
-                btnWeap1.SetText( "Blaster" );
+                m_btnWeap1.SetText( "Blaster" );
             }
             if ( Weap1 == 2 ) {
-                btnWeap1.SetText( "Torpedo" );
+                m_btnWeap1.SetText( "Torpedo" );
             }
             break;
         }
-        if ( btnWeap2.IsClicked( X, Y ) ) {
+        if ( m_btnWeap2.IsClicked( X, Y ) ) {
             PlaySound( click );
             Weap2++;
             if ( Weap2 == 3 ) {
                 Weap2 = 0;
             }
             if ( Weap2 == 0 ) {
-                btnWeap2.SetText( "Laser" );
+                m_btnWeap2.SetText( "Laser" );
             }
             if ( Weap2 == 1 ) {
-                btnWeap2.SetText( "Blaster" );
+                m_btnWeap2.SetText( "Blaster" );
             }
             if ( Weap2 == 2 ) {
-                btnWeap2.SetText( "Torpedo" );
+                m_btnWeap2.SetText( "Torpedo" );
             }
             break;
         }
-        if ( btnWeap3.IsClicked( X, Y ) ) {
+        if ( m_btnWeap3.IsClicked( X, Y ) ) {
             PlaySound( click );
             Weap3++;
             if ( Weap3 == 3 ) {
                 Weap3 = 0;
             }
             if ( Weap3 == 0 ) {
-                btnWeap3.SetText( "Laser" );
+                m_btnWeap3.SetText( "Laser" );
             }
             if ( Weap3 == 1 ) {
-                btnWeap3.SetText( "Blaster" );
+                m_btnWeap3.SetText( "Blaster" );
             }
             if ( Weap3 == 2 ) {
-                btnWeap3.SetText( "Torpedo" );
+                m_btnWeap3.SetText( "Torpedo" );
             }
             break;
         }
@@ -1086,10 +1068,10 @@ void Road::LoadMapProto()
     MapFile.close();
     if ( maps_container.empty() ) {
         maps_container.push_back( map );
-        btnNextMap.Disable();
+        m_btnNextMap.Disable();
     }
     current_map = 0;
-    btnPrevMap.Disable();
+    m_btnPrevMap.Disable();
     std::cout << "done\n";
 }
 
@@ -1127,7 +1109,7 @@ void Road::LoadJetProto()
         jets_container.push_back( mod );
     }
     if ( jets_container.size() == 1 ) {
-        btnNextJet.Disable();
+        m_btnNextJet.Disable();
     }
     std::cout << "size " << jets_container.size() << "\n";
     current_jet = 0;
@@ -1137,10 +1119,10 @@ void Road::LoadJetProto()
         }
     }
     if ( current_jet == 0 ) {
-        btnPrevJet.Disable();
+        m_btnPrevJet.Disable();
     }
     if ( current_jet == jets_container.size() - 1 ) {
-        btnNextJet.Disable();
+        m_btnNextJet.Disable();
     }
 
     std::cout << "done\n";

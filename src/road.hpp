@@ -1,5 +1,4 @@
-#ifndef StarAce_ROAD
-#define StarAce_ROAD
+#pragma once
 
 #include "sa.hpp"
 
@@ -68,24 +67,24 @@ private:
 
     BulletProto Weapons[ 4 ]{};
     Button Options{};
-    Button btnChangeFiltering{};
-    Button btnCustomizeReturn{};
-    Button btnCustomize{};
-    Button btnExit{};
-    Button btnGO{};
-    Button btnNextJet{};
-    Button btnNextMap{};
-    Button btnPrevJet{};
-    Button btnPrevMap{};
-    Button btnQuitMission{};
-    Button btnReturnToMainMenu{};
-    Button btnReturnToMissionSelection{};
-    Button btnSelectMissionCancel{};
-    Button btnSelectMission{};
-    Button btnStartMission{};
-    Button btnWeap1{};
-    Button btnWeap2{};
-    Button btnWeap3{};
+    Button m_btnChangeFiltering{};
+    Button m_btnCustomizeReturn{};
+    Button m_btnCustomize{};
+    Button m_btnExit{};
+    Button m_btnGO{};
+    Button m_btnNextJet{};
+    Button m_btnNextMap{};
+    Button m_btnPrevJet{};
+    Button m_btnPrevMap{};
+    Button m_btnQuitMission{};
+    Button m_btnReturnToMainMenu{};
+    Button m_btnReturnToMissionSelection{};
+    Button m_btnSelectMissionCancel{};
+    Button m_btnSelectMission{};
+    Button m_btnStartMission{};
+    Button m_btnWeap1{};
+    Button m_btnWeap2{};
+    Button m_btnWeap3{};
 
     GLdouble CalculatedFPS = 0.0;
     GLdouble Rotation = 0.0;
@@ -205,5 +204,3 @@ private:
     void WinUpdate();
     void setCamera();
 };
-
-#endif

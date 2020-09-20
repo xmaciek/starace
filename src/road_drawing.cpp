@@ -227,8 +227,8 @@ void Road::DrawPauseText()
     glVertex2d( 0, SCREEN_HEIGHT );
     glEnd();
 
-    //         btnChangeFiltering.Draw();
-    btnQuitMission.Draw();
+    //         m_btnChangeFiltering.Draw();
+    m_btnQuitMission.Draw();
     glColor4f( 1.0f, 1.0f, 0.0f, 1.0f );
     const char PAUSED[] = "PAUSED";
     const double posx = static_cast<double>( SCREEN_WIDTH ) / 2 - static_cast<double>( font_pause_txt->GetTextLength( PAUSED ) ) / 2;
@@ -481,9 +481,9 @@ void Road::DrawMainMenu()
     glVertex2d( 0, SCREEN_HEIGHT );
     glEnd();
 
-    btnSelectMission.Draw();
-    btnExit.Draw();
-    btnCustomize.Draw();
+    m_btnSelectMission.Draw();
+    m_btnExit.Draw();
+    m_btnCustomize.Draw();
 
     glPopMatrix();
 }
@@ -567,7 +567,7 @@ void Road::WinScreen()
         const double posx = static_cast<double>( SCREEN_WIDTH ) / 2 - static_cast<double>( font_big->GetTextLength( str.c_str() ) ) / 2;
         font_big->PrintTekst( posx, SCREEN_HEIGHT - 128 - 36, str.c_str() );
     }
-    btnReturnToMissionSelection.Draw();
+    m_btnReturnToMissionSelection.Draw();
 
     glDisable( GL_TEXTURE_2D );
     glDisable( GL_BLEND );
@@ -604,7 +604,7 @@ void Road::DeadScreen()
         const double posx = static_cast<double>( SCREEN_WIDTH ) / 2 - static_cast<double>( font_big->GetTextLength( str.c_str() ) ) / 2;
         font_big->PrintTekst( posx, SCREEN_HEIGHT - 128 - 36, str.c_str() );
     }
-    btnReturnToMissionSelection.Draw();
+    m_btnReturnToMissionSelection.Draw();
 
     glDisable( GL_TEXTURE_2D );
     glDisable( GL_BLEND );
@@ -667,10 +667,10 @@ void Road::MissionSelectionScreen()
     glVertex2d( 0, SCREEN_HEIGHT );
     glEnd();
 
-    btnStartMission.Draw();
-    btnReturnToMainMenu.Draw();
-    btnNextMap.Draw();
-    btnPrevMap.Draw();
+    m_btnStartMission.Draw();
+    m_btnReturnToMainMenu.Draw();
+    m_btnNextMap.Draw();
+    m_btnPrevMap.Draw();
 
     glPopMatrix();
 }
@@ -703,7 +703,7 @@ void Road::GameScreenBriefing()
     glTexCoord2f( 0, 1 );
     glVertex2d( 0, SCREEN_HEIGHT );
     glEnd();
-    btnGO.Draw();
+    m_btnGO.Draw();
     glPopMatrix();
 }
 
@@ -740,12 +740,12 @@ void Road::ScreenCustomize()
     glDisable( GL_DEPTH_TEST );
     glPopMatrix();
     SetOrtho();
-    btnNextJet.Draw();
-    btnPrevJet.Draw();
-    btnCustomizeReturn.Draw();
-    btnWeap1.Draw();
-    btnWeap2.Draw();
-    btnWeap3.Draw();
+    m_btnNextJet.Draw();
+    m_btnPrevJet.Draw();
+    m_btnCustomizeReturn.Draw();
+    m_btnWeap1.Draw();
+    m_btnWeap2.Draw();
+    m_btnWeap3.Draw();
 }
 
 void Road::DrawBullets()
