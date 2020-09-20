@@ -32,10 +32,10 @@ Jet::Jet( const ModelProto& model_data )
         { 0.0f, 0.0f, 0.5f, 0.0f }
     };
 
-    m_thruster->SetColor( 1, tmpcolor[ 0 ] );
-    m_thruster->SetColor( 0, tmpcolor[ 1 ] );
-    m_thruster->SetColor( 3, tmpcolor[ 2 ] );
-    m_thruster->SetColor( 2, tmpcolor[ 3 ] );
+    m_thruster->setColor( 1, tmpcolor[ 0 ] );
+    m_thruster->setColor( 0, tmpcolor[ 1 ] );
+    m_thruster->setColor( 3, tmpcolor[ 2 ] );
+    m_thruster->setColor( 2, tmpcolor[ 3 ] );
 
     m_crosshair = new Circle( 32, 0.06 );
 };
@@ -57,7 +57,7 @@ void Jet::Draw() const
 
     m_model.Draw();
     for ( const auto& it : m_model.thrusters() ) {
-        m_thruster->DrawAt( it.x, it.y, it.z );
+        m_thruster->drawAt( it.x, it.y, it.z );
     }
     glPopMatrix();
 }
@@ -175,7 +175,7 @@ void Jet::Update()
         }
     }
     if ( speed < 3 ) {
-        m_thruster->SetLength( speed / 8 );
+        m_thruster->setLength( speed / 8 );
     }
     Quaternion qtmp{};
     Quaternion qx{};
@@ -223,7 +223,7 @@ void Jet::Update()
     m_energy = std::min( m_energy + 60 * DELTATIME, 100.0 );
 
     position = position + velocity * DELTATIME;
-    m_thruster->Update();
+    m_thruster->update();
     m_shield->Update();
     if ( target ) {
         if ( target->GetStatus() != ALIVE ) {

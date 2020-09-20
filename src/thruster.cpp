@@ -4,24 +4,24 @@ Thruster::Thruster( GLdouble length, GLdouble radius )
 : m_inner( 32, radius * 0.6 )
 , m_outer( 32, radius )
 {
-    SetLength( length );
+    setLength( length );
 }
 
-void Thruster::SetLength( GLdouble newLength )
+void Thruster::setLength( GLdouble newLength )
 {
     m_length = newLength;
     m_lengthShorter = newLength * 0.95f;
 }
 
-void Thruster::SetColor( GLuint Num, GLfloat* ColorData )
+void Thruster::setColor( GLuint num, GLfloat* colorData )
 {
-    if ( Num > 3 ) {
+    if ( num > 3 ) {
         return;
     }
-    memcpy( m_color[ Num ], ColorData, sizeof( GLfloat ) * 4 );
+    memcpy( m_color[ num ], colorData, sizeof( GLfloat ) * 4 );
 }
 
-void Thruster::Update()
+void Thruster::update()
 {
     if ( m_wiggle < 3 ) {
         m_len = m_length;
@@ -35,10 +35,10 @@ void Thruster::Update()
     }
 }
 
-void Thruster::DrawAt( GLdouble X, GLdouble Y, GLdouble Z )
+void Thruster::drawAt( GLdouble x, GLdouble y, GLdouble z )
 {
     glPushMatrix();
-    glTranslated( X, Y, Z );
+    glTranslated( x, y, z );
 
     glBegin( GL_TRIANGLE_FAN );
     glColor4fv( m_color[ 0 ] );
