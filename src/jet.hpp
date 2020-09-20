@@ -12,9 +12,9 @@
 
 class Jet : public SAObject {
 private:
-    Circle* m_crosshair = nullptr;
-    Thruster* m_thruster = nullptr;
-    Shield* m_shield = nullptr;
+    Circle m_crosshair;
+    Thruster m_thruster;
+    Shield m_shield;
 
     Model m_model{};
 
@@ -58,34 +58,34 @@ private:
     GLbyte m_speedAcc = 0;
 
 public:
-    virtual ~Jet() override;
-    explicit Jet( const ModelProto& model_data );
+    virtual ~Jet() override = default;
+    explicit Jet( const ModelProto& );
 
-    Bullet* GetWeaponType( GLuint wID );
-    Vertex GetWeaponPoint( GLuint wID );
-    bool IsShooting( GLuint WeaponNum );
-    bool IsWeaponReady( GLuint WeaponNum );
-    virtual void AddScore( GLint s, bool b ) override;
-    virtual void Draw() const override;
-    virtual void ProcessCollision( SAObject* ) override;
-    void DrawWireframe();
-    void LockTarget( SAObject* t );
-    void PitchDown( bool doit );
-    void PitchUp( bool doit );
-    void ProcessCollision( std::vector<Bullet*>& Bullets );
-    void RollLeft( bool doit );
-    void RollRight( bool doit );
-    void SetModel( Model* M );
-    void SetWeapon( BulletProto bp, GLuint ID );
-    void Shoot( GLuint WeaponNum, bool doit );
-    void SpeedDown( bool doit );
-    void SpeedUp( bool doit );
-    void TakeEnergy( GLuint wID );
-    void Update();
-    void YawLeft( bool doit );
-    void YawRight( bool doit );
-    Quaternion rotation() const;
-    Quaternion quat() const;
+    Bullet* weapon( GLuint weaponNum );
     Quaternion animation() const;
+    Quaternion quat() const;
+    Quaternion rotation() const;
+    Vertex weaponPoint( GLuint weaponNum );
+    bool isShooting( GLuint weaponNum ) const;
+    bool isWeaponReady( GLuint weaponNum ) const;
     double energy() const;
+    virtual void addScore( GLint s, bool b ) override;
+    virtual void draw() const override;
+    virtual void processCollision( SAObject* ) override;
+    void drawWireframe();
+    void lockTarget( SAObject* );
+    void pitchDown( bool );
+    void pitchUp( bool );
+    void processCollision( std::vector<Bullet*>& );
+    void rollLeft( bool );
+    void rollRight( bool );
+    void setModel( Model* );
+    void setWeapon( BulletProto bp, GLuint id );
+    void shoot( GLuint weaponNum, bool );
+    void speedDown( bool );
+    void speedUp( bool );
+    void takeEnergy( GLuint weaponNum );
+    void update();
+    void yawLeft( bool );
+    void yawRight( bool );
 };

@@ -16,7 +16,7 @@ private:
 public:
     Thruster( GLdouble length, GLdouble radius );
 
-    void drawAt( GLdouble x, GLdouble y, GLdouble z );
+    void drawAt( GLdouble x, GLdouble y, GLdouble z ) const;
     void update();
     void setColor( GLuint num, GLfloat* colorData );
     void setLength( GLdouble newLength );

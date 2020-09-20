@@ -6,28 +6,23 @@
 #include <cassert>
 
 
-Jet::Jet( const ModelProto& model_data )
+Jet::Jet( const ModelProto& modelData )
+: m_crosshair( 32, 0.06 )
+, m_thruster( modelData.scale, modelData.scale * 0.04285 )
+, m_shield( 0.15, 0.03 )
 {
-    CollisionDistance = 0.08;
-    CollisionFlag = true;
-    direction.x = 0;
-    direction.y = 0;
-    direction.z = -1;
-    health = 100;
-    position.x = 0;
-    position.y = 0;
-    position.z = 0;
-    score = 0;
-    speed = 2;
-    status = ALIVE;
+    m_collisionDistance = 0.08;
+    m_collisionFlag = true;
+    m_direction.z = -1;
+    m_health = 100;
+    m_speed = 2;
+    setStatus( Status::eAlive );
 
-    m_model.loadOBJ( model_data.model_file.c_str() );
-    m_model.bindTexture( loadTexture( model_data.model_texture.c_str() ) );
-    m_model.scale( model_data.scale );
+    m_model.loadOBJ( modelData.model_file.c_str() );
+    m_model.bindTexture( loadTexture( modelData.model_texture.c_str() ) );
+    m_model.scale( modelData.scale );
     m_model.calculateNormal();
 
-    m_shield = new Shield( 0.15, 0.03 );
-    m_thruster = new Thruster( model_data.scale, model_data.scale * 0.04285 );
     GLfloat tmpcolor[ 4 ][ 4 ] = {
         { 0.0f, 0.7f, 1.0f, 1.0f },
         { 0.0f, 0.0f, 0.5f, 0.0f },
@@ -35,22 +30,15 @@ Jet::Jet( const ModelProto& model_data )
         { 0.0f, 0.0f, 0.5f, 0.0f }
     };
 
-    m_thruster->setColor( 1, tmpcolor[ 0 ] );
-    m_thruster->setColor( 0, tmpcolor[ 1 ] );
-    m_thruster->setColor( 3, tmpcolor[ 2 ] );
-    m_thruster->setColor( 2, tmpcolor[ 3 ] );
+    m_thruster.setColor( 1, tmpcolor[ 0 ] );
+    m_thruster.setColor( 0, tmpcolor[ 1 ] );
+    m_thruster.setColor( 3, tmpcolor[ 2 ] );
+    m_thruster.setColor( 2, tmpcolor[ 3 ] );
 
-    m_crosshair = new Circle( 32, 0.06 );
 };
 
-Jet::~Jet()
-{
-    delete m_thruster;
-    delete m_shield;
-    delete m_crosshair;
-}
 
-void Jet::Draw() const
+void Jet::draw() const
 {
     GLfloat matrix[ 16 ]{};
     m_animation.createMatrix( matrix );
@@ -60,22 +48,22 @@ void Jet::Draw() const
 
     m_model.draw();
     for ( const auto& it : m_model.thrusters() ) {
-        m_thruster->drawAt( it.x, it.y, it.z );
+        m_thruster.drawAt( it.x, it.y, it.z );
     }
     glPopMatrix();
 }
 
-void Jet::LockTarget( SAObject* t )
+void Jet::lockTarget( SAObject* t )
 {
-    if ( target ) {
-        target->TargetMe( false );
+    if ( m_target ) {
+        m_target->targetMe( false );
     }
 
-    target = t;
-    target->TargetMe( true );
+    m_target = t;
+    m_target->targetMe( true );
 }
 
-void Jet::Update()
+void Jet::update()
 {
     if ( m_btnRollLeft ) {
         if ( m_rotZ < m_maxAngleZ ) {
@@ -161,24 +149,24 @@ void Jet::Update()
         }
     }
 
-    if ( ( speed < m_maxSpeed ) && ( m_speedAcc > 0 ) ) {
-        speed += 0.8 * DELTATIME;
+    if ( ( speed() < m_maxSpeed ) && ( m_speedAcc > 0 ) ) {
+        m_speed += 0.8 * DELTATIME;
     }
     else {
-        if ( ( speed > m_minSpeed ) && ( m_speedAcc < 0 ) ) {
-            speed -= 0.8 * DELTATIME;
+        if ( ( m_speed > m_minSpeed ) && ( m_speedAcc < 0 ) ) {
+            m_speed -= 0.8 * DELTATIME;
         }
     }
-    if ( ( ( speed >= m_normSpeed + 0.1 * DELTATIME ) || ( speed <= m_normSpeed - 0.1 * DELTATIME ) ) && ( m_speedAcc == 0 ) ) {
-        if ( speed < m_normSpeed ) {
-            speed += 0.3 * DELTATIME;
+    if ( ( ( m_speed >= m_normSpeed + 0.1 * DELTATIME ) || ( speed() <= m_normSpeed - 0.1 * DELTATIME ) ) && ( m_speedAcc == 0 ) ) {
+        if ( speed() < m_normSpeed ) {
+            m_speed += 0.3 * DELTATIME;
         }
         else {
-            speed -= 0.3 * DELTATIME;
+            m_speed -= 0.3 * DELTATIME;
         }
     }
-    if ( speed < 3 ) {
-        m_thruster->setLength( speed / 8 );
+    if ( speed() < 3 ) {
+        m_thruster.setLength( speed() / 8 );
     }
     Quaternion qtmp{};
     Quaternion qx{};
@@ -209,9 +197,9 @@ void Jet::Update()
     v.y = 0;
     v.z = -1;
     m_quaternion.rotateVector( v );
-    direction = v;
-    normalizeV( direction );
-    velocity = direction * speed;
+    m_direction = v;
+    normalizeV( m_direction );
+    m_velocity = direction() * speed();
 
     if ( m_shotFactor[ 0 ] < m_weapon[ 0 ].delay ) {
         m_shotFactor[ 0 ] += 1.0 * DELTATIME;
@@ -225,150 +213,149 @@ void Jet::Update()
 
     m_energy = std::min( m_energy + 60 * DELTATIME, 100.0 );
 
-    position = position + velocity * DELTATIME;
-    m_thruster->update();
-    m_shield->update();
-    if ( target ) {
-        if ( target->GetStatus() != ALIVE ) {
-            target->TargetMe( false );
-            target = nullptr;
+    m_position += velocity() * DELTATIME;
+    m_thruster.update();
+    m_shield.update();
+    if ( m_target ) {
+        if ( m_target->status() != Status::eAlive ) {
+            m_target->targetMe( false );
+            m_target = nullptr;
         }
     }
 }
 
-void Jet::RollLeft( bool doit )
+void Jet::rollLeft( bool doit )
 {
     m_btnRollLeft = doit;
 }
 
-void Jet::RollRight( bool doit )
+void Jet::rollRight( bool doit )
 {
     m_btnRollRight = doit;
 }
 
-void Jet::YawLeft( bool doit )
+void Jet::yawLeft( bool doit )
 {
     m_btnYawLeft = doit;
 }
 
-void Jet::YawRight( bool doit )
+void Jet::yawRight( bool doit )
 {
     m_btnYawRight = doit;
 }
 
-void Jet::PitchUp( bool doit )
+void Jet::pitchUp( bool doit )
 {
     m_btnPitchUp = doit;
 }
 
-void Jet::PitchDown( bool doit )
+void Jet::pitchDown( bool doit )
 {
     m_btnPitchDown = doit;
 }
 
-void Jet::SpeedUp( bool doit )
+void Jet::speedUp( bool doit )
 {
     m_speedAcc += doit ? 1 : -1;
 }
 
-void Jet::SpeedDown( bool doit )
+void Jet::speedDown( bool doit )
 {
-    SpeedUp( !doit );
+    speedUp( !doit );
 }
 
-bool Jet::IsShooting( GLuint WeaponNum )
+bool Jet::isShooting( GLuint WeaponNum ) const
 {
     return m_shooting[ WeaponNum ];
 }
 
-void Jet::Shoot( GLuint WeaponNum, bool doit )
+void Jet::shoot( GLuint WeaponNum, bool doit )
 {
     m_shooting[ WeaponNum ] = doit;
 }
 
-Vertex Jet::GetWeaponPoint( GLuint wID )
+Vertex Jet::weaponPoint( GLuint wID )
 {
     Vertex w = m_model.weapon( wID );
     m_quaternion.rotateVector( w );
-    w = w + position;
+    w = w + position();
     return w;
 }
 
-Bullet* Jet::GetWeaponType( GLuint wID )
+Bullet* Jet::weapon( GLuint wID )
 {
     BulletProto tmp = m_weapon[ wID ];
     Vertex w = m_model.weapon( wID );
     m_quaternion.rotateVector( w );
-    w = w + position;
+    w = w + position();
 
     tmp.x = w.x;
     tmp.y = w.y;
     tmp.z = w.z;
 
     Bullet* b = new Bullet( tmp );
-    b->SetDirection( direction );
-    if ( tmp.type == Bullet::TORPEDO ) {
-        if ( target ) {
-            if ( target->GetStatus() == ALIVE ) {
-                b->SetTarget( target );
+    b->setDirection( direction() );
+    if ( tmp.type == Bullet::Type::eTorpedo ) {
+        if ( m_target ) {
+            if ( m_target->status() == Status::eAlive ) {
+                b->setTarget( m_target );
             }
         }
     }
     return b;
 }
 
-void Jet::SetWeapon( BulletProto bp, GLuint ID )
+void Jet::setWeapon( BulletProto bp, GLuint id )
 {
-    m_weapon[ ID ] = bp;
+    m_weapon[ id ] = bp;
 }
 
-bool Jet::IsWeaponReady( GLuint WeaponNum )
+bool Jet::isWeaponReady( GLuint weaponNum ) const
 {
-    return ( m_shotFactor[ WeaponNum ] >= m_weapon[ WeaponNum ].delay )
-        && ( m_energy >= m_weapon[ WeaponNum ].energy );
+    return ( m_shotFactor[ weaponNum ] >= m_weapon[ weaponNum ].delay )
+        && ( m_energy >= m_weapon[ weaponNum ].energy );
 }
 
-void Jet::TakeEnergy( GLuint wID )
+void Jet::takeEnergy( GLuint weaponNum )
 {
-    m_energy -= m_weapon[ wID ].energy;
-    m_shotFactor[ wID ] = 0;
+    m_energy -= m_weapon[ weaponNum ].energy;
+    m_shotFactor[ weaponNum ] = 0;
 }
 
-void Jet::DrawWireframe()
+void Jet::drawWireframe()
 {
     m_model.drawWireframe();
 }
 
-void Jet::ProcessCollision( std::vector<Bullet*>& Bullets )
+void Jet::processCollision( std::vector<Bullet*>& bullets )
 {
-    if ( status == DEAD ) {
+    if ( status() == Status::eDead ) {
         return;
     }
-    for ( Bullet* it : Bullets ) {
-        if ( it->GetStatus() != ALIVE ) {
+    for ( Bullet* it : bullets ) {
+        if ( it->status() != Status::eAlive ) {
             continue;
         }
-        if ( distanceV( position, it->GetPosition() ) > 0.1 ) {
+        if ( distanceV( position(), it->position() ) > 0.1 ) {
             continue;
         }
-        health -= it->getDamage();
-        it->Kill();
-        if ( health <= 0 ) {
-            status = DEAD;
+        setDamage( it->damage() );
+        it->kill();
+        if ( health() <= 0 ) {
             return;
         }
     }
 }
 
-void Jet::ProcessCollision( SAObject* )
+void Jet::processCollision( SAObject* )
 {
     assert( !"shall not be called" );
 };
 
-void Jet::AddScore( GLint s, bool b )
+void Jet::addScore( GLint s, bool b )
 {
     if ( b ) {
-        score += s;
+        m_score += s;
     }
 }
 

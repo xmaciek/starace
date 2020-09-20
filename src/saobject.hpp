@@ -1,64 +1,57 @@
-#ifndef SA_TARGET_H
-#define SA_TARGET_H
+#pragma once
 
 #include "sa.hpp"
 
 class SAObject {
 public:
-    SAObject() = default;
+    enum struct Status {
+        eDead,
+        eAlive,
+        eOut,
+        eInvisible,
+    };
+
     virtual ~SAObject() = default;
-    GLdouble getX() const;
-    GLdouble getY() const;
-    GLdouble getZ() const;
-    GLuint GetStatus() const;
-    void SetStatus( GLuint s );
-    void SetTarget( SAObject* t );
-    Vertex GetPosition() const;
-    Vertex GetDirection() const;
-    Vertex GetVelocity() const;
-    GLdouble GetSpeed() const;
-    bool DeleteMe();
-    void Kill();
-    void Damage( GLdouble d );
-    void TargetMe( bool );
-    GLdouble GetHealth() const;
+    SAObject() = default;
 
-    virtual void ProcessCollision( SAObject* Object );
-    bool CanCollide() const;
-    GLdouble GetCollisionDistance() const;
-
-    GLint GetScore() const;
-    virtual void AddScore( GLint s, bool b );
-
-    GLdouble GetCollisionDamage() const;
-
-    static const GLuint DEAD = 0;
-    static const GLuint ALIVE = 1;
-    static const GLuint OUT = 2;
-    static const GLuint NOT_VISIBLE = 3;
-
-    virtual void Draw() const = 0;
+    GLdouble collisionDamage() const;
+    GLdouble collisionDistance() const;
+    GLdouble health() const;
+    GLdouble speed() const;
+    GLdouble x() const;
+    GLdouble y() const;
+    GLdouble z() const;
+    GLint score() const;
+    Status status() const;
+    Vertex direction() const;
+    Vertex position() const;
+    Vertex velocity() const;
+    bool canCollide() const;
+    bool deleteMe();
+    virtual void addScore( GLint s, bool b );
+    virtual void draw() const = 0;
+    virtual void processCollision( SAObject* );
+    void kill();
+    void setDamage( GLdouble d );
+    void setStatus( Status s );
+    void setTarget( SAObject* t );
+    void targetMe( bool );
 
 protected:
-    SAObject* target = nullptr;
-    bool ImTargeted = false;
-    bool CollisionFlag = false;
-    GLdouble CollisionDistance = 0.0;
-    GLdouble CollisionDamage = 0.0;
-    GLint score = 0;
+    SAObject* m_target = nullptr;
+    GLdouble m_collisionDamage = 0.0;
+    GLdouble m_collisionDistance = 0.0;
+    GLdouble m_health = 0.0;
+    GLdouble m_speed = 0.0;
+    GLdouble m_turnrate = 0;
+    Vertex m_direction{};
+    Vertex m_position{};
+    Vertex m_velocity{};
+    GLint m_score = 0;
+    GLuint m_ttl = 0;
+    Status m_status = Status::eDead;
+    bool m_collisionFlag = false;
+    bool m_isTargeted = false;
 
-    GLdouble speed = 0;
-    GLuint status = 0;
-    GLdouble health = 0.0;
-
-    Vertex position{};
-    Vertex direction{};
-    Vertex velocity{};
-
-    GLuint ttl = 0;
-
-    GLdouble turnrate_in_rads = 0;
-    void InterceptTarget();
+    void interceptTarget();
 };
-
-#endif

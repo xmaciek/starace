@@ -3,14 +3,14 @@
 #include <cassert>
 #include <random>
 
-static uint16_t typeToSegments( GLuint t )
+static uint16_t typeToSegments( Bullet::Type e )
 {
-    switch ( t ) {
-    case Bullet::TORPEDO:
+    switch ( e ) {
+    case Bullet::Type::eTorpedo:
         return 24;
-    case Bullet::BLASTER:
+    case Bullet::Type::eBlaster:
         return 9;
-    case Bullet::SLUG:
+    case Bullet::Type::eSlug:
         return 2;
     default:
         return 0;
@@ -20,23 +20,23 @@ static uint16_t typeToSegments( GLuint t )
 Bullet::Bullet( const BulletProto& bp )
 : m_tail( typeToSegments( bp.type ), Vertex( bp.x, bp.y, bp.z ) )
 {
-    CollisionFlag = true;
+    m_collisionFlag = true;
     m_type = bp.type;
-    speed = bp.speed;
+    m_speed = bp.speed;
     m_damage = bp.damage;
     std::copy( std::begin( bp.color1 ), std::end( bp.color1 ), std::begin( m_color1 ) );
     std::copy( std::begin( bp.color2 ), std::end( bp.color2 ), std::begin( m_color2 ) );
-    score = bp.score_per_hit;
+    m_score = bp.score_per_hit;
 
-    if ( m_type == SLUG ) {
+    if ( m_type == Type::eSlug ) {
         std::copy( std::begin( m_color1 ), std::end( m_color1 ), std::begin( m_color2 ) );
         m_color1[ 3 ] = 1;
         m_color2[ 3 ] = 0;
     }
-    position.x = bp.x;
-    position.y = bp.y;
-    position.z = bp.z;
-    turnrate_in_rads = ( speed * 10 ) * DEG2RAD * DELTATIME;
+    m_position.x = bp.x;
+    m_position.y = bp.y;
+    m_position.z = bp.z;
+    m_turnrate = ( m_speed * 10 ) * DEG2RAD * DELTATIME;
     m_rotX = 0;
     m_rotY = 0;
     m_rotZ = 0;
@@ -46,11 +46,11 @@ Bullet::Bullet( const BulletProto& bp )
     m_range = 0;
     m_maxRange = 150;
 
-    status = ALIVE;
-    ttl = 20;
+    setStatus( Status::eAlive );
+    m_ttl = 20;
 };
 
-void Bullet::Draw1() const
+void Bullet::draw1() const
 {
     Tail::const_iterator it = m_tail.begin();
     glPushMatrix();
@@ -70,7 +70,7 @@ void Bullet::Draw1() const
     glPopMatrix();
 };
 
-void Bullet::DrawLaser() const
+void Bullet::drawLaser() const
 {
     Tail::const_iterator it = m_tail.begin();
     glPushMatrix();
@@ -83,7 +83,7 @@ void Bullet::DrawLaser() const
     glPopMatrix();
 }
 
-void Bullet::Draw2() const
+void Bullet::draw2() const
 {
     Tail::const_iterator it = m_tail.begin();
     glPushMatrix();
@@ -108,62 +108,65 @@ void Bullet::Draw2() const
     glPopMatrix();
 };
 
-void Bullet::Draw() const
+void Bullet::draw() const
 {
-    if ( status == DEAD ) {
+    if ( status() == Status::eDead ) {
         return;
     }
+
     switch ( m_type ) {
-    case SLUG:
-        DrawLaser();
+    case Type::eSlug:
+        drawLaser();
         break;
-    case BLASTER:
-        Draw1();
+
+    case Type::eBlaster:
+        draw1();
         break;
-    case TORPEDO:
-        Draw2();
-        break;
-    default:
+
+    case Type::eTorpedo:
+        draw2();
         break;
     }
 };
 
-void Bullet::Update()
+void Bullet::update()
 {
-    if ( status == DEAD ) {
+    if ( status() == Status::eDead ) {
         return;
     }
     if ( m_range > m_maxRange ) {
-        status = DEAD;
+        setStatus( Status::eDead );
         return;
     }
 
     switch ( m_type ) {
-    case SLUG:
+    case Type::eSlug:
         m_color1[ 3 ] -= 2.0 * DELTATIME;
         m_range += m_maxRange * 2.0 * DELTATIME;
         break;
-    case TORPEDO:
-        InterceptTarget(); /*no break*/
-    case BLASTER:
-        position = position + velocity * DELTATIME;
-        m_tail.insert( position );
-        m_range += speed * DELTATIME;
+
+    case Type::eTorpedo:
+        interceptTarget();
+        /*no break*/
+
+    case Type::eBlaster:
+        m_position += m_velocity * DELTATIME;
+        m_tail.insert( m_position );
+        m_range += m_speed * DELTATIME;
         break;
-    default:
-        break;
+
     }
 };
 
 bool Bullet::collisionTest( const SAObject* object ) const
 {
     assert( object );
-    if ( !object->CanCollide() || status == DEAD || object->GetStatus() != ALIVE ) {
+    if ( !object->canCollide() || status() == Status::eDead || object->status() != Status::eAlive ) {
         return false;
     }
 
     const Vertex collRay = collisionRay();
-    const Vertex dir = object->GetPosition() - position;
+    const Vertex dir = object->position() - position();
     const double tmp = dotProduct( dir, collRay );
     double dist = 0.0;
 
@@ -176,26 +179,26 @@ bool Bullet::collisionTest( const SAObject* object ) const
             dist = lengthV( dir );
         }
         else {
-            const Vertex Pb = position + ( collRay * ( tmp / tmp2 ) );
-            dist = lengthV( object->GetPosition() - Pb );
+            const Vertex Pb = position() + ( collRay * ( tmp / tmp2 ) );
+            dist = lengthV( object->position() - Pb );
         }
     }
 
-    return dist < ( CollisionDistance + object->GetCollisionDistance() );
+    return dist < ( m_collisionDistance + object->collisionDistance() );
 }
 
-void Bullet::ProcessCollision( SAObject* object )
+void Bullet::processCollision( SAObject* object )
 {
     assert( object );
     if ( collisionTest( object ) ) {
-        object->AddScore( score, false );
+        object->addScore( score(), false );
         switch ( m_type ) {
-        case SLUG:
-            object->Damage( m_damage * m_color1[ 3 ] );
+        case Type::eSlug:
+            object->setDamage( m_damage * m_color1[ 3 ] );
             break;
         default:
-            object->Damage( m_damage );
-            status = DEAD;
+            object->setDamage( m_damage );
+            setStatus( Status::eDead );
             break;
         }
     }
@@ -204,34 +207,37 @@ void Bullet::ProcessCollision( SAObject* object )
 Vertex Bullet::collisionRay() const
 {
     switch ( m_type ) {
-    case BLASTER:
-        return direction * speed * DELTATIME * 3;
-    case TORPEDO:
-        return direction * speed * DELTATIME;
-    case SLUG:
-        return direction * 1000;
+    case Type::eBlaster:
+        return direction() * speed() * DELTATIME * 3;
+
+    case Type::eTorpedo:
+        return direction() * speed() * DELTATIME;
+
+    case Type::eSlug:
+        return direction() * 1000;
+
     default:
         assert( !"unreachable" );
         return Vertex{};
     }
 }
 
-void Bullet::SetDirection( Vertex v )
+void Bullet::setDirection( const Vertex& v )
 {
-    direction = v;
-    normalizeV( direction );
-    velocity = direction * speed;
-    if ( m_type == SLUG ) {
-        m_tail.insert( position + ( direction * 1000 ) );
+    m_direction = v;
+    normalizeV( m_direction );
+    m_velocity = direction() * speed();
+    if ( m_type == Type::eSlug ) {
+        m_tail.insert( position() + ( direction() * 1000 ) );
     }
 }
 
-GLuint Bullet::getDamage() const
+GLuint Bullet::damage() const
 {
     return m_damage;
 }
 
-GLuint Bullet::GetType() const
+Bullet::Type Bullet::type() const
 {
     return m_type;
 }

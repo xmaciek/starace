@@ -396,7 +396,7 @@ void Road::InitRoadAdditionsGL()
         { 0.3, 0.8, 1, 1 }, { 1, 0.8, 0.1, 1 }, { 1, 0.3, 0.8, 1 }, { 1, 1, 0, 1 }
     };
     BulletProto tmpWeapon;
-    tmpWeapon.type = Bullet::SLUG;
+    tmpWeapon.type = Bullet::Type::eSlug;
     tmpWeapon.delay = 0.1;
     tmpWeapon.energy = 15;
     tmpWeapon.damage = 1;
@@ -405,7 +405,7 @@ void Road::InitRoadAdditionsGL()
     memcpy( tmpWeapon.color2, tempcolor[ 1 ], 4 * sizeof( GLfloat ) );
     m_weapons[ 0 ] = tmpWeapon;
 
-    tmpWeapon.type = Bullet::BLASTER;
+    tmpWeapon.type = Bullet::Type::eBlaster;
     tmpWeapon.speed = 16;
     tmpWeapon.damage = 10;
     tmpWeapon.energy = 10;
@@ -418,7 +418,7 @@ void Road::InitRoadAdditionsGL()
     tmpWeapon.delay = 0.4;
     m_weapons[ 3 ] = tmpWeapon;
 
-    tmpWeapon.type = Bullet::TORPEDO;
+    tmpWeapon.type = Bullet::Type::eTorpedo;
     tmpWeapon.damage = 1;
     tmpWeapon.delay = 0.4;
     tmpWeapon.energy = 1;
@@ -557,39 +557,39 @@ void Road::GameUpdatePaused()
 
 void Road::GameUpdate()
 {
-    if ( m_jet->GetStatus() == SAObject::DEAD ) {
+    if ( m_jet->status() == Jet::Status::eDead ) {
         ChangeScreen( Screen::eDead );
     }
     if ( m_enemies.empty() ) {
         ChangeScreen( Screen::eWin );
     }
-    if ( m_jet->GetHealth() <= 20 ) {
+    if ( m_jet->health() <= 20 ) {
         m_hudColor = 2;
     }
     else {
         m_hudColor = 0;
     }
 
-    if ( m_jet->IsShooting( 0 ) ) {
+    if ( m_jet->isShooting( 0 ) ) {
         AddBullet( 0 );
     }
-    if ( m_jet->IsShooting( 1 ) ) {
+    if ( m_jet->isShooting( 1 ) ) {
         AddBullet( 1 );
     }
-    if ( m_jet->IsShooting( 2 ) ) {
+    if ( m_jet->isShooting( 2 ) ) {
         AddBullet( 2 );
     }
 
     {
         std::lock_guard<std::mutex> lg( m_mutexEnemy );
         for ( Enemy*& e : m_enemies ) {
-            e->Update();
-            if ( e->IsWeaponReady() ) {
+            e->update();
+            if ( e->isWeaponReady() ) {
                 std::lock_guard<std::mutex> lg( m_mutexEnemyBullet );
-                m_enemyBullets.push_back( e->GetWeapon() );
+                m_enemyBullets.push_back( e->weapon() );
             }
-            if ( e->GetStatus() == Enemy::DEAD ) {
-                m_jet->AddScore( e->GetScore(), true );
+            if ( e->status() == Enemy::Status::eDead ) {
+                m_jet->addScore( e->score(), true );
                 m_enemyGarbage.push_back( e );
                 e = nullptr;
             }
@@ -600,16 +600,16 @@ void Road::GameUpdate()
     {
         std::lock_guard<std::mutex> lg( m_mutexEnemyBullet );
         for ( Bullet* it : m_enemyBullets ) {
-            it->ProcessCollision( m_jet );
+            it->processCollision( m_jet );
         }
     }
 
-    m_jet->Update();
-    m_speedAnim += m_jet->GetSpeed() * ( 270.0 * DELTATIME );
+    m_jet->update();
+    m_speedAnim += m_jet->speed() * ( 270.0 * DELTATIME );
     if ( m_speedAnim >= 360 ) {
         m_speedAnim -= 360;
     }
-    m_map->setJetData( m_jet->GetPosition(), m_jet->GetVelocity() );
+    m_map->setJetData( m_jet->position(), m_jet->velocity() );
     m_map->update();
 
     {
@@ -617,11 +617,11 @@ void Road::GameUpdate()
         std::lock_guard<std::mutex> lg2( m_mutexBullet );
         for ( Bullet*& b : m_bullets ) {
             for ( Enemy* e : m_enemies ) {
-                b->ProcessCollision( e );
+                b->processCollision( e );
             }
 
-            b->Update();
-            if ( b->GetStatus() == Bullet::DEAD ) {
+            b->update();
+            if ( b->status() == Bullet::Status::eDead ) {
                 m_bulletGarbage.push_back( b );
                 b = nullptr;
                 //         i-=1;
@@ -633,8 +633,8 @@ void Road::GameUpdate()
     {
         std::lock_guard<std::mutex> lg( m_mutexEnemyBullet );
         for ( Bullet*& b : m_enemyBullets ) {
-            b->Update();
-            if ( b->GetStatus() == Bullet::DEAD ) {
+            b->update();
+            if ( b->status() == Bullet::Status::eDead ) {
                 m_bulletGarbage.push_back( b );
                 b = nullptr;
             }
@@ -643,7 +643,7 @@ void Road::GameUpdate()
     }
 
     for ( Enemy*& e : m_enemyGarbage ) {
-        if ( e->DeleteMe() ) {
+        if ( e->deleteMe() ) {
             delete e;
             e = nullptr;
         }
@@ -651,7 +651,7 @@ void Road::GameUpdate()
     m_enemyGarbage.erase( std::remove( m_enemyGarbage.begin(), m_enemyGarbage.end(), nullptr ), m_enemyGarbage.end() );
 
     for ( Bullet*& b : m_bulletGarbage ) {
-        if ( b->DeleteMe() ) {
+        if ( b->deleteMe() ) {
             delete b;
             b = nullptr;
         }
@@ -663,20 +663,20 @@ void Road::GameUpdate()
 
 void Road::AddBullet( GLuint wID )
 {
-    if ( !m_jet->IsWeaponReady( wID ) ) {
+    if ( !m_jet->isWeaponReady( wID ) ) {
         return;
     }
-    m_jet->TakeEnergy( wID );
-    m_bullets.push_back( m_jet->GetWeaponType( wID ) );
+    m_jet->takeEnergy( wID );
+    m_bullets.push_back( m_jet->weapon( wID ) );
     m_shotsDone++;
-    switch ( m_bullets.back()->GetType() ) {
-    case Bullet::BLASTER:
+    switch ( m_bullets.back()->type() ) {
+    case Bullet::Type::eBlaster:
         PlaySound( m_blaster );
         break;
-    case Bullet::SLUG:
+    case Bullet::Type::eSlug:
         PlaySound( m_laser );
         break;
-    case Bullet::TORPEDO:
+    case Bullet::Type::eTorpedo:
         PlaySound( m_torpedo );
         break;
     }
@@ -858,7 +858,7 @@ void Road::Retarget()
         return;
     }
     static std::mt19937_64 random{ std::random_device()() };
-    m_jet->LockTarget( m_enemies[ random() % m_enemies.size() ] );
+    m_jet->lockTarget( m_enemies[ random() % m_enemies.size() ] );
 }
 
 void Road::UpdateMainMenu()
@@ -924,16 +924,16 @@ void Road::CreateMapData( const MapProto& map_data, const ModelProto& model_data
     m_hudColor = 0;
     m_jet = new Jet( model_data );
     m_map = new Map( map_data );
-    m_jet->SetWeapon( m_weapons[ m_weap1 ], 0 );
-    m_jet->SetWeapon( m_weapons[ m_weap2 ], 1 );
-    m_jet->SetWeapon( m_weapons[ m_weap3 ], 2 );
+    m_jet->setWeapon( m_weapons[ m_weap1 ], 0 );
+    m_jet->setWeapon( m_weapons[ m_weap2 ], 1 );
+    m_jet->setWeapon( m_weapons[ m_weap3 ], 2 );
 
     {
         std::lock_guard<std::mutex> lg( m_mutexEnemy );
         for ( GLuint i = 0; i < map_data.enemies; i++ ) {
             m_enemies.push_back( new Enemy() );
-            m_enemies.back()->SetTarget( m_jet );
-            m_enemies.back()->SetWeapon( m_weapons[ 3 ] );
+            m_enemies.back()->setTarget( m_jet );
+            m_enemies.back()->setWeapon( m_weapons[ 3 ] );
         }
     }
 

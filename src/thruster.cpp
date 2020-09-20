@@ -35,7 +35,7 @@ void Thruster::update()
     }
 }
 
-void Thruster::drawAt( GLdouble x, GLdouble y, GLdouble z )
+void Thruster::drawAt( GLdouble x, GLdouble y, GLdouble z ) const
 {
     glPushMatrix();
     glTranslated( x, y, z );

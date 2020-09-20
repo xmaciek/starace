@@ -1,134 +1,136 @@
 #include "saobject.hpp"
 
-GLdouble SAObject::getX() const
+#include <cmath>
+
+GLdouble SAObject::x() const
 {
-    return position.x;
+    return m_position.x;
 }
 
-GLdouble SAObject::getY() const
+GLdouble SAObject::y() const
 {
-    return position.y;
+    return m_position.y;
 }
 
-GLdouble SAObject::getZ() const
+GLdouble SAObject::z() const
 {
-    return position.z;
+    return m_position.z;
 }
 
-GLuint SAObject::GetStatus() const
+SAObject::Status SAObject::status() const
 {
-    return status;
+    return m_status;
 }
 
-Vertex SAObject::GetPosition() const
+Vertex SAObject::position() const
 {
-    return position;
+    return m_position;
 }
 
-Vertex SAObject::GetDirection() const
+Vertex SAObject::direction() const
 {
-    return direction;
+    return m_direction;
 }
 
-Vertex SAObject::GetVelocity() const
+Vertex SAObject::velocity() const
 {
-    return velocity;
+    return m_velocity;
 }
 
-GLdouble SAObject::GetSpeed() const
+GLdouble SAObject::speed() const
 {
-    return speed;
+    return m_speed;
 }
 
-void SAObject::SetStatus( GLuint s )
+void SAObject::setStatus( SAObject::Status s )
 {
-    status = s;
+    m_status = s;
 }
 
-void SAObject::ProcessCollision( SAObject* ) { }
+void SAObject::processCollision( SAObject* ) { }
 
-void SAObject::SetTarget( SAObject* t )
+void SAObject::setTarget( SAObject* t )
 {
-    target = t;
+    m_target = t;
 }
 
-void SAObject::TargetMe( bool doit )
+void SAObject::targetMe( bool b )
 {
-    ImTargeted = doit;
+    m_isTargeted = b;
 }
 
-void SAObject::Kill()
+void SAObject::kill()
 {
-    status = DEAD;
+    setStatus( Status::eDead );
 }
 
-void SAObject::Damage( GLdouble d )
+void SAObject::setDamage( GLdouble d )
 {
-    health -= d;
-    if ( health <= 0 ) {
-        status = DEAD;
+    m_health -= d;
+    if ( m_health <= 0.0 ) {
+        setStatus( Status::eDead );
     }
 }
 
-GLdouble SAObject::GetHealth() const
+GLdouble SAObject::health() const
 {
-    return health;
+    return m_health;
 }
 
-void SAObject::InterceptTarget()
+void SAObject::interceptTarget()
 {
-    if ( !target ) {
+    if ( !m_target ) {
         return;
     }
-    if ( target->GetStatus() != ALIVE ) {
-        target = nullptr;
+    if ( m_target->status() != Status::eAlive ) {
+        m_target = nullptr;
         return;
     }
 
-    Vertex D = direction;
-    Vertex T = target->GetPosition();
-    T = position - T;
-    normalizeV( T );
+    Vertex dir = m_direction;
+    Vertex tgt = m_target->position();
+    tgt = m_position - tgt;
+    normalizeV( tgt );
 
-    const double tmp = tan( atan( dotProduct( D, T ) - turnrate_in_rads ) );
-    D = crossProduct( T, crossProduct( D, T ) );
-    D = D + ( T * tmp );
+    const double tmp = tan( std::atan( dotProduct( dir, tgt ) - m_turnrate ) );
+    dir = crossProduct( tgt, crossProduct( dir, tgt ) );
+    dir += tgt * tmp;
 
-    normalizeV( D );
-    direction = D;
-    velocity = direction * speed;
+    normalizeV( dir );
+    m_direction = dir;
+    m_velocity = m_direction * m_speed;
 }
 
-bool SAObject::CanCollide() const
+bool SAObject::canCollide() const
 {
-    return CollisionFlag;
+    return m_collisionFlag;
 }
 
-GLdouble SAObject::GetCollisionDistance() const
+GLdouble SAObject::collisionDistance() const
 {
-    return CollisionDistance;
+    return m_collisionDistance;
 }
 
-GLdouble SAObject::GetCollisionDamage() const
+GLdouble SAObject::collisionDamage() const
 {
-    return CollisionDamage;
+    return m_collisionDamage;
 }
 
-bool SAObject::DeleteMe()
+bool SAObject::deleteMe()
 {
-    if ( ttl == 0 ) {
+    if ( m_ttl == 0 ) {
         return true;
     }
-    ttl--;
+    m_ttl--;
     return false;
 }
 
-GLint SAObject::GetScore() const
+GLint SAObject::score() const
 {
-    return score;
+    return m_score;
 }
 
-void SAObject::AddScore( GLint s, bool )
+void SAObject::addScore( GLint s, bool )
 {
-    score += s;
+    m_score += s;
 }

@@ -237,7 +237,7 @@ void Road::RenderHUD()
     std::snprintf( hudmessage, sizeof( hudmessage ), "Shots: %d", m_shotsDone );
     m_fontGuiTxt->printText( 320, viewportHeight() - 16, hudmessage );
 
-    std::snprintf( hudmessage, sizeof( hudmessage ), "SCORE: %d", m_jet->GetScore() );
+    std::snprintf( hudmessage, sizeof( hudmessage ), "SCORE: %d", m_jet->score() );
     m_fontGuiTxt->printText( 64, viewportHeight() - 100, hudmessage );
 
     /*radar*/
@@ -298,11 +298,11 @@ void Road::RenderHUD()
     }
     glEnd();
     for ( const Enemy* e : m_enemies ) {
-        e->DrawRadarPosition( m_jet->GetPosition(), 92 );
+        e->drawRadarPosition( m_jet->position(), 92 );
     }
 
     glDisable( GL_DEPTH_TEST );
-    Vertex cursor = m_jet->GetDirection() * 92;
+    Vertex cursor = m_jet->direction() * 92;
     glLineWidth( 3 );
     glColor4f( 1, 1, 0, 0.9 );
     glBegin( GL_LINES );
@@ -320,7 +320,7 @@ void Road::RenderHUD()
     glTranslated( 32, viewportHeight() / 2, 0 );
     {
         std::string str{ "SPEED: " };
-        str += std::to_string( static_cast<int>( m_jet->GetSpeed() ) * 270 );
+        str += std::to_string( static_cast<int>( m_jet->speed() ) * 270 );
         m_fontGuiTxt->printText( 38, 0, str.c_str() );
     }
     glPushMatrix();
@@ -350,7 +350,7 @@ void Road::RenderHUD()
     DrawCyberRingsMini();
 
     DrawHUDBar( 12, 12, 36, 96, m_jet->energy(), 100 );
-    DrawHUDBar( 64, 12, 36, 96, m_jet->GetHealth(), 100 );
+    DrawHUDBar( 64, 12, 36, 96, m_jet->health(), 100 );
 
     glColor4fv( m_hudColor4fv[ m_hudColor ] );
 
@@ -374,11 +374,11 @@ void Road::Render3D()
     glEnable( GL_DEPTH_TEST );
     glEnable( GL_FOG );
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-    SetPerspective( m_angle + m_jet->GetSpeed() * 6 );
+    SetPerspective( m_angle + m_jet->speed() * 6 );
 
-    const double cX = -m_jet->getX();
-    const double cY = -m_jet->getY();
-    const double cZ = -m_jet->getZ();
+    const double cX = -m_jet->x();
+    const double cY = -m_jet->y();
+    const double cZ = -m_jet->z();
 
     glPushMatrix();
     glTranslated( 0, -0.225, -1 );
@@ -392,7 +392,7 @@ void Road::Render3D()
     {
         std::lock_guard<std::mutex> lg( m_mutexEnemy );
         for ( const Enemy* it : m_enemies ) {
-            it->Draw();
+            it->draw();
         }
     }
     glEnable( GL_BLEND );
@@ -400,20 +400,20 @@ void Road::Render3D()
     {
         std::lock_guard<std::mutex> lg( m_mutexBullet );
         for ( const Bullet* it : m_bullets ) {
-            it->Draw();
+            it->draw();
         }
     }
     {
         std::lock_guard<std::mutex> lg1( m_mutexEnemy );
         std::lock_guard<std::mutex> lg2( m_mutexEnemyBullet );
         for ( const Bullet* it : m_enemyBullets ) {
-            it->Draw();
+            it->draw();
         }
     }
     glLineWidth( 1 );
     glDisable( GL_BLEND );
     glPopMatrix();
-    m_jet->Draw();
+    m_jet->draw();
     glPopMatrix();
 }
 
@@ -525,7 +525,7 @@ void Road::WinScreen()
         m_fontBig->printText( viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( missionOK ) ) / 2, viewportHeight() - 128, missionOK );
 
         std::string str{ "Your score: " };
-        str += std::to_string( m_jet->GetScore() );
+        str += std::to_string( m_jet->score() );
         const double posx = viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( str.c_str() ) ) / 2;
         m_fontBig->printText( posx, viewportHeight() - 128 - 36, str.c_str() );
     }
@@ -562,7 +562,7 @@ void Road::DeadScreen()
         m_fontBig->printText( viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( missionOK ) ) / 2, viewportHeight() - 128, missionOK );
 
         std::string str{ "Your score: " };
-        str += std::to_string( m_jet->GetScore() );
+        str += std::to_string( m_jet->score() );
         const double posx = viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( str.c_str() ) ) / 2;
         m_fontBig->printText( posx, viewportHeight() - 128 - 36, str.c_str() );
     }
