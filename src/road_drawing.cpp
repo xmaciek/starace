@@ -21,17 +21,6 @@ void Road::GameScreenPaused()
     DrawPauseText();
 }
 
-//   void Road::DrawCrosshair() {
-//     glColor3f(1,1,1);
-//     glBegin(GL_LINES);
-//       glVertex3f(jetX-0.05f, jetY, -1.5f);
-//       glVertex3f(jetX+0.05f, jetY, -1.5f);
-//
-//       glVertex3f(jetX, jetY-0.05f, -1.5f);
-//       glVertex3f(jetX, jetY+0.05f, -1.5f);
-//     glEnd();
-//   }
-
 void Road::DrawAxis()
 {
     glPushMatrix();
@@ -247,33 +236,12 @@ void Road::RenderHUD()
 
     glColor4fv( HUD_Color_4fv[ HUD_Color ] );
 
-    //         DrawHUDLine(0, 48, SCREEN_WIDTH-320, 48, 3);
-    //         DrawHUDLine(SCREEN_WIDTH-320, 48, SCREEN_WIDTH-192, 128, 3);
-    //         DrawHUDLine(SCREEN_WIDTH-192, 128, SCREEN_WIDTH, 128,3);
+    char hudmessage[ 48 ]{};
+    std::snprintf( hudmessage, sizeof( hudmessage ), "Shots: %d", ShotsDone );
+    m_fontGuiTxt->PrintTekst( 320, SCREEN_HEIGHT - 16, hudmessage );
 
-    //         DrawHUDLine(0, SCREEN_HEIGHT-128, 192, SCREEN_HEIGHT-128, 3);
-    //         DrawHUDLine(192, SCREEN_HEIGHT-128, 320, SCREEN_HEIGHT-48, 3);
-    //         DrawHUDLine(320, SCREEN_HEIGHT-48, SCREEN_WIDTH, SCREEN_HEIGHT-48, 3);
-
-    //       glPopMatrix();
-    //
-    //
-    //       glPushMatrix();
-
-    snprintf( HUDMESSAGE, sizeof( HUDMESSAGE ), "X: %.3f", m_jet->getX() );
-    m_fontGuiTxt->PrintTekst( 8, SCREEN_HEIGHT - 16, HUDMESSAGE );
-
-    snprintf( HUDMESSAGE, sizeof( HUDMESSAGE ), "Y: %.3f", m_jet->getY() );
-    m_fontGuiTxt->PrintTekst( 108, SCREEN_HEIGHT - 16, HUDMESSAGE );
-
-    snprintf( HUDMESSAGE, sizeof( HUDMESSAGE ), "Z: %.3f", m_jet->getZ() );
-    m_fontGuiTxt->PrintTekst( 208, SCREEN_HEIGHT - 16, HUDMESSAGE );
-
-    snprintf( HUDMESSAGE, sizeof( HUDMESSAGE ), "Shots: %d", ShotsDone );
-    m_fontGuiTxt->PrintTekst( 320, SCREEN_HEIGHT - 16, HUDMESSAGE );
-
-    snprintf( HUDMESSAGE, sizeof( HUDMESSAGE ), "SCORE: %d", m_jet->GetScore() );
-    m_fontGuiTxt->PrintTekst( 64, SCREEN_HEIGHT - 100, HUDMESSAGE );
+    std::snprintf( hudmessage, sizeof( hudmessage ), "SCORE: %d", m_jet->GetScore() );
+    m_fontGuiTxt->PrintTekst( 64, SCREEN_HEIGHT - 100, hudmessage );
 
     /*radar*/
     GLfloat matrice[ 16 ];

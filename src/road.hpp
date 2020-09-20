@@ -134,7 +134,6 @@ private:
     bool m_cyberRingRotationDirection[ 3 ]{};
     bool m_doUpdate = false;
     bool m_isSoundEnabled = false;
-    char HUDMESSAGE[ 48 ]{};
 
     bool InitNewSurface( GLint W, GLint H, GLint D, bool F );
     bool OnInit();
