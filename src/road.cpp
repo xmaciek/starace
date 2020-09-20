@@ -16,7 +16,7 @@ Road::Road()
     Running = true;
 
     WaitForEnd = true;
-    Radar = new Circle( 48, 64 );
+    m_radar = new Circle( 48, 64 );
     angle = 55;
     DynamicCamera = true;
 
@@ -48,11 +48,11 @@ Road::~Road()
 {
     ClearMapData();
 
-    delete font_pause_txt;
-    delete font_gui_txt;
-    delete font_big;
-    delete speed_fan_ring;
-    delete Radar;
+    delete m_fontPauseTxt;
+    delete m_fontGuiTxt;
+    delete m_fontBig;
+    delete m_speedFanRing;
+    delete m_radar;
 
     glDeleteTextures( 1, &HUDtex );
     glDeleteTextures( 1, &ButtonTexture );
@@ -71,8 +71,8 @@ GLint Road::OnExecute()
         return -1;
     }
 
-    thread = SDL_CreateThread( OnUpdateStatic, this );
-    if ( !thread ) {
+    m_thread = SDL_CreateThread( OnUpdateStatic, this );
+    if ( !m_thread ) {
         std::cout << "-= Unable to start Update thread, terminating! =-\n"
                   << SDL_GetError() << "\n";
         OnCleanup();
@@ -88,7 +88,7 @@ GLint Road::OnExecute()
     }
 
     std::cout << "Waiting for update thread... ";
-    SDL_WaitThread( thread, nullptr );
+    SDL_WaitThread( m_thread, nullptr );
     std::cout << "done.\n";
 
     OnCleanup();
@@ -131,15 +131,15 @@ void Road::OnCleanup()
     Mix_HaltChannel( -1 );
 
     std::cout << Mix_GetError() << "\n";
-    Mix_FreeChunk( laser );
-    Mix_FreeChunk( blaster );
-    Mix_FreeChunk( torpedo );
-    Mix_FreeChunk( click );
+    Mix_FreeChunk( m_laser );
+    Mix_FreeChunk( m_blaster );
+    Mix_FreeChunk( m_torpedo );
+    Mix_FreeChunk( m_click );
     Mix_CloseAudio();
 
     Mix_Quit();
 
-    SDL_FreeSurface( Display );
+    SDL_FreeSurface( m_display );
     SDL_Quit();
     SaveConfig();
 }
@@ -178,10 +178,10 @@ bool Road::OnInit()
         return false;
     }
 
-    laser = Mix_LoadWAV( "sounds/laser.wav" );
-    blaster = Mix_LoadWAV( "sounds/blaster.wav" );
-    torpedo = Mix_LoadWAV( "sounds/torpedo.wav" );
-    click = Mix_LoadWAV( "sounds/click.wav" );
+    m_laser = Mix_LoadWAV( "sounds/laser.wav" );
+    m_blaster = Mix_LoadWAV( "sounds/blaster.wav" );
+    m_torpedo = Mix_LoadWAV( "sounds/torpedo.wav" );
+    m_click = Mix_LoadWAV( "sounds/click.wav" );
 
     LoadConfig();
 
@@ -234,76 +234,76 @@ void Road::InitRoadAdditionsGL()
         std::cout << "Unable to initialize library: " << TTF_GetError() << "\n";
     }
     //     setTextureFiltering(FILTERING_ANISOTROPIC_X16);
-    font_pause_txt = new Font( "misc/DejaVuSans-Bold.ttf", 18 );
-    font_gui_txt = new Font( "misc/DejaVuSans-Bold.ttf", 12 );
-    font_big = new Font( "misc/DejaVuSans-Bold.ttf", 32 );
+    m_fontPauseTxt = new Font( "misc/DejaVuSans-Bold.ttf", 18 );
+    m_fontGuiTxt = new Font( "misc/DejaVuSans-Bold.ttf", 12 );
+    m_fontBig = new Font( "misc/DejaVuSans-Bold.ttf", 32 );
     TTF_Quit();
 
     ButtonTexture = LoadTexture( "textures/button1.tga" );
 
-    m_btnChangeFiltering.SetFont( font_gui_txt );
+    m_btnChangeFiltering.SetFont( m_fontGuiTxt );
     m_btnChangeFiltering.SetText( "Anisotropic x16" );
     m_btnChangeFiltering.SetTexture( ButtonTexture );
 
-    m_btnExit.SetFont( font_gui_txt );
+    m_btnExit.SetFont( m_fontGuiTxt );
     m_btnExit.SetText( "Exit Game" );
     m_btnExit.SetTexture( ButtonTexture );
 
-    m_btnSelectMission.SetFont( font_gui_txt );
+    m_btnSelectMission.SetFont( m_fontGuiTxt );
     m_btnSelectMission.SetText( "Select Mission" );
     m_btnSelectMission.SetTexture( ButtonTexture );
 
-    m_btnQuitMission.SetFont( font_gui_txt );
+    m_btnQuitMission.SetFont( m_fontGuiTxt );
     m_btnQuitMission.SetText( "Quit Mission" );
     m_btnQuitMission.SetTexture( ButtonTexture );
 
-    m_btnStartMission.SetFont( font_gui_txt );
+    m_btnStartMission.SetFont( m_fontGuiTxt );
     m_btnStartMission.SetText( "Start Mission" );
     m_btnStartMission.SetTexture( ButtonTexture );
 
-    m_btnReturnToMissionSelection.SetFont( font_gui_txt );
+    m_btnReturnToMissionSelection.SetFont( m_fontGuiTxt );
     m_btnReturnToMissionSelection.SetText( "Return" );
     m_btnReturnToMissionSelection.SetTexture( ButtonTexture );
 
-    m_btnReturnToMainMenu.SetFont( font_gui_txt );
+    m_btnReturnToMainMenu.SetFont( m_fontGuiTxt );
     m_btnReturnToMainMenu.SetText( "Return" );
     m_btnReturnToMainMenu.SetTexture( ButtonTexture );
 
-    m_btnGO.SetFont( font_gui_txt );
+    m_btnGO.SetFont( m_fontGuiTxt );
     m_btnGO.SetText( "GO!" );
     m_btnGO.SetTexture( ButtonTexture );
 
-    m_btnNextMap.SetFont( font_gui_txt );
+    m_btnNextMap.SetFont( m_fontGuiTxt );
     m_btnNextMap.SetText( "Next Map" );
     m_btnNextMap.SetTexture( ButtonTexture );
 
-    m_btnPrevMap.SetFont( font_gui_txt );
+    m_btnPrevMap.SetFont( m_fontGuiTxt );
     m_btnPrevMap.SetText( "Previous Map" );
     m_btnPrevMap.SetTexture( ButtonTexture );
 
-    m_btnNextJet.SetFont( font_gui_txt );
+    m_btnNextJet.SetFont( m_fontGuiTxt );
     m_btnNextJet.SetText( "Next Jet" );
     m_btnNextJet.SetTexture( ButtonTexture );
 
-    m_btnPrevJet.SetFont( font_gui_txt );
+    m_btnPrevJet.SetFont( m_fontGuiTxt );
     m_btnPrevJet.SetText( "Previous Jet" );
     m_btnPrevJet.SetTexture( ButtonTexture );
 
-    m_btnCustomizeReturn.SetFont( font_gui_txt );
+    m_btnCustomizeReturn.SetFont( m_fontGuiTxt );
     m_btnCustomizeReturn.SetText( "Done" );
     m_btnCustomizeReturn.SetTexture( ButtonTexture );
 
-    m_btnCustomize.SetFont( font_gui_txt );
+    m_btnCustomize.SetFont( m_fontGuiTxt );
     m_btnCustomize.SetText( "Customise" );
     m_btnCustomize.SetTexture( ButtonTexture );
 
-    m_btnWeap1.SetFont( font_gui_txt );
+    m_btnWeap1.SetFont( m_fontGuiTxt );
     m_btnWeap1.SetTexture( ButtonTexture );
 
-    m_btnWeap2.SetFont( font_gui_txt );
+    m_btnWeap2.SetFont( m_fontGuiTxt );
     m_btnWeap2.SetTexture( ButtonTexture );
 
-    m_btnWeap3.SetFont( font_gui_txt );
+    m_btnWeap3.SetFont( m_fontGuiTxt );
     m_btnWeap3.SetTexture( ButtonTexture );
 
     switch ( Weap1 ) {
@@ -351,7 +351,7 @@ void Road::InitRoadAdditionsGL()
     alpha_value = 1;
     background_effect_equation = false;
 
-    speed_fan_ring = new Circle( 32, 26 );
+    m_speedFanRing = new Circle( 32, 26 );
 
     cyber_ring_texture[ 0 ] = LoadTexture( "textures/cyber_ring1.tga" );
     cyber_ring_texture[ 1 ] = LoadTexture( "textures/cyber_ring2.tga" );
@@ -569,26 +569,26 @@ void Road::GameUpdatePaused()
 
 void Road::GameUpdate()
 {
-    if ( jet->GetStatus() == SAObject::DEAD ) {
+    if ( m_jet->GetStatus() == SAObject::DEAD ) {
         ChangeScreen( SA_DEADSCREEN );
     }
     if ( m_enemies.empty() ) {
         ChangeScreen( SA_WINSCREEN );
     }
-    if ( jet->GetHealth() <= 20 ) {
+    if ( m_jet->GetHealth() <= 20 ) {
         HUD_Color = 2;
     }
     else {
         HUD_Color = 0;
     }
 
-    if ( jet->IsShooting( 0 ) ) {
+    if ( m_jet->IsShooting( 0 ) ) {
         AddBullet( 0 );
     }
-    if ( jet->IsShooting( 1 ) ) {
+    if ( m_jet->IsShooting( 1 ) ) {
         AddBullet( 1 );
     }
-    if ( jet->IsShooting( 2 ) ) {
+    if ( m_jet->IsShooting( 2 ) ) {
         AddBullet( 2 );
     }
 
@@ -601,7 +601,7 @@ void Road::GameUpdate()
                 m_enemyBullets.push_back( e->GetWeapon() );
             }
             if ( e->GetStatus() == Enemy::DEAD ) {
-                jet->AddScore( e->GetScore(), true );
+                m_jet->AddScore( e->GetScore(), true );
                 m_enemyGarbage.push_back( e );
                 e = nullptr;
             }
@@ -612,17 +612,17 @@ void Road::GameUpdate()
     {
         std::lock_guard<std::mutex> lg( m_mutexEnemyBullet );
         for ( Bullet* it : m_enemyBullets ) {
-            it->ProcessCollision( jet );
+            it->ProcessCollision( m_jet );
         }
     }
 
-    jet->Update();
-    speed_anim += jet->GetSpeed() * ( 270.0 * DELTATIME );
+    m_jet->Update();
+    speed_anim += m_jet->GetSpeed() * ( 270.0 * DELTATIME );
     if ( speed_anim >= 360 ) {
         speed_anim -= 360;
     }
-    map->GetJetData( jet->GetPosition(), jet->GetVelocity() );
-    map->Update();
+    m_map->GetJetData( m_jet->GetPosition(), m_jet->GetVelocity() );
+    m_map->Update();
 
     {
         std::lock_guard<std::mutex> lg( m_mutexEnemy );
@@ -675,21 +675,21 @@ void Road::GameUpdate()
 
 void Road::AddBullet( GLuint wID )
 {
-    if ( !jet->IsWeaponReady( wID ) ) {
+    if ( !m_jet->IsWeaponReady( wID ) ) {
         return;
     }
-    jet->TakeEnergy( wID );
-    m_bullets.push_back( jet->GetWeaponType( wID ) );
+    m_jet->TakeEnergy( wID );
+    m_bullets.push_back( m_jet->GetWeaponType( wID ) );
     ShotsDone++;
     switch ( m_bullets.back()->GetType() ) {
     case Bullet::BLASTER:
-        PlaySound( blaster );
+        PlaySound( m_blaster );
         break;
     case Bullet::SLUG:
-        PlaySound( laser );
+        PlaySound( m_laser );
         break;
     case Bullet::TORPEDO:
-        PlaySound( torpedo );
+        PlaySound( m_torpedo );
         break;
     }
 }
@@ -700,36 +700,36 @@ void Road::OnMouseClickLeft( GLint X, GLint Y )
     switch ( SCREEN ) {
     case SA_GAMESCREEN_PAUSED:
         if ( m_btnQuitMission.IsClicked( X, Y ) ) {
-            PlaySound( click );
+            PlaySound( m_click );
             ChangeScreen( SA_DEADSCREEN );
             break;
         }
 
     case SA_MAINMENU:
         if ( m_btnSelectMission.IsClicked( X, Y ) ) {
-            PlaySound( click );
+            PlaySound( m_click );
             ChangeScreen( SA_MISSIONSELECTION );
             break;
         }
         if ( m_btnExit.IsClicked( X, Y ) ) {
-            PlaySound( click );
+            PlaySound( m_click );
             Running = false;
             break;
         }
         if ( m_btnCustomize.IsClicked( X, Y ) ) {
-            PlaySound( click );
+            PlaySound( m_click );
             ChangeScreen( SA_CUSTOMIZE );
             break;
         }
         break;
     case SA_MISSIONSELECTION:
         if ( m_btnStartMission.IsClicked( X, Y ) ) {
-            PlaySound( click );
+            PlaySound( m_click );
             ChangeScreen( SA_GAMESCREEN_BRIEFING );
             break;
         }
         if ( m_btnReturnToMainMenu.IsClicked( X, Y ) ) {
-            PlaySound( click );
+            PlaySound( m_click );
             ChangeScreen( SA_MAINMENU );
             break;
         }
@@ -739,7 +739,7 @@ void Road::OnMouseClickLeft( GLint X, GLint Y )
                 m_btnNextMap.Disable();
             }
             m_btnPrevMap.Enable();
-            PlaySound( click );
+            PlaySound( m_click );
             break;
         }
         if ( m_btnPrevMap.IsClicked( X, Y ) ) {
@@ -750,33 +750,33 @@ void Road::OnMouseClickLeft( GLint X, GLint Y )
             if ( m_mapsContainer.size() > 1 ) {
                 m_btnNextMap.Enable();
             }
-            PlaySound( click );
+            PlaySound( m_click );
             break;
         }
         break;
     case SA_DEADSCREEN:
         if ( m_btnReturnToMissionSelection.IsClicked( X, Y ) ) {
-            PlaySound( click );
+            PlaySound( m_click );
             ChangeScreen( SA_MISSIONSELECTION );
             break;
         }
     case SA_WINSCREEN:
         if ( m_btnReturnToMissionSelection.IsClicked( X, Y ) ) {
-            PlaySound( click );
+            PlaySound( m_click );
             ChangeScreen( SA_MISSIONSELECTION );
             break;
         }
         break;
     case SA_GAMESCREEN_BRIEFING:
         if ( m_btnGO.IsClicked( X, Y ) ) {
-            PlaySound( click );
+            PlaySound( m_click );
             ChangeScreen( SA_GAMESCREEN );
             break;
         }
         break;
     case SA_CUSTOMIZE:
         if ( m_btnNextJet.IsClicked( X, Y ) ) {
-            PlaySound( click );
+            PlaySound( m_click );
             current_jet++;
             if ( current_jet == m_jetsContainer.size() - 1 ) {
                 m_btnNextJet.Disable();
@@ -788,7 +788,7 @@ void Road::OnMouseClickLeft( GLint X, GLint Y )
             break;
         }
         if ( m_btnPrevJet.IsClicked( X, Y ) ) {
-            PlaySound( click );
+            PlaySound( m_click );
             current_jet--;
             if ( current_jet == 0 ) {
                 m_btnPrevJet.Disable();
@@ -802,12 +802,12 @@ void Road::OnMouseClickLeft( GLint X, GLint Y )
             break;
         }
         if ( m_btnCustomizeReturn.IsClicked( X, Y ) ) {
-            PlaySound( click );
+            PlaySound( m_click );
             ChangeScreen( SA_MAINMENU );
             break;
         }
         if ( m_btnWeap1.IsClicked( X, Y ) ) {
-            PlaySound( click );
+            PlaySound( m_click );
             Weap1++;
             if ( Weap1 == 3 ) {
                 Weap1 = 0;
@@ -824,7 +824,7 @@ void Road::OnMouseClickLeft( GLint X, GLint Y )
             break;
         }
         if ( m_btnWeap2.IsClicked( X, Y ) ) {
-            PlaySound( click );
+            PlaySound( m_click );
             Weap2++;
             if ( Weap2 == 3 ) {
                 Weap2 = 0;
@@ -841,7 +841,7 @@ void Road::OnMouseClickLeft( GLint X, GLint Y )
             break;
         }
         if ( m_btnWeap3.IsClicked( X, Y ) ) {
-            PlaySound( click );
+            PlaySound( m_click );
             Weap3++;
             if ( Weap3 == 3 ) {
                 Weap3 = 0;
@@ -870,7 +870,7 @@ void Road::Retarget()
         return;
     }
     static std::mt19937_64 random{ std::random_device()() };
-    jet->LockTarget( m_enemies[ random() % m_enemies.size() ] );
+    m_jet->LockTarget( m_enemies[ random() % m_enemies.size() ] );
 }
 
 void Road::UpdateMainMenu()
@@ -924,27 +924,27 @@ void Road::ClearMapData()
     m_bulletGarbage.clear();
 
     std::cout << "Cleaning garbage: done.\n";
-    delete map;
-    map = nullptr;
-    delete jet;
-    jet = nullptr;
+    delete m_map;
+    m_map = nullptr;
+    delete m_jet;
+    m_jet = nullptr;
 }
 
 void Road::CreateMapData( const MapProto& map_data, const ModelProto& model_data )
 {
     ShotsDone = 0;
     HUD_Color = 0;
-    jet = new Jet( model_data );
-    map = new Map( map_data );
-    jet->SetWeapon( Weapons[ Weap1 ], 0 );
-    jet->SetWeapon( Weapons[ Weap2 ], 1 );
-    jet->SetWeapon( Weapons[ Weap3 ], 2 );
+    m_jet = new Jet( model_data );
+    m_map = new Map( map_data );
+    m_jet->SetWeapon( Weapons[ Weap1 ], 0 );
+    m_jet->SetWeapon( Weapons[ Weap2 ], 1 );
+    m_jet->SetWeapon( Weapons[ Weap3 ], 2 );
 
     {
         std::lock_guard<std::mutex> lg( m_mutexEnemy );
         for ( GLuint i = 0; i < map_data.enemies; i++ ) {
             m_enemies.push_back( new Enemy() );
-            m_enemies.back()->SetTarget( jet );
+            m_enemies.back()->SetTarget( m_jet );
             m_enemies.back()->SetWeapon( Weapons[ 3 ] );
         }
     }
@@ -1004,7 +1004,7 @@ void Road::GoFullscreen( bool& b )
 
 bool Road::InitNewSurface( GLint W, GLint H, GLint D, bool F )
 {
-    SDL_Surface* tmp = Display;
+    SDL_Surface* tmp = m_display;
     SDL_Surface* tmp2 = nullptr;
     if ( F ) {
         tmp2 = SDL_SetVideoMode( W, H, D, SDL_DOUBLEBUF | SDL_OPENGL | SDL_FULLSCREEN );
@@ -1018,7 +1018,7 @@ bool Road::InitNewSurface( GLint W, GLint H, GLint D, bool F )
         std::cout << error << "\n";
         return false;
     }
-    Display = tmp2;
+    m_display = tmp2;
     if ( tmp ) {
         SDL_FreeSurface( tmp );
     }

@@ -34,19 +34,19 @@ private:
     static const GLubyte SA_OPTIONS = 110;
     static const Uint32 Time_Interval;
 
-    Circle* Radar = nullptr;
-    Circle* speed_fan_ring = nullptr;
-    Font* font_big = nullptr;
-    Font* font_gui_txt = nullptr;
-    Font* font_pause_txt = nullptr;
-    Jet* jet = nullptr;
-    Map* map = nullptr;
-    Mix_Chunk* blaster = nullptr;
-    Mix_Chunk* click = nullptr;
-    Mix_Chunk* laser = nullptr;
-    Mix_Chunk* torpedo = nullptr;
-    SDL_Surface* Display = nullptr;
-    SDL_Thread* thread = nullptr;
+    Circle* m_radar = nullptr;
+    Circle* m_speedFanRing = nullptr;
+    Font* m_fontBig = nullptr;
+    Font* m_fontGuiTxt = nullptr;
+    Font* m_fontPauseTxt = nullptr;
+    Jet* m_jet = nullptr;
+    Map* m_map = nullptr;
+    Mix_Chunk* m_blaster = nullptr;
+    Mix_Chunk* m_click = nullptr;
+    Mix_Chunk* m_laser = nullptr;
+    Mix_Chunk* m_torpedo = nullptr;
+    SDL_Surface* m_display = nullptr;
+    SDL_Thread* m_thread = nullptr;
 
     std::string LastSelectedJetName{};
     std::vector<Bullet*> m_bulletGarbage{};

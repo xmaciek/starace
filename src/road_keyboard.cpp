@@ -45,37 +45,37 @@ void Road::GameKeyboardPressed( SDLKey sym )
         Pause();
         break;
     case SDLK_a:
-        jet->RollLeft( true );
+        m_jet->RollLeft( true );
         break;
     case SDLK_d:
-        jet->RollRight( true );
+        m_jet->RollRight( true );
         break;
     case SDLK_q:
-        jet->YawLeft( true );
+        m_jet->YawLeft( true );
         break;
     case SDLK_e:
-        jet->YawRight( true );
+        m_jet->YawRight( true );
         break;
     case SDLK_w:
-        jet->PitchUp( true );
+        m_jet->PitchUp( true );
         break;
     case SDLK_s:
-        jet->PitchDown( true );
+        m_jet->PitchDown( true );
         break;
     case SDLK_o:
-        jet->SpeedUp( true );
+        m_jet->SpeedUp( true );
         break;
     case SDLK_u:
-        jet->SpeedDown( true );
+        m_jet->SpeedDown( true );
         break;
     case SDLK_j:
-        jet->Shoot( 0, true );
+        m_jet->Shoot( 0, true );
         break;
     case SDLK_k:
-        jet->Shoot( 1, true );
+        m_jet->Shoot( 1, true );
         break;
     case SDLK_l:
-        jet->Shoot( 2, true );
+        m_jet->Shoot( 2, true );
         break;
     case SDLK_i:
         Retarget();
@@ -89,37 +89,37 @@ void Road::GameKeyboardUnpressed( SDLKey sym )
 {
     switch ( sym ) {
     case SDLK_a:
-        jet->RollLeft( false );
+        m_jet->RollLeft( false );
         break;
     case SDLK_d:
-        jet->RollRight( false );
+        m_jet->RollRight( false );
         break;
     case SDLK_q:
-        jet->YawLeft( false );
+        m_jet->YawLeft( false );
         break;
     case SDLK_e:
-        jet->YawRight( false );
+        m_jet->YawRight( false );
         break;
     case SDLK_w:
-        jet->PitchUp( false );
+        m_jet->PitchUp( false );
         break;
     case SDLK_s:
-        jet->PitchDown( false );
+        m_jet->PitchDown( false );
         break;
     case SDLK_o:
-        jet->SpeedUp( false );
+        m_jet->SpeedUp( false );
         break;
     case SDLK_u:
-        jet->SpeedDown( false );
+        m_jet->SpeedDown( false );
         break;
     case SDLK_j:
-        jet->Shoot( 0, false );
+        m_jet->Shoot( 0, false );
         break;
     case SDLK_k:
-        jet->Shoot( 1, false );
+        m_jet->Shoot( 1, false );
         break;
     case SDLK_l:
-        jet->Shoot( 2, false );
+        m_jet->Shoot( 2, false );
         break;
     default:
         break;
