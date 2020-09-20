@@ -97,8 +97,8 @@ void Road::DrawHUDPiece( GLdouble, GLdouble, GLdouble RotAngleZ )
 void Road::DrawCyberRings()
 {
     glPushMatrix();
-    const GLdouble sw = static_cast<double>( SCREEN_WIDTH ) / 2;
-    const GLdouble sh = static_cast<double>( SCREEN_HEIGHT ) / 2;
+    const GLdouble sw = viewportWidth() / 2;
+    const GLdouble sh = viewportHeight() / 2;
     glTranslated( sw, sh, 0 );
     for ( size_t i = 0; i < 3; i++ ) {
         glPushMatrix();
@@ -138,8 +138,8 @@ void Road::DrawCyberRings()
 void Road::DrawCyberRingsMini()
 {
     glPushMatrix();
-    const GLdouble sw = static_cast<double>( SCREEN_WIDTH ) / 2;
-    const GLdouble sh = static_cast<double>( SCREEN_HEIGHT ) / 2 - 8;
+    const GLdouble sw = viewportWidth() / 2;
+    const GLdouble sh = viewportHeight() / 2 - 8;
     glTranslated( sw, sh, 0 );
     for ( size_t i = 0; i < 3; i++ ) {
         glPushMatrix();
@@ -180,9 +180,9 @@ void Road::DrawHUDBar( const GLuint& X, const GLuint& Y, const GLuint& W, const 
     glVertex2d( W + 4, -4 );
     glVertex2d( -4, -4 );
     glEnd();
-    //     DrawHUDLine(X-4, SCREEN_HEIGHT-8, X+W+4, SCREEN_HEIGHT-8, 2);
-    //     DrawHUDLine(X+W+4, SCREEN_HEIGHT-8, X+W+4, SCREEN_HEIGHT-112, 2);
-    //     DrawHUDLine(X+W+4, SCREEN_HEIGHT-112, X-4, SCREEN_HEIGHT-112, 2);
+    //     DrawHUDLine(X-4, viewportHeight()-8, X+W+4, viewportHeight()-8, 2);
+    //     DrawHUDLine(X+W+4, viewportHeight()-8, X+W+4, viewportHeight()-112, 2);
+    //     DrawHUDLine(X+W+4, viewportHeight()-112, X-4, viewportHeight()-112, 2);
     glBegin( GL_QUADS );
     //       glColor4f(1.0f, (GLfloat)Current/Max, 0, 0.8f);
     //     (1.0f-(GLfloat)health/1000)+colorhalf((1.0f-(GLfloat)health/1000)),
@@ -209,19 +209,19 @@ void Road::DrawPauseText()
     glTexCoord2f( 0, 0 );
     glVertex2d( 0, 0 );
     glTexCoord2f( 1, 0 );
-    glVertex2d( SCREEN_WIDTH, 0 );
+    glVertex2d( viewportWidth(), 0 );
     glTexCoord2f( 1, 1 );
-    glVertex2d( SCREEN_WIDTH, SCREEN_HEIGHT );
+    glVertex2d( viewportWidth(), viewportHeight() );
     glTexCoord2f( 0, 1 );
-    glVertex2d( 0, SCREEN_HEIGHT );
+    glVertex2d( 0, viewportHeight() );
     glEnd();
 
     //         m_btnChangeFiltering.Draw();
     m_btnQuitMission.Draw();
     glColor4f( 1.0f, 1.0f, 0.0f, 1.0f );
     const char PAUSED[] = "PAUSED";
-    const double posx = static_cast<double>( SCREEN_WIDTH ) / 2 - static_cast<double>( m_fontPauseTxt->GetTextLength( PAUSED ) ) / 2;
-    m_fontPauseTxt->PrintTekst( posx, SCREEN_HEIGHT - 128, PAUSED );
+    const double posx = viewportWidth() / 2 - static_cast<double>( m_fontPauseTxt->GetTextLength( PAUSED ) ) / 2;
+    m_fontPauseTxt->PrintTekst( posx, viewportHeight() - 128, PAUSED );
     glDisable( GL_TEXTURE_2D );
     glDisable( GL_BLEND );
     glPopMatrix();
@@ -238,10 +238,10 @@ void Road::RenderHUD()
 
     char hudmessage[ 48 ]{};
     std::snprintf( hudmessage, sizeof( hudmessage ), "Shots: %d", ShotsDone );
-    m_fontGuiTxt->PrintTekst( 320, SCREEN_HEIGHT - 16, hudmessage );
+    m_fontGuiTxt->PrintTekst( 320, viewportHeight() - 16, hudmessage );
 
     std::snprintf( hudmessage, sizeof( hudmessage ), "SCORE: %d", m_jet->GetScore() );
-    m_fontGuiTxt->PrintTekst( 64, SCREEN_HEIGHT - 100, hudmessage );
+    m_fontGuiTxt->PrintTekst( 64, viewportHeight() - 100, hudmessage );
 
     /*radar*/
     GLfloat matrice[ 16 ];
@@ -249,7 +249,7 @@ void Road::RenderHUD()
 
     glPushMatrix();
     glEnable( GL_DEPTH_TEST );
-    glTranslated( SCREEN_WIDTH - 80, 80, 0 );
+    glTranslated( viewportWidth() - 80, 80, 0 );
 
     glMultMatrixf( matrice );
 
@@ -320,7 +320,7 @@ void Road::RenderHUD()
     glColor4fv( HUD_Color_4fv[ HUD_Color ] );
 
     glPushMatrix();
-    glTranslated( 32, static_cast<double>( SCREEN_HEIGHT ) / 2, 0 );
+    glTranslated( 32, viewportHeight() / 2, 0 );
     {
         std::string str{ "SPEED: " };
         str += std::to_string( static_cast<int>( m_jet->GetSpeed() ) * 270 );
@@ -363,8 +363,8 @@ void Road::RenderHUD()
         msg += ", calculated: ";
         msg += std::to_string( CalculatedFPS );
         const double textMid = static_cast<double>( m_fontGuiTxt->GetTextLength( "FPS done: XX, calculated: xxxx.xx" ) ) / 2;
-        const double posx = static_cast<double>( SCREEN_WIDTH ) / 2 - textMid;
-        m_fontGuiTxt->PrintTekst( posx, SCREEN_HEIGHT - 28, msg.c_str() );
+        const double posx = viewportWidth() / 2 - textMid;
+        m_fontGuiTxt->PrintTekst( posx, viewportHeight() - 28, msg.c_str() );
     }
     m_fontPauseTxt->PrintTekst( 10, 102, "ENG" );
     m_fontPauseTxt->PrintTekst( 66, 102, "HP" );
@@ -378,13 +378,11 @@ void Road::Render3D()
     glEnable( GL_FOG );
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
     SetPerspective( angle + m_jet->GetSpeed() * 6 );
-    //     gluPerspective(angle+m_jet->GetSpeed()*6, (GLdouble)SCREEN_WIDTH/(GLdouble)SCREEN_HEIGHT, 0.001, 2000);
 
     const double cX = -m_jet->getX();
     const double cY = -m_jet->getY();
     const double cZ = -m_jet->getZ();
 
-    //     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glTranslated( 0, -0.225, -1 );
     glPushMatrix();
@@ -441,11 +439,11 @@ void Road::DrawMainMenu()
     glTexCoord2f( 0, 0 );
     glVertex2d( 0, 0 );
     glTexCoord2f( 1, 0 );
-    glVertex2d( SCREEN_WIDTH, 0 );
+    glVertex2d( viewportWidth(), 0 );
     glTexCoord2f( 1, 1 );
-    glVertex2d( SCREEN_WIDTH, SCREEN_HEIGHT );
+    glVertex2d( viewportWidth(), viewportHeight() );
     glTexCoord2f( 0, 1 );
-    glVertex2d( 0, SCREEN_HEIGHT );
+    glVertex2d( 0, viewportHeight() );
     glEnd();
 
     m_btnSelectMission.Draw();
@@ -467,13 +465,13 @@ void Road::DrawClouds() const
     glVertex2d( 0, 0 );
     glColor4f( 0.9f, 0.4f, 0.1f, 1 );
     glTexCoord2f( 1, 0 );
-    glVertex2d( SCREEN_WIDTH, 0 );
+    glVertex2d( viewportWidth(), 0 );
     glColor4f( 0.1f, 0.9f, 0.4f, 1 );
     glTexCoord2f( 1, 1 );
-    glVertex2d( SCREEN_WIDTH, SCREEN_HEIGHT );
+    glVertex2d( viewportWidth(), viewportHeight() );
     glColor4f( 0.4f, 0.1f, 0.9f, 1 );
     glTexCoord2f( 0, 1 );
-    glVertex2d( 0, SCREEN_HEIGHT );
+    glVertex2d( 0, viewportHeight() );
     glEnd();
     glBindTexture( GL_TEXTURE_2D, menu_background_overlay );
     glColor4f( 1, 1, 1, alpha_value );
@@ -481,11 +479,11 @@ void Road::DrawClouds() const
     glTexCoord2f( 0, 0 );
     glVertex2d( 0, 0 );
     glTexCoord2f( 1, 0 );
-    glVertex2d( SCREEN_WIDTH, 0 );
+    glVertex2d( viewportWidth(), 0 );
     glTexCoord2f( 1, 1 );
-    glVertex2d( SCREEN_WIDTH, SCREEN_HEIGHT );
+    glVertex2d( viewportWidth(), viewportHeight() );
     glTexCoord2f( 0, 1 );
-    glVertex2d( 0, SCREEN_HEIGHT );
+    glVertex2d( 0, viewportHeight() );
     glEnd();
 
     glBindTexture( GL_TEXTURE_2D, starfield_texture );
@@ -516,23 +514,23 @@ void Road::WinScreen()
     glTexCoord2f( 0, 0 );
     glVertex2d( 0, 0 );
     glTexCoord2f( 1, 0 );
-    glVertex2d( SCREEN_WIDTH, 0 );
+    glVertex2d( viewportWidth(), 0 );
     glTexCoord2f( 1, 1 );
-    glVertex2d( SCREEN_WIDTH, SCREEN_HEIGHT );
+    glVertex2d( viewportWidth(), viewportHeight() );
     glTexCoord2f( 0, 1 );
-    glVertex2d( 0, SCREEN_HEIGHT );
+    glVertex2d( 0, viewportHeight() );
     glEnd();
     glPopMatrix();
 
     glColor3f( 1, 1, 1 );
     {
         constexpr static char missionOK[] = "MISSION SUCCESSFUL";
-        m_fontBig->PrintTekst( static_cast<double>( SCREEN_WIDTH ) / 2 - static_cast<double>( m_fontBig->GetTextLength( missionOK ) ) / 2, SCREEN_HEIGHT - 128, missionOK );
+        m_fontBig->PrintTekst( viewportWidth() / 2 - static_cast<double>( m_fontBig->GetTextLength( missionOK ) ) / 2, viewportHeight() - 128, missionOK );
 
         std::string str{ "Your score: " };
         str += std::to_string( m_jet->GetScore() );
-        const double posx = static_cast<double>( SCREEN_WIDTH ) / 2 - static_cast<double>( m_fontBig->GetTextLength( str.c_str() ) ) / 2;
-        m_fontBig->PrintTekst( posx, SCREEN_HEIGHT - 128 - 36, str.c_str() );
+        const double posx = viewportWidth() / 2 - static_cast<double>( m_fontBig->GetTextLength( str.c_str() ) ) / 2;
+        m_fontBig->PrintTekst( posx, viewportHeight() - 128 - 36, str.c_str() );
     }
     m_btnReturnToMissionSelection.Draw();
 
@@ -553,23 +551,23 @@ void Road::DeadScreen()
     glTexCoord2f( 0, 0 );
     glVertex2d( 0, 0 );
     glTexCoord2f( 1, 0 );
-    glVertex2d( SCREEN_WIDTH, 0 );
+    glVertex2d( viewportWidth(), 0 );
     glTexCoord2f( 1, 1 );
-    glVertex2d( SCREEN_WIDTH, SCREEN_HEIGHT );
+    glVertex2d( viewportWidth(), viewportHeight() );
     glTexCoord2f( 0, 1 );
-    glVertex2d( 0, SCREEN_HEIGHT );
+    glVertex2d( 0, viewportHeight() );
     glEnd();
     glPopMatrix();
 
     glColor3f( 1, 1, 1 );
     {
         constexpr static char missionOK[] = "MISSION FAILED";
-        m_fontBig->PrintTekst( static_cast<double>( SCREEN_WIDTH ) / 2 - static_cast<double>( m_fontBig->GetTextLength( missionOK ) ) / 2, SCREEN_HEIGHT - 128, missionOK );
+        m_fontBig->PrintTekst( viewportWidth() / 2 - static_cast<double>( m_fontBig->GetTextLength( missionOK ) ) / 2, viewportHeight() - 128, missionOK );
 
         std::string str{ "Your score: " };
         str += std::to_string( m_jet->GetScore() );
-        const double posx = static_cast<double>( SCREEN_WIDTH ) / 2 - static_cast<double>( m_fontBig->GetTextLength( str.c_str() ) ) / 2;
-        m_fontBig->PrintTekst( posx, SCREEN_HEIGHT - 128 - 36, str.c_str() );
+        const double posx = viewportWidth() / 2 - static_cast<double>( m_fontBig->GetTextLength( str.c_str() ) ) / 2;
+        m_fontBig->PrintTekst( posx, viewportHeight() - 128 - 36, str.c_str() );
     }
     m_btnReturnToMissionSelection.Draw();
 
@@ -609,14 +607,14 @@ void Road::MissionSelectionScreen()
     {
         std::string str{ "Map: " };
         str += m_mapsContainer.at( current_map ).name;
-        const double posx = static_cast<double>( SCREEN_WIDTH ) / 2 - static_cast<double>( m_fontPauseTxt->GetTextLength( str.c_str() ) ) / 2;
-        m_fontPauseTxt->PrintTekst( posx, SCREEN_HEIGHT - 128, str.c_str() );
+        const double posx = viewportWidth() / 2 - static_cast<double>( m_fontPauseTxt->GetTextLength( str.c_str() ) ) / 2;
+        m_fontPauseTxt->PrintTekst( posx, viewportHeight() - 128, str.c_str() );
     }
     {
         std::string str{ "Enemies: " };
         str += std::to_string( m_mapsContainer.at( current_map ).enemies );
-        const double posx = static_cast<double>( SCREEN_WIDTH ) / 2 - static_cast<double>( m_fontPauseTxt->GetTextLength( str.c_str() ) ) / 2;
-        m_fontPauseTxt->PrintTekst( posx, SCREEN_HEIGHT - 148, str.c_str() );
+        const double posx = viewportWidth() / 2 - static_cast<double>( m_fontPauseTxt->GetTextLength( str.c_str() ) ) / 2;
+        m_fontPauseTxt->PrintTekst( posx, viewportHeight() - 148, str.c_str() );
     }
 
     glPopMatrix();
@@ -630,11 +628,11 @@ void Road::MissionSelectionScreen()
     glTexCoord2f( 0, 0 );
     glVertex2d( 0, 0 );
     glTexCoord2f( 1, 0 );
-    glVertex2d( SCREEN_WIDTH, 0 );
+    glVertex2d( viewportWidth(), 0 );
     glTexCoord2f( 1, 1 );
-    glVertex2d( SCREEN_WIDTH, SCREEN_HEIGHT );
+    glVertex2d( viewportWidth(), viewportHeight() );
     glTexCoord2f( 0, 1 );
-    glVertex2d( 0, SCREEN_HEIGHT );
+    glVertex2d( 0, viewportHeight() );
     glEnd();
 
     m_btnStartMission.Draw();
@@ -653,11 +651,11 @@ void Road::GameScreenBriefing()
     glPushMatrix();
     DrawCyberRings();
     glColor3f( 1, 1, 1 );
-    m_fontPauseTxt->PrintTekst( 192, SCREEN_HEIGHT - 292, "Movement: AWSD QE" );
-    m_fontPauseTxt->PrintTekst( 192, SCREEN_HEIGHT - 310, "Speed controll: UO" );
-    m_fontPauseTxt->PrintTekst( 192, SCREEN_HEIGHT - 328, "Weapons: JKL" );
-    m_fontPauseTxt->PrintTekst( 192, SCREEN_HEIGHT - 346, "Targeting: I" );
-    m_fontPauseTxt->PrintTekst( 192, SCREEN_HEIGHT - 380, "Press space to launch..." );
+    m_fontPauseTxt->PrintTekst( 192, viewportHeight() - 292, "Movement: AWSD QE" );
+    m_fontPauseTxt->PrintTekst( 192, viewportHeight() - 310, "Speed controll: UO" );
+    m_fontPauseTxt->PrintTekst( 192, viewportHeight() - 328, "Weapons: JKL" );
+    m_fontPauseTxt->PrintTekst( 192, viewportHeight() - 346, "Targeting: I" );
+    m_fontPauseTxt->PrintTekst( 192, viewportHeight() - 380, "Press space to launch..." );
 
     glEnable( GL_BLEND );
     glEnable( GL_TEXTURE_2D );
@@ -667,11 +665,11 @@ void Road::GameScreenBriefing()
     glTexCoord2f( 0, 0 );
     glVertex2d( 0, 0 );
     glTexCoord2f( 1, 0 );
-    glVertex2d( SCREEN_WIDTH, 0 );
+    glVertex2d( viewportWidth(), 0 );
     glTexCoord2f( 1, 1 );
-    glVertex2d( SCREEN_WIDTH, SCREEN_HEIGHT );
+    glVertex2d( viewportWidth(), viewportHeight() );
     glTexCoord2f( 0, 1 );
-    glVertex2d( 0, SCREEN_HEIGHT );
+    glVertex2d( 0, viewportHeight() );
     glEnd();
     m_btnGO.Draw();
     glPopMatrix();
@@ -689,16 +687,16 @@ void Road::ScreenCustomize()
     glTexCoord2f( 0, 0 );
     glVertex2d( 0, 0 );
     glTexCoord2f( 1, 0 );
-    glVertex2d( SCREEN_WIDTH, 0 );
+    glVertex2d( viewportWidth(), 0 );
     glTexCoord2f( 1, 1 );
-    glVertex2d( SCREEN_WIDTH, SCREEN_HEIGHT );
+    glVertex2d( viewportWidth(), viewportHeight() );
     glTexCoord2f( 0, 1 );
-    glVertex2d( 0, SCREEN_HEIGHT );
+    glVertex2d( 0, viewportHeight() );
     glEnd();
     glColor3f( 1, 1, 1 );
     {
-        const double posx = static_cast<double>( SCREEN_WIDTH ) / 2 - static_cast<double>( m_fontBig->GetTextLength( m_jetsContainer.at( current_jet ).name.c_str() ) ) / 2;
-        m_fontBig->PrintTekst( posx, SCREEN_HEIGHT - 64, m_jetsContainer.at( current_jet ).name.c_str() );
+        const double posx = viewportWidth() / 2 - static_cast<double>( m_fontBig->GetTextLength( m_jetsContainer.at( current_jet ).name.c_str() ) ) / 2;
+        m_fontBig->PrintTekst( posx, viewportHeight() - 64, m_jetsContainer.at( current_jet ).name.c_str() );
     }
     SetPerspective( angle );
     glPushMatrix();

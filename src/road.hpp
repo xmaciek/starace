@@ -87,6 +87,9 @@ private:
     Button m_btnWeap2{};
     Button m_btnWeap3{};
 
+    double m_viewportHeight = 540.0;
+    double m_viewportWidth = 960;
+
     GLdouble CalculatedFPS = 0.0;
     GLdouble Rotation = 0.0;
     GLdouble cyber_ring_rotation[ 3 ]{};
@@ -99,9 +102,6 @@ private:
     GLfloat LightPosition[ 4 ]{};
     GLfloat alpha_value = 0.0f;
     GLfloat cyber_ring_color[ 3 ][ 4 ]{};
-    GLint SCREEN_DEPTH = 0;
-    GLint SCREEN_HEIGHT = 0;
-    GLint SCREEN_WIDTH = 0;
     GLint angle = 0;
     GLint current_filtering = 0;
     GLint current_resolution = 0;
@@ -139,6 +139,8 @@ private:
 
     bool InitNewSurface( GLint W, GLint H, GLint D, bool F );
     bool OnInit();
+    double viewportHeight() const;
+    double viewportWidth() const;
     static Uint32 Delay();
     static int OnUpdateStatic( void* param );
     static void DrawAxis();
@@ -203,4 +205,5 @@ private:
     void WinScreen();
     void WinUpdate();
     void setCamera();
+    void setViewportSize( double, double );
 };

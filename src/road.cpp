@@ -7,10 +7,6 @@ const Uint32 Road::Time_Interval = ( 1000 * DELTATIME );
 
 Road::Road()
 {
-    SCREEN_WIDTH = 960;
-    SCREEN_HEIGHT = 540;
-    SCREEN_DEPTH = 32;
-
     m_radar = new Circle( 48, 64 );
     angle = 55;
 
@@ -105,10 +101,9 @@ void Road::OnEvent( SDL_Event& Event )
         break;
 
     case SDL_VIDEORESIZE:
-        SCREEN_WIDTH = Event.resize.w;
-        SCREEN_HEIGHT = Event.resize.h;
-        InitNewSurface( SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_DEPTH, m_isFullscreen );
-        OnResize( SCREEN_WIDTH, SCREEN_HEIGHT );
+        setViewportSize( Event.resize.w, Event.resize.h );
+        InitNewSurface( viewportWidth(), viewportHeight(), 32, m_isFullscreen );
+        OnResize( viewportWidth(), viewportHeight() );
         break;
 
     case SDL_MOUSEBUTTONDOWN:
@@ -179,12 +174,12 @@ bool Road::OnInit()
 
     LoadConfig();
 
-    if ( !InitNewSurface( SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_DEPTH, m_isFullscreen ) ) {
+    if ( !InitNewSurface( viewportWidth(), viewportHeight(), 32, m_isFullscreen ) ) {
         return false;
     }
 
     InitRoadAdditionsGL();
-    OnResize( SCREEN_WIDTH, SCREEN_HEIGHT );
+    OnResize( viewportWidth(), viewportHeight() );
     return true;
 }
 
@@ -200,24 +195,24 @@ void Road::OnResize( GLint w, GLint h )
     }
 
     glViewport( 0, 0, w, h );
-    m_btnExit.UpdateCoord( ( SCREEN_WIDTH / 2 ) + 4, SCREEN_HEIGHT * 0.15 );
-    m_btnQuitMission.UpdateCoord( ( SCREEN_WIDTH / 2 ) - 196, SCREEN_HEIGHT * 0.15 );
-    m_btnChangeFiltering.UpdateCoord( 512, SCREEN_HEIGHT - 192 );
-    m_btnSelectMission.UpdateCoord( ( SCREEN_WIDTH / 2 ) - 96, SCREEN_HEIGHT * 0.15 + 52 );
-    m_btnGO.UpdateCoord( ( SCREEN_WIDTH / 2 ) - 96, SCREEN_HEIGHT * 0.15 );
-    m_btnStartMission.UpdateCoord( ( SCREEN_WIDTH / 2 ) + 4, SCREEN_HEIGHT * 0.15 );
-    m_btnReturnToMainMenu.UpdateCoord( ( SCREEN_WIDTH / 2 ) - 196, SCREEN_HEIGHT * 0.15 );
-    m_btnReturnToMissionSelection.UpdateCoord( ( SCREEN_WIDTH / 2 ) - 96, SCREEN_HEIGHT * 0.15 );
-    m_btnNextMap.UpdateCoord( SCREEN_WIDTH - 240, SCREEN_HEIGHT / 2 - 24 );
-    m_btnPrevMap.UpdateCoord( 48, SCREEN_HEIGHT / 2 - 24 );
-    m_btnCustomize.UpdateCoord( ( SCREEN_WIDTH / 2 ) - 196, SCREEN_HEIGHT * 0.15 );
-    m_btnCustomizeReturn.UpdateCoord( ( SCREEN_WIDTH / 2 ) - 96, SCREEN_HEIGHT * 0.15 + 52 );
-    m_btnNextJet.UpdateCoord( SCREEN_WIDTH - 240, SCREEN_HEIGHT / 2 - 24 );
-    m_btnPrevJet.UpdateCoord( 48, SCREEN_HEIGHT / 2 - 24 );
+    m_btnExit.UpdateCoord( ( viewportWidth() / 2 ) + 4, viewportHeight() * 0.15 );
+    m_btnQuitMission.UpdateCoord( ( viewportWidth() / 2 ) - 196, viewportHeight() * 0.15 );
+    m_btnChangeFiltering.UpdateCoord( 512, viewportHeight() - 192 );
+    m_btnSelectMission.UpdateCoord( ( viewportWidth() / 2 ) - 96, viewportHeight() * 0.15 + 52 );
+    m_btnGO.UpdateCoord( ( viewportWidth() / 2 ) - 96, viewportHeight() * 0.15 );
+    m_btnStartMission.UpdateCoord( ( viewportWidth() / 2 ) + 4, viewportHeight() * 0.15 );
+    m_btnReturnToMainMenu.UpdateCoord( ( viewportWidth() / 2 ) - 196, viewportHeight() * 0.15 );
+    m_btnReturnToMissionSelection.UpdateCoord( ( viewportWidth() / 2 ) - 96, viewportHeight() * 0.15 );
+    m_btnNextMap.UpdateCoord( viewportWidth() - 240, viewportHeight() / 2 - 24 );
+    m_btnPrevMap.UpdateCoord( 48, viewportHeight() / 2 - 24 );
+    m_btnCustomize.UpdateCoord( ( viewportWidth() / 2 ) - 196, viewportHeight() * 0.15 );
+    m_btnCustomizeReturn.UpdateCoord( ( viewportWidth() / 2 ) - 96, viewportHeight() * 0.15 + 52 );
+    m_btnNextJet.UpdateCoord( viewportWidth() - 240, viewportHeight() / 2 - 24 );
+    m_btnPrevJet.UpdateCoord( 48, viewportHeight() / 2 - 24 );
 
-    m_btnWeap1.UpdateCoord( SCREEN_WIDTH / 2 - 196 - 96, SCREEN_HEIGHT * 0.15 + 52 - 76 );
-    m_btnWeap2.UpdateCoord( SCREEN_WIDTH / 2 - 96, SCREEN_HEIGHT * 0.15 + 52 - 76 );
-    m_btnWeap3.UpdateCoord( SCREEN_WIDTH / 2 + 100, SCREEN_HEIGHT * 0.15 + 52 - 76 );
+    m_btnWeap1.UpdateCoord( viewportWidth() / 2 - 196 - 96, viewportHeight() * 0.15 + 52 - 76 );
+    m_btnWeap2.UpdateCoord( viewportWidth() / 2 - 96, viewportHeight() * 0.15 + 52 - 76 );
+    m_btnWeap3.UpdateCoord( viewportWidth() / 2 + 100, viewportHeight() * 0.15 + 52 - 76 );
 }
 
 void Road::InitRoadAdditionsGL()
@@ -690,7 +685,7 @@ void Road::AddBullet( GLuint wID )
 
 void Road::OnMouseClickLeft( GLint X, GLint Y )
 {
-    Y = SCREEN_HEIGHT - Y;
+    Y = viewportHeight() - Y;
     switch ( m_currentScreen ) {
     case Screen::eGamePaused:
         if ( m_btnQuitMission.IsClicked( X, Y ) ) {
@@ -993,7 +988,7 @@ void Road::ChangeScreen( Screen SCR )
 void Road::GoFullscreen( bool& b )
 {
     b = !b;
-    InitNewSurface( SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_DEPTH, b );
+    InitNewSurface( viewportWidth(), viewportHeight(), 32, b );
 }
 
 bool Road::InitNewSurface( GLint W, GLint H, GLint D, bool F )
@@ -1134,10 +1129,10 @@ void Road::LoadConfig()
     while ( getline( ConfigFile, line ) ) {
         std::sscanf( line.c_str(), "%s %s", value_1, value_2 );
         if ( strcmp( value_1, "width" ) == 0 ) {
-            SCREEN_WIDTH = atoi( value_2 );
+            setViewportSize( atoi( value_2 ), viewportHeight() );
         }
         if ( strcmp( value_1, "height" ) == 0 ) {
-            SCREEN_HEIGHT = atoi( value_2 );
+            setViewportSize( viewportWidth(), atoi( value_2 ) );
         }
         if ( strcmp( value_1, "fullscreen" ) == 0 ) {
             m_isFullscreen = atoi( value_2 ) != 0;
@@ -1195,8 +1190,8 @@ void Road::SaveConfig()
 {
     std::cout << "Saving to configuration file... ";
     std::ofstream ConfigFile( "config.cfg" );
-    ConfigFile << "width " << SCREEN_WIDTH << "\n";
-    ConfigFile << "height " << SCREEN_HEIGHT << "\n";
+    ConfigFile << "width " << viewportWidth() << "\n";
+    ConfigFile << "height " << viewportHeight() << "\n";
     ConfigFile << "fullscreen " << m_isFullscreen << "\n";
     ConfigFile << "texturefiltering " << current_filtering << "\n";
     ConfigFile << "sound " << m_isSoundEnabled << "\n";
@@ -1262,7 +1257,7 @@ void Road::SetOrtho() const
 {
     glMatrixMode( GL_PROJECTION );
     glLoadIdentity();
-    glOrtho( 0, SCREEN_WIDTH, 0, SCREEN_HEIGHT, -192, 192 );
+    glOrtho( 0, viewportWidth(), 0, viewportHeight(), -192, 192 );
     glMatrixMode( GL_MODELVIEW );
     glLoadIdentity();
 }
@@ -1271,7 +1266,7 @@ void Road::SetPerspective( GLdouble Angle ) const
 {
     glMatrixMode( GL_PROJECTION );
     glLoadIdentity();
-    gluPerspective( Angle, static_cast<GLdouble>( SCREEN_WIDTH ) / static_cast<GLdouble>( SCREEN_HEIGHT ), 0.001, 2000 );
+    gluPerspective( Angle, viewportWidth() / viewportHeight(), 0.001, 2000 );
     glMatrixMode( GL_MODELVIEW );
     glLoadIdentity();
 }
@@ -1302,4 +1297,20 @@ void Road::WinUpdate()
 void Road::DeadScreenUpdate()
 {
     UpdateCyberRings();
+}
+
+double Road::viewportWidth() const
+{
+    return m_viewportWidth;
+}
+
+double Road::viewportHeight() const
+{
+    return m_viewportHeight;
+}
+
+void Road::setViewportSize( double w, double h )
+{
+    m_viewportWidth = w;
+    m_viewportHeight = h;
 }
