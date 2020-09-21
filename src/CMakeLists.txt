@@ -1,3 +1,4 @@
+find_package( Threads REQUIRED )
 
 set( STARACE_HEADERS
     bullet.hpp
@@ -48,5 +49,14 @@ set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
 
 set( CMAKE_CXX_STANDARD 17 )
 add_executable( ${STARACE_BINNAME} ${STARACE_SOURCES} )
-target_link_libraries( ${STARACE_BINNAME} SDL SDL_ttf SDL_mixer GL GLU )
 target_compile_options( ${STARACE_BINNAME} PRIVATE -Werror -Wall -Wextra )
+
+target_link_libraries( ${STARACE_BINNAME}
+    Threads::Threads
+    SDL
+    SDL_ttf
+    SDL_mixer
+    GL
+    GLU
+)
+

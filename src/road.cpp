@@ -1,6 +1,7 @@
 #include "road.hpp"
 
 #include <algorithm>
+#include <chrono>
 #include <random>
 
 const Uint32 Road::Time_Interval = ( 1000 * DELTATIME );
@@ -60,14 +61,7 @@ GLint Road::run()
         return -1;
     }
 
-    m_thread = SDL_CreateThread( onUpdateStatic, this );
-    if ( !m_thread ) {
-        std::cout << "-= Unable to start Update thread, terminating! =-\n"
-                  << SDL_GetError() << "\n";
-        onCleanup();
-        return 0;
-    }
-
+    m_thread = std::thread( &Road::onUpdate, this );
     SDL_Event Event{};
     while ( m_isRunning ) {
         while ( SDL_PollEvent( &Event ) ) {
@@ -75,10 +69,9 @@ GLint Road::run()
         }
         onRender();
     }
-
-    std::cout << "Waiting for update thread... ";
-    SDL_WaitThread( m_thread, nullptr );
-    std::cout << "done.\n";
+    if ( m_thread.joinable() ) {
+        m_thread.join();
+    }
 
     onCleanup();
     return 0;
@@ -518,15 +511,8 @@ void Road::onUpdate()
             updateCustomize();
             break;
         }
-        SDL_Delay( delay() );
+        std::this_thread::sleep_for( std::chrono::milliseconds( delay() ) );
     }
-}
-
-int Road::onUpdateStatic( void* param )
-{
-    Road* r = reinterpret_cast<Road*>( param );
-    r->onUpdate();
-    return 0;
 }
 
 Uint32 Road::delay()

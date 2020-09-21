@@ -11,6 +11,7 @@
 #include "texture.hpp"
 
 #include <mutex>
+#include <thread>
 
 constexpr static int TAB = 9;
 constexpr static int ESC = 27;
@@ -48,7 +49,7 @@ private:
     Mix_Chunk* m_laser = nullptr;
     Mix_Chunk* m_torpedo = nullptr;
     SDL_Surface* m_display = nullptr;
-    SDL_Thread* m_thread = nullptr;
+    std::thread m_thread{};
 
     std::string m_lastSelectedJetName{};
     std::vector<Bullet*> m_bulletGarbage{};
@@ -141,7 +142,6 @@ private:
     double viewportHeight() const;
     double viewportWidth() const;
     static Uint32 delay();
-    static int onUpdateStatic( void* param );
     static void drawAxis();
     static void drawHUDLine( GLdouble x1, GLdouble y1, GLdouble x2, GLdouble y2, GLdouble t );
     static void drawHUDPiece( GLdouble x, GLdouble y, GLdouble rotAngleZ );
