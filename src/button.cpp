@@ -18,11 +18,12 @@ bool Button::isClicked( uint32_t x, uint32_t y ) const
 
 void Button::render( RenderContext rctx )
 {
+    rctx.model = glm::translate( rctx.model, glm::vec3{ m_x, m_y, 0.0f } );
     PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{ rctx.renderer->allocator() };
     pushBuffer.m_texture = m_textureID;
 
     PushConstant<Pipeline::eGuiTextureColor1> pushConstant;
-    pushConstant.m_model = glm::translate( rctx.model, glm::vec3{ m_x, m_y, 0.0f } );
+    pushConstant.m_model = rctx.model;
     pushConstant.m_view = rctx.view;
     pushConstant.m_projection = rctx.projection;
     pushConstant.m_vertices[ 0 ] = glm::vec2{ 0.0f, m_height };
@@ -39,19 +40,12 @@ void Button::render( RenderContext rctx )
 
     rctx.renderer->push( &pushBuffer, &pushConstant );
 
-    glEnable( GL_BLEND );
-    glEnable( GL_TEXTURE_2D );
-    glPushMatrix();
-    glTranslated( m_x, m_y, 0 );
-
-    if ( m_font ) {
-        glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
-        glTranslated( static_cast<float>( m_width ) / 2 - m_textLength, 0, 0 );
-        m_font->printText( 0, static_cast<float>( m_height ) / 2 - m_font->middlePoint(), m_text.c_str() );
+    if ( !m_font ) {
+        return;
     }
-    glPopMatrix();
-    glDisable( GL_TEXTURE_2D );
-    glDisable( GL_BLEND );
+    rctx.model = glm::translate( rctx.model, glm::vec3{ m_width / 2 - m_textLength, 0, 0 } );
+    constexpr static glm::vec4 white{ 1, 1, 1, 1 };
+    m_font->renderText( rctx, white, 0, static_cast<float>( m_height ) / 2 - m_font->middlePoint(), m_text );
 }
 
 void Button::updateCoord( uint32_t x, uint32_t y )
