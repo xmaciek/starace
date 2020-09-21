@@ -19,7 +19,6 @@ set( STARACE_HEADERS
     jet.hpp
     map.hpp
     model.hpp
-    quaternion.hpp
     road.hpp
     sa.hpp
     saobject.hpp
@@ -39,7 +38,6 @@ set( STARACE_SOURCES
     main.cpp
     map.cpp
     model.cpp
-    quaternion.cpp
     road.cpp
     road_drawing.cpp
     road_keyboard.cpp
@@ -60,6 +58,9 @@ set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
 set( CMAKE_CXX_STANDARD 17 )
 add_executable( ${STARACE_BINNAME} ${STARACE_SOURCES} )
 target_compile_options( ${STARACE_BINNAME} PRIVATE -Werror -Wall -Wextra )
+target_compile_definitions( ${STARACE_BINNAME} PUBLIC
+    GLM_FORCE_RADIANS=1
+)
 
 target_link_libraries( ${STARACE_BINNAME}
     Threads::Threads

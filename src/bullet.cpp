@@ -1,5 +1,7 @@
 #include "bullet.hpp"
 
+#include <glm/gtc/type_ptr.hpp>
+
 #include <cassert>
 #include <random>
 
@@ -18,7 +20,7 @@ static uint16_t typeToSegments( Bullet::Type e )
 }
 
 Bullet::Bullet( const BulletProto& bp )
-: m_tail( typeToSegments( bp.type ), Vertex( bp.x, bp.y, bp.z ) )
+: m_tail( typeToSegments( bp.type ), bp.position )
 {
     m_collisionFlag = true;
     m_type = bp.type;
@@ -33,9 +35,7 @@ Bullet::Bullet( const BulletProto& bp )
         m_color1[ 3 ] = 1;
         m_color2[ 3 ] = 0;
     }
-    m_position.x = bp.x;
-    m_position.y = bp.y;
-    m_position.z = bp.z;
+    m_position = bp.position;
     m_turnrate = ( m_speed * 10 ) * DEG2RAD * DELTATIME;
     m_rotX = 0;
     m_rotY = 0;
@@ -56,16 +56,16 @@ void Bullet::draw1() const
     glPushMatrix();
     glColor4fv( static_cast<const float*>( m_color1 ) );
     glBegin( GL_LINES );
-    glVertex3d( ( *it ).x, ( *it ).y, ( *it ).z );
+    glVertex3fv( glm::value_ptr( *it ) );
     it += 3;
-    glVertex3d( ( *it ).x, ( *it ).y, ( *it ).z );
+    glVertex3fv( glm::value_ptr( *it ) );
     glEnd();
     glBegin( GL_LINES );
     glColor4f( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], 1 );
-    glVertex3d( ( *it ).x, ( *it ).y, ( *it ).z );
+    glVertex3fv( glm::value_ptr( *it ) );
     it += 5;
     glColor4f( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], 0 );
-    glVertex3d( ( *it ).x, ( *it ).y, ( *it ).z );
+    glVertex3fv( glm::value_ptr( *it ) );
     glEnd();
     glPopMatrix();
 };
@@ -76,9 +76,9 @@ void Bullet::drawLaser() const
     glPushMatrix();
     glBegin( GL_LINES );
     glColor4fv( static_cast<const float*>( m_color1 ) );
-    glVertex3d( ( *it ).x, ( *it ).y, ( *it ).z );
+    glVertex3fv( glm::value_ptr( *it ) );
     it++;
-    glVertex3d( ( *it ).x, ( *it ).y, ( *it ).z );
+    glVertex3fv( glm::value_ptr( *it ) );
     glEnd();
     glPopMatrix();
 }
@@ -89,16 +89,16 @@ void Bullet::draw2() const
     glPushMatrix();
     glColor4fv( static_cast<const float*>( m_color1 ) );
     glBegin( GL_LINES );
-    glVertex3d( ( *it ).x, ( *it ).y, ( *it ).z );
+    glVertex3fv( glm::value_ptr( *it ) );
     it++;
-    glVertex3d( ( *it ).x, ( *it ).y, ( *it ).z );
+    glVertex3fv( glm::value_ptr( *it ) );
     glEnd();
     glColor4f( 1, 1, 1, 1 );
     uint16_t alphaIt = 1;
     const Tail::const_iterator end = m_tail.end();
     glBegin( GL_LINE_STRIP );
     while ( it != end ) {
-        glVertex3d( ( *it ).x, ( *it ).y, ( *it ).z );
+        glVertex3fv( glm::value_ptr( *it ) );
         glColor4f( 1, 1, 1, 1.0 / alphaIt );
         alphaIt++;
         it++;
@@ -154,7 +154,6 @@ void Bullet::update()
         m_tail.insert( m_position );
         m_range += m_speed * DELTATIME;
         break;
-
     }
 };
 
@@ -165,22 +164,22 @@ bool Bullet::collisionTest( const SAObject* object ) const
         return false;
     }
 
-    const Vertex collRay = collisionRay();
-    const Vertex dir = object->position() - position();
-    const double tmp = dotProduct( dir, collRay );
-    double dist = 0.0;
+    const glm::vec3 collRay = collisionRay();
+    const glm::vec3 dir = object->position() - position();
+    const float tmp = glm::dot( dir, collRay );
+    float dist = 0.0;
 
     if ( tmp <= 0 ) {
-        dist = lengthV( dir );
+        dist = glm::length( dir );
     }
     else {
-        const double tmp2 = dotProduct( collRay, collRay );
+        const float tmp2 = glm::dot( collRay, collRay );
         if ( tmp2 <= tmp ) {
-            dist = lengthV( dir );
+            dist = glm::length( dir );
         }
         else {
-            const Vertex Pb = position() + ( collRay * ( tmp / tmp2 ) );
-            dist = lengthV( object->position() - Pb );
+            const glm::vec3 Pb = position() + ( collRay * ( tmp / tmp2 ) );
+            dist = glm::length( object->position() - Pb );
         }
     }
 
@@ -204,31 +203,30 @@ void Bullet::processCollision( SAObject* object )
     }
 }
 
-Vertex Bullet::collisionRay() const
+glm::vec3 Bullet::collisionRay() const
 {
     switch ( m_type ) {
     case Type::eBlaster:
-        return direction() * speed() * DELTATIME * 3;
+        return direction() * speed() * DELTATIME * 3.0f;
 
     case Type::eTorpedo:
         return direction() * speed() * DELTATIME;
 
     case Type::eSlug:
-        return direction() * 1000;
+        return direction() * 1000.0f;
 
     default:
         assert( !"unreachable" );
-        return Vertex{};
+        return glm::vec3{};
     }
 }
 
-void Bullet::setDirection( const Vertex& v )
+void Bullet::setDirection( const glm::vec3& v )
 {
-    m_direction = v;
-    normalizeV( m_direction );
+    m_direction = glm::normalize( v );
     m_velocity = direction() * speed();
     if ( m_type == Type::eSlug ) {
-        m_tail.insert( position() + ( direction() * 1000 ) );
+        m_tail.insert( position() + ( direction() * 1000.0f ) );
     }
 }
 

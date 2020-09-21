@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sa.hpp"
+#include <glm/vec3.hpp>
 
 struct UV {
     float u = 0;
@@ -8,7 +9,7 @@ struct UV {
 };
 
 struct Face {
-    std::vector<Vertex> vertex{};
+    std::vector<glm::vec3> vertex{};
     std::vector<UV> texcoord{};
     double normal[ 3 ]{};
 };
@@ -16,16 +17,16 @@ struct Face {
 class Model {
 private:
     std::vector<Face> m_faces{};
-    std::vector<Vertex> m_thrusters{};
-    Vertex m_weapons[ 3 ]{};
+    std::vector<glm::vec3> m_thrusters{};
+    glm::vec3 m_weapons[ 3 ]{};
     uint32_t m_textureID = 0;
 
 public:
     ~Model();
     Model() = default;
 
-    Vertex weapon( uint32_t ) const;
-    std::vector<Vertex> thrusters() const;
+    glm::vec3 weapon( uint32_t ) const;
+    std::vector<glm::vec3> thrusters() const;
     void bindTexture( uint32_t );
     void calculateNormal();
     void draw() const;
@@ -34,4 +35,3 @@ public:
     void normalizeSize();
     void scale( float scale );
 };
-

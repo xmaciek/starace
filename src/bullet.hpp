@@ -27,7 +27,7 @@ private:
     float m_color2[ 4 ]{};
     Type m_type = Type::eSlug;
 
-    virtual Vertex collisionRay() const;
+    virtual glm::vec3 collisionRay() const;
     virtual bool collisionTest( const SAObject* object ) const;
     void draw1() const;
     void draw2() const;
@@ -41,23 +41,20 @@ public:
     Type type() const;
     virtual void draw() const override;
     virtual void processCollision( SAObject* object ) override;
-    void setDirection( const Vertex& v );
+    void setDirection( const glm::vec3& v );
     void update();
-
 };
 
 struct BulletProto {
-    double x = 0.0;
-    double y = 0.0;
-    double z = 0.0;
-    double speed = 0.0;
+    glm::vec3 position{};
     double damage = 0.0;
     double delay = 0.0;
-    Bullet::Type type = Bullet::Type::eBlaster;
+    float speed = 0.0;
     uint32_t texture1 = 0;
     uint32_t texture2 = 0;
     uint32_t energy = 0;
     uint32_t score_per_hit = 0;
     float color1[ 4 ]{};
     float color2[ 4 ]{};
+    Bullet::Type type = Bullet::Type::eBlaster;
 };

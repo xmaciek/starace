@@ -42,10 +42,10 @@ void Model::drawWireframe()
 void Model::loadOBJ( const char* filename )
 {
     m_faces.clear();
-    std::vector<Vertex> vertices{};
+    std::vector<glm::vec3> vertices{};
     std::vector<uint32_t> tmpui{};
     std::vector<UV> tex{};
-    Vertex tmpv{};
+    glm::vec3 tmpv{};
     UV tmpt{};
     bool containsTex = false;
     uint8_t wID = 0;
@@ -84,7 +84,7 @@ void Model::loadOBJ( const char* filename )
             }
         }
         else if ( line.substr( 0, 2 ) == "v " ) {
-            std::sscanf( line.c_str(), "v %lf %lf %lf ", &tmpv.x, &tmpv.y, &tmpv.z );
+            std::sscanf( line.c_str(), "v %f %f %f ", &tmpv.x, &tmpv.y, &tmpv.z );
             vertices.push_back( tmpv );
             switch ( dataType ) {
             case 3:
@@ -161,11 +161,11 @@ void Model::calculateNormal()
 
 void Model::normalizeSize()
 {
-    double maxZ = m_faces[ 0 ].vertex[ 0 ].z;
-    double minZ = m_faces[ 0 ].vertex[ 0 ].z;
+    float maxZ = m_faces[ 0 ].vertex[ 0 ].z;
+    float minZ = m_faces[ 0 ].vertex[ 0 ].z;
 
     for ( const Face& f : m_faces ) {
-        for ( const Vertex& v : f.vertex ) {
+        for ( const glm::vec3& v : f.vertex ) {
             maxZ = std::max( maxZ, v.z );
             minZ = std::min( minZ, v.z );
         }
@@ -177,28 +177,22 @@ void Model::normalizeSize()
     if ( minZ < 0 ) {
         minZ *= -1;
     }
-    double total = maxZ + minZ;
+    float total = maxZ + minZ;
     if ( total == 0 ) {
         total = 1.0f;
     }
-    double factor = 1.0f / total;
+    float factor = 1.0f / total;
     for ( Face& f : m_faces ) {
-        for ( Vertex& v : f.vertex ) {
-            v.x *= factor;
-            v.y *= factor;
-            v.z *= factor;
+        for ( glm::vec3& v : f.vertex ) {
+            v *= factor;
         }
     }
-    for ( Vertex& v : m_thrusters ) {
-        v.x *= factor;
-        v.y *= factor;
-        v.z *= factor;
+    for ( glm::vec3& v : m_thrusters ) {
+        v *= factor;
     }
 
-    for ( Vertex& v : m_weapons ) {
-        v.x *= factor;
-        v.y *= factor;
-        v.z *= factor;
+    for ( glm::vec3& v : m_weapons ) {
+        v *= factor;
     }
 }
 
@@ -213,31 +207,25 @@ void Model::bindTexture( uint32_t tex )
 void Model::scale( float scale )
 {
     for ( Face& f : m_faces ) {
-        for ( Vertex& v : f.vertex ) {
-            v.x *= scale;
-            v.y *= scale;
-            v.z *= scale;
+        for ( glm::vec3& v : f.vertex ) {
+            v *= scale;
         }
     }
-    for ( Vertex& v : m_thrusters ) {
-        v.x *= scale;
-        v.y *= scale;
-        v.z *= scale;
+    for ( glm::vec3& v : m_thrusters ) {
+        v *= scale;
     }
 
-    for ( Vertex& v : m_weapons ) {
-        v.x *= scale;
-        v.y *= scale;
-        v.z *= scale;
+    for ( glm::vec3& v : m_weapons ) {
+        v *= scale;
     }
 }
 
-std::vector<Vertex> Model::thrusters() const
+std::vector<glm::vec3> Model::thrusters() const
 {
     return m_thrusters;
 }
 
-Vertex Model::weapon( uint32_t i ) const
+glm::vec3 Model::weapon( uint32_t i ) const
 {
     return m_weapons[ i >= 3 ? 0 : i ];
 }

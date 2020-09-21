@@ -2,9 +2,13 @@
 
 #include "texture.hpp"
 
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/quaternion.hpp>
+#include <glm/mat4x4.hpp>
+
 #include <algorithm>
 #include <cassert>
-
 
 Jet::Jet( const ModelProto& modelData )
 : m_crosshair( 32, 0.06 )
@@ -34,17 +38,13 @@ Jet::Jet( const ModelProto& modelData )
     m_thruster.setColor( 0, tmpcolor[ 1 ] );
     m_thruster.setColor( 3, tmpcolor[ 2 ] );
     m_thruster.setColor( 2, tmpcolor[ 3 ] );
-
 };
-
 
 void Jet::draw() const
 {
-    double matrix[ 16 ]{};
-    m_animation.createMatrix( matrix );
-
     glPushMatrix();
-    glMultMatrixd( matrix );
+    const glm::mat4 matrice = glm::toMat4( animation() );
+    glMultMatrixf( glm::value_ptr( matrice ) );
 
     m_model.draw();
     for ( const auto& it : m_model.thrusters() ) {
@@ -150,55 +150,34 @@ void Jet::update()
     }
 
     if ( ( speed() < m_maxSpeed ) && ( m_speedAcc > 0 ) ) {
-        m_speed += 0.8 * DELTATIME;
+        m_speed += 0.8f * DELTATIME;
     }
     else {
         if ( ( m_speed > m_minSpeed ) && ( m_speedAcc < 0 ) ) {
-            m_speed -= 0.8 * DELTATIME;
+            m_speed -= 0.8f * DELTATIME;
         }
     }
-    if ( ( ( m_speed >= m_normSpeed + 0.1 * DELTATIME ) || ( speed() <= m_normSpeed - 0.1 * DELTATIME ) ) && ( m_speedAcc == 0 ) ) {
+    if ( ( ( m_speed >= m_normSpeed + 0.1 * DELTATIME ) || ( speed() <= m_normSpeed - 0.1f * DELTATIME ) ) && ( m_speedAcc == 0 ) ) {
         if ( speed() < m_normSpeed ) {
-            m_speed += 0.3 * DELTATIME;
+            m_speed += 0.3f * DELTATIME;
         }
         else {
-            m_speed -= 0.3 * DELTATIME;
+            m_speed -= 0.3f * DELTATIME;
         }
     }
-    if ( speed() < 3 ) {
-        m_thruster.setLength( speed() / 8 );
+    if ( speed() < 3.0f ) {
+        m_thruster.setLength( speed() / 8.0f );
     }
-    Quaternion qtmp{};
-    Quaternion qx{};
-    Quaternion qy{};
-    Quaternion qz{};
 
-    qx.createFromAngles( 1, 0, 0, m_rotX );
-    qy.createFromAngles( 0, 1, 0, -m_rotY );
-    qz.createFromAngles( 0, 0, 1, -m_rotZ );
-    qtmp = qy * qtmp; /* yaw */
-    qtmp = qx * qtmp; /* pitch */
-    qtmp = qz * qtmp; /* roll */
-    m_animation = qtmp;
+    m_animation = glm::quat{ glm::vec3{ glm::radians( -m_rotX ), glm::radians( m_rotY ), glm::radians( m_rotZ ) } };
+    m_quaternion = glm::conjugate( m_quaternion );
+    m_quaternion = glm::rotate( m_quaternion, glm::radians( -m_rotX ) * 4.0f * DELTATIME, glm::vec3{ 1.0f, 0.0f, 0.0f } );
+    m_quaternion = glm::rotate( m_quaternion, glm::radians( m_rotY ) * 2.5f * DELTATIME, glm::vec3{ 0.0f, 1.0f, 0.0f } );
+    m_quaternion = glm::rotate( m_quaternion, glm::radians( m_rotZ ) * 2.5f * DELTATIME, glm::vec3{ 0.0f, 0.0f, 1.0f } );
+    m_rotation = m_quaternion;
+    m_quaternion = glm::conjugate( m_quaternion );
 
-    qx.createFromAngles( 1, 0, 0, m_rotX * 4 * DELTATIME );
-    qy.createFromAngles( 0, 1, 0, -m_rotY * 2.5 * DELTATIME );
-    qz.createFromAngles( 0, 0, 1, -m_rotZ * 2.5 * DELTATIME );
-    qtmp = m_quaternion;
-    qtmp = qy * qtmp; /* yaw */
-    qtmp = qx * qtmp; /* pitch */
-    qtmp = qz * qtmp; /* roll */
-    m_quaternion = qtmp;
-    qtmp.conjugate();
-    m_rotation = qtmp;
-
-    Vertex v;
-    v.x = 0;
-    v.y = 0;
-    v.z = -1;
-    m_quaternion.rotateVector( v );
-    m_direction = v;
-    normalizeV( m_direction );
+    m_direction = glm::normalize( glm::rotate( m_rotation, glm::vec3{ 0.0f, 0.0f, -1.0f } ) );
     m_velocity = direction() * speed();
 
     if ( m_shotFactor[ 0 ] < m_weapon[ 0 ].delay ) {
@@ -211,7 +190,7 @@ void Jet::update()
         m_shotFactor[ 2 ] += 1.0 * DELTATIME;
     }
 
-    m_energy = std::min( m_energy + 60 * DELTATIME, 100.0 );
+    m_energy = std::min( m_energy + 60.0 * DELTATIME, 100.0 );
 
     m_position += velocity() * DELTATIME;
     m_thruster.update();
@@ -274,24 +253,20 @@ void Jet::shoot( uint32_t weaponNum, bool doit )
     m_shooting[ weaponNum ] = doit;
 }
 
-Vertex Jet::weaponPoint( uint32_t weaponNum )
+glm::vec3 Jet::weaponPoint( uint32_t weaponNum )
 {
-    Vertex w = m_model.weapon( weaponNum );
-    m_quaternion.rotateVector( w );
-    w = w + position();
+    glm::vec3 w = glm::rotate( m_rotation, m_model.weapon( weaponNum ) );
+    w += position();
     return w;
 }
 
 Bullet* Jet::weapon( uint32_t weaponNum )
 {
     BulletProto tmp = m_weapon[ weaponNum ];
-    Vertex w = m_model.weapon( weaponNum );
-    m_quaternion.rotateVector( w );
-    w = w + position();
+    glm::vec3 w = glm::rotate( m_rotation, m_model.weapon( weaponNum ) );
+    w += position();
 
-    tmp.x = w.x;
-    tmp.y = w.y;
-    tmp.z = w.z;
+    tmp.position = w;
 
     Bullet* b = new Bullet( tmp );
     b->setDirection( direction() );
@@ -336,7 +311,7 @@ void Jet::processCollision( std::vector<Bullet*>& bullets )
         if ( it->status() != Status::eAlive ) {
             continue;
         }
-        if ( distanceV( position(), it->position() ) > 0.1 ) {
+        if ( glm::distance( position(), it->position() ) > 0.1f ) {
             continue;
         }
         setDamage( it->damage() );
@@ -364,17 +339,17 @@ double Jet::energy() const
     return m_energy;
 }
 
-Quaternion Jet::animation() const
+glm::quat Jet::animation() const
 {
     return m_animation;
 }
 
-Quaternion Jet::quat() const
+glm::quat Jet::quat() const
 {
     return m_quaternion;
 }
 
-Quaternion Jet::rotation() const
+glm::quat Jet::rotation() const
 {
     return m_rotation;
 }

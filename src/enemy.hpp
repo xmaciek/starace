@@ -1,7 +1,6 @@
 #pragma once
 
 #include "bullet.hpp"
-#include "model.hpp"
 #include "sa.hpp"
 #include "saobject.hpp"
 #include "shield.hpp"
@@ -27,10 +26,8 @@ public:
     static void drawCollisionIndicator();
     virtual void draw() const override;
     virtual void processCollision( SAObject* ) override;
-    void drawRadarPosition( const Vertex& modifier, double scale ) const;
-    void setModel( Model* );
+    void drawRadarPosition( const glm::vec3& modifier, float scale ) const;
     void setVisibleRange( double );
     void setWeapon( const BulletProto& b );
     void update();
-
 };

@@ -1,5 +1,9 @@
 #include "road.hpp"
 
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/quaternion.hpp>
+#include <glm/mat4x4.hpp>
+
 void Road::gameScreen()
 {
     render3D();
@@ -169,9 +173,7 @@ void Road::drawHUDBar( uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t 
     glEnd();
     glBegin( GL_QUADS );
     glColor3f(
-        ( 1.0f - static_cast<float>( current ) / max ) + colorHalf( ( 1.0f - static_cast<float>( current ) / max ) )
-        , static_cast<float>( current ) / max + colorHalf( static_cast<float>( current ) / max )
-        , 0 );
+        ( 1.0f - static_cast<float>( current ) / max ) + colorHalf( ( 1.0f - static_cast<float>( current ) / max ) ), static_cast<float>( current ) / max + colorHalf( static_cast<float>( current ) / max ), 0 );
 
     glVertex2d( 0, 0 );
     glVertex2d( w, 0 );
@@ -227,14 +229,13 @@ void Road::renderHUD()
     m_fontGuiTxt->printText( 64, viewportHeight() - 100, hudmessage );
 
     /*radar*/
-    double matrice[ 16 ]{};
-    m_jet->quat().createMatrix( matrice );
 
     glPushMatrix();
     glEnable( GL_DEPTH_TEST );
     glTranslated( viewportWidth() - 80, 80, 0 );
 
-    glMultMatrixd( matrice );
+    const glm::mat4 matrice = glm::toMat4( m_jet->quat() );
+    glMultMatrixf( glm::value_ptr( matrice ) );
 
     glBegin( GL_LINES );
     glVertex3d( 24, 24, 24 );
@@ -288,7 +289,7 @@ void Road::renderHUD()
     }
 
     glDisable( GL_DEPTH_TEST );
-    Vertex cursor = m_jet->direction() * 92;
+    glm::vec3 cursor = m_jet->direction() * 92.0f;
     glLineWidth( 3 );
     glColor4f( 1, 1, 0, 0.9 );
     glBegin( GL_LINES );
@@ -362,17 +363,16 @@ void Road::render3D()
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
     setPerspective( m_angle + m_jet->speed() * 6 );
 
-    const double cX = -m_jet->x();
-    const double cY = -m_jet->y();
-    const double cZ = -m_jet->z();
+    const float cX = -m_jet->x();
+    const float cY = -m_jet->y();
+    const float cZ = -m_jet->z();
 
     glPushMatrix();
     glTranslated( 0, -0.225, -1 );
     glPushMatrix();
-    double matrice[ 16 ]{};
-    m_jet->rotation().createMatrix( matrice );
-    glMultMatrixd( matrice );
-    glTranslated( cX, cY, cZ );
+    const glm::mat4 matrice = glm::toMat4( m_jet->quat() );
+    glMultMatrixf( glm::value_ptr( matrice ) );
+    glTranslatef( cX, cY, cZ );
     m_map->draw();
 
     {

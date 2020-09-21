@@ -1,6 +1,7 @@
 #include "enemy.hpp"
 
 #include <cassert>
+#include <glm/gtc/type_ptr.hpp>
 
 Enemy::Enemy()
 : m_shield( 0.1, 0.02 )
@@ -9,12 +10,11 @@ Enemy::Enemy()
     m_speed = 2.1;
     setStatus( Status::eAlive );
     m_health = 100;
-    m_direction.z = 1;
+    m_direction = glm::vec3( 0.0f, 0.0f, 1.0f );
 
     m_collisionDistance = 0.1;
     m_collisionFlag = true;
 
-    normalizeV( m_direction );
     m_velocity = m_direction * speed();
     m_turnrate = speed() * 5 * DEG2RAD * DELTATIME;
     m_ttl = 10;
@@ -28,9 +28,7 @@ void Enemy::setWeapon( const BulletProto& b )
 
 Bullet* Enemy::weapon()
 {
-    m_weapon.x = m_position.x;
-    m_weapon.y = m_position.y;
-    m_weapon.z = m_position.z;
+    m_weapon.position = m_position;
     Bullet* bullet = new Bullet( m_weapon );
     bullet->setDirection( direction() );
     bullet->setTarget( m_target );
@@ -45,9 +43,8 @@ bool Enemy::isWeaponReady() const
 
 void Enemy::reinitCoordinates()
 {
-    m_position.x = randomRange( -10.0, 10.0 );
-    m_position.y = randomRange( -10.0, 10.0 );
-    m_position.z = randomRange( -10.0, 10.0 );
+    m_position = glm::vec3(
+        randomRange( -10.0, 10.0 ), randomRange( -10.0, 10.0 ), randomRange( -10.0, 10.0 ) );
 }
 
 void Enemy::draw() const
@@ -56,11 +53,9 @@ void Enemy::draw() const
         return;
     }
     glPushMatrix();
-    glTranslated( m_position.x, m_position.y, m_position.z );
+    glTranslatef( m_position.x, m_position.y, m_position.z );
     glColor3f(
-        1.0f - m_healthPerc + colorHalf( 1.0 - m_healthPerc )
-        , colorHalf( m_healthPerc ) + m_healthPerc
-        , 0 );
+        1.0f - m_healthPerc + colorHalf( 1.0 - m_healthPerc ), colorHalf( m_healthPerc ) + m_healthPerc, 0 );
     m_shield.draw();
     if ( m_isTargeted ) {
         drawCollisionIndicator();
@@ -95,15 +90,15 @@ void Enemy::drawCollisionIndicator()
     glLineWidth( 1 );
 }
 
-void Enemy::drawRadarPosition( const Vertex& modifier, double scale ) const
+void Enemy::drawRadarPosition( const glm::vec3& modifier, float scale ) const
 {
     if ( status() != Status::eAlive ) {
         return;
     }
-    Vertex radarPosition = modifier;
+    glm::vec3 radarPosition = modifier;
     radarPosition = ( position() - modifier ) * ( scale / 25 );
-    if ( lengthV( radarPosition ) > scale ) {
-        normalizeV( radarPosition );
+    if ( glm::length( radarPosition ) > scale ) {
+        radarPosition = glm::normalize( radarPosition );
         radarPosition = radarPosition * scale;
         glColor3f( 1, 0.4, 0.05 );
     }
@@ -112,8 +107,8 @@ void Enemy::drawRadarPosition( const Vertex& modifier, double scale ) const
     }
     glPushMatrix();
     glBegin( GL_LINES );
-    glVertex3d( radarPosition.x, radarPosition.y, radarPosition.z );
-    glVertex3d( 0, 0, 0 );
+    glVertex3f( radarPosition.x, radarPosition.y, radarPosition.z );
+    glVertex3f( 0, 0, 0 );
     glEnd();
 
     glPopMatrix();
@@ -126,7 +121,7 @@ void Enemy::processCollision( SAObject* object )
         return;
     }
 
-    if ( distanceV( position(), object->position() ) <= collisionDistance() + object->collisionDistance() ) {
+    if ( glm::distance( position(), object->position() ) <= collisionDistance() + object->collisionDistance() ) {
         setDamage( collisionDamage() + object->collisionDamage() );
         object->setDamage( collisionDamage() + object->collisionDamage() );
     }

@@ -1,5 +1,8 @@
 #include "map.hpp"
 
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 void Map::draw()
 {
     glPushMatrix();
@@ -93,8 +96,9 @@ void Map::draw()
     glColor4f( 1, 1, 1, 0.4 );
     glBegin( GL_LINES );
     for ( const auto& it : m_particleList ) {
-        glVertex3d( it.x, it.y, it.z );
-        glVertex3d( it.x + m_particleLength.x, it.y + m_particleLength.y, it.z + m_particleLength.z );
+        const glm::vec3 offset = it + m_particleLength;
+        glVertex3fv( glm::value_ptr( it ) );
+        glVertex3fv( glm::value_ptr( offset ) );
     }
     glEnd();
     glDisable( GL_BLEND );
@@ -106,7 +110,7 @@ void Map::update()
 {
     for ( auto& it : m_particleList ) {
         it += m_jetVelocity;
-        if ( distanceV( it, m_jetPosition ) >= 1.5 ) {
+        if ( glm::distance( it, m_jetPosition ) >= 1.5 ) {
             it.x = randomRange( m_jetPosition.x - 1, m_jetPosition.x + 1 );
             it.y = randomRange( m_jetPosition.y - 1, m_jetPosition.y + 1 );
             it.z = randomRange( m_jetPosition.z - 1, m_jetPosition.z + 1 );
@@ -135,12 +139,12 @@ Map::Map( const MapProto& data )
     m_v2 = 100;
 }
 
-void Map::setJetData( const Vertex& position, const Vertex& velocity )
+void Map::setJetData( const glm::vec3& position, const glm::vec3& velocity )
 {
     m_jetPosition = position;
     m_jetVelocity = velocity;
-    m_particleLength = m_jetVelocity * 0.05;
-    m_jetVelocity = m_jetVelocity * -0.1 * DELTATIME;
+    m_particleLength = m_jetVelocity * 0.05f;
+    m_jetVelocity = m_jetVelocity * -0.1f * DELTATIME;
 }
 
 Map::~Map()

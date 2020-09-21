@@ -587,7 +587,7 @@ void Road::gameUpdate()
     }
 
     m_jet->update();
-    m_speedAnim += m_jet->speed() * ( 270.0 * DELTATIME );
+    m_speedAnim += m_jet->speed() * 270.0f * DELTATIME;
     if ( m_speedAnim >= 360 ) {
         m_speedAnim -= 360;
     }
@@ -706,19 +706,19 @@ void Road::onMouseClickLeft( int32_t x, int32_t y )
         if ( m_btnNextMap.isClicked( x, y ) ) {
             m_currentMap++;
             if ( m_currentMap == m_mapsContainer.size() - 1 ) {
-                m_btnNextMap.setEnabled( false);
+                m_btnNextMap.setEnabled( false );
             }
-            m_btnPrevMap.setEnabled( true);
+            m_btnPrevMap.setEnabled( true );
             playSound( m_click );
             break;
         }
         if ( m_btnPrevMap.isClicked( x, y ) ) {
             m_currentMap--;
             if ( m_currentMap == 0 ) {
-                m_btnPrevMap.setEnabled( false);
+                m_btnPrevMap.setEnabled( false );
             }
             if ( m_mapsContainer.size() > 1 ) {
-                m_btnNextMap.setEnabled( true);
+                m_btnNextMap.setEnabled( true );
             }
             playSound( m_click );
             break;
@@ -749,9 +749,9 @@ void Road::onMouseClickLeft( int32_t x, int32_t y )
             playSound( m_click );
             m_currentJet++;
             if ( m_currentJet == m_jetsContainer.size() - 1 ) {
-                m_btnNextJet.setEnabled( false);
+                m_btnNextJet.setEnabled( false );
             }
-            m_btnPrevJet.setEnabled( true);
+            m_btnPrevJet.setEnabled( true );
             m_previewModel.loadOBJ( m_jetsContainer.at( m_currentJet ).model_file.c_str() );
             m_previewModel.calculateNormal();
             m_previewModel.bindTexture( loadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() ) );
@@ -761,10 +761,10 @@ void Road::onMouseClickLeft( int32_t x, int32_t y )
             playSound( m_click );
             m_currentJet--;
             if ( m_currentJet == 0 ) {
-                m_btnPrevJet.setEnabled( false);
+                m_btnPrevJet.setEnabled( false );
             }
             if ( m_jetsContainer.size() > 1 ) {
-                m_btnNextJet.setEnabled( true);
+                m_btnNextJet.setEnabled( true );
             }
             m_previewModel.loadOBJ( m_jetsContainer.at( m_currentJet ).model_file.c_str() );
             m_previewModel.calculateNormal();
@@ -1044,7 +1044,7 @@ void Road::loadMapProto()
         m_btnNextMap.setEnabled( false );
     }
     m_currentMap = 0;
-    m_btnPrevMap.setEnabled( false);
+    m_btnPrevMap.setEnabled( false );
 }
 
 void Road::loadJetProto()
@@ -1079,7 +1079,7 @@ void Road::loadJetProto()
         m_jetsContainer.push_back( mod );
     }
     if ( m_jetsContainer.size() == 1 ) {
-        m_btnNextJet.setEnabled( false);
+        m_btnNextJet.setEnabled( false );
     }
     m_currentJet = 0;
     for ( uint32_t i = 0; i < m_jetsContainer.size(); i++ ) {
@@ -1088,10 +1088,10 @@ void Road::loadJetProto()
         }
     }
     if ( m_currentJet == 0 ) {
-        m_btnPrevJet.setEnabled( false);
+        m_btnPrevJet.setEnabled( false );
     }
     if ( m_currentJet == m_jetsContainer.size() - 1 ) {
-        m_btnNextJet.setEnabled( false);
+        m_btnNextJet.setEnabled( false );
     }
 }
 
