@@ -1,5 +1,15 @@
 find_package( Threads REQUIRED )
 
+find_package( glm REQUIRED )
+if ( NOT TARGET glm::glm )
+    add_library( glm::glm INTERFACE IMPORTED )
+    set_target_properties( glm::glm PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES ${GLM_INCLUDE_DIRS}
+    )
+endif()
+
+
+
 set( STARACE_HEADERS
     bullet.hpp
     button.hpp
@@ -53,6 +63,7 @@ target_compile_options( ${STARACE_BINNAME} PRIVATE -Werror -Wall -Wextra )
 
 target_link_libraries( ${STARACE_BINNAME}
     Threads::Threads
+    glm::glm
     SDL
     SDL_ttf
     SDL_mixer
