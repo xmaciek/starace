@@ -419,13 +419,13 @@ void Road::initRoadAdditionsGL()
 
 void Road::updateCyberRings( const UpdateContext& updateContext )
 {
-    m_cyberRingRotation[ 0 ] += 25.0 * updateContext.deltaTime;
-    m_cyberRingRotation[ 1 ] -= 15.0 * updateContext.deltaTime;
+    m_cyberRingRotation[ 0 ] += 25.0f * updateContext.deltaTime;
+    m_cyberRingRotation[ 1 ] -= 15.0f * updateContext.deltaTime;
     if ( m_cyberRingRotationDirection[ 2 ] ) {
-        m_cyberRingRotation[ 2 ] += 35.0 * updateContext.deltaTime;
+        m_cyberRingRotation[ 2 ] += 35.0f * updateContext.deltaTime;
     }
     else {
-        m_cyberRingRotation[ 2 ] -= 20.0 * updateContext.deltaTime;
+        m_cyberRingRotation[ 2 ] -= 20.0f * updateContext.deltaTime;
     }
 
     if ( m_cyberRingRotation[ 0 ] >= 360 ) {

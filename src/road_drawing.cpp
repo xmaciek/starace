@@ -1,5 +1,8 @@
 #include "road.hpp"
 
+#include "render_pipeline.hpp"
+#include "renderer.hpp"
+
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/quaternion.hpp>
@@ -99,62 +102,66 @@ void Road::drawHUDPiece( double, double, double rotAngleZ )
     glPopMatrix();
 }
 
-void Road::renderCyberRings( RenderContext )
+void Road::renderCyberRings( RenderContext rctx )
 {
-    glPushMatrix();
     const double sw = viewportWidth() / 2;
     const double sh = viewportHeight() / 2;
-    glTranslated( sw, sh, 0 );
+    rctx.model = glm::translate( rctx.model, glm::vec3{ sw, sh, 0.0f } );
     for ( size_t i = 0; i < 3; i++ ) {
-        glPushMatrix();
-        glBindTexture( GL_TEXTURE_2D, m_cyberRingTexture[ i ] );
-        glColor4fv( m_cyberRingColor[ i ] );
-        glRotated( m_cyberRingRotation[ i ], 0, 0, 1 );
-        glTranslated( m_maxDimention * -0.5, m_maxDimention * -0.5, 0 );
-        glBegin( GL_QUADS );
-        glTexCoord2f( 1, 1 );
-        glVertex2d( m_maxDimention, m_maxDimention );
-        glTexCoord2f( 0, 1 );
-        glVertex2d( 0, m_maxDimention );
-        glTexCoord2f( 0, 0 );
-        glVertex2d( 0, 0 );
-        glTexCoord2f( 1, 0 );
-        glVertex2d( m_maxDimention, 0 );
-        glEnd();
-        glPopMatrix();
-    }
+        PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{ rctx.renderer->allocator() };
+        pushBuffer.m_texture = m_cyberRingTexture[ i ];
 
-    glPopMatrix();
+        PushConstant<Pipeline::eGuiTextureColor1> pushConstant{};
+        pushConstant.m_model = glm::rotate( rctx.model, glm::radians( m_cyberRingRotation[ i ] ), glm::vec3{ 0.0f, 0.0f, 1.0f } );
+        pushConstant.m_model = glm::translate( pushConstant.m_model, glm::vec3{ m_maxDimention * -0.5, m_maxDimention * -0.5, 0.0 } );
+        pushConstant.m_projection = rctx.projection;
+        pushConstant.m_view = rctx.view;
+
+        pushConstant.m_color = glm::vec4{ m_cyberRingColor[ i ][ 0 ], m_cyberRingColor[ i ][ 1 ], m_cyberRingColor[ i ][ 2 ], m_cyberRingColor[ i ][ 3 ] };
+
+        pushConstant.m_vertices[ 0 ] = glm::vec2{ m_maxDimention, m_maxDimention };
+        pushConstant.m_vertices[ 1 ] = glm::vec2{ 0, m_maxDimention };
+        pushConstant.m_vertices[ 2 ] = glm::vec2{ 0, 0 };
+        pushConstant.m_vertices[ 3 ] = glm::vec2{ m_maxDimention, 0 };
+
+        pushConstant.m_uv[ 0 ] = glm::vec2{ 1, 1 };
+        pushConstant.m_uv[ 1 ] = glm::vec2{ 0, 1 };
+        pushConstant.m_uv[ 2 ] = glm::vec2{ 0, 0 };
+        pushConstant.m_uv[ 3 ] = glm::vec2{ 1, 0 };
+
+        rctx.renderer->push( &pushBuffer, &pushConstant );
+
+        // TODO: remove when not needed anymore
+        glEnable( GL_BLEND );
+        glEnable( GL_TEXTURE_2D );
+    }
 }
 
-void Road::renderCyberRingsMini( RenderContext )
+void Road::renderCyberRingsMini( RenderContext rctx )
 {
-    glPushMatrix();
     const double sw = viewportWidth() / 2;
     const double sh = viewportHeight() / 2 - 8;
-    glTranslated( sw, sh, 0 );
+    rctx.model = glm::translate( rctx.model, glm::vec3{ sw, sh, 0.0 } );
     for ( size_t i = 0; i < 3; i++ ) {
-        glPushMatrix();
-        glEnable( GL_TEXTURE_2D );
-        glEnable( GL_BLEND );
-        glBindTexture( GL_TEXTURE_2D, m_cyberRingTexture[ i ] );
-        glColor4f( m_hudColor4fv[ m_hudColor ][ 0 ], m_hudColor4fv[ m_hudColor ][ 1 ], m_hudColor4fv[ m_hudColor ][ 2 ], m_cyberRingColor[ i ][ 3 ] );
-        glRotated( m_cyberRingRotation[ i ], 0, 0, 1 );
-        glBegin( GL_QUADS );
-        glTexCoord2f( 1, 1 );
-        glVertex2d( 32, 32 );
-        glTexCoord2f( 0, 1 );
-        glVertex2d( -32, 32 );
-        glTexCoord2f( 0, 0 );
-        glVertex2d( -32, -32 );
-        glTexCoord2f( 1, 0 );
-        glVertex2d( 32, -32 );
-        glEnd();
-        glDisable( GL_TEXTURE_2D );
-        glDisable( GL_BLEND );
-        glPopMatrix();
+        PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{ rctx.renderer->allocator() };
+        pushBuffer.m_texture = m_cyberRingTexture[ i ];
+        PushConstant<Pipeline::eGuiTextureColor1> pushConstant{};
+        pushConstant.m_color = glm::vec4{ m_hudColor4fv[ m_hudColor ][ 0 ], m_hudColor4fv[ m_hudColor ][ 1 ], m_hudColor4fv[ m_hudColor ][ 2 ], m_cyberRingColor[ i ][ 3 ] };
+        pushConstant.m_projection = rctx.projection;
+        pushConstant.m_view = rctx.view;
+        pushConstant.m_model = glm::rotate( rctx.model, glm::radians( m_cyberRingRotation[ i ] ), glm::vec3{ 0.0f, 0.0f, 1.0f } );
+
+        pushConstant.m_vertices[ 0 ] = glm::vec2{ 32, 32 };
+        pushConstant.m_vertices[ 1 ] = glm::vec2{ -32, 32 };
+        pushConstant.m_vertices[ 2 ] = glm::vec2{ -32, -32 };
+        pushConstant.m_vertices[ 3 ] = glm::vec2{ 32, -32 };
+        pushConstant.m_uv[ 0 ] = glm::vec2{ 1, 1 };
+        pushConstant.m_uv[ 1 ] = glm::vec2{ 0, 1 };
+        pushConstant.m_uv[ 2 ] = glm::vec2{ 0, 0 };
+        pushConstant.m_uv[ 3 ] = glm::vec2{ 1, 0 };
+
+        rctx.renderer->push( &pushBuffer, &pushConstant );
     }
-    glPopMatrix();
 }
 
 void Road::renderHUDBar( uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t current, uint32_t max )

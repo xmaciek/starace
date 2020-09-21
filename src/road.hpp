@@ -94,11 +94,11 @@ private:
     double m_alphaValue = 0.0;
     double m_calculatedFPS = 0.0;
     double m_rotation = 0.0;
-    double m_cyberRingRotation[ 3 ]{};
     double m_modelRotation = 0.0;
     double m_speedAnim = 0.0;
     double m_tempFPS = 0.0;
     float m_angle = 55.0f;
+    float m_cyberRingRotation[ 3 ]{};
     float m_hudColor4fv[ 3 ][ 4 ]{};
     float m_lightAmbient[ 4 ]{};
     float m_lightDiffuse[ 4 ]{};
