@@ -10,7 +10,7 @@ struct UV {
 struct Face {
     std::vector<Vertex> vertex{};
     std::vector<UV> texcoord{};
-    float normal[ 3 ]{};
+    double normal[ 3 ]{};
 };
 
 class Model {

@@ -40,11 +40,11 @@ Jet::Jet( const ModelProto& modelData )
 
 void Jet::draw() const
 {
-    float matrix[ 16 ]{};
+    double matrix[ 16 ]{};
     m_animation.createMatrix( matrix );
 
     glPushMatrix();
-    glMultMatrixf( matrix );
+    glMultMatrixd( matrix );
 
     m_model.draw();
     for ( const auto& it : m_model.thrusters() ) {

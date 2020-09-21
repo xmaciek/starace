@@ -15,7 +15,7 @@ void Model::draw() const
     glBindTexture( GL_TEXTURE_2D, m_textureID );
     for ( const Face& f : m_faces ) {
         glBegin( GL_POLYGON );
-        glNormal3fv( f.normal );
+        glNormal3dv( f.normal );
         for ( size_t j = 0; j < f.vertex.size(); j++ ) {
             glTexCoord2f( f.texcoord[ j ].u, f.texcoord[ j ].v );
             glVertex3d( f.vertex[ j ].x, f.vertex[ j ].y, f.vertex[ j ].z );
@@ -132,9 +132,9 @@ void Model::loadOBJ( const char* filename )
 
 void Model::calculateNormal()
 {
-    float vector1[ 3 ]{};
-    float vector2[ 3 ]{};
-    float length = 0.0f;
+    double vector1[ 3 ]{};
+    double vector2[ 3 ]{};
+    double length = 0.0f;
     for ( Face& f : m_faces ) {
         vector1[ 0 ] = f.vertex[ 0 ].x - f.vertex[ 1 ].x;
         vector1[ 1 ] = f.vertex[ 0 ].y - f.vertex[ 1 ].y;

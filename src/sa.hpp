@@ -87,7 +87,7 @@ struct ModelProto {
     float scale = 1.0f;
 };
 
-const double DELTATIME = 0.016;
+const float DELTATIME = 0.016f;
 const double PI = M_PI;
 const double DEG2RAD = PI / 180.0;
 const double RAD2DEG = PI * 180.0;
@@ -96,6 +96,6 @@ double distanceV( const Vertex&, const Vertex& );
 double dotProduct( const Vertex& a, const Vertex& b );
 double lengthV( const Vertex& v );
 double randomRange( double a, double b );
-float colorHalf( float col );
+double colorHalf( double col );
 Vertex crossProduct( const Vertex& a, const Vertex& b );
 void normalizeV( Vertex& v );

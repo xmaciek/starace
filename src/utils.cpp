@@ -8,7 +8,7 @@ double randomRange( double a, double b )
     return ( b - a ) * static_cast<double>( random() ) / std::mt19937::max() + a;
 }
 
-float colorHalf( float col )
+double colorHalf( double col )
 {
     return ( col >= 0.5 ) ? 1.0 - col : col;
 }

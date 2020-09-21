@@ -10,13 +10,13 @@ private:
 
 public:
     Quaternion() = default;
-    Quaternion( const Vertex& v, float w );
+    Quaternion( const Vertex& v, double w );
     Quaternion operator*( const Quaternion& ) const;
 
     Vertex toVector() const;
     void conjugate();
     void createFromAngles( double x, double y, double z, double deg );
-    void createMatrix( float* mat ) const;
+    void createMatrix( double* mat ) const;
     void inverse();
     void normalize();
     void rotateVector( Vertex& );

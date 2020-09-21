@@ -91,6 +91,7 @@ private:
     double m_viewportHeight = 540.0;
     double m_viewportWidth = 960;
 
+    double m_alphaValue = 0.0;
     double m_calculatedFPS = 0.0;
     double m_rotation = 0.0;
     double m_cyberRingRotation[ 3 ]{};
@@ -101,7 +102,6 @@ private:
     float m_lightAmbient[ 4 ]{};
     float m_lightDiffuse[ 4 ]{};
     float m_lightPosition[ 4 ]{};
-    float m_alphaValue = 0.0f;
     float m_cyberRingColor[ 3 ][ 4 ]{};
     int32_t m_angle = 55.0;
     int32_t m_currentResolution = 0;

@@ -58,7 +58,7 @@ void Enemy::draw() const
     glPushMatrix();
     glTranslated( m_position.x, m_position.y, m_position.z );
     glColor3f(
-        1.0f - m_healthPerc + colorHalf( 1.0f - m_healthPerc )
+        1.0f - m_healthPerc + colorHalf( 1.0 - m_healthPerc )
         , colorHalf( m_healthPerc ) + m_healthPerc
         , 0 );
     m_shield.draw();

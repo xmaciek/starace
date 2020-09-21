@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cstdlib>
 #include <random>
 
 const Uint32 Road::Time_Interval = ( 1000 * DELTATIME );
@@ -149,11 +150,6 @@ bool Road::onInit()
     SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, 1 );
     SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, 2 );
 
-    //   int32_t audio_rate = 44100;
-    //   Uint16 audio_format = AUDIO_S16SYS;
-    //   int32_t audio_channels = 2;
-    //   int32_t audio_buffers = 4096;
-    //  Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers)
     if ( Mix_OpenAudio( 22050, AUDIO_S16SYS, 2, 4096 ) != 0 ) {
         std::fprintf( stderr, "Unable to initialize audio: %s\n", Mix_GetError() );
         return false;
@@ -1074,7 +1070,7 @@ void Road::loadJetProto()
             m_jetsContainer.back().model_file = value_2;
         }
         if ( strcmp( value_1, "scale" ) == 0 ) {
-            m_jetsContainer.back().scale = atof( value_2 );
+            m_jetsContainer.back().scale = std::strtof( value_2, nullptr );
         }
     }
     JetFile.close();

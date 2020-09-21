@@ -13,7 +13,7 @@ private:
     double m_visibleRange = 0.0;
     double m_outRange = 1.0;
     double m_shotFactor = 0.0;
-    float m_healthPerc = 1.0f;
+    double m_healthPerc = 1.0;
     int32_t m_shieldStrength = 0;
 
     void reinitCoordinates();

@@ -227,14 +227,14 @@ void Road::renderHUD()
     m_fontGuiTxt->printText( 64, viewportHeight() - 100, hudmessage );
 
     /*radar*/
-    float matrice[ 16 ]{};
+    double matrice[ 16 ]{};
     m_jet->quat().createMatrix( matrice );
 
     glPushMatrix();
     glEnable( GL_DEPTH_TEST );
     glTranslated( viewportWidth() - 80, 80, 0 );
 
-    glMultMatrixf( matrice );
+    glMultMatrixd( matrice );
 
     glBegin( GL_LINES );
     glVertex3d( 24, 24, 24 );
@@ -369,9 +369,9 @@ void Road::render3D()
     glPushMatrix();
     glTranslated( 0, -0.225, -1 );
     glPushMatrix();
-    float matrice[ 16 ]{};
+    double matrice[ 16 ]{};
     m_jet->rotation().createMatrix( matrice );
-    glMultMatrixf( matrice );
+    glMultMatrixd( matrice );
     glTranslated( cX, cY, cZ );
     m_map->draw();
 

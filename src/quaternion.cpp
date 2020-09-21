@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-Quaternion::Quaternion( const Vertex& v, float w )
+Quaternion::Quaternion( const Vertex& v, double w )
 {
     m_x = v.x;
     m_y = v.y;
@@ -30,7 +30,7 @@ void Quaternion::createFromAngles( double x, double y, double z, double deg )
     m_w /= angle;
 }
 
-void Quaternion::createMatrix( float* matrix ) const
+void Quaternion::createMatrix( double* matrix ) const
 {
     matrix[ 0 ] = 1.0 - 2.0 * ( m_y * m_y + m_z * m_z );
     matrix[ 1 ] = 2.0 * ( m_x * m_y - m_w * m_z );

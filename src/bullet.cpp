@@ -141,7 +141,7 @@ void Bullet::update()
 
     switch ( m_type ) {
     case Type::eSlug:
-        m_color1[ 3 ] -= 2.0 * DELTATIME;
+        m_color1[ 3 ] -= 2.0f * DELTATIME;
         m_range += m_maxRange * 2.0 * DELTATIME;
         break;
 
