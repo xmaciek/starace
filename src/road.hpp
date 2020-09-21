@@ -36,8 +36,6 @@ private:
         eMainMenu,
     };
 
-    static const Uint32 Time_Interval;
-
     Circle* m_radar = nullptr;
     Circle* m_speedFanRing = nullptr;
     Font* m_fontBig = nullptr;
@@ -142,7 +140,6 @@ private:
     bool onInit();
     double viewportHeight() const;
     double viewportWidth() const;
-    static Uint32 delay();
     static void drawAxis();
     static void drawHUDLine( double x1, double y1, double x2, double y2, double t );
     static void drawHUDPiece( double x, double y, double rotAngleZ );

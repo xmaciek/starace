@@ -42,7 +42,6 @@ struct ModelProto {
     float scale = 1.0f;
 };
 
-const float DELTATIME = 0.016f;
 const double PI = M_PI;
 const double DEG2RAD = PI / 180.0;
 const double RAD2DEG = PI * 180.0;

@@ -5,8 +5,6 @@
 #include <cstdlib>
 #include <random>
 
-const Uint32 Road::Time_Interval = ( 1000 * DELTATIME );
-
 Road::Road()
 {
     m_radar = new Circle( 48, 64 );
@@ -478,8 +476,9 @@ void Road::onRender()
 
 void Road::onUpdate()
 {
-    const UpdateContext updateContext{ DELTATIME };
+    const UpdateContext updateContext{ 0.032f };
     while ( m_isRunning ) {
+        const std::chrono::time_point tp = std::chrono::steady_clock::now() + std::chrono::milliseconds{ 16 };
         switch ( m_currentScreen ) {
         case Screen::eGame:
             updateGame( updateContext );
@@ -506,19 +505,8 @@ void Road::onUpdate()
             updateCustomize( updateContext );
             break;
         }
-        std::this_thread::sleep_for( std::chrono::milliseconds( delay() ) );
+        std::this_thread::sleep_until( tp );
     }
-}
-
-Uint32 Road::delay()
-{
-    static Uint32 next = 0;
-    Uint32 now = SDL_GetTicks();
-    if ( next <= now ) {
-        next = now + Time_Interval;
-        return 0;
-    }
-    return next - now;
 }
 
 void Road::pause()
