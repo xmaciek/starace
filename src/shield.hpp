@@ -1,5 +1,4 @@
-#ifndef SA_SHIELD_H
-#define SA_SHIELD_H
+#pragma once
 
 #include "circle.hpp"
 #include "sa.hpp"
@@ -18,5 +17,3 @@ public:
     void draw() const;
     void update();
 };
-
-#endif

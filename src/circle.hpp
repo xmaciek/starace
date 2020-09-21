@@ -1,5 +1,4 @@
-#ifndef SA_CIRCLE
-#define SA_CIRCLE
+#pragma once
 
 #include "sa.hpp"
 
@@ -23,5 +22,3 @@ public:
     GLuint segments() const;
     GLdouble radius() const;
 };
-
-#endif

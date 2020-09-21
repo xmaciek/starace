@@ -1,5 +1,4 @@
-#ifndef SA_FONT
-#define SA_FONT
+#pragma once
 
 #include "sa.hpp"
 #include "texture.hpp"
@@ -26,4 +25,3 @@ public:
     void printText( GLdouble x, GLdouble y, const char* text );
 };
 
-#endif
