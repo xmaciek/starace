@@ -42,7 +42,7 @@ void Road::drawAxis()
 
 /* HUD elements */
 
-void Road::drawLine( GLdouble x, GLdouble y )
+void Road::drawLine( double x, double y )
 {
     glPushMatrix();
     glBegin( GL_LINES );
@@ -54,7 +54,7 @@ void Road::drawLine( GLdouble x, GLdouble y )
     glPopMatrix();
 }
 
-void Road::drawHudRect( GLdouble x, GLdouble y, GLdouble w, GLdouble h )
+void Road::drawHudRect( double x, double y, double w, double h )
 {
     glPushMatrix();
     glTranslated( x, y, 0 );
@@ -67,7 +67,7 @@ void Road::drawHudRect( GLdouble x, GLdouble y, GLdouble w, GLdouble h )
     glPopMatrix();
 }
 
-void Road::drawHUDLine( GLdouble x1, GLdouble y1, GLdouble x2, GLdouble y2, GLdouble t )
+void Road::drawHUDLine( double x1, double y1, double x2, double y2, double t )
 {
     glLineWidth( t );
     glPushMatrix();
@@ -81,7 +81,7 @@ void Road::drawHUDLine( GLdouble x1, GLdouble y1, GLdouble x2, GLdouble y2, GLdo
     glLineWidth( 1.0f );
 }
 
-void Road::drawHUDPiece( GLdouble, GLdouble, GLdouble rotAngleZ )
+void Road::drawHUDPiece( double, double, double rotAngleZ )
 {
     glPushMatrix();
     glRotated( rotAngleZ, 0, 0, 1 );
@@ -97,8 +97,8 @@ void Road::drawHUDPiece( GLdouble, GLdouble, GLdouble rotAngleZ )
 void Road::drawCyberRings()
 {
     glPushMatrix();
-    const GLdouble sw = viewportWidth() / 2;
-    const GLdouble sh = viewportHeight() / 2;
+    const double sw = viewportWidth() / 2;
+    const double sh = viewportHeight() / 2;
     glTranslated( sw, sh, 0 );
     for ( size_t i = 0; i < 3; i++ ) {
         glPushMatrix();
@@ -125,8 +125,8 @@ void Road::drawCyberRings()
 void Road::drawCyberRingsMini()
 {
     glPushMatrix();
-    const GLdouble sw = viewportWidth() / 2;
-    const GLdouble sh = viewportHeight() / 2 - 8;
+    const double sw = viewportWidth() / 2;
+    const double sh = viewportHeight() / 2 - 8;
     glTranslated( sw, sh, 0 );
     for ( size_t i = 0; i < 3; i++ ) {
         glPushMatrix();
@@ -152,7 +152,7 @@ void Road::drawCyberRingsMini()
     glPopMatrix();
 }
 
-void Road::drawHUDBar( GLuint x, GLuint y, GLuint w, GLuint h, GLuint current, GLuint max )
+void Road::drawHUDBar( uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t current, uint32_t max )
 {
     glPushMatrix();
     glTranslated( x, y, 0 );
@@ -169,14 +169,14 @@ void Road::drawHUDBar( GLuint x, GLuint y, GLuint w, GLuint h, GLuint current, G
     glEnd();
     glBegin( GL_QUADS );
     glColor3f(
-        ( 1.0f - static_cast<GLfloat>( current ) / max ) + colorHalf( ( 1.0f - static_cast<GLfloat>( current ) / max ) )
-        , static_cast<GLfloat>( current ) / max + colorHalf( static_cast<GLfloat>( current ) / max )
+        ( 1.0f - static_cast<float>( current ) / max ) + colorHalf( ( 1.0f - static_cast<float>( current ) / max ) )
+        , static_cast<float>( current ) / max + colorHalf( static_cast<float>( current ) / max )
         , 0 );
 
     glVertex2d( 0, 0 );
     glVertex2d( w, 0 );
-    glVertex2d( w, ( ( static_cast<GLdouble>( current ) / max ) * h ) );
-    glVertex2d( 0, ( ( static_cast<GLdouble>( current ) / max ) * h ) );
+    glVertex2d( w, ( ( static_cast<double>( current ) / max ) * h ) );
+    glVertex2d( 0, ( ( static_cast<double>( current ) / max ) * h ) );
     glEnd();
     glPopMatrix();
 }
@@ -227,7 +227,7 @@ void Road::renderHUD()
     m_fontGuiTxt->printText( 64, viewportHeight() - 100, hudmessage );
 
     /*radar*/
-    GLfloat matrice[ 16 ]{};
+    float matrice[ 16 ]{};
     m_jet->quat().createMatrix( matrice );
 
     glPushMatrix();
@@ -369,7 +369,7 @@ void Road::render3D()
     glPushMatrix();
     glTranslated( 0, -0.225, -1 );
     glPushMatrix();
-    GLfloat matrice[ 16 ]{};
+    float matrice[ 16 ]{};
     m_jet->rotation().createMatrix( matrice );
     glMultMatrixf( matrice );
     glTranslated( cX, cY, cZ );

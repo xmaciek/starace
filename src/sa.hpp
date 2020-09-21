@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -21,12 +22,12 @@
 #endif
 
 struct Vertex {
-    GLdouble x = 0.0;
-    GLdouble y = 0.0;
-    GLdouble z = 0.0;
+    double x = 0.0;
+    double y = 0.0;
+    double z = 0.0;
 
     Vertex() = default;
-    Vertex( GLdouble ax, GLdouble ay, GLdouble az )
+    Vertex( double ax, double ay, double az )
     : x( ax )
     , y( ay )
     , z( az )
@@ -66,8 +67,8 @@ struct Vertex {
 };
 
 struct MapProto {
-    GLuint enemies = 0;
-    GLuint preview_image = 0;
+    uint32_t enemies = 0;
+    uint32_t preview_image = 0;
     std::string name{ "unnamed map" };
     std::string texture_location{};
     std::string TOP{};
@@ -83,18 +84,18 @@ struct ModelProto {
     std::string name{ "Unnamed Jet" };
     std::string model_file{};
     std::string model_texture{};
-    GLfloat scale = 1.0f;
+    float scale = 1.0f;
 };
 
-const GLdouble DELTATIME = 0.016;
-const GLdouble PI = M_PI;
-const GLdouble DEG2RAD = PI / 180.0;
-const GLdouble RAD2DEG = PI * 180.0;
+const double DELTATIME = 0.016;
+const double PI = M_PI;
+const double DEG2RAD = PI / 180.0;
+const double RAD2DEG = PI * 180.0;
 
-GLdouble distanceV( const Vertex&, const Vertex& );
-GLdouble dotProduct( const Vertex& a, const Vertex& b );
-GLdouble lengthV( const Vertex& v );
-GLdouble randomRange( GLdouble a, GLdouble b );
-GLfloat colorHalf( GLfloat col );
+double distanceV( const Vertex&, const Vertex& );
+double dotProduct( const Vertex& a, const Vertex& b );
+double lengthV( const Vertex& v );
+double randomRange( double a, double b );
+float colorHalf( float col );
 Vertex crossProduct( const Vertex& a, const Vertex& b );
 void normalizeV( Vertex& v );

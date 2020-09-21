@@ -2,18 +2,18 @@
 #include "sa.hpp"
 
 struct TGA {
-    GLubyte header[ 6 ]{};
-    GLuint bytesPerPixel = 0;
-    GLuint imageSize = 0;
-    GLuint temp = 0;
-    GLuint type = 0;
-    GLuint height = 0;
-    GLuint width = 0;
-    GLuint bpp = 0;
-    GLubyte* data = nullptr;
+    uint8_t header[ 6 ]{};
+    uint32_t bytesPerPixel = 0;
+    uint32_t imageSize = 0;
+    uint32_t temp = 0;
+    uint32_t type = 0;
+    uint32_t height = 0;
+    uint32_t width = 0;
+    uint32_t bpp = 0;
+    uint8_t* data = nullptr;
 };
 
-GLuint loadDefault();
-GLuint loadTexture( const char* filename );
-void drawSprite( GLuint spriteID, GLdouble spriteSize );
+uint32_t loadDefault();
+uint32_t loadTexture( const char* filename );
+void drawSprite( uint32_t spriteID, double spriteSize );
 void setTextureFiltering();

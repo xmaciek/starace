@@ -4,21 +4,21 @@
 
 class Circle {
 private:
-    std::vector<GLdouble> m_x{};
-    std::vector<GLdouble> m_y{};
-    GLdouble m_radiust = 1.0;
-    GLuint m_segments = 32;
+    std::vector<double> m_x{};
+    std::vector<double> m_y{};
+    double m_radiust = 1.0;
+    uint32_t m_segments = 32;
 
     void init();
 
 public:
     ~Circle() = default;
     Circle();
-    Circle( GLuint segments, GLdouble radius );
-    GLdouble x( GLuint ) const;
-    GLdouble y( GLuint ) const;
-    void setSegments( GLuint );
-    void setRadius( GLdouble );
-    GLuint segments() const;
-    GLdouble radius() const;
+    Circle( uint32_t segments, double radius );
+    double x( uint32_t ) const;
+    double y( uint32_t ) const;
+    void setSegments( uint32_t );
+    void setRadius( double );
+    uint32_t segments() const;
+    double radius() const;
 };

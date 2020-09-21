@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-Quaternion::Quaternion( const Vertex& v, GLfloat w )
+Quaternion::Quaternion( const Vertex& v, float w )
 {
     m_x = v.x;
     m_y = v.y;
@@ -10,10 +10,10 @@ Quaternion::Quaternion( const Vertex& v, GLfloat w )
     m_w = w;
 }
 
-void Quaternion::createFromAngles( GLdouble x, GLdouble y, GLdouble z, GLdouble deg )
+void Quaternion::createFromAngles( double x, double y, double z, double deg )
 {
-    GLdouble angle = deg * PI / 180;
-    GLdouble result = std::sin( angle / 2.0 );
+    double angle = deg * PI / 180;
+    double result = std::sin( angle / 2.0 );
     m_w = std::cos( angle / 2.0 );
 
     m_x = x * result;
@@ -30,7 +30,7 @@ void Quaternion::createFromAngles( GLdouble x, GLdouble y, GLdouble z, GLdouble 
     m_w /= angle;
 }
 
-void Quaternion::createMatrix( GLfloat* matrix ) const
+void Quaternion::createMatrix( float* matrix ) const
 {
     matrix[ 0 ] = 1.0 - 2.0 * ( m_y * m_y + m_z * m_z );
     matrix[ 1 ] = 2.0 * ( m_x * m_y - m_w * m_z );
@@ -70,7 +70,7 @@ void Quaternion::conjugate()
 
 void Quaternion::normalize()
 {
-    GLdouble len = sqrt( m_w * m_w + m_x * m_x + m_y * m_y + m_z * m_z );
+    double len = sqrt( m_w * m_w + m_x * m_x + m_y * m_y + m_z * m_z );
     if ( len == 0 ) {
         len = 1;
     }

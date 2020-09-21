@@ -5,15 +5,15 @@
 
 class Shield {
 private:
-    GLdouble m_rotAngle = 0.0;
-    GLdouble m_radius = 0.0;
+    double m_rotAngle = 0.0;
+    double m_radius = 0.0;
     Circle m_circle{};
 
 public:
     Shield() = default;
-    Shield( GLdouble radiusA, GLdouble radiusB );
+    Shield( double radiusA, double radiusB );
 
-    GLdouble radius();
+    double radius();
     void draw() const;
     void update();
 };

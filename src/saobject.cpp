@@ -2,17 +2,17 @@
 
 #include <cmath>
 
-GLdouble SAObject::x() const
+double SAObject::x() const
 {
     return m_position.x;
 }
 
-GLdouble SAObject::y() const
+double SAObject::y() const
 {
     return m_position.y;
 }
 
-GLdouble SAObject::z() const
+double SAObject::z() const
 {
     return m_position.z;
 }
@@ -37,7 +37,7 @@ Vertex SAObject::velocity() const
     return m_velocity;
 }
 
-GLdouble SAObject::speed() const
+double SAObject::speed() const
 {
     return m_speed;
 }
@@ -64,7 +64,7 @@ void SAObject::kill()
     setStatus( Status::eDead );
 }
 
-void SAObject::setDamage( GLdouble d )
+void SAObject::setDamage( double d )
 {
     m_health -= d;
     if ( m_health <= 0.0 ) {
@@ -72,7 +72,7 @@ void SAObject::setDamage( GLdouble d )
     }
 }
 
-GLdouble SAObject::health() const
+double SAObject::health() const
 {
     return m_health;
 }
@@ -106,12 +106,12 @@ bool SAObject::canCollide() const
     return m_collisionFlag;
 }
 
-GLdouble SAObject::collisionDistance() const
+double SAObject::collisionDistance() const
 {
     return m_collisionDistance;
 }
 
-GLdouble SAObject::collisionDamage() const
+double SAObject::collisionDamage() const
 {
     return m_collisionDamage;
 }
@@ -125,12 +125,12 @@ bool SAObject::deleteMe()
     return false;
 }
 
-GLint SAObject::score() const
+int32_t SAObject::score() const
 {
     return m_score;
 }
 
-void SAObject::addScore( GLint s, bool )
+void SAObject::addScore( int32_t s, bool )
 {
     m_score += s;
 }

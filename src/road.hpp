@@ -21,7 +21,7 @@ public:
     Road();
     ~Road();
 
-    GLint run();
+    int32_t run();
 
 private:
     enum struct Screen {
@@ -91,43 +91,43 @@ private:
     double m_viewportHeight = 540.0;
     double m_viewportWidth = 960;
 
-    GLdouble m_calculatedFPS = 0.0;
-    GLdouble m_rotation = 0.0;
-    GLdouble m_cyberRingRotation[ 3 ]{};
-    GLdouble m_modelRotation = 0.0;
-    GLdouble m_speedAnim = 0.0;
-    GLdouble m_tempFPS = 0.0;
-    GLfloat m_hudColor4fv[ 3 ][ 4 ]{};
-    GLfloat m_lightAmbient[ 4 ]{};
-    GLfloat m_lightDiffuse[ 4 ]{};
-    GLfloat m_lightPosition[ 4 ]{};
-    GLfloat m_alphaValue = 0.0f;
-    GLfloat m_cyberRingColor[ 3 ][ 4 ]{};
-    GLint m_angle = 55.0;
-    GLint m_currentResolution = 0;
-    GLint m_maxDimention = 0;
-    GLint m_minDimention = 0;
-    GLuint m_buttonTexture = 0;
-    GLuint m_fps = 0;
-    GLuint m_framesDone = 0;
-    GLuint m_hudColor = 0.0;
-    GLuint m_hudTex = 0;
-    GLuint m_resolutions[ 4 ][ 2 ]{};
-    GLuint m_shotsDone = 0;
-    GLuint m_currentJet = 0;
-    GLuint m_currentMap = 0;
-    GLuint m_cyberRingTexture[ 3 ]{};
-    GLuint m_menuBackground = 0;
-    GLuint m_menuBackgroundOverlay = 0;
-    GLuint m_starfieldTexture = 0;
+    double m_calculatedFPS = 0.0;
+    double m_rotation = 0.0;
+    double m_cyberRingRotation[ 3 ]{};
+    double m_modelRotation = 0.0;
+    double m_speedAnim = 0.0;
+    double m_tempFPS = 0.0;
+    float m_hudColor4fv[ 3 ][ 4 ]{};
+    float m_lightAmbient[ 4 ]{};
+    float m_lightDiffuse[ 4 ]{};
+    float m_lightPosition[ 4 ]{};
+    float m_alphaValue = 0.0f;
+    float m_cyberRingColor[ 3 ][ 4 ]{};
+    int32_t m_angle = 55.0;
+    int32_t m_currentResolution = 0;
+    int32_t m_maxDimention = 0;
+    int32_t m_minDimention = 0;
+    uint32_t m_buttonTexture = 0;
+    uint32_t m_fps = 0;
+    uint32_t m_framesDone = 0;
+    uint32_t m_hudColor = 0.0;
+    uint32_t m_hudTex = 0;
+    uint32_t m_resolutions[ 4 ][ 2 ]{};
+    uint32_t m_shotsDone = 0;
+    uint32_t m_currentJet = 0;
+    uint32_t m_currentMap = 0;
+    uint32_t m_cyberRingTexture[ 3 ]{};
+    uint32_t m_menuBackground = 0;
+    uint32_t m_menuBackgroundOverlay = 0;
+    uint32_t m_starfieldTexture = 0;
     Uint32 m_nextFrame = 0;
     Uint32 m_nextTick = 0;
     Uint32 m_timeS = 0;
 
     Screen m_currentScreen = Screen::eGame;
-    GLubyte m_weap1 = 0;
-    GLubyte m_weap2 = 0;
-    GLubyte m_weap3 = 0;
+    uint8_t m_weap1 = 0;
+    uint8_t m_weap2 = 0;
+    uint8_t m_weap3 = 0;
     bool m_isDynamicCamera = true;
     bool m_isFullscreen = false;
     bool m_isRunning = true;
@@ -137,17 +137,17 @@ private:
     bool m_doUpdate = false;
     bool m_isSoundEnabled = false;
 
-    bool initNewSurface( GLint w, GLint h, GLint d, bool f );
+    bool initNewSurface( int32_t w, int32_t h, int32_t d, bool f );
     bool onInit();
     double viewportHeight() const;
     double viewportWidth() const;
     static Uint32 delay();
     static void drawAxis();
-    static void drawHUDLine( GLdouble x1, GLdouble y1, GLdouble x2, GLdouble y2, GLdouble t );
-    static void drawHUDPiece( GLdouble x, GLdouble y, GLdouble rotAngleZ );
-    static void drawHudRect( GLdouble x, GLdouble y, GLdouble w, GLdouble h );
-    static void drawLine( GLdouble x, GLdouble y );
-    void addBullet( GLuint wID );
+    static void drawHUDLine( double x1, double y1, double x2, double y2, double t );
+    static void drawHUDPiece( double x, double y, double rotAngleZ );
+    static void drawHudRect( double x, double y, double w, double h );
+    static void drawLine( double x, double y );
+    void addBullet( uint32_t wID );
     void changeScreen( Screen );
     void clearMapData();
     void createMapData( const MapProto&, const ModelProto& );
@@ -158,7 +158,7 @@ private:
     void drawCrosshair();
     void drawCyberRings();
     void drawCyberRingsMini();
-    void drawHUDBar( GLuint x, GLuint y, GLuint w, GLuint h, GLuint current, GLuint max );
+    void drawHUDBar( uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t current, uint32_t max );
     void drawMainMenu();
     void drawPauseText();
     void gameKeyboardBriefingPressed( SDLKey );
@@ -183,9 +183,9 @@ private:
     void onEvent( const SDL_Event& );
     void onKeyDown( SDLKey sym, SDLMod mod, Uint16 unicode );
     void onKeyUp( SDLKey sym, SDLMod mod, Uint16 unicode );
-    void onMouseClickLeft( GLint x, GLint y );
+    void onMouseClickLeft( int32_t x, int32_t y );
     void onRender();
-    void onResize( GLint w, GLint h );
+    void onResize( int32_t w, int32_t h );
     void onUpdate();
     void pause();
     void playSound( Mix_Chunk* ) const;
@@ -196,7 +196,7 @@ private:
     void screenCustomize();
     void setCamera();
     void setOrtho() const;
-    void setPerspective( GLdouble ) const;
+    void setPerspective( double ) const;
     void setViewportSize( double, double );
     void unpause();
     void updateClouds();

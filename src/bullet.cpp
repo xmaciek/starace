@@ -54,7 +54,7 @@ void Bullet::draw1() const
 {
     Tail::const_iterator it = m_tail.begin();
     glPushMatrix();
-    glColor4fv( static_cast<const GLfloat*>( m_color1 ) );
+    glColor4fv( static_cast<const float*>( m_color1 ) );
     glBegin( GL_LINES );
     glVertex3d( ( *it ).x, ( *it ).y, ( *it ).z );
     it += 3;
@@ -75,7 +75,7 @@ void Bullet::drawLaser() const
     Tail::const_iterator it = m_tail.begin();
     glPushMatrix();
     glBegin( GL_LINES );
-    glColor4fv( static_cast<const GLfloat*>( m_color1 ) );
+    glColor4fv( static_cast<const float*>( m_color1 ) );
     glVertex3d( ( *it ).x, ( *it ).y, ( *it ).z );
     it++;
     glVertex3d( ( *it ).x, ( *it ).y, ( *it ).z );
@@ -87,7 +87,7 @@ void Bullet::draw2() const
 {
     Tail::const_iterator it = m_tail.begin();
     glPushMatrix();
-    glColor4fv( static_cast<const GLfloat*>( m_color1 ) );
+    glColor4fv( static_cast<const float*>( m_color1 ) );
     glBegin( GL_LINES );
     glVertex3d( ( *it ).x, ( *it ).y, ( *it ).z );
     it++;
@@ -232,7 +232,7 @@ void Bullet::setDirection( const Vertex& v )
     }
 }
 
-GLuint Bullet::damage() const
+uint32_t Bullet::damage() const
 {
     return m_damage;
 }

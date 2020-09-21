@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-Font::Font( const char* fontname, GLuint h )
+Font::Font( const char* fontname, uint32_t h )
 : m_name( fontname )
 , m_charWidth( 128 )
 , m_textures( 128 )
@@ -12,7 +12,7 @@ Font::Font( const char* fontname, GLuint h )
     glGenTextures( 128, m_textures.data() );
     TTF_Font* font = TTF_OpenFont( fontname, h );
 
-    for ( GLubyte i = 0; i < 128; i++ ) {
+    for ( uint8_t i = 0; i < 128; i++ ) {
         makeDlist( font, i );
     }
     TTF_CloseFont( font );
@@ -24,31 +24,31 @@ Font::~Font()
     glDeleteTextures( 128, m_textures.data() );
 }
 
-static GLuint pow2( GLuint a )
+static uint32_t pow2( uint32_t a )
 {
-    GLuint r = 4;
+    uint32_t r = 4;
     while ( r < a ) {
         r *= 2;
     }
     return r;
 }
 
-void Font::makeDlist( TTF_Font* font, GLuint ch )
+void Font::makeDlist( TTF_Font* font, uint32_t ch )
 {
     SDL_Color col = { 255, 255, 255, 255 };
     SDL_Surface* tmp = nullptr;
 
     tmp = TTF_RenderGlyph_Blended( font, static_cast<Uint16>( ch ), col );
 
-    GLint minX = 0;
-    GLint maxX = 0;
-    GLint minY = 0;
-    GLint maxY = 0;
-    GLint advance = 0;
+    int32_t minX = 0;
+    int32_t maxX = 0;
+    int32_t minY = 0;
+    int32_t maxY = 0;
+    int32_t advance = 0;
     TTF_GlyphMetrics( font, ch, &minX, &maxX, &minY, &maxY, &advance );
 
-    GLuint optW = pow2( tmp->w );
-    GLuint optH = pow2( m_height );
+    uint32_t optW = pow2( tmp->w );
+    uint32_t optH = pow2( m_height );
     SDL_Rect rect;
     rect.x = minX;
     rect.y = m_height - maxY;
@@ -57,7 +57,7 @@ void Font::makeDlist( TTF_Font* font, GLuint ch )
     SDL_BlitSurface( tmp, nullptr, expanded_data, &rect );
     SDL_FreeSurface( tmp );
 
-    std::vector<GLushort> pixels( optH * optW );
+    std::vector<uint16_t> pixels( optH * optW );
     const uint32_t* pix = reinterpret_cast<const uint32_t*>( expanded_data->pixels );
     const uint32_t* pixEnd = pix;
     std::advance( pixEnd, optH * optW );
@@ -91,17 +91,17 @@ void Font::makeDlist( TTF_Font* font, GLuint ch )
     //   glDisable(GL_TEXTURE_2D);
 }
 
-GLuint Font::textLength( const char* text )
+uint32_t Font::textLength( const char* text )
 {
     std::string txt = text;
-    GLuint length = 0;
+    uint32_t length = 0;
     for ( char i : txt ) {
         length += m_charWidth[ static_cast<size_t>( i ) ];
     }
     return length;
 }
 
-void Font::printText( GLdouble x, GLdouble y, const char* text )
+void Font::printText( double x, double y, const char* text )
 {
     m_stringTxt = text;
     glListBase( m_listBase );
@@ -115,12 +115,12 @@ void Font::printText( GLdouble x, GLdouble y, const char* text )
     glPopMatrix();
 }
 
-GLuint Font::height() const
+uint32_t Font::height() const
 {
     return m_height;
 }
 
-GLuint Font::middlePoint() const
+uint32_t Font::middlePoint() const
 {
     return m_middlePoint;
 }

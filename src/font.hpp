@@ -7,21 +7,21 @@ class Font {
 private:
     std::string m_name{};
     std::string m_stringTxt{};
-    std::vector<GLuint> m_charWidth{};
-    std::vector<GLuint> m_textures{};
-    GLuint m_height = 0;
-    GLuint m_listBase = 0;
-    GLuint m_middlePoint = 0;
-    void makeDlist( TTF_Font* font, GLuint ch );
+    std::vector<uint32_t> m_charWidth{};
+    std::vector<uint32_t> m_textures{};
+    uint32_t m_height = 0;
+    uint32_t m_listBase = 0;
+    uint32_t m_middlePoint = 0;
+    void makeDlist( TTF_Font* font, uint32_t ch );
 
 public:
     ~Font();
-    Font( const char* fontname, GLuint h );
+    Font( const char* fontname, uint32_t h );
 
-    GLuint height() const;
-    GLuint middlePoint() const;
-    GLuint textLength( const char* text );
-    GLuint textLength( const std::string& text );
-    void printText( GLdouble x, GLdouble y, const char* text );
+    uint32_t height() const;
+    uint32_t middlePoint() const;
+    uint32_t textLength( const char* text );
+    uint32_t textLength( const std::string& text );
+    void printText( double x, double y, const char* text );
 };
 

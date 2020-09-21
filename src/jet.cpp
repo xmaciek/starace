@@ -23,7 +23,7 @@ Jet::Jet( const ModelProto& modelData )
     m_model.scale( modelData.scale );
     m_model.calculateNormal();
 
-    GLfloat tmpcolor[ 4 ][ 4 ] = {
+    float tmpcolor[ 4 ][ 4 ] = {
         { 0.0f, 0.7f, 1.0f, 1.0f },
         { 0.0f, 0.0f, 0.5f, 0.0f },
         { 0.0f, 0.75f, 1.0f, 0.6f },
@@ -40,7 +40,7 @@ Jet::Jet( const ModelProto& modelData )
 
 void Jet::draw() const
 {
-    GLfloat matrix[ 16 ]{};
+    float matrix[ 16 ]{};
     m_animation.createMatrix( matrix );
 
     glPushMatrix();
@@ -264,17 +264,17 @@ void Jet::speedDown( bool doit )
     speedUp( !doit );
 }
 
-bool Jet::isShooting( GLuint weaponNum ) const
+bool Jet::isShooting( uint32_t weaponNum ) const
 {
     return m_shooting[ weaponNum ];
 }
 
-void Jet::shoot( GLuint weaponNum, bool doit )
+void Jet::shoot( uint32_t weaponNum, bool doit )
 {
     m_shooting[ weaponNum ] = doit;
 }
 
-Vertex Jet::weaponPoint( GLuint weaponNum )
+Vertex Jet::weaponPoint( uint32_t weaponNum )
 {
     Vertex w = m_model.weapon( weaponNum );
     m_quaternion.rotateVector( w );
@@ -282,7 +282,7 @@ Vertex Jet::weaponPoint( GLuint weaponNum )
     return w;
 }
 
-Bullet* Jet::weapon( GLuint weaponNum )
+Bullet* Jet::weapon( uint32_t weaponNum )
 {
     BulletProto tmp = m_weapon[ weaponNum ];
     Vertex w = m_model.weapon( weaponNum );
@@ -305,18 +305,18 @@ Bullet* Jet::weapon( GLuint weaponNum )
     return b;
 }
 
-void Jet::setWeapon( BulletProto bp, GLuint id )
+void Jet::setWeapon( BulletProto bp, uint32_t id )
 {
     m_weapon[ id ] = bp;
 }
 
-bool Jet::isWeaponReady( GLuint weaponNum ) const
+bool Jet::isWeaponReady( uint32_t weaponNum ) const
 {
     return ( m_shotFactor[ weaponNum ] >= m_weapon[ weaponNum ].delay )
         && ( m_energy >= m_weapon[ weaponNum ].energy );
 }
 
-void Jet::takeEnergy( GLuint weaponNum )
+void Jet::takeEnergy( uint32_t weaponNum )
 {
     m_energy -= m_weapon[ weaponNum ].energy;
     m_shotFactor[ weaponNum ] = 0;
@@ -352,7 +352,7 @@ void Jet::processCollision( SAObject* )
     assert( !"shall not be called" );
 };
 
-void Jet::addScore( GLint s, bool b )
+void Jet::addScore( int32_t s, bool b )
 {
     if ( b ) {
         m_score += s;

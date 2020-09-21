@@ -1,11 +1,11 @@
 #include "texture.hpp"
 
-GLuint loadDefault()
+uint32_t loadDefault()
 {
-    GLubyte DEF[ 64 * 64 * 3 ];
+    uint8_t DEF[ 64 * 64 * 3 ];
     bool c = false;
-    GLuint d = 0;
-    for ( GLuint i = 0; i < 64 * 64 * 3; i++ ) {
+    uint32_t d = 0;
+    for ( uint32_t i = 0; i < 64 * 64 * 3; i++ ) {
         if ( i % ( 64 * 3 * 8 ) == 0 ) {
             c = !c;
         }
@@ -23,7 +23,7 @@ GLuint loadDefault()
             d = 0;
         }
     }
-    GLuint textureID = 0;
+    uint32_t textureID = 0;
     glGenTextures( 1, &textureID );
     glBindTexture( GL_TEXTURE_2D, textureID );
     setTextureFiltering();
@@ -42,10 +42,10 @@ void setTextureFiltering()
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0f );
 }
 
-GLuint loadTexture( const char* filename )
+uint32_t loadTexture( const char* filename )
 {
-    GLubyte HEADER[ 12 ]{};
-    const GLubyte UNCOMPRESSED[ 12 ] = { 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    uint8_t HEADER[ 12 ]{};
+    const uint8_t UNCOMPRESSED[ 12 ] = { 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     FILE* TGAfile = fopen( filename, "rb" );
     if ( !TGAfile ) {
         return loadDefault();
@@ -74,11 +74,11 @@ GLuint loadTexture( const char* filename )
     }
     tga.bytesPerPixel = tga.bpp / 8;
     tga.imageSize = tga.bytesPerPixel * tga.width * tga.height;
-    tga.data = new GLubyte[ tga.imageSize ];
+    tga.data = new uint8_t[ tga.imageSize ];
     fread( tga.data, tga.imageSize, 1, TGAfile );
     fclose( TGAfile );
-    GLubyte swap = 0;
-    for ( GLuint C = 0; C < tga.imageSize; C += tga.bytesPerPixel ) {
+    uint8_t swap = 0;
+    for ( uint32_t C = 0; C < tga.imageSize; C += tga.bytesPerPixel ) {
         swap = tga.data[ C + 2 ];
         tga.data[ C + 2 ] = tga.data[ C ];
         tga.data[ C ] = swap;
@@ -90,7 +90,7 @@ GLuint loadTexture( const char* filename )
     else {
         tga.type = GL_RGBA;
     }
-    GLuint textureID = 0;
+    uint32_t textureID = 0;
     glGenTextures( 1, &textureID );
     glBindTexture( GL_TEXTURE_2D, textureID );
     setTextureFiltering();
@@ -101,9 +101,9 @@ GLuint loadTexture( const char* filename )
     return textureID;
 }
 
-void drawSprite( GLuint spriteID, GLdouble spriteSize )
+void drawSprite( uint32_t spriteID, double spriteSize )
 {
-    GLfloat matrix[ 16 ]{};
+    float matrix[ 16 ]{};
     glPushMatrix();
     glMatrixMode( GL_PROJECTION );
     glGetFloatv( GL_PROJECTION, matrix );

@@ -1,6 +1,6 @@
 #include "button.hpp"
 
-bool Button::isClicked( GLuint x, GLuint y ) const
+bool Button::isClicked( uint32_t x, uint32_t y ) const
 {
     return m_enabled
         && ( x >= m_x )
@@ -43,18 +43,18 @@ void Button::draw()
     glDisable( GL_BLEND );
 }
 
-void Button::updateCoord( GLuint x, GLuint y )
+void Button::updateCoord( uint32_t x, uint32_t y )
 {
     m_x = x;
     m_y = y;
 };
 
-void Button::setTexture( GLuint t )
+void Button::setTexture( uint32_t t )
 {
     m_textureID = t;
 }
 
-Button::Button( Font* f, GLuint x, GLuint y, GLuint w, GLuint h )
+Button::Button( Font* f, uint32_t x, uint32_t y, uint32_t w, uint32_t h )
 : m_font{ f }
 , m_x{ x }
 , m_y{ y }
@@ -63,7 +63,7 @@ Button::Button( Font* f, GLuint x, GLuint y, GLuint w, GLuint h )
 {
 }
 
-void Button::setSize( GLuint w, const GLuint h )
+void Button::setSize( uint32_t w, const uint32_t h )
 {
     m_width = w;
     m_height = h;

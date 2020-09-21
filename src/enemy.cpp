@@ -95,7 +95,7 @@ void Enemy::drawCollisionIndicator()
     glLineWidth( 1 );
 }
 
-void Enemy::drawRadarPosition( const Vertex& modifier, GLdouble scale ) const
+void Enemy::drawRadarPosition( const Vertex& modifier, double scale ) const
 {
     if ( status() != Status::eAlive ) {
         return;

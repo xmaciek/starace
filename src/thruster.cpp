@@ -1,24 +1,24 @@
 #include "thruster.hpp"
 
-Thruster::Thruster( GLdouble length, GLdouble radius )
+Thruster::Thruster( double length, double radius )
 : m_inner( 32, radius * 0.6 )
 , m_outer( 32, radius )
 {
     setLength( length );
 }
 
-void Thruster::setLength( GLdouble newLength )
+void Thruster::setLength( double newLength )
 {
     m_length = newLength;
     m_lengthShorter = newLength * 0.95f;
 }
 
-void Thruster::setColor( GLuint num, GLfloat* colorData )
+void Thruster::setColor( uint32_t num, float* colorData )
 {
     if ( num > 3 ) {
         return;
     }
-    memcpy( m_color[ num ], colorData, sizeof( GLfloat ) * 4 );
+    memcpy( m_color[ num ], colorData, sizeof( float ) * 4 );
 }
 
 void Thruster::update()
@@ -35,7 +35,7 @@ void Thruster::update()
     }
 }
 
-void Thruster::drawAt( GLdouble x, GLdouble y, GLdouble z ) const
+void Thruster::drawAt( double x, double y, double z ) const
 {
     glPushMatrix();
     glTranslated( x, y, z );

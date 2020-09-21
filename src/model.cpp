@@ -43,16 +43,16 @@ void Model::loadOBJ( const char* filename )
 {
     m_faces.clear();
     std::vector<Vertex> vertices{};
-    std::vector<GLuint> tmpui{};
+    std::vector<uint32_t> tmpui{};
     std::vector<UV> tex{};
     Vertex tmpv{};
     UV tmpt{};
     bool containsTex = false;
-    GLubyte wID = 0;
+    uint8_t wID = 0;
     Face tmpf{};
-    GLubyte dataType = 0;
-    GLuint v = 0;
-    GLuint t = 0;
+    uint8_t dataType = 0;
+    uint32_t v = 0;
+    uint32_t t = 0;
     std::ifstream OBJfile( filename );
     std::string line{};
     std::string tmpline{};
@@ -132,9 +132,9 @@ void Model::loadOBJ( const char* filename )
 
 void Model::calculateNormal()
 {
-    GLfloat vector1[ 3 ]{};
-    GLfloat vector2[ 3 ]{};
-    GLfloat length = 0.0f;
+    float vector1[ 3 ]{};
+    float vector2[ 3 ]{};
+    float length = 0.0f;
     for ( Face& f : m_faces ) {
         vector1[ 0 ] = f.vertex[ 0 ].x - f.vertex[ 1 ].x;
         vector1[ 1 ] = f.vertex[ 0 ].y - f.vertex[ 1 ].y;
@@ -161,8 +161,8 @@ void Model::calculateNormal()
 
 void Model::normalizeSize()
 {
-    GLdouble maxZ = m_faces[ 0 ].vertex[ 0 ].z;
-    GLdouble minZ = m_faces[ 0 ].vertex[ 0 ].z;
+    double maxZ = m_faces[ 0 ].vertex[ 0 ].z;
+    double minZ = m_faces[ 0 ].vertex[ 0 ].z;
 
     for ( const Face& f : m_faces ) {
         for ( const Vertex& v : f.vertex ) {
@@ -177,11 +177,11 @@ void Model::normalizeSize()
     if ( minZ < 0 ) {
         minZ *= -1;
     }
-    GLdouble total = maxZ + minZ;
+    double total = maxZ + minZ;
     if ( total == 0 ) {
         total = 1.0f;
     }
-    GLdouble factor = 1.0f / total;
+    double factor = 1.0f / total;
     for ( Face& f : m_faces ) {
         for ( Vertex& v : f.vertex ) {
             v.x *= factor;
@@ -202,7 +202,7 @@ void Model::normalizeSize()
     }
 }
 
-void Model::bindTexture( GLuint tex )
+void Model::bindTexture( uint32_t tex )
 {
     if ( m_textureID != 0 ) {
         glDeleteTextures( 1, &m_textureID );
@@ -210,7 +210,7 @@ void Model::bindTexture( GLuint tex )
     m_textureID = tex;
 }
 
-void Model::scale( GLfloat scale )
+void Model::scale( float scale )
 {
     for ( Face& f : m_faces ) {
         for ( Vertex& v : f.vertex ) {

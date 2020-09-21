@@ -24,27 +24,27 @@ private:
     Quaternion m_quaternion{};
     Quaternion m_rotation{};
 
-    GLdouble m_angleSpeedX = 15.0;
-    GLdouble m_angleSpeedY = 10.0;
-    GLdouble m_angleSpeedZ = 50.0;
-    GLdouble m_energy = 100.0;
-    GLdouble m_maxSpeed = 5.0;
-    GLdouble m_minSpeed = 0.5;
-    GLdouble m_normSpeed = 2.0;
-    GLdouble m_pitch = 0.0;
-    GLdouble m_roll = 0.0;
-    GLdouble m_rotX = 0.0;
-    GLdouble m_rotY = 0.0;
-    GLdouble m_rotZ = 0.0;
-    GLdouble m_shotFactor[ 3 ]{};
-    GLdouble m_yaw = 0.0;
+    double m_angleSpeedX = 15.0;
+    double m_angleSpeedY = 10.0;
+    double m_angleSpeedZ = 50.0;
+    double m_energy = 100.0;
+    double m_maxSpeed = 5.0;
+    double m_minSpeed = 0.5;
+    double m_normSpeed = 2.0;
+    double m_pitch = 0.0;
+    double m_roll = 0.0;
+    double m_rotX = 0.0;
+    double m_rotY = 0.0;
+    double m_rotZ = 0.0;
+    double m_shotFactor[ 3 ]{};
+    double m_yaw = 0.0;
 
-    GLint m_accX = 0;
-    GLint m_accY = 0;
-    GLint m_accZ = 0;
-    GLint m_maxAngleX = 5;
-    GLint m_maxAngleY = 5;
-    GLint m_maxAngleZ = 15;
+    int32_t m_accX = 0;
+    int32_t m_accY = 0;
+    int32_t m_accZ = 0;
+    int32_t m_maxAngleX = 5;
+    int32_t m_maxAngleY = 5;
+    int32_t m_maxAngleZ = 15;
 
     bool m_btnPitchDown = false;
     bool m_btnPitchUp = false;
@@ -54,22 +54,22 @@ private:
     bool m_btnYawRight = false;
     bool m_shooting[ 3 ]{};
     bool m_targetLocked[ 3 ]{};
-    GLubyte m_circleLoop = 0;
-    GLbyte m_speedAcc = 0;
+    uint8_t m_circleLoop = 0;
+    int8_t m_speedAcc = 0;
 
 public:
     virtual ~Jet() override = default;
     explicit Jet( const ModelProto& );
 
-    Bullet* weapon( GLuint weaponNum );
+    Bullet* weapon( uint32_t weaponNum );
     Quaternion animation() const;
     Quaternion quat() const;
     Quaternion rotation() const;
-    Vertex weaponPoint( GLuint weaponNum );
-    bool isShooting( GLuint weaponNum ) const;
-    bool isWeaponReady( GLuint weaponNum ) const;
+    Vertex weaponPoint( uint32_t weaponNum );
+    bool isShooting( uint32_t weaponNum ) const;
+    bool isWeaponReady( uint32_t weaponNum ) const;
     double energy() const;
-    virtual void addScore( GLint s, bool b ) override;
+    virtual void addScore( int32_t s, bool b ) override;
     virtual void draw() const override;
     virtual void processCollision( SAObject* ) override;
     void drawWireframe();
@@ -80,11 +80,11 @@ public:
     void rollLeft( bool );
     void rollRight( bool );
     void setModel( Model* );
-    void setWeapon( BulletProto bp, GLuint id );
-    void shoot( GLuint weaponNum, bool );
+    void setWeapon( BulletProto bp, uint32_t id );
+    void shoot( uint32_t weaponNum, bool );
     void speedDown( bool );
     void speedUp( bool );
-    void takeEnergy( GLuint weaponNum );
+    void takeEnergy( uint32_t weaponNum );
     void update();
     void yawLeft( bool );
     void yawRight( bool );

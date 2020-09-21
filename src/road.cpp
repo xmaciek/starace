@@ -55,7 +55,7 @@ Road::~Road()
     }
 }
 
-GLint Road::run()
+int32_t Road::run()
 {
     if ( !onInit() ) {
         return -1;
@@ -149,10 +149,10 @@ bool Road::onInit()
     SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, 1 );
     SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, 2 );
 
-    //   GLint audio_rate = 44100;
+    //   int32_t audio_rate = 44100;
     //   Uint16 audio_format = AUDIO_S16SYS;
-    //   GLint audio_channels = 2;
-    //   GLint audio_buffers = 4096;
+    //   int32_t audio_channels = 2;
+    //   int32_t audio_buffers = 4096;
     //  Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers)
     if ( Mix_OpenAudio( 22050, AUDIO_S16SYS, 2, 4096 ) != 0 ) {
         std::fprintf( stderr, "Unable to initialize audio: %s\n", Mix_GetError() );
@@ -175,7 +175,7 @@ bool Road::onInit()
     return true;
 }
 
-void Road::onResize( GLint w, GLint h )
+void Road::onResize( int32_t w, int32_t h )
 {
     if ( w > h ) {
         m_maxDimention = w;
@@ -345,9 +345,9 @@ void Road::initRoadAdditionsGL()
     m_cyberRingRotationDirection[ 1 ] = false;
     m_cyberRingRotationDirection[ 2 ] = false;
 
-    GLfloat temp_colors[ 4 ][ 4 ] = { { 1, 1, 1, 0.8 }, { 1, 1, 1, 0.7 }, { 1, 1, 1, 0.6 }, { 1, 1, 1, 0.7 } };
+    float temp_colors[ 4 ][ 4 ] = { { 1, 1, 1, 0.8 }, { 1, 1, 1, 0.7 }, { 1, 1, 1, 0.6 }, { 1, 1, 1, 0.7 } };
 
-    memcpy( m_cyberRingColor, temp_colors, sizeof( GLfloat ) * 12 );
+    memcpy( m_cyberRingColor, temp_colors, sizeof( float ) * 12 );
 
     glEnable( GL_BLEND );
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
@@ -377,7 +377,7 @@ void Road::initRoadAdditionsGL()
     glLightfv( GL_LIGHT0, GL_POSITION, m_lightPosition );
     glEnable( GL_LIGHT0 );
 
-    GLfloat fogColor[ 4 ] = { 0.0f, 0.0f, 0.0f, 1.0f };
+    float fogColor[ 4 ] = { 0.0f, 0.0f, 0.0f, 1.0f };
     glFogi( GL_FOG_MODE, GL_LINEAR );
     glFogfv( GL_FOG_COLOR, fogColor );
     glFogf( GL_FOG_DENSITY, 0.1f );
@@ -385,7 +385,7 @@ void Road::initRoadAdditionsGL()
     glFogf( GL_FOG_START, 10.0f );
     glFogf( GL_FOG_END, 25.0f );
 
-    GLfloat tempcolor[ 4 ][ 4 ] = {
+    float tempcolor[ 4 ][ 4 ] = {
         { 0.3, 0.8, 1, 1 }, { 1, 0.8, 0.1, 1 }, { 1, 0.3, 0.8, 1 }, { 1, 1, 0, 1 }
     };
     BulletProto tmpWeapon;
@@ -394,8 +394,8 @@ void Road::initRoadAdditionsGL()
     tmpWeapon.energy = 15;
     tmpWeapon.damage = 1;
     tmpWeapon.score_per_hit = 1;
-    memcpy( tmpWeapon.color1, tempcolor[ 3 ], 4 * sizeof( GLfloat ) );
-    memcpy( tmpWeapon.color2, tempcolor[ 1 ], 4 * sizeof( GLfloat ) );
+    memcpy( tmpWeapon.color1, tempcolor[ 3 ], 4 * sizeof( float ) );
+    memcpy( tmpWeapon.color2, tempcolor[ 1 ], 4 * sizeof( float ) );
     m_weapons[ 0 ] = tmpWeapon;
 
     tmpWeapon.type = Bullet::Type::eBlaster;
@@ -403,11 +403,11 @@ void Road::initRoadAdditionsGL()
     tmpWeapon.damage = 10;
     tmpWeapon.energy = 10;
     tmpWeapon.delay = 0.2;
-    memcpy( tmpWeapon.color1, tempcolor[ 0 ], 4 * sizeof( GLfloat ) );
+    memcpy( tmpWeapon.color1, tempcolor[ 0 ], 4 * sizeof( float ) );
     tmpWeapon.score_per_hit = 30;
     m_weapons[ 1 ] = tmpWeapon;
 
-    memcpy( tmpWeapon.color1, tempcolor[ 1 ], 4 * sizeof( GLfloat ) );
+    memcpy( tmpWeapon.color1, tempcolor[ 1 ], 4 * sizeof( float ) );
     tmpWeapon.delay = 0.4;
     m_weapons[ 3 ] = tmpWeapon;
 
@@ -417,7 +417,7 @@ void Road::initRoadAdditionsGL()
     tmpWeapon.energy = 1;
     tmpWeapon.speed = 8;
     tmpWeapon.score_per_hit = 2;
-    memcpy( tmpWeapon.color1, tempcolor[ 2 ], 4 * sizeof( GLfloat ) );
+    memcpy( tmpWeapon.color1, tempcolor[ 2 ], 4 * sizeof( float ) );
     m_weapons[ 2 ] = tmpWeapon;
 }
 
@@ -647,7 +647,7 @@ void Road::gameUpdate()
     updateCyberRings();
 }
 
-void Road::addBullet( GLuint wID )
+void Road::addBullet( uint32_t wID )
 {
     if ( !m_jet->isWeaponReady( wID ) ) {
         return;
@@ -668,7 +668,7 @@ void Road::addBullet( GLuint wID )
     }
 }
 
-void Road::onMouseClickLeft( GLint x, GLint y )
+void Road::onMouseClickLeft( int32_t x, int32_t y )
 {
     y = viewportHeight() - y;
     switch ( m_currentScreen ) {
@@ -918,7 +918,7 @@ void Road::createMapData( const MapProto& mapData, const ModelProto& modelData )
         std::lock_guard<std::mutex> lg( m_mutexEnemy );
         m_enemies.clear();
         m_enemies.reserve( mapData.enemies );
-        for ( GLuint i = 0; i < mapData.enemies; i++ ) {
+        for ( uint32_t i = 0; i < mapData.enemies; i++ ) {
             m_enemies.push_back( new Enemy() );
             m_enemies.back()->setTarget( m_jet );
             m_enemies.back()->setWeapon( m_weapons[ 3 ] );
@@ -978,7 +978,7 @@ void Road::goFullscreen( bool b )
     initNewSurface( viewportWidth(), viewportHeight(), 32, b );
 }
 
-bool Road::initNewSurface( GLint w, GLint h, GLint d, bool f )
+bool Road::initNewSurface( int32_t w, int32_t h, int32_t d, bool f )
 {
     SDL_Surface* tmp = m_display;
     SDL_Surface* tmp2 = nullptr;
@@ -1086,7 +1086,7 @@ void Road::loadJetProto()
         m_btnNextJet.setEnabled( false);
     }
     m_currentJet = 0;
-    for ( GLuint i = 0; i < m_jetsContainer.size(); i++ ) {
+    for ( uint32_t i = 0; i < m_jetsContainer.size(); i++ ) {
         if ( m_lastSelectedJetName == m_jetsContainer.at( i ).name ) {
             m_currentJet = i;
         }
@@ -1234,7 +1234,7 @@ void Road::setOrtho() const
     glLoadIdentity();
 }
 
-void Road::setPerspective( GLdouble a ) const
+void Road::setPerspective( double a ) const
 {
     glMatrixMode( GL_PROJECTION );
     glLoadIdentity();

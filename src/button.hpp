@@ -7,26 +7,26 @@ class Button {
 private:
     std::string m_text{};
     Font* m_font = nullptr;
-    GLuint m_x = 0;
-    GLuint m_y = 0;
-    GLuint m_width = 192;
-    GLuint m_height = 48;
-    GLuint m_textureID = 0;
-    GLuint m_textLength = 0;
+    uint32_t m_x = 0;
+    uint32_t m_y = 0;
+    uint32_t m_width = 192;
+    uint32_t m_height = 48;
+    uint32_t m_textureID = 0;
+    uint32_t m_textLength = 0;
     bool m_enabled = true;
 
 public:
     ~Button() = default;
     Button() = default;
-    Button( Font* f, GLuint x, GLuint y, GLuint w, GLuint h );
+    Button( Font* f, uint32_t x, uint32_t y, uint32_t w, uint32_t h );
 
-    bool isClicked( GLuint x, GLuint y ) const;
+    bool isClicked( uint32_t x, uint32_t y ) const;
     bool isEnabled() const;
     void draw();
     void setEnabled( bool );
     void setFont( Font* f );
-    void setSize( GLuint w, GLuint h );
+    void setSize( uint32_t w, uint32_t h );
     void setText( const char* txt );
-    void setTexture( GLuint t );
-    void updateCoord( GLuint x, GLuint y );
+    void setTexture( uint32_t t );
+    void updateCoord( uint32_t x, uint32_t y );
 };
