@@ -203,7 +203,7 @@ void Road::renderPauseText( RenderContext rctx )
     glVertex2d( 0, viewportHeight() );
     glEnd();
 
-    m_btnQuitMission.draw();
+    m_btnQuitMission.render( rctx );
     glColor4f( 1.0f, 1.0f, 0.0f, 1.0f );
     const char PAUSED[] = "PAUSED";
     const double posx = viewportWidth() / 2 - static_cast<double>( m_fontPauseTxt->textLength( PAUSED ) ) / 2;
@@ -438,9 +438,9 @@ void Road::renderMainMenu( RenderContext rctx )
     glVertex2d( 0, viewportHeight() );
     glEnd();
 
-    m_btnSelectMission.draw();
-    m_btnExit.draw();
-    m_btnCustomize.draw();
+    m_btnSelectMission.render( rctx );
+    m_btnExit.render( rctx );
+    m_btnCustomize.render( rctx );
 
     glPopMatrix();
 }
@@ -524,7 +524,7 @@ void Road::renderWinScreen( RenderContext rctx )
         const double posx = viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( str.c_str() ) ) / 2;
         m_fontBig->printText( posx, viewportHeight() - 128 - 36, str.c_str() );
     }
-    m_btnReturnToMissionSelection.draw();
+    m_btnReturnToMissionSelection.render( rctx );
 
     glDisable( GL_TEXTURE_2D );
     glDisable( GL_BLEND );
@@ -561,7 +561,7 @@ void Road::renderDeadScreen( RenderContext rctx )
         const double posx = viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( str.c_str() ) ) / 2;
         m_fontBig->printText( posx, viewportHeight() - 128 - 36, str.c_str() );
     }
-    m_btnReturnToMissionSelection.draw();
+    m_btnReturnToMissionSelection.render( rctx );
 
     glDisable( GL_TEXTURE_2D );
     glDisable( GL_BLEND );
@@ -627,10 +627,10 @@ void Road::renderMissionSelectionScreen( RenderContext rctx )
     glVertex2d( 0, viewportHeight() );
     glEnd();
 
-    m_btnStartMission.draw();
-    m_btnReturnToMainMenu.draw();
-    m_btnNextMap.draw();
-    m_btnPrevMap.draw();
+    m_btnStartMission.render( rctx );
+    m_btnReturnToMainMenu.render( rctx );
+    m_btnNextMap.render( rctx );
+    m_btnPrevMap.render( rctx );
 
     glPopMatrix();
 }
@@ -663,7 +663,7 @@ void Road::renderGameScreenBriefing( RenderContext rctx )
     glTexCoord2f( 0, 1 );
     glVertex2d( 0, viewportHeight() );
     glEnd();
-    m_btnGO.draw();
+    m_btnGO.render( rctx );
     glPopMatrix();
 }
 
@@ -700,10 +700,10 @@ void Road::renderScreenCustomize( RenderContext rctx )
     glDisable( GL_DEPTH_TEST );
     glPopMatrix();
     setOrtho();
-    m_btnNextJet.draw();
-    m_btnPrevJet.draw();
-    m_btnCustomizeReturn.draw();
-    m_btnWeap1.draw();
-    m_btnWeap2.draw();
-    m_btnWeap3.draw();
+    m_btnNextJet.render( rctx );
+    m_btnPrevJet.render( rctx );
+    m_btnCustomizeReturn.render( rctx );
+    m_btnWeap1.render( rctx );
+    m_btnWeap2.render( rctx );
+    m_btnWeap3.render( rctx );
 }

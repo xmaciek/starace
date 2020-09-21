@@ -3,6 +3,8 @@
 #include "font.hpp"
 #include "sa.hpp"
 
+#include "render_context.hpp"
+
 class Button {
 private:
     std::string m_text{};
@@ -22,7 +24,7 @@ public:
 
     bool isClicked( uint32_t x, uint32_t y ) const;
     bool isEnabled() const;
-    void draw();
+    void render( RenderContext );
     void setEnabled( bool );
     void setFont( Font* f );
     void setSize( uint32_t w, uint32_t h );

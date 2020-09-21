@@ -1,5 +1,7 @@
 #include "road.hpp"
 
+#include "renderer.hpp"
+
 #include <algorithm>
 #include <chrono>
 #include <cstdlib>
@@ -443,7 +445,9 @@ void Road::updateCyberRings( const UpdateContext& updateContext )
 void Road::onRender()
 {
     m_timeS = SDL_GetTicks();
+    Renderer r{};
     RenderContext rctx{};
+    rctx.renderer = &r;
     rctx.projection = glm::ortho<float>( 0.0f, viewportWidth(), 0.0f, viewportHeight(), -1.0f, 1.0f );
     switch ( m_currentScreen ) {
     case Screen::eGame:

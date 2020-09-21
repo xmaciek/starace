@@ -1,5 +1,12 @@
 #include "button.hpp"
 
+#include "renderer.hpp"
+#include "render_pipeline.hpp"
+
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 bool Button::isClicked( uint32_t x, uint32_t y ) const
 {
     return m_enabled
@@ -9,29 +16,33 @@ bool Button::isClicked( uint32_t x, uint32_t y ) const
         && ( y <= m_y + m_height );
 }
 
-void Button::draw()
+void Button::render( RenderContext rctx )
 {
+    PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{ rctx.renderer->allocator() };
+    pushBuffer.m_texture = m_textureID;
+
+    PushConstant<Pipeline::eGuiTextureColor1> pushConstant;
+    pushConstant.m_model = glm::translate( rctx.model, glm::vec3{ m_x, m_y, 0.0f } );
+    pushConstant.m_view = rctx.view;
+    pushConstant.m_projection = rctx.projection;
+    pushConstant.m_vertices[ 0 ] = glm::vec2{ 0.0f, m_height };
+    pushConstant.m_vertices[ 1 ] = glm::vec2{ 0.0f, 0.0f };
+    pushConstant.m_vertices[ 2 ] = glm::vec2{ m_width, 0.0f };
+    pushConstant.m_vertices[ 3 ] = glm::vec2{ m_width, m_height };
+    pushConstant.m_uv[ 0 ] = glm::vec2{ 0.0f, 0.0f };
+    pushConstant.m_uv[ 1 ] = glm::vec2{ 0.0f, 1.0f };
+    pushConstant.m_uv[ 2 ] = glm::vec2{ 1.0f, 1.0f };
+    pushConstant.m_uv[ 3 ] = glm::vec2{ 1.0f, 0.0f };
+    pushConstant.m_color =  m_enabled
+        ? glm::vec4{ 0.0f, 0.75f, 1.0f, 1.0f }
+        : glm::vec4{ 0.3f, 0.55f, 0.65f, 1.0f };
+
+    rctx.renderer->push( &pushBuffer, &pushConstant );
+
     glEnable( GL_BLEND );
     glEnable( GL_TEXTURE_2D );
     glPushMatrix();
     glTranslated( m_x, m_y, 0 );
-    glBindTexture( GL_TEXTURE_2D, m_textureID );
-    if ( m_enabled ) {
-        glColor3f( 0, 0.75, 1 );
-    }
-    else {
-        glColor3f( 0.3, 0.55, 0.65 );
-    }
-    glBegin( GL_QUADS );
-    glTexCoord2d( 0, 0 );
-    glVertex2d( 0, m_height );
-    glTexCoord2d( 0, 1 );
-    glVertex2d( 0, 0 );
-    glTexCoord2d( 1, 1 );
-    glVertex2d( m_width, 0 );
-    glTexCoord2d( 1, 0 );
-    glVertex2d( m_width, m_height );
-    glEnd();
 
     if ( m_font ) {
         glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
