@@ -1,97 +1,88 @@
 #include "map.hpp"
 
+#include "render_pipeline.hpp"
+
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-void Map::draw()
+void Map::render( RenderContext rctx )
 {
+    PushConstant<Pipeline::eTriangleFan3dTexture> pushConstant{};
+    pushConstant.m_model = rctx.model;
+    pushConstant.m_view = rctx.view;
+    pushConstant.m_projection = rctx.projection;
+
+    PushBuffer<Pipeline::eTriangleFan3dTexture> pushBuffer{ rctx.renderer->allocator() };
+    pushBuffer.m_uv.resize( 4 );
+    pushBuffer.m_vertices.resize( 4 );
+
+    pushBuffer.m_texture = m_back;
+    pushBuffer.m_vertices[ 0 ] = glm::vec3{ -m_v1, -m_v1, -m_v1 };
+    pushBuffer.m_vertices[ 1 ] = glm::vec3{ m_v1, -m_v1, -m_v1 };
+    pushBuffer.m_vertices[ 2 ] = glm::vec3{ m_v1, m_v1, -m_v1 };
+    pushBuffer.m_vertices[ 3 ] = glm::vec3{ -m_v1, m_v1, -m_v1 };
+    pushBuffer.m_uv[ 0 ] = glm::vec2{ m_min, m_min };
+    pushBuffer.m_uv[ 1 ] = glm::vec2{ m_max, m_min };
+    pushBuffer.m_uv[ 2 ] = glm::vec2{ m_max, m_max };
+    pushBuffer.m_uv[ 3 ] = glm::vec2{ m_min, m_max };
+    rctx.renderer->push( &pushBuffer, &pushConstant );
+
+    pushBuffer.m_texture = m_front;
+    pushBuffer.m_vertices[ 0 ] = glm::vec3{ -m_v1, m_v1, m_v1 };
+    pushBuffer.m_vertices[ 1 ] = glm::vec3{ m_v1, m_v1, m_v1 };
+    pushBuffer.m_vertices[ 2 ] = glm::vec3{ m_v1, -m_v1, m_v1 };
+    pushBuffer.m_vertices[ 3 ] = glm::vec3{ -m_v1, -m_v1, m_v1 };
+    pushBuffer.m_uv[ 0 ] = glm::vec2{ m_min, m_max };
+    pushBuffer.m_uv[ 1 ] = glm::vec2{ m_max, m_max };
+    pushBuffer.m_uv[ 2 ] = glm::vec2{ m_max, m_min };
+    pushBuffer.m_uv[ 3 ] = glm::vec2{ m_min, m_min };
+    rctx.renderer->push( &pushBuffer, &pushConstant );
+
+    pushBuffer.m_texture = m_left;
+    pushBuffer.m_vertices[ 0 ] = glm::vec3{ -m_v1, -m_v1, m_v1 };
+    pushBuffer.m_vertices[ 1 ] = glm::vec3{ -m_v1, -m_v1, -m_v1 };
+    pushBuffer.m_vertices[ 2 ] = glm::vec3{ -m_v1, m_v1, -m_v1 };
+    pushBuffer.m_vertices[ 3 ] = glm::vec3{ -m_v1, m_v1, m_v1 };
+    pushBuffer.m_uv[ 0 ] = glm::vec2{ m_min, m_min };
+    pushBuffer.m_uv[ 1 ] = glm::vec2{ m_max, m_min };
+    pushBuffer.m_uv[ 2 ] = glm::vec2{ m_max, m_max };
+    pushBuffer.m_uv[ 3 ] = glm::vec2{ m_min, m_max };
+    rctx.renderer->push( &pushBuffer, &pushConstant );
+
+    pushBuffer.m_texture = m_right;
+    pushBuffer.m_vertices[ 0 ] = glm::vec3{ m_v1, m_v1, m_v1 };
+    pushBuffer.m_vertices[ 1 ] = glm::vec3{ m_v1, m_v1, -m_v1 };
+    pushBuffer.m_vertices[ 2 ] = glm::vec3{ m_v1, -m_v1, -m_v1 };
+    pushBuffer.m_vertices[ 3 ] = glm::vec3{ m_v1, -m_v1, m_v1 };
+    pushBuffer.m_uv[ 0 ] = glm::vec2{ m_min, m_max };
+    pushBuffer.m_uv[ 1 ] = glm::vec2{ m_max, m_max };
+    pushBuffer.m_uv[ 2 ] = glm::vec2{ m_max, m_min };
+    pushBuffer.m_uv[ 3 ] = glm::vec2{ m_min, m_min };
+    rctx.renderer->push( &pushBuffer, &pushConstant );
+
+    pushBuffer.m_texture = m_top;
+    pushBuffer.m_vertices[ 0 ] = glm::vec3{ -m_v1, m_v1, m_v1 };
+    pushBuffer.m_vertices[ 1 ] = glm::vec3{ -m_v1, m_v1, -m_v1 };
+    pushBuffer.m_vertices[ 2 ] = glm::vec3{ m_v1, m_v1, -m_v1 };
+    pushBuffer.m_vertices[ 3 ] = glm::vec3{ m_v1, m_v1, m_v1 };
+    pushBuffer.m_uv[ 0 ] = glm::vec2{ m_min, m_min };
+    pushBuffer.m_uv[ 1 ] = glm::vec2{ m_max, m_min };
+    pushBuffer.m_uv[ 2 ] = glm::vec2{ m_max, m_max };
+    pushBuffer.m_uv[ 3 ] = glm::vec2{ m_min, m_max };
+    rctx.renderer->push( &pushBuffer, &pushConstant );
+
+    pushBuffer.m_texture = m_bottom;
+    pushBuffer.m_vertices[ 0 ] = glm::vec3{ -m_v1, -m_v1, m_v1 };
+    pushBuffer.m_vertices[ 1 ] = glm::vec3{ m_v1, -m_v1, m_v1 };
+    pushBuffer.m_vertices[ 2 ] = glm::vec3{ m_v1, -m_v1, -m_v1 };
+    pushBuffer.m_vertices[ 3 ] = glm::vec3{ -m_v1, -m_v1, -m_v1 };
+    pushBuffer.m_uv[ 0 ] = glm::vec2{ m_min, m_min };
+    pushBuffer.m_uv[ 1 ] = glm::vec2{ m_max, m_min };
+    pushBuffer.m_uv[ 2 ] = glm::vec2{ m_max, m_max };
+    pushBuffer.m_uv[ 3 ] = glm::vec2{ m_min, m_max };
+    rctx.renderer->push( &pushBuffer, &pushConstant );
+
     glPushMatrix();
-    glDisable( GL_FOG );
-    glEnable( GL_TEXTURE_2D );
-
-    //back
-    glColor3f( 1, 1, 1 );
-    glBindTexture( GL_TEXTURE_2D, m_back );
-    glBegin( GL_QUADS );
-    glTexCoord2f( m_min, m_min );
-    glVertex3d( -m_v1, -m_v1, -m_v1 );
-    glTexCoord2f( m_max, m_min );
-    glVertex3d( m_v1, -m_v1, -m_v1 );
-    glTexCoord2f( m_max, m_max );
-    glVertex3d( m_v1, m_v1, -m_v1 );
-    glTexCoord2f( m_min, m_max );
-    glVertex3d( -m_v1, m_v1, -m_v1 );
-    glEnd();
-
-    //front
-    glBindTexture( GL_TEXTURE_2D, m_front );
-    glBegin( GL_QUADS );
-    glTexCoord2f( m_min, m_max );
-    glVertex3d( -m_v1, m_v1, m_v1 );
-    glTexCoord2f( m_max, m_max );
-    glVertex3d( m_v1, m_v1, m_v1 );
-    glTexCoord2f( m_max, m_min );
-    glVertex3d( m_v1, -m_v1, m_v1 );
-    glTexCoord2f( m_min, m_min );
-    glVertex3d( -m_v1, -m_v1, m_v1 );
-    glEnd();
-
-    //left
-    glBindTexture( GL_TEXTURE_2D, m_left );
-    glBegin( GL_QUADS );
-    glTexCoord2f( m_min, m_min );
-    glVertex3d( -m_v1, -m_v1, m_v1 );
-    glTexCoord2f( m_max, m_min );
-    glVertex3d( -m_v1, -m_v1, -m_v1 );
-    glTexCoord2f( m_max, m_max );
-    glVertex3d( -m_v1, m_v1, -m_v1 );
-    glTexCoord2f( m_min, m_max );
-    glVertex3d( -m_v1, m_v1, m_v1 );
-    glEnd();
-
-    //right
-    glBindTexture( GL_TEXTURE_2D, m_right );
-    glBegin( GL_QUADS );
-    glTexCoord2f( m_min, m_max );
-    glVertex3d( m_v1, m_v1, m_v1 );
-    glTexCoord2f( m_max, m_max );
-    glVertex3d( m_v1, m_v1, -m_v1 );
-    glTexCoord2f( m_max, m_min );
-    glVertex3d( m_v1, -m_v1, -m_v1 );
-    glTexCoord2f( m_min, m_min );
-    glVertex3d( m_v1, -m_v1, m_v1 );
-    glEnd();
-
-    //top
-    glBindTexture( GL_TEXTURE_2D, m_top );
-    glBegin( GL_QUADS );
-    glTexCoord2f( m_min, m_min );
-    glVertex3d( -m_v1, m_v1, m_v1 );
-    glTexCoord2f( m_max, m_min );
-    glVertex3d( -m_v1, m_v1, -m_v1 );
-    glTexCoord2f( m_max, m_max );
-    glVertex3d( m_v1, m_v1, -m_v1 );
-    glTexCoord2f( m_min, m_max );
-    glVertex3d( m_v1, m_v1, m_v1 );
-    glEnd();
-
-    //bottom
-    glBindTexture( GL_TEXTURE_2D, m_bottom );
-    glBegin( GL_QUADS );
-    glTexCoord2f( m_min, m_min );
-    glVertex3d( -m_v1, -m_v1, m_v1 );
-    glTexCoord2f( m_max, m_min );
-    glVertex3d( m_v1, -m_v1, m_v1 );
-    glTexCoord2f( m_max, m_max );
-    glVertex3d( m_v1, -m_v1, -m_v1 );
-    glTexCoord2f( m_min, m_max );
-    glVertex3d( -m_v1, -m_v1, -m_v1 );
-
-    glEnd();
-
-    glDisable( GL_TEXTURE_2D );
-    glEnable( GL_FOG );
-
     glEnable( GL_BLEND );
     glColor4f( 1, 1, 1, 0.4 );
     glBegin( GL_LINES );
@@ -102,7 +93,6 @@ void Map::draw()
     }
     glEnd();
     glDisable( GL_BLEND );
-
     glPopMatrix();
 }
 

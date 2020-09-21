@@ -365,7 +365,7 @@ void Road::renderHUD( RenderContext rctx )
 void Road::render3D( RenderContext rctx )
 {
     glEnable( GL_DEPTH_TEST );
-    glEnable( GL_FOG );
+    //     glEnable( GL_FOG );
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
     rctx.projection = glm::perspective( glm::radians( m_angle + m_jet->speed() * 6 ), static_cast<float>( viewportWidth() / viewportHeight() ), 0.001f, 2000.0f );
@@ -383,11 +383,16 @@ void Road::render3D( RenderContext rctx )
 
     glPushMatrix();
     glTranslated( 0, -0.225, -1 );
+    rctx.model = glm::translate( rctx.model, glm::vec3{ 0, -0.255, -1 } );
+
     glPushMatrix();
     const glm::mat4 matrice = glm::toMat4( m_jet->quat() );
+    rctx.view *= matrice;
     glMultMatrixf( glm::value_ptr( matrice ) );
+
+    rctx.view = glm::translate( rctx.view, -m_jet->position() );
     glTranslatef( cX, cY, cZ );
-    m_map->draw();
+    m_map->render( rctx );
 
     {
         std::lock_guard<std::mutex> lg( m_mutexEnemy );

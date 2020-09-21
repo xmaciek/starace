@@ -2,13 +2,20 @@
 
 #include "render_pipeline.hpp"
 
-#include <glm/gtc/type_ptr.hpp>
 #include <GL/gl.h>
+#include <glm/gtc/type_ptr.hpp>
 
 struct ScopeEnable {
     uint32_t m_x;
-    ScopeEnable( uint32_t x ) : m_x{ x } { glEnable( x ); }
-    ~ScopeEnable() { glDisable( m_x ); }
+    ScopeEnable( uint32_t x )
+    : m_x{ x }
+    {
+        glEnable( x );
+    }
+    ~ScopeEnable()
+    {
+        glDisable( m_x );
+    }
 };
 
 std::pmr::memory_resource* Renderer::allocator()
@@ -89,5 +96,29 @@ void Renderer::push( void* buffer, void* constant )
         glPopMatrix();
     } break;
 
+    case Pipeline::eTriangleFan3dTexture: {
+        auto* pushBuffer = reinterpret_cast<PushBuffer<Pipeline::eTriangleFan3dTexture>*>( buffer );
+        auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::eTriangleFan3dTexture>*>( constant );
+
+        ScopeEnable blend( GL_BLEND );
+        ScopeEnable texture2d( GL_TEXTURE_2D );
+        ScopeEnable depthTest( GL_DEPTH_TEST );
+
+        glPushMatrix();
+        glMatrixMode( GL_PROJECTION );
+        glLoadMatrixf( glm::value_ptr( pushConstant->m_projection ) );
+        glMatrixMode( GL_MODELVIEW );
+        glLoadMatrixf( glm::value_ptr( pushConstant->m_view * pushConstant->m_model ) );
+
+        glBindTexture( GL_TEXTURE_2D, pushBuffer->m_texture );
+        glBegin( GL_TRIANGLE_FAN );
+        glColor4f( 1, 1, 1, 1 );
+        for ( size_t i = 0; i < pushBuffer->m_vertices.size(); ++i ) {
+            glTexCoord2fv( glm::value_ptr( pushBuffer->m_uv[ i ] ) );
+            glVertex3fv( glm::value_ptr( pushBuffer->m_vertices[ i ] ) );
+        }
+        glEnd();
+        glPopMatrix();
+    } break;
     }
 }

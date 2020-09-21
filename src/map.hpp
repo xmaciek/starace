@@ -1,5 +1,6 @@
 #pragma once
 
+#include "render_context.hpp"
 #include "sa.hpp"
 #include "texture.hpp"
 #include "update_context.hpp"
@@ -27,7 +28,7 @@ public:
     ~Map();
     explicit Map( const MapProto& data );
 
-    void draw();
+    void render( RenderContext );
     void setJetData( const glm::vec3& position, const glm::vec3& velocity );
     void update( const UpdateContext& );
 };
