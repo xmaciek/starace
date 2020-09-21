@@ -358,7 +358,7 @@ void Road::renderHUD( RenderContext rctx )
         const double posx = viewportWidth() / 2 - textMid;
         m_fontGuiTxt->printText( posx, viewportHeight() - 28, msg.c_str() );
     }
-    m_fontPauseTxt->printText( 10, 102, "ENG" );
+    m_fontPauseTxt->printText( 10, 102, "PWR" );
     m_fontPauseTxt->printText( 66, 102, "HP" );
 
     glPopMatrix();
