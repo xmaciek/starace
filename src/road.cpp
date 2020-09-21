@@ -443,30 +443,32 @@ void Road::updateCyberRings( const UpdateContext& updateContext )
 void Road::onRender()
 {
     m_timeS = SDL_GetTicks();
+    RenderContext rctx{};
+    rctx.projection = glm::ortho<float>( 0.0f, viewportWidth(), 0.0f, viewportHeight(), -1.0f, 1.0f );
     switch ( m_currentScreen ) {
     case Screen::eGame:
-        renderGameScreen();
+        renderGameScreen( rctx );
         break;
     case Screen::eGamePaused:
-        renderGameScreenPaused();
+        renderGameScreenPaused( rctx );
         break;
     case Screen::eGameBriefing:
-        renderGameScreenBriefing();
+        renderGameScreenBriefing( rctx );
         break;
     case Screen::eDead:
-        renderDeadScreen();
+        renderDeadScreen( rctx );
         break;
     case Screen::eWin:
-        renderWinScreen();
+        renderWinScreen( rctx );
         break;
     case Screen::eMissionSelection:
-        renderMissionSelectionScreen();
+        renderMissionSelectionScreen( rctx );
         break;
     case Screen::eMainMenu:
-        renderMainMenu();
+        renderMainMenu( rctx );
         break;
     case Screen::eCustomize:
-        renderScreenCustomize();
+        renderScreenCustomize( rctx );
         break;
     default:
         break;
@@ -1219,6 +1221,7 @@ void Road::setOrtho() const
 
 void Road::setPerspective( double a ) const
 {
+    return;
     glMatrixMode( GL_PROJECTION );
     glLoadIdentity();
     gluPerspective( a, viewportWidth() / viewportHeight(), 0.001, 2000 );

@@ -8,6 +8,7 @@
 #include "font.hpp"
 #include "jet.hpp"
 #include "map.hpp"
+#include "render_context.hpp"
 #include "texture.hpp"
 #include "update_context.hpp"
 
@@ -97,12 +98,12 @@ private:
     double m_modelRotation = 0.0;
     double m_speedAnim = 0.0;
     double m_tempFPS = 0.0;
+    float m_angle = 55.0f;
     float m_hudColor4fv[ 3 ][ 4 ]{};
     float m_lightAmbient[ 4 ]{};
     float m_lightDiffuse[ 4 ]{};
     float m_lightPosition[ 4 ]{};
     float m_cyberRingColor[ 3 ][ 4 ]{};
-    int32_t m_angle = 55.0;
     int32_t m_currentResolution = 0;
     int32_t m_maxDimention = 0;
     int32_t m_minDimention = 0;
@@ -145,17 +146,11 @@ private:
     static void drawHUDPiece( double x, double y, double rotAngleZ );
     static void drawHudRect( double x, double y, double w, double h );
     static void drawLine( double x, double y );
+    // purposefully copy argument
     void addBullet( uint32_t wID );
     void changeScreen( Screen );
     void clearMapData();
     void createMapData( const MapProto&, const ModelProto& );
-    void drawBullets();
-    void drawClouds() const;
-    void drawCrosshair();
-    void drawCyberRings();
-    void drawCyberRingsMini();
-    void drawHUDBar( uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t current, uint32_t max );
-    void drawPauseText();
     void gameKeyboardBriefingPressed( SDLKey );
     void gameKeyboardPausedPressed( SDLKey );
     void gameKeyboardPausedUnpressed( SDLKey );
@@ -176,16 +171,22 @@ private:
     void onUpdate();
     void pause();
     void playSound( Mix_Chunk* ) const;
-    void render3D();
-    void renderDeadScreen();
-    void renderGameScreen();
-    void renderGameScreenBriefing();
-    void renderGameScreenPaused();
-    void renderHUD();
-    void renderMainMenu();
-    void renderMissionSelectionScreen();
-    void renderScreenCustomize();
-    void renderWinScreen();
+    void render3D( RenderContext );
+    void renderClouds( RenderContext ) const;
+    void renderCrosshair( RenderContext );
+    void renderCyberRings( RenderContext );
+    void renderCyberRingsMini( RenderContext );
+    void renderDeadScreen( RenderContext );
+    void renderGameScreen( RenderContext );
+    void renderGameScreenBriefing( RenderContext );
+    void renderGameScreenPaused( RenderContext );
+    void renderHUD( RenderContext );
+    void renderHUDBar( uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t current, uint32_t max );
+    void renderMainMenu( RenderContext );
+    void renderMissionSelectionScreen( RenderContext );
+    void renderPauseText( RenderContext );
+    void renderScreenCustomize( RenderContext );
+    void renderWinScreen( RenderContext );
     void retarget();
     void saveConfig();
     void setCamera();
