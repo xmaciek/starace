@@ -193,31 +193,29 @@ void Road::renderHUDBar( uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_
 
 void Road::renderPauseText( RenderContext rctx )
 {
-    glPushMatrix();
-    glEnable( GL_BLEND );
-    glEnable( GL_TEXTURE_2D );
     renderCyberRings( rctx );
-    glBindTexture( GL_TEXTURE_2D, m_hudTex );
-    glColor4f( 0.1f, 0.4f, 0.9f, 0.8f );
-    glBegin( GL_QUADS );
-    glTexCoord2f( 0, 0 );
-    glVertex2d( 0, 0 );
-    glTexCoord2f( 1, 0 );
-    glVertex2d( viewportWidth(), 0 );
-    glTexCoord2f( 1, 1 );
-    glVertex2d( viewportWidth(), viewportHeight() );
-    glTexCoord2f( 0, 1 );
-    glVertex2d( 0, viewportHeight() );
-    glEnd();
+
+    PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{ rctx.renderer->allocator() };
+    pushBuffer.m_texture = m_hudTex;
+    PushConstant<Pipeline::eGuiTextureColor1> pushConstant{};
+    pushConstant.m_model = rctx.model;
+    pushConstant.m_view = rctx.view;
+    pushConstant.m_projection = rctx.projection;
+    pushConstant.m_color = glm::vec4{ 0.1f, 0.4f, 0.9f, 0.8f };
+    pushConstant.m_vertices[ 0 ] = glm::vec2{ 0, 0 };
+    pushConstant.m_vertices[ 1 ] = glm::vec2{ viewportWidth(), 0.0 };
+    pushConstant.m_vertices[ 2 ] = glm::vec2{ viewportWidth(), viewportHeight() };
+    pushConstant.m_vertices[ 3 ] = glm::vec2{ 0.0, viewportHeight() };
+    pushConstant.m_uv[ 0 ] = glm::vec2{ 0, 0 };
+    pushConstant.m_uv[ 1 ] = glm::vec2{ 1, 0 };
+    pushConstant.m_uv[ 2 ] = glm::vec2{ 1, 1 };
+    pushConstant.m_uv[ 3 ] = glm::vec2{ 0, 1 };
+    rctx.renderer->push( &pushBuffer, &pushConstant );
 
     m_btnQuitMission.render( rctx );
-    glColor4f( 1.0f, 1.0f, 0.0f, 1.0f );
-    const char PAUSED[] = "PAUSED";
+    constexpr static char PAUSED[] = "PAUSED";
     const double posx = viewportWidth() / 2 - static_cast<double>( m_fontPauseTxt->textLength( PAUSED ) ) / 2;
     m_fontPauseTxt->renderText( rctx, glm::vec4{ 1.0f, 1.0f, 0.0f, 1.0f }, posx, viewportHeight() - 128, PAUSED );
-    glDisable( GL_TEXTURE_2D );
-    glDisable( GL_BLEND );
-    glPopMatrix();
 }
 
 void Road::renderHUD( RenderContext rctx )
@@ -427,28 +425,32 @@ void Road::renderMainMenu( RenderContext rctx )
     glEnable( GL_BLEND );
     glEnable( GL_TEXTURE_2D );
     setOrtho();
-
     renderClouds( rctx );
+    glPopMatrix();
+
     renderCyberRings( rctx );
 
-    glBindTexture( GL_TEXTURE_2D, m_hudTex );
-    glColor4f( 0.1f, 0.4f, 0.9f, 0.8f );
-    glBegin( GL_QUADS );
-    glTexCoord2f( 0, 0 );
-    glVertex2d( 0, 0 );
-    glTexCoord2f( 1, 0 );
-    glVertex2d( viewportWidth(), 0 );
-    glTexCoord2f( 1, 1 );
-    glVertex2d( viewportWidth(), viewportHeight() );
-    glTexCoord2f( 0, 1 );
-    glVertex2d( 0, viewportHeight() );
-    glEnd();
+    PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{ rctx.renderer->allocator() };
+    pushBuffer.m_texture = m_hudTex;
+    PushConstant<Pipeline::eGuiTextureColor1> pushConstant{};
+    pushConstant.m_model = rctx.model;
+    pushConstant.m_view = rctx.view;
+    pushConstant.m_projection = rctx.projection;
+    pushConstant.m_color = glm::vec4{ 0.1f, 0.4f, 0.9f, 0.8f };
+
+    pushConstant.m_vertices[ 0 ] = glm::vec2{ 0, 0 };
+    pushConstant.m_vertices[ 1 ] = glm::vec2{ viewportWidth(), 0 };
+    pushConstant.m_vertices[ 2 ] = glm::vec2{ viewportWidth(), viewportHeight() };
+    pushConstant.m_vertices[ 3 ] = glm::vec2{ 0.0, viewportHeight() };
+    pushConstant.m_uv[ 0 ] = glm::vec2{ 0, 0 };
+    pushConstant.m_uv[ 1 ] = glm::vec2{ 1, 0 };
+    pushConstant.m_uv[ 2 ] = glm::vec2{ 1, 1 };
+    pushConstant.m_uv[ 3 ] = glm::vec2{ 0, 1 };
+    rctx.renderer->push( &pushBuffer, &pushConstant );
 
     m_btnSelectMission.render( rctx );
     m_btnExit.render( rctx );
     m_btnCustomize.render( rctx );
-
-    glPopMatrix();
 }
 
 void Road::renderClouds( RenderContext ) const
