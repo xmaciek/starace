@@ -1,11 +1,16 @@
 #include "font.hpp"
 
+#include "render_pipeline.hpp"
+
+#include <glm/gtc/matrix_transform.hpp>
+
 #include <algorithm>
 
 Font::Font( const char* fontname, uint32_t h )
 : m_name( fontname )
 , m_charWidth( 128 )
 , m_textures( 128 )
+, m_charData( 128 )
 , m_height( h )
 {
     m_listBase = glGenLists( 128 );
@@ -88,6 +93,7 @@ void Font::makeDlist( TTF_Font* font, uint32_t ch )
     glPopMatrix();
     glTranslated( advance, 0, 0 );
     glEndList();
+    m_charData[ ch ] = glm::vec3{ optW, optH, advance };
     //   glDisable(GL_TEXTURE_2D);
 }
 
@@ -123,4 +129,28 @@ uint32_t Font::height() const
 uint32_t Font::middlePoint() const
 {
     return m_middlePoint;
+}
+
+void Font::renderText( RenderContext rctx, const glm::vec4& color, double x, double y, std::string_view text )
+{
+    rctx.model = glm::translate( rctx.model, glm::vec3{ x, y, 0.0 } );
+    for ( char ch : text ) {
+        PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{ rctx.renderer->allocator() };
+        pushBuffer.m_texture = m_textures[ ch ];
+        PushConstant<Pipeline::eGuiTextureColor1> pushConstant{};
+        pushConstant.m_model = rctx.model;
+        pushConstant.m_view = rctx.view;
+        pushConstant.m_projection = rctx.projection;
+        pushConstant.m_color = color;
+        pushConstant.m_vertices[ 0 ] = glm::vec2{ 0.0f, m_charData[ ch ].y };
+        pushConstant.m_vertices[ 1 ] = glm::vec2{ 0.0f, 0.0f };
+        pushConstant.m_vertices[ 2 ] = glm::vec2{ m_charData[ ch ].x, 0.0f };
+        pushConstant.m_vertices[ 3 ] = glm::vec2{ m_charData[ ch ].x, m_charData[ ch ].y };
+        pushConstant.m_uv[ 0 ] = glm::vec2{ 0, 0 };
+        pushConstant.m_uv[ 1 ] = glm::vec2{ 0, 1 };
+        pushConstant.m_uv[ 2 ] = glm::vec2{ 1, 1 };
+        pushConstant.m_uv[ 3 ] = glm::vec2{ 1, 0 };
+        rctx.renderer->push( &pushBuffer, &pushConstant );
+        rctx.model = glm::translate( rctx.model, glm::vec3{ m_charData[ ch ].z, 0.0f, 0.0f } );
+    }
 }

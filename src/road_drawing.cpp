@@ -214,7 +214,7 @@ void Road::renderPauseText( RenderContext rctx )
     glColor4f( 1.0f, 1.0f, 0.0f, 1.0f );
     const char PAUSED[] = "PAUSED";
     const double posx = viewportWidth() / 2 - static_cast<double>( m_fontPauseTxt->textLength( PAUSED ) ) / 2;
-    m_fontPauseTxt->printText( posx, viewportHeight() - 128, PAUSED );
+    m_fontPauseTxt->renderText( rctx, glm::vec4{ 1.0f, 1.0f, 0.0f, 1.0f }, posx, viewportHeight() - 128, PAUSED );
     glDisable( GL_TEXTURE_2D );
     glDisable( GL_BLEND );
     glPopMatrix();
@@ -426,7 +426,6 @@ void Road::renderMainMenu( RenderContext rctx )
     glDisable( GL_FOG );
     glEnable( GL_BLEND );
     glEnable( GL_TEXTURE_2D );
-    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
     setOrtho();
 
     renderClouds( rctx );

@@ -445,6 +445,8 @@ void Road::updateCyberRings( const UpdateContext& updateContext )
 void Road::onRender()
 {
     m_timeS = SDL_GetTicks();
+
+    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
     Renderer r{};
     RenderContext rctx{};
     rctx.renderer = &r;
