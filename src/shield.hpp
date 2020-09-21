@@ -2,6 +2,7 @@
 
 #include "circle.hpp"
 #include "sa.hpp"
+#include "update_context.hpp"
 
 class Shield {
 private:
@@ -15,5 +16,5 @@ public:
 
     double radius();
     void draw() const;
-    void update();
+    void update( const UpdateContext& );
 };

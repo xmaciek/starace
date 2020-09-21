@@ -36,7 +36,6 @@ Bullet::Bullet( const BulletProto& bp )
         m_color2[ 3 ] = 0;
     }
     m_position = bp.position;
-    m_turnrate = ( m_speed * 10 ) * DEG2RAD * DELTATIME;
     m_rotX = 0;
     m_rotY = 0;
     m_rotZ = 0;
@@ -129,7 +128,7 @@ void Bullet::draw() const
     }
 };
 
-void Bullet::update()
+void Bullet::update( const UpdateContext& updateContext )
 {
     if ( status() == Status::eDead ) {
         return;
@@ -139,20 +138,22 @@ void Bullet::update()
         return;
     }
 
+    m_seankyDeltaTime = updateContext.deltaTime;
     switch ( m_type ) {
     case Type::eSlug:
-        m_color1[ 3 ] -= 2.0f * DELTATIME;
-        m_range += m_maxRange * 2.0 * DELTATIME;
+        m_color1[ 3 ] -= 2.0f * updateContext.deltaTime;
+        m_range += m_maxRange * 2.0 * updateContext.deltaTime;
         break;
 
     case Type::eTorpedo:
+        m_turnrate = speed() * 10.0f * DEG2RAD * updateContext.deltaTime;
         interceptTarget();
         /*no break*/
 
     case Type::eBlaster:
-        m_position += m_velocity * DELTATIME;
+        m_position += m_velocity * updateContext.deltaTime;
         m_tail.insert( m_position );
-        m_range += m_speed * DELTATIME;
+        m_range += m_speed * updateContext.deltaTime;
         break;
     }
 };
@@ -207,10 +208,10 @@ glm::vec3 Bullet::collisionRay() const
 {
     switch ( m_type ) {
     case Type::eBlaster:
-        return direction() * speed() * DELTATIME * 3.0f;
+        return direction() * speed() * m_seankyDeltaTime * 3.0f;
 
     case Type::eTorpedo:
-        return direction() * speed() * DELTATIME;
+        return direction() * speed() * m_seankyDeltaTime;
 
     case Type::eSlug:
         return direction() * 1000.0f;

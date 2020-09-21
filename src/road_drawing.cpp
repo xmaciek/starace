@@ -4,7 +4,7 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/mat4x4.hpp>
 
-void Road::gameScreen()
+void Road::renderGameScreen()
 {
     render3D();
     renderHUD();
@@ -19,9 +19,9 @@ void Road::gameScreen()
     }
 }
 
-void Road::gameScreenPaused()
+void Road::renderGameScreenPaused()
 {
-    gameScreen();
+    renderGameScreen();
     drawPauseText();
 }
 
@@ -403,7 +403,7 @@ void Road::render3D()
     glPopMatrix();
 }
 
-void Road::drawMainMenu()
+void Road::renderMainMenu()
 {
     glPushMatrix();
     glDisable( GL_DEPTH_TEST );
@@ -484,9 +484,9 @@ void Road::drawClouds() const
     glPopMatrix();
 }
 
-void Road::winScreen()
+void Road::renderWinScreen()
 {
-    gameScreen();
+    renderGameScreen();
     glEnable( GL_BLEND );
     glEnable( GL_TEXTURE_2D );
     glPushMatrix();
@@ -521,9 +521,9 @@ void Road::winScreen()
     glDisable( GL_BLEND );
 }
 
-void Road::deadScreen()
+void Road::renderDeadScreen()
 {
-    gameScreen();
+    renderGameScreen();
     glEnable( GL_BLEND );
     glEnable( GL_TEXTURE_2D );
     glPushMatrix();
@@ -558,7 +558,7 @@ void Road::deadScreen()
     glDisable( GL_BLEND );
 }
 
-void Road::missionSelectionScreen()
+void Road::renderMissionSelectionScreen()
 {
     glPushMatrix();
     glDisable( GL_DEPTH_TEST );
@@ -626,9 +626,9 @@ void Road::missionSelectionScreen()
     glPopMatrix();
 }
 
-void Road::gameScreenBriefing()
+void Road::renderGameScreenBriefing()
 {
-    gameScreen();
+    renderGameScreen();
     glEnable( GL_BLEND );
     glEnable( GL_TEXTURE_2D );
     glPushMatrix();
@@ -658,7 +658,7 @@ void Road::gameScreenBriefing()
     glPopMatrix();
 }
 
-void Road::screenCustomize()
+void Road::renderScreenCustomize()
 {
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
     setOrtho();

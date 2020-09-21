@@ -9,6 +9,7 @@
 #include "jet.hpp"
 #include "map.hpp"
 #include "texture.hpp"
+#include "update_context.hpp"
 
 #include <mutex>
 #include <thread>
@@ -151,34 +152,23 @@ private:
     void changeScreen( Screen );
     void clearMapData();
     void createMapData( const MapProto&, const ModelProto& );
-    void deadScreen();
-    void deadScreenUpdate();
     void drawBullets();
     void drawClouds() const;
     void drawCrosshair();
     void drawCyberRings();
     void drawCyberRingsMini();
     void drawHUDBar( uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t current, uint32_t max );
-    void drawMainMenu();
     void drawPauseText();
     void gameKeyboardBriefingPressed( SDLKey );
     void gameKeyboardPausedPressed( SDLKey );
     void gameKeyboardPausedUnpressed( SDLKey );
     void gameKeyboardPressed( SDLKey );
     void gameKeyboardUnpressed( SDLKey );
-    void gameScreen();
-    void gameScreenBriefing();
-    void gameScreenBriefingUpdate();
-    void gameScreenPaused();
-    void gameUpdate();
-    void gameUpdatePaused();
     void goFullscreen( bool );
     void initRoadAdditionsGL();
     void loadConfig();
     void loadJetProto();
     void loadMapProto();
-    void missionSelectionScreen();
-    void missionSelectionUpdate();
     void onCleanup();
     void onEvent( const SDL_Event& );
     void onKeyDown( SDLKey sym, SDLMod mod, Uint16 unicode );
@@ -190,19 +180,30 @@ private:
     void pause();
     void playSound( Mix_Chunk* ) const;
     void render3D();
+    void renderDeadScreen();
+    void renderGameScreen();
+    void renderGameScreenBriefing();
+    void renderGameScreenPaused();
     void renderHUD();
+    void renderMainMenu();
+    void renderMissionSelectionScreen();
+    void renderScreenCustomize();
+    void renderWinScreen();
     void retarget();
     void saveConfig();
-    void screenCustomize();
     void setCamera();
     void setOrtho() const;
     void setPerspective( double ) const;
     void setViewportSize( double, double );
     void unpause();
-    void updateClouds();
-    void updateCustomize();
-    void updateCyberRings();
-    void updateMainMenu();
-    void winScreen();
-    void winUpdate();
+    void updateClouds( const UpdateContext& );
+    void updateCustomize( const UpdateContext& );
+    void updateCyberRings( const UpdateContext& );
+    void updateDeadScreen( const UpdateContext& );
+    void updateGame( const UpdateContext& );
+    void updateGamePaused( const UpdateContext& );
+    void updateGameScreenBriefing( const UpdateContext& );
+    void updateMainMenu( const UpdateContext& );
+    void updateMissionSelection( const UpdateContext& );
+    void updateWin( const UpdateContext& );
 };

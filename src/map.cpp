@@ -106,10 +106,11 @@ void Map::draw()
     glPopMatrix();
 }
 
-void Map::update()
+void Map::update( const UpdateContext& updateContext )
 {
+    const glm::vec3 tmpVelocity = m_jetVelocity * -0.1f * updateContext.deltaTime;
     for ( auto& it : m_particleList ) {
-        it += m_jetVelocity;
+        it += tmpVelocity;
         if ( glm::distance( it, m_jetPosition ) >= 1.5 ) {
             it.x = randomRange( m_jetPosition.x - 1, m_jetPosition.x + 1 );
             it.y = randomRange( m_jetPosition.y - 1, m_jetPosition.y + 1 );
@@ -144,7 +145,6 @@ void Map::setJetData( const glm::vec3& position, const glm::vec3& velocity )
     m_jetPosition = position;
     m_jetVelocity = velocity;
     m_particleLength = m_jetVelocity * 0.05f;
-    m_jetVelocity = m_jetVelocity * -0.1f * DELTATIME;
 }
 
 Map::~Map()

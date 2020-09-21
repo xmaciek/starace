@@ -25,6 +25,7 @@ private:
     uint32_t m_rotation = 0;
     float m_color1[ 4 ]{};
     float m_color2[ 4 ]{};
+    float m_seankyDeltaTime = 0.0f;
     Type m_type = Type::eSlug;
 
     virtual glm::vec3 collisionRay() const;
@@ -41,8 +42,8 @@ public:
     Type type() const;
     virtual void draw() const override;
     virtual void processCollision( SAObject* object ) override;
+    virtual void update( const UpdateContext& ) override;
     void setDirection( const glm::vec3& v );
-    void update();
 };
 
 struct BulletProto {

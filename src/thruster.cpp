@@ -1,5 +1,7 @@
 #include "thruster.hpp"
 
+#include <algorithm>
+
 Thruster::Thruster( double length, double radius )
 : m_inner( 32, radius * 0.6 )
 , m_outer( 32, radius )
@@ -18,19 +20,19 @@ void Thruster::setColor( uint32_t num, float* colorData )
     if ( num > 3 ) {
         return;
     }
-    memcpy( m_color[ num ], colorData, sizeof( float ) * 4 );
+    std::copy( colorData, colorData + 4, m_color[ num ] );
 }
 
-void Thruster::update()
+void Thruster::update( const UpdateContext& updateContext )
 {
-    if ( m_wiggle < 3 ) {
+    if ( m_wiggle < 0.066f ) {
         m_len = m_length;
     }
     else {
         m_len = m_lengthShorter;
     }
-    m_wiggle++;
-    if ( m_wiggle > 5 ) {
+    m_wiggle += updateContext.deltaTime;
+    if ( m_wiggle > 0.08f ) {
         m_wiggle = 0;
     }
 }

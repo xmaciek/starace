@@ -16,7 +16,6 @@ Enemy::Enemy()
     m_collisionFlag = true;
 
     m_velocity = m_direction * speed();
-    m_turnrate = speed() * 5 * DEG2RAD * DELTATIME;
     m_ttl = 10;
 }
 
@@ -63,17 +62,19 @@ void Enemy::draw() const
     glPopMatrix();
 }
 
-void Enemy::update()
+void Enemy::update( const UpdateContext& updateContext )
 {
     if ( status() != Status::eAlive ) {
         return;
     }
-    m_shield.update();
+    m_shield.update( updateContext );
     if ( m_shotFactor < m_weapon.delay ) {
-        m_shotFactor += 1.0 * DELTATIME;
+        m_shotFactor += 1.0 * updateContext.deltaTime;
     }
+
+    m_turnrate = speed() * 5 * DEG2RAD * updateContext.deltaTime;
     interceptTarget();
-    m_position += velocity() * DELTATIME;
+    m_position += velocity() * updateContext.deltaTime;
     m_healthPerc = m_health / 100;
 }
 

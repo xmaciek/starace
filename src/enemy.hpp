@@ -26,8 +26,8 @@ public:
     static void drawCollisionIndicator();
     virtual void draw() const override;
     virtual void processCollision( SAObject* ) override;
+    virtual void update( const UpdateContext& ) override;
     void drawRadarPosition( const glm::vec3& modifier, float scale ) const;
     void setVisibleRange( double );
     void setWeapon( const BulletProto& b );
-    void update();
 };

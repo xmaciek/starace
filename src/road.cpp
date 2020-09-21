@@ -417,17 +417,16 @@ void Road::initRoadAdditionsGL()
     m_weapons[ 2 ] = tmpWeapon;
 }
 
-void Road::updateCyberRings()
+void Road::updateCyberRings( const UpdateContext& updateContext )
 {
-    m_cyberRingRotation[ 0 ] += 25.0 * DELTATIME;
-    m_cyberRingRotation[ 1 ] -= 15.0 * DELTATIME;
+    m_cyberRingRotation[ 0 ] += 25.0 * updateContext.deltaTime;
+    m_cyberRingRotation[ 1 ] -= 15.0 * updateContext.deltaTime;
     if ( m_cyberRingRotationDirection[ 2 ] ) {
-        m_cyberRingRotation[ 2 ] += 35.0 * DELTATIME;
+        m_cyberRingRotation[ 2 ] += 35.0 * updateContext.deltaTime;
     }
     else {
-        m_cyberRingRotation[ 2 ] -= 20.0 * DELTATIME;
+        m_cyberRingRotation[ 2 ] -= 20.0 * updateContext.deltaTime;
     }
-    //     m_cyberRingRotation[3] += 20.0 * DELTATIME;
 
     if ( m_cyberRingRotation[ 0 ] >= 360 ) {
         m_cyberRingRotation[ 0 ] -= 360;
@@ -441,7 +440,6 @@ void Road::updateCyberRings()
     if ( m_cyberRingRotation[ 2 ] > 90 ) {
         m_cyberRingRotationDirection[ 2 ] = false;
     }
-    //     if (m_cyberRingRotation[3]>=360) { m_cyberRingRotation[3] -= 360; }
 }
 
 void Road::onRender()
@@ -449,28 +447,28 @@ void Road::onRender()
     m_timeS = SDL_GetTicks();
     switch ( m_currentScreen ) {
     case Screen::eGame:
-        gameScreen();
+        renderGameScreen();
         break;
     case Screen::eGamePaused:
-        gameScreenPaused();
+        renderGameScreenPaused();
         break;
     case Screen::eGameBriefing:
-        gameScreenBriefing();
+        renderGameScreenBriefing();
         break;
     case Screen::eDead:
-        deadScreen();
+        renderDeadScreen();
         break;
     case Screen::eWin:
-        winScreen();
+        renderWinScreen();
         break;
     case Screen::eMissionSelection:
-        missionSelectionScreen();
+        renderMissionSelectionScreen();
         break;
     case Screen::eMainMenu:
-        drawMainMenu();
+        renderMainMenu();
         break;
     case Screen::eCustomize:
-        screenCustomize();
+        renderScreenCustomize();
         break;
     default:
         break;
@@ -480,31 +478,32 @@ void Road::onRender()
 
 void Road::onUpdate()
 {
+    const UpdateContext updateContext{ DELTATIME };
     while ( m_isRunning ) {
         switch ( m_currentScreen ) {
         case Screen::eGame:
-            gameUpdate();
+            updateGame( updateContext );
             break;
         case Screen::eGamePaused:
-            gameUpdatePaused();
+            updateGamePaused( updateContext );
             break;
         case Screen::eGameBriefing:
-            gameScreenBriefingUpdate();
+            updateGameScreenBriefing( updateContext );
             break;
         case Screen::eDead:
-            deadScreenUpdate();
+            updateDeadScreen( updateContext );
             break;
         case Screen::eWin:
-            winUpdate();
+            updateWin( updateContext );
             break;
         case Screen::eMissionSelection:
-            missionSelectionUpdate();
+            updateMissionSelection( updateContext );
             break;
         case Screen::eMainMenu:
-            updateMainMenu();
+            updateMainMenu( updateContext );
             break;
         case Screen::eCustomize:
-            updateCustomize();
+            updateCustomize( updateContext );
             break;
         }
         std::this_thread::sleep_for( std::chrono::milliseconds( delay() ) );
@@ -532,12 +531,12 @@ void Road::unpause()
     changeScreen( Screen::eGame );
 }
 
-void Road::gameUpdatePaused()
+void Road::updateGamePaused( const UpdateContext& updateContext )
 {
-    updateCyberRings();
+    updateCyberRings( updateContext );
 }
 
-void Road::gameUpdate()
+void Road::updateGame( const UpdateContext& updateContext )
 {
     if ( m_jet->status() == Jet::Status::eDead ) {
         changeScreen( Screen::eDead );
@@ -565,7 +564,7 @@ void Road::gameUpdate()
     {
         std::lock_guard<std::mutex> lg( m_mutexEnemy );
         for ( Enemy*& e : m_enemies ) {
-            e->update();
+            e->update( updateContext );
             if ( e->isWeaponReady() ) {
                 std::lock_guard<std::mutex> lg( m_mutexEnemyBullet );
                 m_enemyBullets.push_back( e->weapon() );
@@ -586,13 +585,13 @@ void Road::gameUpdate()
         }
     }
 
-    m_jet->update();
-    m_speedAnim += m_jet->speed() * 270.0f * DELTATIME;
+    m_jet->update( updateContext );
+    m_speedAnim += m_jet->speed() * 270.0f * updateContext.deltaTime;
     if ( m_speedAnim >= 360 ) {
         m_speedAnim -= 360;
     }
     m_map->setJetData( m_jet->position(), m_jet->velocity() );
-    m_map->update();
+    m_map->update( updateContext );
 
     {
         std::lock_guard<std::mutex> lg( m_mutexEnemy );
@@ -602,7 +601,7 @@ void Road::gameUpdate()
                 b->processCollision( e );
             }
 
-            b->update();
+            b->update( updateContext );
             if ( b->status() == Bullet::Status::eDead ) {
                 m_bulletGarbage.push_back( b );
                 b = nullptr;
@@ -615,7 +614,7 @@ void Road::gameUpdate()
     {
         std::lock_guard<std::mutex> lg( m_mutexEnemyBullet );
         for ( Bullet*& b : m_enemyBullets ) {
-            b->update();
+            b->update( updateContext );
             if ( b->status() == Bullet::Status::eDead ) {
                 m_bulletGarbage.push_back( b );
                 b = nullptr;
@@ -640,7 +639,7 @@ void Road::gameUpdate()
     }
     m_bulletGarbage.erase( std::remove( m_bulletGarbage.begin(), m_bulletGarbage.end(), nullptr ), m_bulletGarbage.end() );
 
-    updateCyberRings();
+    updateCyberRings( updateContext );
 }
 
 void Road::addBullet( uint32_t wID )
@@ -843,15 +842,15 @@ void Road::retarget()
     m_jet->lockTarget( m_enemies[ random() % m_enemies.size() ] );
 }
 
-void Road::updateMainMenu()
+void Road::updateMainMenu( const UpdateContext& updateContext )
 {
-    updateClouds();
-    updateCyberRings();
+    updateClouds( updateContext );
+    updateCyberRings( updateContext );
 }
 
-void Road::gameScreenBriefingUpdate()
+void Road::updateGameScreenBriefing( const UpdateContext& updateContext )
 {
-    gameUpdatePaused();
+    updateGamePaused( updateContext );
 }
 
 void Road::clearMapData()
@@ -927,9 +926,9 @@ void Road::createMapData( const MapProto& mapData, const ModelProto& modelData )
     }
 }
 
-void Road::missionSelectionUpdate()
+void Road::updateMissionSelection( const UpdateContext& updateContext )
 {
-    updateCyberRings();
+    updateCyberRings( updateContext );
 }
 
 void Road::changeScreen( Screen scr )
@@ -1204,13 +1203,13 @@ void Road::saveConfig()
     ConfigFile.close();
 }
 
-void Road::updateClouds()
+void Road::updateClouds( const UpdateContext& updateContext )
 {
     if ( m_backgroundEffectEquation ) {
-        m_alphaValue += 0.1 * DELTATIME;
+        m_alphaValue += 0.1 * updateContext.deltaTime;
     }
     else {
-        m_alphaValue -= 0.1 * DELTATIME;
+        m_alphaValue -= 0.1 * updateContext.deltaTime;
     }
 
     if ( m_alphaValue >= 1 ) {
@@ -1239,11 +1238,11 @@ void Road::setPerspective( double a ) const
     glLoadIdentity();
 }
 
-void Road::updateCustomize()
+void Road::updateCustomize( const UpdateContext& updateContext )
 {
-    updateClouds();
-    updateCyberRings();
-    m_modelRotation += 30.0 * DELTATIME;
+    updateClouds( updateContext );
+    updateCyberRings( updateContext );
+    m_modelRotation += 30.0 * updateContext.deltaTime;
     if ( m_modelRotation >= 360.0 ) {
         m_modelRotation -= 360.0;
     }
@@ -1256,14 +1255,14 @@ void Road::playSound( Mix_Chunk* sound ) const
     }
 }
 
-void Road::winUpdate()
+void Road::updateWin( const UpdateContext& updateContext )
 {
-    updateCyberRings();
+    updateCyberRings( updateContext );
 }
 
-void Road::deadScreenUpdate()
+void Road::updateDeadScreen( const UpdateContext& updateContext )
 {
-    updateCyberRings();
+    updateCyberRings( updateContext );
 }
 
 double Road::viewportWidth() const

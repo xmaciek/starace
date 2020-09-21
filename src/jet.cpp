@@ -63,25 +63,25 @@ void Jet::lockTarget( SAObject* t )
     m_target->targetMe( true );
 }
 
-void Jet::update()
+void Jet::update( const UpdateContext& updateContext )
 {
     if ( m_btnRollLeft ) {
         if ( m_rotZ < m_maxAngleZ ) {
-            m_rotZ += m_angleSpeedZ * DELTATIME;
+            m_rotZ += m_angleSpeedZ * updateContext.deltaTime;
         }
     }
     if ( m_btnRollRight ) {
         if ( m_rotZ > -m_maxAngleZ ) {
-            m_rotZ -= m_angleSpeedZ * DELTATIME;
+            m_rotZ -= m_angleSpeedZ * updateContext.deltaTime;
         }
     }
     if ( ( !m_btnRollLeft && !m_btnRollRight ) || ( m_btnRollLeft && m_btnRollRight ) ) {
         m_roll = 0;
-        if ( m_rotZ < -0.1 * DELTATIME ) {
-            m_rotZ += m_angleSpeedZ * DELTATIME;
+        if ( m_rotZ < -0.1 * updateContext.deltaTime ) {
+            m_rotZ += m_angleSpeedZ * updateContext.deltaTime;
         }
-        if ( m_rotZ > 0.1 * DELTATIME ) {
-            m_rotZ -= m_angleSpeedZ * DELTATIME;
+        if ( m_rotZ > 0.1 * updateContext.deltaTime ) {
+            m_rotZ -= m_angleSpeedZ * updateContext.deltaTime;
         }
     }
     else {
@@ -95,21 +95,21 @@ void Jet::update()
 
     if ( m_btnYawLeft ) {
         if ( m_rotY < m_maxAngleY ) {
-            m_rotY += m_angleSpeedY * DELTATIME;
+            m_rotY += m_angleSpeedY * updateContext.deltaTime;
         }
     }
     if ( m_btnYawRight ) {
         if ( m_rotY > -m_maxAngleY ) {
-            m_rotY -= m_angleSpeedY * DELTATIME;
+            m_rotY -= m_angleSpeedY * updateContext.deltaTime;
         }
     }
     if ( ( !m_btnYawLeft && !m_btnYawRight ) || ( m_btnYawLeft && m_btnYawRight ) ) {
         m_yaw = 0;
-        if ( m_rotY < -0.1 * DELTATIME ) {
-            m_rotY += m_angleSpeedY * DELTATIME;
+        if ( m_rotY < -0.1 * updateContext.deltaTime ) {
+            m_rotY += m_angleSpeedY * updateContext.deltaTime;
         }
-        if ( m_rotY > 0.1 * DELTATIME ) {
-            m_rotY -= m_angleSpeedY * DELTATIME;
+        if ( m_rotY > 0.1 * updateContext.deltaTime ) {
+            m_rotY -= m_angleSpeedY * updateContext.deltaTime;
         }
     }
     else {
@@ -123,21 +123,21 @@ void Jet::update()
 
     if ( m_btnPitchUp ) {
         if ( m_rotX < m_maxAngleX ) {
-            m_rotX += m_angleSpeedX * DELTATIME;
+            m_rotX += m_angleSpeedX * updateContext.deltaTime;
         }
     }
     if ( m_btnPitchDown ) {
         if ( m_rotX > -m_maxAngleX ) {
-            m_rotX -= m_angleSpeedX * DELTATIME;
+            m_rotX -= m_angleSpeedX * updateContext.deltaTime;
         }
     }
     if ( ( !m_btnPitchUp && !m_btnPitchDown ) || ( m_btnPitchUp && m_btnPitchDown ) ) {
         m_pitch = 0;
-        if ( m_rotX < -0.1 * DELTATIME ) {
-            m_rotX += m_angleSpeedX * DELTATIME;
+        if ( m_rotX < -0.1 * updateContext.deltaTime ) {
+            m_rotX += m_angleSpeedX * updateContext.deltaTime;
         }
-        if ( m_rotX > 0.1 * DELTATIME ) {
-            m_rotX -= m_angleSpeedX * DELTATIME;
+        if ( m_rotX > 0.1 * updateContext.deltaTime ) {
+            m_rotX -= m_angleSpeedX * updateContext.deltaTime;
         }
     }
     else {
@@ -150,19 +150,19 @@ void Jet::update()
     }
 
     if ( ( speed() < m_maxSpeed ) && ( m_speedAcc > 0 ) ) {
-        m_speed += 0.8f * DELTATIME;
+        m_speed += 0.8f * updateContext.deltaTime;
     }
     else {
         if ( ( m_speed > m_minSpeed ) && ( m_speedAcc < 0 ) ) {
-            m_speed -= 0.8f * DELTATIME;
+            m_speed -= 0.8f * updateContext.deltaTime;
         }
     }
-    if ( ( ( m_speed >= m_normSpeed + 0.1 * DELTATIME ) || ( speed() <= m_normSpeed - 0.1f * DELTATIME ) ) && ( m_speedAcc == 0 ) ) {
+    if ( ( ( m_speed >= m_normSpeed + 0.1 * updateContext.deltaTime ) || ( speed() <= m_normSpeed - 0.1f * updateContext.deltaTime ) ) && ( m_speedAcc == 0 ) ) {
         if ( speed() < m_normSpeed ) {
-            m_speed += 0.3f * DELTATIME;
+            m_speed += 0.3f * updateContext.deltaTime;
         }
         else {
-            m_speed -= 0.3f * DELTATIME;
+            m_speed -= 0.3f * updateContext.deltaTime;
         }
     }
     if ( speed() < 3.0f ) {
@@ -171,9 +171,9 @@ void Jet::update()
 
     m_animation = glm::quat{ glm::vec3{ glm::radians( -m_rotX ), glm::radians( m_rotY ), glm::radians( m_rotZ ) } };
     m_quaternion = glm::conjugate( m_quaternion );
-    m_quaternion = glm::rotate( m_quaternion, glm::radians( -m_rotX ) * 4.0f * DELTATIME, glm::vec3{ 1.0f, 0.0f, 0.0f } );
-    m_quaternion = glm::rotate( m_quaternion, glm::radians( m_rotY ) * 2.5f * DELTATIME, glm::vec3{ 0.0f, 1.0f, 0.0f } );
-    m_quaternion = glm::rotate( m_quaternion, glm::radians( m_rotZ ) * 2.5f * DELTATIME, glm::vec3{ 0.0f, 0.0f, 1.0f } );
+    m_quaternion = glm::rotate( m_quaternion, glm::radians( -m_rotX ) * 4.0f * updateContext.deltaTime, glm::vec3{ 1.0f, 0.0f, 0.0f } );
+    m_quaternion = glm::rotate( m_quaternion, glm::radians( m_rotY ) * 2.5f * updateContext.deltaTime, glm::vec3{ 0.0f, 1.0f, 0.0f } );
+    m_quaternion = glm::rotate( m_quaternion, glm::radians( m_rotZ ) * 2.5f * updateContext.deltaTime, glm::vec3{ 0.0f, 0.0f, 1.0f } );
     m_rotation = m_quaternion;
     m_quaternion = glm::conjugate( m_quaternion );
 
@@ -181,20 +181,20 @@ void Jet::update()
     m_velocity = direction() * speed();
 
     if ( m_shotFactor[ 0 ] < m_weapon[ 0 ].delay ) {
-        m_shotFactor[ 0 ] += 1.0 * DELTATIME;
+        m_shotFactor[ 0 ] += 1.0 * updateContext.deltaTime;
     }
     if ( m_shotFactor[ 1 ] < m_weapon[ 1 ].delay ) {
-        m_shotFactor[ 1 ] += 1.0 * DELTATIME;
+        m_shotFactor[ 1 ] += 1.0 * updateContext.deltaTime;
     }
     if ( m_shotFactor[ 2 ] < m_weapon[ 2 ].delay ) {
-        m_shotFactor[ 2 ] += 1.0 * DELTATIME;
+        m_shotFactor[ 2 ] += 1.0 * updateContext.deltaTime;
     }
 
-    m_energy = std::min( m_energy + 60.0 * DELTATIME, 100.0 );
+    m_energy = std::min( m_energy + 60.0 * updateContext.deltaTime, 100.0 );
 
-    m_position += velocity() * DELTATIME;
-    m_thruster.update();
-    m_shield.update();
+    m_position += velocity() * updateContext.deltaTime;
+    m_thruster.update( updateContext );
+    m_shield.update( updateContext );
     if ( m_target ) {
         if ( m_target->status() != Status::eAlive ) {
             m_target->targetMe( false );

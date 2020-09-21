@@ -6,9 +6,9 @@ Shield::Shield( double radiusA, double radiusB )
 {
 }
 
-void Shield::update()
+void Shield::update( const UpdateContext& updateContext )
 {
-    m_rotAngle += DELTATIME;
+    m_rotAngle += updateContext.deltaTime;
     if ( m_rotAngle >= 360 ) {
         m_rotAngle -= 360;
     }

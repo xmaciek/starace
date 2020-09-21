@@ -26,6 +26,7 @@ set( STARACE_HEADERS
     tail.hpp
     texture.hpp
     thruster.hpp
+    update_context.hpp
 )
 
 set( STARACE_SOURCES

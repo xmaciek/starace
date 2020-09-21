@@ -2,6 +2,7 @@
 
 #include "sa.hpp"
 #include "texture.hpp"
+#include "update_context.hpp"
 
 #include <glm/vec3.hpp>
 
@@ -28,5 +29,5 @@ public:
 
     void draw();
     void setJetData( const glm::vec3& position, const glm::vec3& velocity );
-    void update();
+    void update( const UpdateContext& );
 };
