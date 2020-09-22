@@ -387,10 +387,10 @@ void Road::render3D( RenderContext rctx )
 
     glPushMatrix();
     const glm::mat4 matrice = glm::toMat4( m_jet->quat() );
-    rctx.view *= matrice;
+    rctx.model *= matrice;
     glMultMatrixf( glm::value_ptr( matrice ) );
 
-    rctx.view = glm::translate( rctx.view, -m_jet->position() );
+    rctx.model = glm::translate( rctx.model, -m_jet->position() );
     glTranslatef( cX, cY, cZ );
     m_map->render( rctx );
 

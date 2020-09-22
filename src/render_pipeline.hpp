@@ -1,8 +1,8 @@
 #pragma once
 
+#include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
-#include <glm/mat4x4.hpp>
 
 #include <array>
 #include <memory_resource>
@@ -10,6 +10,7 @@
 
 enum struct Pipeline {
     eLineStripBlend,
+    eLine3dColor1,
     eTriangleFan2dTextureColor,
     eTriangleFan3dTexture,
     eGuiTextureColor1,
@@ -20,10 +21,15 @@ struct PushConstant {
     glm::mat4 m_model{};
     glm::mat4 m_view{};
     glm::mat4 m_projection{};
+    PushConstant() = default;
 };
 
-template <Pipeline>
-struct PushBuffer;
+template <Pipeline TP>
+struct PushBuffer {
+    Pipeline m_pipeline = TP;
+    PushBuffer() = default;
+    PushBuffer( std::pmr::memory_resource* ) { }
+};
 
 template <>
 struct PushBuffer<Pipeline::eLineStripBlend> {
@@ -35,7 +41,8 @@ struct PushBuffer<Pipeline::eLineStripBlend> {
     PushBuffer( std::pmr::memory_resource* allocator )
     : m_vertices{ allocator }
     , m_colors{ allocator }
-    {}
+    {
+    }
 };
 
 template <>
@@ -51,7 +58,8 @@ struct PushBuffer<Pipeline::eTriangleFan2dTextureColor> {
     : m_vertices{ allocator }
     , m_uv{ allocator }
     , m_colors{ allocator }
-    {}
+    {
+    }
 };
 
 template <>
@@ -65,13 +73,15 @@ struct PushBuffer<Pipeline::eTriangleFan3dTexture> {
     PushBuffer( std::pmr::memory_resource* allocator )
     : m_vertices{ allocator }
     , m_uv{ allocator }
-    {}
+    {
+    }
 };
 
 template <>
 struct PushBuffer<Pipeline::eGuiTextureColor1> {
     Pipeline m_pipeline = Pipeline::eGuiTextureColor1;
     uint32_t m_texture = 0;
+
     PushBuffer() = default;
     PushBuffer( std::pmr::memory_resource* ) { }
 };
@@ -84,5 +94,26 @@ struct PushConstant<Pipeline::eGuiTextureColor1> {
     std::array<glm::vec2, 4> m_vertices{};
     std::array<glm::vec2, 4> m_uv{};
     glm::vec4 m_color{};
+    PushConstant() = default;
 };
 
+template <>
+struct PushConstant<Pipeline::eLine3dColor1> {
+    glm::mat4 m_model{};
+    glm::mat4 m_view{};
+    glm::mat4 m_projection{};
+    glm::vec4 m_color{};
+    PushConstant() = default;
+};
+
+template <>
+struct PushBuffer<Pipeline::eLine3dColor1> {
+    Pipeline m_pipeline = Pipeline::eLine3dColor1;
+    std::pmr::vector<glm::vec3> m_vertices{};
+
+    PushBuffer() = default;
+    PushBuffer( std::pmr::memory_resource* allocator )
+    : m_vertices{ allocator }
+    {
+    }
+};

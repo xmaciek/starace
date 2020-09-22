@@ -82,18 +82,18 @@ void Map::render( RenderContext rctx )
     pushBuffer.m_uv[ 3 ] = glm::vec2{ m_min, m_max };
     rctx.renderer->push( &pushBuffer, &pushConstant );
 
-    glPushMatrix();
-    glEnable( GL_BLEND );
-    glColor4f( 1, 1, 1, 0.4 );
-    glBegin( GL_LINES );
-    for ( const auto& it : m_particleList ) {
-        const glm::vec3 offset = it + m_particleLength;
-        glVertex3fv( glm::value_ptr( it ) );
-        glVertex3fv( glm::value_ptr( offset ) );
+    PushConstant<Pipeline::eLine3dColor1> linePushConstant{};
+    linePushConstant.m_model = rctx.model;
+    linePushConstant.m_view = rctx.view;
+    linePushConstant.m_projection = rctx.projection;
+    linePushConstant.m_color = glm::vec4{ 1.0f, 1.0f, 1.0f, 0.4f };
+    PushBuffer<Pipeline::eLine3dColor1> linePushBuffer{ rctx.renderer->allocator() };
+    linePushBuffer.m_vertices.reserve( m_particleList.size() * 2 );
+    for ( const glm::vec3& it : m_particleList ) {
+        linePushBuffer.m_vertices.emplace_back( it );
+        linePushBuffer.m_vertices.emplace_back( it + m_particleLength );
     }
-    glEnd();
-    glDisable( GL_BLEND );
-    glPopMatrix();
+    rctx.renderer->push( &linePushBuffer, &linePushConstant );
 }
 
 void Map::update( const UpdateContext& updateContext )

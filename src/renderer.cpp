@@ -120,5 +120,27 @@ void Renderer::push( void* buffer, void* constant )
         glEnd();
         glPopMatrix();
     } break;
+
+    case Pipeline::eLine3dColor1: {
+        auto* pushBuffer = reinterpret_cast<PushBuffer<Pipeline::eLine3dColor1>*>( buffer );
+        auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::eLine3dColor1>*>( constant );
+
+        ScopeEnable blend( GL_BLEND );
+        ScopeEnable depthTest( GL_DEPTH_TEST );
+
+        glPushMatrix();
+        glMatrixMode( GL_PROJECTION );
+        glLoadMatrixf( glm::value_ptr( pushConstant->m_projection ) );
+        glMatrixMode( GL_MODELVIEW );
+        glLoadMatrixf( glm::value_ptr( pushConstant->m_view * pushConstant->m_model ) );
+
+        glBegin( GL_LINES );
+        glColor4fv( glm::value_ptr( pushConstant->m_color ) );
+        for ( const glm::vec3& it : pushBuffer->m_vertices ) {
+            glVertex3fv( glm::value_ptr( it ) );
+        }
+        glEnd();
+        glPopMatrix();
+    } break;
     }
 }
