@@ -290,8 +290,11 @@ void Road::renderHUD( RenderContext rctx )
         glVertex3d( 0, m_radar->x( i ), m_radar->y( i ) );
     }
     glEnd();
-    for ( const Enemy* e : m_enemies ) {
-        e->drawRadarPosition( m_jet->position(), 92 );
+    {
+        std::lock_guard<std::mutex> lg( m_mutexEnemy );
+        for ( const Enemy* e : m_enemies ) {
+            e->drawRadarPosition( m_jet->position(), 92 );
+        }
     }
 
     glDisable( GL_DEPTH_TEST );
@@ -397,7 +400,7 @@ void Road::render3D( RenderContext rctx )
     {
         std::lock_guard<std::mutex> lg( m_mutexEnemy );
         for ( const Enemy* it : m_enemies ) {
-            it->draw();
+            it->render( rctx );
         }
     }
     glEnable( GL_BLEND );

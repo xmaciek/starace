@@ -1,64 +1,57 @@
 #include "shield.hpp"
 
+#include "render_pipeline.hpp"
+
+#include <glm/gtc/matrix_transform.hpp>
+
 Shield::Shield( double radiusA, double radiusB )
-: m_radius( radiusA )
-, m_circle( 6, radiusB )
+: m_circle( 6, radiusB )
+, m_radius( static_cast<float>( radiusA ) )
 {
 }
 
 void Shield::update( const UpdateContext& updateContext )
 {
-    m_rotAngle += updateContext.deltaTime;
+    m_rotAngle += 60.0f * updateContext.deltaTime;
     if ( m_rotAngle >= 360 ) {
         m_rotAngle -= 360;
     }
 }
 
-void Shield::draw() const
+void Shield::render( RenderContext rctx ) const
 {
-    glPushMatrix();
-    glRotated( m_rotAngle, 0, 1, 0 );
-    for ( uint32_t i = 0; i < 8; i++ ) {
-        glBegin( GL_LINE_LOOP );
-        for ( uint32_t j = 0; j < m_circle.segments(); j++ ) {
-            glVertex3d( m_circle.x( j ), m_circle.y( j ), m_radius );
-        }
-        glEnd();
-        glBegin( GL_LINES );
-        glVertex3d( 0, 0, 0 );
-        glVertex3d( 0, 0, m_radius );
-        glEnd();
-        glRotated( 45, 0, 1, 0 );
+    PushConstant<Pipeline::eLine3dStripColor> pushConstant{};
+    pushConstant.m_model = glm::rotate( rctx.model, glm::radians( m_rotAngle ), glm::vec3{ 0.0f, 1.0f, 0.0f } );
+    pushConstant.m_projection = rctx.projection;
+    pushConstant.m_view = rctx.view;
+
+    PushBuffer<Pipeline::eLine3dStripColor> pushBuffer{ rctx.renderer->allocator() };
+    pushBuffer.m_colors.resize( m_circle.segments() + 1, m_color );
+    pushBuffer.m_vertices.reserve( m_circle.segments() + 1 );
+    for ( size_t i = 0; i < m_circle.segments(); ++i ) {
+        pushBuffer.m_vertices.emplace_back( m_circle.x( i ), m_circle.y( i ), m_radius );
     }
-    glPushMatrix();
-    glRotated( m_rotAngle, 0, 0, 1 );
-    for ( uint32_t i = 0; i < 8; i++ ) {
-        glBegin( GL_LINE_LOOP );
-        for ( uint32_t j = 0; j < m_circle.segments(); j++ ) {
-            glVertex3d( m_circle.x( j ), m_circle.y( j ), m_radius );
-        }
-        glEnd();
-        glBegin( GL_LINES );
-        glVertex3d( 0, 0, 0 );
-        glVertex3d( 0, 0, m_radius );
-        glEnd();
-        glRotated( 45, 0, 1, 0 );
+    pushBuffer.m_vertices.emplace_back( m_circle.x( 0 ), m_circle.y( 0 ), m_radius );
+
+    for ( size_t i = 0; i < 8; ++i ) {
+        rctx.renderer->push( &pushBuffer, &pushConstant );
+        pushConstant.m_model = glm::rotate( pushConstant.m_model, glm::radians( 45.0f ), glm::vec3{ 0, 1, 0 } );
     }
-    glPushMatrix();
-    glRotated( m_rotAngle, 1, 0, 0 );
-    for ( uint32_t i = 0; i < 8; i++ ) {
-        glBegin( GL_LINE_LOOP );
-        for ( uint32_t j = 0; j < m_circle.segments(); j++ ) {
-            glVertex3d( m_circle.x( j ), m_circle.y( j ), m_radius );
-        }
-        glEnd();
-        glBegin( GL_LINES );
-        glVertex3d( 0, 0, 0 );
-        glVertex3d( 0, 0, m_radius );
-        glEnd();
-        glRotated( 45, 0, 1, 0 );
+    pushConstant.m_model = glm::rotate( pushConstant.m_model, glm::radians( m_rotAngle ), glm::vec3{ 0, 0, 1 } );
+    for ( size_t i = 0; i < 8; ++i ) {
+        rctx.renderer->push( &pushBuffer, &pushConstant );
+        pushConstant.m_model = glm::rotate( pushConstant.m_model, glm::radians( 45.0f ), glm::vec3{ 0.0f, 1.0f, 0.0f } );
     }
-    glPopMatrix();
-    glPopMatrix();
-    glPopMatrix();
+    pushConstant.m_model = glm::rotate( pushConstant.m_model, glm::radians( m_rotAngle ), glm::vec3{ 1, 0, 0 } );
+    for ( size_t i = 0; i < 8; ++i ) {
+        rctx.renderer->push( &pushBuffer, &pushConstant );
+        pushConstant.m_model = glm::rotate( pushConstant.m_model, glm::radians( 45.0f ), glm::vec3{ 0.0f, 1.0f, 0.0f } );
+    }
+
+
+}
+
+void Shield::setColor( const glm::vec4& c )
+{
+    m_color = c;
 }
