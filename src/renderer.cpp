@@ -121,6 +121,28 @@ void Renderer::push( void* buffer, void* constant )
         glPopMatrix();
     } break;
 
+    case Pipeline::eTriangleFan3dColor: {
+        auto* pushBuffer = reinterpret_cast<PushBuffer<Pipeline::eTriangleFan3dColor>*>( buffer );
+        auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::eTriangleFan3dColor>*>( constant );
+
+        ScopeEnable blend( GL_BLEND );
+        ScopeEnable depthTest( GL_DEPTH_TEST );
+
+        glPushMatrix();
+        glMatrixMode( GL_PROJECTION );
+        glLoadMatrixf( glm::value_ptr( pushConstant->m_projection ) );
+        glMatrixMode( GL_MODELVIEW );
+        glLoadMatrixf( glm::value_ptr( pushConstant->m_view * pushConstant->m_model ) );
+
+        glBegin( GL_TRIANGLE_FAN );
+        for ( size_t i = 0; i < pushBuffer->m_vertices.size(); ++i ) {
+            glColor4fv( glm::value_ptr( pushBuffer->m_colors[ i ] ) );
+            glVertex3fv( glm::value_ptr( pushBuffer->m_vertices[ i ] ) );
+        }
+        glEnd();
+        glPopMatrix();
+    } break;
+
     case Pipeline::eLine3dColor1: {
         auto* pushBuffer = reinterpret_cast<PushBuffer<Pipeline::eLine3dColor1>*>( buffer );
         auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::eLine3dColor1>*>( constant );

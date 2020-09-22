@@ -1,23 +1,26 @@
 #pragma once
 
 #include "circle.hpp"
-#include "sa.hpp"
+#include "render_context.hpp"
 #include "update_context.hpp"
+
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 
 class Thruster {
 private:
-    double m_length = 0.0;
-    double m_lengthShorter = 0.0;
-    double m_len = 0.0;
+    double m_length = 1;
+    double m_lengthShorter = 1;
+    double m_len = 0.25;
     float m_wiggle = 0;
-    float m_color[ 4 ][ 4 ]{};
+    glm::vec4 m_color[ 4 ]{};
     Circle m_inner;
     Circle m_outer;
 
 public:
     Thruster( double length, double radius );
 
-    void drawAt( double x, double y, double z ) const;
+    void renderAt( RenderContext, const glm::vec3& ) const;
     void update( const UpdateContext& );
     void setColor( uint32_t num, float* colorData );
     void setLength( double newLength );

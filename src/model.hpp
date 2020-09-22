@@ -1,6 +1,9 @@
 #pragma once
 
 #include "sa.hpp"
+
+#include "render_context.hpp"
+
 #include <glm/vec3.hpp>
 
 struct UV {
@@ -29,6 +32,7 @@ public:
     std::vector<glm::vec3> thrusters() const;
     void bindTexture( uint32_t );
     void calculateNormal();
+    void render( RenderContext ) const;
     void draw() const;
     void drawWireframe();
     void loadOBJ( const char* filename );

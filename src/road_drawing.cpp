@@ -387,6 +387,7 @@ void Road::render3D( RenderContext rctx )
     glPushMatrix();
     glTranslated( 0, -0.225, -1 );
     rctx.model = glm::translate( rctx.model, glm::vec3{ 0, -0.255, -1 } );
+    const RenderContext rctx2 = rctx;
 
     glPushMatrix();
     const glm::mat4 matrice = glm::toMat4( m_jet->quat() );
@@ -420,7 +421,7 @@ void Road::render3D( RenderContext rctx )
     glLineWidth( 1 );
     glDisable( GL_BLEND );
     glPopMatrix();
-    m_jet->draw();
+    m_jet->render( rctx2 );
     glPopMatrix();
 }
 

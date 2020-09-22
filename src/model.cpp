@@ -1,30 +1,40 @@
 #include "model.hpp"
-#include "sa.hpp"
+
+#include "render_pipeline.hpp"
 
 Model::~Model()
 {
     glDeleteTextures( 1, &m_textureID );
 }
 
+void Model::render( RenderContext rctx ) const
+{
+    PushConstant<Pipeline::eTriangle3dTextureNormal> pushConstant{};
+    pushConstant.m_model = rctx.model;
+    pushConstant.m_view = rctx.view;
+    pushConstant.m_projection = rctx.projection;
+
+    PushBuffer<Pipeline::eTriangle3dTextureNormal> pushBuffer{ rctx.renderer->allocator() };
+    pushBuffer.m_texture = m_textureID;
+    pushBuffer.m_vertices.reserve( m_faces.size() * 3 );
+    pushBuffer.m_normal.reserve( m_faces.size() * 3 );
+    pushBuffer.m_uv.reserve( m_faces.size() * 3 );
+    for ( const Face& it : m_faces ) {
+        pushBuffer.m_vertices.emplace_back( it.vertex[ 0 ] );
+        pushBuffer.m_vertices.emplace_back( it.vertex[ 1 ] );
+        pushBuffer.m_vertices.emplace_back( it.vertex[ 2 ] );
+        pushBuffer.m_normal.emplace_back( it.normal[ 0 ], it.normal[ 1 ], it.normal[ 2 ] );
+        pushBuffer.m_normal.emplace_back( it.normal[ 0 ], it.normal[ 1 ], it.normal[ 2 ] );
+        pushBuffer.m_normal.emplace_back( it.normal[ 0 ], it.normal[ 1 ], it.normal[ 2 ] );
+        pushBuffer.m_uv.emplace_back( it.texcoord[ 0 ].u, it.texcoord[ 0 ].v );
+        pushBuffer.m_uv.emplace_back( it.texcoord[ 1 ].u, it.texcoord[ 1 ].v );
+        pushBuffer.m_uv.emplace_back( it.texcoord[ 2 ].u, it.texcoord[ 2 ].v );
+    }
+    rctx.renderer->push( &pushBuffer, &pushConstant );
+}
+
 void Model::draw() const
 {
-    glEnable( GL_LIGHTING );
-    glDisable( GL_BLEND );
-    glEnable( GL_TEXTURE_2D );
-    glColor3f( 1, 1, 1 );
-    glBindTexture( GL_TEXTURE_2D, m_textureID );
-    for ( const Face& f : m_faces ) {
-        glBegin( GL_POLYGON );
-        glNormal3dv( f.normal );
-        for ( size_t j = 0; j < f.vertex.size(); j++ ) {
-            glTexCoord2f( f.texcoord[ j ].u, f.texcoord[ j ].v );
-            glVertex3d( f.vertex[ j ].x, f.vertex[ j ].y, f.vertex[ j ].z );
-        }
-        glEnd();
-    }
-    glDisable( GL_LIGHTING );
-    glDisable( GL_TEXTURE_2D );
-    glEnable( GL_BLEND );
 }
 
 void Model::drawWireframe()

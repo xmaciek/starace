@@ -13,6 +13,7 @@ enum struct Pipeline {
     eLine3dColor1,
     eTriangleFan2dTextureColor,
     eTriangleFan3dTexture,
+    eTriangleFan3dColor,
     eTriangle3dTextureNormal,
     eGuiTextureColor1,
 };
@@ -131,6 +132,20 @@ struct PushBuffer<Pipeline::eTriangle3dTextureNormal> {
     : m_vertices{ allocator }
     , m_normal{ allocator }
     , m_uv{ allocator }
+    {
+    }
+};
+
+template <>
+struct PushBuffer<Pipeline::eTriangleFan3dColor> {
+    Pipeline m_pipeline = Pipeline::eTriangleFan3dColor;
+    std::pmr::vector<glm::vec3> m_vertices{};
+    std::pmr::vector<glm::vec4> m_colors{};
+
+    PushBuffer() = default;
+    PushBuffer( std::pmr::memory_resource* allocator )
+    : m_vertices{ allocator }
+    , m_colors{ allocator }
     {
     }
 };

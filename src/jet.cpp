@@ -40,21 +40,17 @@ Jet::Jet( const ModelProto& modelData )
     m_thruster.setColor( 2, tmpcolor[ 3 ] );
 };
 
-void Jet::render( RenderContext ) const
+void Jet::render( RenderContext rctx ) const
 {
+    rctx.model *= glm::toMat4( animation() );
+    m_model.render( rctx );
+    for ( const glm::vec3& it : m_model.thrusters() ) {
+        m_thruster.renderAt( rctx, it );
+    }
 }
 
 void Jet::draw() const
 {
-    glPushMatrix();
-    const glm::mat4 matrice = glm::toMat4( animation() );
-    glMultMatrixf( glm::value_ptr( matrice ) );
-
-    m_model.draw();
-    for ( const auto& it : m_model.thrusters() ) {
-        m_thruster.drawAt( it.x, it.y, it.z );
-    }
-    glPopMatrix();
 }
 
 void Jet::lockTarget( SAObject* t )
