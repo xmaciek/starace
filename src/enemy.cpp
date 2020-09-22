@@ -46,6 +46,10 @@ void Enemy::reinitCoordinates()
         randomRange( -10.0, 10.0 ), randomRange( -10.0, 10.0 ), randomRange( -10.0, 10.0 ) );
 }
 
+void Enemy::render( RenderContext )
+{
+}
+
 void Enemy::draw() const
 {
     if ( status() != Status::eAlive ) {

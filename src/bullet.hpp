@@ -42,6 +42,7 @@ public:
     Type type() const;
     virtual void draw() const override;
     virtual void processCollision( SAObject* object ) override;
+    virtual void render( RenderContext ) override;
     virtual void update( const UpdateContext& ) override;
     void setDirection( const glm::vec3& v );
 };

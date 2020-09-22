@@ -107,6 +107,10 @@ void Bullet::draw2() const
     glPopMatrix();
 };
 
+void Bullet::render( RenderContext )
+{
+}
+
 void Bullet::draw() const
 {
     if ( status() == Status::eDead ) {

@@ -40,6 +40,10 @@ Jet::Jet( const ModelProto& modelData )
     m_thruster.setColor( 2, tmpcolor[ 3 ] );
 };
 
+void Jet::render( RenderContext )
+{
+}
+
 void Jet::draw() const
 {
     glPushMatrix();
