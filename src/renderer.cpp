@@ -101,8 +101,8 @@ void Renderer::push( void* buffer, void* constant )
         auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::eTriangleFan3dTexture>*>( constant );
 
         ScopeEnable blend( GL_BLEND );
-        ScopeEnable texture2d( GL_TEXTURE_2D );
         ScopeEnable depthTest( GL_DEPTH_TEST );
+        ScopeEnable texture2d( GL_TEXTURE_2D );
 
         glPushMatrix();
         glMatrixMode( GL_PROJECTION );
@@ -138,6 +138,32 @@ void Renderer::push( void* buffer, void* constant )
         glColor4fv( glm::value_ptr( pushConstant->m_color ) );
         for ( const glm::vec3& it : pushBuffer->m_vertices ) {
             glVertex3fv( glm::value_ptr( it ) );
+        }
+        glEnd();
+        glPopMatrix();
+    } break;
+
+    case Pipeline::eTriangle3dTextureNormal: {
+        auto* pushBuffer = reinterpret_cast<PushBuffer<Pipeline::eTriangle3dTextureNormal>*>( buffer );
+        auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::eTriangle3dTextureNormal>*>( constant );
+
+        ScopeEnable depthTest( GL_DEPTH_TEST );
+        ScopeEnable lightning( GL_LIGHTING );
+        ScopeEnable texture2d( GL_TEXTURE_2D );
+
+        glPushMatrix();
+        glMatrixMode( GL_PROJECTION );
+        glLoadMatrixf( glm::value_ptr( pushConstant->m_projection ) );
+        glMatrixMode( GL_MODELVIEW );
+        glLoadMatrixf( glm::value_ptr( pushConstant->m_view * pushConstant->m_model ) );
+
+        glBindTexture( GL_TEXTURE_2D, pushBuffer->m_texture );
+        glBegin( GL_TRIANGLES );
+        glColor4f( 1, 1, 1, 1 );
+        for ( size_t i = 0; i < pushBuffer->m_vertices.size(); ++i ) {
+            glNormal3fv( glm::value_ptr( pushBuffer->m_normal[ i ] ) );
+            glTexCoord2fv( glm::value_ptr( pushBuffer->m_uv[ i ] ) );
+            glVertex3fv( glm::value_ptr( pushBuffer->m_vertices[ i ] ) );
         }
         glEnd();
         glPopMatrix();
