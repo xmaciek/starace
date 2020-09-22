@@ -2,7 +2,8 @@
 
 #include "sa.hpp"
 #include "saobject.hpp"
-#include "tail.hpp"
+
+#include <vector>
 
 struct BulletProto;
 
@@ -15,7 +16,7 @@ public:
     };
 
 private:
-    Tail m_tail{};
+    std::vector<glm::vec3> m_tail{};
     double m_maxRange = 0.0;
     double m_range = 0.0;
     double m_rotX = 0.0;
@@ -30,9 +31,6 @@ private:
 
     virtual glm::vec3 collisionRay() const;
     virtual bool collisionTest( const SAObject* object ) const;
-    void draw1() const;
-    void draw2() const;
-    void drawLaser() const;
 
 public:
     virtual ~Bullet() = default;
@@ -42,9 +40,9 @@ public:
     Type type() const;
     virtual void draw() const override;
     virtual void processCollision( SAObject* object ) override;
-    virtual void render( RenderContext ) override;
+    virtual void render( RenderContext ) const override;
     virtual void update( const UpdateContext& ) override;
-    void setDirection( const glm::vec3& v );
+    void setDirection( const glm::vec3& );
 };
 
 struct BulletProto {

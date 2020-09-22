@@ -26,9 +26,9 @@ std::pmr::memory_resource* Renderer::allocator()
 void Renderer::push( void* buffer, void* constant )
 {
     switch ( *reinterpret_cast<Pipeline*>( buffer ) ) {
-    case Pipeline::eLineStripBlend: {
-        auto* pushBuffer = reinterpret_cast<PushBuffer<Pipeline::eLineStripBlend>*>( buffer );
-        auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::eLineStripBlend>*>( constant );
+    case Pipeline::eLine3dStripColor: {
+        auto* pushBuffer = reinterpret_cast<PushBuffer<Pipeline::eLine3dStripColor>*>( buffer );
+        auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::eLine3dStripColor>*>( constant );
 
         ScopeEnable blend( GL_BLEND );
         ScopeEnable depthTest( GL_DEPTH_TEST );

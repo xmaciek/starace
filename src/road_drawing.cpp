@@ -405,14 +405,13 @@ void Road::render3D( RenderContext rctx )
     {
         std::lock_guard<std::mutex> lg( m_mutexBullet );
         for ( const Bullet* it : m_bullets ) {
-            it->draw();
+            it->render( rctx );
         }
     }
     {
-        std::lock_guard<std::mutex> lg1( m_mutexEnemy );
-        std::lock_guard<std::mutex> lg2( m_mutexEnemyBullet );
+        std::lock_guard<std::mutex> lg( m_mutexEnemyBullet );
         for ( const Bullet* it : m_enemyBullets ) {
-            it->draw();
+            it->render( rctx );
         }
     }
     glLineWidth( 1 );

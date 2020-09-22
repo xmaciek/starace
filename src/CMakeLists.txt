@@ -23,7 +23,6 @@ set( STARACE_HEADERS
     sa.hpp
     saobject.hpp
     shield.hpp
-    tail.hpp
     texture.hpp
     thruster.hpp
     update_context.hpp
@@ -47,7 +46,6 @@ set( STARACE_SOURCES
     road_keyboard.cpp
     saobject.cpp
     shield.cpp
-    tail.cpp
     texture.cpp
     thruster.cpp
     utils.cpp

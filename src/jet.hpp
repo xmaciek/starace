@@ -73,7 +73,7 @@ public:
     virtual void addScore( int32_t s, bool b ) override;
     virtual void draw() const override;
     virtual void processCollision( SAObject* ) override;
-    virtual void render( RenderContext ) override;
+    virtual void render( RenderContext ) const override;
     virtual void update( const UpdateContext& ) override;
     void drawWireframe();
     void lockTarget( SAObject* );

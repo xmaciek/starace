@@ -1,7 +1,8 @@
 #include "enemy.hpp"
 
-#include <cassert>
 #include <glm/gtc/type_ptr.hpp>
+
+#include <cassert>
 
 Enemy::Enemy()
 : m_shield( 0.1, 0.02 )
@@ -46,7 +47,7 @@ void Enemy::reinitCoordinates()
         randomRange( -10.0, 10.0 ), randomRange( -10.0, 10.0 ), randomRange( -10.0, 10.0 ) );
 }
 
-void Enemy::render( RenderContext )
+void Enemy::render( RenderContext ) const
 {
 }
 

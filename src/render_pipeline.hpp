@@ -9,7 +9,7 @@
 #include <vector>
 
 enum struct Pipeline {
-    eLineStripBlend,
+    eLine3dStripColor,
     eLine3dColor1,
     eTriangleFan2dTextureColor,
     eTriangleFan3dTexture,
@@ -32,8 +32,16 @@ struct PushBuffer {
 };
 
 template <>
-struct PushBuffer<Pipeline::eLineStripBlend> {
-    Pipeline m_pipeline = Pipeline::eLineStripBlend;
+struct PushConstant<Pipeline::eLine3dStripColor> {
+    glm::mat4 m_model{};
+    glm::mat4 m_view{};
+    glm::mat4 m_projection{};
+    PushConstant() = default;
+};
+
+template <>
+struct PushBuffer<Pipeline::eLine3dStripColor> {
+    Pipeline m_pipeline = Pipeline::eLine3dStripColor;
     std::pmr::vector<glm::vec3> m_vertices{};
     std::pmr::vector<glm::vec4> m_colors{};
 

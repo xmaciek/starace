@@ -1,7 +1,11 @@
 #include "bullet.hpp"
 
+#include "render_pipeline.hpp"
+
+#include <glm/vec4.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <algorithm>
 #include <cassert>
 #include <random>
 
@@ -49,88 +53,64 @@ Bullet::Bullet( const BulletProto& bp )
     m_ttl = 20;
 };
 
-void Bullet::draw1() const
+void Bullet::render( RenderContext rctx ) const
 {
-    Tail::const_iterator it = m_tail.begin();
-    glPushMatrix();
-    glColor4fv( static_cast<const float*>( m_color1 ) );
-    glBegin( GL_LINES );
-    glVertex3fv( glm::value_ptr( *it ) );
-    it += 3;
-    glVertex3fv( glm::value_ptr( *it ) );
-    glEnd();
-    glBegin( GL_LINES );
-    glColor4f( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], 1 );
-    glVertex3fv( glm::value_ptr( *it ) );
-    it += 5;
-    glColor4f( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], 0 );
-    glVertex3fv( glm::value_ptr( *it ) );
-    glEnd();
-    glPopMatrix();
-};
-
-void Bullet::drawLaser() const
-{
-    Tail::const_iterator it = m_tail.begin();
-    glPushMatrix();
-    glBegin( GL_LINES );
-    glColor4fv( static_cast<const float*>( m_color1 ) );
-    glVertex3fv( glm::value_ptr( *it ) );
-    it++;
-    glVertex3fv( glm::value_ptr( *it ) );
-    glEnd();
-    glPopMatrix();
-}
-
-void Bullet::draw2() const
-{
-    Tail::const_iterator it = m_tail.begin();
-    glPushMatrix();
-    glColor4fv( static_cast<const float*>( m_color1 ) );
-    glBegin( GL_LINES );
-    glVertex3fv( glm::value_ptr( *it ) );
-    it++;
-    glVertex3fv( glm::value_ptr( *it ) );
-    glEnd();
-    glColor4f( 1, 1, 1, 1 );
-    uint16_t alphaIt = 1;
-    const Tail::const_iterator end = m_tail.end();
-    glBegin( GL_LINE_STRIP );
-    while ( it != end ) {
-        glVertex3fv( glm::value_ptr( *it ) );
-        glColor4f( 1, 1, 1, 1.0 / alphaIt );
-        alphaIt++;
-        it++;
+    if ( status() != Status::eAlive ) {
+        return;
     }
-    glEnd();
 
-    glPopMatrix();
-};
+    assert( m_tail.size() == typeToSegments( m_type ) );
+    switch ( m_type ) {
+    case Type::eSlug: {
+        PushConstant<Pipeline::eLine3dStripColor> pushConstant{};
+        pushConstant.m_model = rctx.model;
+        pushConstant.m_view = rctx.view;
+        pushConstant.m_projection = rctx.projection;
+        PushBuffer<Pipeline::eLine3dStripColor> pushBuffer{ rctx.renderer->allocator() };
+        pushBuffer.m_vertices.emplace_back( *m_tail.begin() );
+        pushBuffer.m_vertices.emplace_back( *( m_tail.begin() + 1 ) );
+        pushBuffer.m_colors.emplace_back( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], m_color1[ 3 ] );
+        pushBuffer.m_colors.emplace_back( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], m_color1[ 3 ] );
+        rctx.renderer->push( &pushBuffer, &pushConstant );
+    } break;
 
-void Bullet::render( RenderContext )
-{
+    case Type::eBlaster: {
+        PushConstant<Pipeline::eLine3dStripColor> pushConstant{};
+        pushConstant.m_model = rctx.model;
+        pushConstant.m_view = rctx.view;
+        pushConstant.m_projection = rctx.projection;
+        PushBuffer<Pipeline::eLine3dStripColor> pushBuffer{ rctx.renderer->allocator() };
+        pushBuffer.m_vertices.emplace_back( *m_tail.begin() );
+        pushBuffer.m_vertices.emplace_back( *( m_tail.begin() + 3 ) );
+        pushBuffer.m_vertices.emplace_back( *( m_tail.begin() + 8 ) );
+        pushBuffer.m_colors.emplace_back( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], m_color1[ 3 ] );
+        pushBuffer.m_colors.emplace_back( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], m_color1[ 3 ] );
+        pushBuffer.m_colors.emplace_back( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], 0.0f );
+        rctx.renderer->push( &pushBuffer, &pushConstant );
+    } break;
+
+    case Type::eTorpedo: {
+        PushConstant<Pipeline::eLine3dStripColor> pushConstant{};
+        pushConstant.m_model = rctx.model;
+        pushConstant.m_view = rctx.view;
+        pushConstant.m_projection = rctx.projection;
+        PushBuffer<Pipeline::eLine3dStripColor> pushBuffer{ rctx.renderer->allocator() };
+        pushBuffer.m_vertices.resize( m_tail.size() );
+        std::copy( m_tail.cbegin(), m_tail.cend(), pushBuffer.m_vertices.begin() );
+        pushBuffer.m_colors.reserve( m_tail.size() );
+        pushBuffer.m_colors.emplace_back( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], m_color1[ 3 ] );
+        pushBuffer.m_colors.emplace_back( 1, 1, 1, 1 );
+        for ( size_t i = 2; i < m_tail.size(); ++i ) {
+            pushBuffer.m_colors.emplace_back( 1.0f, 1.0f, 1.0f, 1.0f / i );
+        }
+        rctx.renderer->push( &pushBuffer, &pushConstant );
+    } break;
+    }
 }
 
 void Bullet::draw() const
 {
-    if ( status() == Status::eDead ) {
-        return;
-    }
-
-    switch ( m_type ) {
-    case Type::eSlug:
-        drawLaser();
-        break;
-
-    case Type::eBlaster:
-        draw1();
-        break;
-
-    case Type::eTorpedo:
-        draw2();
-        break;
-    }
-};
+}
 
 void Bullet::update( const UpdateContext& updateContext )
 {
@@ -156,7 +136,8 @@ void Bullet::update( const UpdateContext& updateContext )
 
     case Type::eBlaster:
         m_position += m_velocity * updateContext.deltaTime;
-        m_tail.insert( m_position );
+        std::rotate( m_tail.begin(), m_tail.end() - 1, m_tail.end() );
+        m_tail.front() = position();
         m_range += m_speed * updateContext.deltaTime;
         break;
     }
@@ -231,7 +212,8 @@ void Bullet::setDirection( const glm::vec3& v )
     m_direction = glm::normalize( v );
     m_velocity = direction() * speed();
     if ( m_type == Type::eSlug ) {
-        m_tail.insert( position() + ( direction() * 1000.0f ) );
+        std::rotate( m_tail.begin(), m_tail.end() - 1, m_tail.end() );
+        m_tail.front() = position() + direction() * 1000.0f;
     }
 }
 
