@@ -1,5 +1,6 @@
 #include "enemy.hpp"
 
+#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 #include <cassert>
@@ -47,24 +48,17 @@ void Enemy::reinitCoordinates()
         randomRange( -10.0, 10.0 ), randomRange( -10.0, 10.0 ), randomRange( -10.0, 10.0 ) );
 }
 
-void Enemy::render( RenderContext ) const
-{
-}
-
-void Enemy::draw() const
+void Enemy::render( RenderContext rctx ) const
 {
     if ( status() != Status::eAlive ) {
         return;
     }
-    glPushMatrix();
-    glTranslatef( m_position.x, m_position.y, m_position.z );
-    glColor3f(
-        1.0f - m_healthPerc + colorHalf( 1.0 - m_healthPerc ), colorHalf( m_healthPerc ) + m_healthPerc, 0 );
-    m_shield.draw();
-    if ( m_isTargeted ) {
-        drawCollisionIndicator();
-    }
-    glPopMatrix();
+    rctx.model = glm::translate( rctx.model, position() );
+    m_shield.render( rctx );
+}
+
+void Enemy::draw() const
+{
 }
 
 void Enemy::update( const UpdateContext& updateContext )
@@ -73,6 +67,12 @@ void Enemy::update( const UpdateContext& updateContext )
         return;
     }
     m_shield.update( updateContext );
+    m_shield.setColor( glm::vec4{
+        1.0f - m_healthPerc + colorHalf( 1.0 - m_healthPerc )
+        , colorHalf( m_healthPerc ) + m_healthPerc
+        , 0.0f
+        , 1.0f
+    } );
     if ( m_shotFactor < m_weapon.delay ) {
         m_shotFactor += 1.0 * updateContext.deltaTime;
     }
