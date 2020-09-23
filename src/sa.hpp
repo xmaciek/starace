@@ -13,8 +13,6 @@
 #include <vector>
 
 #ifdef __linux__
-#include <GL/gl.h>
-#include <GL/glu.h>
 #include <SDL/SDL.h>
 #include <SDL/SDL_mixer.h>
 #include <SDL/SDL_thread.h>

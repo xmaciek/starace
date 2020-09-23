@@ -39,14 +39,14 @@ void Model::draw() const
 
 void Model::drawWireframe()
 {
-    for ( const Face& f : m_faces ) {
-        glBegin( GL_LINES );
-        for ( size_t j = 0; j < f.vertex.size() - 1; j++ ) {
-            glVertex3d( f.vertex[ j ].x, f.vertex[ j ].y, f.vertex[ j ].z );
-            glVertex3d( f.vertex[ j + 1 ].x, f.vertex[ j + 1 ].y, f.vertex[ j + 1 ].z );
-        }
-        glEnd();
-    }
+//     for ( const Face& f : m_faces ) {
+//         glBegin( GL_LINES );
+//         for ( size_t j = 0; j < f.vertex.size() - 1; j++ ) {
+//             glVertex3d( f.vertex[ j ].x, f.vertex[ j ].y, f.vertex[ j ].z );
+//             glVertex3d( f.vertex[ j + 1 ].x, f.vertex[ j + 1 ].y, f.vertex[ j + 1 ].z );
+//         }
+//         glEnd();
+//     }
 }
 
 void Model::loadOBJ( const char* filename )
@@ -209,7 +209,7 @@ void Model::normalizeSize()
 void Model::bindTexture( uint32_t tex )
 {
     if ( m_textureID != 0 ) {
-        glDeleteTextures( 1, &m_textureID );
+        destroyTexture( m_textureID );
     }
     m_textureID = tex;
 }

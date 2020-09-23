@@ -4,6 +4,7 @@
 
 
 #include <GL/gl.h>
+#include <GL/glu.h>
 #include <SDL/SDL.h>
 #include <glm/gtc/type_ptr.hpp>
 

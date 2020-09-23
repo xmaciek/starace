@@ -85,39 +85,39 @@ void Enemy::update( const UpdateContext& updateContext )
 
 void Enemy::drawCollisionIndicator()
 {
-    glColor3f( 1, 0.1, 0.1 );
-    glLineWidth( 2 );
-    glBegin( GL_LINE_LOOP );
-    glVertex2d( -0.125, 0.125 );
-    glVertex2d( -0.125, -0.125 );
-    glVertex2d( 0.125, -0.125 );
-    glVertex2d( 0.125, 0.125 );
-    glEnd();
-    glLineWidth( 1 );
+//     glColor3f( 1, 0.1, 0.1 );
+//     glLineWidth( 2 );
+//     glBegin( GL_LINE_LOOP );
+//     glVertex2d( -0.125, 0.125 );
+//     glVertex2d( -0.125, -0.125 );
+//     glVertex2d( 0.125, -0.125 );
+//     glVertex2d( 0.125, 0.125 );
+//     glEnd();
+//     glLineWidth( 1 );
 }
 
-void Enemy::drawRadarPosition( const glm::vec3& modifier, float scale ) const
+void Enemy::drawRadarPosition( const glm::vec3&, float ) const
 {
-    if ( status() != Status::eAlive ) {
-        return;
-    }
-    glm::vec3 radarPosition = modifier;
-    radarPosition = ( position() - modifier ) * ( scale / 25 );
-    if ( glm::length( radarPosition ) > scale ) {
-        radarPosition = glm::normalize( radarPosition );
-        radarPosition = radarPosition * scale;
-        glColor3f( 1, 0.4, 0.05 );
-    }
-    else {
-        glColor4f( 1, 1, 1, 0.9 );
-    }
-    glPushMatrix();
-    glBegin( GL_LINES );
-    glVertex3f( radarPosition.x, radarPosition.y, radarPosition.z );
-    glVertex3f( 0, 0, 0 );
-    glEnd();
-
-    glPopMatrix();
+//     if ( status() != Status::eAlive ) {
+//         return;
+//     }
+//     glm::vec3 radarPosition = modifier;
+//     radarPosition = ( position() - modifier ) * ( scale / 25 );
+//     if ( glm::length( radarPosition ) > scale ) {
+//         radarPosition = glm::normalize( radarPosition );
+//         radarPosition = radarPosition * scale;
+//         glColor3f( 1, 0.4, 0.05 );
+//     }
+//     else {
+//         glColor4f( 1, 1, 1, 0.9 );
+//     }
+//     glPushMatrix();
+//     glBegin( GL_LINES );
+//     glVertex3f( radarPosition.x, radarPosition.y, radarPosition.z );
+//     glVertex3f( 0, 0, 0 );
+//     glEnd();
+// 
+//     glPopMatrix();
 }
 
 void Enemy::processCollision( SAObject* object )

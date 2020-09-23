@@ -54,12 +54,6 @@ uint32_t loadTexture( const char* filename )
         return loadDefault();
     }
 
-    if ( tga.bpp == 24 ) {
-        tga.type = GL_RGB;
-    }
-    else {
-        tga.type = GL_RGBA;
-    }
     tga.bytesPerPixel = tga.bpp / 8;
     tga.imageSize = tga.bytesPerPixel * tga.width * tga.height;
     std::vector<uint8_t> data( tga.imageSize );
