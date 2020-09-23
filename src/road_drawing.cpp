@@ -338,11 +338,11 @@ void Road::renderHUD( RenderContext rctx )
 void Road::render3D( RenderContext rctx )
 {
     rctx.projection = glm::perspective( glm::radians( m_angle + m_jet->speed() * 6 ), static_cast<float>( viewportWidth() / viewportHeight() ), 0.001f, 2000.0f );
-    rctx.model = glm::translate( rctx.model, glm::vec3{ 0, -0.255, -1 } );
-    const RenderContext rctx2 = rctx;
-    rctx.model *= glm::toMat4( m_jet->quat() );
-    rctx.model = glm::translate( rctx.model, -m_jet->position() );
+    rctx.view = glm::translate( rctx.view, glm::vec3{ 0, -0.255, -1 } );
+    rctx.view *= glm::toMat4( m_jet->quat() );
+    rctx.view = glm::translate( rctx.view, -m_jet->position() );
     m_map->render( rctx );
+    m_jet->render( rctx );
 
     {
         std::lock_guard<std::mutex> lg( m_mutexEnemy );
@@ -362,7 +362,6 @@ void Road::render3D( RenderContext rctx )
             it->render( rctx );
         }
     }
-    m_jet->render( rctx2 );
 }
 
 void Road::renderMainMenu( RenderContext rctx )

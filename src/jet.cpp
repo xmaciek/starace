@@ -42,6 +42,8 @@ Jet::Jet( const ModelProto& modelData )
 
 void Jet::render( RenderContext rctx ) const
 {
+    rctx.model = glm::translate( rctx.model, position() );
+    rctx.model *= glm::toMat4( rotation() );
     rctx.model *= glm::toMat4( animation() );
     m_model.render( rctx );
     for ( const glm::vec3& it : m_model.thrusters() ) {
