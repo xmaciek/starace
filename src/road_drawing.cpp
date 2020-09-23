@@ -658,33 +658,14 @@ void Road::renderMissionSelectionScreen( RenderContext rctx )
 void Road::renderGameScreenBriefing( RenderContext rctx )
 {
     renderGameScreen( rctx );
-    glEnable( GL_BLEND );
-    glEnable( GL_TEXTURE_2D );
-    glPushMatrix();
     renderCyberRings( rctx );
-    glColor3f( 1, 1, 1 );
-    m_fontPauseTxt->printText( 192, viewportHeight() - 292, "Movement: AWSD QE" );
-    m_fontPauseTxt->printText( 192, viewportHeight() - 310, "Speed controll: UO" );
-    m_fontPauseTxt->printText( 192, viewportHeight() - 328, "Weapons: JKL" );
-    m_fontPauseTxt->printText( 192, viewportHeight() - 346, "Targeting: I" );
-    m_fontPauseTxt->printText( 192, viewportHeight() - 380, "Press space to launch..." );
-
-    glEnable( GL_BLEND );
-    glEnable( GL_TEXTURE_2D );
-    glBindTexture( GL_TEXTURE_2D, m_hudTex );
-    glBegin( GL_QUADS );
-    glColor3f( 0, 0.75, 1 );
-    glTexCoord2f( 0, 0 );
-    glVertex2d( 0, 0 );
-    glTexCoord2f( 1, 0 );
-    glVertex2d( viewportWidth(), 0 );
-    glTexCoord2f( 1, 1 );
-    glVertex2d( viewportWidth(), viewportHeight() );
-    glTexCoord2f( 0, 1 );
-    glVertex2d( 0, viewportHeight() );
-    glEnd();
+    m_fontPauseTxt->renderText( rctx, glm::vec4{ 1, 1, 1, 1 }, 192, viewportHeight() - 292, "Movement: AWSD QE" );
+    m_fontPauseTxt->renderText( rctx, glm::vec4{ 1, 1, 1, 1 }, 192, viewportHeight() - 310, "Speed controll: UO" );
+    m_fontPauseTxt->renderText( rctx, glm::vec4{ 1, 1, 1, 1 }, 192, viewportHeight() - 328, "Weapons: JKL" );
+    m_fontPauseTxt->renderText( rctx, glm::vec4{ 1, 1, 1, 1 }, 192, viewportHeight() - 346, "Targeting: I" );
+    m_fontPauseTxt->renderText( rctx, glm::vec4{ 1, 1, 1, 1 }, 192, viewportHeight() - 380, "Press space to launch..." );
+    renderHudTex( rctx );
     m_btnGO.render( rctx );
-    glPopMatrix();
 }
 
 void Road::renderScreenCustomize( RenderContext rctx )
