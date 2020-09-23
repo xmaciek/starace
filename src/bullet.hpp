@@ -1,8 +1,8 @@
 #pragma once
 
-#include "sa.hpp"
 #include "saobject.hpp"
 
+#include <cstdint>
 #include <vector>
 
 struct BulletProto;

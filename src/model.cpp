@@ -2,6 +2,10 @@
 
 #include "render_pipeline.hpp"
 
+#include <cstring>
+#include <fstream>
+#include <sstream>
+
 Model::~Model()
 {
     destroyTexture( m_textureID );
@@ -71,19 +75,19 @@ void Model::loadOBJ( const char* filename )
         //         cout<<" "<<line.c_str()<<"\n";
         if ( line.substr( 0, 2 ) == "o " ) {
             line.erase( 0, 2 );
-            if ( strcmp( line.c_str(), "hull" ) == 0 ) {
+            if ( std::strcmp( line.c_str(), "hull" ) == 0 ) {
                 dataType = 1;
             }
             else {
-                if ( strcmp( line.c_str(), "shield" ) == 0 ) {
+                if ( std::strcmp( line.c_str(), "shield" ) == 0 ) {
                     dataType = 2;
                 }
                 else {
-                    if ( strcmp( line.c_str(), "weapons" ) == 0 ) {
+                    if ( std::strcmp( line.c_str(), "weapons" ) == 0 ) {
                         dataType = 3;
                     }
                     else {
-                        if ( strcmp( line.c_str(), "thruster" ) == 0 ) {
+                        if ( std::strcmp( line.c_str(), "thruster" ) == 0 ) {
                             dataType = 4;
                         }
                         else {
@@ -120,11 +124,11 @@ void Model::loadOBJ( const char* filename )
             ssline << line.c_str();
             while ( getline( ssline, tmpline, ' ' ) ) {
                 if ( containsTex ) {
-                    sscanf( tmpline.c_str(), "%i/%i", &v, &t );
+                    std::sscanf( tmpline.c_str(), "%i/%i", &v, &t );
                     tmpf.texcoord.push_back( tex[ t - 1 ] );
                 }
                 else {
-                    sscanf( tmpline.c_str(), "%i", &v );
+                    std::sscanf( tmpline.c_str(), "%i", &v );
                 }
                 tmpf.vertex.push_back( vertices[ v - 1 ] );
             }

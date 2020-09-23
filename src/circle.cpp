@@ -1,16 +1,15 @@
 #include "circle.hpp"
 
+#include <glm/gtc/matrix_transform.hpp>
+
 void Circle::init()
 {
-    m_x.clear();
-    m_y.clear();
-    m_x.reserve( m_segments );
-    m_y.reserve( m_segments );
-    double ANGLE = ( 360.0 / m_segments ) / 180.0 * PI;
+    m_data.clear();
+    m_data.reserve( m_segments );
+    const double step = 360.0 / m_segments;
     for ( uint32_t i = 0; i < m_segments; i++ ) {
-        const double DEGinRAD = ( i * ANGLE );
-        m_x.push_back( std::sin( DEGinRAD ) * m_radiust );
-        m_y.push_back( std::cos( DEGinRAD ) * m_radiust );
+        const double angle = glm::radians( step * i );
+        m_data.emplace_back( glm::sin( angle ) * m_radiust, glm::cos( angle ) * m_radiust );
     }
 }
 
@@ -29,7 +28,7 @@ Circle::Circle( uint32_t segments, double radius )
 double Circle::x( uint32_t a ) const
 {
     if ( a < m_segments ) {
-        return m_x[ a ];
+        return m_data[ a ].x;
     }
     return 0;
 }
@@ -37,7 +36,7 @@ double Circle::x( uint32_t a ) const
 double Circle::y( uint32_t a ) const
 {
     if ( a < m_segments ) {
-        return m_y[ a ];
+        return m_data[ a ].y;
     }
     return 0;
 }

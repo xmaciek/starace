@@ -1,11 +1,13 @@
 #pragma once
 
-#include "sa.hpp"
+#include <cstdint>
+#include <vector>
+
+#include <glm/vec2.hpp>
 
 class Circle {
 private:
-    std::vector<double> m_x{};
-    std::vector<double> m_y{};
+    std::vector<glm::vec2> m_data{};
     double m_radiust = 1.0;
     uint32_t m_segments = 32;
 

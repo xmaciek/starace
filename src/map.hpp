@@ -1,11 +1,28 @@
 #pragma once
 
 #include "render_context.hpp"
-#include "sa.hpp"
 #include "texture.hpp"
 #include "update_context.hpp"
 
 #include <glm/vec3.hpp>
+
+#include <cstdint>
+#include <string>
+#include <vector>
+
+struct MapProto {
+    uint32_t enemies = 0;
+    uint32_t preview_image = 0;
+    std::string name{ "unnamed map" };
+    std::string texture_location{};
+    std::string TOP{};
+    std::string BOTTOM{};
+    std::string LEFT{};
+    std::string RIGHT{};
+    std::string FRONT{};
+    std::string BACK{};
+    std::string preview_image_location{};
+};
 
 class Map {
 private:

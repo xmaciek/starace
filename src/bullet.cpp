@@ -133,7 +133,7 @@ void Bullet::update( const UpdateContext& updateContext )
         break;
 
     case Type::eTorpedo:
-        m_turnrate = speed() * 10.0f * DEG2RAD * updateContext.deltaTime;
+        m_turnrate = glm::radians( speed() * 10.0f * updateContext.deltaTime );
         interceptTarget();
         /*no break*/
 

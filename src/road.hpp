@@ -1,19 +1,19 @@
 #pragma once
 
-#include "sa.hpp"
-
 #include "bullet.hpp"
 #include "button.hpp"
 #include "enemy.hpp"
 #include "font.hpp"
 #include "jet.hpp"
 #include "map.hpp"
+#include "model_proto.hpp"
 #include "render_context.hpp"
 #include "renderer.hpp"
 #include "texture.hpp"
 #include "update_context.hpp"
 
 #include <glm/vec4.hpp>
+#include <SDL/SDL_mixer.h>
 
 #include <mutex>
 #include <thread>

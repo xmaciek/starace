@@ -1,5 +1,7 @@
 #pragma once
-#include "sa.hpp"
+
+#include <cstdint>
+#include <string_view>
 
 enum struct TextureFormat {
     eR,
@@ -20,5 +22,5 @@ struct TGA {
 };
 
 uint32_t loadDefault();
-uint32_t loadTexture( const char* filename );
+uint32_t loadTexture( std::string_view );
 void destroyTexture( uint32_t );

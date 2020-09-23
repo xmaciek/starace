@@ -1,9 +1,10 @@
 #pragma once
 
 #include "font.hpp"
-#include "sa.hpp"
-
 #include "render_context.hpp"
+
+#include <cstdint>
+#include <string>
 
 class Button {
 private:

@@ -7,6 +7,8 @@
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 
+#include <cstdint>
+
 class Thruster {
 private:
     double m_length = 1;

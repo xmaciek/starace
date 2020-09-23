@@ -1,7 +1,6 @@
 #pragma once
 
 #include "circle.hpp"
-#include "sa.hpp"
 #include "render_context.hpp"
 #include "update_context.hpp"
 

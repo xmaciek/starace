@@ -1,7 +1,6 @@
 #pragma once
 
 #include "bullet.hpp"
-#include "sa.hpp"
 #include "saobject.hpp"
 #include "shield.hpp"
 

@@ -3,13 +3,15 @@
 #include "bullet.hpp"
 #include "circle.hpp"
 #include "model.hpp"
-#include "sa.hpp"
+#include "model_proto.hpp"
 #include "saobject.hpp"
 #include "shield.hpp"
-#include "texture.hpp"
 #include "thruster.hpp"
 
+#include <glm/vec3.hpp>
 #include <glm/gtc/quaternion.hpp>
+
+#include <vector>
 
 class Jet : public SAObject {
 private:

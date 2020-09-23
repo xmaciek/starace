@@ -19,16 +19,17 @@ set( STARACE_HEADERS
     jet.hpp
     map.hpp
     model.hpp
+    model_proto.hpp
+    render_context.hpp
+    render_pipeline.hpp
+    renderer.hpp
     road.hpp
-    sa.hpp
     saobject.hpp
     shield.hpp
     texture.hpp
     thruster.hpp
     update_context.hpp
-    renderer.hpp
-    render_context.hpp
-    render_pipeline.hpp
+    utils.hpp
 )
 
 set( STARACE_SOURCES
@@ -59,7 +60,7 @@ set( STARACE_BINNAME "starace" )
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
 
 set( CMAKE_CXX_STANDARD 17 )
-add_executable( ${STARACE_BINNAME} ${STARACE_SOURCES} )
+add_executable( ${STARACE_BINNAME} ${STARACE_SOURCES} ${STARACE_HEADERS} )
 target_compile_options( ${STARACE_BINNAME} PRIVATE -Werror -Wall -Wextra )
 target_compile_definitions( ${STARACE_BINNAME} PUBLIC
     GLM_FORCE_RADIANS=1

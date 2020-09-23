@@ -1,5 +1,7 @@
 #include "enemy.hpp"
 
+#include "utils.hpp"
+
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -77,7 +79,7 @@ void Enemy::update( const UpdateContext& updateContext )
         m_shotFactor += 1.0 * updateContext.deltaTime;
     }
 
-    m_turnrate = speed() * 5 * DEG2RAD * updateContext.deltaTime;
+    m_turnrate = glm::radians( speed() * 5 * updateContext.deltaTime );
     interceptTarget();
     m_position += velocity() * updateContext.deltaTime;
     m_healthPerc = m_health / 100;

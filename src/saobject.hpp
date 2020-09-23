@@ -1,10 +1,11 @@
 #pragma once
 
-#include "sa.hpp"
 #include "render_context.hpp"
 #include "update_context.hpp"
 
 #include <glm/vec3.hpp>
+
+#include <cstdint>
 
 class SAObject {
 public:

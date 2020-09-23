@@ -1,10 +1,14 @@
 #include "road.hpp"
 
-#include "renderer.hpp"
+#include "utils.hpp"
+
+#include <SDL/SDL.h>
 
 #include <algorithm>
 #include <chrono>
 #include <cstdlib>
+#include <fstream>
+#include <iostream>
 #include <random>
 
 Road::Road()

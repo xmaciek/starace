@@ -1,5 +1,7 @@
 #include "road.hpp"
 
+#include <SDL/SDL.h>
+
 void Road::onKeyDown( SDLKey sym, SDLMod, Uint16 )
 {
     switch ( sym ) {
