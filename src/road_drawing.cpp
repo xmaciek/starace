@@ -374,52 +374,37 @@ void Road::renderMainMenu( RenderContext rctx )
     m_btnCustomize.render( rctx );
 }
 
-void Road::renderClouds( RenderContext ) const
+void Road::renderClouds( RenderContext rctx ) const
 {
-    glEnable( GL_BLEND );
-    glEnable( GL_TEXTURE_2D );
-    glPushMatrix();
-    glBindTexture( GL_TEXTURE_2D, m_menuBackground );
-    glBegin( GL_QUADS );
-    glColor4f( 0.1f, 0.4f, 0.9f, 1 );
-    glTexCoord2f( 0, 0 );
-    glVertex2d( 0, 0 );
-    glColor4f( 0.9f, 0.4f, 0.1f, 1 );
-    glTexCoord2f( 1, 0 );
-    glVertex2d( viewportWidth(), 0 );
-    glColor4f( 0.1f, 0.9f, 0.4f, 1 );
-    glTexCoord2f( 1, 1 );
-    glVertex2d( viewportWidth(), viewportHeight() );
-    glColor4f( 0.4f, 0.1f, 0.9f, 1 );
-    glTexCoord2f( 0, 1 );
-    glVertex2d( 0, viewportHeight() );
-    glEnd();
-    glBindTexture( GL_TEXTURE_2D, m_menuBackgroundOverlay );
-    glColor4f( 1, 1, 1, m_alphaValue );
-    glBegin( GL_QUADS );
-    glTexCoord2f( 0, 0 );
-    glVertex2d( 0, 0 );
-    glTexCoord2f( 1, 0 );
-    glVertex2d( viewportWidth(), 0 );
-    glTexCoord2f( 1, 1 );
-    glVertex2d( viewportWidth(), viewportHeight() );
-    glTexCoord2f( 0, 1 );
-    glVertex2d( 0, viewportHeight() );
-    glEnd();
+    PushConstant<Pipeline::eGuiTextureColor1> pushConstant{};
+    pushConstant.m_model = rctx.model;
+    pushConstant.m_view = rctx.view;
+    pushConstant.m_projection = rctx.projection;
+    pushConstant.m_uv[ 0 ] = glm::vec2{ 0, 0 };
+    pushConstant.m_uv[ 1 ] = glm::vec2{ 1, 0 };
+    pushConstant.m_uv[ 2 ] = glm::vec2{ 1, 1 };
+    pushConstant.m_uv[ 3 ] = glm::vec2{ 0, 1 };
 
-    glBindTexture( GL_TEXTURE_2D, m_starfieldTexture );
-    glColor4f( 1, 1, 1, m_alphaValue );
-    glBegin( GL_QUADS );
-    glTexCoord2f( 0, 0 );
-    glVertex2d( 0, 0 );
-    glTexCoord2f( 1, 0 );
-    glVertex2d( m_maxDimention, 0 );
-    glTexCoord2f( 1, 1 );
-    glVertex2d( m_maxDimention, m_maxDimention );
-    glTexCoord2f( 0, 1 );
-    glVertex2d( 0, m_maxDimention );
-    glEnd();
-    glPopMatrix();
+    PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{ rctx.renderer->allocator() };
+
+    pushBuffer.m_texture = m_menuBackground;
+    pushConstant.m_color = glm::vec4{ 0.3f, 0.2f, 0.9f, 1.0f };
+    pushConstant.m_vertices[ 0 ] = glm::vec2{ 0.0f, 0.0f };
+    pushConstant.m_vertices[ 1 ] = glm::vec2{ viewportWidth(), 0.0f };
+    pushConstant.m_vertices[ 2 ] = glm::vec2{ viewportWidth(), viewportHeight() };
+    pushConstant.m_vertices[ 3 ] = glm::vec2{ 0.0f, viewportHeight() };
+    rctx.renderer->push( &pushBuffer, &pushConstant );
+
+    pushBuffer.m_texture = m_menuBackgroundOverlay;
+    pushConstant.m_color = glm::vec4{ 1, 1, 1, m_alphaValue };
+    rctx.renderer->push( &pushBuffer, &pushConstant );
+
+    pushBuffer.m_texture = m_starfieldTexture;
+    pushConstant.m_vertices[ 0 ] = glm::vec2{ 0.0f, 0.0f };
+    pushConstant.m_vertices[ 1 ] = glm::vec2{ m_maxDimention, 0.0f };
+    pushConstant.m_vertices[ 2 ] = glm::vec2{ m_maxDimention, m_maxDimention };
+    pushConstant.m_vertices[ 3 ] = glm::vec2{ 0.0f, m_maxDimention };
+    rctx.renderer->push( &pushBuffer, &pushConstant );
 }
 
 void Road::renderWinScreen( RenderContext rctx )
