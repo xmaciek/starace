@@ -371,35 +371,11 @@ void Road::renderHUD( RenderContext rctx )
 
 void Road::render3D( RenderContext rctx )
 {
-    glEnable( GL_DEPTH_TEST );
-    //     glEnable( GL_FOG );
-    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
     rctx.projection = glm::perspective( glm::radians( m_angle + m_jet->speed() * 6 ), static_cast<float>( viewportWidth() / viewportHeight() ), 0.001f, 2000.0f );
-    glMatrixMode( GL_PROJECTION );
-    glLoadMatrixf( glm::value_ptr( rctx.projection ) );
-    {
-        glMatrixMode( GL_MODELVIEW );
-        const glm::mat4 mv = rctx.view * rctx.model;
-        glLoadMatrixf( glm::value_ptr( mv ) );
-    }
-
-    const float cX = -m_jet->x();
-    const float cY = -m_jet->y();
-    const float cZ = -m_jet->z();
-
-    glPushMatrix();
-    glTranslated( 0, -0.225, -1 );
     rctx.model = glm::translate( rctx.model, glm::vec3{ 0, -0.255, -1 } );
     const RenderContext rctx2 = rctx;
-
-    glPushMatrix();
-    const glm::mat4 matrice = glm::toMat4( m_jet->quat() );
-    rctx.model *= matrice;
-    glMultMatrixf( glm::value_ptr( matrice ) );
-
+    rctx.model *= glm::toMat4( m_jet->quat() );
     rctx.model = glm::translate( rctx.model, -m_jet->position() );
-    glTranslatef( cX, cY, cZ );
     m_map->render( rctx );
 
     {
@@ -408,8 +384,6 @@ void Road::render3D( RenderContext rctx )
             it->render( rctx );
         }
     }
-    glEnable( GL_BLEND );
-    glLineWidth( 2 );
     {
         std::lock_guard<std::mutex> lg( m_mutexBullet );
         for ( const Bullet* it : m_bullets ) {
@@ -422,11 +396,7 @@ void Road::render3D( RenderContext rctx )
             it->render( rctx );
         }
     }
-    glLineWidth( 1 );
-    glDisable( GL_BLEND );
-    glPopMatrix();
     m_jet->render( rctx2 );
-    glPopMatrix();
 }
 
 void Road::renderMainMenu( RenderContext rctx )

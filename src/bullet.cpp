@@ -71,6 +71,7 @@ void Bullet::render( RenderContext rctx ) const
         pushBuffer.m_vertices.emplace_back( *( m_tail.begin() + 1 ) );
         pushBuffer.m_colors.emplace_back( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], m_color1[ 3 ] );
         pushBuffer.m_colors.emplace_back( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], m_color1[ 3 ] );
+        pushBuffer.m_lineWidth = 2.0f;
         rctx.renderer->push( &pushBuffer, &pushConstant );
     } break;
 
@@ -86,6 +87,7 @@ void Bullet::render( RenderContext rctx ) const
         pushBuffer.m_colors.emplace_back( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], m_color1[ 3 ] );
         pushBuffer.m_colors.emplace_back( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], m_color1[ 3 ] );
         pushBuffer.m_colors.emplace_back( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], 0.0f );
+        pushBuffer.m_lineWidth = 2.0f;
         rctx.renderer->push( &pushBuffer, &pushConstant );
     } break;
 
@@ -103,6 +105,7 @@ void Bullet::render( RenderContext rctx ) const
         for ( size_t i = 2; i < m_tail.size(); ++i ) {
             pushBuffer.m_colors.emplace_back( 1.0f, 1.0f, 1.0f, 1.0f / i );
         }
+        pushBuffer.m_lineWidth = 2.0f;
         rctx.renderer->push( &pushBuffer, &pushConstant );
     } break;
     }

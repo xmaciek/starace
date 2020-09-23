@@ -38,6 +38,7 @@ struct PushBuffer<Pipeline::eLine3dStripColor> {
     Pipeline m_pipeline = Pipeline::eLine3dStripColor;
     std::pmr::vector<glm::vec3> m_vertices{};
     std::pmr::vector<glm::vec4> m_colors{};
+    float m_lineWidth = 1.0f;
 
     PushBuffer() = default;
     PushBuffer( std::pmr::memory_resource* allocator )
@@ -112,6 +113,7 @@ template <>
 struct PushBuffer<Pipeline::eLine3dColor1> {
     Pipeline m_pipeline = Pipeline::eLine3dColor1;
     std::pmr::vector<glm::vec3> m_vertices{};
+    float m_lineWidth = 1.0f;
 
     PushBuffer() = default;
     PushBuffer( std::pmr::memory_resource* allocator )

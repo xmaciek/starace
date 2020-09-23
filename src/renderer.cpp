@@ -38,6 +38,8 @@ void Renderer::push( void* buffer, void* constant )
         glLoadMatrixf( glm::value_ptr( pushConstant->m_projection ) );
         glMatrixMode( GL_MODELVIEW );
         glLoadMatrixf( glm::value_ptr( pushConstant->m_view * pushConstant->m_model ) );
+
+        glLineWidth( pushBuffer->m_lineWidth );
         glBegin( GL_LINE_STRIP );
         for ( size_t i = 0; i < pushBuffer->m_vertices.size(); ++i ) {
             glColor4fv( glm::value_ptr( pushBuffer->m_colors[ i ] ) );
@@ -156,6 +158,7 @@ void Renderer::push( void* buffer, void* constant )
         glMatrixMode( GL_MODELVIEW );
         glLoadMatrixf( glm::value_ptr( pushConstant->m_view * pushConstant->m_model ) );
 
+        glLineWidth( pushBuffer->m_lineWidth );
         glBegin( GL_LINES );
         glColor4fv( glm::value_ptr( pushConstant->m_color ) );
         for ( const glm::vec3& it : pushBuffer->m_vertices ) {
