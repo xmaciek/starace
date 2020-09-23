@@ -431,35 +431,9 @@ void Road::render3D( RenderContext rctx )
 
 void Road::renderMainMenu( RenderContext rctx )
 {
-    glPushMatrix();
-    glDisable( GL_DEPTH_TEST );
-    glDisable( GL_FOG );
-    glEnable( GL_BLEND );
-    glEnable( GL_TEXTURE_2D );
-    setOrtho();
     renderClouds( rctx );
-    glPopMatrix();
-
     renderCyberRings( rctx );
-
-    PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{ rctx.renderer->allocator() };
-    pushBuffer.m_texture = m_hudTex;
-    PushConstant<Pipeline::eGuiTextureColor1> pushConstant{};
-    pushConstant.m_model = rctx.model;
-    pushConstant.m_view = rctx.view;
-    pushConstant.m_projection = rctx.projection;
-    pushConstant.m_color = glm::vec4{ 0.1f, 0.4f, 0.9f, 0.8f };
-
-    pushConstant.m_vertices[ 0 ] = glm::vec2{ 0, 0 };
-    pushConstant.m_vertices[ 1 ] = glm::vec2{ viewportWidth(), 0 };
-    pushConstant.m_vertices[ 2 ] = glm::vec2{ viewportWidth(), viewportHeight() };
-    pushConstant.m_vertices[ 3 ] = glm::vec2{ 0.0, viewportHeight() };
-    pushConstant.m_uv[ 0 ] = glm::vec2{ 0, 0 };
-    pushConstant.m_uv[ 1 ] = glm::vec2{ 1, 0 };
-    pushConstant.m_uv[ 2 ] = glm::vec2{ 1, 1 };
-    pushConstant.m_uv[ 3 ] = glm::vec2{ 0, 1 };
-    rctx.renderer->push( &pushBuffer, &pushConstant );
-
+    renderHudTex( rctx, glm::vec4{ 0, 0.75, 1, 1 } );
     m_btnSelectMission.render( rctx );
     m_btnExit.render( rctx );
     m_btnCustomize.render( rctx );
