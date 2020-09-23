@@ -516,50 +516,32 @@ void Road::renderClouds( RenderContext ) const
 void Road::renderWinScreen( RenderContext rctx )
 {
     renderGameScreen( rctx );
-    glEnable( GL_BLEND );
-    glEnable( GL_TEXTURE_2D );
-    glPushMatrix();
     renderCyberRings( rctx );
-    glColor4fv( m_hudColor4fv[ 0 ] );
-    glBindTexture( GL_TEXTURE_2D, m_hudTex );
-    glBegin( GL_QUADS );
-    glTexCoord2f( 0, 0 );
-    glVertex2d( 0, 0 );
-    glTexCoord2f( 1, 0 );
-    glVertex2d( viewportWidth(), 0 );
-    glTexCoord2f( 1, 1 );
-    glVertex2d( viewportWidth(), viewportHeight() );
-    glTexCoord2f( 0, 1 );
-    glVertex2d( 0, viewportHeight() );
-    glEnd();
-    glPopMatrix();
+    renderHudTex( rctx, glm::vec4{ 0.0275f, 1.0f, 0.075f, 1.0f } );
 
-    glColor3f( 1, 1, 1 );
-    {
-        constexpr static char missionOK[] = "MISSION SUCCESSFUL";
-        m_fontBig->printText( viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( missionOK ) ) / 2, viewportHeight() - 128, missionOK );
+    constexpr static char missionOK[] = "MISSION SUCCESSFUL";
+    m_fontBig->renderText( rctx
+        , glm::vec4{ 1, 1, 1, 1 }
+        , viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( missionOK ) ) / 2
+        , viewportHeight() - 128
+        , missionOK
+    );
 
-        std::string str{ "Your score: " };
-        str += std::to_string( m_jet->score() );
-        const double posx = viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( str.c_str() ) ) / 2;
-        m_fontBig->printText( posx, viewportHeight() - 128 - 36, str.c_str() );
-    }
+    const std::string str = std::string{ "Your score: " } + std::to_string( m_jet->score() );
+    m_fontBig->renderText( rctx
+        , glm::vec4{ 1, 1, 1, 1 }
+        , viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( str.c_str() ) ) / 2
+        , viewportHeight() - 128 - 36
+        , str
+    );
     m_btnReturnToMissionSelection.render( rctx );
-
-    glDisable( GL_TEXTURE_2D );
-    glDisable( GL_BLEND );
 }
 
 void Road::renderDeadScreen( RenderContext rctx )
 {
     renderGameScreen( rctx );
     renderCyberRings( rctx );
-    renderHudTex( rctx, glm::vec4{
-        m_hudColor4fv[ 2 ][ 0 ]
-        , m_hudColor4fv[ 2 ][ 1 ]
-        , m_hudColor4fv[ 2 ][ 2 ]
-        , m_hudColor4fv[ 2 ][ 3 ] }
-    );
+    renderHudTex( rctx, glm::vec4{ 1.0f, 0.1f, 0.1f, 1.0f } );
 
     constexpr static char txt[] = "MISSION FAILED";
     m_fontBig->renderText( rctx
