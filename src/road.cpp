@@ -44,6 +44,7 @@ Road::~Road()
     delete m_fontBig;
     delete m_speedFanRing;
     delete m_radar;
+    delete m_renderer;
 
     glDeleteTextures( 1, &m_hudTex );
     glDeleteTextures( 1, &m_buttonTexture );
@@ -134,21 +135,6 @@ bool Road::onInit()
         return false;
     }
 
-    SDL_GL_SetAttribute( SDL_GL_RED_SIZE, 8 );
-    SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, 8 );
-    SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE, 8 );
-    SDL_GL_SetAttribute( SDL_GL_ALPHA_SIZE, 8 );
-
-    SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, 16 );
-    SDL_GL_SetAttribute( SDL_GL_BUFFER_SIZE, 32 );
-
-    SDL_GL_SetAttribute( SDL_GL_ACCUM_RED_SIZE, 0 );
-    SDL_GL_SetAttribute( SDL_GL_ACCUM_GREEN_SIZE, 0 );
-    SDL_GL_SetAttribute( SDL_GL_ACCUM_BLUE_SIZE, 0 );
-    SDL_GL_SetAttribute( SDL_GL_ACCUM_ALPHA_SIZE, 0 );
-
-    SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, 1 );
-    SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, 2 );
 
     if ( Mix_OpenAudio( 22050, AUDIO_S16SYS, 2, 4096 ) != 0 ) {
         std::fprintf( stderr, "Unable to initialize audio: %s\n", Mix_GetError() );
@@ -166,23 +152,18 @@ bool Road::onInit()
         return false;
     }
 
-    initRoadAdditionsGL();
+    m_renderer = new Renderer();
+    initRoadAdditions();
     onResize( viewportWidth(), viewportHeight() );
     return true;
 }
 
 void Road::onResize( int32_t w, int32_t h )
 {
-    if ( w > h ) {
-        m_maxDimention = w;
-        m_minDimention = h;
-    }
-    else {
-        m_maxDimention = h;
-        m_minDimention = w;
-    }
+    m_maxDimention = std::max( w, h );
+    m_minDimention = std::min( w, h );
+    m_renderer->setViewportSize( w, h );
 
-    glViewport( 0, 0, w, h );
     m_btnExit.updateCoord( ( viewportWidth() / 2 ) + 4, viewportHeight() * 0.15 );
     m_btnQuitMission.updateCoord( ( viewportWidth() / 2 ) - 196, viewportHeight() * 0.15 );
     m_btnChangeFiltering.updateCoord( 512, viewportHeight() - 192 );
@@ -203,14 +184,12 @@ void Road::onResize( int32_t w, int32_t h )
     m_btnWeap3.updateCoord( viewportWidth() / 2 + 100, viewportHeight() * 0.15 + 52 - 76 );
 }
 
-void Road::initRoadAdditionsGL()
+void Road::initRoadAdditions()
 {
-    //   init functons
-
     if ( TTF_Init() < 0 ) {
         std::cout << "Unable to initialize library: " << TTF_GetError() << "\n";
     }
-    //     setTextureFiltering(FILTERING_ANISOTROPIC_X16);
+
     m_fontPauseTxt = new Font( "misc/DejaVuSans-Bold.ttf", 18 );
     m_fontGuiTxt = new Font( "misc/DejaVuSans-Bold.ttf", 12 );
     m_fontBig = new Font( "misc/DejaVuSans-Bold.ttf", 32 );
@@ -333,53 +312,10 @@ void Road::initRoadAdditionsGL()
     m_cyberRingTexture[ 0 ] = loadTexture( "textures/cyber_ring1.tga" );
     m_cyberRingTexture[ 1 ] = loadTexture( "textures/cyber_ring2.tga" );
     m_cyberRingTexture[ 2 ] = loadTexture( "textures/cyber_ring3.tga" );
-    //     m_cyberRingTexture[3] = LoadTexture("textures/cyber_ring4.tga");
-    m_cyberRingRotation[ 0 ] = 0;
-    m_cyberRingRotation[ 1 ] = 0;
-    m_cyberRingRotation[ 2 ] = 0;
-    m_cyberRingRotationDirection[ 0 ] = false;
-    m_cyberRingRotationDirection[ 1 ] = false;
-    m_cyberRingRotationDirection[ 2 ] = false;
 
     float temp_colors[ 4 ][ 4 ] = { { 1, 1, 1, 0.8 }, { 1, 1, 1, 0.7 }, { 1, 1, 1, 0.6 }, { 1, 1, 1, 0.7 } };
 
     memcpy( m_cyberRingColor, temp_colors, sizeof( float ) * 12 );
-
-    glEnable( GL_BLEND );
-    glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-
-    m_lightAmbient[ 0 ] = 0.5f;
-    m_lightAmbient[ 1 ] = 0.5f;
-    m_lightAmbient[ 2 ] = 0.5f;
-    m_lightAmbient[ 3 ] = 1.0f;
-
-    m_lightDiffuse[ 0 ] = 0.8f;
-    m_lightDiffuse[ 1 ] = 0.8f;
-    m_lightDiffuse[ 2 ] = 0.8f;
-    m_lightDiffuse[ 3 ] = 1.0f;
-
-    m_lightPosition[ 0 ] = 0;
-    m_lightPosition[ 1 ] = 1;
-    m_lightPosition[ 2 ] = 1;
-    m_lightPosition[ 3 ] = 1;
-
-    glEnable( GL_CULL_FACE );
-    glFrontFace( GL_CCW );
-    glMaterialfv( GL_FRONT, GL_AMBIENT, m_lightAmbient );
-    glMaterialfv( GL_FRONT, GL_DIFFUSE, m_lightDiffuse );
-    glLightfv( GL_LIGHT0, GL_AMBIENT, m_lightAmbient );
-
-    glLightfv( GL_LIGHT0, GL_DIFFUSE, m_lightDiffuse );
-    glLightfv( GL_LIGHT0, GL_POSITION, m_lightPosition );
-    glEnable( GL_LIGHT0 );
-
-    float fogColor[ 4 ] = { 0.0f, 0.0f, 0.0f, 1.0f };
-    glFogi( GL_FOG_MODE, GL_LINEAR );
-    glFogfv( GL_FOG_COLOR, fogColor );
-    glFogf( GL_FOG_DENSITY, 0.1f );
-    glHint( GL_FOG_HINT, GL_NICEST );
-    glFogf( GL_FOG_START, 10.0f );
-    glFogf( GL_FOG_END, 25.0f );
 
     float tempcolor[ 4 ][ 4 ] = {
         { 0.3, 0.8, 1, 1 }, { 1, 0.8, 0.1, 1 }, { 1, 0.3, 0.8, 1 }, { 1, 1, 0, 1 }
@@ -446,10 +382,9 @@ void Road::onRender()
 {
     m_timeS = SDL_GetTicks();
 
-    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-    Renderer r{};
+    m_renderer->clear();
     RenderContext rctx{};
-    rctx.renderer = &r;
+    rctx.renderer = m_renderer;
     rctx.projection = glm::ortho<float>( 0.0f, viewportWidth(), 0.0f, viewportHeight(), -100.0f, 100.0f );
     switch ( m_currentScreen ) {
     case Screen::eGame:
@@ -479,7 +414,7 @@ void Road::onRender()
     default:
         break;
     }
-    SDL_GL_SwapBuffers();
+    m_renderer->present();
 }
 
 void Road::onUpdate()

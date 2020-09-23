@@ -2,7 +2,9 @@
 
 #include "render_pipeline.hpp"
 
+
 #include <GL/gl.h>
+#include <SDL/SDL.h>
 #include <glm/gtc/type_ptr.hpp>
 
 struct ScopeEnable {
@@ -18,9 +20,54 @@ struct ScopeEnable {
     }
 };
 
+Renderer::Renderer()
+{
+    SDL_GL_SetAttribute( SDL_GL_ACCUM_ALPHA_SIZE, 0 );
+    SDL_GL_SetAttribute( SDL_GL_ACCUM_BLUE_SIZE, 0 );
+    SDL_GL_SetAttribute( SDL_GL_ACCUM_GREEN_SIZE, 0 );
+    SDL_GL_SetAttribute( SDL_GL_ACCUM_RED_SIZE, 0 );
+    SDL_GL_SetAttribute( SDL_GL_ALPHA_SIZE, 8 );
+    SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE, 8 );
+    SDL_GL_SetAttribute( SDL_GL_BUFFER_SIZE, 32 );
+    SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, 16 );
+    SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, 8 );
+    SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, 1 );
+    SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, 2 );
+    SDL_GL_SetAttribute( SDL_GL_RED_SIZE, 8 );
+
+    glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+    glEnable( GL_CULL_FACE );
+    glFrontFace( GL_CCW );
+
+    const glm::vec4 lightAmbient{ 0.5f, 0.5f, 0.5f, 1.0f };
+    const glm::vec4 lightDiffuse{ 0.8f, 0.8f, 0.8f, 1.0f };
+    const glm::vec4 lightPosition{ 0, 1, 1, 1 };
+    glMaterialfv( GL_FRONT, GL_AMBIENT, glm::value_ptr( lightAmbient ) );
+    glMaterialfv( GL_FRONT, GL_DIFFUSE, glm::value_ptr( lightDiffuse ) );
+    glLightfv( GL_LIGHT0, GL_AMBIENT, glm::value_ptr( lightAmbient ) );
+    glLightfv( GL_LIGHT0, GL_DIFFUSE, glm::value_ptr( lightDiffuse ) );
+    glLightfv( GL_LIGHT0, GL_POSITION, glm::value_ptr( lightPosition ) );
+    glEnable( GL_LIGHT0 );
+}
+
 std::pmr::memory_resource* Renderer::allocator()
 {
     return std::pmr::get_default_resource();
+}
+
+void Renderer::setViewportSize( uint32_t w, uint32_t h )
+{
+    glViewport( 0, 0, w, h );
+}
+
+void Renderer::clear()
+{
+    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+}
+
+void Renderer::present()
+{
+    SDL_GL_SwapBuffers();
 }
 
 void Renderer::push( void* buffer, void* constant )

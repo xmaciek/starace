@@ -9,6 +9,7 @@
 #include "jet.hpp"
 #include "map.hpp"
 #include "render_context.hpp"
+#include "renderer.hpp"
 #include "texture.hpp"
 #include "update_context.hpp"
 
@@ -50,6 +51,7 @@ private:
     Mix_Chunk* m_click = nullptr;
     Mix_Chunk* m_laser = nullptr;
     Mix_Chunk* m_torpedo = nullptr;
+    Renderer* m_renderer = nullptr;
     SDL_Surface* m_display = nullptr;
     std::thread m_thread{};
 
@@ -153,7 +155,7 @@ private:
     void gameKeyboardPressed( SDLKey );
     void gameKeyboardUnpressed( SDLKey );
     void goFullscreen( bool );
-    void initRoadAdditionsGL();
+    void initRoadAdditions();
     void loadConfig();
     void loadJetProto();
     void loadMapProto();
