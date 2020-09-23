@@ -589,70 +589,47 @@ void Road::renderDeadScreen( RenderContext rctx )
 
 void Road::renderMissionSelectionScreen( RenderContext rctx )
 {
-    glPushMatrix();
-    glDisable( GL_DEPTH_TEST );
-    glDisable( GL_FOG );
-    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-    setOrtho();
-    glEnable( GL_TEXTURE_2D );
-    glEnable( GL_BLEND );
-    glPushMatrix();
     {
         MapProto& map = m_mapsContainer[ m_currentMap ];
         if ( map.preview_image == 0 ) {
             map.preview_image = loadTexture( map.preview_image_location.c_str() );
         }
-        glBindTexture( GL_TEXTURE_2D, map.preview_image );
     }
 
-    glBegin( GL_QUADS );
-    glColor3f( 1, 1, 1 );
-    glTexCoord2f( 0, 0 );
-    glVertex2d( 0, 0 );
-    glTexCoord2f( 1, 0 );
-    glVertex2d( m_maxDimention, 0 );
-    glTexCoord2f( 1, 1 );
-    glVertex2d( m_maxDimention, m_maxDimention );
-    glTexCoord2f( 0, 1 );
-    glVertex2d( 0, m_maxDimention );
-    glEnd();
+    PushConstant<Pipeline::eGuiTextureColor1> pushConstant{};
+    pushConstant.m_model = rctx.model;
+    pushConstant.m_view = rctx.view;
+    pushConstant.m_projection = rctx.projection;
+    pushConstant.m_color = glm::vec4{ 1, 1, 1, 1 };
+    pushConstant.m_uv[ 0 ] = glm::vec2{ 0, 0 };
+    pushConstant.m_uv[ 1 ] = glm::vec2{ 1, 0 };
+    pushConstant.m_uv[ 2 ] = glm::vec2{ 1, 1 };
+    pushConstant.m_uv[ 3 ] = glm::vec2{ 0, 1 };
+    pushConstant.m_vertices[ 0 ] = glm::vec2{ 0, 0 };
+    pushConstant.m_vertices[ 1 ] = glm::vec2{ m_maxDimention, 0};
+    pushConstant.m_vertices[ 2 ] = glm::vec2{ m_maxDimention, m_maxDimention };
+    pushConstant.m_vertices[ 3 ] = glm::vec2{ 0, m_maxDimention };
+
+    PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{ rctx.renderer->allocator() };
+    pushBuffer.m_texture = m_mapsContainer[ m_currentMap ].preview_image;
+    rctx.renderer->push( &pushBuffer, &pushConstant );
     {
-        std::string str{ "Map: " };
-        str += m_mapsContainer.at( m_currentMap ).name;
+        const std::string str = std::string{ "Map: " } + m_mapsContainer.at( m_currentMap ).name;
         const double posx = viewportWidth() / 2 - static_cast<double>( m_fontPauseTxt->textLength( str.c_str() ) ) / 2;
-        m_fontPauseTxt->printText( posx, viewportHeight() - 128, str.c_str() );
+        m_fontPauseTxt->renderText( rctx, glm::vec4{ 1, 1, 1, 1 }, posx, viewportHeight() - 128, str );
     }
     {
-        std::string str{ "Enemies: " };
-        str += std::to_string( m_mapsContainer.at( m_currentMap ).enemies );
+        const std::string str = std::string{ "Enemies: " } + std::to_string( m_mapsContainer.at( m_currentMap ).enemies );
         const double posx = viewportWidth() / 2 - static_cast<double>( m_fontPauseTxt->textLength( str.c_str() ) ) / 2;
-        m_fontPauseTxt->printText( posx, viewportHeight() - 148, str.c_str() );
+        m_fontPauseTxt->renderText( rctx, glm::vec4{ 1, 1, 1, 1 }, posx, viewportHeight() - 148, str );
     }
 
-    glPopMatrix();
-
-    glEnable( GL_TEXTURE_2D );
-    glEnable( GL_BLEND );
     renderCyberRings( rctx );
-    glBindTexture( GL_TEXTURE_2D, m_hudTex );
-    glBegin( GL_QUADS );
-    glColor3f( 0, 0.75, 1 );
-    glTexCoord2f( 0, 0 );
-    glVertex2d( 0, 0 );
-    glTexCoord2f( 1, 0 );
-    glVertex2d( viewportWidth(), 0 );
-    glTexCoord2f( 1, 1 );
-    glVertex2d( viewportWidth(), viewportHeight() );
-    glTexCoord2f( 0, 1 );
-    glVertex2d( 0, viewportHeight() );
-    glEnd();
-
+    renderHudTex( rctx );
     m_btnStartMission.render( rctx );
     m_btnReturnToMainMenu.render( rctx );
     m_btnNextMap.render( rctx );
     m_btnPrevMap.render( rctx );
-
-    glPopMatrix();
 }
 
 void Road::renderGameScreenBriefing( RenderContext rctx )
