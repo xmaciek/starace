@@ -194,7 +194,7 @@ void Road::renderHUDBar( uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_
 void Road::renderPauseText( RenderContext rctx )
 {
     renderCyberRings( rctx );
-    renderHudTex( rctx );
+    renderHudTex( rctx, glm::vec4{ 0.1f, 0.4f, 0.9f, 0.8f } );
 
     m_btnQuitMission.render( rctx );
     constexpr static char PAUSED[] = "PAUSED";
@@ -202,7 +202,7 @@ void Road::renderPauseText( RenderContext rctx )
     m_fontPauseTxt->renderText( rctx, glm::vec4{ 1.0f, 1.0f, 0.0f, 1.0f }, posx, viewportHeight() - 128, PAUSED );
 }
 
-void Road::renderHudTex( RenderContext rctx )
+void Road::renderHudTex( RenderContext rctx, const glm::vec4& color )
 {
     PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{ rctx.renderer->allocator() };
     pushBuffer.m_texture = m_hudTex;
@@ -210,7 +210,7 @@ void Road::renderHudTex( RenderContext rctx )
     pushConstant.m_model = rctx.model;
     pushConstant.m_view = rctx.view;
     pushConstant.m_projection = rctx.projection;
-    pushConstant.m_color = glm::vec4{ 0.1f, 0.4f, 0.9f, 0.8f };
+    pushConstant.m_color = color;
     pushConstant.m_vertices[ 0 ] = glm::vec2{ 0, 0 };
     pushConstant.m_vertices[ 1 ] = glm::vec2{ viewportWidth(), 0.0 };
     pushConstant.m_vertices[ 2 ] = glm::vec2{ viewportWidth(), viewportHeight() };
@@ -553,38 +553,31 @@ void Road::renderWinScreen( RenderContext rctx )
 void Road::renderDeadScreen( RenderContext rctx )
 {
     renderGameScreen( rctx );
-    glEnable( GL_BLEND );
-    glEnable( GL_TEXTURE_2D );
-    glPushMatrix();
     renderCyberRings( rctx );
-    glColor4fv( m_hudColor4fv[ 2 ] );
-    glBindTexture( GL_TEXTURE_2D, m_hudTex );
-    glBegin( GL_QUADS );
-    glTexCoord2f( 0, 0 );
-    glVertex2d( 0, 0 );
-    glTexCoord2f( 1, 0 );
-    glVertex2d( viewportWidth(), 0 );
-    glTexCoord2f( 1, 1 );
-    glVertex2d( viewportWidth(), viewportHeight() );
-    glTexCoord2f( 0, 1 );
-    glVertex2d( 0, viewportHeight() );
-    glEnd();
-    glPopMatrix();
+    renderHudTex( rctx, glm::vec4{
+        m_hudColor4fv[ 2 ][ 0 ]
+        , m_hudColor4fv[ 2 ][ 1 ]
+        , m_hudColor4fv[ 2 ][ 2 ]
+        , m_hudColor4fv[ 2 ][ 3 ] }
+    );
 
-    glColor3f( 1, 1, 1 );
-    {
-        constexpr static char missionOK[] = "MISSION FAILED";
-        m_fontBig->printText( viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( missionOK ) ) / 2, viewportHeight() - 128, missionOK );
+    constexpr static char txt[] = "MISSION FAILED";
+    m_fontBig->renderText( rctx
+        , glm::vec4{ 1, 1, 1, 1 }
+        , viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( txt ) ) / 2
+        , viewportHeight() - 128
+        , txt
+    );
 
-        std::string str{ "Your score: " };
-        str += std::to_string( m_jet->score() );
-        const double posx = viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( str.c_str() ) ) / 2;
-        m_fontBig->printText( posx, viewportHeight() - 128 - 36, str.c_str() );
-    }
+    const std::string str = std::string{ "Your score: " } + std::to_string( m_jet->score() );
+    m_fontBig->renderText( rctx
+        , glm::vec4{ 1, 1, 1, 1 }
+        , viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( str.c_str() ) ) / 2
+        , viewportHeight() - 128 - 36
+        , str
+    );
+
     m_btnReturnToMissionSelection.render( rctx );
-
-    glDisable( GL_TEXTURE_2D );
-    glDisable( GL_BLEND );
 }
 
 void Road::renderMissionSelectionScreen( RenderContext rctx )
@@ -625,7 +618,7 @@ void Road::renderMissionSelectionScreen( RenderContext rctx )
     }
 
     renderCyberRings( rctx );
-    renderHudTex( rctx );
+    renderHudTex( rctx, glm::vec4{ 0, 0.75, 1, 1 } );
     m_btnStartMission.render( rctx );
     m_btnReturnToMainMenu.render( rctx );
     m_btnNextMap.render( rctx );
@@ -641,7 +634,7 @@ void Road::renderGameScreenBriefing( RenderContext rctx )
     m_fontPauseTxt->renderText( rctx, glm::vec4{ 1, 1, 1, 1 }, 192, viewportHeight() - 328, "Weapons: JKL" );
     m_fontPauseTxt->renderText( rctx, glm::vec4{ 1, 1, 1, 1 }, 192, viewportHeight() - 346, "Targeting: I" );
     m_fontPauseTxt->renderText( rctx, glm::vec4{ 1, 1, 1, 1 }, 192, viewportHeight() - 380, "Press space to launch..." );
-    renderHudTex( rctx );
+    renderHudTex( rctx, glm::vec4{ 0, 0.75, 1, 1 } );
     m_btnGO.render( rctx );
 }
 
@@ -649,7 +642,7 @@ void Road::renderScreenCustomize( RenderContext rctx )
 {
     renderClouds( rctx );
     renderCyberRings( rctx );
-    renderHudTex( rctx );
+    renderHudTex( rctx, glm::vec4{ 0, 0.75, 1, 1 } );
 
     {
         const double posx = viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( m_jetsContainer.at( m_currentJet ).name.c_str() ) ) / 2;
