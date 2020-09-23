@@ -450,7 +450,7 @@ void Road::onRender()
     Renderer r{};
     RenderContext rctx{};
     rctx.renderer = &r;
-    rctx.projection = glm::ortho<float>( 0.0f, viewportWidth(), 0.0f, viewportHeight(), -1.0f, 1.0f );
+    rctx.projection = glm::ortho<float>( 0.0f, viewportWidth(), 0.0f, viewportHeight(), -100.0f, 100.0f );
     switch ( m_currentScreen ) {
     case Screen::eGame:
         renderGameScreen( rctx );

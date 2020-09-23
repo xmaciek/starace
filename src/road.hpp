@@ -143,12 +143,6 @@ private:
     bool onInit();
     double viewportHeight() const;
     double viewportWidth() const;
-    static void drawAxis();
-    static void drawHUDLine( double x1, double y1, double x2, double y2, double t );
-    static void drawHUDPiece( double x, double y, double rotAngleZ );
-    static void drawHudRect( double x, double y, double w, double h );
-    static void drawLine( double x, double y );
-    // purposefully copy argument
     void addBullet( uint32_t wID );
     void changeScreen( Screen );
     void clearMapData();
@@ -173,6 +167,8 @@ private:
     void onUpdate();
     void pause();
     void playSound( Mix_Chunk* ) const;
+
+    // purposefully copy argument
     void render3D( RenderContext );
     void renderClouds( RenderContext ) const;
     void renderCrosshair( RenderContext );
@@ -184,12 +180,13 @@ private:
     void renderGameScreenPaused( RenderContext );
     void renderHUD( RenderContext );
     void renderHudTex( RenderContext, const glm::vec4& );
-    void renderHUDBar( uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t current, uint32_t max );
+    void renderHUDBar( RenderContext, const glm::vec4& xywh, float ratio );
     void renderMainMenu( RenderContext );
     void renderMissionSelectionScreen( RenderContext );
     void renderPauseText( RenderContext );
     void renderScreenCustomize( RenderContext );
     void renderWinScreen( RenderContext );
+
     void retarget();
     void saveConfig();
     void setCamera();

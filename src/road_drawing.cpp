@@ -29,79 +29,6 @@ void Road::renderGameScreenPaused( RenderContext rctx )
     renderPauseText( rctx );
 }
 
-void Road::drawAxis()
-{
-    glPushMatrix();
-    glBegin( GL_LINES );
-    glColor3f( 1, 0, 0 );
-    glVertex3d( -0.1, 0, 0 );
-    glVertex3d( 0.1, 0, 0 );
-
-    glColor3f( 0, 1, 0 );
-    glVertex3d( 0, -0.1, 0 );
-    glVertex3d( 0, 0.1, 0 );
-
-    glColor3f( 0, 0, 1 );
-    glVertex3d( 0, 0, -0.1 );
-    glVertex3d( 0, 0, 0.1 );
-    glEnd();
-    glPopMatrix();
-}
-
-/* HUD elements */
-
-void Road::drawLine( double x, double y )
-{
-    glPushMatrix();
-    glBegin( GL_LINES );
-    glColor4f( 1, 0.4f, 0, 0 );
-    glVertex3d( x, y, -100 );
-    glColor4f( 1, 0.4f, 0, 1 );
-    glVertex3d( x, y, 1 );
-    glEnd();
-    glPopMatrix();
-}
-
-void Road::drawHudRect( double x, double y, double w, double h )
-{
-    glPushMatrix();
-    glTranslated( x, y, 0 );
-    glBegin( GL_QUADS );
-    glVertex2d( 0, 0 );
-    glVertex2d( 0, h );
-    glVertex2d( w, h );
-    glVertex2d( w, 0 );
-    glEnd();
-    glPopMatrix();
-}
-
-void Road::drawHUDLine( double x1, double y1, double x2, double y2, double t )
-{
-    glLineWidth( t );
-    glPushMatrix();
-    ;
-    glBegin( GL_LINES );
-    glVertex2d( x1, y1 );
-    glVertex2d( x2, y2 );
-    glEnd();
-    glPopMatrix();
-
-    glLineWidth( 1.0f );
-}
-
-void Road::drawHUDPiece( double, double, double rotAngleZ )
-{
-    glPushMatrix();
-    glRotated( rotAngleZ, 0, 0, 1 );
-    glColor4f( 1, 0, 0, 1 );
-    glBegin( GL_TRIANGLES );
-    glVertex2d( 0, 0 );
-    glVertex2d( 0, 10 );
-    glVertex2d( 2, 10 );
-    glEnd();
-    glPopMatrix();
-}
-
 void Road::renderCyberRings( RenderContext rctx )
 {
     const double sw = viewportWidth() / 2;
@@ -130,10 +57,6 @@ void Road::renderCyberRings( RenderContext rctx )
         pushConstant.m_uv[ 3 ] = glm::vec2{ 1, 0 };
 
         rctx.renderer->push( &pushBuffer, &pushConstant );
-
-        // TODO: remove when not needed anymore
-        glEnable( GL_BLEND );
-        glEnable( GL_TEXTURE_2D );
     }
 }
 
@@ -164,31 +87,54 @@ void Road::renderCyberRingsMini( RenderContext rctx )
     }
 }
 
-void Road::renderHUDBar( uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t current, uint32_t max )
+void Road::renderHUDBar( RenderContext rctx, const glm::vec4& xywh, float ratio )
 {
-    glPushMatrix();
-    glTranslated( x, y, 0 );
-    glColor4fv( m_hudColor4fv[ m_hudColor ] );
-    glBegin( GL_LINES );
-    glVertex2d( -4, h + 4 );
-    glVertex2d( w + 4, h + 4 );
+    rctx.model = glm::translate( rctx.model, glm::vec3{ xywh.x, xywh.y, 0.0f } );
 
-    glVertex2d( w + 4, h + 4 );
-    glVertex2d( w + 4, -4 );
+    {
+        const glm::vec4 color{
+            m_hudColor4fv[ m_hudColor ][ 0 ]
+            , m_hudColor4fv[ m_hudColor ][ 1 ]
+            , m_hudColor4fv[ m_hudColor ][ 2 ]
+            , m_hudColor4fv[ m_hudColor ][ 3 ]
+        };
 
-    glVertex2d( w + 4, -4 );
-    glVertex2d( -4, -4 );
-    glEnd();
-    glBegin( GL_QUADS );
-    glColor3f(
-        ( 1.0f - static_cast<float>( current ) / max ) + colorHalf( ( 1.0f - static_cast<float>( current ) / max ) ), static_cast<float>( current ) / max + colorHalf( static_cast<float>( current ) / max ), 0 );
+        PushConstant<Pipeline::eLine3dStripColor> pushConstant{};
+        pushConstant.m_model = rctx.model;
+        pushConstant.m_view = rctx.view;
+        pushConstant.m_projection = rctx.projection;
 
-    glVertex2d( 0, 0 );
-    glVertex2d( w, 0 );
-    glVertex2d( w, ( ( static_cast<double>( current ) / max ) * h ) );
-    glVertex2d( 0, ( ( static_cast<double>( current ) / max ) * h ) );
-    glEnd();
-    glPopMatrix();
+        PushBuffer<Pipeline::eLine3dStripColor> pushBuffer{ rctx.renderer->allocator() };
+        pushBuffer.m_lineWidth = 2.0f;
+        pushBuffer.m_colors.resize( 4, color );
+        pushBuffer.m_vertices.reserve( 4 );
+        pushBuffer.m_vertices.emplace_back( -4.0f, xywh.w + 4.0f, 0.0f );
+        pushBuffer.m_vertices.emplace_back( xywh.z + 4.0f, xywh.w + 4.0f, 0.0f );
+        pushBuffer.m_vertices.emplace_back( xywh.z + 4.0f, -4.0f, 0.0f );
+        pushBuffer.m_vertices.emplace_back( -4.0f, -4.0f, 0.0f );
+        rctx.renderer->push( &pushBuffer, &pushConstant );
+    }
+    {
+        PushConstant<Pipeline::eTriangleFan3dColor> pushConstant{};
+        pushConstant.m_model = rctx.model;
+        pushConstant.m_view = rctx.view;
+        pushConstant.m_projection = rctx.projection;
+
+        PushBuffer<Pipeline::eTriangleFan3dColor> pushBuffer{ rctx.renderer->allocator() };
+        pushBuffer.m_colors.resize( 4, glm::vec4{
+            1.0f - ratio + colorHalf( ratio )
+            , ratio + colorHalf( ratio )
+            , 0.0f
+            , 1.0f
+        } );
+        pushBuffer.m_vertices.reserve( 4 );
+        pushBuffer.m_vertices.emplace_back( glm::vec3{ 0, 0, 0 } );
+        pushBuffer.m_vertices.emplace_back( glm::vec3{ xywh.z, 0, 0 } );
+        pushBuffer.m_vertices.emplace_back( glm::vec3{ xywh.z, ratio * xywh.w, 0.0f } );
+        pushBuffer.m_vertices.emplace_back( glm::vec3{ 0.0f, ratio * xywh.w, 0.0f } );
+        rctx.renderer->push( &pushBuffer, &pushConstant );
+    }
+
 }
 
 void Road::renderPauseText( RenderContext rctx )
@@ -224,76 +170,92 @@ void Road::renderHudTex( RenderContext rctx, const glm::vec4& color )
 
 void Road::renderHUD( RenderContext rctx )
 {
-    glDisable( GL_DEPTH_TEST );
-    glDisable( GL_FOG );
-    glPushMatrix();
-    setOrtho();
-
-    glColor4fv( m_hudColor4fv[ m_hudColor ] );
+    const glm::vec4 color{ m_hudColor4fv[ m_hudColor ][ 0 ]
+        , m_hudColor4fv[ m_hudColor ][ 1 ]
+        , m_hudColor4fv[ m_hudColor ][ 2 ]
+        , m_hudColor4fv[ m_hudColor ][ 3 ]
+    };
 
     char hudmessage[ 48 ]{};
     std::snprintf( hudmessage, sizeof( hudmessage ), "Shots: %d", m_shotsDone );
-    m_fontGuiTxt->printText( 320, viewportHeight() - 16, hudmessage );
+    m_fontGuiTxt->renderText( rctx, color, 320, viewportHeight() - 16, hudmessage );
 
     std::snprintf( hudmessage, sizeof( hudmessage ), "SCORE: %d", m_jet->score() );
-    m_fontGuiTxt->printText( 64, viewportHeight() - 100, hudmessage );
+    m_fontGuiTxt->renderText( rctx, color, 64, viewportHeight() - 100, hudmessage );
 
     /*radar*/
+    const glm::mat4x4 jetMat = glm::toMat4( m_jet->quat() );
+    {
+        PushConstant<Pipeline::eLine3dColor1> pushConstant{};
+        pushConstant.m_model = glm::translate( rctx.model, glm::vec3{ viewportWidth() - 80, 80, 0 } );;
+        pushConstant.m_model *= jetMat;
+        pushConstant.m_view = rctx.view;
+        pushConstant.m_projection = rctx.projection;
+        pushConstant.m_color = color;
 
-    glPushMatrix();
-    glEnable( GL_DEPTH_TEST );
-    glTranslated( viewportWidth() - 80, 80, 0 );
+        PushBuffer<Pipeline::eLine3dColor1> pushBuffer{ rctx.renderer->allocator() };
+        pushBuffer.m_lineWidth = 1.0f;
+        pushBuffer.m_vertices.reserve( 24 );
+        pushBuffer.m_vertices.emplace_back( 24, 24, 24 );
+        pushBuffer.m_vertices.emplace_back( -24, 24, 24 );
+        pushBuffer.m_vertices.emplace_back( 24, -24, 24 );
+        pushBuffer.m_vertices.emplace_back( -24, -24, 24 );
+        pushBuffer.m_vertices.emplace_back( 24, 24, -24 );
+        pushBuffer.m_vertices.emplace_back( -24, 24, -24 );
+        pushBuffer.m_vertices.emplace_back( 24, -24, -24 );
+        pushBuffer.m_vertices.emplace_back( -24, -24, -24 );
+        pushBuffer.m_vertices.emplace_back( 24, 24, 24 );
+        pushBuffer.m_vertices.emplace_back( 24, 24, -24 );
+        pushBuffer.m_vertices.emplace_back( 24, -24, 24 );
+        pushBuffer.m_vertices.emplace_back( 24, -24, -24 );
+        pushBuffer.m_vertices.emplace_back( -24, 24, 24 );
+        pushBuffer.m_vertices.emplace_back( -24, 24, -24 );
+        pushBuffer.m_vertices.emplace_back( -24, -24, 24 );
+        pushBuffer.m_vertices.emplace_back( -24, -24, -24 );
+        pushBuffer.m_vertices.emplace_back( 24, 24, 24 );
+        pushBuffer.m_vertices.emplace_back( 24, -24, 24 );
+        pushBuffer.m_vertices.emplace_back( 24, 24, -24 );
+        pushBuffer.m_vertices.emplace_back( 24, -24, -24 );
+        pushBuffer.m_vertices.emplace_back( -24, 24, 24 );
+        pushBuffer.m_vertices.emplace_back( -24, -24, 24 );
+        pushBuffer.m_vertices.emplace_back( -24, 24, -24 );
+        pushBuffer.m_vertices.emplace_back( -24, -24, -24 );
 
-    const glm::mat4 matrice = glm::toMat4( m_jet->quat() );
-    glMultMatrixf( glm::value_ptr( matrice ) );
-
-    glBegin( GL_LINES );
-    glVertex3d( 24, 24, 24 );
-    glVertex3d( -24, 24, 24 );
-    glVertex3d( 24, -24, 24 );
-    glVertex3d( -24, -24, 24 );
-    glVertex3d( 24, 24, -24 );
-    glVertex3d( -24, 24, -24 );
-    glVertex3d( 24, -24, -24 );
-    glVertex3d( -24, -24, -24 );
-
-    glVertex3d( 24, 24, 24 );
-    glVertex3d( 24, 24, -24 );
-    glVertex3d( 24, -24, 24 );
-    glVertex3d( 24, -24, -24 );
-    glVertex3d( -24, 24, 24 );
-    glVertex3d( -24, 24, -24 );
-    glVertex3d( -24, -24, 24 );
-    glVertex3d( -24, -24, -24 );
-
-    glVertex3d( 24, 24, 24 );
-    glVertex3d( 24, -24, 24 );
-    glVertex3d( 24, 24, -24 );
-    glVertex3d( 24, -24, -24 );
-    glVertex3d( -24, 24, 24 );
-    glVertex3d( -24, -24, 24 );
-    glVertex3d( -24, 24, -24 );
-    glVertex3d( -24, -24, -24 );
-    glEnd();
-
-    glColor3f( 0.3, 0.3, 1 );
-    glBegin( GL_LINE_LOOP );
-    for ( size_t i = 0; i < m_radar->segments(); i++ ) {
-        glVertex3d( m_radar->x( i ), m_radar->y( i ), 0 );
+        rctx.renderer->push( &pushBuffer, &pushConstant );
     }
-    glEnd();
-    glColor3f( 0, 1, 0 );
-    glBegin( GL_LINE_LOOP );
-    for ( size_t i = 0; i < m_radar->segments(); i++ ) {
-        glVertex3d( m_radar->x( i ), 0, m_radar->y( i ) );
+
+    {
+        PushConstant<Pipeline::eLine3dStripColor> pushConstant{};
+        pushConstant.m_model = glm::translate( rctx.model, glm::vec3{ viewportWidth() - 80, 80, 0 } );
+        pushConstant.m_model *= jetMat;
+        pushConstant.m_view = rctx.view;
+        pushConstant.m_projection = rctx.projection;
+
+        PushBuffer<Pipeline::eLine3dStripColor> pushBuffer{ rctx.renderer->allocator() };
+        pushBuffer.m_lineWidth = 1.0f;
+        pushBuffer.m_colors.resize( m_radar->segments() + 1, glm::vec4{ 0.3, 0.3f, 1.0f, 1.0f } );
+        pushBuffer.m_vertices.reserve( m_radar->segments() + 1 );
+        for ( size_t i = 0; i < m_radar->segments(); i++ ) {
+            pushBuffer.m_vertices.emplace_back( m_radar->x( i ), m_radar->y( i ), 0 );
+        }
+        pushBuffer.m_vertices.emplace_back( m_radar->x( 0 ), m_radar->y( 0 ), 0 );
+        rctx.renderer->push( &pushBuffer, &pushConstant );
+
+
+        pushConstant.m_model = glm::translate( rctx.model, glm::vec3{ viewportWidth() - 80, 80, 0 } );
+        pushConstant.m_model *= jetMat;
+        pushConstant.m_model = glm::rotate( pushConstant.m_model, glm::radians( 90.0f ), glm::vec3{ 0, 1, 0 } );
+        std::fill( pushBuffer.m_colors.begin(), pushBuffer.m_colors.end(), glm::vec4{ 0, 1, 0, 1 } );
+        rctx.renderer->push( &pushBuffer, &pushConstant );
+
+        pushConstant.m_model = glm::translate( rctx.model, glm::vec3{ viewportWidth() - 80, 80, 0 } );
+        pushConstant.m_model *= jetMat;
+        pushConstant.m_model = glm::rotate( pushConstant.m_model, glm::radians( 90.0f ), glm::vec3{ 1, 0, 0 } );
+        std::fill( pushBuffer.m_colors.begin(), pushBuffer.m_colors.end(), glm::vec4{ 1, 0, 0, 1 } );
+        rctx.renderer->push( &pushBuffer, &pushConstant );
     }
-    glEnd();
-    glColor3f( 1, 0, 0 );
-    glBegin( GL_LINE_LOOP );
-    for ( size_t i = 0; i < m_radar->segments(); i++ ) {
-        glVertex3d( 0, m_radar->x( i ), m_radar->y( i ) );
-    }
-    glEnd();
+
+#if 0
     {
         std::lock_guard<std::mutex> lg( m_mutexEnemy );
         for ( const Enemy* e : m_enemies ) {
@@ -312,47 +274,52 @@ void Road::renderHUD( RenderContext rctx )
     glEnd();
     glLineWidth( 1 );
 
-    glPopMatrix();
+#endif
 
-    glColor4fv( m_hudColor4fv[ m_hudColor ] );
-
-    glPushMatrix();
-    glTranslated( 32, viewportHeight() / 2, 0 );
     {
-        std::string str{ "SPEED: " };
-        str += std::to_string( static_cast<int>( m_jet->speed() ) * 270 );
-        m_fontGuiTxt->printText( 38, 0, str.c_str() );
+        RenderContext rctx2 = rctx;
+        rctx2.model = glm::translate( rctx.model, glm::vec3{ 32, viewportHeight() / 2, 0  } );
+        const std::string str = std::string{ "SPEED: " } + std::to_string( static_cast<int>( m_jet->speed() * 270 ) );
+        m_fontGuiTxt->renderText( rctx2, color, 38, 0, str );
+        {
+            PushConstant<Pipeline::eTriangleFan3dColor> pushConstant{};
+            pushConstant.m_model = glm::rotate( rctx2.model, (float)glm::radians( m_speedAnim ), glm::vec3{ 0.0f, 0.0f, 1.0f } );
+            pushConstant.m_view = rctx2.view;
+            pushConstant.m_projection = rctx2.projection;
+
+            PushBuffer<Pipeline::eTriangleFan3dColor> pushBuffer{ rctx2.renderer->allocator() };
+            pushBuffer.m_colors.resize( 5, color );
+            pushBuffer.m_vertices.reserve( 5 );
+            pushBuffer.m_vertices.emplace_back( -3, 0, 0 );
+            pushBuffer.m_vertices.emplace_back( 3, 0, 0 );
+            pushBuffer.m_vertices.emplace_back( 12, 24, 0 );
+            pushBuffer.m_vertices.emplace_back( 0, 26.5, 0 );
+            pushBuffer.m_vertices.emplace_back( -12, 24, 0 );
+            rctx2.renderer->push( &pushBuffer, &pushConstant );
+            pushConstant.m_model = glm::rotate( pushConstant.m_model, glm::radians( 180.0f ), glm::vec3{ 0.0f, 0.0f, 1.0f } );
+            rctx2.renderer->push( &pushBuffer, &pushConstant );
+        }
+
+        PushConstant<Pipeline::eLine3dStripColor> pushConstant{};
+        pushConstant.m_model = rctx2.model;
+        pushConstant.m_view = rctx2.view;
+        pushConstant.m_projection = rctx2.projection;
+        PushBuffer<Pipeline::eLine3dStripColor> pushBuffer{ rctx2.renderer->allocator() };
+        pushBuffer.m_lineWidth = 1.0f;
+        pushBuffer.m_colors.resize( m_speedFanRing->segments() + 1, color );
+        pushBuffer.m_vertices.reserve( m_speedFanRing->segments() + 1 );
+        for ( size_t i = 0; i < m_speedFanRing->segments(); i++ ) {
+            pushBuffer.m_vertices.emplace_back( m_speedFanRing->x( i ), m_speedFanRing->y( i ), 0.0f );
+        }
+        pushBuffer.m_vertices.emplace_back( m_speedFanRing->x( 0 ), m_speedFanRing->y( 0 ), 0.0f );
+        rctx2.renderer->push( &pushBuffer, &pushConstant );
+
     }
-    glPushMatrix();
-    glRotated( m_speedAnim, 0, 0, 1 );
-    glBegin( GL_POLYGON );
-    glVertex2d( -3, 0 );
-    glVertex2d( 3, 0 );
-    glVertex2d( 12, 24 );
-    glVertex2d( 0, 26.5 );
-    glVertex2d( -12, 24 );
-    glEnd();
-    glBegin( GL_POLYGON );
-    glVertex2d( -12, -24 );
-    glVertex2d( 0, -26.5 );
-    glVertex2d( 12, -24 );
-    glVertex2d( 3, 0 );
-    glVertex2d( -3, 0 );
-    glEnd();
-    glPopMatrix();
-    glBegin( GL_LINE_LOOP );
-    for ( size_t i = 0; i < m_speedFanRing->segments(); i++ ) {
-        glVertex2d( m_speedFanRing->x( i ), m_speedFanRing->y( i ) );
-    }
-    glEnd();
-    glPopMatrix();
 
     renderCyberRingsMini( rctx );
 
-    renderHUDBar( 12, 12, 36, 96, m_jet->energy(), 100 );
-    renderHUDBar( 64, 12, 36, 96, m_jet->health(), 100 );
-
-    glColor4fv( m_hudColor4fv[ m_hudColor ] );
+    renderHUDBar( rctx, glm::vec4{ 12, 12, 36, 96 }, (float)m_jet->energy() / 100 );
+    renderHUDBar( rctx, glm::vec4{ 64, 12, 36, 96 }, (float)m_jet->health() / 100 );
 
     {
         std::string msg{ "FPS done: " };
@@ -361,12 +328,10 @@ void Road::renderHUD( RenderContext rctx )
         msg += std::to_string( m_calculatedFPS );
         const double textMid = static_cast<double>( m_fontGuiTxt->textLength( "FPS done: XX, calculated: xxxx.xx" ) ) / 2;
         const double posx = viewportWidth() / 2 - textMid;
-        m_fontGuiTxt->printText( posx, viewportHeight() - 28, msg.c_str() );
+        m_fontGuiTxt->renderText( rctx, color, posx, viewportHeight() - 28, msg );
     }
-    m_fontPauseTxt->printText( 10, 102, "PWR" );
-    m_fontPauseTxt->printText( 66, 102, "HP" );
-
-    glPopMatrix();
+    m_fontPauseTxt->renderText( rctx, color, 10, 102, "PWR" );
+    m_fontPauseTxt->renderText( rctx, color, 66, 102, "HP" );
 }
 
 void Road::render3D( RenderContext rctx )

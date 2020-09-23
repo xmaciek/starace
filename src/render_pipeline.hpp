@@ -9,13 +9,13 @@
 #include <vector>
 
 enum struct Pipeline {
-    eLine3dStripColor,
-    eLine3dColor1,
-    eTriangleFan2dTextureColor,
-    eTriangleFan3dTexture,
-    eTriangleFan3dColor,
-    eTriangle3dTextureNormal,
     eGuiTextureColor1,
+    eLine3dColor1,
+    eLine3dStripColor,
+    eTriangle3dTextureNormal,
+    eTriangleFan2dTextureColor,
+    eTriangleFan3dColor,
+    eTriangleFan3dTexture,
 };
 
 template <Pipeline P>
