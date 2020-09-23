@@ -34,6 +34,7 @@ Checks:
     -modernize-use-nodiscard,
     -modernize-use-override,
     -modernize-use-trailing-return-type,
+    -readability-convert-member-functions-to-static,
     -readability-implicit-bool-conversion,
     -readability-magic-numbers,
     -readability-named-parameter,
