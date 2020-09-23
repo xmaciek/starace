@@ -194,7 +194,16 @@ void Road::renderHUDBar( uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_
 void Road::renderPauseText( RenderContext rctx )
 {
     renderCyberRings( rctx );
+    renderHudTex( rctx );
 
+    m_btnQuitMission.render( rctx );
+    constexpr static char PAUSED[] = "PAUSED";
+    const double posx = viewportWidth() / 2 - static_cast<double>( m_fontPauseTxt->textLength( PAUSED ) ) / 2;
+    m_fontPauseTxt->renderText( rctx, glm::vec4{ 1.0f, 1.0f, 0.0f, 1.0f }, posx, viewportHeight() - 128, PAUSED );
+}
+
+void Road::renderHudTex( RenderContext rctx )
+{
     PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{ rctx.renderer->allocator() };
     pushBuffer.m_texture = m_hudTex;
     PushConstant<Pipeline::eGuiTextureColor1> pushConstant{};
@@ -211,11 +220,6 @@ void Road::renderPauseText( RenderContext rctx )
     pushConstant.m_uv[ 2 ] = glm::vec2{ 1, 1 };
     pushConstant.m_uv[ 3 ] = glm::vec2{ 0, 1 };
     rctx.renderer->push( &pushBuffer, &pushConstant );
-
-    m_btnQuitMission.render( rctx );
-    constexpr static char PAUSED[] = "PAUSED";
-    const double posx = viewportWidth() / 2 - static_cast<double>( m_fontPauseTxt->textLength( PAUSED ) ) / 2;
-    m_fontPauseTxt->renderText( rctx, glm::vec4{ 1.0f, 1.0f, 0.0f, 1.0f }, posx, viewportHeight() - 128, PAUSED );
 }
 
 void Road::renderHUD( RenderContext rctx )
@@ -685,37 +689,28 @@ void Road::renderGameScreenBriefing( RenderContext rctx )
 
 void Road::renderScreenCustomize( RenderContext rctx )
 {
-    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-    setOrtho();
     renderClouds( rctx );
     renderCyberRings( rctx );
-    glBindTexture( GL_TEXTURE_2D, m_hudTex );
-    glBegin( GL_QUADS );
-    glColor3f( 0, 0.75, 1 );
-    glTexCoord2f( 0, 0 );
-    glVertex2d( 0, 0 );
-    glTexCoord2f( 1, 0 );
-    glVertex2d( viewportWidth(), 0 );
-    glTexCoord2f( 1, 1 );
-    glVertex2d( viewportWidth(), viewportHeight() );
-    glTexCoord2f( 0, 1 );
-    glVertex2d( 0, viewportHeight() );
-    glEnd();
-    glColor3f( 1, 1, 1 );
+    renderHudTex( rctx );
+
     {
         const double posx = viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( m_jetsContainer.at( m_currentJet ).name.c_str() ) ) / 2;
-        m_fontBig->printText( posx, viewportHeight() - 64, m_jetsContainer.at( m_currentJet ).name.c_str() );
+        m_fontBig->renderText( rctx,  glm::vec4{ 1, 1, 1, 1 }, posx, viewportHeight() - 64, m_jetsContainer.at( m_currentJet ).name );
     }
-    setPerspective( m_angle );
-    glPushMatrix();
-    glTranslated( 0, -0.1, -1.25 );
-    glRotated( 15, 1, 0, 0 );
-    glRotated( m_modelRotation, 0, 1, 0 );
-    glEnable( GL_DEPTH_TEST );
-    m_previewModel.draw();
-    glDisable( GL_DEPTH_TEST );
-    glPopMatrix();
-    setOrtho();
+    {
+        RenderContext rctx2 = rctx;
+        rctx2.projection = glm::perspective(
+            glm::radians( m_angle )
+            , static_cast<float>( viewportWidth() / viewportHeight() )
+            , 0.001f
+            , 2000.0f
+        );
+        rctx2.model = glm::translate( rctx2.model, glm::vec3{ 0, -0.1, -1.25 } );
+        rctx2.model = glm::rotate( rctx2.model, glm::radians( 15.0f ), glm::vec3{ 1, 0, 0 } );
+        rctx2.model = glm::rotate( rctx2.model, glm::radians( (float)m_modelRotation ), glm::vec3{ 0, 1, 0 } );
+        m_previewModel.render( rctx2 );
+    }
+
     m_btnNextJet.render( rctx );
     m_btnPrevJet.render( rctx );
     m_btnCustomizeReturn.render( rctx );

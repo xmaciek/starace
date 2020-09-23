@@ -181,6 +181,7 @@ private:
     void renderGameScreenBriefing( RenderContext );
     void renderGameScreenPaused( RenderContext );
     void renderHUD( RenderContext );
+    void renderHudTex( RenderContext );
     void renderHUDBar( uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t current, uint32_t max );
     void renderMainMenu( RenderContext );
     void renderMissionSelectionScreen( RenderContext );
