@@ -190,8 +190,6 @@ private:
     void retarget();
     void saveConfig();
     void setCamera();
-    void setOrtho() const;
-    void setPerspective( double ) const;
     void setViewportSize( double, double );
     void unpause();
     void updateClouds( const UpdateContext& );

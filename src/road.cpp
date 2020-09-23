@@ -1216,25 +1216,6 @@ void Road::updateClouds( const UpdateContext& updateContext )
     }
 }
 
-void Road::setOrtho() const
-{
-    glMatrixMode( GL_PROJECTION );
-    glLoadIdentity();
-    glOrtho( 0, viewportWidth(), 0, viewportHeight(), -192, 192 );
-    glMatrixMode( GL_MODELVIEW );
-    glLoadIdentity();
-}
-
-void Road::setPerspective( double a ) const
-{
-    return;
-    glMatrixMode( GL_PROJECTION );
-    glLoadIdentity();
-    gluPerspective( a, viewportWidth() / viewportHeight(), 0.001, 2000 );
-    glMatrixMode( GL_MODELVIEW );
-    glLoadIdentity();
-}
-
 void Road::updateCustomize( const UpdateContext& updateContext )
 {
     updateClouds( updateContext );
