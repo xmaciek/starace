@@ -44,17 +44,19 @@ Road::~Road()
     delete m_fontBig;
     delete m_speedFanRing;
     delete m_radar;
-    delete m_renderer;
 
-    glDeleteTextures( 1, &m_hudTex );
-    glDeleteTextures( 1, &m_buttonTexture );
-    glDeleteTextures( 1, &m_menuBackground );
-    glDeleteTextures( 1, &m_menuBackgroundOverlay );
-    glDeleteTextures( 3, m_cyberRingTexture );
-    glDeleteTextures( 1, &m_starfieldTexture );
-    for ( auto& it : m_mapsContainer ) {
-        glDeleteTextures( 1, &it.preview_image );
+    destroyTexture( m_hudTex );
+    destroyTexture( m_buttonTexture );
+    destroyTexture( m_menuBackground );
+    destroyTexture( m_menuBackgroundOverlay );
+    for ( auto it : m_cyberRingTexture ) {
+        destroyTexture( it );
     }
+    destroyTexture( m_starfieldTexture );
+    for ( auto& it : m_mapsContainer ) {
+        destroyTexture( it.preview_image );
+    }
+    delete m_renderer;
 }
 
 int32_t Road::run()
@@ -852,7 +854,7 @@ void Road::createMapData( const MapProto& mapData, const ModelProto& modelData )
     }
 
     for ( MapProto& it : m_mapsContainer ) {
-        glDeleteTextures( 1, &it.preview_image );
+        destroyTexture( it.preview_image );
         it.preview_image = 0;
     }
 }

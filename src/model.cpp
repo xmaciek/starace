@@ -4,7 +4,7 @@
 
 Model::~Model()
 {
-    glDeleteTextures( 1, &m_textureID );
+    destroyTexture( m_textureID );
 }
 
 void Model::render( RenderContext rctx ) const

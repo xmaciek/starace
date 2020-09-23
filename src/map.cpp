@@ -139,10 +139,10 @@ void Map::setJetData( const glm::vec3& position, const glm::vec3& velocity )
 
 Map::~Map()
 {
-    glDeleteTextures( 1, &m_top );
-    glDeleteTextures( 1, &m_bottom );
-    glDeleteTextures( 1, &m_left );
-    glDeleteTextures( 1, &m_right );
-    glDeleteTextures( 1, &m_front );
-    glDeleteTextures( 1, &m_back );
+    destroyTexture( m_top );
+    destroyTexture( m_bottom );
+    destroyTexture( m_left );
+    destroyTexture( m_right );
+    destroyTexture( m_front );
+    destroyTexture( m_back );
 }

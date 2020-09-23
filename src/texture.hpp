@@ -1,6 +1,12 @@
 #pragma once
 #include "sa.hpp"
 
+enum struct TextureFormat {
+    eR,
+    eRGB,
+    eRGBA,
+};
+
 struct TGA {
     uint8_t header[ 6 ]{};
     uint32_t bytesPerPixel = 0;
@@ -15,5 +21,4 @@ struct TGA {
 
 uint32_t loadDefault();
 uint32_t loadTexture( const char* filename );
-void drawSprite( uint32_t spriteID, double spriteSize );
-void setTextureFiltering();
+void destroyTexture( uint32_t );

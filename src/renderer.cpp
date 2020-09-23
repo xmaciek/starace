@@ -7,6 +7,8 @@
 #include <SDL/SDL.h>
 #include <glm/gtc/type_ptr.hpp>
 
+Renderer* Renderer::s_instance = nullptr;
+
 struct ScopeEnable {
     uint32_t m_x;
     ScopeEnable( uint32_t x )
@@ -20,8 +22,32 @@ struct ScopeEnable {
     }
 };
 
+static int typeToInternalFormat( TextureFormat e )
+{
+    switch ( e ) {
+    case TextureFormat::eR: return 1;
+    case TextureFormat::eRGB: return 3;
+    case TextureFormat::eRGBA: return 4;
+    }
+}
+
+static int typeToFormat( TextureFormat e )
+{
+    switch ( e ) {
+    case TextureFormat::eR: return GL_RED;
+    case TextureFormat::eRGB: return GL_RGB;
+    case TextureFormat::eRGBA: return GL_RGBA;
+    }
+}
+
+Renderer::~Renderer()
+{
+    s_instance = nullptr;
+}
+
 Renderer::Renderer()
 {
+    s_instance = this;
     SDL_GL_SetAttribute( SDL_GL_ACCUM_ALPHA_SIZE, 0 );
     SDL_GL_SetAttribute( SDL_GL_ACCUM_BLUE_SIZE, 0 );
     SDL_GL_SetAttribute( SDL_GL_ACCUM_GREEN_SIZE, 0 );
@@ -50,6 +76,11 @@ Renderer::Renderer()
     glEnable( GL_LIGHT0 );
 }
 
+Renderer* Renderer::instance()
+{
+    return s_instance;
+}
+
 std::pmr::memory_resource* Renderer::allocator()
 {
     return std::pmr::get_default_resource();
@@ -68,6 +99,33 @@ void Renderer::clear()
 void Renderer::present()
 {
     SDL_GL_SwapBuffers();
+}
+
+void Renderer::deleteTexture( uint32_t tex )
+{
+    glDeleteTextures( 1, &tex );
+}
+
+uint32_t Renderer::createTexture( uint32_t w, uint32_t h, TextureFormat fmt, const uint8_t* ptr )
+{
+    uint32_t textureID = 0;
+    glGenTextures( 1, &textureID );
+    glBindTexture( GL_TEXTURE_2D, textureID );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+    glHint( GL_GENERATE_MIPMAP_HINT, GL_NICEST );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0f );
+    gluBuild2DMipmaps( GL_TEXTURE_2D
+        , typeToInternalFormat( fmt )
+        , w
+        , h
+        , typeToFormat( fmt )
+        , GL_UNSIGNED_BYTE
+        , ptr
+    );
+    return textureID;
 }
 
 void Renderer::push( void* buffer, void* constant )
