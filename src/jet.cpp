@@ -227,6 +227,36 @@ Bullet* Jet::weapon( uint32_t weaponNum )
             b->setTarget( m_target );
         }
         break;
+    case Bullet::Type::eBlaster: {
+        // auto-aiming
+        if ( !m_target || m_target->status() != Status::eAlive ) {
+            break;
+        }
+        const glm::vec3 tgtPos = m_target->position();
+        {
+            const glm::vec3 dir = direction();
+            const glm::vec3 dirToTgt = glm::normalize( tgtPos - position() );
+            const float angleToTarget = glm::abs( glm::acos(
+                glm::dot( dir, dirToTgt )
+                / ( glm::length( dir ) * glm::length( dirToTgt ) )
+            ) );
+            constexpr float a = glm::radians( 15.0f );
+            if ( angleToTarget > a ) {
+                break;
+            }
+        }
+        const glm::vec3 tgtVelocity = m_target->velocity();
+        const glm::vec3 bPos = b->position();
+        const float bSpeed = b->speed();
+        glm::vec3 tgtMaybePos = tgtPos;
+        // 6 iterations is perfect enough
+        for ( int i = 0; i < 10; ++i ) {
+            const glm::vec3 distance = tgtMaybePos - bPos;
+            const float time = glm::length( distance ) / bSpeed;
+            tgtMaybePos = tgtPos + tgtVelocity * time;
+        }
+        b->setDirection( glm::normalize( tgtMaybePos - bPos ) );
+    } break;
     default:
         break;
     }
