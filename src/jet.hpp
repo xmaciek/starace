@@ -23,28 +23,24 @@ private:
 
     BulletProto m_weapon[ 3 ]{};
 
-    glm::quat m_animation{ 0.0f, 0.0f, 0.0f, 0.0f };
-    glm::quat m_quaternion{ 0.0f, 0.0f, 0.0f, 1.0f };
-    glm::quat m_rotation{ 0.0f, 0.0f, 0.0f, 1.0f };
+    glm::quat m_animation{ glm::vec3{} };
+    glm::quat m_quaternion{ glm::vec3{} };
+
+    // pitch yaw roll controlls
+    glm::vec3 m_pyrAccelleration{};
+    glm::vec3 m_pyrCurrent{};
+    glm::vec3 m_pyrLimits{};
+    glm::vec3 m_pyrTarget{};
+    glm::vec3 m_pyrAnimCurrent{};
 
     double m_energy = 100.0;
-    double m_pitch = 0.0;
-    double m_roll = 0.0;
     double m_shotFactor[ 3 ]{};
-    double m_yaw = 0.0;
-    float m_angleSpeedX = 15.0;
-    float m_angleSpeedY = 10.0;
-    float m_angleSpeedZ = 50.0;
-    float m_maxSpeed = 5.0f;
-    float m_minSpeed = 0.5f;
-    float m_normSpeed = 2.0f;
-    float m_rotX = 0.0;
-    float m_rotY = 0.0;
-    float m_rotZ = 0.0;
+    float m_speedMax = 5.0f;
+    float m_speedMin = 0.5f;
+    float m_speedNorm = 2.0f;
+    float m_speedTarget = 0.0f;
+    float m_speedAcceleration = 0.8f;
 
-    int32_t m_accX = 0;
-    int32_t m_accY = 0;
-    int32_t m_accZ = 0;
     int32_t m_maxAngleX = 5;
     int32_t m_maxAngleY = 5;
     int32_t m_maxAngleZ = 15;
@@ -55,10 +51,12 @@ private:
     bool m_btnRollRight = false;
     bool m_btnYawLeft = false;
     bool m_btnYawRight = false;
+    bool m_speedUp = false;
+    bool m_speedDown = false;
+
     bool m_shooting[ 3 ]{};
     bool m_targetLocked[ 3 ]{};
     uint8_t m_circleLoop = 0;
-    int8_t m_speedAcc = 0;
 
 public:
     virtual ~Jet() override = default;
@@ -73,7 +71,6 @@ public:
     glm::quat rotation() const;
     glm::vec3 weaponPoint( uint32_t weaponNum );
     virtual void addScore( int32_t s, bool b ) override;
-    virtual void draw() const override;
     virtual void processCollision( SAObject* ) override;
     virtual void render( RenderContext ) const override;
     virtual void update( const UpdateContext& ) override;

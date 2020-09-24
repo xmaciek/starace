@@ -34,7 +34,6 @@ public:
     glm::vec3 velocity() const;
     int32_t score() const;
     virtual void addScore( int32_t s, bool b );
-    virtual void draw() const = 0;
     virtual void processCollision( SAObject* );
     virtual void render( RenderContext ) const = 0;
     virtual void update( const UpdateContext& ) = 0;

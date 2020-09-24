@@ -23,7 +23,6 @@ public:
     Bullet* weapon();
     bool isWeaponReady() const;
     static void drawCollisionIndicator();
-    virtual void draw() const override;
     virtual void processCollision( SAObject* ) override;
     virtual void render( RenderContext ) const override;
     virtual void update( const UpdateContext& ) override;

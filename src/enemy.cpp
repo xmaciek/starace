@@ -59,10 +59,6 @@ void Enemy::render( RenderContext rctx ) const
     m_shield.render( rctx );
 }
 
-void Enemy::draw() const
-{
-}
-
 void Enemy::update( const UpdateContext& updateContext )
 {
     if ( status() != Status::eAlive ) {

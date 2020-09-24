@@ -111,10 +111,6 @@ void Bullet::render( RenderContext rctx ) const
     }
 }
 
-void Bullet::draw() const
-{
-}
-
 void Bullet::update( const UpdateContext& updateContext )
 {
     if ( status() == Status::eDead ) {
