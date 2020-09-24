@@ -1,8 +1,8 @@
-#include "road.hpp"
+#include "game.hpp"
 
 #include <SDL/SDL.h>
 
-void Road::onKeyDown( SDLKey sym, SDLMod, Uint16 )
+void Game::onKeyDown( SDLKey sym, SDLMod, Uint16 )
 {
     switch ( sym ) {
     case SDLK_F11:
@@ -26,7 +26,7 @@ void Road::onKeyDown( SDLKey sym, SDLMod, Uint16 )
     }
 }
 
-void Road::onKeyUp( SDLKey sym, SDLMod, Uint16 )
+void Game::onKeyUp( SDLKey sym, SDLMod, Uint16 )
 {
     switch ( m_currentScreen ) {
     case Screen::eGame:
@@ -40,7 +40,7 @@ void Road::onKeyUp( SDLKey sym, SDLMod, Uint16 )
     }
 }
 
-void Road::gameKeyboardPressed( SDLKey sym )
+void Game::gameKeyboardPressed( SDLKey sym )
 {
     switch ( sym ) {
     case SDLK_ESCAPE:
@@ -87,7 +87,7 @@ void Road::gameKeyboardPressed( SDLKey sym )
     }
 }
 
-void Road::gameKeyboardUnpressed( SDLKey sym )
+void Game::gameKeyboardUnpressed( SDLKey sym )
 {
     switch ( sym ) {
     case SDLK_a:
@@ -128,7 +128,7 @@ void Road::gameKeyboardUnpressed( SDLKey sym )
     }
 }
 
-void Road::gameKeyboardBriefingPressed( SDLKey sym )
+void Game::gameKeyboardBriefingPressed( SDLKey sym )
 {
     switch ( sym ) {
     case SDLK_SPACE:
@@ -139,7 +139,7 @@ void Road::gameKeyboardBriefingPressed( SDLKey sym )
     }
 }
 
-void Road::gameKeyboardPausedPressed( SDLKey sym )
+void Game::gameKeyboardPausedPressed( SDLKey sym )
 {
     switch ( sym ) {
     case SDLK_ESCAPE:
@@ -151,7 +151,7 @@ void Road::gameKeyboardPausedPressed( SDLKey sym )
     }
 }
 
-void Road::gameKeyboardPausedUnpressed( SDLKey sym )
+void Game::gameKeyboardPausedUnpressed( SDLKey sym )
 {
     gameKeyboardUnpressed( sym );
 }

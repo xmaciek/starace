@@ -21,10 +21,10 @@
 constexpr static int TAB = 9;
 constexpr static int ESC = 27;
 
-class Road {
+class Game {
 public:
-    Road();
-    ~Road();
+    Game();
+    ~Game();
 
     int32_t run();
 

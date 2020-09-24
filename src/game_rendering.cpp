@@ -1,4 +1,4 @@
-#include "road.hpp"
+#include "game.hpp"
 
 #include "render_pipeline.hpp"
 #include "renderer.hpp"
@@ -9,7 +9,7 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/mat4x4.hpp>
 
-void Road::renderGameScreen( RenderContext rctx )
+void Game::renderGameScreen( RenderContext rctx )
 {
     render3D( rctx );
     renderHUD( rctx );
@@ -24,13 +24,13 @@ void Road::renderGameScreen( RenderContext rctx )
     }
 }
 
-void Road::renderGameScreenPaused( RenderContext rctx )
+void Game::renderGameScreenPaused( RenderContext rctx )
 {
     renderGameScreen( rctx );
     renderPauseText( rctx );
 }
 
-void Road::renderCyberRings( RenderContext rctx )
+void Game::renderCyberRings( RenderContext rctx )
 {
     const double sw = viewportWidth() / 2;
     const double sh = viewportHeight() / 2;
@@ -61,7 +61,7 @@ void Road::renderCyberRings( RenderContext rctx )
     }
 }
 
-void Road::renderCyberRingsMini( RenderContext rctx )
+void Game::renderCyberRingsMini( RenderContext rctx )
 {
     const double sw = viewportWidth() / 2;
     const double sh = viewportHeight() / 2 - 8;
@@ -88,7 +88,7 @@ void Road::renderCyberRingsMini( RenderContext rctx )
     }
 }
 
-void Road::renderHUDBar( RenderContext rctx, const glm::vec4& xywh, float ratio )
+void Game::renderHUDBar( RenderContext rctx, const glm::vec4& xywh, float ratio )
 {
     rctx.model = glm::translate( rctx.model, glm::vec3{ xywh.x, xywh.y, 0.0f } );
 
@@ -138,7 +138,7 @@ void Road::renderHUDBar( RenderContext rctx, const glm::vec4& xywh, float ratio 
 
 }
 
-void Road::renderPauseText( RenderContext rctx )
+void Game::renderPauseText( RenderContext rctx )
 {
     renderCyberRings( rctx );
     renderHudTex( rctx, glm::vec4{ 0.1f, 0.4f, 0.9f, 0.8f } );
@@ -149,7 +149,7 @@ void Road::renderPauseText( RenderContext rctx )
     m_fontPauseTxt->renderText( rctx, glm::vec4{ 1.0f, 1.0f, 0.0f, 1.0f }, posx, viewportHeight() - 128, PAUSED );
 }
 
-void Road::renderHudTex( RenderContext rctx, const glm::vec4& color )
+void Game::renderHudTex( RenderContext rctx, const glm::vec4& color )
 {
     PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{ rctx.renderer->allocator() };
     pushBuffer.m_texture = m_hudTex;
@@ -169,7 +169,7 @@ void Road::renderHudTex( RenderContext rctx, const glm::vec4& color )
     rctx.renderer->push( &pushBuffer, &pushConstant );
 }
 
-void Road::renderHUD( RenderContext rctx )
+void Game::renderHUD( RenderContext rctx )
 {
     const glm::vec4 color{ m_hudColor4fv[ m_hudColor ][ 0 ]
         , m_hudColor4fv[ m_hudColor ][ 1 ]
@@ -335,7 +335,7 @@ void Road::renderHUD( RenderContext rctx )
     m_fontPauseTxt->renderText( rctx, color, 66, 102, "HP" );
 }
 
-void Road::render3D( RenderContext rctx )
+void Game::render3D( RenderContext rctx )
 {
     rctx.projection = glm::perspective( glm::radians( m_angle + m_jet->speed() * 6 ), static_cast<float>( viewportWidth() / viewportHeight() ), 0.001f, 2000.0f );
     rctx.view = glm::translate( rctx.view, glm::vec3{ 0, -0.255, -1 } );
@@ -365,7 +365,7 @@ void Road::render3D( RenderContext rctx )
     }
 }
 
-void Road::renderMainMenu( RenderContext rctx )
+void Game::renderMainMenu( RenderContext rctx )
 {
     renderClouds( rctx );
     renderCyberRings( rctx );
@@ -375,7 +375,7 @@ void Road::renderMainMenu( RenderContext rctx )
     m_btnCustomize.render( rctx );
 }
 
-void Road::renderClouds( RenderContext rctx ) const
+void Game::renderClouds( RenderContext rctx ) const
 {
     PushConstant<Pipeline::eGuiTextureColor1> pushConstant{};
     pushConstant.m_model = rctx.model;
@@ -408,7 +408,7 @@ void Road::renderClouds( RenderContext rctx ) const
     rctx.renderer->push( &pushBuffer, &pushConstant );
 }
 
-void Road::renderWinScreen( RenderContext rctx )
+void Game::renderWinScreen( RenderContext rctx )
 {
     renderGameScreen( rctx );
     renderCyberRings( rctx );
@@ -432,7 +432,7 @@ void Road::renderWinScreen( RenderContext rctx )
     m_btnReturnToMissionSelection.render( rctx );
 }
 
-void Road::renderDeadScreen( RenderContext rctx )
+void Game::renderDeadScreen( RenderContext rctx )
 {
     renderGameScreen( rctx );
     renderCyberRings( rctx );
@@ -457,7 +457,7 @@ void Road::renderDeadScreen( RenderContext rctx )
     m_btnReturnToMissionSelection.render( rctx );
 }
 
-void Road::renderMissionSelectionScreen( RenderContext rctx )
+void Game::renderMissionSelectionScreen( RenderContext rctx )
 {
     {
         MapProto& map = m_mapsContainer[ m_currentMap ];
@@ -502,7 +502,7 @@ void Road::renderMissionSelectionScreen( RenderContext rctx )
     m_btnPrevMap.render( rctx );
 }
 
-void Road::renderGameScreenBriefing( RenderContext rctx )
+void Game::renderGameScreenBriefing( RenderContext rctx )
 {
     renderGameScreen( rctx );
     renderCyberRings( rctx );
@@ -515,7 +515,7 @@ void Road::renderGameScreenBriefing( RenderContext rctx )
     m_btnGO.render( rctx );
 }
 
-void Road::renderScreenCustomize( RenderContext rctx )
+void Game::renderScreenCustomize( RenderContext rctx )
 {
     renderClouds( rctx );
     renderCyberRings( rctx );

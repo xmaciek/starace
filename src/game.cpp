@@ -1,4 +1,4 @@
-#include "road.hpp"
+#include "game.hpp"
 
 #include "utils.hpp"
 
@@ -11,7 +11,7 @@
 #include <iostream>
 #include <random>
 
-Road::Road()
+Game::Game()
 {
     m_radar = new Circle( 48, 64 );
 
@@ -39,7 +39,7 @@ Road::Road()
     m_bulletGarbage.reserve( 200 );
 }
 
-Road::~Road()
+Game::~Game()
 {
     clearMapData();
 
@@ -63,13 +63,13 @@ Road::~Road()
     delete m_renderer;
 }
 
-int32_t Road::run()
+int32_t Game::run()
 {
     if ( !onInit() ) {
         return -1;
     }
 
-    m_thread = std::thread( &Road::onUpdate, this );
+    m_thread = std::thread( &Game::onUpdate, this );
     SDL_Event Event{};
     while ( m_isRunning ) {
         while ( SDL_PollEvent( &Event ) ) {
@@ -85,7 +85,7 @@ int32_t Road::run()
     return 0;
 }
 
-void Road::onEvent( const SDL_Event& event )
+void Game::onEvent( const SDL_Event& event )
 {
     switch ( event.type ) {
     case SDL_QUIT:
@@ -114,7 +114,7 @@ void Road::onEvent( const SDL_Event& event )
     }
 }
 
-void Road::onCleanup()
+void Game::onCleanup()
 {
     //   Mix_HaltMusic();
     Mix_HaltChannel( -1 );
@@ -133,7 +133,7 @@ void Road::onCleanup()
     saveConfig();
 }
 
-bool Road::onInit()
+bool Game::onInit()
 {
     if ( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO ) < 0 ) {
         std::cout << "Unable to init SDL\n"
@@ -164,7 +164,7 @@ bool Road::onInit()
     return true;
 }
 
-void Road::onResize( int32_t w, int32_t h )
+void Game::onResize( int32_t w, int32_t h )
 {
     m_maxDimention = std::max( w, h );
     m_minDimention = std::min( w, h );
@@ -190,7 +190,7 @@ void Road::onResize( int32_t w, int32_t h )
     m_btnWeap3.updateCoord( viewportWidth() / 2 + 100, viewportHeight() * 0.15 + 52 - 76 );
 }
 
-void Road::initRoadAdditions()
+void Game::initRoadAdditions()
 {
     if ( TTF_Init() < 0 ) {
         std::cout << "Unable to initialize library: " << TTF_GetError() << "\n";
@@ -359,7 +359,7 @@ void Road::initRoadAdditions()
     m_weapons[ 2 ] = tmpWeapon;
 }
 
-void Road::updateCyberRings( const UpdateContext& updateContext )
+void Game::updateCyberRings( const UpdateContext& updateContext )
 {
     m_cyberRingRotation[ 0 ] += 25.0f * updateContext.deltaTime;
     m_cyberRingRotation[ 1 ] -= 15.0f * updateContext.deltaTime;
@@ -384,7 +384,7 @@ void Road::updateCyberRings( const UpdateContext& updateContext )
     }
 }
 
-void Road::onRender()
+void Game::onRender()
 {
     m_timeS = SDL_GetTicks();
 
@@ -423,7 +423,7 @@ void Road::onRender()
     m_renderer->present();
 }
 
-void Road::onUpdate()
+void Game::onUpdate()
 {
     const UpdateContext updateContext{ 0.032f };
     while ( m_isRunning ) {
@@ -458,22 +458,22 @@ void Road::onUpdate()
     }
 }
 
-void Road::pause()
+void Game::pause()
 {
     changeScreen( Screen::eGamePaused );
 }
 
-void Road::unpause()
+void Game::unpause()
 {
     changeScreen( Screen::eGame );
 }
 
-void Road::updateGamePaused( const UpdateContext& updateContext )
+void Game::updateGamePaused( const UpdateContext& updateContext )
 {
     updateCyberRings( updateContext );
 }
 
-void Road::updateGame( const UpdateContext& updateContext )
+void Game::updateGame( const UpdateContext& updateContext )
 {
     if ( m_jet->status() == Jet::Status::eDead ) {
         changeScreen( Screen::eDead );
@@ -579,7 +579,7 @@ void Road::updateGame( const UpdateContext& updateContext )
     updateCyberRings( updateContext );
 }
 
-void Road::addBullet( uint32_t wID )
+void Game::addBullet( uint32_t wID )
 {
     if ( !m_jet->isWeaponReady( wID ) ) {
         return;
@@ -600,7 +600,7 @@ void Road::addBullet( uint32_t wID )
     }
 }
 
-void Road::onMouseClickLeft( int32_t x, int32_t y )
+void Game::onMouseClickLeft( int32_t x, int32_t y )
 {
     y = viewportHeight() - y;
     switch ( m_currentScreen ) {
@@ -769,7 +769,7 @@ void Road::onMouseClickLeft( int32_t x, int32_t y )
     }
 }
 
-void Road::retarget()
+void Game::retarget()
 {
     std::lock_guard<std::mutex> lg( m_mutexEnemy );
     if ( m_enemies.empty() ) {
@@ -779,18 +779,18 @@ void Road::retarget()
     m_jet->lockTarget( m_enemies[ random() % m_enemies.size() ] );
 }
 
-void Road::updateMainMenu( const UpdateContext& updateContext )
+void Game::updateMainMenu( const UpdateContext& updateContext )
 {
     updateClouds( updateContext );
     updateCyberRings( updateContext );
 }
 
-void Road::updateGameScreenBriefing( const UpdateContext& updateContext )
+void Game::updateGameScreenBriefing( const UpdateContext& updateContext )
 {
     updateGamePaused( updateContext );
 }
 
-void Road::clearMapData()
+void Game::clearMapData()
 {
     std::cout << "Moving all enemies to garbage.\n";
     {
@@ -836,7 +836,7 @@ void Road::clearMapData()
     m_jet = nullptr;
 }
 
-void Road::createMapData( const MapProto& mapData, const ModelProto& modelData )
+void Game::createMapData( const MapProto& mapData, const ModelProto& modelData )
 {
     m_shotsDone = 0;
     m_hudColor = 0;
@@ -863,12 +863,12 @@ void Road::createMapData( const MapProto& mapData, const ModelProto& modelData )
     }
 }
 
-void Road::updateMissionSelection( const UpdateContext& updateContext )
+void Game::updateMissionSelection( const UpdateContext& updateContext )
 {
     updateCyberRings( updateContext );
 }
 
-void Road::changeScreen( Screen scr )
+void Game::changeScreen( Screen scr )
 {
     SDL_ShowCursor( scr != Screen::eGame );
 
@@ -904,13 +904,13 @@ void Road::changeScreen( Screen scr )
     }
 }
 
-void Road::goFullscreen( bool b )
+void Game::goFullscreen( bool b )
 {
     b = !b;
     initNewSurface( viewportWidth(), viewportHeight(), 32, b );
 }
 
-bool Road::initNewSurface( int32_t w, int32_t h, int32_t d, bool f )
+bool Game::initNewSurface( int32_t w, int32_t h, int32_t d, bool f )
 {
     SDL_Surface* tmp = m_display;
     SDL_Surface* tmp2 = nullptr;
@@ -933,7 +933,7 @@ bool Road::initNewSurface( int32_t w, int32_t h, int32_t d, bool f )
     return true;
 }
 
-void Road::loadMapProto()
+void Game::loadMapProto()
 {
     m_mapsContainer.clear();
     MapProto map;
@@ -983,7 +983,7 @@ void Road::loadMapProto()
     m_btnPrevMap.setEnabled( false );
 }
 
-void Road::loadJetProto()
+void Game::loadJetProto()
 {
     m_jetsContainer.clear();
     ModelProto mod;
@@ -1031,7 +1031,7 @@ void Road::loadJetProto()
     }
 }
 
-void Road::loadConfig()
+void Game::loadConfig()
 {
     std::ifstream ConfigFile( "config.cfg" );
     char value_1[ 48 ]{};
@@ -1093,7 +1093,7 @@ void Road::loadConfig()
     loadJetProto();
 }
 
-void Road::saveConfig()
+void Game::saveConfig()
 {
     std::ofstream ConfigFile( "config.cfg" );
     ConfigFile << "width " << viewportWidth() << "\n";
@@ -1140,7 +1140,7 @@ void Road::saveConfig()
     ConfigFile.close();
 }
 
-void Road::updateClouds( const UpdateContext& updateContext )
+void Game::updateClouds( const UpdateContext& updateContext )
 {
     if ( m_backgroundEffectEquation ) {
         m_alphaValue += 0.1 * updateContext.deltaTime;
@@ -1157,7 +1157,7 @@ void Road::updateClouds( const UpdateContext& updateContext )
     }
 }
 
-void Road::updateCustomize( const UpdateContext& updateContext )
+void Game::updateCustomize( const UpdateContext& updateContext )
 {
     updateClouds( updateContext );
     updateCyberRings( updateContext );
@@ -1167,34 +1167,34 @@ void Road::updateCustomize( const UpdateContext& updateContext )
     }
 }
 
-void Road::playSound( Mix_Chunk* sound ) const
+void Game::playSound( Mix_Chunk* sound ) const
 {
     if ( m_isSoundEnabled ) {
         Mix_Playing( Mix_PlayChannel( -1, sound, 0 ) );
     }
 }
 
-void Road::updateWin( const UpdateContext& updateContext )
+void Game::updateWin( const UpdateContext& updateContext )
 {
     updateCyberRings( updateContext );
 }
 
-void Road::updateDeadScreen( const UpdateContext& updateContext )
+void Game::updateDeadScreen( const UpdateContext& updateContext )
 {
     updateCyberRings( updateContext );
 }
 
-double Road::viewportWidth() const
+double Game::viewportWidth() const
 {
     return m_viewportWidth;
 }
 
-double Road::viewportHeight() const
+double Game::viewportHeight() const
 {
     return m_viewportHeight;
 }
 
-void Road::setViewportSize( double w, double h )
+void Game::setViewportSize( double w, double h )
 {
     m_viewportWidth = w;
     m_viewportHeight = h;

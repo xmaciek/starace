@@ -16,6 +16,7 @@ set( STARACE_HEADERS
     circle.hpp
     enemy.hpp
     font.hpp
+    game.hpp
     jet.hpp
     map.hpp
     model.hpp
@@ -23,7 +24,6 @@ set( STARACE_HEADERS
     render_context.hpp
     render_pipeline.hpp
     renderer.hpp
-    road.hpp
     saobject.hpp
     shield.hpp
     texture.hpp
@@ -38,19 +38,19 @@ set( STARACE_SOURCES
     circle.cpp
     enemy.cpp
     font.cpp
+    game.cpp
+    game_input.cpp
+    game_rendering.cpp
     jet.cpp
     main.cpp
     map.cpp
     model.cpp
-    road.cpp
-    road_drawing.cpp
-    road_keyboard.cpp
+    renderer.cpp
     saobject.cpp
     shield.cpp
     texture.cpp
     thruster.cpp
     utils.cpp
-    renderer.cpp
 )
 
 

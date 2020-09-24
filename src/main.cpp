@@ -1,9 +1,11 @@
-#include "road.hpp"
+#include "game.hpp"
 
-int main( [[maybe_unused]] int argc, [[maybe_unused]] char** argv )
+int main( int argc, char** argv )
 {
-    Road* road = new Road();
-    const int ret = road->run();
-    delete road;
+    (void)argc;
+    (void)argv;
+    Game* game = new Game();
+    const int ret = game->run();
+    delete game;
     return ret;
 }
