@@ -159,7 +159,7 @@ bool Game::onInit()
         return false;
     }
 
-    m_renderer = new Renderer();
+    m_renderer = Renderer::create();
     initRoadAdditions();
     onResize( viewportWidth(), viewportHeight() );
     return true;

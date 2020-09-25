@@ -10,6 +10,33 @@
 
 Renderer* Renderer::s_instance = nullptr;
 
+Renderer* Renderer::instance()
+{
+    return s_instance;
+}
+
+
+class RendererGL : public Renderer {
+public:
+    virtual ~RendererGL() override;
+    RendererGL();
+
+    virtual std::pmr::memory_resource* allocator() override;
+    virtual uint32_t createTexture( uint32_t w, uint32_t h, TextureFormat, const uint8_t* ) override;
+    virtual void clear() override;
+    virtual void deleteTexture( uint32_t ) override;
+    virtual void present() override;
+    virtual void push( void* buffer, void* constant ) override;
+    virtual void setViewportSize( uint32_t w, uint32_t h ) override;
+};
+
+
+Renderer* Renderer::create()
+{
+    return new RendererGL();
+}
+
+
 struct ScopeEnable {
     uint32_t m_x;
     ScopeEnable( uint32_t x )
@@ -39,12 +66,12 @@ static int typeToFormat( TextureFormat e )
     }
 }
 
-Renderer::~Renderer()
+RendererGL::~RendererGL()
 {
     s_instance = nullptr;
 }
 
-Renderer::Renderer()
+RendererGL::RendererGL()
 {
     s_instance = this;
     SDL_GL_SetAttribute( SDL_GL_ACCUM_ALPHA_SIZE, 0 );
@@ -75,37 +102,32 @@ Renderer::Renderer()
     glEnable( GL_LIGHT0 );
 }
 
-Renderer* Renderer::instance()
-{
-    return s_instance;
-}
-
-std::pmr::memory_resource* Renderer::allocator()
+std::pmr::memory_resource* RendererGL::allocator()
 {
     return std::pmr::get_default_resource();
 }
 
-void Renderer::setViewportSize( uint32_t w, uint32_t h )
+void RendererGL::setViewportSize( uint32_t w, uint32_t h )
 {
     glViewport( 0, 0, w, h );
 }
 
-void Renderer::clear()
+void RendererGL::clear()
 {
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 }
 
-void Renderer::present()
+void RendererGL::present()
 {
     SDL_GL_SwapBuffers();
 }
 
-void Renderer::deleteTexture( uint32_t tex )
+void RendererGL::deleteTexture( uint32_t tex )
 {
     glDeleteTextures( 1, &tex );
 }
 
-uint32_t Renderer::createTexture( uint32_t w, uint32_t h, TextureFormat fmt, const uint8_t* ptr )
+uint32_t RendererGL::createTexture( uint32_t w, uint32_t h, TextureFormat fmt, const uint8_t* ptr )
 {
     uint32_t textureID = 0;
     glGenTextures( 1, &textureID );
@@ -127,7 +149,7 @@ uint32_t Renderer::createTexture( uint32_t w, uint32_t h, TextureFormat fmt, con
     return textureID;
 }
 
-void Renderer::push( void* buffer, void* constant )
+void RendererGL::push( void* buffer, void* constant )
 {
     switch ( *reinterpret_cast<Pipeline*>( buffer ) ) {
     case Pipeline::eLine3dStripColor: {
