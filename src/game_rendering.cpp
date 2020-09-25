@@ -1,6 +1,7 @@
 #include "game.hpp"
 
 #include "utils.hpp"
+#include <renderer/buffer.hpp>
 #include <renderer/pipeline.hpp>
 #include <renderer/renderer.hpp>
 
@@ -116,23 +117,22 @@ void Game::renderHUDBar( RenderContext rctx, const glm::vec4& xywh, float ratio 
         rctx.renderer->push( &pushBuffer, &pushConstant );
     }
     {
-        PushConstant<Pipeline::eTriangleFan3dColor> pushConstant{};
+        PushBuffer<Pipeline::eGuiQuadColor1> pushBuffer{};
+        PushConstant<Pipeline::eGuiQuadColor1> pushConstant{};
         pushConstant.m_model = rctx.model;
         pushConstant.m_view = rctx.view;
         pushConstant.m_projection = rctx.projection;
-
-        PushBuffer<Pipeline::eTriangleFan3dColor> pushBuffer{ rctx.renderer->allocator() };
-        pushBuffer.m_colors.resize( 4, glm::vec4{
+        pushConstant.m_color = glm::vec4{
             1.0f - ratio + colorHalf( ratio )
             , ratio + colorHalf( ratio )
             , 0.0f
             , 1.0f
-        } );
-        pushBuffer.m_vertices.reserve( 4 );
-        pushBuffer.m_vertices.emplace_back( glm::vec3{ 0, 0, 0 } );
-        pushBuffer.m_vertices.emplace_back( glm::vec3{ xywh.z, 0, 0 } );
-        pushBuffer.m_vertices.emplace_back( glm::vec3{ xywh.z, ratio * xywh.w, 0.0f } );
-        pushBuffer.m_vertices.emplace_back( glm::vec3{ 0.0f, ratio * xywh.w, 0.0f } );
+        };
+
+        pushConstant.m_vertices[ 0 ] = glm::vec2{ 0, 0 };
+        pushConstant.m_vertices[ 1 ] = glm::vec2{ xywh.z, 0 };
+        pushConstant.m_vertices[ 2 ] = glm::vec2{ xywh.z, ratio * xywh.w };
+        pushConstant.m_vertices[ 3 ] = glm::vec2{ 0.0f, ratio * xywh.w };
         rctx.renderer->push( &pushBuffer, &pushConstant );
     }
 
@@ -288,14 +288,24 @@ void Game::renderHUD( RenderContext rctx )
             pushConstant.m_view = rctx2.view;
             pushConstant.m_projection = rctx2.projection;
 
-            PushBuffer<Pipeline::eTriangleFan3dColor> pushBuffer{ rctx2.renderer->allocator() };
-            pushBuffer.m_colors.resize( 5, color );
-            pushBuffer.m_vertices.reserve( 5 );
-            pushBuffer.m_vertices.emplace_back( -3, 0, 0 );
-            pushBuffer.m_vertices.emplace_back( 3, 0, 0 );
-            pushBuffer.m_vertices.emplace_back( 12, 24, 0 );
-            pushBuffer.m_vertices.emplace_back( 0, 26.5, 0 );
-            pushBuffer.m_vertices.emplace_back( -12, 24, 0 );
+            static Buffer colors{};
+            static Buffer vertices{};
+            if ( !colors ) {
+                std::pmr::vector<glm::vec4> col{ 5, color, rctx.renderer->allocator() };
+                std::pmr::vector<glm::vec3> vec{ rctx.renderer->allocator() };
+                vec.reserve( 5 );
+                vec.emplace_back( -3, 0, 0 );
+                vec.emplace_back( 3, 0, 0 );
+                vec.emplace_back( 12, 24, 0 );
+                vec.emplace_back( 0, 26.5, 0 );
+                vec.emplace_back( -12, 24, 0 );
+                colors = rctx.renderer->createBuffer( std::move( col ) );
+                vertices = rctx.renderer->createBuffer( std::move( vec ) );
+            }
+
+            PushBuffer<Pipeline::eTriangleFan3dColor> pushBuffer{};
+            pushBuffer.m_colors = colors;
+            pushBuffer.m_vertices = vertices;
             rctx2.renderer->push( &pushBuffer, &pushConstant );
             pushConstant.m_model = glm::rotate( pushConstant.m_model, glm::radians( 180.0f ), glm::vec3{ 0.0f, 0.0f, 1.0f } );
             rctx2.renderer->push( &pushBuffer, &pushConstant );

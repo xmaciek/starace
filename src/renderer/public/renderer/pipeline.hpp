@@ -13,6 +13,7 @@
 
 enum struct Pipeline {
     eGuiTextureColor1,
+    eGuiQuadColor1,
     eLine3dColor1,
     eLine3dStripColor,
     eTriangle3dTextureNormal,
@@ -104,6 +105,22 @@ struct PushConstant<Pipeline::eGuiTextureColor1> {
 };
 
 template <>
+struct PushBuffer<Pipeline::eGuiQuadColor1> {
+    Pipeline m_pipeline = Pipeline::eGuiQuadColor1;
+    PushBuffer() = default;
+};
+
+template <>
+struct PushConstant<Pipeline::eGuiQuadColor1> {
+    glm::mat4 m_model{};
+    glm::mat4 m_view{};
+    glm::mat4 m_projection{};
+    std::array<glm::vec2, 4> m_vertices{};
+    glm::vec4 m_color{};
+    PushConstant() = default;
+};
+
+template <>
 struct PushConstant<Pipeline::eLine3dColor1> {
     glm::mat4 m_model{};
     glm::mat4 m_view{};
@@ -138,13 +155,7 @@ struct PushBuffer<Pipeline::eTriangle3dTextureNormal> {
 template <>
 struct PushBuffer<Pipeline::eTriangleFan3dColor> {
     Pipeline m_pipeline = Pipeline::eTriangleFan3dColor;
-    std::pmr::vector<glm::vec3> m_vertices{};
-    std::pmr::vector<glm::vec4> m_colors{};
-
+    Buffer m_vertices{};
+    Buffer m_colors{};
     PushBuffer() = default;
-    PushBuffer( std::pmr::memory_resource* allocator )
-    : m_vertices{ allocator }
-    , m_colors{ allocator }
-    {
-    }
 };

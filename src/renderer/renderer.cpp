@@ -28,6 +28,7 @@ static bool operator < ( const Buffer& lhs, const Buffer& rhs ) noexcept
 class RendererGL : public Renderer {
     std::pmr::map<Buffer, std::pmr::vector<glm::vec2>> m_bufferMap2{};
     std::pmr::map<Buffer, std::pmr::vector<glm::vec3>> m_bufferMap3{};
+    std::pmr::map<Buffer, std::pmr::vector<glm::vec4>> m_bufferMap4{};
     uint64_t m_currentBufferId = 0;
 
 public:
@@ -36,6 +37,7 @@ public:
 
     virtual Buffer createBuffer( std::pmr::vector<glm::vec2>&& ) override;
     virtual Buffer createBuffer( std::pmr::vector<glm::vec3>&& ) override;
+    virtual Buffer createBuffer( std::pmr::vector<glm::vec4>&& ) override;
     virtual std::pmr::memory_resource* allocator() override;
     virtual uint32_t createTexture( uint32_t w, uint32_t h, TextureFormat, const uint8_t* ) override;
     virtual void clear() override;
@@ -147,6 +149,7 @@ void RendererGL::deleteBuffer( const Buffer& b )
 {
     m_bufferMap2.erase( b );
     m_bufferMap3.erase( b );
+    m_bufferMap4.erase( b );
 }
 
 Buffer RendererGL::createBuffer( std::pmr::vector<glm::vec2>&& vec )
@@ -162,6 +165,14 @@ Buffer RendererGL::createBuffer( std::pmr::vector<glm::vec3>&& vec )
     const Buffer buffer{ ++m_currentBufferId };
     m_bufferMap3.emplace( std::make_pair( buffer, std::move( vec ) ) );
     assert( !m_bufferMap3[ buffer ].empty() );
+    return buffer;
+}
+
+Buffer RendererGL::createBuffer( std::pmr::vector<glm::vec4>&& vec )
+{
+    const Buffer buffer{ ++m_currentBufferId };
+    m_bufferMap4.emplace( std::make_pair( buffer, std::move( vec ) ) );
+    assert( !m_bufferMap4[ buffer ].empty() );
     return buffer;
 }
 
@@ -262,6 +273,26 @@ void RendererGL::push( void* buffer, void* constant )
         glPopMatrix();
     } break;
 
+    case Pipeline::eGuiQuadColor1: {
+        auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::eGuiQuadColor1>*>( constant );
+
+        ScopeEnable blend( GL_BLEND );
+
+        glPushMatrix();
+        glMatrixMode( GL_PROJECTION );
+        glLoadMatrixf( glm::value_ptr( pushConstant->m_projection ) );
+        glMatrixMode( GL_MODELVIEW );
+        glLoadMatrixf( glm::value_ptr( pushConstant->m_view * pushConstant->m_model ) );
+
+        glBegin( GL_TRIANGLE_FAN );
+        glColor4fv( glm::value_ptr( pushConstant->m_color ) );
+        for ( const glm::vec2& it : pushConstant->m_vertices ) {
+            glVertex2fv( glm::value_ptr( it ) );
+        }
+        glEnd();
+        glPopMatrix();
+    } break;
+
     case Pipeline::eTriangleFan3dTexture: {
         auto* pushBuffer = reinterpret_cast<PushBuffer<Pipeline::eTriangleFan3dTexture>*>( buffer );
         auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::eTriangleFan3dTexture>*>( constant );
@@ -301,9 +332,13 @@ void RendererGL::push( void* buffer, void* constant )
         glLoadMatrixf( glm::value_ptr( pushConstant->m_view * pushConstant->m_model ) );
 
         glBegin( GL_TRIANGLE_FAN );
-        for ( size_t i = 0; i < pushBuffer->m_vertices.size(); ++i ) {
-            glColor4fv( glm::value_ptr( pushBuffer->m_colors[ i ] ) );
-            glVertex3fv( glm::value_ptr( pushBuffer->m_vertices[ i ] ) );
+        const std::pmr::vector<glm::vec3>& vec = m_bufferMap3[ pushBuffer->m_vertices ];
+        const std::pmr::vector<glm::vec4>& col = m_bufferMap4[ pushBuffer->m_colors ];
+        assert( vec.size() == col.size() );
+        assert( !vec.empty() );
+        for ( size_t i = 0; i < vec.size(); ++i ) {
+            glColor4fv( glm::value_ptr( col[ i ] ) );
+            glVertex3fv( glm::value_ptr( vec[ i ] ) );
         }
         glEnd();
         glPopMatrix();

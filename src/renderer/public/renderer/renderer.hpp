@@ -4,6 +4,7 @@
 
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 
 #include <cstdint>
 #include <memory_resource>
@@ -27,6 +28,7 @@ public:
 
     virtual Buffer createBuffer( std::pmr::vector<glm::vec2>&& ) = 0;
     virtual Buffer createBuffer( std::pmr::vector<glm::vec3>&& ) = 0;
+    virtual Buffer createBuffer( std::pmr::vector<glm::vec4>&& ) = 0;
     virtual std::pmr::memory_resource* allocator() = 0;
     virtual uint32_t createTexture( uint32_t w, uint32_t h, TextureFormat, const uint8_t* ) = 0;
     virtual void clear() = 0;
