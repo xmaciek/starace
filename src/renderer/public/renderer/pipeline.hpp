@@ -72,16 +72,11 @@ struct PushBuffer<Pipeline::eTriangleFan2dTextureColor> {
 template <>
 struct PushBuffer<Pipeline::eTriangleFan3dTexture> {
     Pipeline m_pipeline = Pipeline::eTriangleFan3dTexture;
-    std::pmr::vector<glm::vec3> m_vertices{};
-    std::pmr::vector<glm::vec2> m_uv{};
+    Buffer m_vertices{};
+    Buffer m_uv{};
     uint32_t m_texture = 0;
 
     PushBuffer() = default;
-    PushBuffer( std::pmr::memory_resource* allocator )
-    : m_vertices{ allocator }
-    , m_uv{ allocator }
-    {
-    }
 };
 
 template <>

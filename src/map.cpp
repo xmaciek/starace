@@ -9,97 +9,137 @@
 
 void Map::render( RenderContext rctx )
 {
-    PushConstant<Pipeline::eTriangleFan3dTexture> pushConstant{};
-    pushConstant.m_model = rctx.model;
-    pushConstant.m_view = rctx.view;
-    pushConstant.m_projection = rctx.projection;
+    static Buffer walls[ 6 ]{};
+    static Buffer uv[ 6 ]{};
 
-    PushBuffer<Pipeline::eTriangleFan3dTexture> pushBuffer{ rctx.renderer->allocator() };
-    pushBuffer.m_uv.resize( 4 );
-    pushBuffer.m_vertices.resize( 4 );
+    // NOTE: this is so bad, should ba model rendering
+    if ( !walls[ 0 ] ) {
+        std::pmr::memory_resource* a = rctx.renderer->allocator();
+        using Vec = std::pmr::vector<glm::vec3>;
+        using Uv = std::pmr::vector<glm::vec2>;
+        std::pmr::vector<glm::vec3> w[ 6 ] = { Vec{ 4, a },Vec{ 4, a },Vec{ 4, a },Vec{ 4, a },Vec{ 4, a },Vec{ 4, a } };
+        std::pmr::vector<glm::vec2> auv[ 6 ] ={ Uv{ 4, a }, Uv{ 4, a }, Uv{ 4, a }, Uv{ 4, a }, Uv{ 4, a }, Uv{ 4, a } };
 
-    pushBuffer.m_texture = m_back;
-    pushBuffer.m_vertices[ 0 ] = glm::vec3{ -m_v1, -m_v1, -m_v1 };
-    pushBuffer.m_vertices[ 1 ] = glm::vec3{ m_v1, -m_v1, -m_v1 };
-    pushBuffer.m_vertices[ 2 ] = glm::vec3{ m_v1, m_v1, -m_v1 };
-    pushBuffer.m_vertices[ 3 ] = glm::vec3{ -m_v1, m_v1, -m_v1 };
-    pushBuffer.m_uv[ 0 ] = glm::vec2{ m_min, m_min };
-    pushBuffer.m_uv[ 1 ] = glm::vec2{ m_max, m_min };
-    pushBuffer.m_uv[ 2 ] = glm::vec2{ m_max, m_max };
-    pushBuffer.m_uv[ 3 ] = glm::vec2{ m_min, m_max };
-    rctx.renderer->push( &pushBuffer, &pushConstant );
+        int i = 0;
+        int j = 0;
 
-    pushBuffer.m_texture = m_front;
-    pushBuffer.m_vertices[ 0 ] = glm::vec3{ -m_v1, m_v1, m_v1 };
-    pushBuffer.m_vertices[ 1 ] = glm::vec3{ m_v1, m_v1, m_v1 };
-    pushBuffer.m_vertices[ 2 ] = glm::vec3{ m_v1, -m_v1, m_v1 };
-    pushBuffer.m_vertices[ 3 ] = glm::vec3{ -m_v1, -m_v1, m_v1 };
-    pushBuffer.m_uv[ 0 ] = glm::vec2{ m_min, m_max };
-    pushBuffer.m_uv[ 1 ] = glm::vec2{ m_max, m_max };
-    pushBuffer.m_uv[ 2 ] = glm::vec2{ m_max, m_min };
-    pushBuffer.m_uv[ 3 ] = glm::vec2{ m_min, m_min };
-    rctx.renderer->push( &pushBuffer, &pushConstant );
+        w[ i ][ j++ ] = glm::vec3{ -m_v1, -m_v1, -m_v1 };
+        w[ i ][ j++ ] = glm::vec3{ m_v1, -m_v1, -m_v1 };
+        w[ i ][ j++ ] = glm::vec3{ m_v1, m_v1, -m_v1 };
+        w[ i ][ j++ ] = glm::vec3{ -m_v1, m_v1, -m_v1 };
+        j = 0;
+        auv[ i ][ j++ ] = glm::vec2{ m_min, m_min };
+        auv[ i ][ j++ ] = glm::vec2{ m_max, m_min };
+        auv[ i ][ j++ ] = glm::vec2{ m_max, m_max };
+        auv[ i ][ j++ ] = glm::vec2{ m_min, m_max };
+        walls[ i ] = rctx.renderer->createBuffer( std::move( w[ i ] ) );
+        uv[ i ] = rctx.renderer->createBuffer( std::move( auv[ i ] ) );
+        i++;
+        j = 0;
 
-    pushBuffer.m_texture = m_left;
-    pushBuffer.m_vertices[ 0 ] = glm::vec3{ -m_v1, -m_v1, m_v1 };
-    pushBuffer.m_vertices[ 1 ] = glm::vec3{ -m_v1, -m_v1, -m_v1 };
-    pushBuffer.m_vertices[ 2 ] = glm::vec3{ -m_v1, m_v1, -m_v1 };
-    pushBuffer.m_vertices[ 3 ] = glm::vec3{ -m_v1, m_v1, m_v1 };
-    pushBuffer.m_uv[ 0 ] = glm::vec2{ m_min, m_min };
-    pushBuffer.m_uv[ 1 ] = glm::vec2{ m_max, m_min };
-    pushBuffer.m_uv[ 2 ] = glm::vec2{ m_max, m_max };
-    pushBuffer.m_uv[ 3 ] = glm::vec2{ m_min, m_max };
-    rctx.renderer->push( &pushBuffer, &pushConstant );
+        w[ i ][ j++ ] = glm::vec3{ -m_v1, m_v1, m_v1 };
+        w[ i ][ j++ ] = glm::vec3{ m_v1, m_v1, m_v1 };
+        w[ i ][ j++ ] = glm::vec3{ m_v1, -m_v1, m_v1 };
+        w[ i ][ j++ ] = glm::vec3{ -m_v1, -m_v1, m_v1 };
+        j = 0;
+        auv[ i ][ j++ ] = glm::vec2{ m_min, m_max };
+        auv[ i ][ j++ ] = glm::vec2{ m_max, m_max };
+        auv[ i ][ j++ ] = glm::vec2{ m_max, m_min };
+        auv[ i ][ j++ ] = glm::vec2{ m_min, m_min };
+        walls[ i ] = rctx.renderer->createBuffer( std::move( w[ i ] ) );
+        uv[ i ] = rctx.renderer->createBuffer( std::move( auv[ i ] ) );
+        i++;
+        j = 0;
 
-    pushBuffer.m_texture = m_right;
-    pushBuffer.m_vertices[ 0 ] = glm::vec3{ m_v1, m_v1, m_v1 };
-    pushBuffer.m_vertices[ 1 ] = glm::vec3{ m_v1, m_v1, -m_v1 };
-    pushBuffer.m_vertices[ 2 ] = glm::vec3{ m_v1, -m_v1, -m_v1 };
-    pushBuffer.m_vertices[ 3 ] = glm::vec3{ m_v1, -m_v1, m_v1 };
-    pushBuffer.m_uv[ 0 ] = glm::vec2{ m_min, m_max };
-    pushBuffer.m_uv[ 1 ] = glm::vec2{ m_max, m_max };
-    pushBuffer.m_uv[ 2 ] = glm::vec2{ m_max, m_min };
-    pushBuffer.m_uv[ 3 ] = glm::vec2{ m_min, m_min };
-    rctx.renderer->push( &pushBuffer, &pushConstant );
+        w[ i ][ j++ ] = glm::vec3{ -m_v1, -m_v1, m_v1 };
+        w[ i ][ j++ ] = glm::vec3{ -m_v1, -m_v1, -m_v1 };
+        w[ i ][ j++ ] = glm::vec3{ -m_v1, m_v1, -m_v1 };
+        w[ i ][ j++ ] = glm::vec3{ -m_v1, m_v1, m_v1 };
+        j = 0;
+        auv[ i ][ j++ ] = glm::vec2{ m_min, m_min };
+        auv[ i ][ j++ ] = glm::vec2{ m_max, m_min };
+        auv[ i ][ j++ ] = glm::vec2{ m_max, m_max };
+        auv[ i ][ j++ ] = glm::vec2{ m_min, m_max };
+        walls[ i ] = rctx.renderer->createBuffer( std::move( w[ i ] ) );
+        uv[ i ] = rctx.renderer->createBuffer( std::move( auv[ i ] ) );
+        i++;
+        j = 0;
 
-    pushBuffer.m_texture = m_top;
-    pushBuffer.m_vertices[ 0 ] = glm::vec3{ -m_v1, m_v1, m_v1 };
-    pushBuffer.m_vertices[ 1 ] = glm::vec3{ -m_v1, m_v1, -m_v1 };
-    pushBuffer.m_vertices[ 2 ] = glm::vec3{ m_v1, m_v1, -m_v1 };
-    pushBuffer.m_vertices[ 3 ] = glm::vec3{ m_v1, m_v1, m_v1 };
-    pushBuffer.m_uv[ 0 ] = glm::vec2{ m_min, m_min };
-    pushBuffer.m_uv[ 1 ] = glm::vec2{ m_max, m_min };
-    pushBuffer.m_uv[ 2 ] = glm::vec2{ m_max, m_max };
-    pushBuffer.m_uv[ 3 ] = glm::vec2{ m_min, m_max };
-    rctx.renderer->push( &pushBuffer, &pushConstant );
+        w[ i ][ j++ ] = glm::vec3{ m_v1, m_v1, m_v1 };
+        w[ i ][ j++ ] = glm::vec3{ m_v1, m_v1, -m_v1 };
+        w[ i ][ j++ ] = glm::vec3{ m_v1, -m_v1, -m_v1 };
+        w[ i ][ j++ ] = glm::vec3{ m_v1, -m_v1, m_v1 };
+        j = 0;
+        auv[ i ][ j++ ] = glm::vec2{ m_min, m_max };
+        auv[ i ][ j++ ] = glm::vec2{ m_max, m_max };
+        auv[ i ][ j++ ] = glm::vec2{ m_max, m_min };
+        auv[ i ][ j++ ] = glm::vec2{ m_min, m_min };
+        walls[ i ] = rctx.renderer->createBuffer( std::move( w[ i ] ) );
+        uv[ i ] = rctx.renderer->createBuffer( std::move( auv[ i ] ) );
+        i++;
+        j = 0;
 
-    pushBuffer.m_texture = m_bottom;
-    pushBuffer.m_vertices[ 0 ] = glm::vec3{ -m_v1, -m_v1, m_v1 };
-    pushBuffer.m_vertices[ 1 ] = glm::vec3{ m_v1, -m_v1, m_v1 };
-    pushBuffer.m_vertices[ 2 ] = glm::vec3{ m_v1, -m_v1, -m_v1 };
-    pushBuffer.m_vertices[ 3 ] = glm::vec3{ -m_v1, -m_v1, -m_v1 };
-    pushBuffer.m_uv[ 0 ] = glm::vec2{ m_min, m_min };
-    pushBuffer.m_uv[ 1 ] = glm::vec2{ m_max, m_min };
-    pushBuffer.m_uv[ 2 ] = glm::vec2{ m_max, m_max };
-    pushBuffer.m_uv[ 3 ] = glm::vec2{ m_min, m_max };
-    rctx.renderer->push( &pushBuffer, &pushConstant );
+        w[ i ][ j++ ] = glm::vec3{ -m_v1, m_v1, m_v1 };
+        w[ i ][ j++ ] = glm::vec3{ -m_v1, m_v1, -m_v1 };
+        w[ i ][ j++ ] = glm::vec3{ m_v1, m_v1, -m_v1 };
+        w[ i ][ j++ ] = glm::vec3{ m_v1, m_v1, m_v1 };
+        j = 0;
+        auv[ i ][ j++ ] = glm::vec2{ m_min, m_min };
+        auv[ i ][ j++ ] = glm::vec2{ m_max, m_min };
+        auv[ i ][ j++ ] = glm::vec2{ m_max, m_max };
+        auv[ i ][ j++ ] = glm::vec2{ m_min, m_max };
+        walls[ i ] = rctx.renderer->createBuffer( std::move( w[ i ] ) );
+        uv[ i ] = rctx.renderer->createBuffer( std::move( auv[ i ] ) );
+        i++;
+        j = 0;
 
-    PushConstant<Pipeline::eLine3dColor1> linePushConstant{};
-    linePushConstant.m_model = rctx.model;
-    linePushConstant.m_view = rctx.view;
-    linePushConstant.m_projection = rctx.projection;
-    linePushConstant.m_color = glm::vec4{ 1.0f, 1.0f, 1.0f, 0.4f };
-    PushBuffer<Pipeline::eLine3dColor1> linePushBuffer{};
-
-    std::pmr::vector<glm::vec3> particles{ rctx.renderer->allocator() };
-    particles.reserve( m_particleList.size() * 2 );
-    for ( const glm::vec3& it : m_particleList ) {
-        particles.emplace_back( it );
-        particles.emplace_back( it + m_particleLength );
+        w[ i ][ j++ ] = glm::vec3{ -m_v1, -m_v1, m_v1 };
+        w[ i ][ j++ ] = glm::vec3{ m_v1, -m_v1, m_v1 };
+        w[ i ][ j++ ] = glm::vec3{ m_v1, -m_v1, -m_v1 };
+        w[ i ][ j++ ] = glm::vec3{ -m_v1, -m_v1, -m_v1 };
+        j = 0;
+        auv[ i ][ j++ ] = glm::vec2{ m_min, m_min };
+        auv[ i ][ j++ ] = glm::vec2{ m_max, m_min };
+        auv[ i ][ j++ ] = glm::vec2{ m_max, m_max };
+        auv[ i ][ j++ ] = glm::vec2{ m_min, m_max };
+        walls[ i ] = rctx.renderer->createBuffer( std::move( w[ i ] ) );
+        uv[ i ] = rctx.renderer->createBuffer( std::move( auv[ i ] ) );
     }
-    linePushBuffer.m_vertices = rctx.renderer->createBuffer( std::move( particles ) );
-    rctx.renderer->push( &linePushBuffer, &linePushConstant );
-    rctx.renderer->deleteBuffer( linePushBuffer.m_vertices );
+
+    {
+        PushConstant<Pipeline::eTriangleFan3dTexture> pushConstant{};
+        pushConstant.m_model = rctx.model;
+        pushConstant.m_view = rctx.view;
+        pushConstant.m_projection = rctx.projection;
+
+        const uint32_t tex[ 6 ] = { m_back, m_front, m_left, m_right, m_top, m_bottom };
+        PushBuffer<Pipeline::eTriangleFan3dTexture> pushBuffer{};
+        for ( int i = 0; i < 6; i++ ) {
+            pushBuffer.m_texture = tex[ i ];
+            pushBuffer.m_vertices = walls[ i ];
+            pushBuffer.m_uv = uv[ i ];
+            rctx.renderer->push( &pushBuffer, &pushConstant );
+        }
+    }
+
+    {
+        PushConstant<Pipeline::eLine3dColor1> linePushConstant{};
+        linePushConstant.m_model = rctx.model;
+        linePushConstant.m_view = rctx.view;
+        linePushConstant.m_projection = rctx.projection;
+        linePushConstant.m_color = glm::vec4{ 1.0f, 1.0f, 1.0f, 0.4f };
+        PushBuffer<Pipeline::eLine3dColor1> linePushBuffer{};
+
+        std::pmr::vector<glm::vec3> particles{ rctx.renderer->allocator() };
+        particles.reserve( m_particleList.size() * 2 );
+        for ( const glm::vec3& it : m_particleList ) {
+            particles.emplace_back( it );
+            particles.emplace_back( it + m_particleLength );
+        }
+        linePushBuffer.m_vertices = rctx.renderer->createBuffer( std::move( particles ) );
+        rctx.renderer->push( &linePushBuffer, &linePushConstant );
+        rctx.renderer->deleteBuffer( linePushBuffer.m_vertices );
+    }
 }
 
 void Map::update( const UpdateContext& updateContext )
