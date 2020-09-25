@@ -223,31 +223,6 @@ void RendererGL::push( void* buffer, void* constant )
         glPopMatrix();
     } break;
 
-    case Pipeline::eTriangleFan2dTextureColor: {
-        auto* pushBuffer = reinterpret_cast<PushBuffer<Pipeline::eTriangleFan2dTextureColor>*>( buffer );
-        auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::eTriangleFan2dTextureColor>*>( constant );
-
-        ScopeEnable blend( GL_BLEND );
-        ScopeEnable texture2d( GL_TEXTURE_2D );
-
-        glPushMatrix();
-        glMatrixMode( GL_PROJECTION );
-        glLoadMatrixf( glm::value_ptr( pushConstant->m_projection ) );
-        glMatrixMode( GL_MODELVIEW );
-        glLoadMatrixf( glm::value_ptr( pushConstant->m_view * pushConstant->m_model ) );
-
-        glBindTexture( GL_TEXTURE_2D, pushBuffer->m_texture );
-        glBegin( GL_TRIANGLE_FAN );
-        for ( size_t i = 0; i < pushBuffer->m_vertices.size(); ++i ) {
-            glColor4fv( glm::value_ptr( pushBuffer->m_colors[ i ] ) );
-            glTexCoord2fv( glm::value_ptr( pushBuffer->m_uv[ i ] ) );
-            glVertex2fv( glm::value_ptr( pushBuffer->m_vertices[ i ] ) );
-        }
-        glEnd();
-        glPopMatrix();
-
-    } break;
-
     case Pipeline::eGuiTextureColor1: {
         auto* pushBuffer = reinterpret_cast<PushBuffer<Pipeline::eGuiTextureColor1>*>( buffer );
         auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::eGuiTextureColor1>*>( constant );
