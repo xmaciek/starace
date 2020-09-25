@@ -1,12 +1,16 @@
 #include <renderer/renderer.hpp>
 
+#include <renderer/buffer.hpp>
 #include <renderer/pipeline.hpp>
-
 
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <SDL/SDL.h>
 #include <glm/gtc/type_ptr.hpp>
+
+#include <cassert>
+#include <map>
+#include <utility>
 
 Renderer* Renderer::s_instance = nullptr;
 
@@ -15,15 +19,27 @@ Renderer* Renderer::instance()
     return s_instance;
 }
 
+static bool operator < ( const Buffer& lhs, const Buffer& rhs ) noexcept
+{
+    return lhs.m_id < rhs.m_id;
+}
+
 
 class RendererGL : public Renderer {
+    std::pmr::map<Buffer, std::pmr::vector<glm::vec2>> m_bufferMap2{};
+    std::pmr::map<Buffer, std::pmr::vector<glm::vec3>> m_bufferMap3{};
+    uint64_t m_currentBufferId = 0;
+
 public:
     virtual ~RendererGL() override;
     RendererGL();
 
+    virtual Buffer createBuffer( std::pmr::vector<glm::vec2>&& ) override;
+    virtual Buffer createBuffer( std::pmr::vector<glm::vec3>&& ) override;
     virtual std::pmr::memory_resource* allocator() override;
     virtual uint32_t createTexture( uint32_t w, uint32_t h, TextureFormat, const uint8_t* ) override;
     virtual void clear() override;
+    virtual void deleteBuffer( const Buffer& ) override;
     virtual void deleteTexture( uint32_t ) override;
     virtual void present() override;
     virtual void push( void* buffer, void* constant ) override;
@@ -125,6 +141,28 @@ void RendererGL::present()
 void RendererGL::deleteTexture( uint32_t tex )
 {
     glDeleteTextures( 1, &tex );
+}
+
+void RendererGL::deleteBuffer( const Buffer& b )
+{
+    m_bufferMap2.erase( b );
+    m_bufferMap3.erase( b );
+}
+
+Buffer RendererGL::createBuffer( std::pmr::vector<glm::vec2>&& vec )
+{
+    const Buffer buffer{ ++m_currentBufferId };
+    m_bufferMap2.emplace( std::make_pair( buffer, std::move( vec ) ) ) ;
+    assert( !m_bufferMap2[ buffer ].empty() );
+    return buffer;
+}
+
+Buffer RendererGL::createBuffer( std::pmr::vector<glm::vec3>&& vec )
+{
+    const Buffer buffer{ ++m_currentBufferId };
+    m_bufferMap3.emplace( std::make_pair( buffer, std::move( vec ) ) );
+    assert( !m_bufferMap3[ buffer ].empty() );
+    return buffer;
 }
 
 uint32_t RendererGL::createTexture( uint32_t w, uint32_t h, TextureFormat fmt, const uint8_t* ptr )
@@ -298,6 +336,12 @@ void RendererGL::push( void* buffer, void* constant )
         auto* pushBuffer = reinterpret_cast<PushBuffer<Pipeline::eTriangle3dTextureNormal>*>( buffer );
         auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::eTriangle3dTextureNormal>*>( constant );
 
+        const std::pmr::vector<glm::vec3>& vertices = m_bufferMap3[ pushBuffer->m_vertices ];
+        const std::pmr::vector<glm::vec3>& normals = m_bufferMap3[ pushBuffer->m_normals ];
+        const std::pmr::vector<glm::vec2>& uv = m_bufferMap2[ pushBuffer->m_uv ];
+        assert( vertices.size() == normals.size() );
+        assert( vertices.size() == uv.size() );
+
         ScopeEnable depthTest( GL_DEPTH_TEST );
         ScopeEnable lightning( GL_LIGHTING );
         ScopeEnable texture2d( GL_TEXTURE_2D );
@@ -311,10 +355,10 @@ void RendererGL::push( void* buffer, void* constant )
         glBindTexture( GL_TEXTURE_2D, pushBuffer->m_texture );
         glBegin( GL_TRIANGLES );
         glColor4f( 1, 1, 1, 1 );
-        for ( size_t i = 0; i < pushBuffer->m_vertices.size(); ++i ) {
-            glNormal3fv( glm::value_ptr( pushBuffer->m_normal[ i ] ) );
-            glTexCoord2fv( glm::value_ptr( pushBuffer->m_uv[ i ] ) );
-            glVertex3fv( glm::value_ptr( pushBuffer->m_vertices[ i ] ) );
+        for ( size_t i = 0; i < vertices.size(); ++i ) {
+            glNormal3fv( glm::value_ptr( normals[ i ] ) );
+            glTexCoord2fv( glm::value_ptr( uv[ i ] ) );
+            glVertex3fv( glm::value_ptr( vertices[ i ] ) );
         }
         glEnd();
         glPopMatrix();

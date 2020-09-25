@@ -1,5 +1,7 @@
 #pragma once
 
+#include <renderer/buffer.hpp>
+
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
@@ -126,17 +128,11 @@ struct PushBuffer<Pipeline::eLine3dColor1> {
 template <>
 struct PushBuffer<Pipeline::eTriangle3dTextureNormal> {
     Pipeline m_pipeline = Pipeline::eTriangle3dTextureNormal;
-    std::pmr::vector<glm::vec3> m_vertices{};
-    std::pmr::vector<glm::vec3> m_normal{};
-    std::pmr::vector<glm::vec2> m_uv{};
+    Buffer m_vertices{};
+    Buffer m_normals{};
+    Buffer m_uv{};
     uint32_t m_texture = 0;
     PushBuffer() = default;
-    PushBuffer( std::pmr::memory_resource* allocator )
-    : m_vertices{ allocator }
-    , m_normal{ allocator }
-    , m_uv{ allocator }
-    {
-    }
 };
 
 template <>

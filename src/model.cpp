@@ -5,37 +5,69 @@
 #include <renderer/renderer.hpp>
 
 #include <cstring>
+#include <iterator>
 #include <fstream>
 #include <sstream>
+#include <utility>
 
 Model::~Model()
 {
     destroyTexture( m_textureID );
+    Renderer::instance()->deleteBuffer( m_vertices );
+    Renderer::instance()->deleteBuffer( m_normals );
+    Renderer::instance()->deleteBuffer( m_uv );
 }
 
 void Model::render( RenderContext rctx ) const
 {
+    if ( !m_vertices ) {
+        std::pmr::vector<glm::vec3> vertices{ rctx.renderer->allocator() };
+        vertices.reserve( m_faces.size() * 3 );
+        for ( const Face& it : m_faces ) {
+            std::copy( it.vertex.begin(), it.vertex.end(), std::back_inserter( vertices ) );
+        }
+        assert( !vertices.empty() );
+        m_vertices = rctx.renderer->createBuffer( std::move( vertices ) );
+        assert( m_vertices );
+    }
+
+    if ( !m_normals ) {
+        std::pmr::vector<glm::vec3> normals{ rctx.renderer->allocator() };
+        normals.reserve( m_faces.size() * 3 );
+        for ( const Face& it : m_faces ) {
+            normals.emplace_back( it.normal[ 0 ], it.normal[ 1 ], it.normal[ 2 ] );
+            normals.emplace_back( it.normal[ 0 ], it.normal[ 1 ], it.normal[ 2 ] );
+            normals.emplace_back( it.normal[ 0 ], it.normal[ 1 ], it.normal[ 2 ] );
+        }
+        assert( !normals.empty() );
+        m_normals = rctx.renderer->createBuffer( std::move( normals ) );
+        assert( m_normals );
+    }
+
+    if ( !m_uv ) {
+        std::pmr::vector<glm::vec2> uv{ rctx.renderer->allocator() };
+        uv.reserve( m_faces.size() * 3 );
+        for ( const Face& it : m_faces ) {
+            uv.emplace_back( it.texcoord[ 0 ].u, it.texcoord[ 0 ].v );
+            uv.emplace_back( it.texcoord[ 1 ].u, it.texcoord[ 1 ].v );
+            uv.emplace_back( it.texcoord[ 2 ].u, it.texcoord[ 2 ].v );
+        }
+        assert( !uv.empty() );
+        m_uv = rctx.renderer->createBuffer( std::move( uv ) );
+        assert( m_uv );
+    }
+
     PushConstant<Pipeline::eTriangle3dTextureNormal> pushConstant{};
     pushConstant.m_model = rctx.model;
     pushConstant.m_view = rctx.view;
     pushConstant.m_projection = rctx.projection;
 
-    PushBuffer<Pipeline::eTriangle3dTextureNormal> pushBuffer{ rctx.renderer->allocator() };
+    PushBuffer<Pipeline::eTriangle3dTextureNormal> pushBuffer{};
+    pushBuffer.m_vertices = m_vertices;
+    pushBuffer.m_normals = m_normals;
+    pushBuffer.m_uv = m_uv;
     pushBuffer.m_texture = m_textureID;
-    pushBuffer.m_vertices.reserve( m_faces.size() * 3 );
-    pushBuffer.m_normal.reserve( m_faces.size() * 3 );
-    pushBuffer.m_uv.reserve( m_faces.size() * 3 );
-    for ( const Face& it : m_faces ) {
-        pushBuffer.m_vertices.emplace_back( it.vertex[ 0 ] );
-        pushBuffer.m_vertices.emplace_back( it.vertex[ 1 ] );
-        pushBuffer.m_vertices.emplace_back( it.vertex[ 2 ] );
-        pushBuffer.m_normal.emplace_back( it.normal[ 0 ], it.normal[ 1 ], it.normal[ 2 ] );
-        pushBuffer.m_normal.emplace_back( it.normal[ 0 ], it.normal[ 1 ], it.normal[ 2 ] );
-        pushBuffer.m_normal.emplace_back( it.normal[ 0 ], it.normal[ 1 ], it.normal[ 2 ] );
-        pushBuffer.m_uv.emplace_back( it.texcoord[ 0 ].u, it.texcoord[ 0 ].v );
-        pushBuffer.m_uv.emplace_back( it.texcoord[ 1 ].u, it.texcoord[ 1 ].v );
-        pushBuffer.m_uv.emplace_back( it.texcoord[ 2 ].u, it.texcoord[ 2 ].v );
-    }
+
     rctx.renderer->push( &pushBuffer, &pushConstant );
 }
 

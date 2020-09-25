@@ -1,6 +1,7 @@
 #pragma once
 
 #include "render_context.hpp"
+#include <renderer/buffer.hpp>
 
 #include <glm/vec3.hpp>
 
@@ -20,6 +21,9 @@ struct Face {
 
 class Model {
 private:
+    mutable Buffer m_vertices{};
+    mutable Buffer m_normals{};
+    mutable Buffer m_uv{};
     std::vector<Face> m_faces{};
     std::vector<glm::vec3> m_thrusters{};
     glm::vec3 m_weapons[ 3 ]{};
