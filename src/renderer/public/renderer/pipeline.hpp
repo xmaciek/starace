@@ -132,14 +132,10 @@ struct PushConstant<Pipeline::eLine3dColor1> {
 template <>
 struct PushBuffer<Pipeline::eLine3dColor1> {
     Pipeline m_pipeline = Pipeline::eLine3dColor1;
-    std::pmr::vector<glm::vec3> m_vertices{};
+    Buffer m_vertices{};
     float m_lineWidth = 1.0f;
 
     PushBuffer() = default;
-    PushBuffer( std::pmr::memory_resource* allocator )
-    : m_vertices{ allocator }
-    {
-    }
 };
 
 template <>

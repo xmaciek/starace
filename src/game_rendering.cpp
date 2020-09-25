@@ -185,6 +185,7 @@ void Game::renderHUD( RenderContext rctx )
     m_fontGuiTxt->renderText( rctx, color, 64, viewportHeight() - 100, hudmessage );
 
     /*radar*/
+#if 0
     const glm::mat4x4 jetMat = glm::toMat4( m_jet->quat() );
     {
         PushConstant<Pipeline::eLine3dColor1> pushConstant{};
@@ -255,8 +256,6 @@ void Game::renderHUD( RenderContext rctx )
         std::fill( pushBuffer.m_colors.begin(), pushBuffer.m_colors.end(), glm::vec4{ 1, 0, 0, 1 } );
         rctx.renderer->push( &pushBuffer, &pushConstant );
     }
-
-#if 0
     {
         std::lock_guard<std::mutex> lg( m_mutexEnemy );
         for ( const Enemy* e : m_enemies ) {

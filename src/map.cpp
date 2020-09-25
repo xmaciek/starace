@@ -89,13 +89,17 @@ void Map::render( RenderContext rctx )
     linePushConstant.m_view = rctx.view;
     linePushConstant.m_projection = rctx.projection;
     linePushConstant.m_color = glm::vec4{ 1.0f, 1.0f, 1.0f, 0.4f };
-    PushBuffer<Pipeline::eLine3dColor1> linePushBuffer{ rctx.renderer->allocator() };
-    linePushBuffer.m_vertices.reserve( m_particleList.size() * 2 );
+    PushBuffer<Pipeline::eLine3dColor1> linePushBuffer{};
+
+    std::pmr::vector<glm::vec3> particles{ rctx.renderer->allocator() };
+    particles.reserve( m_particleList.size() * 2 );
     for ( const glm::vec3& it : m_particleList ) {
-        linePushBuffer.m_vertices.emplace_back( it );
-        linePushBuffer.m_vertices.emplace_back( it + m_particleLength );
+        particles.emplace_back( it );
+        particles.emplace_back( it + m_particleLength );
     }
+    linePushBuffer.m_vertices = rctx.renderer->createBuffer( std::move( particles ) );
     rctx.renderer->push( &linePushBuffer, &linePushConstant );
+    rctx.renderer->deleteBuffer( linePushBuffer.m_vertices );
 }
 
 void Map::update( const UpdateContext& updateContext )

@@ -29,7 +29,6 @@ class RendererGL : public Renderer {
     std::pmr::map<Buffer, std::pmr::vector<glm::vec2>> m_bufferMap2{};
     std::pmr::map<Buffer, std::pmr::vector<glm::vec3>> m_bufferMap3{};
     std::pmr::map<Buffer, std::pmr::vector<glm::vec4>> m_bufferMap4{};
-    uint64_t m_currentBufferId = 0;
 
 public:
     virtual ~RendererGL() override;
@@ -154,7 +153,7 @@ void RendererGL::deleteBuffer( const Buffer& b )
 
 Buffer RendererGL::createBuffer( std::pmr::vector<glm::vec2>&& vec )
 {
-    const Buffer buffer{ ++m_currentBufferId };
+    const Buffer buffer{ reinterpret_cast<uint64_t>( vec.data() ) };
     m_bufferMap2.emplace( std::make_pair( buffer, std::move( vec ) ) ) ;
     assert( !m_bufferMap2[ buffer ].empty() );
     return buffer;
@@ -162,7 +161,7 @@ Buffer RendererGL::createBuffer( std::pmr::vector<glm::vec2>&& vec )
 
 Buffer RendererGL::createBuffer( std::pmr::vector<glm::vec3>&& vec )
 {
-    const Buffer buffer{ ++m_currentBufferId };
+    const Buffer buffer{ reinterpret_cast<uint64_t>( vec.data() ) };
     m_bufferMap3.emplace( std::make_pair( buffer, std::move( vec ) ) );
     assert( !m_bufferMap3[ buffer ].empty() );
     return buffer;
@@ -170,7 +169,7 @@ Buffer RendererGL::createBuffer( std::pmr::vector<glm::vec3>&& vec )
 
 Buffer RendererGL::createBuffer( std::pmr::vector<glm::vec4>&& vec )
 {
-    const Buffer buffer{ ++m_currentBufferId };
+    const Buffer buffer{ reinterpret_cast<uint64_t>( vec.data() ) };
     m_bufferMap4.emplace( std::make_pair( buffer, std::move( vec ) ) );
     assert( !m_bufferMap4[ buffer ].empty() );
     return buffer;
@@ -322,6 +321,11 @@ void RendererGL::push( void* buffer, void* constant )
         auto* pushBuffer = reinterpret_cast<PushBuffer<Pipeline::eTriangleFan3dColor>*>( buffer );
         auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::eTriangleFan3dColor>*>( constant );
 
+        const std::pmr::vector<glm::vec3>& vec = m_bufferMap3[ pushBuffer->m_vertices ];
+        const std::pmr::vector<glm::vec4>& col = m_bufferMap4[ pushBuffer->m_colors ];
+        assert( vec.size() == col.size() );
+        assert( !vec.empty() );
+
         ScopeEnable blend( GL_BLEND );
         ScopeEnable depthTest( GL_DEPTH_TEST );
 
@@ -332,10 +336,6 @@ void RendererGL::push( void* buffer, void* constant )
         glLoadMatrixf( glm::value_ptr( pushConstant->m_view * pushConstant->m_model ) );
 
         glBegin( GL_TRIANGLE_FAN );
-        const std::pmr::vector<glm::vec3>& vec = m_bufferMap3[ pushBuffer->m_vertices ];
-        const std::pmr::vector<glm::vec4>& col = m_bufferMap4[ pushBuffer->m_colors ];
-        assert( vec.size() == col.size() );
-        assert( !vec.empty() );
         for ( size_t i = 0; i < vec.size(); ++i ) {
             glColor4fv( glm::value_ptr( col[ i ] ) );
             glVertex3fv( glm::value_ptr( vec[ i ] ) );
@@ -348,6 +348,8 @@ void RendererGL::push( void* buffer, void* constant )
         auto* pushBuffer = reinterpret_cast<PushBuffer<Pipeline::eLine3dColor1>*>( buffer );
         auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::eLine3dColor1>*>( constant );
 
+        const std::pmr::vector<glm::vec3>& vec = m_bufferMap3[ pushBuffer->m_vertices ];
+        assert( !vec.empty() );
         ScopeEnable blend( GL_BLEND );
         ScopeEnable depthTest( GL_DEPTH_TEST );
 
@@ -360,7 +362,7 @@ void RendererGL::push( void* buffer, void* constant )
         glLineWidth( pushBuffer->m_lineWidth );
         glBegin( GL_LINES );
         glColor4fv( glm::value_ptr( pushConstant->m_color ) );
-        for ( const glm::vec3& it : pushBuffer->m_vertices ) {
+        for ( const glm::vec3& it : vec ) {
             glVertex3fv( glm::value_ptr( it ) );
         }
         glEnd();
