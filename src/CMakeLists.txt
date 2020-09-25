@@ -21,6 +21,7 @@ set( STARACE_HEADERS
     map.hpp
     model.hpp
     model_proto.hpp
+    reactor.hpp
     render_context.hpp
     render_pipeline.hpp
     renderer.hpp
@@ -45,6 +46,7 @@ set( STARACE_SOURCES
     main.cpp
     map.cpp
     model.cpp
+    reactor.cpp
     renderer.cpp
     saobject.cpp
     shield.cpp

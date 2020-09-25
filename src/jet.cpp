@@ -75,6 +75,8 @@ void Jet::lockTarget( SAObject* t )
 
 void Jet::update( const UpdateContext& updateContext )
 {
+    m_reactor.update( updateContext );
+
     const glm::vec3 pyrControl{
         ( m_btnPitchDown ? 1.0f : 0.0f ) + ( m_btnPitchUp ? -1.0f : 0.0f )
         , ( m_btnYawLeft ? 1.0f : 0.0f ) + ( m_btnYawRight ? -1.0f : 0.0f )
@@ -118,9 +120,11 @@ void Jet::update( const UpdateContext& updateContext )
     case 0b10:
         m_speedTarget = m_speedMin;
         break;
-    case 0b01:
+    case 0b01: {
+        const float afterburnerCost = 70.0f * updateContext.deltaTime;
+        m_reactor.consume( afterburnerCost );
         m_speedTarget = m_speedMax;
-        break;
+    } break;
     }
 
     m_speed += glm::clamp( m_speedTarget - m_speed, -m_speedAcceleration, m_speedAcceleration )
@@ -144,7 +148,6 @@ void Jet::update( const UpdateContext& updateContext )
         m_shotFactor[ 2 ] += 1.0 * updateContext.deltaTime;
     }
 
-    m_energy = std::min( m_energy + 60.0 * updateContext.deltaTime, 100.0 );
 
     m_position += velocity() * updateContext.deltaTime;
     m_thruster.update( updateContext );
@@ -271,12 +274,12 @@ void Jet::setWeapon( BulletProto bp, uint32_t id )
 bool Jet::isWeaponReady( uint32_t weaponNum ) const
 {
     return ( m_shotFactor[ weaponNum ] >= m_weapon[ weaponNum ].delay )
-        && ( m_energy >= m_weapon[ weaponNum ].energy );
+        && ( m_reactor.power() >= m_weapon[ weaponNum ].energy );
 }
 
 void Jet::takeEnergy( uint32_t weaponNum )
 {
-    m_energy -= m_weapon[ weaponNum ].energy;
+    m_reactor.consume( m_weapon[ weaponNum ].energy );
     m_shotFactor[ weaponNum ] = 0;
 }
 
@@ -319,7 +322,7 @@ void Jet::addScore( int32_t s, bool b )
 
 double Jet::energy() const
 {
-    return m_energy;
+    return m_reactor.power();
 }
 
 glm::quat Jet::animation() const

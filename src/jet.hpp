@@ -4,6 +4,7 @@
 #include "circle.hpp"
 #include "model.hpp"
 #include "model_proto.hpp"
+#include "reactor.hpp"
 #include "saobject.hpp"
 #include "shield.hpp"
 #include "thruster.hpp"
@@ -33,7 +34,8 @@ private:
     glm::vec3 m_pyrTarget{};
     glm::vec3 m_pyrAnimCurrent{};
 
-    double m_energy = 100.0;
+    Reactor m_reactor{};
+
     double m_shotFactor[ 3 ]{};
     float m_speedMax = 5.0f;
     float m_speedMin = 0.5f;
