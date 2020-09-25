@@ -60,6 +60,7 @@ Game::~Game()
     for ( auto& it : m_mapsContainer ) {
         destroyTexture( it.preview_image );
     }
+    delete m_previewModel;
     delete m_renderer;
 }
 
@@ -357,6 +358,8 @@ void Game::initRoadAdditions()
     tmpWeapon.score_per_hit = 2;
     memcpy( tmpWeapon.color1, tempcolor[ 2 ], 4 * sizeof( float ) );
     m_weapons[ 2 ] = tmpWeapon;
+
+    m_previewModel = new Model();
 }
 
 void Game::updateCyberRings( const UpdateContext& updateContext )
@@ -688,9 +691,9 @@ void Game::onMouseClickLeft( int32_t x, int32_t y )
                 m_btnNextJet.setEnabled( false );
             }
             m_btnPrevJet.setEnabled( true );
-            m_previewModel.loadOBJ( m_jetsContainer.at( m_currentJet ).model_file.c_str() );
-            m_previewModel.calculateNormal();
-            m_previewModel.bindTexture( loadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() ) );
+            m_previewModel->loadOBJ( m_jetsContainer.at( m_currentJet ).model_file.c_str() );
+            m_previewModel->calculateNormal();
+            m_previewModel->bindTexture( loadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() ) );
             break;
         }
         if ( m_btnPrevJet.isClicked( x, y ) ) {
@@ -702,9 +705,9 @@ void Game::onMouseClickLeft( int32_t x, int32_t y )
             if ( m_jetsContainer.size() > 1 ) {
                 m_btnNextJet.setEnabled( true );
             }
-            m_previewModel.loadOBJ( m_jetsContainer.at( m_currentJet ).model_file.c_str() );
-            m_previewModel.calculateNormal();
-            m_previewModel.bindTexture( loadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() ) );
+            m_previewModel->loadOBJ( m_jetsContainer.at( m_currentJet ).model_file.c_str() );
+            m_previewModel->calculateNormal();
+            m_previewModel->bindTexture( loadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() ) );
             break;
         }
         if ( m_btnCustomizeReturn.isClicked( x, y ) ) {
@@ -893,9 +896,9 @@ void Game::changeScreen( Screen scr )
 
     case Screen::eCustomize:
         m_modelRotation = 135.0;
-        m_previewModel.loadOBJ( m_jetsContainer.at( m_currentJet ).model_file.c_str() );
-        m_previewModel.bindTexture( loadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() ) );
-        m_previewModel.calculateNormal();
+        m_previewModel->loadOBJ( m_jetsContainer.at( m_currentJet ).model_file.c_str() );
+        m_previewModel->bindTexture( loadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() ) );
+        m_previewModel->calculateNormal();
         m_currentScreen = scr;
         break;
 

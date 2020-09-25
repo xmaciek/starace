@@ -51,6 +51,7 @@ private:
     Mix_Chunk* m_click = nullptr;
     Mix_Chunk* m_laser = nullptr;
     Mix_Chunk* m_torpedo = nullptr;
+    Model* m_previewModel = nullptr;
     Renderer* m_renderer = nullptr;
     SDL_Surface* m_display = nullptr;
     std::thread m_thread{};
@@ -70,7 +71,6 @@ private:
     std::mutex m_mutexEnemy{};
     time_t m_timePassed{};
 
-    Model m_previewModel{};
 
     BulletProto m_weapons[ 4 ]{};
     Button m_btnChangeFiltering{};
