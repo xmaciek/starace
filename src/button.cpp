@@ -1,7 +1,7 @@
 #include "button.hpp"
 
-#include "renderer.hpp"
-#include "render_pipeline.hpp"
+#include <renderer/pipeline.hpp>
+#include <renderer/renderer.hpp>
 
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>

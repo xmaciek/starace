@@ -8,9 +8,9 @@
 #include "map.hpp"
 #include "model_proto.hpp"
 #include "render_context.hpp"
-#include "renderer.hpp"
 #include "texture.hpp"
 #include "update_context.hpp"
+#include <renderer/renderer.hpp>
 
 #include <glm/vec4.hpp>
 #include <SDL/SDL_mixer.h>

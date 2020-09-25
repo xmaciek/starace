@@ -3,12 +3,6 @@
 #include <cstdint>
 #include <string_view>
 
-enum struct TextureFormat {
-    eR,
-    eRGB,
-    eRGBA,
-};
-
 struct TGA {
     uint8_t header[ 6 ]{};
     uint32_t bytesPerPixel = 0;

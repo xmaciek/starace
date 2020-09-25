@@ -1,9 +1,8 @@
 #pragma once
 
-#include "renderer.hpp"
-
 #include <glm/mat4x4.hpp>
 
+class Renderer;
 struct RenderContext {
     Renderer* renderer = nullptr;
     glm::mat4 model = glm::mat4( 1.0f );

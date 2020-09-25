@@ -1,7 +1,8 @@
 #include "map.hpp"
 
-#include "render_pipeline.hpp"
 #include "utils.hpp"
+#include <renderer/pipeline.hpp>
+#include <renderer/renderer.hpp>
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>

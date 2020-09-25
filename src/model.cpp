@@ -1,6 +1,8 @@
 #include "model.hpp"
 
-#include "render_pipeline.hpp"
+#include "texture.hpp"
+#include <renderer/pipeline.hpp>
+#include <renderer/renderer.hpp>
 
 #include <cstring>
 #include <fstream>

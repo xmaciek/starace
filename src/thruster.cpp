@@ -1,6 +1,7 @@
 #include "thruster.hpp"
 
-#include "render_pipeline.hpp"
+#include <renderer/pipeline.hpp>
+#include <renderer/renderer.hpp>
 
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>

@@ -1,6 +1,7 @@
 #include "bullet.hpp"
 
-#include "render_pipeline.hpp"
+#include <renderer/pipeline.hpp>
+#include <renderer/renderer.hpp>
 
 #include <glm/vec4.hpp>
 #include <glm/gtc/type_ptr.hpp>

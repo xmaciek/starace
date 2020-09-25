@@ -1,8 +1,12 @@
 #pragma once
 
-#include "texture.hpp"
-
+#include <cstdint>
 #include <memory_resource>
+
+enum struct TextureFormat {
+    eRGB,
+    eRGBA,
+};
 
 class Renderer {
     static Renderer* s_instance;

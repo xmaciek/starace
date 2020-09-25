@@ -5,6 +5,7 @@
 #include <glm/vec4.hpp>
 
 #include <array>
+#include <cstdint>
 #include <memory_resource>
 #include <vector>
 

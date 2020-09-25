@@ -8,6 +8,9 @@ if ( NOT TARGET glm::glm )
     )
 endif()
 
+set( CMAKE_CXX_CLANG_TIDY clang-tidy )
+
+add_subdirectory( renderer )
 
 
 set( STARACE_HEADERS
@@ -23,8 +26,6 @@ set( STARACE_HEADERS
     model_proto.hpp
     reactor.hpp
     render_context.hpp
-    render_pipeline.hpp
-    renderer.hpp
     saobject.hpp
     shield.hpp
     texture.hpp
@@ -47,7 +48,6 @@ set( STARACE_SOURCES
     map.cpp
     model.cpp
     reactor.cpp
-    renderer.cpp
     saobject.cpp
     shield.cpp
     texture.cpp
@@ -56,25 +56,27 @@ set( STARACE_SOURCES
 )
 
 
-set( CMAKE_CXX_CLANG_TIDY clang-tidy )
 
 set( STARACE_BINNAME "starace" )
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
 
-set( CMAKE_CXX_STANDARD 17 )
 add_executable( ${STARACE_BINNAME} ${STARACE_SOURCES} ${STARACE_HEADERS} )
 target_compile_options( ${STARACE_BINNAME} PRIVATE -Werror -Wall -Wextra )
-target_compile_definitions( ${STARACE_BINNAME} PUBLIC
+target_compile_definitions( ${STARACE_BINNAME} PRIVATE
     GLM_FORCE_RADIANS=1
 )
 
+set_target_properties( ${STARACE_BINNAME} PROPERTIES
+    CXX_STANDARD 17
+    CXX_STANDARD_REQUIRED 17
+)
+
 target_link_libraries( ${STARACE_BINNAME}
+    renderer
     Threads::Threads
     glm::glm
     SDL
     SDL_ttf
     SDL_mixer
-    GL
-    GLU
 )
 

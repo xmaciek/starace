@@ -1,6 +1,6 @@
-#include "renderer.hpp"
+#include <renderer/renderer.hpp>
 
-#include "render_pipeline.hpp"
+#include <renderer/pipeline.hpp>
 
 
 #include <GL/gl.h>
@@ -26,7 +26,6 @@ struct ScopeEnable {
 static int typeToInternalFormat( TextureFormat e )
 {
     switch ( e ) {
-    case TextureFormat::eR: return 1;
     case TextureFormat::eRGB: return 3;
     case TextureFormat::eRGBA: return 4;
     }
@@ -35,7 +34,6 @@ static int typeToInternalFormat( TextureFormat e )
 static int typeToFormat( TextureFormat e )
 {
     switch ( e ) {
-    case TextureFormat::eR: return GL_RED;
     case TextureFormat::eRGB: return GL_RGB;
     case TextureFormat::eRGBA: return GL_RGBA;
     }
