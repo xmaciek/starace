@@ -94,7 +94,6 @@ void Game::renderHUDBar( RenderContext rctx, const glm::vec4& xywh, float ratio 
 {
     rctx.model = glm::translate( rctx.model, glm::vec3{ xywh.x, xywh.y, 0.0f } );
 
-#if 0
     {
         const glm::vec4 color{
             m_hudColor4fv[ m_hudColor ][ 0 ]
@@ -102,23 +101,32 @@ void Game::renderHUDBar( RenderContext rctx, const glm::vec4& xywh, float ratio 
             , m_hudColor4fv[ m_hudColor ][ 2 ]
             , m_hudColor4fv[ m_hudColor ][ 3 ]
         };
-
         PushConstant<Pipeline::eLine3dStripColor> pushConstant{};
         pushConstant.m_model = rctx.model;
         pushConstant.m_view = rctx.view;
         pushConstant.m_projection = rctx.projection;
 
-        PushBuffer<Pipeline::eLine3dStripColor> pushBuffer{ rctx.renderer->allocator() };
+        static Buffer outline{};
+        static Buffer outlineCol{};
+        if ( !outline ) {
+            std::pmr::vector<glm::vec3> vec{ rctx.renderer->allocator() };
+            vec.reserve( 4 );
+            vec.emplace_back( -4.0f, xywh.w + 4.0f, 0.0f );
+            vec.emplace_back( xywh.z + 4.0f, xywh.w + 4.0f, 0.0f );
+            vec.emplace_back( xywh.z + 4.0f, -4.0f, 0.0f );
+            vec.emplace_back( -4.0f, -4.0f, 0.0f );
+            outline = rctx.renderer->createBuffer( std::move( vec ) );
+            outlineCol = rctx.renderer->createBuffer(
+                std::pmr::vector<glm::vec4>{ 4, color, rctx.renderer->allocator() }
+            );
+        }
+        PushBuffer<Pipeline::eLine3dStripColor> pushBuffer{};
         pushBuffer.m_lineWidth = 2.0f;
-        pushBuffer.m_colors.resize( 4, color );
-        pushBuffer.m_vertices.reserve( 4 );
-        pushBuffer.m_vertices.emplace_back( -4.0f, xywh.w + 4.0f, 0.0f );
-        pushBuffer.m_vertices.emplace_back( xywh.z + 4.0f, xywh.w + 4.0f, 0.0f );
-        pushBuffer.m_vertices.emplace_back( xywh.z + 4.0f, -4.0f, 0.0f );
-        pushBuffer.m_vertices.emplace_back( -4.0f, -4.0f, 0.0f );
+        pushBuffer.m_colors = outlineCol;
+        pushBuffer.m_vertices = outline;
         rctx.renderer->push( &pushBuffer, &pushConstant );
     }
-#endif
+
     {
         PushBuffer<Pipeline::eGuiQuadColor1> pushBuffer{};
         PushConstant<Pipeline::eGuiQuadColor1> pushConstant{};
