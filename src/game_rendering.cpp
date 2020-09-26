@@ -557,6 +557,7 @@ void Game::renderScreenCustomize( RenderContext rctx )
         rctx2.model = glm::translate( rctx2.model, glm::vec3{ 0, -0.1, -1.25 } );
         rctx2.model = glm::rotate( rctx2.model, glm::radians( 15.0f ), glm::vec3{ 1, 0, 0 } );
         rctx2.model = glm::rotate( rctx2.model, glm::radians( (float)m_modelRotation ), glm::vec3{ 0, 1, 0 } );
+        std::lock_guard<std::mutex> lg{ m_mutexPreviewModel };
         m_previewModel->render( rctx2 );
     }
 

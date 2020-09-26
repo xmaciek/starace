@@ -358,8 +358,6 @@ void Game::initRoadAdditions()
     tmpWeapon.score_per_hit = 2;
     memcpy( tmpWeapon.color1, tempcolor[ 2 ], 4 * sizeof( float ) );
     m_weapons[ 2 ] = tmpWeapon;
-
-    m_previewModel = new Model();
 }
 
 void Game::updateCyberRings( const UpdateContext& updateContext )
@@ -687,27 +685,17 @@ void Game::onMouseClickLeft( int32_t x, int32_t y )
         if ( m_btnNextJet.isClicked( x, y ) ) {
             playSound( m_click );
             m_currentJet++;
-            if ( m_currentJet == m_jetsContainer.size() - 1 ) {
-                m_btnNextJet.setEnabled( false );
-            }
-            m_btnPrevJet.setEnabled( true );
-            m_previewModel->loadOBJ( m_jetsContainer.at( m_currentJet ).model_file.c_str() );
-            m_previewModel->calculateNormal();
-            m_previewModel->bindTexture( loadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() ) );
+            m_btnPrevJet.setEnabled( m_currentJet > 0 );
+            m_btnNextJet.setEnabled( m_currentJet < m_jetsContainer.size() - 1 );
+            reloadPreviewModel();
             break;
         }
         if ( m_btnPrevJet.isClicked( x, y ) ) {
             playSound( m_click );
             m_currentJet--;
-            if ( m_currentJet == 0 ) {
-                m_btnPrevJet.setEnabled( false );
-            }
-            if ( m_jetsContainer.size() > 1 ) {
-                m_btnNextJet.setEnabled( true );
-            }
-            m_previewModel->loadOBJ( m_jetsContainer.at( m_currentJet ).model_file.c_str() );
-            m_previewModel->calculateNormal();
-            m_previewModel->bindTexture( loadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() ) );
+            m_btnPrevJet.setEnabled( m_currentJet > 0 );
+            m_btnNextJet.setEnabled( m_currentJet < m_jetsContainer.size() - 1 );
+            reloadPreviewModel();
             break;
         }
         if ( m_btnCustomizeReturn.isClicked( x, y ) ) {
@@ -896,9 +884,7 @@ void Game::changeScreen( Screen scr )
 
     case Screen::eCustomize:
         m_modelRotation = 135.0;
-        m_previewModel->loadOBJ( m_jetsContainer.at( m_currentJet ).model_file.c_str() );
-        m_previewModel->bindTexture( loadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() ) );
-        m_previewModel->calculateNormal();
+        reloadPreviewModel();
         m_currentScreen = scr;
         break;
 
@@ -1201,4 +1187,17 @@ void Game::setViewportSize( double w, double h )
 {
     m_viewportWidth = w;
     m_viewportHeight = h;
+}
+
+void Game::reloadPreviewModel()
+{
+    Model* model = new Model();
+    model->loadOBJ( m_jetsContainer.at( m_currentJet ).model_file.c_str() );
+    model->calculateNormal();
+    model->bindTexture( loadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() ) );
+    {
+        std::lock_guard<std::mutex> lg{ m_mutexPreviewModel };
+        std::swap( model, m_previewModel );
+    }
+    delete model;
 }

@@ -69,6 +69,7 @@ private:
     std::mutex m_mutexBullet{};
     std::mutex m_mutexEnemyBullet{};
     std::mutex m_mutexEnemy{};
+    std::mutex m_mutexPreviewModel{};
     time_t m_timePassed{};
 
 
@@ -169,6 +170,7 @@ private:
     void onUpdate();
     void pause();
     void playSound( Mix_Chunk* ) const;
+    void reloadPreviewModel();
 
     // purposefully copy argument
     void render3D( RenderContext );
