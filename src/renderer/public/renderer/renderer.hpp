@@ -30,7 +30,7 @@ public:
     virtual Buffer createBuffer( std::pmr::vector<glm::vec3>&& ) = 0;
     virtual Buffer createBuffer( std::pmr::vector<glm::vec4>&& ) = 0;
     virtual std::pmr::memory_resource* allocator() = 0;
-    virtual uint32_t createTexture( uint32_t w, uint32_t h, TextureFormat, const uint8_t* ) = 0;
+    virtual uint32_t createTexture( uint32_t w, uint32_t h, TextureFormat, bool genMips, const uint8_t* ) = 0;
     virtual void clear() = 0;
     virtual void deleteBuffer( const Buffer& ) = 0;
     virtual void deleteTexture( uint32_t ) = 0;

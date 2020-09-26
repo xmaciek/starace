@@ -1,11 +1,12 @@
 #pragma once
 
-#include "font.hpp"
 #include "label.hpp"
 #include "render_context.hpp"
 
 #include <cstdint>
 #include <string_view>
+
+class Font;
 
 class Button {
 private:

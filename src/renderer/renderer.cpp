@@ -38,7 +38,7 @@ public:
     virtual Buffer createBuffer( std::pmr::vector<glm::vec3>&& ) override;
     virtual Buffer createBuffer( std::pmr::vector<glm::vec4>&& ) override;
     virtual std::pmr::memory_resource* allocator() override;
-    virtual uint32_t createTexture( uint32_t w, uint32_t h, TextureFormat, const uint8_t* ) override;
+    virtual uint32_t createTexture( uint32_t w, uint32_t h, TextureFormat, bool, const uint8_t* ) override;
     virtual void clear() override;
     virtual void deleteBuffer( const Buffer& ) override;
     virtual void deleteTexture( uint32_t ) override;
@@ -175,25 +175,40 @@ Buffer RendererGL::createBuffer( std::pmr::vector<glm::vec4>&& vec )
     return buffer;
 }
 
-uint32_t RendererGL::createTexture( uint32_t w, uint32_t h, TextureFormat fmt, const uint8_t* ptr )
+uint32_t RendererGL::createTexture( uint32_t w, uint32_t h, TextureFormat fmt, bool genMips, const uint8_t* ptr )
 {
     uint32_t textureID = 0;
     glGenTextures( 1, &textureID );
     glBindTexture( GL_TEXTURE_2D, textureID );
-    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-    glHint( GL_GENERATE_MIPMAP_HINT, GL_NICEST );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0f );
-    gluBuild2DMipmaps( GL_TEXTURE_2D
-        , typeToInternalFormat( fmt )
-        , w
-        , h
-        , typeToFormat( fmt )
-        , GL_UNSIGNED_BYTE
-        , ptr
-    );
+    if ( genMips ) {
+        glHint( GL_GENERATE_MIPMAP_HINT, GL_NICEST );
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+        glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0f );
+        gluBuild2DMipmaps( GL_TEXTURE_2D
+            , typeToInternalFormat( fmt )
+            , w
+            , h
+            , typeToFormat( fmt )
+            , GL_UNSIGNED_BYTE
+            , ptr
+        );
+    }
+    else {
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+        glTexImage2D( GL_TEXTURE_2D
+            , 0
+            , typeToInternalFormat( fmt )
+            , w
+            , h
+            , 0
+            , typeToFormat( fmt )
+            , GL_UNSIGNED_BYTE
+            , ptr
+        );
+    }
     return textureID;
 }
 

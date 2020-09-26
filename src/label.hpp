@@ -18,6 +18,7 @@ public:
     enum struct VAlign {
         eBottom,
         eMiddle,
+        eTop,
     };
 
 private:

@@ -11,10 +11,17 @@
 #include <vector>
 
 class Font {
+public:
+    struct Glyph {
+        uint32_t texture = 0;
+        glm::vec2 size{};
+        glm::vec2 advance{};
+        glm::vec2 bearing{};
+    };
+
 private:
     std::string m_name{};
-    std::vector<uint32_t> m_textures{};
-    std::vector<glm::vec3> m_charData{};
+    std::vector<Glyph> m_glyphs{};
     uint32_t m_height = 0;
 
 public:

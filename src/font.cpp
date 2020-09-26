@@ -4,85 +4,98 @@
 #include <renderer/pipeline.hpp>
 #include <renderer/renderer.hpp>
 
+#include <ft2build.h>
+#include FT_FREETYPE_H
 #include <glm/gtc/matrix_transform.hpp>
-#include <SDL/SDL_ttf.h>
 
 #include <algorithm>
+#include <cassert>
 #include <iostream>
 
-static uint32_t pow2( uint32_t a )
+constexpr static float FONT_SIZE_SCALE = 2.0f;
+constexpr static float FONT_RESOLUTION_SCALE = 64.0f * FONT_SIZE_SCALE;
+
+static Font::Glyph makeDlist( const FT_Face& face, char32_t ch )
 {
-    uint32_t r = 4;
-    while ( r < a ) {
-        r *= 2;
+    const FT_UInt glyphIndex = FT_Get_Char_Index( face, ch );
+    if ( const FT_Error error = FT_Load_Glyph( face, glyphIndex, FT_LOAD_DEFAULT ); error ) {
+        std::cout << "Failed to load glyph for codepoint: " << std::hex << ch << std::endl;
+        return {};
     }
-    return r;
-}
 
-static std::pair<glm::vec3, uint32_t> makeDlist( TTF_Font* font, char16_t ch, uint32_t height )
-{
-    SDL_Color col = { 255, 255, 255, 255 };
-    SDL_Surface* tmp = TTF_RenderGlyph_Blended( font, static_cast<Uint16>( ch ), col );
+    FT_GlyphSlot slot = face->glyph;
+    if ( const FT_Error error = FT_Render_Glyph( slot, FT_RENDER_MODE_NORMAL ); error ) {
+        std::cout << "Failed to render glyph in lcd mode" << std::endl;
+        return {};
+    }
+    assert( slot->bitmap.pixel_mode == FT_PIXEL_MODE_GRAY );
 
-    int32_t minX = 0;
-    int32_t maxX = 0;
-    int32_t minY = 0;
-    int32_t maxY = 0;
-    int32_t advance = 0;
-    TTF_GlyphMetrics( font, ch, &minX, &maxX, &minY, &maxY, &advance );
+    const size_t size = slot->bitmap.pitch * slot->bitmap.rows;
+    std::vector<uint32_t> data( size );
 
-    uint32_t optW = pow2( tmp->w );
-    uint32_t optH = pow2( height );
-    SDL_Rect rect;
-    rect.x = minX;
-    rect.y = height - maxY;
+    std::transform( slot->bitmap.buffer, slot->bitmap.buffer + size, data.begin(),
+        []( unsigned char c ) {
+            uint32_t ret = 0;
+            ret = c;
+            ret <<= 8;
+            ret |= c;
+            ret <<= 8;
+            ret |= c;
+            ret <<= 8;
+            ret |= c;
+            return ret;
+        }
+    );
+    Font::Glyph glyph{};
+    glyph.texture = Renderer::instance()->createTexture(
+        slot->bitmap.pitch
+        , slot->bitmap.rows
+        , TextureFormat::eRGBA
+        , false
+        , reinterpret_cast<const uint8_t*>( data.data() )
+    );
 
-    SDL_Surface* expanded_data = SDL_CreateRGBSurface( tmp->flags, optW, optH, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff );
-    SDL_BlitSurface( tmp, nullptr, expanded_data, &rect );
-    SDL_FreeSurface( tmp );
-
-    std::vector<uint32_t> pixels( optH * optW );
-    const uint32_t* pix = reinterpret_cast<const uint32_t*>( expanded_data->pixels );
-    const uint32_t* pixEnd = pix;
-    std::advance( pixEnd, optH * optW );
-    std::transform( pix, pixEnd, pixels.begin(), []( uint32_t pix ) {
-        return ( pix & 0xffffff00u ) | ( ( pix & 0xff00u ) >> 8 );
-    } );
-
-    const uint32_t texture = Renderer::instance()->createTexture( optW, optH, TextureFormat::eRGBA, reinterpret_cast<const uint8_t*>( pixels.data() ) );
-
-    SDL_FreeSurface( expanded_data );
-
-    return { glm::vec3{ optW, optH, advance }, texture };
+    glyph.advance = glm::vec2{ slot->metrics.horiAdvance, slot->metrics.vertAdvance } / FONT_RESOLUTION_SCALE;
+    glyph.bearing = glm::vec2{ slot->metrics.horiBearingX, slot->metrics.horiBearingY } / FONT_RESOLUTION_SCALE;
+    glyph.size = glm::vec2{ slot->metrics.width, slot->metrics.height } / FONT_RESOLUTION_SCALE;
+    return glyph;
 }
 
 Font::Font( std::string_view fontname, uint32_t h )
 : m_name( fontname )
-, m_textures( 128 )
-, m_charData( 128 )
+, m_glyphs( 128 )
 , m_height( h )
 {
-    if ( TTF_Init() < 0 ) {
-        std::cout << "Unable to initialize library: " << TTF_GetError() << "\n";
+    FT_Library library{};
+    if ( const FT_Error error = FT_Init_FreeType( &library ); error ) {
+        std::cout << "Unable to initialize freetype " << std::endl;
         return;
     }
 
-    TTF_Font* font = TTF_OpenFont( m_name.c_str(), h );
-
-    for ( char16_t i = 0; i < 128; i++ ) {
-        const auto [ charData, texture ] = makeDlist( font, i, h );
-        m_charData[ i ] = charData;
-        m_textures[ i ] = texture;
+    FT_Face face{};
+    if ( const FT_Error error = FT_New_Face( library, fontname.data(), 0, &face ); error ) {
+        std::cout << "Unable to load font file: " << fontname << std::endl;
+        FT_Done_FreeType( library );
+        return;
     }
 
-    TTF_CloseFont( font );
-    TTF_Quit();
+    if ( const FT_Error error = FT_Set_Pixel_Sizes( face, 0, h * FONT_SIZE_SCALE ); error ) {
+        std::cout << "Failed to set font size" << std::endl;
+        FT_Done_FreeType( library );
+        return;
+    }
+
+    for ( char16_t i = 0; i < 128; i++ ) {
+        m_glyphs[ i ] = makeDlist( face, i );
+    }
+
+    FT_Done_FreeType( library );
 }
 
 Font::~Font()
 {
-    for ( auto it : m_textures ) {
-        destroyTexture( it );
+    for ( const auto& it : m_glyphs ) {
+        destroyTexture( it.texture );
     }
 }
 
@@ -90,7 +103,7 @@ uint32_t Font::textLength( std::string_view text )
 {
     uint32_t length = 0;
     for ( char i : text ) {
-        length += m_charData[ static_cast<size_t>( i ) ].z;
+        length += m_glyphs[ static_cast<size_t>( i ) ].advance.x;
     }
     return length;
 }
@@ -104,22 +117,23 @@ void Font::renderText( RenderContext rctx, const glm::vec4& color, double x, dou
 {
     rctx.model = glm::translate( rctx.model, glm::vec3{ x, y, 0.0 } );
     for ( char ch : text ) {
+        const Glyph& glyph = m_glyphs[ ch ];
         PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{};
-        pushBuffer.m_texture = m_textures[ ch ];
+        pushBuffer.m_texture = glyph.texture;
         PushConstant<Pipeline::eGuiTextureColor1> pushConstant{};
         pushConstant.m_model = rctx.model;
         pushConstant.m_view = rctx.view;
         pushConstant.m_projection = rctx.projection;
         pushConstant.m_color = color;
-        pushConstant.m_vertices[ 0 ] = glm::vec2{ 0.0f, m_charData[ ch ].y };
-        pushConstant.m_vertices[ 1 ] = glm::vec2{ 0.0f, 0.0f };
-        pushConstant.m_vertices[ 2 ] = glm::vec2{ m_charData[ ch ].x, 0.0f };
-        pushConstant.m_vertices[ 3 ] = glm::vec2{ m_charData[ ch ].x, m_charData[ ch ].y };
+        pushConstant.m_vertices[ 0 ] = glyph.bearing;
+        pushConstant.m_vertices[ 1 ] = glm::vec2{ glyph.bearing.x, glyph.bearing.y - glyph.size.y };
+        pushConstant.m_vertices[ 2 ] = glm::vec2{ glyph.bearing.x + glyph.size.x, glyph.bearing.y - glyph.size.y };
+        pushConstant.m_vertices[ 3 ] = glm::vec2{ glyph.bearing.x + glyph.size.x, glyph.bearing.y };
         pushConstant.m_uv[ 0 ] = glm::vec2{ 0, 0 };
         pushConstant.m_uv[ 1 ] = glm::vec2{ 0, 1 };
         pushConstant.m_uv[ 2 ] = glm::vec2{ 1, 1 };
         pushConstant.m_uv[ 3 ] = glm::vec2{ 1, 0 };
         rctx.renderer->push( &pushBuffer, &pushConstant );
-        rctx.model = glm::translate( rctx.model, glm::vec3{ m_charData[ ch ].z, 0.0f, 0.0f } );
+        rctx.model = glm::translate( rctx.model, glm::vec3{ glyph.advance.x, 0.0f, 0.0f } );
     }
 }

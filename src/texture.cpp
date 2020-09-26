@@ -28,7 +28,7 @@ uint32_t loadDefault()
             d = 0;
         }
     }
-    return Renderer::instance()->createTexture( 64, 64, TextureFormat::eRGB, DEF );
+    return Renderer::instance()->createTexture( 64, 64, TextureFormat::eRGB, false, DEF );
 }
 
 uint32_t loadTexture( std::string_view filename )
@@ -70,7 +70,7 @@ uint32_t loadTexture( std::string_view filename )
 
     const TextureFormat fmt = tga.bytesPerPixel == 3 ? TextureFormat::eRGB : TextureFormat::eRGBA;
 
-    return Renderer::instance()->createTexture( tga.width, tga.height, fmt, tga.data );
+    return Renderer::instance()->createTexture( tga.width, tga.height, fmt, true, tga.data );
 }
 
 void destroyTexture( uint32_t tex )

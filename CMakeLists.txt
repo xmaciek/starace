@@ -7,9 +7,6 @@ set( STARACE_PATCH_VERSION 0 )
 
 find_package( SDL REQUIRED)
 find_package( SDL_mixer REQUIRED)
-find_package( SDL_ttf REQUIRED)
-
-add_compile_options( -Wall )
 
 add_subdirectory( misc )
 add_subdirectory( models )

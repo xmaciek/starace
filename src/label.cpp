@@ -16,10 +16,13 @@ static glm::vec2 calculatePositionOffset( Font* f, std::string_view s, Label::HA
     }
 
     switch ( av ) {
-    case Label::VAlign::eBottom:
+    case Label::VAlign::eTop:
         break;
     case Label::VAlign::eMiddle:
-        ret += glm::vec2{ 0.0f, -0.6f * f->height() };
+        ret += glm::vec2{ 0.0f, -0.5f * f->height() };
+        break;
+    case Label::VAlign::eBottom:
+        ret += glm::vec2{ 0.0f, -f->height() };
         break;
     }
 
