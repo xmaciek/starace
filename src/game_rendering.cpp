@@ -37,7 +37,7 @@ void Game::renderCyberRings( RenderContext rctx )
     const double sh = viewportHeight() / 2;
     rctx.model = glm::translate( rctx.model, glm::vec3{ sw, sh, 0.0f } );
     for ( size_t i = 0; i < 3; i++ ) {
-        PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{ rctx.renderer->allocator() };
+        PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{};
         pushBuffer.m_texture = m_cyberRingTexture[ i ];
 
         PushConstant<Pipeline::eGuiTextureColor1> pushConstant{};
@@ -68,7 +68,7 @@ void Game::renderCyberRingsMini( RenderContext rctx )
     const double sh = viewportHeight() / 2 - 8;
     rctx.model = glm::translate( rctx.model, glm::vec3{ sw, sh, 0.0 } );
     for ( size_t i = 0; i < 3; i++ ) {
-        PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{ rctx.renderer->allocator() };
+        PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{};
         pushBuffer.m_texture = m_cyberRingTexture[ i ];
         PushConstant<Pipeline::eGuiTextureColor1> pushConstant{};
         pushConstant.m_color = glm::vec4{ m_hudColor4fv[ m_hudColor ][ 0 ], m_hudColor4fv[ m_hudColor ][ 1 ], m_hudColor4fv[ m_hudColor ][ 2 ], m_cyberRingColor[ i ][ 3 ] };
@@ -153,7 +153,7 @@ void Game::renderPauseText( RenderContext rctx )
 
 void Game::renderHudTex( RenderContext rctx, const glm::vec4& color )
 {
-    PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{ rctx.renderer->allocator() };
+    PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{};
     pushBuffer.m_texture = m_hudTex;
     PushConstant<Pipeline::eGuiTextureColor1> pushConstant{};
     pushConstant.m_model = rctx.model;
@@ -407,7 +407,7 @@ void Game::renderClouds( RenderContext rctx ) const
     pushConstant.m_uv[ 2 ] = glm::vec2{ 1, 1 };
     pushConstant.m_uv[ 3 ] = glm::vec2{ 0, 1 };
 
-    PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{ rctx.renderer->allocator() };
+    PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{};
 
     pushBuffer.m_texture = m_menuBackground;
     pushConstant.m_color = glm::vec4{ 0.3f, 0.2f, 0.9f, 1.0f };
@@ -501,7 +501,7 @@ void Game::renderMissionSelectionScreen( RenderContext rctx )
     pushConstant.m_vertices[ 2 ] = glm::vec2{ m_maxDimention, m_maxDimention };
     pushConstant.m_vertices[ 3 ] = glm::vec2{ 0, m_maxDimention };
 
-    PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{ rctx.renderer->allocator() };
+    PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{};
     pushBuffer.m_texture = m_mapsContainer[ m_currentMap ].preview_image;
     rctx.renderer->push( &pushBuffer, &pushConstant );
     {

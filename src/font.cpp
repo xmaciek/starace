@@ -98,7 +98,7 @@ void Font::renderText( RenderContext rctx, const glm::vec4& color, double x, dou
 {
     rctx.model = glm::translate( rctx.model, glm::vec3{ x, y, 0.0 } );
     for ( char ch : text ) {
-        PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{ rctx.renderer->allocator() };
+        PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{};
         pushBuffer.m_texture = m_textures[ ch ];
         PushConstant<Pipeline::eGuiTextureColor1> pushConstant{};
         pushConstant.m_model = rctx.model;

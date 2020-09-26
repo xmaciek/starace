@@ -32,8 +32,8 @@ struct PushConstant {
 template <Pipeline TP>
 struct PushBuffer {
     Pipeline m_pipeline = TP;
+
     PushBuffer() = default;
-    PushBuffer( std::pmr::memory_resource* ) { }
 };
 
 template <>
@@ -62,7 +62,6 @@ struct PushBuffer<Pipeline::eGuiTextureColor1> {
     uint32_t m_texture = 0;
 
     PushBuffer() = default;
-    PushBuffer( std::pmr::memory_resource* ) { }
 };
 
 template <>
@@ -73,6 +72,7 @@ struct PushConstant<Pipeline::eGuiTextureColor1> {
     std::array<glm::vec2, 4> m_vertices{};
     std::array<glm::vec2, 4> m_uv{};
     glm::vec4 m_color{};
+
     PushConstant() = default;
 };
 
@@ -83,6 +83,7 @@ struct PushConstant<Pipeline::eGuiQuadColor1> {
     glm::mat4 m_projection{};
     std::array<glm::vec2, 4> m_vertices{};
     glm::vec4 m_color{};
+
     PushConstant() = default;
 };
 
@@ -92,6 +93,7 @@ struct PushConstant<Pipeline::eLine3dColor1> {
     glm::mat4 m_view{};
     glm::mat4 m_projection{};
     glm::vec4 m_color{};
+
     PushConstant() = default;
 };
 
@@ -111,6 +113,7 @@ struct PushBuffer<Pipeline::eTriangle3dTextureNormal> {
     Buffer m_normals{};
     Buffer m_uv{};
     uint32_t m_texture = 0;
+
     PushBuffer() = default;
 };
 
@@ -119,5 +122,6 @@ struct PushBuffer<Pipeline::eTriangleFan3dColor> {
     Pipeline m_pipeline = Pipeline::eTriangleFan3dColor;
     Buffer m_vertices{};
     Buffer m_colors{};
+
     PushBuffer() = default;
 };

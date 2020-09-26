@@ -19,7 +19,7 @@ bool Button::isClicked( uint32_t x, uint32_t y ) const
 void Button::render( RenderContext rctx )
 {
     rctx.model = glm::translate( rctx.model, glm::vec3{ m_x, m_y, 0.0f } );
-    PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{ rctx.renderer->allocator() };
+    PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{};
     pushBuffer.m_texture = m_textureID;
 
     PushConstant<Pipeline::eGuiTextureColor1> pushConstant;
