@@ -39,16 +39,11 @@ struct PushBuffer {
 template <>
 struct PushBuffer<Pipeline::eLine3dStripColor> {
     Pipeline m_pipeline = Pipeline::eLine3dStripColor;
-    std::pmr::vector<glm::vec3> m_vertices{};
-    std::pmr::vector<glm::vec4> m_colors{};
+    Buffer m_vertices{};
+    Buffer m_colors{};
     float m_lineWidth = 1.0f;
 
     PushBuffer() = default;
-    PushBuffer( std::pmr::memory_resource* allocator )
-    : m_vertices{ allocator }
-    , m_colors{ allocator }
-    {
-    }
 };
 
 template <>
@@ -79,12 +74,6 @@ struct PushConstant<Pipeline::eGuiTextureColor1> {
     std::array<glm::vec2, 4> m_uv{};
     glm::vec4 m_color{};
     PushConstant() = default;
-};
-
-template <>
-struct PushBuffer<Pipeline::eGuiQuadColor1> {
-    Pipeline m_pipeline = Pipeline::eGuiQuadColor1;
-    PushBuffer() = default;
 };
 
 template <>

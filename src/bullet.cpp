@@ -61,55 +61,57 @@ void Bullet::render( RenderContext rctx ) const
     }
 
     assert( m_tail.size() == typeToSegments( m_type ) );
+    std::pmr::vector<glm::vec3> vertices{ rctx.renderer->allocator() };
+    std::pmr::vector<glm::vec4> colors{ rctx.renderer->allocator() };
     switch ( m_type ) {
     case Type::eSlug: {
-        PushConstant<Pipeline::eLine3dStripColor> pushConstant{};
-        pushConstant.m_model = rctx.model;
-        pushConstant.m_view = rctx.view;
-        pushConstant.m_projection = rctx.projection;
-        PushBuffer<Pipeline::eLine3dStripColor> pushBuffer{ rctx.renderer->allocator() };
-        pushBuffer.m_vertices.emplace_back( *m_tail.begin() );
-        pushBuffer.m_vertices.emplace_back( *( m_tail.begin() + 1 ) );
-        pushBuffer.m_colors.emplace_back( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], m_color1[ 3 ] );
-        pushBuffer.m_colors.emplace_back( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], m_color1[ 3 ] );
-        pushBuffer.m_lineWidth = 2.0f;
-        rctx.renderer->push( &pushBuffer, &pushConstant );
+        vertices.reserve( 2 );
+        vertices.emplace_back( *m_tail.begin() );
+        vertices.emplace_back( *( m_tail.begin() + 1 ) );
+
+        colors.reserve( 2 );
+        colors.emplace_back( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], m_color1[ 3 ] );
+        colors.emplace_back( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], m_color1[ 3 ] );
     } break;
 
     case Type::eBlaster: {
-        PushConstant<Pipeline::eLine3dStripColor> pushConstant{};
-        pushConstant.m_model = rctx.model;
-        pushConstant.m_view = rctx.view;
-        pushConstant.m_projection = rctx.projection;
-        PushBuffer<Pipeline::eLine3dStripColor> pushBuffer{ rctx.renderer->allocator() };
-        pushBuffer.m_vertices.emplace_back( *m_tail.begin() );
-        pushBuffer.m_vertices.emplace_back( *( m_tail.begin() + 3 ) );
-        pushBuffer.m_vertices.emplace_back( *( m_tail.begin() + 8 ) );
-        pushBuffer.m_colors.emplace_back( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], m_color1[ 3 ] );
-        pushBuffer.m_colors.emplace_back( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], m_color1[ 3 ] );
-        pushBuffer.m_colors.emplace_back( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], 0.0f );
-        pushBuffer.m_lineWidth = 2.0f;
-        rctx.renderer->push( &pushBuffer, &pushConstant );
+        vertices.reserve( 3 );
+        vertices.emplace_back( *m_tail.begin() );
+        vertices.emplace_back( *( m_tail.begin() + 3 ) );
+        vertices.emplace_back( *( m_tail.begin() + 8 ) );
+
+        colors.reserve( 3 );
+        colors.emplace_back( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], m_color1[ 3 ] );
+        colors.emplace_back( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], m_color1[ 3 ] );
+        colors.emplace_back( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], 0.0f );
     } break;
 
     case Type::eTorpedo: {
-        PushConstant<Pipeline::eLine3dStripColor> pushConstant{};
-        pushConstant.m_model = rctx.model;
-        pushConstant.m_view = rctx.view;
-        pushConstant.m_projection = rctx.projection;
-        PushBuffer<Pipeline::eLine3dStripColor> pushBuffer{ rctx.renderer->allocator() };
-        pushBuffer.m_vertices.resize( m_tail.size() );
-        std::copy( m_tail.cbegin(), m_tail.cend(), pushBuffer.m_vertices.begin() );
-        pushBuffer.m_colors.reserve( m_tail.size() );
-        pushBuffer.m_colors.emplace_back( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], m_color1[ 3 ] );
-        pushBuffer.m_colors.emplace_back( 1, 1, 1, 1 );
+        vertices.resize( m_tail.size() );
+        std::copy( m_tail.cbegin(), m_tail.cend(), vertices.begin() );
+
+        colors.reserve( m_tail.size() );
+        colors.emplace_back( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], m_color1[ 3 ] );
+        colors.emplace_back( 1, 1, 1, 1 );
         for ( size_t i = 2; i < m_tail.size(); ++i ) {
-            pushBuffer.m_colors.emplace_back( 1.0f, 1.0f, 1.0f, 1.0f / i );
+            colors.emplace_back( 1.0f, 1.0f, 1.0f, 1.0f / i );
         }
-        pushBuffer.m_lineWidth = 2.0f;
-        rctx.renderer->push( &pushBuffer, &pushConstant );
     } break;
     }
+
+    PushBuffer<Pipeline::eLine3dStripColor> pushBuffer{};
+    pushBuffer.m_colors = rctx.renderer->createBuffer( std::move( colors ) );
+    pushBuffer.m_vertices = rctx.renderer->createBuffer( std::move( vertices ) );
+    pushBuffer.m_lineWidth = 2.0f;
+
+    PushConstant<Pipeline::eLine3dStripColor> pushConstant{};
+    pushConstant.m_model = rctx.model;
+    pushConstant.m_view = rctx.view;
+    pushConstant.m_projection = rctx.projection;
+
+    rctx.renderer->push( &pushBuffer, &pushConstant );
+    rctx.renderer->deleteBuffer( pushBuffer.m_vertices );
+    rctx.renderer->deleteBuffer( pushBuffer.m_colors );
 }
 
 void Bullet::update( const UpdateContext& updateContext )

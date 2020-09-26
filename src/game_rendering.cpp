@@ -93,6 +93,7 @@ void Game::renderHUDBar( RenderContext rctx, const glm::vec4& xywh, float ratio 
 {
     rctx.model = glm::translate( rctx.model, glm::vec3{ xywh.x, xywh.y, 0.0f } );
 
+#if 0
     {
         const glm::vec4 color{
             m_hudColor4fv[ m_hudColor ][ 0 ]
@@ -116,6 +117,7 @@ void Game::renderHUDBar( RenderContext rctx, const glm::vec4& xywh, float ratio 
         pushBuffer.m_vertices.emplace_back( -4.0f, -4.0f, 0.0f );
         rctx.renderer->push( &pushBuffer, &pushConstant );
     }
+#endif
     {
         PushBuffer<Pipeline::eGuiQuadColor1> pushBuffer{};
         PushConstant<Pipeline::eGuiQuadColor1> pushConstant{};
@@ -310,20 +312,30 @@ void Game::renderHUD( RenderContext rctx )
             rctx2.renderer->push( &pushBuffer, &pushConstant );
         }
 
+        static Buffer ringVertices{};
+        static Buffer ringColors{};
+        if ( !ringVertices ) {
+            const uint32_t segments = m_speedFanRing->segments() + 1;
+            std::pmr::vector<glm::vec4> colors{ segments, color, rctx2.renderer->allocator() };
+            ringColors = rctx2.renderer->createBuffer( std::move( colors ) );
+
+            std::pmr::vector<glm::vec3> vertices{ rctx2.renderer->allocator() };
+            vertices.reserve( segments );
+            for ( size_t i = 0; i < m_speedFanRing->segments(); i++ ) {
+                vertices.emplace_back( m_speedFanRing->x( i ), m_speedFanRing->y( i ), 0.0f );
+            }
+            vertices.emplace_back( m_speedFanRing->x( 0 ), m_speedFanRing->y( 0 ), 0.0f );
+            ringVertices = rctx2.renderer->createBuffer( std::move( vertices ) );
+        }
         PushConstant<Pipeline::eLine3dStripColor> pushConstant{};
         pushConstant.m_model = rctx2.model;
         pushConstant.m_view = rctx2.view;
         pushConstant.m_projection = rctx2.projection;
-        PushBuffer<Pipeline::eLine3dStripColor> pushBuffer{ rctx2.renderer->allocator() };
+        PushBuffer<Pipeline::eLine3dStripColor> pushBuffer{};
         pushBuffer.m_lineWidth = 1.0f;
-        pushBuffer.m_colors.resize( m_speedFanRing->segments() + 1, color );
-        pushBuffer.m_vertices.reserve( m_speedFanRing->segments() + 1 );
-        for ( size_t i = 0; i < m_speedFanRing->segments(); i++ ) {
-            pushBuffer.m_vertices.emplace_back( m_speedFanRing->x( i ), m_speedFanRing->y( i ), 0.0f );
-        }
-        pushBuffer.m_vertices.emplace_back( m_speedFanRing->x( 0 ), m_speedFanRing->y( 0 ), 0.0f );
+        pushBuffer.m_colors = ringColors;
+        pushBuffer.m_vertices = ringVertices;
         rctx2.renderer->push( &pushBuffer, &pushConstant );
-
     }
 
     renderCyberRingsMini( rctx );
