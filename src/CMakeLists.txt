@@ -17,6 +17,7 @@ set( STARACE_HEADERS
     bullet.hpp
     button.hpp
     circle.hpp
+    colors.hpp
     enemy.hpp
     font.hpp
     game.hpp

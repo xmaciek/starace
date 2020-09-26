@@ -1,5 +1,6 @@
 #include "game.hpp"
 
+#include "colors.hpp"
 #include "utils.hpp"
 
 #include <SDL/SDL.h>
@@ -324,17 +325,14 @@ void Game::initRoadAdditions()
 
     memcpy( m_cyberRingColor, temp_colors, sizeof( float ) * 12 );
 
-    float tempcolor[ 4 ][ 4 ] = {
-        { 0.3, 0.8, 1, 1 }, { 1, 0.8, 0.1, 1 }, { 1, 0.3, 0.8, 1 }, { 1, 1, 0, 1 }
-    };
     BulletProto tmpWeapon;
     tmpWeapon.type = Bullet::Type::eSlug;
     tmpWeapon.delay = 0.1;
     tmpWeapon.energy = 15;
     tmpWeapon.damage = 1;
     tmpWeapon.score_per_hit = 1;
-    memcpy( tmpWeapon.color1, tempcolor[ 3 ], 4 * sizeof( float ) );
-    memcpy( tmpWeapon.color2, tempcolor[ 1 ], 4 * sizeof( float ) );
+    tmpWeapon.color1 = color::yellow;
+    tmpWeapon.color2 = color::yellow;
     m_weapons[ 0 ] = tmpWeapon;
 
     tmpWeapon.type = Bullet::Type::eBlaster;
@@ -342,11 +340,11 @@ void Game::initRoadAdditions()
     tmpWeapon.damage = 10;
     tmpWeapon.energy = 10;
     tmpWeapon.delay = 0.2;
-    memcpy( tmpWeapon.color1, tempcolor[ 0 ], 4 * sizeof( float ) );
+    tmpWeapon.color1 = color::blaster;
     tmpWeapon.score_per_hit = 30;
     m_weapons[ 1 ] = tmpWeapon;
 
-    memcpy( tmpWeapon.color1, tempcolor[ 1 ], 4 * sizeof( float ) );
+    tmpWeapon.color1 = color::yellowBlaster;
     tmpWeapon.delay = 0.4;
     m_weapons[ 3 ] = tmpWeapon;
 
@@ -356,7 +354,7 @@ void Game::initRoadAdditions()
     tmpWeapon.energy = 1;
     tmpWeapon.speed = 8;
     tmpWeapon.score_per_hit = 2;
-    memcpy( tmpWeapon.color1, tempcolor[ 2 ], 4 * sizeof( float ) );
+    tmpWeapon.color1 = color::orchid;
     m_weapons[ 2 ] = tmpWeapon;
 }
 

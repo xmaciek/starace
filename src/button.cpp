@@ -1,5 +1,6 @@
 #include "button.hpp"
 
+#include "colors.hpp"
 #include <renderer/pipeline.hpp>
 #include <renderer/renderer.hpp>
 
@@ -35,8 +36,8 @@ void Button::render( RenderContext rctx )
     pushConstant.m_uv[ 2 ] = glm::vec2{ 1.0f, 1.0f };
     pushConstant.m_uv[ 3 ] = glm::vec2{ 1.0f, 0.0f };
     pushConstant.m_color =  m_enabled
-        ? glm::vec4{ 0.0f, 0.75f, 1.0f, 1.0f }
-        : glm::vec4{ 0.3f, 0.55f, 0.65f, 1.0f };
+        ? color::lightSkyBlue
+        : color::lightSteelBlue;
 
     rctx.renderer->push( &pushBuffer, &pushConstant );
 
@@ -44,8 +45,7 @@ void Button::render( RenderContext rctx )
         return;
     }
     rctx.model = glm::translate( rctx.model, glm::vec3{ m_width / 2 - m_textLength, 0, 0 } );
-    constexpr static glm::vec4 white{ 1, 1, 1, 1 };
-    m_font->renderText( rctx, white, 0, static_cast<float>( m_height ) / 2 - m_font->middlePoint(), m_text );
+    m_font->renderText( rctx, color::white, 0, static_cast<float>( m_height ) / 2 - m_font->middlePoint(), m_text );
 }
 
 void Button::updateCoord( uint32_t x, uint32_t y )

@@ -21,7 +21,7 @@ constexpr static glm::vec3 defaultPyrAnimLimits{ 5.0_deg, 5.0_deg, 15.0_deg };
 
 Jet::Jet( const ModelProto& modelData )
 : m_crosshair( 32, 0.06 )
-, m_thruster( modelData.scale, modelData.scale * 0.04285 )
+, m_thruster( modelData.scale, (float)modelData.scale * 0.04285f )
 , m_shield( 0.15, 0.03 )
 , m_pyrAccelleration{ defaultPyrAcceleration }
 , m_pyrLimits{ defaultPyrLimits }
@@ -38,17 +38,7 @@ Jet::Jet( const ModelProto& modelData )
     m_model.scale( modelData.scale );
     m_model.calculateNormal();
 
-    float tmpcolor[ 4 ][ 4 ] = {
-        { 0.0f, 0.7f, 1.0f, 1.0f },
-        { 0.0f, 0.0f, 0.5f, 0.0f },
-        { 0.0f, 0.75f, 1.0f, 0.6f },
-        { 0.0f, 0.0f, 0.5f, 0.0f }
-    };
-
-    m_thruster.setColor( 1, tmpcolor[ 0 ] );
-    m_thruster.setColor( 0, tmpcolor[ 1 ] );
-    m_thruster.setColor( 3, tmpcolor[ 2 ] );
-    m_thruster.setColor( 2, tmpcolor[ 3 ] );
+    m_thruster.setColorScheme( colorscheme::ion );
 };
 
 void Jet::render( RenderContext rctx ) const

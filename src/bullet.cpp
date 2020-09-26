@@ -26,32 +26,25 @@ static uint16_t typeToSegments( Bullet::Type e )
 
 Bullet::Bullet( const BulletProto& bp )
 : m_tail( typeToSegments( bp.type ), bp.position )
+, m_color1{ bp.color1 }
+, m_color2{ bp.color2 }
 {
     m_collisionFlag = true;
     m_type = bp.type;
     m_speed = bp.speed;
     m_damage = bp.damage;
-    std::copy( std::begin( bp.color1 ), std::end( bp.color1 ), std::begin( m_color1 ) );
-    std::copy( std::begin( bp.color2 ), std::end( bp.color2 ), std::begin( m_color2 ) );
     m_score = bp.score_per_hit;
 
     if ( m_type == Type::eSlug ) {
-        std::copy( std::begin( m_color1 ), std::end( m_color1 ), std::begin( m_color2 ) );
-        m_color1[ 3 ] = 1;
-        m_color2[ 3 ] = 0;
+        m_color1 = m_color2;
+        m_color1.a = 1.0f;
+        m_color2.a = 0.0f;
     }
     m_position = bp.position;
-    m_rotX = 0;
-    m_rotY = 0;
-    m_rotZ = 0;
     static std::mt19937_64 rng{ std::random_device()() };
     m_rotation = rng() % 360;
-
-    m_range = 0;
-    m_maxRange = 150;
-
-    setStatus( Status::eAlive );
     m_ttl = 20;
+    setStatus( Status::eAlive );
 };
 
 void Bullet::render( RenderContext rctx ) const
@@ -70,8 +63,8 @@ void Bullet::render( RenderContext rctx ) const
         vertices.emplace_back( *( m_tail.begin() + 1 ) );
 
         colors.reserve( 2 );
-        colors.emplace_back( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], m_color1[ 3 ] );
-        colors.emplace_back( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], m_color1[ 3 ] );
+        colors.emplace_back( m_color1 );
+        colors.emplace_back( m_color1 );
     } break;
 
     case Type::eBlaster: {
@@ -81,8 +74,8 @@ void Bullet::render( RenderContext rctx ) const
         vertices.emplace_back( *( m_tail.begin() + 8 ) );
 
         colors.reserve( 3 );
-        colors.emplace_back( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], m_color1[ 3 ] );
-        colors.emplace_back( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], m_color1[ 3 ] );
+        colors.emplace_back( m_color1 );
+        colors.emplace_back( m_color1 );
         colors.emplace_back( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], 0.0f );
     } break;
 
@@ -91,7 +84,7 @@ void Bullet::render( RenderContext rctx ) const
         std::copy( m_tail.cbegin(), m_tail.cend(), vertices.begin() );
 
         colors.reserve( m_tail.size() );
-        colors.emplace_back( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], m_color1[ 3 ] );
+        colors.emplace_back( m_color1 );
         colors.emplace_back( 1, 1, 1, 1 );
         for ( size_t i = 2; i < m_tail.size(); ++i ) {
             colors.emplace_back( 1.0f, 1.0f, 1.0f, 1.0f / i );

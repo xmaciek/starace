@@ -2,6 +2,8 @@
 
 #include "saobject.hpp"
 
+#include <glm/vec4.hpp>
+
 #include <cstdint>
 #include <vector>
 
@@ -17,15 +19,12 @@ public:
 
 private:
     std::vector<glm::vec3> m_tail{};
-    double m_maxRange = 0.0;
+    double m_maxRange = 150.0;
     double m_range = 0.0;
-    double m_rotX = 0.0;
-    double m_rotY = 0.0;
-    double m_rotZ = 0.0;
     double m_damage = 0.0;
     uint32_t m_rotation = 0;
-    float m_color1[ 4 ]{};
-    float m_color2[ 4 ]{};
+    glm::vec4 m_color1{};
+    glm::vec4 m_color2{};
     float m_seankyDeltaTime = 0.0f;
     Type m_type = Type::eSlug;
 
@@ -53,7 +52,7 @@ struct BulletProto {
     uint32_t texture2 = 0;
     uint32_t energy = 0;
     uint32_t score_per_hit = 0;
-    float color1[ 4 ]{};
-    float color2[ 4 ]{};
+    glm::vec4 color1{};
+    glm::vec4 color2{};
     Bullet::Type type = Bullet::Type::eBlaster;
 };
