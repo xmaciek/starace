@@ -5,29 +5,10 @@
 #include <renderer/renderer.hpp>
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <SDL/SDL_ttf.h>
 
 #include <algorithm>
-
-Font::Font( std::string_view fontname, uint32_t h )
-: m_name( fontname )
-, m_textures( 128 )
-, m_charData( 128 )
-, m_height( h )
-{
-    TTF_Font* font = TTF_OpenFont( m_name.c_str(), h );
-
-    for ( uint8_t i = 0; i < 128; i++ ) {
-        makeDlist( font, i );
-    }
-    TTF_CloseFont( font );
-}
-
-Font::~Font()
-{
-    for ( auto it : m_textures ) {
-        destroyTexture( it );
-    }
-}
+#include <iostream>
 
 static uint32_t pow2( uint32_t a )
 {
@@ -38,7 +19,7 @@ static uint32_t pow2( uint32_t a )
     return r;
 }
 
-void Font::makeDlist( TTF_Font* font, uint32_t ch )
+static std::pair<glm::vec3, uint32_t> makeDlist( TTF_Font* font, char16_t ch, uint32_t height )
 {
     SDL_Color col = { 255, 255, 255, 255 };
     SDL_Surface* tmp = TTF_RenderGlyph_Blended( font, static_cast<Uint16>( ch ), col );
@@ -51,10 +32,10 @@ void Font::makeDlist( TTF_Font* font, uint32_t ch )
     TTF_GlyphMetrics( font, ch, &minX, &maxX, &minY, &maxY, &advance );
 
     uint32_t optW = pow2( tmp->w );
-    uint32_t optH = pow2( m_height );
+    uint32_t optH = pow2( height );
     SDL_Rect rect;
     rect.x = minX;
-    rect.y = m_height - maxY;
+    rect.y = height - maxY;
 
     SDL_Surface* expanded_data = SDL_CreateRGBSurface( tmp->flags, optW, optH, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff );
     SDL_BlitSurface( tmp, nullptr, expanded_data, &rect );
@@ -68,11 +49,41 @@ void Font::makeDlist( TTF_Font* font, uint32_t ch )
         return ( pix & 0xffffff00u ) | ( ( pix & 0xff00u ) >> 8 );
     } );
 
-    m_textures[ ch ] = Renderer::instance()->createTexture( optW, optH, TextureFormat::eRGBA, reinterpret_cast<const uint8_t*>( pixels.data() ) );
+    const uint32_t texture = Renderer::instance()->createTexture( optW, optH, TextureFormat::eRGBA, reinterpret_cast<const uint8_t*>( pixels.data() ) );
 
     SDL_FreeSurface( expanded_data );
-    m_middlePoint = optH / 2;
-    m_charData[ ch ] = glm::vec3{ optW, optH, advance };
+
+    return { glm::vec3{ optW, optH, advance }, texture };
+}
+
+Font::Font( std::string_view fontname, uint32_t h )
+: m_name( fontname )
+, m_textures( 128 )
+, m_charData( 128 )
+, m_height( h )
+{
+    if ( TTF_Init() < 0 ) {
+        std::cout << "Unable to initialize library: " << TTF_GetError() << "\n";
+        return;
+    }
+
+    TTF_Font* font = TTF_OpenFont( m_name.c_str(), h );
+
+    for ( char16_t i = 0; i < 128; i++ ) {
+        const auto [ charData, texture ] = makeDlist( font, i, h );
+        m_charData[ i ] = charData;
+        m_textures[ i ] = texture;
+    }
+
+    TTF_CloseFont( font );
+    TTF_Quit();
+}
+
+Font::~Font()
+{
+    for ( auto it : m_textures ) {
+        destroyTexture( it );
+    }
 }
 
 uint32_t Font::textLength( std::string_view text )
@@ -87,11 +98,6 @@ uint32_t Font::textLength( std::string_view text )
 uint32_t Font::height() const
 {
     return m_height;
-}
-
-uint32_t Font::middlePoint() const
-{
-    return m_middlePoint;
 }
 
 void Font::renderText( RenderContext rctx, const glm::vec4& color, double x, double y, std::string_view text )

@@ -194,14 +194,9 @@ void Game::onResize( int32_t w, int32_t h )
 
 void Game::initRoadAdditions()
 {
-    if ( TTF_Init() < 0 ) {
-        std::cout << "Unable to initialize library: " << TTF_GetError() << "\n";
-    }
-
     m_fontPauseTxt = new Font( "misc/DejaVuSans-Bold.ttf", 18 );
     m_fontGuiTxt = new Font( "misc/DejaVuSans-Bold.ttf", 12 );
     m_fontBig = new Font( "misc/DejaVuSans-Bold.ttf", 32 );
-    TTF_Quit();
 
     m_buttonTexture = loadTexture( "textures/button1.tga" );
 
