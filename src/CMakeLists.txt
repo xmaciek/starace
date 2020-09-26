@@ -22,6 +22,7 @@ set( STARACE_HEADERS
     font.hpp
     game.hpp
     jet.hpp
+    label.hpp
     map.hpp
     model.hpp
     model_proto.hpp
@@ -45,6 +46,7 @@ set( STARACE_SOURCES
     game_input.cpp
     game_rendering.cpp
     jet.cpp
+    label.cpp
     main.cpp
     map.cpp
     model.cpp

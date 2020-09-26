@@ -8,6 +8,19 @@
 #include <glm/vec3.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+
+Button::Button( std::string_view txt, Font* f, uint32_t texture )
+: m_label( txt, Label::HAlign::eCenter, Label::VAlign::eMiddle, f, glm::vec2{ 0.5f * m_width, 0.5f * m_height }, color::white )
+, m_textureID{ texture }
+{
+}
+
+Button::Button( Font* f, uint32_t texture )
+: m_label( f, Label::HAlign::eCenter, Label::VAlign::eMiddle, glm::vec2{ 0.5f * m_width, 0.5f * m_height }, color::white )
+, m_textureID{ texture }
+{
+}
+
 bool Button::isClicked( uint32_t x, uint32_t y ) const
 {
     return m_enabled
@@ -41,14 +54,10 @@ void Button::render( RenderContext rctx )
 
     rctx.renderer->push( &pushBuffer, &pushConstant );
 
-    if ( !m_font ) {
-        return;
-    }
-    rctx.model = glm::translate( rctx.model, glm::vec3{ m_width / 2 - m_textLength, 0, 0 } );
-    m_font->renderText( rctx, color::white, 0, static_cast<float>( m_height ) / 2 - m_font->middlePoint(), m_text );
+    m_label.render( rctx );
 }
 
-void Button::updateCoord( uint32_t x, uint32_t y )
+void Button::setPosition( uint32_t x, uint32_t y )
 {
     m_x = x;
     m_y = y;
@@ -59,27 +68,10 @@ void Button::setTexture( uint32_t t )
     m_textureID = t;
 }
 
-Button::Button( Font* f, uint32_t x, uint32_t y, uint32_t w, uint32_t h )
-: m_font{ f }
-, m_x{ x }
-, m_y{ y }
-, m_width{ w }
-, m_height{ h }
-{
-}
-
 void Button::setSize( uint32_t w, const uint32_t h )
 {
     m_width = w;
     m_height = h;
-}
-
-void Button::setFont( Font* f )
-{
-    m_font = f;
-    if ( m_font ) {
-        m_textLength = m_font->textLength( m_text.c_str() ) / 2;
-    }
 }
 
 void Button::setEnabled( bool b )
@@ -92,13 +84,7 @@ bool Button::isEnabled() const
     return m_enabled;
 }
 
-void Button::setText( const char* txt )
+void Button::setText( std::string_view txt )
 {
-    m_text = txt;
-    if ( m_font ) {
-        m_textLength = m_font->textLength( m_text.c_str() ) / 2;
-    }
-    else {
-        m_textLength = 0;
-    }
+    m_label.setText( txt );
 }

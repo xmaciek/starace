@@ -172,24 +172,24 @@ void Game::onResize( int32_t w, int32_t h )
     m_minDimention = std::min( w, h );
     m_renderer->setViewportSize( w, h );
 
-    m_btnExit.updateCoord( ( viewportWidth() / 2 ) + 4, viewportHeight() * 0.15 );
-    m_btnQuitMission.updateCoord( ( viewportWidth() / 2 ) - 196, viewportHeight() * 0.15 );
-    m_btnChangeFiltering.updateCoord( 512, viewportHeight() - 192 );
-    m_btnSelectMission.updateCoord( ( viewportWidth() / 2 ) - 96, viewportHeight() * 0.15 + 52 );
-    m_btnGO.updateCoord( ( viewportWidth() / 2 ) - 96, viewportHeight() * 0.15 );
-    m_btnStartMission.updateCoord( ( viewportWidth() / 2 ) + 4, viewportHeight() * 0.15 );
-    m_btnReturnToMainMenu.updateCoord( ( viewportWidth() / 2 ) - 196, viewportHeight() * 0.15 );
-    m_btnReturnToMissionSelection.updateCoord( ( viewportWidth() / 2 ) - 96, viewportHeight() * 0.15 );
-    m_btnNextMap.updateCoord( viewportWidth() - 240, viewportHeight() / 2 - 24 );
-    m_btnPrevMap.updateCoord( 48, viewportHeight() / 2 - 24 );
-    m_btnCustomize.updateCoord( ( viewportWidth() / 2 ) - 196, viewportHeight() * 0.15 );
-    m_btnCustomizeReturn.updateCoord( ( viewportWidth() / 2 ) - 96, viewportHeight() * 0.15 + 52 );
-    m_btnNextJet.updateCoord( viewportWidth() - 240, viewportHeight() / 2 - 24 );
-    m_btnPrevJet.updateCoord( 48, viewportHeight() / 2 - 24 );
+    m_btnExit.setPosition( ( viewportWidth() / 2 ) + 4, viewportHeight() * 0.15 );
+    m_btnQuitMission.setPosition( ( viewportWidth() / 2 ) - 196, viewportHeight() * 0.15 );
+    m_btnChangeFiltering.setPosition( 512, viewportHeight() - 192 );
+    m_btnSelectMission.setPosition( ( viewportWidth() / 2 ) - 96, viewportHeight() * 0.15 + 52 );
+    m_btnGO.setPosition( ( viewportWidth() / 2 ) - 96, viewportHeight() * 0.15 );
+    m_btnStartMission.setPosition( ( viewportWidth() / 2 ) + 4, viewportHeight() * 0.15 );
+    m_btnReturnToMainMenu.setPosition( ( viewportWidth() / 2 ) - 196, viewportHeight() * 0.15 );
+    m_btnReturnToMissionSelection.setPosition( ( viewportWidth() / 2 ) - 96, viewportHeight() * 0.15 );
+    m_btnNextMap.setPosition( viewportWidth() - 240, viewportHeight() / 2 - 24 );
+    m_btnPrevMap.setPosition( 48, viewportHeight() / 2 - 24 );
+    m_btnCustomize.setPosition( ( viewportWidth() / 2 ) - 196, viewportHeight() * 0.15 );
+    m_btnCustomizeReturn.setPosition( ( viewportWidth() / 2 ) - 96, viewportHeight() * 0.15 + 52 );
+    m_btnNextJet.setPosition( viewportWidth() - 240, viewportHeight() / 2 - 24 );
+    m_btnPrevJet.setPosition( 48, viewportHeight() / 2 - 24 );
 
-    m_btnWeap1.updateCoord( viewportWidth() / 2 - 196 - 96, viewportHeight() * 0.15 + 52 - 76 );
-    m_btnWeap2.updateCoord( viewportWidth() / 2 - 96, viewportHeight() * 0.15 + 52 - 76 );
-    m_btnWeap3.updateCoord( viewportWidth() / 2 + 100, viewportHeight() * 0.15 + 52 - 76 );
+    m_btnWeap1.setPosition( viewportWidth() / 2 - 196 - 96, viewportHeight() * 0.15 + 52 - 76 );
+    m_btnWeap2.setPosition( viewportWidth() / 2 - 96, viewportHeight() * 0.15 + 52 - 76 );
+    m_btnWeap3.setPosition( viewportWidth() / 2 + 100, viewportHeight() * 0.15 + 52 - 76 );
 }
 
 void Game::initRoadAdditions()
@@ -205,70 +205,26 @@ void Game::initRoadAdditions()
 
     m_buttonTexture = loadTexture( "textures/button1.tga" );
 
-    m_btnChangeFiltering.setFont( m_fontGuiTxt );
-    m_btnChangeFiltering.setText( "Anisotropic x16" );
-    m_btnChangeFiltering.setTexture( m_buttonTexture );
+    m_btnExit = Button( "Exit Game", m_fontGuiTxt, m_buttonTexture );
+    m_btnSelectMission = Button( "Select Mission", m_fontGuiTxt, m_buttonTexture );
+    m_btnQuitMission = Button( "Quit Mission", m_fontGuiTxt, m_buttonTexture );
+    m_btnStartMission = Button( "Start Mission", m_fontGuiTxt, m_buttonTexture );
+    m_btnReturnToMissionSelection = Button( "Return", m_fontGuiTxt, m_buttonTexture );
+    m_btnReturnToMainMenu = Button( "Return", m_fontGuiTxt, m_buttonTexture );
+    m_btnGO = Button( "GO!", m_fontGuiTxt, m_buttonTexture );
+    m_btnNextMap = Button( "Next Map", m_fontGuiTxt, m_buttonTexture );
 
-    m_btnExit.setFont( m_fontGuiTxt );
-    m_btnExit.setText( "Exit Game" );
-    m_btnExit.setTexture( m_buttonTexture );
+    m_btnPrevMap = Button( "Previous Map", m_fontGuiTxt, m_buttonTexture );
+    m_btnNextJet = Button( "Next Jet", m_fontGuiTxt, m_buttonTexture );
+    m_btnPrevJet.setEnabled( m_currentJet > 0 );
+    m_btnNextJet.setEnabled( m_currentJet < m_jetsContainer.size() - 1 );
 
-    m_btnSelectMission.setFont( m_fontGuiTxt );
-    m_btnSelectMission.setText( "Select Mission" );
-    m_btnSelectMission.setTexture( m_buttonTexture );
-
-    m_btnQuitMission.setFont( m_fontGuiTxt );
-    m_btnQuitMission.setText( "Quit Mission" );
-    m_btnQuitMission.setTexture( m_buttonTexture );
-
-    m_btnStartMission.setFont( m_fontGuiTxt );
-    m_btnStartMission.setText( "Start Mission" );
-    m_btnStartMission.setTexture( m_buttonTexture );
-
-    m_btnReturnToMissionSelection.setFont( m_fontGuiTxt );
-    m_btnReturnToMissionSelection.setText( "Return" );
-    m_btnReturnToMissionSelection.setTexture( m_buttonTexture );
-
-    m_btnReturnToMainMenu.setFont( m_fontGuiTxt );
-    m_btnReturnToMainMenu.setText( "Return" );
-    m_btnReturnToMainMenu.setTexture( m_buttonTexture );
-
-    m_btnGO.setFont( m_fontGuiTxt );
-    m_btnGO.setText( "GO!" );
-    m_btnGO.setTexture( m_buttonTexture );
-
-    m_btnNextMap.setFont( m_fontGuiTxt );
-    m_btnNextMap.setText( "Next Map" );
-    m_btnNextMap.setTexture( m_buttonTexture );
-
-    m_btnPrevMap.setFont( m_fontGuiTxt );
-    m_btnPrevMap.setText( "Previous Map" );
-    m_btnPrevMap.setTexture( m_buttonTexture );
-
-    m_btnNextJet.setFont( m_fontGuiTxt );
-    m_btnNextJet.setText( "Next Jet" );
-    m_btnNextJet.setTexture( m_buttonTexture );
-
-    m_btnPrevJet.setFont( m_fontGuiTxt );
-    m_btnPrevJet.setText( "Previous Jet" );
-    m_btnPrevJet.setTexture( m_buttonTexture );
-
-    m_btnCustomizeReturn.setFont( m_fontGuiTxt );
-    m_btnCustomizeReturn.setText( "Done" );
-    m_btnCustomizeReturn.setTexture( m_buttonTexture );
-
-    m_btnCustomize.setFont( m_fontGuiTxt );
-    m_btnCustomize.setText( "Customise" );
-    m_btnCustomize.setTexture( m_buttonTexture );
-
-    m_btnWeap1.setFont( m_fontGuiTxt );
-    m_btnWeap1.setTexture( m_buttonTexture );
-
-    m_btnWeap2.setFont( m_fontGuiTxt );
-    m_btnWeap2.setTexture( m_buttonTexture );
-
-    m_btnWeap3.setFont( m_fontGuiTxt );
-    m_btnWeap3.setTexture( m_buttonTexture );
+    m_btnPrevJet = Button( "Previous Jet", m_fontGuiTxt, m_buttonTexture );
+    m_btnCustomizeReturn = Button( "Done", m_fontGuiTxt, m_buttonTexture );
+    m_btnCustomize = Button( "Customize", m_fontGuiTxt, m_buttonTexture );
+    m_btnWeap1 = Button( m_fontGuiTxt, m_buttonTexture );
+    m_btnWeap2 = Button( m_fontGuiTxt, m_buttonTexture );
+    m_btnWeap3 = Button( m_fontGuiTxt, m_buttonTexture );
 
     switch ( m_weap1 ) {
     case 0:
@@ -1001,21 +957,15 @@ void Game::loadJetProto()
         std::cout << "no jets\n";
         m_jetsContainer.push_back( mod );
     }
-    if ( m_jetsContainer.size() == 1 ) {
-        m_btnNextJet.setEnabled( false );
-    }
+
     m_currentJet = 0;
     for ( uint32_t i = 0; i < m_jetsContainer.size(); i++ ) {
         if ( m_lastSelectedJetName == m_jetsContainer.at( i ).name ) {
             m_currentJet = i;
         }
     }
-    if ( m_currentJet == 0 ) {
-        m_btnPrevJet.setEnabled( false );
-    }
-    if ( m_currentJet == m_jetsContainer.size() - 1 ) {
-        m_btnNextJet.setEnabled( false );
-    }
+    m_btnPrevJet.setEnabled( m_currentJet > 0 );
+    m_btnNextJet.setEnabled( m_currentJet < m_jetsContainer.size() - 1 );
 }
 
 void Game::loadConfig()
