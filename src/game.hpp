@@ -63,7 +63,6 @@ private:
     std::vector<Enemy*> m_enemyGarbage{};
     std::vector<Enemy*> m_enemies{};
     std::vector<MapProto> m_mapsContainer{};
-    std::vector<ModelProto> m_jetModels{};
     std::vector<ModelProto> m_jetsContainer{};
 
     std::mutex m_mutexBullet{};
