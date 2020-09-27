@@ -352,8 +352,8 @@ void Game::renderHUD( RenderContext rctx )
         const double posx = viewportWidth() / 2 - textMid;
         m_fontGuiTxt->renderText( rctx, color, posx, viewportHeight() - 28, msg );
     }
-    m_fontPauseTxt->renderText( rctx, color, 10, 102, "PWR" );
-    m_fontPauseTxt->renderText( rctx, color, 66, 102, "HP" );
+    m_fontPauseTxt->renderText( rctx, color, 10, 120, "PWR" );
+    m_fontPauseTxt->renderText( rctx, color, 66, 120, "HP" );
 }
 
 void Game::render3D( RenderContext rctx )
