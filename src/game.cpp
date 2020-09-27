@@ -273,7 +273,6 @@ void Game::initRoadAdditions()
         break;
     }
 
-    m_timePassed = time( nullptr );
     m_hudTex = loadTexture( "textures/HUDtex.tga" );
 
     m_menuBackground = loadTexture( "textures/background.tga" );
@@ -352,8 +351,7 @@ void Game::updateCyberRings( const UpdateContext& updateContext )
 
 void Game::onRender()
 {
-    m_timeS = SDL_GetTicks();
-
+    m_fpsMeter.frameBegin();
     m_renderer->clear();
     RenderContext rctx{};
     rctx.renderer = m_renderer;
@@ -386,6 +384,7 @@ void Game::onRender()
     default:
         break;
     }
+    m_fpsMeter.frameEnd();
     m_renderer->present();
 }
 

@@ -4,6 +4,7 @@
 #include "button.hpp"
 #include "enemy.hpp"
 #include "font.hpp"
+#include "fps_meter.hpp"
 #include "jet.hpp"
 #include "map.hpp"
 #include "model_proto.hpp"
@@ -19,9 +20,6 @@
 #include <thread>
 
 struct Mix_Chunk;
-
-constexpr static int TAB = 9;
-constexpr static int ESC = 27;
 
 class Game {
 public:
@@ -71,8 +69,8 @@ private:
     std::mutex m_mutexEnemyBullet{};
     std::mutex m_mutexEnemy{};
     std::mutex m_mutexPreviewModel{};
-    time_t m_timePassed{};
 
+    FPSMeter m_fpsMeter{};
 
     BulletProto m_weapons[ 4 ]{};
     Button m_btnChangeFiltering{};
@@ -98,11 +96,9 @@ private:
     double m_viewportWidth = 960;
 
     double m_alphaValue = 0.0;
-    double m_calculatedFPS = 0.0;
     double m_rotation = 0.0;
     double m_modelRotation = 0.0;
     double m_speedAnim = 0.0;
-    double m_tempFPS = 0.0;
     float m_angle = 55.0f;
     float m_cyberRingRotation[ 3 ]{};
     float m_hudColor4fv[ 3 ][ 4 ]{};
@@ -114,8 +110,6 @@ private:
     int32_t m_maxDimention = 0;
     int32_t m_minDimention = 0;
     uint32_t m_buttonTexture = 0;
-    uint32_t m_fps = 0;
-    uint32_t m_framesDone = 0;
     uint32_t m_hudColor = 0.0;
     uint32_t m_hudTex = 0;
     uint32_t m_resolutions[ 4 ][ 2 ]{};
@@ -126,9 +120,6 @@ private:
     uint32_t m_menuBackground = 0;
     uint32_t m_menuBackgroundOverlay = 0;
     uint32_t m_starfieldTexture = 0;
-    Uint32 m_nextFrame = 0;
-    Uint32 m_nextTick = 0;
-    Uint32 m_timeS = 0;
 
     Screen m_currentScreen = Screen::eGame;
     uint8_t m_weap1 = 0;

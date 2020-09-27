@@ -15,15 +15,6 @@ void Game::renderGameScreen( RenderContext rctx )
 {
     render3D( rctx );
     renderHUD( rctx );
-    m_framesDone++;
-    m_tempFPS += ( SDL_GetTicks() - m_timeS );
-    if ( m_timePassed < time( nullptr ) ) {
-        m_fps = m_framesDone;
-        m_calculatedFPS = 1000.0f / ( m_tempFPS / m_framesDone ); // m_framesDone);
-        m_tempFPS = 0;
-        m_framesDone = 0;
-        m_timePassed++;
-    }
 }
 
 void Game::renderGameScreenPaused( RenderContext rctx )
@@ -354,10 +345,10 @@ void Game::renderHUD( RenderContext rctx )
 
     {
         std::string msg{ "FPS done: " };
-        msg += std::to_string( m_fps );
+        msg += std::to_string( m_fpsMeter.fps() );
         msg += ", calculated: ";
-        msg += std::to_string( m_calculatedFPS );
-        const double textMid = static_cast<double>( m_fontGuiTxt->textLength( "FPS done: XX, calculated: xxxx.xx" ) ) / 2;
+        msg += std::to_string( m_fpsMeter.calculated() );
+        const double textMid = static_cast<double>( m_fontGuiTxt->textLength( "FPS done: XXX, calculated: xxxx.xx" ) ) / 2;
         const double posx = viewportWidth() / 2 - textMid;
         m_fontGuiTxt->renderText( rctx, color, posx, viewportHeight() - 28, msg );
     }

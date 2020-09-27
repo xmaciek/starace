@@ -21,6 +21,7 @@ set( STARACE_HEADERS
     colors.hpp
     enemy.hpp
     font.hpp
+    fps_meter.hpp
     game.hpp
     jet.hpp
     label.hpp
@@ -43,6 +44,7 @@ set( STARACE_SOURCES
     circle.cpp
     enemy.cpp
     font.cpp
+    fps_meter.cpp
     game.cpp
     game_input.cpp
     game_rendering.cpp
