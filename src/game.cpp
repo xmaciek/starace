@@ -61,6 +61,9 @@ Game::~Game()
     }
     delete m_previewModel;
     delete m_renderer;
+    delete m_audio;
+    SDL_DestroyWindow( m_display );
+    SDL_Quit();
 }
 
 int32_t Game::run()
@@ -120,21 +123,6 @@ void Game::onEvent( const SDL_Event& event )
 
 void Game::onCleanup()
 {
-    //   Mix_HaltMusic();
-//     Mix_HaltChannel( -1 );
-// 
-//     std::cout << Mix_GetError() << "\n";
-//     Mix_FreeChunk( m_laser );
-//     Mix_FreeChunk( m_blaster );
-//     Mix_FreeChunk( m_torpedo );
-//     Mix_FreeChunk( m_click );
-//     Mix_CloseAudio();
-// 
-//     Mix_Quit();
-
-//     SDL_FreeSurface( m_display );
-    SDL_DestroyWindow( m_display );
-    SDL_Quit();
     saveConfig();
 }
 
@@ -145,17 +133,6 @@ bool Game::onInit()
                   << SDL_GetError() << "\n";
         return false;
     }
-
-
-//     if ( Mix_OpenAudio( 22050, AUDIO_S16SYS, 2, 4096 ) != 0 ) {
-//         std::fprintf( stderr, "Unable to initialize audio: %s\n", Mix_GetError() );
-//         return false;
-//     }
-// 
-//     m_laser = Mix_LoadWAV( "sounds/laser.wav" );
-//     m_blaster = Mix_LoadWAV( "sounds/blaster.wav" );
-//     m_torpedo = Mix_LoadWAV( "sounds/torpedo.wav" );
-//     m_click = Mix_LoadWAV( "sounds/click.wav" );
 
     loadConfig();
 
@@ -177,6 +154,12 @@ bool Game::onInit()
     }
 
     m_renderer = Renderer::create( m_display );
+    m_audio = audio::Engine::create();
+    m_laser = m_audio->load( "sounds/laser.wav" );
+    m_blaster = m_audio->load( "sounds/blaster.wav" );
+    m_torpedo = m_audio->load( "sounds/torpedo.wav" );
+    m_click = m_audio->load( "sounds/click.wav" );
+
     initRoadAdditions();
     onResize( viewportWidth(), viewportHeight() );
     return true;
@@ -554,13 +537,13 @@ void Game::addBullet( uint32_t wID )
     m_shotsDone++;
     switch ( m_bullets.back()->type() ) {
     case Bullet::Type::eBlaster:
-        playSound( m_blaster );
+        m_audio->play( m_blaster );
         break;
     case Bullet::Type::eSlug:
-        playSound( m_laser );
+        m_audio->play( m_laser );
         break;
     case Bullet::Type::eTorpedo:
-        playSound( m_torpedo );
+        m_audio->play( m_torpedo );
         break;
     }
 }
@@ -698,9 +681,8 @@ void Game::changeScreen( Screen scr )
     }
 }
 
-void Game::goFullscreen( bool b )
+void Game::goFullscreen( bool )
 {
-    b = !b;
 }
 
 void Game::loadMapProto()

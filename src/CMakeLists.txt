@@ -12,6 +12,7 @@ endif()
 
 set( CMAKE_CXX_CLANG_TIDY clang-tidy )
 
+add_subdirectory( audio )
 add_subdirectory( renderer )
 
 set( STARACE_HEADERS
@@ -78,6 +79,7 @@ set_target_properties( ${STARACE_BINNAME} PROPERTIES
 )
 
 target_link_libraries( ${STARACE_BINNAME}
+    audio
     renderer
     Freetype::Freetype
     SDL2::SDL2

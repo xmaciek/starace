@@ -160,24 +160,24 @@ void Game::onMouseClickLeft( int32_t x, int32_t y )
     switch ( m_currentScreen ) {
     case Screen::eGamePaused:
         if ( m_btnQuitMission.isClicked( x, y ) ) {
-            playSound( m_click );
+            m_audio->play( m_click );
             changeScreen( Screen::eDead );
         }
         break;
 
     case Screen::eMainMenu:
         if ( m_btnSelectMission.isClicked( x, y ) ) {
-            playSound( m_click );
+            m_audio->play( m_click );
             changeScreen( Screen::eMissionSelection );
             break;
         }
         if ( m_btnExit.isClicked( x, y ) ) {
-            playSound( m_click );
+            m_audio->play( m_click );
             m_isRunning = false;
             break;
         }
         if ( m_btnCustomize.isClicked( x, y ) ) {
-            playSound( m_click );
+            m_audio->play( m_click );
             changeScreen( Screen::eCustomize );
             break;
         }
@@ -185,12 +185,12 @@ void Game::onMouseClickLeft( int32_t x, int32_t y )
 
     case Screen::eMissionSelection:
         if ( m_btnStartMission.isClicked( x, y ) ) {
-            playSound( m_click );
+            m_audio->play( m_click );
             changeScreen( Screen::eGameBriefing );
             break;
         }
         if ( m_btnReturnToMainMenu.isClicked( x, y ) ) {
-            playSound( m_click );
+            m_audio->play( m_click );
             changeScreen( Screen::eMainMenu );
             break;
         }
@@ -200,7 +200,7 @@ void Game::onMouseClickLeft( int32_t x, int32_t y )
                 m_btnNextMap.setEnabled( false );
             }
             m_btnPrevMap.setEnabled( true );
-            playSound( m_click );
+            m_audio->play( m_click );
             break;
         }
         if ( m_btnPrevMap.isClicked( x, y ) ) {
@@ -211,7 +211,7 @@ void Game::onMouseClickLeft( int32_t x, int32_t y )
             if ( m_mapsContainer.size() > 1 ) {
                 m_btnNextMap.setEnabled( true );
             }
-            playSound( m_click );
+            m_audio->play( m_click );
             break;
         }
         break;
@@ -219,21 +219,21 @@ void Game::onMouseClickLeft( int32_t x, int32_t y )
     case Screen::eDead:
     case Screen::eWin:
         if ( m_btnReturnToMissionSelection.isClicked( x, y ) ) {
-            playSound( m_click );
+            m_audio->play( m_click );
             changeScreen( Screen::eMissionSelection );
         }
         break;
 
     case Screen::eGameBriefing:
         if ( m_btnGO.isClicked( x, y ) ) {
-            playSound( m_click );
+            m_audio->play( m_click );
             changeScreen( Screen::eGame );
         }
         break;
 
     case Screen::eCustomize:
         if ( m_btnNextJet.isClicked( x, y ) ) {
-            playSound( m_click );
+            m_audio->play( m_click );
             m_currentJet++;
             m_btnPrevJet.setEnabled( m_currentJet > 0 );
             m_btnNextJet.setEnabled( m_currentJet < m_jetsContainer.size() - 1 );
@@ -241,7 +241,7 @@ void Game::onMouseClickLeft( int32_t x, int32_t y )
             break;
         }
         if ( m_btnPrevJet.isClicked( x, y ) ) {
-            playSound( m_click );
+            m_audio->play( m_click );
             m_currentJet--;
             m_btnPrevJet.setEnabled( m_currentJet > 0 );
             m_btnNextJet.setEnabled( m_currentJet < m_jetsContainer.size() - 1 );
@@ -249,12 +249,12 @@ void Game::onMouseClickLeft( int32_t x, int32_t y )
             break;
         }
         if ( m_btnCustomizeReturn.isClicked( x, y ) ) {
-            playSound( m_click );
+            m_audio->play( m_click );
             changeScreen( Screen::eMainMenu );
             break;
         }
         if ( m_btnWeap1.isClicked( x, y ) ) {
-            playSound( m_click );
+            m_audio->play( m_click );
             m_weap1++;
             if ( m_weap1 == 3 ) {
                 m_weap1 = 0;
@@ -271,7 +271,7 @@ void Game::onMouseClickLeft( int32_t x, int32_t y )
             break;
         }
         if ( m_btnWeap2.isClicked( x, y ) ) {
-            playSound( m_click );
+            m_audio->play( m_click );
             m_weap2++;
             if ( m_weap2 == 3 ) {
                 m_weap2 = 0;
@@ -288,7 +288,7 @@ void Game::onMouseClickLeft( int32_t x, int32_t y )
             break;
         }
         if ( m_btnWeap3.isClicked( x, y ) ) {
-            playSound( m_click );
+            m_audio->play( m_click );
             m_weap3++;
             if ( m_weap3 == 3 ) {
                 m_weap3 = 0;

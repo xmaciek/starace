@@ -11,6 +11,7 @@
 #include "render_context.hpp"
 #include "texture.hpp"
 #include "update_context.hpp"
+#include <audio/audio.hpp>
 #include <renderer/renderer.hpp>
 
 #include <glm/vec4.hpp>
@@ -40,6 +41,7 @@ private:
         eMainMenu,
     };
 
+    audio::Engine* m_audio = nullptr;
     Circle* m_radar = nullptr;
     Circle* m_speedFanRing = nullptr;
     Font* m_fontBig = nullptr;
@@ -47,14 +49,15 @@ private:
     Font* m_fontPauseTxt = nullptr;
     Jet* m_jet = nullptr;
     Map* m_map = nullptr;
-    Mix_Chunk* m_blaster = nullptr;
-    Mix_Chunk* m_click = nullptr;
-    Mix_Chunk* m_laser = nullptr;
-    Mix_Chunk* m_torpedo = nullptr;
     Model* m_previewModel = nullptr;
     Renderer* m_renderer = nullptr;
     SDL_Window* m_display = nullptr;
     std::thread m_thread{};
+
+    audio::Chunk m_blaster{};
+    audio::Chunk m_click{};
+    audio::Chunk m_laser{};
+    audio::Chunk m_torpedo{};
 
     std::string m_lastSelectedJetName{};
     std::vector<Bullet*> m_bulletGarbage{};
