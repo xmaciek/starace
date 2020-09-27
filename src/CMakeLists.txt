@@ -1,5 +1,6 @@
 find_package( Threads REQUIRED )
 find_package( Freetype 2 REQUIRED )
+find_package( SDL2 REQUIRED )
 
 find_package( glm REQUIRED )
 if ( NOT TARGET glm::glm )
@@ -12,7 +13,6 @@ endif()
 set( CMAKE_CXX_CLANG_TIDY clang-tidy )
 
 add_subdirectory( renderer )
-
 
 set( STARACE_HEADERS
     bullet.hpp
@@ -78,9 +78,8 @@ set_target_properties( ${STARACE_BINNAME} PROPERTIES
 target_link_libraries( ${STARACE_BINNAME}
     renderer
     Freetype::Freetype
+    SDL2::SDL2
     Threads::Threads
     glm::glm
-    SDL
-    SDL_mixer
 )
 

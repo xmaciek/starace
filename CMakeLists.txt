@@ -1,12 +1,9 @@
-cmake_minimum_required( VERSION 3.5.1 )
+cmake_minimum_required( VERSION 3.18.0 )
 project( StarAce )
 
 set( STARACE_MAJOR_VERSION 1 )
 set( STARACE_MINOR_VERSION 0 )
 set( STARACE_PATCH_VERSION 0 )
-
-find_package( SDL REQUIRED)
-find_package( SDL_mixer REQUIRED)
 
 add_subdirectory( misc )
 add_subdirectory( models )

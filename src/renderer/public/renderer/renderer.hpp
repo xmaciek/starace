@@ -5,6 +5,7 @@
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
+#include <SDL2/SDL.h>
 
 #include <cstdint>
 #include <memory_resource>
@@ -23,8 +24,9 @@ public:
     virtual ~Renderer() = default;
     Renderer() = default;
 
-    static Renderer* create();
+    static Renderer* create( SDL_Window* );
     static Renderer* instance();
+    static SDL_WindowFlags windowFlag();
 
     virtual Buffer createBuffer( std::pmr::vector<glm::vec2>&& ) = 0;
     virtual Buffer createBuffer( std::pmr::vector<glm::vec3>&& ) = 0;

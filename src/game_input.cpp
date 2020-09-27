@@ -1,23 +1,21 @@
 #include "game.hpp"
 
-#include <SDL/SDL.h>
-
-void Game::onKeyDown( SDLKey sym, SDLMod, Uint16 )
+void Game::onKeyDown( const SDL_Keysym& ks )
 {
-    switch ( sym ) {
-    case SDLK_F11:
+    switch ( ks.scancode ) {
+    case SDL_SCANCODE_F11:
         goFullscreen( m_isFullscreen );
         break;
     default:
         switch ( m_currentScreen ) {
         case Screen::eGame:
-            gameKeyboardPressed( sym );
+            gameKeyboardPressed( ks.scancode );
             break;
         case Screen::eGamePaused:
-            gameKeyboardPausedPressed( sym );
+            gameKeyboardPausedPressed( ks.scancode );
             break;
         case Screen::eGameBriefing:
-            gameKeyboardBriefingPressed( sym );
+            gameKeyboardBriefingPressed( ks.scancode );
             break;
         default:
             break;
@@ -26,60 +24,60 @@ void Game::onKeyDown( SDLKey sym, SDLMod, Uint16 )
     }
 }
 
-void Game::onKeyUp( SDLKey sym, SDLMod, Uint16 )
+void Game::onKeyUp( const SDL_Keysym& ks )
 {
     switch ( m_currentScreen ) {
     case Screen::eGame:
-        gameKeyboardUnpressed( sym );
+        gameKeyboardUnpressed( ks.scancode );
         break;
     case Screen::eGamePaused:
-        gameKeyboardPausedUnpressed( sym );
+        gameKeyboardPausedUnpressed( ks.scancode );
         break;
     default:
         break;
     }
 }
 
-void Game::gameKeyboardPressed( SDLKey sym )
+void Game::gameKeyboardPressed( SDL_Scancode sc )
 {
-    switch ( sym ) {
-    case SDLK_ESCAPE:
+    switch ( sc ) {
+    case SDL_SCANCODE_ESCAPE:
         pause();
         break;
-    case SDLK_a:
+    case SDL_SCANCODE_A:
         m_jet->rollLeft( true );
         break;
-    case SDLK_d:
+    case SDL_SCANCODE_D:
         m_jet->rollRight( true );
         break;
-    case SDLK_q:
+    case SDL_SCANCODE_Q:
         m_jet->yawLeft( true );
         break;
-    case SDLK_e:
+    case SDL_SCANCODE_E:
         m_jet->yawRight( true );
         break;
-    case SDLK_w:
+    case SDL_SCANCODE_W:
         m_jet->pitchUp( true );
         break;
-    case SDLK_s:
+    case SDL_SCANCODE_S:
         m_jet->pitchDown( true );
         break;
-    case SDLK_o:
+    case SDL_SCANCODE_O:
         m_jet->speedUp( true );
         break;
-    case SDLK_u:
+    case SDL_SCANCODE_U:
         m_jet->speedDown( true );
         break;
-    case SDLK_j:
+    case SDL_SCANCODE_J:
         m_jet->shoot( 0, true );
         break;
-    case SDLK_k:
+    case SDL_SCANCODE_K:
         m_jet->shoot( 1, true );
         break;
-    case SDLK_l:
+    case SDL_SCANCODE_L:
         m_jet->shoot( 2, true );
         break;
-    case SDLK_i:
+    case SDL_SCANCODE_I:
         retarget();
         break;
     default:
@@ -87,40 +85,40 @@ void Game::gameKeyboardPressed( SDLKey sym )
     }
 }
 
-void Game::gameKeyboardUnpressed( SDLKey sym )
+void Game::gameKeyboardUnpressed( SDL_Scancode sym )
 {
     switch ( sym ) {
-    case SDLK_a:
+    case SDL_SCANCODE_A:
         m_jet->rollLeft( false );
         break;
-    case SDLK_d:
+    case SDL_SCANCODE_D:
         m_jet->rollRight( false );
         break;
-    case SDLK_q:
+    case SDL_SCANCODE_Q:
         m_jet->yawLeft( false );
         break;
-    case SDLK_e:
+    case SDL_SCANCODE_E:
         m_jet->yawRight( false );
         break;
-    case SDLK_w:
+    case SDL_SCANCODE_W:
         m_jet->pitchUp( false );
         break;
-    case SDLK_s:
+    case SDL_SCANCODE_S:
         m_jet->pitchDown( false );
         break;
-    case SDLK_o:
+    case SDL_SCANCODE_O:
         m_jet->speedUp( false );
         break;
-    case SDLK_u:
+    case SDL_SCANCODE_U:
         m_jet->speedDown( false );
         break;
-    case SDLK_j:
+    case SDL_SCANCODE_J:
         m_jet->shoot( 0, false );
         break;
-    case SDLK_k:
+    case SDL_SCANCODE_K:
         m_jet->shoot( 1, false );
         break;
-    case SDLK_l:
+    case SDL_SCANCODE_L:
         m_jet->shoot( 2, false );
         break;
     default:
@@ -128,10 +126,10 @@ void Game::gameKeyboardUnpressed( SDLKey sym )
     }
 }
 
-void Game::gameKeyboardBriefingPressed( SDLKey sym )
+void Game::gameKeyboardBriefingPressed( SDL_Scancode sc )
 {
-    switch ( sym ) {
-    case SDLK_SPACE:
+    switch ( sc ) {
+    case SDL_SCANCODE_SPACE:
         changeScreen( Screen::eGame );
         break;
     default:
@@ -139,21 +137,21 @@ void Game::gameKeyboardBriefingPressed( SDLKey sym )
     }
 }
 
-void Game::gameKeyboardPausedPressed( SDLKey sym )
+void Game::gameKeyboardPausedPressed( SDL_Scancode sc )
 {
-    switch ( sym ) {
-    case SDLK_ESCAPE:
+    switch ( sc ) {
+    case SDL_SCANCODE_ESCAPE:
         unpause();
         break;
     default:
-        gameKeyboardPressed( sym );
+        gameKeyboardPressed( sc );
         break;
     }
 }
 
-void Game::gameKeyboardPausedUnpressed( SDLKey sym )
+void Game::gameKeyboardPausedUnpressed( SDL_Scancode sc )
 {
-    gameKeyboardUnpressed( sym );
+    gameKeyboardUnpressed( sc );
 }
 
 void Game::onMouseClickLeft( int32_t x, int32_t y )

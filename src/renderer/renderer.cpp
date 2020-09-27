@@ -5,7 +5,6 @@
 
 #include <GL/gl.h>
 #include <GL/glu.h>
-#include <SDL/SDL.h>
 #include <glm/gtc/type_ptr.hpp>
 
 #include <cassert>
@@ -19,6 +18,11 @@ Renderer* Renderer::instance()
     return s_instance;
 }
 
+SDL_WindowFlags Renderer::windowFlag()
+{
+    return SDL_WINDOW_OPENGL;
+}
+
 static bool operator < ( const Buffer& lhs, const Buffer& rhs ) noexcept
 {
     return lhs.m_id < rhs.m_id;
@@ -26,13 +30,14 @@ static bool operator < ( const Buffer& lhs, const Buffer& rhs ) noexcept
 
 
 class RendererGL : public Renderer {
+    SDL_Window* m_window = nullptr;
     std::pmr::map<Buffer, std::pmr::vector<glm::vec2>> m_bufferMap2{};
     std::pmr::map<Buffer, std::pmr::vector<glm::vec3>> m_bufferMap3{};
     std::pmr::map<Buffer, std::pmr::vector<glm::vec4>> m_bufferMap4{};
 
 public:
     virtual ~RendererGL() override;
-    RendererGL();
+    RendererGL( SDL_Window* );
 
     virtual Buffer createBuffer( std::pmr::vector<glm::vec2>&& ) override;
     virtual Buffer createBuffer( std::pmr::vector<glm::vec3>&& ) override;
@@ -48,9 +53,9 @@ public:
 };
 
 
-Renderer* Renderer::create()
+Renderer* Renderer::create( SDL_Window* window )
 {
-    return new RendererGL();
+    return new RendererGL( window );
 }
 
 
@@ -88,9 +93,16 @@ RendererGL::~RendererGL()
     s_instance = nullptr;
 }
 
-RendererGL::RendererGL()
+RendererGL::RendererGL( SDL_Window* window )
+: m_window{ window }
 {
     s_instance = this;
+
+    [[maybe_unused]]
+    SDL_GLContext glcontext = SDL_GL_CreateContext( window );
+    SDL_GL_SetSwapInterval( 1 );
+    glClearColor( 0, 0, 0, 1 );
+
     SDL_GL_SetAttribute( SDL_GL_ACCUM_ALPHA_SIZE, 0 );
     SDL_GL_SetAttribute( SDL_GL_ACCUM_BLUE_SIZE, 0 );
     SDL_GL_SetAttribute( SDL_GL_ACCUM_GREEN_SIZE, 0 );
@@ -136,7 +148,7 @@ void RendererGL::clear()
 
 void RendererGL::present()
 {
-    SDL_GL_SwapBuffers();
+    SDL_GL_SwapWindow( m_window );
 }
 
 void RendererGL::deleteTexture( uint32_t tex )

@@ -1,5 +1,6 @@
 set( OpenGL_GL_PREFERENCE "GLVND" )
 find_package( OpenGL REQUIRED )
+find_package( SDL2 REQUIRED )
 find_package( glm REQUIRED )
 
 if ( NOT TARGET glm::glm )
@@ -37,4 +38,5 @@ target_link_libraries( renderer
     glm::glm
     OpenGL::GL
     OpenGL::GLU
+    SDL2::SDL2
 )

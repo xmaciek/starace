@@ -3,8 +3,6 @@
 #include "colors.hpp"
 #include "utils.hpp"
 
-#include <SDL/SDL.h>
-
 #include <algorithm>
 #include <chrono>
 #include <cstdlib>
@@ -95,17 +93,21 @@ void Game::onEvent( const SDL_Event& event )
         break;
 
     case SDL_KEYDOWN:
-        onKeyDown( event.key.keysym.sym, event.key.keysym.mod, event.key.keysym.unicode );
+        onKeyDown( event.key.keysym );
         break;
 
     case SDL_KEYUP:
-        onKeyUp( event.key.keysym.sym, event.key.keysym.mod, event.key.keysym.unicode );
+        onKeyUp( event.key.keysym );
         break;
 
-    case SDL_VIDEORESIZE:
-        setViewportSize( event.resize.w, event.resize.h );
-        initNewSurface( viewportWidth(), viewportHeight(), 32, m_isFullscreen );
-        onResize( viewportWidth(), viewportHeight() );
+    case SDL_WINDOWEVENT:
+        switch ( event.window.event ) {
+        case SDL_WINDOWEVENT_RESIZED:
+            setViewportSize( event.window.data1, event.window.data2 );
+            onResize( viewportWidth(), viewportHeight() );
+        default:
+            break;
+        }
         break;
 
     case SDL_MOUSEBUTTONDOWN:
@@ -119,48 +121,62 @@ void Game::onEvent( const SDL_Event& event )
 void Game::onCleanup()
 {
     //   Mix_HaltMusic();
-    Mix_HaltChannel( -1 );
+//     Mix_HaltChannel( -1 );
+// 
+//     std::cout << Mix_GetError() << "\n";
+//     Mix_FreeChunk( m_laser );
+//     Mix_FreeChunk( m_blaster );
+//     Mix_FreeChunk( m_torpedo );
+//     Mix_FreeChunk( m_click );
+//     Mix_CloseAudio();
+// 
+//     Mix_Quit();
 
-    std::cout << Mix_GetError() << "\n";
-    Mix_FreeChunk( m_laser );
-    Mix_FreeChunk( m_blaster );
-    Mix_FreeChunk( m_torpedo );
-    Mix_FreeChunk( m_click );
-    Mix_CloseAudio();
-
-    Mix_Quit();
-
-    SDL_FreeSurface( m_display );
+//     SDL_FreeSurface( m_display );
+    SDL_DestroyWindow( m_display );
     SDL_Quit();
     saveConfig();
 }
 
 bool Game::onInit()
 {
-    if ( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO ) < 0 ) {
+    if ( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_TIMER ) < 0 ) {
         std::cout << "Unable to init SDL\n"
                   << SDL_GetError() << "\n";
         return false;
     }
 
 
-    if ( Mix_OpenAudio( 22050, AUDIO_S16SYS, 2, 4096 ) != 0 ) {
-        std::fprintf( stderr, "Unable to initialize audio: %s\n", Mix_GetError() );
-        return false;
-    }
-
-    m_laser = Mix_LoadWAV( "sounds/laser.wav" );
-    m_blaster = Mix_LoadWAV( "sounds/blaster.wav" );
-    m_torpedo = Mix_LoadWAV( "sounds/torpedo.wav" );
-    m_click = Mix_LoadWAV( "sounds/click.wav" );
+//     if ( Mix_OpenAudio( 22050, AUDIO_S16SYS, 2, 4096 ) != 0 ) {
+//         std::fprintf( stderr, "Unable to initialize audio: %s\n", Mix_GetError() );
+//         return false;
+//     }
+// 
+//     m_laser = Mix_LoadWAV( "sounds/laser.wav" );
+//     m_blaster = Mix_LoadWAV( "sounds/blaster.wav" );
+//     m_torpedo = Mix_LoadWAV( "sounds/torpedo.wav" );
+//     m_click = Mix_LoadWAV( "sounds/click.wav" );
 
     loadConfig();
 
-    if ( !initNewSurface( viewportWidth(), viewportHeight(), 32, m_isFullscreen ) ) {
+    m_display = SDL_CreateWindow( "Starace"
+        , SDL_WINDOWPOS_UNDEFINED
+        , SDL_WINDOWPOS_UNDEFINED
+        , static_cast<int>( viewportWidth() )
+        , static_cast<int>( viewportHeight() )
+        , Renderer::windowFlag()
+            | ( m_isFullscreen ? SDL_WINDOW_FULLSCREEN : 0 )
+            | SDL_WINDOW_RESIZABLE
+    );
+    assert( m_display );
+    if ( !m_display ) {
+        std::cout << "Unable to create window: "
+                  << SDL_GetError()
+                  << std::endl;
         return false;
     }
 
-    m_renderer = Renderer::create();
+    m_renderer = Renderer::create( m_display );
     initRoadAdditions();
     onResize( viewportWidth(), viewportHeight() );
     return true;
@@ -686,30 +702,6 @@ void Game::changeScreen( Screen scr )
 void Game::goFullscreen( bool b )
 {
     b = !b;
-    initNewSurface( viewportWidth(), viewportHeight(), 32, b );
-}
-
-bool Game::initNewSurface( int32_t w, int32_t h, int32_t d, bool f )
-{
-    SDL_Surface* tmp = m_display;
-    SDL_Surface* tmp2 = nullptr;
-    if ( f ) {
-        tmp2 = SDL_SetVideoMode( w, h, d, SDL_DOUBLEBUF | SDL_OPENGL | SDL_FULLSCREEN );
-    }
-    else {
-        tmp2 = SDL_SetVideoMode( w, h, d, SDL_DOUBLEBUF | SDL_OPENGL | SDL_RESIZABLE );
-    }
-    if ( !tmp2 ) {
-        std::cout << "Unable to create display surface:\n";
-        std::string error( SDL_GetError() );
-        std::cout << error << "\n";
-        return false;
-    }
-    m_display = tmp2;
-    if ( tmp ) {
-        SDL_FreeSurface( tmp );
-    }
-    return true;
 }
 
 void Game::loadMapProto()
@@ -940,10 +932,10 @@ void Game::updateCustomize( const UpdateContext& updateContext )
     }
 }
 
-void Game::playSound( Mix_Chunk* sound ) const
+void Game::playSound( Mix_Chunk* /*sound*/ ) const
 {
     if ( m_isSoundEnabled ) {
-        Mix_Playing( Mix_PlayChannel( -1, sound, 0 ) );
+//         Mix_Playing( Mix_PlayChannel( -1, sound, 0 ) );
     }
 }
 

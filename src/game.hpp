@@ -13,11 +13,12 @@
 #include <renderer/renderer.hpp>
 
 #include <glm/vec4.hpp>
-#include <SDL/SDL.h>
-#include <SDL/SDL_mixer.h>
+#include <SDL2/SDL.h>
 
 #include <mutex>
 #include <thread>
+
+struct Mix_Chunk;
 
 constexpr static int TAB = 9;
 constexpr static int ESC = 27;
@@ -54,7 +55,7 @@ private:
     Mix_Chunk* m_torpedo = nullptr;
     Model* m_previewModel = nullptr;
     Renderer* m_renderer = nullptr;
-    SDL_Surface* m_display = nullptr;
+    SDL_Window* m_display = nullptr;
     std::thread m_thread{};
 
     std::string m_lastSelectedJetName{};
@@ -142,7 +143,6 @@ private:
     bool m_doUpdate = false;
     bool m_isSoundEnabled = false;
 
-    bool initNewSurface( int32_t w, int32_t h, int32_t d, bool f );
     bool onInit();
     double viewportHeight() const;
     double viewportWidth() const;
@@ -150,11 +150,11 @@ private:
     void changeScreen( Screen );
     void clearMapData();
     void createMapData( const MapProto&, const ModelProto& );
-    void gameKeyboardBriefingPressed( SDLKey );
-    void gameKeyboardPausedPressed( SDLKey );
-    void gameKeyboardPausedUnpressed( SDLKey );
-    void gameKeyboardPressed( SDLKey );
-    void gameKeyboardUnpressed( SDLKey );
+    void gameKeyboardBriefingPressed( SDL_Scancode );
+    void gameKeyboardPausedPressed( SDL_Scancode );
+    void gameKeyboardPausedUnpressed( SDL_Scancode );
+    void gameKeyboardPressed( SDL_Scancode );
+    void gameKeyboardUnpressed( SDL_Scancode );
     void goFullscreen( bool );
     void initRoadAdditions();
     void loadConfig();
@@ -162,8 +162,8 @@ private:
     void loadMapProto();
     void onCleanup();
     void onEvent( const SDL_Event& );
-    void onKeyDown( SDLKey sym, SDLMod mod, Uint16 unicode );
-    void onKeyUp( SDLKey sym, SDLMod mod, Uint16 unicode );
+    void onKeyDown( const SDL_Keysym& );
+    void onKeyUp( const SDL_Keysym& );
     void onMouseClickLeft( int32_t x, int32_t y );
     void onRender();
     void onResize( int32_t w, int32_t h );
