@@ -5,6 +5,8 @@ set( STARACE_MAJOR_VERSION 1 )
 set( STARACE_MINOR_VERSION 0 )
 set( STARACE_PATCH_VERSION 0 )
 
+set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
+
 add_subdirectory( misc )
 add_subdirectory( models )
 add_subdirectory( sounds )
