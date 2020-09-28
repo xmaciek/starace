@@ -106,9 +106,10 @@ void Game::renderHUDBar( RenderContext rctx, const glm::vec4& xywh, float ratio 
             vec.emplace_back( xywh.z + 4.0f, xywh.w + 4.0f, 0.0f );
             vec.emplace_back( xywh.z + 4.0f, -4.0f, 0.0f );
             vec.emplace_back( -4.0f, -4.0f, 0.0f );
-            outline = rctx.renderer->createBuffer( std::move( vec ) );
+            outline = rctx.renderer->createBuffer( std::move( vec ), Buffer::Lifetime::ePersistent );
             outlineCol = rctx.renderer->createBuffer(
                 std::pmr::vector<glm::vec4>{ 4, color, rctx.renderer->allocator() }
+                , Buffer::Lifetime::ePersistent
             );
         }
         PushBuffer<Pipeline::eLine3dStripColor> pushBuffer{};
@@ -301,8 +302,8 @@ void Game::renderHUD( RenderContext rctx )
                 vec.emplace_back( 12, 24, 0 );
                 vec.emplace_back( 0, 26.5, 0 );
                 vec.emplace_back( -12, 24, 0 );
-                colors = rctx.renderer->createBuffer( std::move( col ) );
-                vertices = rctx.renderer->createBuffer( std::move( vec ) );
+                colors = rctx.renderer->createBuffer( std::move( col ), Buffer::Lifetime::ePersistent );
+                vertices = rctx.renderer->createBuffer( std::move( vec ), Buffer::Lifetime::ePersistent );
             }
 
             PushBuffer<Pipeline::eTriangleFan3dColor> pushBuffer{};
@@ -318,7 +319,7 @@ void Game::renderHUD( RenderContext rctx )
         if ( !ringVertices ) {
             const uint32_t segments = m_speedFanRing->segments() + 1;
             std::pmr::vector<glm::vec4> colors{ segments, color, rctx2.renderer->allocator() };
-            ringColors = rctx2.renderer->createBuffer( std::move( colors ) );
+            ringColors = rctx2.renderer->createBuffer( std::move( colors ), Buffer::Lifetime::ePersistent );
 
             std::pmr::vector<glm::vec3> vertices{ rctx2.renderer->allocator() };
             vertices.reserve( segments );
@@ -326,7 +327,7 @@ void Game::renderHUD( RenderContext rctx )
                 vertices.emplace_back( m_speedFanRing->x( i ), m_speedFanRing->y( i ), 0.0f );
             }
             vertices.emplace_back( m_speedFanRing->x( 0 ), m_speedFanRing->y( 0 ), 0.0f );
-            ringVertices = rctx2.renderer->createBuffer( std::move( vertices ) );
+            ringVertices = rctx2.renderer->createBuffer( std::move( vertices ), Buffer::Lifetime::ePersistent );
         }
         PushConstant<Pipeline::eLine3dStripColor> pushConstant{};
         pushConstant.m_model = rctx2.model;

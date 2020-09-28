@@ -37,13 +37,15 @@ class RendererGL : public Renderer {
     std::pmr::map<Buffer, std::pmr::vector<glm::vec3>> m_bufferMap3{};
     std::pmr::map<Buffer, std::pmr::vector<glm::vec4>> m_bufferMap4{};
 
+    void maybeDeleteBuffer( const Buffer& );
+
 public:
     virtual ~RendererGL() override;
     RendererGL( SDL_Window* );
 
-    virtual Buffer createBuffer( std::pmr::vector<glm::vec2>&& ) override;
-    virtual Buffer createBuffer( std::pmr::vector<glm::vec3>&& ) override;
-    virtual Buffer createBuffer( std::pmr::vector<glm::vec4>&& ) override;
+    virtual Buffer createBuffer( std::pmr::vector<glm::vec2>&&, Buffer::Lifetime ) override;
+    virtual Buffer createBuffer( std::pmr::vector<glm::vec3>&&, Buffer::Lifetime ) override;
+    virtual Buffer createBuffer( std::pmr::vector<glm::vec4>&&, Buffer::Lifetime ) override;
     virtual std::pmr::memory_resource* allocator() override;
     virtual uint32_t createTexture( uint32_t w, uint32_t h, TextureFormat, bool, const uint8_t* ) override;
     virtual void clear() override;
@@ -177,28 +179,35 @@ void RendererGL::deleteBuffer( const Buffer& b )
     m_bufferMap4.erase( b );
 }
 
-Buffer RendererGL::createBuffer( std::pmr::vector<glm::vec2>&& vec )
+Buffer RendererGL::createBuffer( std::pmr::vector<glm::vec2>&& vec, Buffer::Lifetime lft )
 {
-    const Buffer buffer{ reinterpret_cast<uint64_t>( vec.data() ) };
+    const Buffer buffer{ reinterpret_cast<uint64_t>( vec.data() ), lft };
     m_bufferMap2.emplace( std::make_pair( buffer, std::move( vec ) ) ) ;
     assert( !m_bufferMap2[ buffer ].empty() );
     return buffer;
 }
 
-Buffer RendererGL::createBuffer( std::pmr::vector<glm::vec3>&& vec )
+Buffer RendererGL::createBuffer( std::pmr::vector<glm::vec3>&& vec, Buffer::Lifetime lft )
 {
-    const Buffer buffer{ reinterpret_cast<uint64_t>( vec.data() ) };
+    const Buffer buffer{ reinterpret_cast<uint64_t>( vec.data() ), lft };
     m_bufferMap3.emplace( std::make_pair( buffer, std::move( vec ) ) );
     assert( !m_bufferMap3[ buffer ].empty() );
     return buffer;
 }
 
-Buffer RendererGL::createBuffer( std::pmr::vector<glm::vec4>&& vec )
+Buffer RendererGL::createBuffer( std::pmr::vector<glm::vec4>&& vec, Buffer::Lifetime lft )
 {
-    const Buffer buffer{ reinterpret_cast<uint64_t>( vec.data() ) };
+    const Buffer buffer{ reinterpret_cast<uint64_t>( vec.data() ), lft };
     m_bufferMap4.emplace( std::make_pair( buffer, std::move( vec ) ) );
     assert( !m_bufferMap4[ buffer ].empty() );
     return buffer;
+}
+
+void RendererGL::maybeDeleteBuffer( const Buffer& buf )
+{
+    if ( buf.m_lifetime == Buffer::Lifetime::eOneTimeUse ) {
+        deleteBuffer( buf );
+    }
 }
 
 uint32_t RendererGL::createTexture( uint32_t w, uint32_t h, TextureFormat fmt, bool genMips, const uint8_t* ptr )
@@ -267,6 +276,37 @@ void RendererGL::push( void* buffer, void* constant )
         }
         glEnd();
         glPopMatrix();
+
+        maybeDeleteBuffer( pushBuffer->m_colors );
+        maybeDeleteBuffer( pushBuffer->m_vertices );
+    } break;
+
+    case Pipeline::eLine3dStripColor1: {
+        auto* pushBuffer = reinterpret_cast<PushBuffer<Pipeline::eLine3dStripColor1>*>( buffer );
+        auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::eLine3dStripColor1>*>( constant );
+
+        const std::pmr::vector<glm::vec3>& vertices = m_bufferMap3[ pushBuffer->m_vertices ];
+        assert( !vertices.empty() );
+
+        ScopeEnable blend( GL_BLEND );
+        ScopeEnable depthTest( GL_DEPTH_TEST );
+
+        glPushMatrix();
+        glMatrixMode( GL_PROJECTION );
+        glLoadMatrixf( glm::value_ptr( pushConstant->m_projection ) );
+        glMatrixMode( GL_MODELVIEW );
+        glLoadMatrixf( glm::value_ptr( pushConstant->m_view * pushConstant->m_model ) );
+
+        glLineWidth( pushBuffer->m_lineWidth );
+        glBegin( GL_LINE_STRIP );
+        glColor4fv( glm::value_ptr( pushConstant->m_color ) );
+        for ( const glm::vec3& it : vertices ) {
+            glVertex3fv( glm::value_ptr( it ) );
+        }
+        glEnd();
+        glPopMatrix();
+
+        maybeDeleteBuffer( pushBuffer->m_vertices );
     } break;
 
     case Pipeline::eGuiTextureColor1: {
@@ -341,6 +381,9 @@ void RendererGL::push( void* buffer, void* constant )
         }
         glEnd();
         glPopMatrix();
+
+        maybeDeleteBuffer( pushBuffer->m_vertices );
+        maybeDeleteBuffer( pushBuffer->m_uv );
     } break;
 
     case Pipeline::eTriangleFan3dColor: {
@@ -368,6 +411,9 @@ void RendererGL::push( void* buffer, void* constant )
         }
         glEnd();
         glPopMatrix();
+
+        maybeDeleteBuffer( pushBuffer->m_colors );
+        maybeDeleteBuffer( pushBuffer->m_vertices );
     } break;
 
     case Pipeline::eLine3dColor1: {
@@ -393,6 +439,8 @@ void RendererGL::push( void* buffer, void* constant )
         }
         glEnd();
         glPopMatrix();
+
+        maybeDeleteBuffer( pushBuffer->m_vertices );
     } break;
 
     case Pipeline::eTriangle3dTextureNormal: {
@@ -425,6 +473,10 @@ void RendererGL::push( void* buffer, void* constant )
         }
         glEnd();
         glPopMatrix();
+
+        maybeDeleteBuffer( pushBuffer->m_vertices );
+        maybeDeleteBuffer( pushBuffer->m_normals );
+        maybeDeleteBuffer( pushBuffer->m_uv );
     } break;
     }
 }

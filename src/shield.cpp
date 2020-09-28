@@ -30,24 +30,18 @@ void Shield::render( RenderContext rctx ) const
             vec.emplace_back( m_circle.x( i ), m_circle.y( i ), m_radius );
         }
         vec.emplace_back( m_circle.x( 0 ), m_circle.y( 0 ), m_radius );
-        vertices = rctx.renderer->createBuffer( std::move( vec ) );
+        vertices = rctx.renderer->createBuffer( std::move( vec ), Buffer::Lifetime::ePersistent );
     }
 
-    const Buffer colors = rctx.renderer->createBuffer( std::pmr::vector<glm::vec4>{
-        m_circle.segments() + 1
-        , m_color
-        , rctx.renderer->allocator()
-    } );
-
-    PushBuffer<Pipeline::eLine3dStripColor> pushBuffer{};
+    PushBuffer<Pipeline::eLine3dStripColor1> pushBuffer{};
     pushBuffer.m_lineWidth = 1.0f;
     pushBuffer.m_vertices = vertices;
-    pushBuffer.m_colors = colors;
 
-    PushConstant<Pipeline::eLine3dStripColor> pushConstant{};
+    PushConstant<Pipeline::eLine3dStripColor1> pushConstant{};
     pushConstant.m_model = rctx.model;
     pushConstant.m_projection = rctx.projection;
     pushConstant.m_view = rctx.view;
+    pushConstant.m_color = m_color;
 
     for ( size_t i = 0; i < 8; ++i ) {
         rctx.renderer->push( &pushBuffer, &pushConstant );
@@ -63,7 +57,6 @@ void Shield::render( RenderContext rctx ) const
         rctx.renderer->push( &pushBuffer, &pushConstant );
         pushConstant.m_model = glm::rotate( pushConstant.m_model, glm::radians( 45.0f ), glm::vec3{ 0.0f, 1.0f, 0.0f } );
     }
-    rctx.renderer->deleteBuffer( colors );
 }
 
 void Shield::setColor( const glm::vec4& c )

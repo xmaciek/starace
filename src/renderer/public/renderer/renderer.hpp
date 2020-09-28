@@ -28,9 +28,9 @@ public:
     static Renderer* instance();
     static SDL_WindowFlags windowFlag();
 
-    virtual Buffer createBuffer( std::pmr::vector<glm::vec2>&& ) = 0;
-    virtual Buffer createBuffer( std::pmr::vector<glm::vec3>&& ) = 0;
-    virtual Buffer createBuffer( std::pmr::vector<glm::vec4>&& ) = 0;
+    virtual Buffer createBuffer( std::pmr::vector<glm::vec2>&&, Buffer::Lifetime ) = 0;
+    virtual Buffer createBuffer( std::pmr::vector<glm::vec3>&&, Buffer::Lifetime ) = 0;
+    virtual Buffer createBuffer( std::pmr::vector<glm::vec4>&&, Buffer::Lifetime ) = 0;
     virtual std::pmr::memory_resource* allocator() = 0;
     virtual uint32_t createTexture( uint32_t w, uint32_t h, TextureFormat, bool genMips, const uint8_t* ) = 0;
     virtual void clear() = 0;

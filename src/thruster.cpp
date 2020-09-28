@@ -50,7 +50,7 @@ static Buffer makeBuffer( Renderer* renderer, const Circle& c )
     }
     cone.emplace_back( c.x( 0 ), c.y( 0 ), 0.0f );
     std::reverse( cone.begin() + 1, cone.end() );
-    return renderer->createBuffer( std::move( cone ) );
+    return renderer->createBuffer( std::move( cone ), Buffer::Lifetime::ePersistent );
 }
 
 static Buffer makeColorBuffer( Renderer* renderer, uint32_t count, const glm::vec4& a, const glm::vec4& b )
@@ -59,7 +59,7 @@ static Buffer makeColorBuffer( Renderer* renderer, uint32_t count, const glm::ve
     std::pmr::vector<glm::vec4> colors{ renderer->allocator() };
     colors.resize( count, a );
     colors.front() = b;
-    return renderer->createBuffer( std::move( colors ) );
+    return renderer->createBuffer( std::move( colors ), Buffer::Lifetime::ePersistent );
 }
 
 void Thruster::renderAt( RenderContext rctx, const glm::vec3& pos ) const

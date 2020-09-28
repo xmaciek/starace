@@ -27,7 +27,7 @@ void Model::render( RenderContext rctx ) const
             std::copy( it.vertex.begin(), it.vertex.end(), std::back_inserter( vertices ) );
         }
         assert( !vertices.empty() );
-        m_vertices = rctx.renderer->createBuffer( std::move( vertices ) );
+        m_vertices = rctx.renderer->createBuffer( std::move( vertices ), Buffer::Lifetime::ePersistent );
         assert( m_vertices );
     }
 
@@ -40,7 +40,7 @@ void Model::render( RenderContext rctx ) const
             normals.emplace_back( it.normal[ 0 ], it.normal[ 1 ], it.normal[ 2 ] );
         }
         assert( !normals.empty() );
-        m_normals = rctx.renderer->createBuffer( std::move( normals ) );
+        m_normals = rctx.renderer->createBuffer( std::move( normals ), Buffer::Lifetime::ePersistent );
         assert( m_normals );
     }
 
@@ -53,7 +53,7 @@ void Model::render( RenderContext rctx ) const
             uv.emplace_back( it.texcoord[ 2 ].u, it.texcoord[ 2 ].v );
         }
         assert( !uv.empty() );
-        m_uv = rctx.renderer->createBuffer( std::move( uv ) );
+        m_uv = rctx.renderer->createBuffer( std::move( uv ), Buffer::Lifetime::ePersistent );
         assert( m_uv );
     }
 

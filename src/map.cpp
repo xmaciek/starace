@@ -32,8 +32,8 @@ void Map::render( RenderContext rctx )
         auv[ i ][ j++ ] = glm::vec2{ m_max, m_min };
         auv[ i ][ j++ ] = glm::vec2{ m_max, m_max };
         auv[ i ][ j++ ] = glm::vec2{ m_min, m_max };
-        walls[ i ] = rctx.renderer->createBuffer( std::move( w[ i ] ) );
-        uv[ i ] = rctx.renderer->createBuffer( std::move( auv[ i ] ) );
+        walls[ i ] = rctx.renderer->createBuffer( std::move( w[ i ] ), Buffer::Lifetime::ePersistent );
+        uv[ i ] = rctx.renderer->createBuffer( std::move( auv[ i ] ), Buffer::Lifetime::ePersistent  );
         i++;
         j = 0;
 
@@ -46,8 +46,8 @@ void Map::render( RenderContext rctx )
         auv[ i ][ j++ ] = glm::vec2{ m_max, m_max };
         auv[ i ][ j++ ] = glm::vec2{ m_max, m_min };
         auv[ i ][ j++ ] = glm::vec2{ m_min, m_min };
-        walls[ i ] = rctx.renderer->createBuffer( std::move( w[ i ] ) );
-        uv[ i ] = rctx.renderer->createBuffer( std::move( auv[ i ] ) );
+        walls[ i ] = rctx.renderer->createBuffer( std::move( w[ i ] ), Buffer::Lifetime::ePersistent  );
+        uv[ i ] = rctx.renderer->createBuffer( std::move( auv[ i ] ), Buffer::Lifetime::ePersistent  );
         i++;
         j = 0;
 
@@ -60,8 +60,8 @@ void Map::render( RenderContext rctx )
         auv[ i ][ j++ ] = glm::vec2{ m_max, m_min };
         auv[ i ][ j++ ] = glm::vec2{ m_max, m_max };
         auv[ i ][ j++ ] = glm::vec2{ m_min, m_max };
-        walls[ i ] = rctx.renderer->createBuffer( std::move( w[ i ] ) );
-        uv[ i ] = rctx.renderer->createBuffer( std::move( auv[ i ] ) );
+        walls[ i ] = rctx.renderer->createBuffer( std::move( w[ i ] ), Buffer::Lifetime::ePersistent  );
+        uv[ i ] = rctx.renderer->createBuffer( std::move( auv[ i ] ), Buffer::Lifetime::ePersistent  );
         i++;
         j = 0;
 
@@ -74,8 +74,8 @@ void Map::render( RenderContext rctx )
         auv[ i ][ j++ ] = glm::vec2{ m_max, m_max };
         auv[ i ][ j++ ] = glm::vec2{ m_max, m_min };
         auv[ i ][ j++ ] = glm::vec2{ m_min, m_min };
-        walls[ i ] = rctx.renderer->createBuffer( std::move( w[ i ] ) );
-        uv[ i ] = rctx.renderer->createBuffer( std::move( auv[ i ] ) );
+        walls[ i ] = rctx.renderer->createBuffer( std::move( w[ i ] ), Buffer::Lifetime::ePersistent  );
+        uv[ i ] = rctx.renderer->createBuffer( std::move( auv[ i ] ), Buffer::Lifetime::ePersistent  );
         i++;
         j = 0;
 
@@ -88,8 +88,8 @@ void Map::render( RenderContext rctx )
         auv[ i ][ j++ ] = glm::vec2{ m_max, m_min };
         auv[ i ][ j++ ] = glm::vec2{ m_max, m_max };
         auv[ i ][ j++ ] = glm::vec2{ m_min, m_max };
-        walls[ i ] = rctx.renderer->createBuffer( std::move( w[ i ] ) );
-        uv[ i ] = rctx.renderer->createBuffer( std::move( auv[ i ] ) );
+        walls[ i ] = rctx.renderer->createBuffer( std::move( w[ i ] ), Buffer::Lifetime::ePersistent  );
+        uv[ i ] = rctx.renderer->createBuffer( std::move( auv[ i ] ), Buffer::Lifetime::ePersistent  );
         i++;
         j = 0;
 
@@ -102,8 +102,8 @@ void Map::render( RenderContext rctx )
         auv[ i ][ j++ ] = glm::vec2{ m_max, m_min };
         auv[ i ][ j++ ] = glm::vec2{ m_max, m_max };
         auv[ i ][ j++ ] = glm::vec2{ m_min, m_max };
-        walls[ i ] = rctx.renderer->createBuffer( std::move( w[ i ] ) );
-        uv[ i ] = rctx.renderer->createBuffer( std::move( auv[ i ] ) );
+        walls[ i ] = rctx.renderer->createBuffer( std::move( w[ i ] ), Buffer::Lifetime::ePersistent  );
+        uv[ i ] = rctx.renderer->createBuffer( std::move( auv[ i ] ), Buffer::Lifetime::ePersistent  );
     }
 
     {
@@ -136,9 +136,8 @@ void Map::render( RenderContext rctx )
             particles.emplace_back( it );
             particles.emplace_back( it + m_particleLength );
         }
-        linePushBuffer.m_vertices = rctx.renderer->createBuffer( std::move( particles ) );
+        linePushBuffer.m_vertices = rctx.renderer->createBuffer( std::move( particles ), Buffer::Lifetime::eOneTimeUse );
         rctx.renderer->push( &linePushBuffer, &linePushConstant );
-        rctx.renderer->deleteBuffer( linePushBuffer.m_vertices );
     }
 }
 

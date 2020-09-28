@@ -93,8 +93,8 @@ void Bullet::render( RenderContext rctx ) const
     }
 
     PushBuffer<Pipeline::eLine3dStripColor> pushBuffer{};
-    pushBuffer.m_colors = rctx.renderer->createBuffer( std::move( colors ) );
-    pushBuffer.m_vertices = rctx.renderer->createBuffer( std::move( vertices ) );
+    pushBuffer.m_colors = rctx.renderer->createBuffer( std::move( colors ), Buffer::Lifetime::eOneTimeUse );
+    pushBuffer.m_vertices = rctx.renderer->createBuffer( std::move( vertices ), Buffer::Lifetime::eOneTimeUse );
     pushBuffer.m_lineWidth = 2.0f;
 
     PushConstant<Pipeline::eLine3dStripColor> pushConstant{};
@@ -103,8 +103,6 @@ void Bullet::render( RenderContext rctx ) const
     pushConstant.m_projection = rctx.projection;
 
     rctx.renderer->push( &pushBuffer, &pushConstant );
-    rctx.renderer->deleteBuffer( pushBuffer.m_vertices );
-    rctx.renderer->deleteBuffer( pushBuffer.m_colors );
 }
 
 void Bullet::update( const UpdateContext& updateContext )

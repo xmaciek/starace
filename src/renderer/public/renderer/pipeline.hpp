@@ -16,6 +16,7 @@ enum struct Pipeline {
     eGuiQuadColor1,
     eLine3dColor1,
     eLine3dStripColor,
+    eLine3dStripColor1,
     eTriangle3dTextureNormal,
     eTriangleFan3dColor,
     eTriangleFan3dTexture,
@@ -44,6 +45,24 @@ struct PushBuffer<Pipeline::eLine3dStripColor> {
     float m_lineWidth = 1.0f;
 
     PushBuffer() = default;
+};
+
+template <>
+struct PushBuffer<Pipeline::eLine3dStripColor1> {
+    Pipeline m_pipeline = Pipeline::eLine3dStripColor1;
+    Buffer m_vertices{};
+    float m_lineWidth = 1.0f;
+
+    PushBuffer() = default;
+};
+
+template <>
+struct PushConstant<Pipeline::eLine3dStripColor1> {
+    glm::mat4 m_model{};
+    glm::mat4 m_view{};
+    glm::mat4 m_projection{};
+    glm::vec4 m_color{};
+    PushConstant() = default;
 };
 
 template <>
