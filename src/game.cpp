@@ -72,13 +72,13 @@ int32_t Game::run()
         return -1;
     }
 
-    m_thread = std::thread( &Game::onUpdate, this );
+    m_thread = std::thread( &Game::loopGame, this );
     SDL_Event Event{};
     while ( m_isRunning ) {
         while ( SDL_PollEvent( &Event ) ) {
             onEvent( Event );
         }
-        onRender();
+        std::this_thread::sleep_for( std::chrono::milliseconds( 10 ) );
     }
     if ( m_thread.joinable() ) {
         m_thread.join();
@@ -86,6 +86,24 @@ int32_t Game::run()
 
     onCleanup();
     return 0;
+}
+
+void Game::loopGame()
+{
+    m_renderer->makeCurrentContext();
+    UpdateContext updateContext{ 0.0166f };
+    while ( m_isRunning ) {
+        const std::chrono::time_point tp = std::chrono::steady_clock::now();
+        m_fpsMeter.frameBegin();
+        onRender();
+        onUpdate( updateContext );
+        m_fpsMeter.frameEnd();
+        m_renderer->present();
+        const std::chrono::time_point now = std::chrono::steady_clock::now();
+        updateContext.deltaTime = std::chrono::duration_cast<std::chrono::microseconds>( now - tp ).count();
+        // TODO: fix game speed later
+        updateContext.deltaTime /= 500'000;
+    }
 }
 
 void Game::onEvent( const SDL_Event& event )
@@ -334,7 +352,6 @@ void Game::updateCyberRings( const UpdateContext& updateContext )
 
 void Game::onRender()
 {
-    m_fpsMeter.frameBegin();
     m_renderer->clear();
     RenderContext rctx{};
     rctx.renderer = m_renderer;
@@ -367,42 +384,35 @@ void Game::onRender()
     default:
         break;
     }
-    m_fpsMeter.frameEnd();
-    m_renderer->present();
 }
 
-void Game::onUpdate()
+void Game::onUpdate( const UpdateContext& updateContext )
 {
-    const UpdateContext updateContext{ 0.032f };
-    while ( m_isRunning ) {
-        const std::chrono::time_point tp = std::chrono::steady_clock::now() + std::chrono::milliseconds{ 16 };
-        switch ( m_currentScreen ) {
-        case Screen::eGame:
-            updateGame( updateContext );
-            break;
-        case Screen::eGamePaused:
-            updateGamePaused( updateContext );
-            break;
-        case Screen::eGameBriefing:
-            updateGameScreenBriefing( updateContext );
-            break;
-        case Screen::eDead:
-            updateDeadScreen( updateContext );
-            break;
-        case Screen::eWin:
-            updateWin( updateContext );
-            break;
-        case Screen::eMissionSelection:
-            updateMissionSelection( updateContext );
-            break;
-        case Screen::eMainMenu:
-            updateMainMenu( updateContext );
-            break;
-        case Screen::eCustomize:
-            updateCustomize( updateContext );
-            break;
-        }
-        std::this_thread::sleep_until( tp );
+    switch ( m_currentScreen ) {
+    case Screen::eGame:
+        updateGame( updateContext );
+        break;
+    case Screen::eGamePaused:
+        updateGamePaused( updateContext );
+        break;
+    case Screen::eGameBriefing:
+        updateGameScreenBriefing( updateContext );
+        break;
+    case Screen::eDead:
+        updateDeadScreen( updateContext );
+        break;
+    case Screen::eWin:
+        updateWin( updateContext );
+        break;
+    case Screen::eMissionSelection:
+        updateMissionSelection( updateContext );
+        break;
+    case Screen::eMainMenu:
+        updateMainMenu( updateContext );
+        break;
+    case Screen::eCustomize:
+        updateCustomize( updateContext );
+        break;
     }
 }
 
@@ -447,11 +457,9 @@ void Game::updateGame( const UpdateContext& updateContext )
     }
 
     {
-        std::lock_guard<std::mutex> lg( m_mutexEnemy );
         for ( Enemy*& e : m_enemies ) {
             e->update( updateContext );
             if ( e->isWeaponReady() ) {
-                std::lock_guard<std::mutex> lg( m_mutexEnemyBullet );
                 m_enemyBullets.push_back( e->weapon() );
             }
             if ( e->status() == Enemy::Status::eDead ) {
@@ -464,23 +472,32 @@ void Game::updateGame( const UpdateContext& updateContext )
     }
 
     {
-        std::lock_guard<std::mutex> lg( m_mutexEnemyBullet );
         for ( Bullet* it : m_enemyBullets ) {
             it->processCollision( m_jet );
         }
     }
 
-    m_jet->update( updateContext );
-    m_speedAnim += m_jet->speed() * 270.0f * updateContext.deltaTime;
-    if ( m_speedAnim >= 360 ) {
-        m_speedAnim -= 360;
+    {
+        glm::vec3 jetPosition{};
+        glm::vec3 jetVelocity{};
+        {
+            assert( m_jet );
+            m_jet->update( updateContext );
+            jetPosition = m_jet->position();
+            jetVelocity = m_jet->velocity();
+            m_speedAnim += m_jet->speed() * 270.0f * updateContext.deltaTime;
+        }
+        if ( m_speedAnim >= 360 ) {
+            m_speedAnim -= 360;
+        }
+        {
+            assert( m_map );
+            m_map->setJetData( jetPosition, jetVelocity );
+            m_map->update( updateContext );
+        }
     }
-    m_map->setJetData( m_jet->position(), m_jet->velocity() );
-    m_map->update( updateContext );
 
     {
-        std::lock_guard<std::mutex> lg( m_mutexEnemy );
-        std::lock_guard<std::mutex> lg2( m_mutexBullet );
         for ( Bullet*& b : m_bullets ) {
             for ( Enemy* e : m_enemies ) {
                 b->processCollision( e );
@@ -497,7 +514,6 @@ void Game::updateGame( const UpdateContext& updateContext )
     }
 
     {
-        std::lock_guard<std::mutex> lg( m_mutexEnemyBullet );
         for ( Bullet*& b : m_enemyBullets ) {
             b->update( updateContext );
             if ( b->status() == Bullet::Status::eDead ) {
@@ -529,6 +545,8 @@ void Game::updateGame( const UpdateContext& updateContext )
 
 void Game::addBullet( uint32_t wID )
 {
+    assert( m_audio );
+    assert( m_jet );
     if ( !m_jet->isWeaponReady( wID ) ) {
         return;
     }
@@ -550,11 +568,11 @@ void Game::addBullet( uint32_t wID )
 
 void Game::retarget()
 {
-    std::lock_guard<std::mutex> lg( m_mutexEnemy );
     if ( m_enemies.empty() ) {
         return;
     }
     static std::mt19937_64 random{ std::random_device()() };
+    assert( m_jet );
     m_jet->lockTarget( m_enemies[ random() % m_enemies.size() ] );
 }
 
@@ -571,33 +589,21 @@ void Game::updateGameScreenBriefing( const UpdateContext& updateContext )
 
 void Game::clearMapData()
 {
-    std::cout << "Moving all enemies to garbage.\n";
-    {
-        std::lock_guard<std::mutex> lg( m_mutexEnemy );
-        for ( Enemy* e : m_enemies ) {
-            delete e;
-        }
-        m_enemies.clear();
+    for ( Enemy* e : m_enemies ) {
+        delete e;
     }
+    m_enemies.clear();
 
-    std::cout << "Moving all bullets to garbage.\n";
-    {
-        std::lock_guard<std::mutex> lg( m_mutexBullet );
-        for ( Bullet* b : m_bullets ) {
-            delete b;
-        }
-        m_bullets.clear();
+    for ( Bullet* b : m_bullets ) {
+        delete b;
     }
+    m_bullets.clear();
 
-    {
-        std::lock_guard<std::mutex> lg( m_mutexEnemyBullet );
-        for ( Bullet* b : m_enemyBullets ) {
-            delete b;
-        }
-        m_enemyBullets.clear();
+    for ( Bullet* b : m_enemyBullets ) {
+        delete b;
     }
+    m_enemyBullets.clear();
 
-    std::cout << "Cleaning garbage...\n";
     for ( Enemy* e : m_enemyGarbage ) {
         delete e;
     }
@@ -608,9 +614,9 @@ void Game::clearMapData()
     }
     m_bulletGarbage.clear();
 
-    std::cout << "Cleaning garbage: done.\n";
     delete m_map;
     m_map = nullptr;
+
     delete m_jet;
     m_jet = nullptr;
 }
@@ -625,15 +631,12 @@ void Game::createMapData( const MapProto& mapData, const ModelProto& modelData )
     m_jet->setWeapon( m_weapons[ m_weap2 ], 1 );
     m_jet->setWeapon( m_weapons[ m_weap3 ], 2 );
 
-    {
-        std::lock_guard<std::mutex> lg( m_mutexEnemy );
-        m_enemies.clear();
-        m_enemies.reserve( mapData.enemies );
-        for ( uint32_t i = 0; i < mapData.enemies; i++ ) {
-            m_enemies.push_back( new Enemy() );
-            m_enemies.back()->setTarget( m_jet );
-            m_enemies.back()->setWeapon( m_weapons[ 3 ] );
-        }
+    m_enemies.clear();
+    m_enemies.reserve( mapData.enemies );
+    for ( uint32_t i = 0; i < mapData.enemies; i++ ) {
+        m_enemies.push_back( new Enemy() );
+        m_enemies.back()->setTarget( m_jet );
+        m_enemies.back()->setWeapon( m_weapons[ 3 ] );
     }
 
     for ( MapProto& it : m_mapsContainer ) {
@@ -952,9 +955,6 @@ void Game::reloadPreviewModel()
     model->loadOBJ( m_jetsContainer.at( m_currentJet ).model_file.c_str() );
     model->calculateNormal();
     model->bindTexture( loadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() ) );
-    {
-        std::lock_guard<std::mutex> lg{ m_mutexPreviewModel };
-        std::swap( model, m_previewModel );
-    }
+    std::swap( model, m_previewModel );
     delete model;
 }

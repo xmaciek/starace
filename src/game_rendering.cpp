@@ -183,9 +183,10 @@ void Game::renderHUD( RenderContext rctx )
     std::snprintf( hudmessage, sizeof( hudmessage ), "Shots: %d", m_shotsDone );
     m_fontGuiTxt->renderText( rctx, color, 320, viewportHeight() - 16, hudmessage );
 
-    std::snprintf( hudmessage, sizeof( hudmessage ), "SCORE: %d", m_jet->score() );
+    assert( m_jet );
+    const uint32_t score = m_jet->score();;
+    std::snprintf( hudmessage, sizeof( hudmessage ), "SCORE: %u", score );
     m_fontGuiTxt->renderText( rctx, color, 64, viewportHeight() - 100, hudmessage );
-
     /*radar*/
 #if 0
     const glm::mat4x4 jetMat = glm::toMat4( m_jet->quat() );
@@ -340,8 +341,12 @@ void Game::renderHUD( RenderContext rctx )
 
     renderCyberRingsMini( rctx );
 
-    renderHUDBar( rctx, glm::vec4{ 12, 12, 36, 96 }, (float)m_jet->energy() / 100 );
-    renderHUDBar( rctx, glm::vec4{ 64, 12, 36, 96 }, (float)m_jet->health() / 100 );
+    assert( m_jet );
+    const float power = (float)m_jet->energy();
+    const float health = (float)m_jet->health();
+
+    renderHUDBar( rctx, glm::vec4{ 12, 12, 36, 96 }, power / 100 );
+    renderHUDBar( rctx, glm::vec4{ 64, 12, 36, 96 }, health / 100 );
 
     {
         std::string msg{ "FPS done: " };
@@ -358,32 +363,29 @@ void Game::renderHUD( RenderContext rctx )
 
 void Game::render3D( RenderContext rctx )
 {
+    assert( m_jet );
     rctx.projection = glm::perspective( glm::radians( m_angle + m_jet->speed() * 6 ), static_cast<float>( viewportWidth() / viewportHeight() ), 0.001f, 2000.0f );
     rctx.view = glm::translate( rctx.view, glm::vec3{ 0, -0.255, -1 } );
     rctx.view *= glm::toMat4( m_jet->rotation() );
     rctx.view = glm::translate( rctx.view, -m_jet->position() );
 
+    assert( m_map );
     m_map->render( rctx );
-    m_jet->render( rctx );
+    for ( const Enemy* it : m_enemies ) {
+        assert( it );
+        it->render( rctx );
+    }
 
-    {
-        std::lock_guard<std::mutex> lg( m_mutexEnemy );
-        for ( const Enemy* it : m_enemies ) {
-            it->render( rctx );
-        }
+    for ( const Bullet* it : m_bullets ) {
+        assert( it );
+        it->render( rctx );
     }
-    {
-        std::lock_guard<std::mutex> lg( m_mutexBullet );
-        for ( const Bullet* it : m_bullets ) {
-            it->render( rctx );
-        }
+    for ( const Bullet* it : m_enemyBullets ) {
+        assert( it );
+        it->render( rctx );
     }
-    {
-        std::lock_guard<std::mutex> lg( m_mutexEnemyBullet );
-        for ( const Bullet* it : m_enemyBullets ) {
-            it->render( rctx );
-        }
-    }
+    assert( m_jet );
+    m_jet->render( rctx );
 }
 
 void Game::renderMainMenu( RenderContext rctx )
@@ -443,7 +445,9 @@ void Game::renderWinScreen( RenderContext rctx )
         , missionOK
     );
 
-    const std::string str = std::string{ "Your score: " } + std::to_string( m_jet->score() );
+    assert( m_jet );
+    const uint32_t score = m_jet->score();;
+    const std::string str = std::string{ "Your score: " } + std::to_string( score );
     m_fontBig->renderText( rctx
         , color::white
         , viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( str.c_str() ) ) / 2
@@ -467,7 +471,9 @@ void Game::renderDeadScreen( RenderContext rctx )
         , txt
     );
 
-    const std::string str = std::string{ "Your score: " } + std::to_string( m_jet->score() );
+    assert( m_jet );
+    const uint32_t score = m_jet->score();;
+    const std::string str = std::string{ "Your score: " } + std::to_string( score );
     m_fontBig->renderText( rctx
         , color::white
         , viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( str.c_str() ) ) / 2
@@ -557,7 +563,7 @@ void Game::renderScreenCustomize( RenderContext rctx )
         rctx2.model = glm::translate( rctx2.model, glm::vec3{ 0, -0.1, -1.25 } );
         rctx2.model = glm::rotate( rctx2.model, glm::radians( 15.0f ), glm::vec3{ 1, 0, 0 } );
         rctx2.model = glm::rotate( rctx2.model, glm::radians( (float)m_modelRotation ), glm::vec3{ 0, 1, 0 } );
-        std::lock_guard<std::mutex> lg{ m_mutexPreviewModel };
+        assert( m_previewModel );
         m_previewModel->render( rctx2 );
     }
 

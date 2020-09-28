@@ -68,10 +68,7 @@ private:
     std::vector<MapProto> m_mapsContainer{};
     std::vector<ModelProto> m_jetsContainer{};
 
-    std::mutex m_mutexBullet{};
-    std::mutex m_mutexEnemyBullet{};
-    std::mutex m_mutexEnemy{};
-    std::mutex m_mutexPreviewModel{};
+    std::mutex m_mutexJet{};
 
     FPSMeter m_fpsMeter{};
 
@@ -154,6 +151,7 @@ private:
     void loadConfig();
     void loadJetProto();
     void loadMapProto();
+    void loopGame();
     void onCleanup();
     void onEvent( const SDL_Event& );
     void onKeyDown( const SDL_Keysym& );
@@ -161,7 +159,7 @@ private:
     void onMouseClickLeft( int32_t x, int32_t y );
     void onRender();
     void onResize( int32_t w, int32_t h );
-    void onUpdate();
+    void onUpdate( const UpdateContext& );
     void pause();
     void playSound( Mix_Chunk* ) const;
     void reloadPreviewModel();

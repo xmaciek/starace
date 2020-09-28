@@ -40,6 +40,7 @@ void Game::onKeyUp( const SDL_Keysym& ks )
 
 void Game::gameKeyboardPressed( SDL_Scancode sc )
 {
+    assert( m_jet );
     switch ( sc ) {
     case SDL_SCANCODE_ESCAPE:
         pause();
@@ -87,6 +88,7 @@ void Game::gameKeyboardPressed( SDL_Scancode sc )
 
 void Game::gameKeyboardUnpressed( SDL_Scancode sym )
 {
+    assert( m_jet );
     switch ( sym ) {
     case SDL_SCANCODE_A:
         m_jet->rollLeft( false );
@@ -156,6 +158,7 @@ void Game::gameKeyboardPausedUnpressed( SDL_Scancode sc )
 
 void Game::onMouseClickLeft( int32_t x, int32_t y )
 {
+    assert( m_audio );
     y = viewportHeight() - y;
     switch ( m_currentScreen ) {
     case Screen::eGamePaused:

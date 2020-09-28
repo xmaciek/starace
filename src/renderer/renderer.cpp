@@ -31,6 +31,8 @@ static bool operator < ( const Buffer& lhs, const Buffer& rhs ) noexcept
 
 class RendererGL : public Renderer {
     SDL_Window* m_window = nullptr;
+    SDL_GLContext m_contextInit{};
+    SDL_GLContext m_contextGL{};
     std::pmr::map<Buffer, std::pmr::vector<glm::vec2>> m_bufferMap2{};
     std::pmr::map<Buffer, std::pmr::vector<glm::vec3>> m_bufferMap3{};
     std::pmr::map<Buffer, std::pmr::vector<glm::vec4>> m_bufferMap4{};
@@ -47,6 +49,7 @@ public:
     virtual void clear() override;
     virtual void deleteBuffer( const Buffer& ) override;
     virtual void deleteTexture( uint32_t ) override;
+    virtual void makeCurrentContext() override;
     virtual void present() override;
     virtual void push( void* buffer, void* constant ) override;
     virtual void setViewportSize( uint32_t w, uint32_t h ) override;
@@ -91,6 +94,8 @@ static int typeToFormat( TextureFormat e )
 RendererGL::~RendererGL()
 {
     s_instance = nullptr;
+    SDL_GL_DeleteContext( m_contextGL );
+    SDL_GL_DeleteContext( m_contextInit );
 }
 
 RendererGL::RendererGL( SDL_Window* window )
@@ -98,11 +103,11 @@ RendererGL::RendererGL( SDL_Window* window )
 {
     s_instance = this;
 
-    [[maybe_unused]]
-    SDL_GLContext glcontext = SDL_GL_CreateContext( window );
-    SDL_GL_SetSwapInterval( 1 );
-    glClearColor( 0, 0, 0, 1 );
+    m_contextGL = SDL_GL_CreateContext( window );
 
+    SDL_GL_SetSwapInterval( 1 );
+    SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
+    SDL_GL_SetAttribute( SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1 );
     SDL_GL_SetAttribute( SDL_GL_ACCUM_ALPHA_SIZE, 0 );
     SDL_GL_SetAttribute( SDL_GL_ACCUM_BLUE_SIZE, 0 );
     SDL_GL_SetAttribute( SDL_GL_ACCUM_GREEN_SIZE, 0 );
@@ -116,6 +121,8 @@ RendererGL::RendererGL( SDL_Window* window )
     SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, 2 );
     SDL_GL_SetAttribute( SDL_GL_RED_SIZE, 8 );
 
+
+    glClearColor( 0, 0, 0, 1 );
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
     glEnable( GL_CULL_FACE );
     glFrontFace( GL_CCW );
@@ -129,6 +136,13 @@ RendererGL::RendererGL( SDL_Window* window )
     glLightfv( GL_LIGHT0, GL_DIFFUSE, glm::value_ptr( lightDiffuse ) );
     glLightfv( GL_LIGHT0, GL_POSITION, glm::value_ptr( lightPosition ) );
     glEnable( GL_LIGHT0 );
+
+    m_contextInit = SDL_GL_CreateContext( window );
+}
+
+void RendererGL::makeCurrentContext()
+{
+    SDL_GL_MakeCurrent( m_window, m_contextGL );
 }
 
 std::pmr::memory_resource* RendererGL::allocator()
