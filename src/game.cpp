@@ -499,7 +499,9 @@ void Game::updateGame( const UpdateContext& updateContext )
 
     {
         for ( Bullet*& b : m_bullets ) {
+            assert( b );
             for ( Enemy* e : m_enemies ) {
+                assert( e );
                 b->processCollision( e );
             }
 
@@ -507,7 +509,6 @@ void Game::updateGame( const UpdateContext& updateContext )
             if ( b->status() == Bullet::Status::eDead ) {
                 m_bulletGarbage.push_back( b );
                 b = nullptr;
-                //         i-=1;
             }
         }
         m_bullets.erase( std::remove( m_bullets.begin(), m_bullets.end(), nullptr ), m_bullets.end() );
@@ -669,11 +670,17 @@ void Game::changeScreen( Screen scr )
         break;
 
     case Screen::eMissionSelection:
+        assert( !m_mapsContainer.empty() );
+        m_btnNextMap.setEnabled( m_currentMap < m_mapsContainer.size() - 1 );
+        m_btnPrevMap.setEnabled( m_currentMap > 0 );
         clearMapData();
         m_currentScreen = scr;
         break;
 
     case Screen::eCustomize:
+        assert( !m_jetsContainer.empty() );
+        m_btnNextJet.setEnabled( m_currentJet < m_jetsContainer.size() - 1 );
+        m_btnPrevJet.setEnabled( m_currentJet > 0 );
         m_modelRotation = 135.0;
         reloadPreviewModel();
         m_currentScreen = scr;

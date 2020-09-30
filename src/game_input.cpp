@@ -197,23 +197,18 @@ void Game::onMouseClickLeft( int32_t x, int32_t y )
             changeScreen( Screen::eMainMenu );
             break;
         }
+        assert( !m_mapsContainer.empty() );
         if ( m_btnNextMap.isClicked( x, y ) ) {
             m_currentMap++;
-            if ( m_currentMap == m_mapsContainer.size() - 1 ) {
-                m_btnNextMap.setEnabled( false );
-            }
-            m_btnPrevMap.setEnabled( true );
+            m_btnNextMap.setEnabled( m_currentMap < m_mapsContainer.size() - 1 );
+            m_btnPrevMap.setEnabled( m_currentMap > 0 );
             m_audio->play( m_click );
             break;
         }
         if ( m_btnPrevMap.isClicked( x, y ) ) {
             m_currentMap--;
-            if ( m_currentMap == 0 ) {
-                m_btnPrevMap.setEnabled( false );
-            }
-            if ( m_mapsContainer.size() > 1 ) {
-                m_btnNextMap.setEnabled( true );
-            }
+            m_btnNextMap.setEnabled( m_currentMap < m_mapsContainer.size() - 1 );
+            m_btnPrevMap.setEnabled( m_currentMap > 0 );
             m_audio->play( m_click );
             break;
         }
