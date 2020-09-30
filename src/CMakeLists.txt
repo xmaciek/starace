@@ -80,7 +80,7 @@ set_target_properties( ${STARACE_BINNAME} PROPERTIES
 
 target_link_libraries( ${STARACE_BINNAME}
     audio
-    renderer
+    renderer_gl
     Freetype::Freetype
     SDL2::SDL2
     Threads::Threads
