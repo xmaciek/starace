@@ -271,6 +271,7 @@ RendererVK::RendererVK( SDL_Window* window )
         VkExtent2D extent{ 1280, 920 };
         extent.width = std::clamp( extent.width, surfaceCaps.minImageExtent.width, surfaceCaps.maxImageExtent.height );
         extent.height = std::clamp( extent.height, surfaceCaps.minImageExtent.height, surfaceCaps.maxImageExtent.height );
+        m_swapchainExtent = extent;
         m_swapchainImageCount = std::clamp( surfaceCaps.minImageCount + 1, surfaceCaps.minImageCount, surfaceCaps.maxImageCount );
 
         VkSwapchainCreateInfoKHR createInfo{};
@@ -280,7 +281,7 @@ RendererVK::RendererVK( SDL_Window* window )
         createInfo.minImageCount = m_swapchainImageCount;
         createInfo.imageFormat = m_swapchainFormat.format;
         createInfo.imageColorSpace = m_swapchainFormat.colorSpace;
-        createInfo.imageExtent = extent;
+        createInfo.imageExtent = m_swapchainExtent;
         createInfo.imageArrayLayers = 1;
         createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
@@ -336,10 +337,73 @@ RendererVK::RendererVK( SDL_Window* window )
             m_swapchainImageViews.emplace_back( view );
         }
     }
+
+    {
+        VkAttachmentDescription colorAttachment{};
+        colorAttachment.format = m_swapchainFormat.format;
+        colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+        VkAttachmentReference colorAttachmentRef{};
+        colorAttachmentRef.attachment = 0;
+        colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+        VkSubpassDescription subpass{};
+        subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        subpass.colorAttachmentCount = 1;
+        subpass.pColorAttachments = &colorAttachmentRef;
+
+        VkRenderPassCreateInfo renderPassInfo{};
+        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+        renderPassInfo.attachmentCount = 1;
+        renderPassInfo.pAttachments = &colorAttachment;
+        renderPassInfo.subpassCount = 1;
+        renderPassInfo.pSubpasses = &subpass;
+
+        const VkResult res = vkCreateRenderPass( m_device, &renderPassInfo, nullptr, &m_renderPass );
+        assert( res == VK_SUCCESS );
+        if ( res != VK_SUCCESS ) {
+            std::cout << "failed to create render pass" << std::endl;
+            return;
+        }
+    }
+
+    {
+        for ( const VkImageView& it : m_swapchainImageViews ) {
+            VkImageView attachments[]{ it };
+            VkFramebufferCreateInfo framebufferInfo{};
+            framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+            framebufferInfo.renderPass = m_renderPass;
+            framebufferInfo.attachmentCount = 1;
+            framebufferInfo.pAttachments = attachments;
+            framebufferInfo.width = m_swapchainExtent.width;
+            framebufferInfo.height = m_swapchainExtent.height;
+            framebufferInfo.layers = 1;
+            VkFramebuffer framebuffer{};
+            const VkResult res = vkCreateFramebuffer( m_device, &framebufferInfo, nullptr, &framebuffer );
+            assert( res == VK_SUCCESS );
+            if ( res != VK_SUCCESS ) {
+                std::cout << "failed to create framebuffer" << std::endl;
+                return;
+            }
+            m_framebuffers.emplace_back( framebuffer );
+        }
+    }
 }
 
 RendererVK::~RendererVK()
 {
+    for ( VkFramebuffer& it : m_framebuffers ) {
+        vkDestroyFramebuffer( m_device, it, nullptr );
+    }
+    if ( m_renderPass ) {
+        vkDestroyRenderPass( m_device, m_renderPass, nullptr );
+    }
     for ( VkImageView& it : m_swapchainImageViews ) {
         vkDestroyImageView( m_device, it, nullptr );
     }
