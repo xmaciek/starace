@@ -90,15 +90,20 @@ int32_t Game::run()
 
 void Game::loopGame()
 {
-    m_renderer->makeCurrentContext();
     UpdateContext updateContext{ 0.0166f };
     while ( m_isRunning ) {
         const std::chrono::time_point tp = std::chrono::steady_clock::now();
         m_fpsMeter.frameBegin();
+
+        m_renderer->beginFrame();
         onRender();
+        m_renderer->submit();
+
         onUpdate( updateContext );
+
         m_fpsMeter.frameEnd();
         m_renderer->present();
+
         const std::chrono::time_point now = std::chrono::steady_clock::now();
         updateContext.deltaTime = std::chrono::duration_cast<std::chrono::microseconds>( now - tp ).count();
         // TODO: fix game speed later

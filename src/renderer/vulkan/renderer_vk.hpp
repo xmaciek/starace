@@ -43,11 +43,12 @@ public:
     virtual Buffer createBuffer( std::pmr::vector<glm::vec4>&&, Buffer::Lifetime ) override;
     virtual std::pmr::memory_resource* allocator() override;
     virtual uint32_t createTexture( uint32_t w, uint32_t h, TextureFormat, bool, const uint8_t* ) override;
+    virtual void beginFrame() override;
     virtual void clear() override;
     virtual void deleteBuffer( const Buffer& ) override;
     virtual void deleteTexture( uint32_t ) override;
-    virtual void makeCurrentContext() override;
     virtual void present() override;
     virtual void push( void* buffer, void* constant ) override;
     virtual void setViewportSize( uint32_t w, uint32_t h ) override;
+    virtual void submit() override;
 };

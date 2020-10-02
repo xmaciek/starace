@@ -480,10 +480,10 @@ uint32_t RendererVK::createTexture( uint32_t, uint32_t, TextureFormat, bool, con
     return {};
 }
 
+void RendererVK::beginFrame() {}
 void RendererVK::clear() {}
 void RendererVK::deleteBuffer( const Buffer& ) {}
 void RendererVK::deleteTexture( uint32_t ) {}
-void RendererVK::makeCurrentContext() {}
 void RendererVK::present() {}
 void RendererVK::push( void*, void* ) {}
 void RendererVK::setViewportSize( uint32_t, uint32_t ) {}
