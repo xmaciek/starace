@@ -11,10 +11,19 @@ class RendererVK : public Renderer {
     VkInstance m_instance = VK_NULL_HANDLE;
     VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
 
+    uint32_t m_queueFamilyPresent = 0;
     uint32_t m_queueFamilyGraphics = 0;
+    VkQueue m_queuePresent{};
     VkQueue m_queueGraphics{};
 
     VkDevice m_device = VK_NULL_HANDLE;
+
+    VkSurfaceKHR m_surface = VK_NULL_HANDLE;
+
+    VkSwapchainKHR m_swapchain = VK_NULL_HANDLE;
+    VkSurfaceFormatKHR m_swapchainFormat{};
+    VkPresentModeKHR m_swapchainMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
+    uint32_t m_swapchainImageCount = 0;
 
 public:
     virtual ~RendererVK() override;
