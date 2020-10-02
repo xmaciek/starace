@@ -33,3 +33,4 @@ target_link_libraries( renderer
 )
 
 add_subdirectory( opengl )
+add_subdirectory( vulkan )
