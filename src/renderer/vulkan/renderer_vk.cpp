@@ -399,6 +399,7 @@ RendererVK::RendererVK( SDL_Window* window )
         VkCommandPoolCreateInfo poolInfo{};
         poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
         poolInfo.queueFamilyIndex = m_queueFamilyGraphics;
+        poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
         const VkResult res = vkCreateCommandPool( m_device, &poolInfo, nullptr, &m_commandPool );
         assert( res == VK_SUCCESS );
         if ( res != VK_SUCCESS ) {
@@ -420,12 +421,34 @@ RendererVK::RendererVK( SDL_Window* window )
             return;
         }
     }
+    {
+        VkSemaphoreCreateInfo semaphoreInfo{};
+        semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+        if ( const VkResult res = vkCreateSemaphore( m_device, &semaphoreInfo, nullptr, &m_semaphoreAvailableImage );
+            res != VK_SUCCESS ) {
+            assert( !"failed to create semaphore" );
+            std::cout << "failed to create semaphore" << std::endl;
+            return;
+        }
+        if ( const VkResult res = vkCreateSemaphore( m_device, &semaphoreInfo, nullptr, &m_semaphoreRender );
+            res != VK_SUCCESS ) {
+            assert( !"failed to create render semaphore" );
+            std::cout << "failed to create render semaphore" << std::endl;
+            return;
+        }
+    }
 
 }
 
 
 RendererVK::~RendererVK()
 {
+    if ( m_semaphoreRender ) {
+        vkDestroySemaphore( m_device, m_semaphoreRender, nullptr );
+    }
+    if ( m_semaphoreAvailableImage ) {
+        vkDestroySemaphore( m_device, m_semaphoreAvailableImage, nullptr );
+    }
     if ( m_commandPool ) {
         vkDestroyCommandPool( m_device, m_commandPool, nullptr );
     }
@@ -480,10 +503,93 @@ uint32_t RendererVK::createTexture( uint32_t, uint32_t, TextureFormat, bool, con
     return {};
 }
 
-void RendererVK::beginFrame() {}
+void RendererVK::beginFrame()
+{
+    uint32_t imageIndex = 0;
+    if ( const VkResult res = vkAcquireNextImageKHR( m_device, m_swapchain, std::numeric_limits<uint64_t>::max(), m_semaphoreAvailableImage, VK_NULL_HANDLE, &imageIndex );
+        res != VK_SUCCESS ) {
+        assert( !"failed to acquire image" );
+        std::cout << "failed to acquire image" << std::endl;
+        return;
+    }
+    m_currentFrame = imageIndex;
+
+    const VkClearValue clearColor{ VkClearColorValue{ { 0.0f, 0.0f, 1.0f, 1.0f } } };
+
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    const VkResult res = vkBeginCommandBuffer( m_commandBuffers[ m_currentFrame ], &beginInfo );
+    assert( res == VK_SUCCESS );
+    if ( res != VK_SUCCESS ) {
+        std::cout << "failed to begin command buffer" << std::endl;
+        return;
+    }
+
+    VkRenderPassBeginInfo renderPassInfo{};
+    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassInfo.renderPass = m_renderPass;
+    renderPassInfo.framebuffer = m_framebuffers[ m_currentFrame ];
+    renderPassInfo.renderArea.extent = m_swapchainExtent;
+    renderPassInfo.clearValueCount = 1;
+    renderPassInfo.pClearValues = &clearColor;
+    vkCmdBeginRenderPass( m_commandBuffers[ m_currentFrame ], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE );
+
+}
+
 void RendererVK::clear() {}
 void RendererVK::deleteBuffer( const Buffer& ) {}
 void RendererVK::deleteTexture( uint32_t ) {}
-void RendererVK::present() {}
 void RendererVK::push( void*, void* ) {}
 void RendererVK::setViewportSize( uint32_t, uint32_t ) {}
+
+void RendererVK::submit()
+{
+    vkCmdEndRenderPass( m_commandBuffers[ m_currentFrame ] );
+    if ( const VkResult res = vkEndCommandBuffer( m_commandBuffers[ m_currentFrame ] );
+        res != VK_SUCCESS ) {
+        assert( !"failed to end command buffer" );
+        std::cout << "failed to end command buffer" << std::endl;
+        return;
+    }
+
+    VkSemaphore waitSemaphores[]{ m_semaphoreAvailableImage };
+    VkSemaphore renderSemaphores[]{ m_semaphoreRender };
+    VkPipelineStageFlags waitStages[]{ VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+
+    VkSubmitInfo submitInfo{};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.waitSemaphoreCount = 1;
+    submitInfo.pWaitSemaphores = waitSemaphores;
+    submitInfo.pWaitDstStageMask = waitStages;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &m_commandBuffers[ m_currentFrame ];
+    submitInfo.signalSemaphoreCount = 1;
+    submitInfo.pSignalSemaphores = renderSemaphores;
+    if ( const VkResult res = vkQueueSubmit( m_queueGraphics, 1, &submitInfo, VK_NULL_HANDLE );
+        res != VK_SUCCESS ) {
+        assert( !"failed to submit queue" );
+        std::cout << "failed to submit queue" << std::endl;
+        return;
+    }
+
+}
+
+void RendererVK::present()
+{
+    VkSemaphore renderSemaphores[]{ m_semaphoreRender };
+    VkSwapchainKHR swapchain[] = { m_swapchain };
+    VkPresentInfoKHR presentInfo{};
+    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    presentInfo.waitSemaphoreCount = 1;
+    presentInfo.pWaitSemaphores = renderSemaphores;
+    presentInfo.swapchainCount = 1;
+    presentInfo.pSwapchains = swapchain;
+    presentInfo.pImageIndices = &m_currentFrame;
+    const VkResult res = vkQueuePresentKHR( m_queuePresent, &presentInfo );
+    assert( res == VK_SUCCESS );
+    if ( res != VK_SUCCESS ) {
+        std::cout << "failed to present queue" << std::endl;
+    }
+    vkDeviceWaitIdle( m_device );
+}
+

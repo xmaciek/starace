@@ -23,7 +23,7 @@ class RendererVK : public Renderer {
     VkExtent2D m_swapchainExtent{};
     VkSwapchainKHR m_swapchain = VK_NULL_HANDLE;
     VkSurfaceFormatKHR m_swapchainFormat{};
-    VkPresentModeKHR m_swapchainMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
+    VkPresentModeKHR m_swapchainMode = VK_PRESENT_MODE_FIFO_KHR;
     uint32_t m_swapchainImageCount = 0;
     std::pmr::vector<VkImage> m_swapchainImages;
     std::pmr::vector<VkImageView> m_swapchainImageViews;
@@ -33,6 +33,12 @@ class RendererVK : public Renderer {
 
     VkCommandPool m_commandPool = VK_NULL_HANDLE;
     std::pmr::vector<VkCommandBuffer> m_commandBuffers;
+
+    VkSemaphore m_semaphoreAvailableImage = VK_NULL_HANDLE;
+    VkSemaphore m_semaphoreRender = VK_NULL_HANDLE;
+
+    uint32_t m_currentFrame = 0;
+    uint32_t currentFrame();
 
 public:
     virtual ~RendererVK() override;
