@@ -31,6 +31,9 @@ class RendererVK : public Renderer {
 
     VkRenderPass m_renderPass = VK_NULL_HANDLE;
 
+    VkCommandPool m_commandPool = VK_NULL_HANDLE;
+    std::pmr::vector<VkCommandBuffer> m_commandBuffers;
+
 public:
     virtual ~RendererVK() override;
     RendererVK( SDL_Window* );

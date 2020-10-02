@@ -394,10 +394,41 @@ RendererVK::RendererVK( SDL_Window* window )
             m_framebuffers.emplace_back( framebuffer );
         }
     }
+
+    {
+        VkCommandPoolCreateInfo poolInfo{};
+        poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        poolInfo.queueFamilyIndex = m_queueFamilyGraphics;
+        const VkResult res = vkCreateCommandPool( m_device, &poolInfo, nullptr, &m_commandPool );
+        assert( res == VK_SUCCESS );
+        if ( res != VK_SUCCESS ) {
+            std::cout << "failed to create command pool" << std::endl;
+            return;
+        }
+    }
+    {
+        m_commandBuffers.resize( m_swapchainImageCount );
+        VkCommandBufferAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        allocInfo.commandPool = m_commandPool;
+        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        allocInfo.commandBufferCount = m_swapchainImageCount;
+        const VkResult res = vkAllocateCommandBuffers( m_device, &allocInfo, m_commandBuffers.data() );
+        assert( res == VK_SUCCESS );
+        if ( res != VK_SUCCESS ) {
+            std::cout << "failed to allocate command buffers" << std::endl;
+            return;
+        }
+    }
+
 }
+
 
 RendererVK::~RendererVK()
 {
+    if ( m_commandPool ) {
+        vkDestroyCommandPool( m_device, m_commandPool, nullptr );
+    }
     for ( VkFramebuffer& it : m_framebuffers ) {
         vkDestroyFramebuffer( m_device, it, nullptr );
     }
@@ -453,6 +484,6 @@ void RendererVK::clear() {}
 void RendererVK::deleteBuffer( const Buffer& ) {}
 void RendererVK::deleteTexture( uint32_t ) {}
 void RendererVK::makeCurrentContext() {}
-void RendererVK::present(){}
+void RendererVK::present() {}
 void RendererVK::push( void*, void* ) {}
 void RendererVK::setViewportSize( uint32_t, uint32_t ) {}
