@@ -305,11 +305,44 @@ RendererVK::RendererVK( SDL_Window* window )
             std::cout << "failed to create swapchain" << std::endl;
             return;
         }
+
+        vkGetSwapchainImagesKHR( m_device, m_swapchain, &m_swapchainImageCount, nullptr );
+        m_swapchainImages.resize( m_swapchainImageCount );
+        vkGetSwapchainImagesKHR( m_device, m_swapchain, &m_swapchainImageCount, m_swapchainImages.data() );
+
+        m_swapchainImageViews.reserve( m_swapchainImageCount );
+        for ( VkImage& it : m_swapchainImages ) {
+            VkImageViewCreateInfo imView{};
+            imView.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+            imView.image = it;
+            imView.viewType = VK_IMAGE_VIEW_TYPE_2D;
+            imView.format = m_swapchainFormat.format;
+            imView.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+            imView.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+            imView.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+            imView.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+            imView.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            imView.subresourceRange.baseMipLevel = 0;
+            imView.subresourceRange.levelCount = 1;
+            imView.subresourceRange.baseArrayLayer = 0;
+            imView.subresourceRange.layerCount = 1;
+            VkImageView view{};
+            const VkResult res = vkCreateImageView( m_device, &imView, nullptr, &view );
+            assert( res == VK_SUCCESS );
+            if ( res != VK_SUCCESS ) {
+                std::cout << "failed to create swapchain image view" << std::endl;
+                return;
+            }
+            m_swapchainImageViews.emplace_back( view );
+        }
     }
 }
 
 RendererVK::~RendererVK()
 {
+    for ( VkImageView& it : m_swapchainImageViews ) {
+        vkDestroyImageView( m_device, it, nullptr );
+    }
     if ( m_swapchain ) {
         vkDestroySwapchainKHR( m_device, m_swapchain, nullptr );
     }

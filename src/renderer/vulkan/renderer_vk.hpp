@@ -24,6 +24,8 @@ class RendererVK : public Renderer {
     VkSurfaceFormatKHR m_swapchainFormat{};
     VkPresentModeKHR m_swapchainMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
     uint32_t m_swapchainImageCount = 0;
+    std::pmr::vector<VkImage> m_swapchainImages;
+    std::pmr::vector<VkImageView> m_swapchainImageViews;
 
 public:
     virtual ~RendererVK() override;
