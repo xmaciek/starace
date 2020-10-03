@@ -9,6 +9,7 @@ set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
 add_subdirectory( misc )
 add_subdirectory( models )
+add_subdirectory( shaders )
 add_subdirectory( sounds )
 add_subdirectory( src )
 add_subdirectory( textures )
