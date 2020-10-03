@@ -479,6 +479,10 @@ void RendererGL::push( void* buffer, void* constant )
         maybeDeleteBuffer( pushBuffer->m_normals );
         maybeDeleteBuffer( pushBuffer->m_uv );
     } break;
+
+    case Pipeline::count:
+        assert( !"not a pipeline" );
+        break;
     }
 }
 

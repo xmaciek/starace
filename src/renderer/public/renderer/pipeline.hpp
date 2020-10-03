@@ -20,6 +20,7 @@ enum struct Pipeline {
     eTriangle3dTextureNormal,
     eTriangleFan3dColor,
     eTriangleFan3dTexture,
+    count,
 };
 
 template <Pipeline P>
