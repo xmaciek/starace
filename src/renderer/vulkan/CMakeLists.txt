@@ -5,6 +5,10 @@ target_sources( renderer_vk
     PRIVATE
     renderer_vk.cpp
     renderer_vk.hpp
+    pipeline_vk.cpp
+    pipeline_vk.hpp
+    shader.cpp
+    shader.hpp
 )
 
 target_compile_options( renderer_vk PRIVATE -Werror -Wall -Wextra )
