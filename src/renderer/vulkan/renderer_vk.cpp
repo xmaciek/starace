@@ -85,22 +85,61 @@ static bool testBit( uint32_t a, uint32_t bit, uint32_t bitnot )
     return ( a & bit ) == bit && ( a & bitnot ) == 0;
 }
 
-void queueFamilies( VkPhysicalDevice device, VkSurfaceKHR surface, uint32_t* graphics, uint32_t* present )
+void queueFamilies( VkPhysicalDevice device, VkSurfaceKHR surface, uint32_t* graphics, uint32_t* present, uint32_t* transfer )
 {
     uint32_t count = 0;
     vkGetPhysicalDeviceQueueFamilyProperties( device, &count, nullptr );
     std::vector<VkQueueFamilyProperties> vec( count );
+    std::vector<uint32_t> graphicsCandidate;
+    std::vector<uint32_t> presentCandidate;
+    std::vector<uint32_t> transferCandidate;
     vkGetPhysicalDeviceQueueFamilyProperties( device, &count, vec.data() );
     for ( uint32_t i = 0; i < vec.size(); ++i ) {
         if ( testBit( vec[ i ].queueFlags, VK_QUEUE_GRAPHICS_BIT, 0 ) ) {
-            *graphics = i;
+            graphicsCandidate.emplace_back( i );
         }
+        if ( testBit( vec[ i ].queueFlags, VK_QUEUE_TRANSFER_BIT, 0 ) ) {
+            transferCandidate.emplace_back( i );
+        }
+
         VkBool32 presentSupport = false;
         vkGetPhysicalDeviceSurfaceSupportKHR( device, i, surface, &presentSupport );
         if ( presentSupport ) {
-            *present = i;
+            presentCandidate.emplace_back( i );
         }
     }
+#if 0
+    std::cout << "graphics ";
+    for ( uint32_t it : graphicsCandidate ) std::cout << it << " ";
+    std::cout << std::endl;
+
+    std::cout << "present ";
+    for ( uint32_t it : presentCandidate ) std::cout << it << " ";
+    std::cout << std::endl;
+
+    std::cout << "transfer ";
+    for ( uint32_t it : transferCandidate ) std::cout << it << " ";
+    std::cout << std::endl;
+    std::cout << std::flush;
+#endif
+    if ( graphicsCandidate.size() == 1 ) {
+        *graphics = graphicsCandidate.front();
+        presentCandidate.erase( std::remove( presentCandidate.begin(), presentCandidate.end(), *graphics ), presentCandidate.end() );
+        transferCandidate.erase( std::remove( transferCandidate.begin(), transferCandidate.end(), *graphics ), transferCandidate.end() );
+    }
+
+    if ( presentCandidate.size() == 1 ) {
+        *present = presentCandidate.front();
+        transferCandidate.erase( std::remove( transferCandidate.begin(), transferCandidate.end(), *present ), transferCandidate.end() );
+    }
+
+    if ( transferCandidate.size() == 1 ) {
+        *transfer = transferCandidate.front();
+    }
+
+    assert( *graphics != *present );
+    assert( *graphics != *transfer );
+    assert( *present != *transfer );
 }
 
 
@@ -192,26 +231,36 @@ RendererVK::RendererVK( SDL_Window* window )
         return;
     }
 
-    queueFamilies( m_physicalDevice, m_surface, &m_queueFamilyGraphics, &m_queueFamilyPresent );
+    queueFamilies( m_physicalDevice
+        , m_surface
+        , &m_queueFamilyGraphics
+        , &m_queueFamilyPresent
+        , &m_queueFamilyTransfer
+    );
 
     {
-        VkDeviceQueueCreateInfo queueCreateInfo[ 2 ]{};
+        float queuePriority = 1.0f;
+        VkDeviceQueueCreateInfo queueCreateInfo[ 3 ]{};
         queueCreateInfo[ 0 ].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
         queueCreateInfo[ 0 ].queueFamilyIndex = m_queueFamilyGraphics;
         queueCreateInfo[ 0 ].queueCount = 1;
-        float queuePriority = 1.0f;
         queueCreateInfo[ 0 ].pQueuePriorities = &queuePriority;
 
         queueCreateInfo[ 1 ].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
         queueCreateInfo[ 1 ].queueFamilyIndex = m_queueFamilyPresent;
         queueCreateInfo[ 1 ].queueCount = 1;
         queueCreateInfo[ 1 ].pQueuePriorities = &queuePriority;
-        VkPhysicalDeviceFeatures deviceFeatures{};
 
+        queueCreateInfo[ 2 ].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueCreateInfo[ 2 ].queueFamilyIndex = m_queueFamilyTransfer;
+        queueCreateInfo[ 2 ].queueCount = 1;
+        queueCreateInfo[ 2 ].pQueuePriorities = &queuePriority;
+
+        VkPhysicalDeviceFeatures deviceFeatures{};
         VkDeviceCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
         createInfo.pQueueCreateInfos = queueCreateInfo;
-        createInfo.queueCreateInfoCount = 2;
+        createInfo.queueCreateInfoCount = std::size( queueCreateInfo );
         createInfo.pEnabledFeatures = &deviceFeatures;
         createInfo.enabledExtensionCount = dextension.size();
         createInfo.ppEnabledExtensionNames = dextension.data();
@@ -227,6 +276,7 @@ RendererVK::RendererVK( SDL_Window* window )
 
     vkGetDeviceQueue( m_device, m_queueFamilyGraphics, 0, &m_queueGraphics );
     vkGetDeviceQueue( m_device, m_queueFamilyPresent, 0, &m_queuePresent );
+    vkGetDeviceQueue( m_device, m_queueFamilyTransfer, 0, &m_queueTransfer );
 
     {
         VkSurfaceCapabilitiesKHR surfaceCaps{};

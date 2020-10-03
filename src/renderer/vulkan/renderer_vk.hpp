@@ -13,10 +13,12 @@ class RendererVK : public Renderer {
     VkInstance m_instance = VK_NULL_HANDLE;
     VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
 
-    uint32_t m_queueFamilyPresent = 0;
     uint32_t m_queueFamilyGraphics = 0;
-    VkQueue m_queuePresent{};
+    uint32_t m_queueFamilyPresent = 0;
+    uint32_t m_queueFamilyTransfer = 0;
     VkQueue m_queueGraphics{};
+    VkQueue m_queuePresent{};
+    VkQueue m_queueTransfer{};
 
     VkDevice m_device = VK_NULL_HANDLE;
 
