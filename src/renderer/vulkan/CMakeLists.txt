@@ -3,10 +3,12 @@ find_package( Vulkan REQUIRED )
 add_library( renderer_vk STATIC )
 target_sources( renderer_vk
     PRIVATE
-    renderer_vk.cpp
-    renderer_vk.hpp
+    buffer_vk.cpp
+    buffer_vk.hpp
     pipeline_vk.cpp
     pipeline_vk.hpp
+    renderer_vk.cpp
+    renderer_vk.hpp
     shader.cpp
     shader.hpp
 )
