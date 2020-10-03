@@ -2,6 +2,8 @@
 
 #include <renderer/renderer.hpp>
 
+#include "pipeline_vk.hpp"
+
 #include <vulkan/vulkan.h>
 
 class RendererVK : public Renderer {
@@ -39,6 +41,8 @@ class RendererVK : public Renderer {
 
     uint32_t m_currentFrame = 0;
     uint32_t currentFrame();
+
+    std::pmr::vector<PipelineVK> m_pipelines;
 
 public:
     virtual ~RendererVK() override;

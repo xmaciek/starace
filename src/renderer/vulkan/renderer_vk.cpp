@@ -437,12 +437,19 @@ RendererVK::RendererVK( SDL_Window* window )
             return;
         }
     }
+    m_pipelines.emplace_back( m_device
+        , m_swapchainFormat.format
+        , m_swapchainExtent
+        , "shaders/gui_texture_color.vert.spv"
+        , "shaders/gui_texture_color.frag.spv"
+    );
 
 }
 
 
 RendererVK::~RendererVK()
 {
+    m_pipelines.clear();
     if ( m_semaphoreRender ) {
         vkDestroySemaphore( m_device, m_semaphoreRender, nullptr );
     }
@@ -514,8 +521,6 @@ void RendererVK::beginFrame()
     }
     m_currentFrame = imageIndex;
 
-    const VkClearValue clearColor{ VkClearColorValue{ { 0.0f, 0.0f, 1.0f, 1.0f } } };
-
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     const VkResult res = vkBeginCommandBuffer( m_commandBuffers[ m_currentFrame ], &beginInfo );
@@ -525,14 +530,11 @@ void RendererVK::beginFrame()
         return;
     }
 
-    VkRenderPassBeginInfo renderPassInfo{};
-    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    renderPassInfo.renderPass = m_renderPass;
-    renderPassInfo.framebuffer = m_framebuffers[ m_currentFrame ];
-    renderPassInfo.renderArea.extent = m_swapchainExtent;
-    renderPassInfo.clearValueCount = 1;
-    renderPassInfo.pClearValues = &clearColor;
-    vkCmdBeginRenderPass( m_commandBuffers[ m_currentFrame ], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE );
+    m_pipelines[ 0 ].begin(
+        m_commandBuffers[ m_currentFrame ]
+        , m_framebuffers[ m_currentFrame ]
+        , VkRect2D{ .extent = m_swapchainExtent }
+    );
 
 }
 
@@ -544,7 +546,8 @@ void RendererVK::setViewportSize( uint32_t, uint32_t ) {}
 
 void RendererVK::submit()
 {
-    vkCmdEndRenderPass( m_commandBuffers[ m_currentFrame ] );
+    m_pipelines[ 0 ].end( m_commandBuffers[ m_currentFrame ] );
+
     if ( const VkResult res = vkEndCommandBuffer( m_commandBuffers[ m_currentFrame ] );
         res != VK_SUCCESS ) {
         assert( !"failed to end command buffer" );
@@ -592,4 +595,3 @@ void RendererVK::present()
     }
     vkDeviceWaitIdle( m_device );
 }
-
