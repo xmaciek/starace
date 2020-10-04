@@ -5,6 +5,8 @@ target_sources( renderer_vk
     PRIVATE
     buffer_vk.cpp
     buffer_vk.hpp
+    descriptor_set.cpp
+    descriptor_set.hpp
     pipeline_vk.cpp
     pipeline_vk.hpp
     renderer_vk.cpp
