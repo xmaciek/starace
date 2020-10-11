@@ -125,14 +125,14 @@ void Font::renderText( RenderContext rctx, const glm::vec4& color, double x, dou
         pushConstant.m_view = rctx.view;
         pushConstant.m_projection = rctx.projection;
         pushConstant.m_color = color;
-        pushConstant.m_vertices[ 0 ] = glyph.bearing;
-        pushConstant.m_vertices[ 1 ] = glm::vec2{ glyph.bearing.x, glyph.bearing.y - glyph.size.y };
-        pushConstant.m_vertices[ 2 ] = glm::vec2{ glyph.bearing.x + glyph.size.x, glyph.bearing.y - glyph.size.y };
-        pushConstant.m_vertices[ 3 ] = glm::vec2{ glyph.bearing.x + glyph.size.x, glyph.bearing.y };
-        pushConstant.m_uv[ 0 ] = glm::vec2{ 0, 0 };
-        pushConstant.m_uv[ 1 ] = glm::vec2{ 0, 1 };
-        pushConstant.m_uv[ 2 ] = glm::vec2{ 1, 1 };
-        pushConstant.m_uv[ 3 ] = glm::vec2{ 1, 0 };
+        pushConstant.m_vertices[ 0 ] = glm::vec4{ glyph.bearing, 0.0f, 0.0f };
+        pushConstant.m_vertices[ 1 ] = glm::vec4{ glyph.bearing.x, glyph.bearing.y - glyph.size.y, 0.0f, 0.0f };
+        pushConstant.m_vertices[ 2 ] = glm::vec4{ glyph.bearing.x + glyph.size.x, glyph.bearing.y - glyph.size.y, 0.0f, 0.0f };
+        pushConstant.m_vertices[ 3 ] = glm::vec4{ glyph.bearing.x + glyph.size.x, glyph.bearing.y, 0.0f, 0.0f };
+        pushConstant.m_uv[ 0 ] = glm::vec4{ 0, 0, 0.0f, 0.0f };
+        pushConstant.m_uv[ 1 ] = glm::vec4{ 0, 1, 0.0f, 0.0f };
+        pushConstant.m_uv[ 2 ] = glm::vec4{ 1, 1, 0.0f, 0.0f };
+        pushConstant.m_uv[ 3 ] = glm::vec4{ 1, 0, 0.0f, 0.0f };
         rctx.renderer->push( &pushBuffer, &pushConstant );
         rctx.model = glm::translate( rctx.model, glm::vec3{ glyph.advance.x, 0.0f, 0.0f } );
     }

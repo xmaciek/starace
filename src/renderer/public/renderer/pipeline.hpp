@@ -11,6 +11,7 @@
 #include <memory_resource>
 #include <vector>
 
+
 enum struct Pipeline {
     eGuiTextureColor1,
     eGuiQuadColor1,
@@ -89,8 +90,8 @@ struct PushConstant<Pipeline::eGuiTextureColor1> {
     glm::mat4 m_model{};
     glm::mat4 m_view{};
     glm::mat4 m_projection{};
-    std::array<glm::vec2, 4> m_vertices{};
-    std::array<glm::vec2, 4> m_uv{};
+    std::array<glm::vec4, 4> m_vertices{};
+    std::array<glm::vec4, 4> m_uv{};
     glm::vec4 m_color{};
 
     PushConstant() = default;

@@ -40,15 +40,15 @@ void Game::renderCyberRings( RenderContext rctx )
 
         pushConstant.m_color = glm::vec4{ m_cyberRingColor[ i ][ 0 ], m_cyberRingColor[ i ][ 1 ], m_cyberRingColor[ i ][ 2 ], m_cyberRingColor[ i ][ 3 ] };
 
-        pushConstant.m_vertices[ 0 ] = glm::vec2{ m_maxDimention, m_maxDimention };
-        pushConstant.m_vertices[ 1 ] = glm::vec2{ 0, m_maxDimention };
-        pushConstant.m_vertices[ 2 ] = glm::vec2{ 0, 0 };
-        pushConstant.m_vertices[ 3 ] = glm::vec2{ m_maxDimention, 0 };
+        pushConstant.m_vertices[ 0 ] = glm::vec4{ m_maxDimention, m_maxDimention, 0.0f, 0.0f };
+        pushConstant.m_vertices[ 1 ] = glm::vec4{ 0, m_maxDimention, 0.0f, 0.0f };
+        pushConstant.m_vertices[ 2 ] = glm::vec4{ 0, 0, 0.0f, 0.0f };
+        pushConstant.m_vertices[ 3 ] = glm::vec4{ m_maxDimention, 0, 0.0f, 0.0f };
 
-        pushConstant.m_uv[ 0 ] = glm::vec2{ 1, 1 };
-        pushConstant.m_uv[ 1 ] = glm::vec2{ 0, 1 };
-        pushConstant.m_uv[ 2 ] = glm::vec2{ 0, 0 };
-        pushConstant.m_uv[ 3 ] = glm::vec2{ 1, 0 };
+        pushConstant.m_uv[ 0 ] = glm::vec4{ 1, 1, 0.0f, 0.0f };
+        pushConstant.m_uv[ 1 ] = glm::vec4{ 0, 1, 0.0f, 0.0f };
+        pushConstant.m_uv[ 2 ] = glm::vec4{ 0, 0, 0.0f, 0.0f };
+        pushConstant.m_uv[ 3 ] = glm::vec4{ 1, 0, 0.0f, 0.0f };
 
         rctx.renderer->push( &pushBuffer, &pushConstant );
     }
@@ -68,14 +68,14 @@ void Game::renderCyberRingsMini( RenderContext rctx )
         pushConstant.m_view = rctx.view;
         pushConstant.m_model = glm::rotate( rctx.model, glm::radians( m_cyberRingRotation[ i ] ), glm::vec3{ 0.0f, 0.0f, 1.0f } );
 
-        pushConstant.m_vertices[ 0 ] = glm::vec2{ 32, 32 };
-        pushConstant.m_vertices[ 1 ] = glm::vec2{ -32, 32 };
-        pushConstant.m_vertices[ 2 ] = glm::vec2{ -32, -32 };
-        pushConstant.m_vertices[ 3 ] = glm::vec2{ 32, -32 };
-        pushConstant.m_uv[ 0 ] = glm::vec2{ 1, 1 };
-        pushConstant.m_uv[ 1 ] = glm::vec2{ 0, 1 };
-        pushConstant.m_uv[ 2 ] = glm::vec2{ 0, 0 };
-        pushConstant.m_uv[ 3 ] = glm::vec2{ 1, 0 };
+        pushConstant.m_vertices[ 0 ] = glm::vec4{ 32, 32, 0.0f, 0.0f };
+        pushConstant.m_vertices[ 1 ] = glm::vec4{ -32, 32, 0.0f, 0.0f };
+        pushConstant.m_vertices[ 2 ] = glm::vec4{ -32, -32, 0.0f, 0.0f };
+        pushConstant.m_vertices[ 3 ] = glm::vec4{ 32, -32, 0.0f, 0.0f };
+        pushConstant.m_uv[ 0 ] = glm::vec4{ 1, 1, 0.0f, 0.0f };
+        pushConstant.m_uv[ 1 ] = glm::vec4{ 0, 1, 0.0f, 0.0f };
+        pushConstant.m_uv[ 2 ] = glm::vec4{ 0, 0, 0.0f, 0.0f };
+        pushConstant.m_uv[ 3 ] = glm::vec4{ 1, 0, 0.0f, 0.0f };
 
         rctx.renderer->push( &pushBuffer, &pushConstant );
     }
@@ -161,14 +161,14 @@ void Game::renderHudTex( RenderContext rctx, const glm::vec4& color )
     pushConstant.m_view = rctx.view;
     pushConstant.m_projection = rctx.projection;
     pushConstant.m_color = color;
-    pushConstant.m_vertices[ 0 ] = glm::vec2{ 0, 0 };
-    pushConstant.m_vertices[ 1 ] = glm::vec2{ viewportWidth(), 0.0 };
-    pushConstant.m_vertices[ 2 ] = glm::vec2{ viewportWidth(), viewportHeight() };
-    pushConstant.m_vertices[ 3 ] = glm::vec2{ 0.0, viewportHeight() };
-    pushConstant.m_uv[ 0 ] = glm::vec2{ 0, 0 };
-    pushConstant.m_uv[ 1 ] = glm::vec2{ 1, 0 };
-    pushConstant.m_uv[ 2 ] = glm::vec2{ 1, 1 };
-    pushConstant.m_uv[ 3 ] = glm::vec2{ 0, 1 };
+    pushConstant.m_vertices[ 0 ] = glm::vec4{ 0, 0, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 1 ] = glm::vec4{ viewportWidth(), 0.0, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 2 ] = glm::vec4{ viewportWidth(), viewportHeight(), 0.0f, 0.0f };
+    pushConstant.m_vertices[ 3 ] = glm::vec4{ 0.0, viewportHeight(), 0.0f, 0.0f };
+    pushConstant.m_uv[ 0 ] = glm::vec4{ 0, 0, 0.0f, 0.0f };
+    pushConstant.m_uv[ 1 ] = glm::vec4{ 1, 0, 0.0f, 0.0f };
+    pushConstant.m_uv[ 2 ] = glm::vec4{ 1, 1, 0.0f, 0.0f };
+    pushConstant.m_uv[ 3 ] = glm::vec4{ 0, 1, 0.0f, 0.0f };
     rctx.renderer->push( &pushBuffer, &pushConstant );
 }
 
@@ -406,14 +406,14 @@ void Game::renderClouds( RenderContext rctx ) const
     pushConstant.m_view = rctx.view;
     pushConstant.m_projection = rctx.projection;
     pushConstant.m_color = color::lightSkyBlue;
-    pushConstant.m_uv[ 0 ] = glm::vec2{ 0, 0 };
-    pushConstant.m_uv[ 1 ] = glm::vec2{ 1, 0 };
-    pushConstant.m_uv[ 2 ] = glm::vec2{ 1, 1 };
-    pushConstant.m_uv[ 3 ] = glm::vec2{ 0, 1 };
-    pushConstant.m_vertices[ 0 ] = glm::vec2{ 0.0f, 0.0f };
-    pushConstant.m_vertices[ 1 ] = glm::vec2{ viewportWidth(), 0.0f };
-    pushConstant.m_vertices[ 2 ] = glm::vec2{ viewportWidth(), viewportHeight() };
-    pushConstant.m_vertices[ 3 ] = glm::vec2{ 0.0f, viewportHeight() };
+    pushConstant.m_uv[ 0 ] = glm::vec4{ 0, 0, 0.0f, 0.0f };
+    pushConstant.m_uv[ 1 ] = glm::vec4{ 1, 0, 0.0f, 0.0f };
+    pushConstant.m_uv[ 2 ] = glm::vec4{ 1, 1, 0.0f, 0.0f };
+    pushConstant.m_uv[ 3 ] = glm::vec4{ 0, 1, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 0 ] = glm::vec4{ 0.0f, 0.0f, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 1 ] = glm::vec4{ viewportWidth(), 0.0f, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 2 ] = glm::vec4{ viewportWidth(), viewportHeight(), 0.0f, 0.0f };
+    pushConstant.m_vertices[ 3 ] = glm::vec4{ 0.0f, viewportHeight(), 0.0f, 0.0f };
 
     PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{};
     pushBuffer.m_texture = m_menuBackground;
@@ -425,10 +425,10 @@ void Game::renderClouds( RenderContext rctx ) const
     rctx.renderer->push( &pushBuffer, &pushConstant );
 
     pushBuffer.m_texture = m_starfieldTexture;
-    pushConstant.m_vertices[ 0 ] = glm::vec2{ 0.0f, 0.0f };
-    pushConstant.m_vertices[ 1 ] = glm::vec2{ m_maxDimention, 0.0f };
-    pushConstant.m_vertices[ 2 ] = glm::vec2{ m_maxDimention, m_maxDimention };
-    pushConstant.m_vertices[ 3 ] = glm::vec2{ 0.0f, m_maxDimention };
+    pushConstant.m_vertices[ 0 ] = glm::vec4{ 0.0f, 0.0f, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 1 ] = glm::vec4{ m_maxDimention, 0.0f, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 2 ] = glm::vec4{ m_maxDimention, m_maxDimention, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 3 ] = glm::vec4{ 0.0f, m_maxDimention, 0.0f, 0.0f };
     rctx.renderer->push( &pushBuffer, &pushConstant );
 }
 
@@ -499,14 +499,14 @@ void Game::renderMissionSelectionScreen( RenderContext rctx )
     pushConstant.m_view = rctx.view;
     pushConstant.m_projection = rctx.projection;
     pushConstant.m_color = color::white;
-    pushConstant.m_uv[ 0 ] = glm::vec2{ 0, 0 };
-    pushConstant.m_uv[ 1 ] = glm::vec2{ 1, 0 };
-    pushConstant.m_uv[ 2 ] = glm::vec2{ 1, 1 };
-    pushConstant.m_uv[ 3 ] = glm::vec2{ 0, 1 };
-    pushConstant.m_vertices[ 0 ] = glm::vec2{ 0, 0 };
-    pushConstant.m_vertices[ 1 ] = glm::vec2{ m_maxDimention, 0};
-    pushConstant.m_vertices[ 2 ] = glm::vec2{ m_maxDimention, m_maxDimention };
-    pushConstant.m_vertices[ 3 ] = glm::vec2{ 0, m_maxDimention };
+    pushConstant.m_uv[ 0 ] = glm::vec4{ 0.0f, 0.0f, 0.0f, 0.0f };
+    pushConstant.m_uv[ 1 ] = glm::vec4{ 1.0f, 0.0f, 0.0f, 0.0f };
+    pushConstant.m_uv[ 2 ] = glm::vec4{ 1.0f, 1.0f, 0.0f, 0.0f };
+    pushConstant.m_uv[ 3 ] = glm::vec4{ 0.0f, 1.0f, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 0 ] = glm::vec4{ 0.0f, 0.0f, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 1 ] = glm::vec4{ m_maxDimention, 0.0f, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 2 ] = glm::vec4{ m_maxDimention, m_maxDimention, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 3 ] = glm::vec4{ 0.0f, m_maxDimention, 0.0f, 0.0f };
 
     PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{};
     pushBuffer.m_texture = m_mapsContainer[ m_currentMap ].preview_image;
