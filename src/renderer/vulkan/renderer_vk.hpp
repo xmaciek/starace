@@ -2,9 +2,15 @@
 
 #include <renderer/renderer.hpp>
 
+#include "buffer_array.hpp"
+#include "buffer_vk.hpp"
 #include "pipeline_vk.hpp"
+#include "swapchain.hpp"
 
 #include <vulkan/vulkan.h>
+
+#include <vector>
+#include <deque>
 
 class RendererVK : public Renderer {
     SDL_Window* m_window = nullptr;
@@ -24,15 +30,9 @@ class RendererVK : public Renderer {
 
     VkSurfaceKHR m_surface = VK_NULL_HANDLE;
 
-    VkExtent2D m_swapchainExtent{};
-    VkSwapchainKHR m_swapchain = VK_NULL_HANDLE;
-    VkSurfaceFormatKHR m_swapchainFormat{};
-    VkPresentModeKHR m_swapchainMode = VK_PRESENT_MODE_FIFO_KHR;
-    uint32_t m_swapchainImageCount = 0;
-    std::pmr::vector<VkImage> m_swapchainImages;
-    std::pmr::vector<VkImageView> m_swapchainImageViews;
-    std::pmr::vector<VkFramebuffer> m_framebuffers;
+    Swapchain m_swapchain{};
 
+    std::pmr::vector<VkFramebuffer> m_framebuffers;
     VkRenderPass m_renderPass = VK_NULL_HANDLE;
 
     VkCommandPool m_commandPool = VK_NULL_HANDLE;
@@ -44,7 +44,9 @@ class RendererVK : public Renderer {
     uint32_t m_currentFrame = 0;
     uint32_t currentFrame();
 
+    BufferArray m_bufferUniform0;
     std::pmr::vector<PipelineVK> m_pipelines;
+    std::pmr::vector<BufferVK> m_bufferUniformsStaging;
 
 public:
     virtual ~RendererVK() override;

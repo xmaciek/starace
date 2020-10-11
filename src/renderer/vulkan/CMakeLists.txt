@@ -3,6 +3,8 @@ find_package( Vulkan REQUIRED )
 add_library( renderer_vk STATIC )
 target_sources( renderer_vk
     PRIVATE
+    buffer_array.cpp
+    buffer_array.hpp
     buffer_vk.cpp
     buffer_vk.hpp
     descriptor_set.cpp
@@ -13,9 +15,13 @@ target_sources( renderer_vk
     renderer_vk.hpp
     shader.cpp
     shader.hpp
+    single_time_command.cpp
+    single_time_command.hpp
+    swapchain.cpp
+    swapchain.hpp
 )
 
-target_compile_options( renderer_vk PRIVATE -Werror -Wall -Wextra )
+target_compile_options( renderer_vk PRIVATE -Werror -Wall -Wextra -Wno-missing-field-initializers  )
 
 set_target_properties( renderer_vk PROPERTIES
     CXX_STANDARD 17
