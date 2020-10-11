@@ -5,7 +5,7 @@
 #include <cstring>
 #include <iostream>
 
-BufferVK::~BufferVK() noexcept
+void BufferVK::destroyResources()
 {
     if ( m_buffer ) {
         vkDestroyBuffer( m_device, m_buffer, nullptr );
@@ -13,6 +13,11 @@ BufferVK::~BufferVK() noexcept
     if ( m_memory ) {
         vkFreeMemory( m_device, m_memory, nullptr );
     }
+}
+
+BufferVK::~BufferVK() noexcept
+{
+    destroyResources();
 }
 
 BufferVK::BufferVK( BufferVK&& rhs ) noexcept
@@ -26,12 +31,7 @@ BufferVK::BufferVK( BufferVK&& rhs ) noexcept
 
 BufferVK& BufferVK::operator = ( BufferVK&& rhs ) noexcept
 {
-    if ( m_buffer ) {
-        vkDestroyBuffer( m_device, m_buffer, nullptr );
-    }
-    if ( m_memory ) {
-        vkFreeMemory( m_device, m_memory, nullptr );
-    }
+    destroyResources();
     m_device = rhs.m_device;
     m_memory = rhs.m_memory;
     m_buffer = rhs.m_buffer;
@@ -146,4 +146,14 @@ void BufferVK::copyData( const uint8_t* data )
     }
     std::memcpy( ptr, data, m_size );
     vkUnmapMemory( m_device, m_memory );
+}
+
+BufferVK::operator VkBuffer () const
+{
+    return m_buffer;
+}
+
+std::size_t BufferVK::size() const
+{
+    return m_size;
 }

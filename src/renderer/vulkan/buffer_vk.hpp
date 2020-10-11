@@ -19,6 +19,8 @@ private:
     std::size_t m_size = 0;
     Purpose m_purpose = Purpose::eStaging;
 
+    void destroyResources();
+
 public:
     ~BufferVK() noexcept;
     BufferVK() noexcept = default;
@@ -30,4 +32,7 @@ public:
 
     void transferFrom( const BufferVK&, VkCommandBuffer );
     void copyData( const uint8_t* );
+    std::size_t size() const;
+
+    operator VkBuffer () const;
 };
