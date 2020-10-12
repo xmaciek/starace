@@ -2,6 +2,7 @@
 
 #include "render_context.hpp"
 #include <renderer/buffer.hpp>
+#include <renderer/texture.hpp>
 
 #include <glm/vec3.hpp>
 
@@ -24,10 +25,10 @@ private:
     mutable Buffer m_vertices{};
     mutable Buffer m_normals{};
     mutable Buffer m_uv{};
+    Texture m_textureID{};
     std::vector<Face> m_faces{};
     std::vector<glm::vec3> m_thrusters{};
     glm::vec3 m_weapons[ 3 ]{};
-    uint32_t m_textureID = 0;
 
 public:
     ~Model();
@@ -35,7 +36,7 @@ public:
 
     glm::vec3 weapon( uint32_t ) const;
     std::vector<glm::vec3> thrusters() const;
-    void bindTexture( uint32_t );
+    void bindTexture( Texture );
     void calculateNormal();
     void render( RenderContext ) const;
     void draw() const;

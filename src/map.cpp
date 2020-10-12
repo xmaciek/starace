@@ -112,7 +112,7 @@ void Map::render( RenderContext rctx )
         pushConstant.m_view = rctx.view;
         pushConstant.m_projection = rctx.projection;
 
-        const uint32_t tex[ 6 ] = { m_back, m_front, m_left, m_right, m_top, m_bottom };
+        const Texture tex[ 6 ] = { m_back, m_front, m_left, m_right, m_top, m_bottom };
         PushBuffer<Pipeline::eTriangleFan3dTexture> pushBuffer{};
         for ( int i = 0; i < 6; i++ ) {
             pushBuffer.m_texture = tex[ i ];

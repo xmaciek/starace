@@ -47,11 +47,11 @@ public:
     virtual Buffer createBuffer( std::pmr::vector<glm::vec3>&&, Buffer::Lifetime ) override;
     virtual Buffer createBuffer( std::pmr::vector<glm::vec4>&&, Buffer::Lifetime ) override;
     virtual std::pmr::memory_resource* allocator() override;
-    virtual uint32_t createTexture( uint32_t w, uint32_t h, TextureFormat, bool, const uint8_t* ) override;
+    virtual Texture createTexture( uint32_t w, uint32_t h, Texture::Format, bool, const uint8_t* ) override;
     virtual void beginFrame() override;
     virtual void clear() override;
     virtual void deleteBuffer( const Buffer& ) override;
-    virtual void deleteTexture( uint32_t ) override;
+    virtual void deleteTexture( Texture ) override;
     virtual void present() override;
     virtual void push( void* buffer, void* constant ) override;
     virtual void setViewportSize( uint32_t w, uint32_t h ) override;
@@ -78,19 +78,19 @@ struct ScopeEnable {
     }
 };
 
-static int typeToInternalFormat( TextureFormat e )
+static int typeToInternalFormat( Texture::Format e )
 {
     switch ( e ) {
-    case TextureFormat::eRGB: return 3;
-    case TextureFormat::eRGBA: return 4;
+    case Texture::Format::eRGB: return 3;
+    case Texture::Format::eRGBA: return 4;
     }
 }
 
-static int typeToFormat( TextureFormat e )
+static int typeToFormat( Texture::Format e )
 {
     switch ( e ) {
-    case TextureFormat::eRGB: return GL_RGB;
-    case TextureFormat::eRGBA: return GL_RGBA;
+    case Texture::Format::eRGB: return GL_RGB;
+    case Texture::Format::eRGBA: return GL_RGBA;
     }
 }
 
@@ -168,9 +168,10 @@ void RendererGL::present()
     SDL_GL_SwapWindow( m_window );
 }
 
-void RendererGL::deleteTexture( uint32_t tex )
+void RendererGL::deleteTexture( Texture tex )
 {
-    glDeleteTextures( 1, &tex );
+    uint32_t t = static_cast<uint32_t>( tex.m_data );
+    glDeleteTextures( 1, &t );
 }
 
 void RendererGL::deleteBuffer( const Buffer& b )
@@ -211,7 +212,7 @@ void RendererGL::maybeDeleteBuffer( const Buffer& buf )
     }
 }
 
-uint32_t RendererGL::createTexture( uint32_t w, uint32_t h, TextureFormat fmt, bool genMips, const uint8_t* ptr )
+Texture RendererGL::createTexture( uint32_t w, uint32_t h, Texture::Format fmt, bool genMips, const uint8_t* ptr )
 {
     uint32_t textureID = 0;
     glGenTextures( 1, &textureID );
@@ -245,7 +246,7 @@ uint32_t RendererGL::createTexture( uint32_t w, uint32_t h, TextureFormat fmt, b
             , ptr
         );
     }
-    return textureID;
+    return Texture{ textureID };
 }
 
 void RendererGL::push( void* buffer, void* constant )
@@ -323,7 +324,7 @@ void RendererGL::push( void* buffer, void* constant )
         glMatrixMode( GL_MODELVIEW );
         glLoadMatrixf( glm::value_ptr( pushConstant->m_view * pushConstant->m_model ) );
 
-        glBindTexture( GL_TEXTURE_2D, pushBuffer->m_texture );
+        glBindTexture( GL_TEXTURE_2D, static_cast<uint32_t>( pushBuffer->m_texture.m_data ) );
         glBegin( GL_TRIANGLE_FAN );
         glColor4fv( glm::value_ptr( pushConstant->m_color ) );
         for ( size_t i = 0; i < pushConstant->m_vertices.size(); ++i ) {
@@ -373,7 +374,7 @@ void RendererGL::push( void* buffer, void* constant )
         glMatrixMode( GL_MODELVIEW );
         glLoadMatrixf( glm::value_ptr( pushConstant->m_view * pushConstant->m_model ) );
 
-        glBindTexture( GL_TEXTURE_2D, pushBuffer->m_texture );
+        glBindTexture( GL_TEXTURE_2D, static_cast<uint32_t>( pushBuffer->m_texture.m_data ) );
         glBegin( GL_TRIANGLE_FAN );
         glColor4f( 1, 1, 1, 1 );
         for ( size_t i = 0; i < vertices.size(); ++i ) {
@@ -464,7 +465,7 @@ void RendererGL::push( void* buffer, void* constant )
         glMatrixMode( GL_MODELVIEW );
         glLoadMatrixf( glm::value_ptr( pushConstant->m_view * pushConstant->m_model ) );
 
-        glBindTexture( GL_TEXTURE_2D, pushBuffer->m_texture );
+        glBindTexture( GL_TEXTURE_2D, static_cast<uint32_t>( pushBuffer->m_texture.m_data ) );
         glBegin( GL_TRIANGLES );
         glColor4f( 1, 1, 1, 1 );
         for ( size_t i = 0; i < vertices.size(); ++i ) {

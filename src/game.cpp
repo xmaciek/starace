@@ -647,7 +647,7 @@ void Game::createMapData( const MapProto& mapData, const ModelProto& modelData )
 
     for ( MapProto& it : m_mapsContainer ) {
         destroyTexture( it.preview_image );
-        it.preview_image = 0;
+        it.preview_image = Texture{};
     }
 }
 

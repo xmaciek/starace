@@ -3,6 +3,7 @@
 #include "render_context.hpp"
 #include "texture.hpp"
 #include "update_context.hpp"
+#include <renderer/texture.hpp>
 
 #include <glm/vec3.hpp>
 
@@ -11,8 +12,8 @@
 #include <vector>
 
 struct MapProto {
+    Texture preview_image{};
     uint32_t enemies = 0;
-    uint32_t preview_image = 0;
     std::string name{ "unnamed map" };
     std::string texture_location{};
     std::string TOP{};
@@ -26,6 +27,12 @@ struct MapProto {
 
 class Map {
 private:
+    Texture m_back{};
+    Texture m_bottom{};
+    Texture m_front{};
+    Texture m_left{};
+    Texture m_right{};
+    Texture m_top{};
     std::vector<glm::vec3> m_particleList{};
     double m_max = 0.0;
     double m_min = 0.0;
@@ -34,12 +41,6 @@ private:
     glm::vec3 m_jetPosition{};
     glm::vec3 m_jetVelocity{};
     glm::vec3 m_particleLength{};
-    uint32_t m_back = 0;
-    uint32_t m_bottom = 0;
-    uint32_t m_front = 0;
-    uint32_t m_left = 0;
-    uint32_t m_right = 0;
-    uint32_t m_top = 0;
 
 public:
     ~Map();

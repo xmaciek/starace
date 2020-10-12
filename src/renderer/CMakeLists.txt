@@ -12,8 +12,10 @@ endif()
 add_library( renderer INTERFACE )
 target_sources( renderer
     INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/renderer/buffer.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/renderer/pipeline.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/renderer/renderer.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/renderer/texture.hpp
 )
 
 target_compile_options( renderer INTERFACE -Werror -Wall -Wextra )

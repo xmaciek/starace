@@ -1,5 +1,7 @@
 #pragma once
 
+#include <renderer/texture.hpp>
+
 #include <cstdint>
 #include <string_view>
 
@@ -15,6 +17,6 @@ struct TGA {
     uint8_t* data = nullptr;
 };
 
-uint32_t loadDefault();
-uint32_t loadTexture( std::string_view );
-void destroyTexture( uint32_t );
+Texture loadDefault();
+Texture loadTexture( std::string_view );
+void destroyTexture( Texture );

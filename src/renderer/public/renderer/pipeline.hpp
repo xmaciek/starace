@@ -1,6 +1,7 @@
 #pragma once
 
 #include <renderer/buffer.hpp>
+#include <renderer/texture.hpp>
 
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
@@ -72,7 +73,7 @@ struct PushBuffer<Pipeline::eTriangleFan3dTexture> {
     Pipeline m_pipeline = Pipeline::eTriangleFan3dTexture;
     Buffer m_vertices{};
     Buffer m_uv{};
-    uint32_t m_texture = 0;
+    Texture m_texture{};
 
     PushBuffer() = default;
 };
@@ -80,7 +81,7 @@ struct PushBuffer<Pipeline::eTriangleFan3dTexture> {
 template <>
 struct PushBuffer<Pipeline::eGuiTextureColor1> {
     Pipeline m_pipeline = Pipeline::eGuiTextureColor1;
-    uint32_t m_texture = 0;
+    Texture m_texture{};
 
     PushBuffer() = default;
 };
@@ -133,7 +134,7 @@ struct PushBuffer<Pipeline::eTriangle3dTextureNormal> {
     Buffer m_vertices{};
     Buffer m_normals{};
     Buffer m_uv{};
-    uint32_t m_texture = 0;
+    Texture m_texture{};
 
     PushBuffer() = default;
 };

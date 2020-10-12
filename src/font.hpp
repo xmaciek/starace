@@ -1,6 +1,7 @@
 #pragma once
 
 #include "render_context.hpp"
+#include <renderer/texture.hpp>
 
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
@@ -13,7 +14,7 @@
 class Font {
 public:
     struct Glyph {
-        uint32_t texture = 0;
+        Texture texture{};
         glm::vec2 size{};
         glm::vec2 advance{};
         glm::vec2 bearing{};

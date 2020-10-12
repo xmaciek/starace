@@ -5,7 +5,7 @@
 #include <cstring>
 #include <vector>
 
-uint32_t loadDefault()
+Texture loadDefault()
 {
     uint8_t DEF[ 64 * 64 * 3 ];
     bool c = false;
@@ -28,10 +28,10 @@ uint32_t loadDefault()
             d = 0;
         }
     }
-    return Renderer::instance()->createTexture( 64, 64, TextureFormat::eRGB, false, DEF );
+    return Renderer::instance()->createTexture( 64, 64, Texture::Format::eRGB, false, DEF );
 }
 
-uint32_t loadTexture( std::string_view filename )
+Texture loadTexture( std::string_view filename )
 {
     uint8_t HEADER[ 12 ]{};
     const uint8_t UNCOMPRESSED[ 12 ] = { 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -68,12 +68,12 @@ uint32_t loadTexture( std::string_view filename )
         tga.data[ C ] = swap;
     }
 
-    const TextureFormat fmt = tga.bytesPerPixel == 3 ? TextureFormat::eRGB : TextureFormat::eRGBA;
+    const Texture::Format fmt = tga.bytesPerPixel == 3 ? Texture::Format::eRGB : Texture::Format::eRGBA;
 
     return Renderer::instance()->createTexture( tga.width, tga.height, fmt, true, tga.data );
 }
 
-void destroyTexture( uint32_t tex )
+void destroyTexture( Texture tex )
 {
     Renderer::instance()->deleteTexture( tex );
 }

@@ -12,6 +12,7 @@
 #include "texture.hpp"
 #include "update_context.hpp"
 #include <audio/audio.hpp>
+#include <renderer/texture.hpp>
 #include <renderer/renderer.hpp>
 
 #include <glm/vec4.hpp>
@@ -92,6 +93,13 @@ private:
     Button m_btnWeap2{};
     Button m_btnWeap3{};
 
+    Texture m_buttonTexture{};
+    Texture m_cyberRingTexture[ 3 ]{};
+    Texture m_hudTex{};
+    Texture m_menuBackgroundOverlay{};
+    Texture m_menuBackground{};
+    Texture m_starfieldTexture{};
+
     double m_viewportHeight = 540.0;
     double m_viewportWidth = 960;
 
@@ -109,17 +117,11 @@ private:
     int32_t m_currentResolution = 0;
     int32_t m_maxDimention = 0;
     int32_t m_minDimention = 0;
-    uint32_t m_buttonTexture = 0;
-    uint32_t m_hudColor = 0.0;
-    uint32_t m_hudTex = 0;
-    uint32_t m_resolutions[ 4 ][ 2 ]{};
-    uint32_t m_shotsDone = 0;
     uint32_t m_currentJet = 0;
     uint32_t m_currentMap = 0;
-    uint32_t m_cyberRingTexture[ 3 ]{};
-    uint32_t m_menuBackground = 0;
-    uint32_t m_menuBackgroundOverlay = 0;
-    uint32_t m_starfieldTexture = 0;
+    uint32_t m_hudColor = 0;
+    uint32_t m_resolutions[ 4 ][ 2 ]{};
+    uint32_t m_shotsDone = 0;
 
     Screen m_currentScreen = Screen::eGame;
     uint8_t m_weap1 = 0;

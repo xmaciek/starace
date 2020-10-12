@@ -244,9 +244,9 @@ void Model::normalizeSize()
     }
 }
 
-void Model::bindTexture( uint32_t tex )
+void Model::bindTexture( Texture tex )
 {
-    if ( m_textureID != 0 ) {
+    if ( m_textureID.m_data != 0 ) {
         destroyTexture( m_textureID );
     }
     m_textureID = tex;

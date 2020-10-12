@@ -441,7 +441,7 @@ std::pmr::memory_resource* RendererVK::allocator()
     return std::pmr::get_default_resource();
 }
 
-uint32_t RendererVK::createTexture( uint32_t, uint32_t, TextureFormat, bool, const uint8_t* )
+Texture RendererVK::createTexture( uint32_t, uint32_t, Texture::Format, bool, const uint8_t* )
 {
     return {};
 }
@@ -481,7 +481,7 @@ void RendererVK::beginFrame()
 
 void RendererVK::clear() { }
 void RendererVK::deleteBuffer( const Buffer& ) {}
-void RendererVK::deleteTexture( uint32_t ) {}
+void RendererVK::deleteTexture( Texture ) {}
 void RendererVK::setViewportSize( uint32_t, uint32_t ) {}
 
 void RendererVK::submit()

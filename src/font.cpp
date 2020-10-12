@@ -50,7 +50,7 @@ static Font::Glyph makeDlist( const FT_Face& face, char32_t ch )
     glyph.texture = Renderer::instance()->createTexture(
         slot->bitmap.pitch
         , slot->bitmap.rows
-        , TextureFormat::eRGBA
+        , Texture::Format::eRGBA
         , false
         , reinterpret_cast<const uint8_t*>( data.data() )
     );
