@@ -19,6 +19,8 @@ target_sources( renderer_vk
     single_time_command.hpp
     swapchain.cpp
     swapchain.hpp
+    texture_vk.cpp
+    texture_vk.hpp
 )
 
 target_compile_options( renderer_vk PRIVATE -Werror -Wall -Wextra -Wno-missing-field-initializers  )
