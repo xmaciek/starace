@@ -47,14 +47,15 @@ static Font::Glyph makeDlist( const FT_Face& face, char32_t ch )
         }
     );
     Font::Glyph glyph{};
-    glyph.texture = Renderer::instance()->createTexture(
-        slot->bitmap.pitch
-        , slot->bitmap.rows
-        , Texture::Format::eRGBA
-        , false
-        , reinterpret_cast<const uint8_t*>( data.data() )
-    );
-
+    if ( slot->bitmap.pitch != 0 ) {
+        glyph.texture = Renderer::instance()->createTexture(
+            slot->bitmap.pitch
+            , slot->bitmap.rows
+            , Texture::Format::eRGBA
+            , false
+            , reinterpret_cast<const uint8_t*>( data.data() )
+        );
+    }
     glyph.advance = glm::vec2{ slot->metrics.horiAdvance, slot->metrics.vertAdvance } / FONT_RESOLUTION_SCALE;
     glyph.bearing = glm::vec2{ slot->metrics.horiBearingX, slot->metrics.horiBearingY } / FONT_RESOLUTION_SCALE;
     glyph.size = glm::vec2{ slot->metrics.width, slot->metrics.height } / FONT_RESOLUTION_SCALE;
