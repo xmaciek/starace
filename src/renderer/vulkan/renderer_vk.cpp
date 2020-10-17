@@ -2,6 +2,7 @@
 
 #include "buffer_vk.hpp"
 #include "single_time_command.hpp"
+#include "texture_vk.hpp"
 
 #include <SDL2/SDL_vulkan.h>
 
@@ -366,7 +367,7 @@ RendererVK::RendererVK( SDL_Window* window )
     m_bufferUniform0 = BufferArray( m_physicalDevice
         , m_device
         , sizeof( PushConstant<Pipeline::eGuiTextureColor1> )
-        , 100
+        , 200
     );
 
     m_bufferUniformsStaging.emplace_back( m_physicalDevice
@@ -387,6 +388,9 @@ RendererVK::RendererVK( SDL_Window* window )
 
 RendererVK::~RendererVK()
 {
+    for ( TextureVK* it : m_textures ) {
+        delete it;
+    }
     m_bufferUniformsStaging.clear();
     m_bufferUniform0 = BufferArray();
     m_pipelines.clear();
@@ -441,9 +445,29 @@ std::pmr::memory_resource* RendererVK::allocator()
     return std::pmr::get_default_resource();
 }
 
-Texture RendererVK::createTexture( uint32_t, uint32_t, Texture::Format, bool, const uint8_t* )
+Texture RendererVK::createTexture( uint32_t width, uint32_t height, Texture::Format fmt, bool, const uint8_t* data )
 {
-    return {};
+    if ( fmt == Texture::Format::eRGB ) {
+        return {};
+    }
+    assert( width > 0 );
+    assert( height > 0 );
+    assert( data );
+    const std::size_t size = width * height * ( fmt == Texture::Format::eRGB ? 3 : 4 );
+    BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, size };
+
+    m_textures.emplace_back( new TextureVK{ m_physicalDevice
+        , m_device
+        , VkExtent2D{ width, height }
+        , fmt == Texture::Format::eRGB
+            ? VK_FORMAT_R8G8B8_SRGB
+            : VK_FORMAT_R8G8B8A8_SRGB
+    } );
+    TextureVK* tex = m_textures.back();
+    staging.copyData( data );
+    SingleTimeCommand singleTimeCommand{ m_device, m_commandPool, m_queueGraphics };
+    tex->transferFrom( singleTimeCommand, staging );
+    return Texture{ reinterpret_cast<uint64_t>( tex ) };
 }
 
 void RendererVK::beginFrame()
@@ -542,6 +566,13 @@ void RendererVK::push( void* buffer, void* constant )
     const Pipeline p = *reinterpret_cast<Pipeline*>( buffer );
     switch ( p ) {
     case Pipeline::eGuiTextureColor1: {
+        const PushBuffer<Pipeline::eGuiTextureColor1>* pushBuffer =
+            reinterpret_cast<const PushBuffer<Pipeline::eGuiTextureColor1>*>( buffer );
+        const TextureVK* texture = reinterpret_cast<const TextureVK*>( pushBuffer->m_texture.m_data );
+        if ( !texture ) {
+            return;
+        }
+
         VkCommandBuffer cmd = m_commandBuffers[ m_currentFrame ];
         BufferVK& staging = m_bufferUniformsStaging[ 0 ];
         staging.copyData( reinterpret_cast<const uint8_t*>( constant ) );
@@ -558,8 +589,8 @@ void RendererVK::push( void* buffer, void* constant )
         assert( descriptorSet != VK_NULL_HANDLE );
         m_pipelines[ 0 ].updateUniforms( uniform
             , m_bufferUniform0.size()
-            , VK_NULL_HANDLE
-            , VK_NULL_HANDLE
+            , texture->view()
+            , texture->sampler()
             , descriptorSet
         );
         VkRect2D renderArea{};

@@ -6,6 +6,7 @@
 #include "buffer_vk.hpp"
 #include "pipeline_vk.hpp"
 #include "swapchain.hpp"
+#include "texture_vk.hpp"
 
 #include <vulkan/vulkan.h>
 
@@ -47,6 +48,8 @@ class RendererVK : public Renderer {
     BufferArray m_bufferUniform0;
     std::pmr::vector<PipelineVK> m_pipelines;
     std::pmr::vector<BufferVK> m_bufferUniformsStaging;
+
+    std::pmr::vector<TextureVK*> m_textures;
 
 public:
     virtual ~RendererVK() override;

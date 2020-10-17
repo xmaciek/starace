@@ -58,7 +58,7 @@ PipelineVK::PipelineVK( VkDevice device, VkFormat format, uint32_t swapchainCoun
     DescriptorSet descriptorSet( device, swapchainCount, 100,
         {
             std::make_pair( VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT )
-//             , std::make_pair( VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT )
+            , std::make_pair( VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT )
         }
     );
     m_descriptorSet = std::move( descriptorSet );
@@ -255,6 +255,11 @@ void PipelineVK::updateUniforms( const VkBuffer& buff
         .offset = 0,
         .range = buffSize,
     };
+    const VkDescriptorImageInfo imageInfo{
+        .sampler = sampler,
+        .imageView = imageView,
+        .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+    };
     const VkWriteDescriptorSet descriptorWrites[] = {
         {
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
@@ -264,6 +269,15 @@ void PipelineVK::updateUniforms( const VkBuffer& buff
             .descriptorCount = 1,
             .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             .pBufferInfo = &bufferInfo,
+        },
+        {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstSet = descriptorSet,
+            .dstBinding = 1,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .pImageInfo = &imageInfo,
         },
     };
     vkUpdateDescriptorSets( m_device, std::size( descriptorWrites ), descriptorWrites, 0, nullptr );
