@@ -19,8 +19,8 @@ void main()
     gl_Position = projectionMatrix
         * viewMatrix
         * modelMatrix
-        * vec4( vertexPosition[ gl_VertexIndex ].x, vertexPosition[ gl_VertexIndex ].y, 0, 1 );
+        * vec4( vertexPosition[ gl_VertexIndex ].x, vertexPosition[ gl_VertexIndex ].y, 0.0, 1.0 );
 
     fragmentColor = colorValue;
-    fragmentUV = vertexUV[ gl_VertexIndex ];
+    fragmentUV = vertexUV[ gl_VertexIndex ].xy;
 }
