@@ -24,6 +24,12 @@ static uint32_t memType( VkPhysicalDevice device, uint32_t typeBits, VkMemoryPro
 
 void TextureVK::destroyResources()
 {
+    if ( m_view ) {
+        vkDestroyImageView( m_device, m_view, nullptr );
+    }
+    if ( m_sampler ) {
+        vkDestroySampler( m_device, m_sampler, nullptr );
+    }
     if ( m_image ) {
         vkDestroyImage( m_device, m_image, nullptr );
     }
@@ -39,7 +45,10 @@ TextureVK::~TextureVK()
 
 TextureVK::TextureVK( VkPhysicalDevice physDevice, VkDevice device, VkExtent2D extent, VkFormat format )
 : m_device{ device }
+, m_extent{ extent }
 {
+    assert( extent.width > 0 );
+    assert( extent.height > 0 );
     const VkImageCreateInfo imageInfo{
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
         .imageType = VK_IMAGE_TYPE_2D,
@@ -79,16 +88,62 @@ TextureVK::TextureVK( VkPhysicalDevice physDevice, VkDevice device, VkExtent2D e
         res != VK_SUCCESS ) {
         assert( !"failed to bind image to memory" );
         std::cout << "failed to bind image to memory" << std::endl;
+        return;
     }
+
+    const VkImageSubresourceRange subresourceRange{
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .baseMipLevel = 0,
+        .levelCount = 1,
+        .baseArrayLayer = 0,
+        .layerCount = 1,
+    };
+    const VkImageViewCreateInfo viewInfo{
+        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        .image = m_image,
+        .viewType = VK_IMAGE_VIEW_TYPE_2D,
+        .format = format,
+        .subresourceRange = subresourceRange,
+    };
+    if ( const VkResult res = vkCreateImageView( m_device, &viewInfo, nullptr, &m_view );
+        res != VK_SUCCESS ) {
+        assert( !"failed to create image view" );
+        std::cout << "failed to create image view" << std::endl;
+        return;
+    }
+
+    const VkSamplerCreateInfo samplerInfo{
+        .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+        .magFilter = VK_FILTER_LINEAR,
+        .minFilter = VK_FILTER_LINEAR,
+        .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
+        .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
+        .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
+        .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
+        .mipLodBias = 0.0f,
+        .minLod = 0.0f,
+        .maxLod = 0.0f,
+        .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
+        .unnormalizedCoordinates = VK_FALSE,
+    };
+    if ( const VkResult res = vkCreateSampler( m_device, &samplerInfo, nullptr, &m_sampler );
+        res != VK_SUCCESS ) {
+        assert( !"failed to create sampler" );
+        std::cout << "failed to create sampler" << std::endl;
+        return;
+    }
+
 }
 
 TextureVK::TextureVK( TextureVK&& rhs ) noexcept
 {
     std::swap( m_device, rhs.m_device );
     std::swap( m_memory, rhs.m_memory );
-    std::swap( m_image, rhs.m_image );
     std::swap( m_extent, rhs.m_extent );
+    std::swap( m_image, rhs.m_image );
     std::swap( m_layout, rhs.m_layout );
+    std::swap( m_view, rhs.m_view );
+    std::swap( m_sampler, rhs.m_sampler );
     std::swap( m_currentAccess, rhs.m_currentAccess );
     std::swap( m_currentStage, rhs.m_currentStage );
 }
@@ -98,15 +153,19 @@ TextureVK& TextureVK::operator = ( TextureVK&& rhs ) noexcept
     destroyResources();
     m_device = rhs.m_device;
     m_memory = rhs.m_memory;
-    m_image = rhs.m_image;
     m_extent = rhs.m_extent;
+    m_image = rhs.m_image;
     m_layout = rhs.m_layout;
+    m_view = rhs.m_view;
+    m_sampler = rhs.m_sampler;
     m_currentAccess = rhs.m_currentAccess;
     m_currentStage = rhs.m_currentStage;
     rhs.m_device = VK_NULL_HANDLE;
     rhs.m_memory = VK_NULL_HANDLE;
-    rhs.m_image = VK_NULL_HANDLE;
     rhs.m_extent = {};
+    rhs.m_image = VK_NULL_HANDLE;
+    rhs.m_view = VK_NULL_HANDLE;
+    rhs.m_sampler = VK_NULL_HANDLE;
     rhs.m_layout = VK_IMAGE_LAYOUT_UNDEFINED;
     rhs.m_currentAccess = 0;
     rhs.m_currentStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
@@ -186,4 +245,16 @@ void TextureVK::transitionLayout( VkCommandBuffer cmd, VkImageLayout dstLayout )
     m_layout = dstLayout;
     m_currentAccess = barrier.dstAccessMask;
     m_currentStage = dstStage;
+}
+
+VkImageView TextureVK::view() const
+{
+    assert( m_view );
+    return m_view;
+}
+
+VkSampler TextureVK::sampler() const
+{
+    assert( m_sampler );
+    return m_sampler;
 }

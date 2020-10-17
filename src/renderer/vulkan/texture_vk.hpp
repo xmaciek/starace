@@ -7,9 +7,12 @@
 class TextureVK {
     VkDevice m_device = VK_NULL_HANDLE;
     VkDeviceMemory m_memory = VK_NULL_HANDLE;
-    VkImage m_image = VK_NULL_HANDLE;
     VkExtent2D m_extent{};
+    VkImage m_image = VK_NULL_HANDLE;
     VkImageLayout m_layout = VK_IMAGE_LAYOUT_UNDEFINED;
+    VkImageView m_view = VK_NULL_HANDLE;
+    VkSampler m_sampler = VK_NULL_HANDLE;
+
     VkAccessFlags m_currentAccess = 0;
     VkPipelineStageFlags m_currentStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 
@@ -25,4 +28,7 @@ public:
     TextureVK& operator = ( TextureVK&& ) noexcept;
 
     void transferFrom( VkCommandBuffer, const BufferVK& );
+
+    VkImageView view() const;
+    VkSampler sampler() const;
 };
