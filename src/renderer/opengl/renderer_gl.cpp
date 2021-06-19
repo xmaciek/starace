@@ -83,7 +83,10 @@ static int typeToInternalFormat( Texture::Format e )
     switch ( e ) {
     case Texture::Format::eRGB: return 3;
     case Texture::Format::eRGBA: return 4;
+    default:
+        assert( !"unhandled enum" );
     }
+    return 0;
 }
 
 static int typeToFormat( Texture::Format e )
@@ -91,7 +94,10 @@ static int typeToFormat( Texture::Format e )
     switch ( e ) {
     case Texture::Format::eRGB: return GL_RGB;
     case Texture::Format::eRGBA: return GL_RGBA;
+    default:
+        assert( !"unhandled enum" );
     }
+    return 0;
 }
 
 RendererGL::~RendererGL()

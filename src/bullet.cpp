@@ -125,7 +125,7 @@ void Bullet::update( const UpdateContext& updateContext )
     case Type::eTorpedo:
         m_turnrate = glm::radians( speed() * 10.0f * updateContext.deltaTime );
         interceptTarget();
-        /*no break*/
+        [[fallthrough]];
 
     case Type::eBlaster:
         m_position += m_velocity * updateContext.deltaTime;
