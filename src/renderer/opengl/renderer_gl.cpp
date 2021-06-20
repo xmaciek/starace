@@ -189,7 +189,7 @@ void RendererGL::deleteBuffer( const Buffer& b )
 
 Buffer RendererGL::createBuffer( std::pmr::vector<glm::vec2>&& vec, Buffer::Lifetime lft )
 {
-    const Buffer buffer{ reinterpret_cast<uint64_t>( vec.data() ), lft };
+    const Buffer buffer{ reinterpret_cast<uint64_t>( vec.data() ), lft, Buffer::Status::eReady };
     m_bufferMap2.emplace( std::make_pair( buffer, std::move( vec ) ) ) ;
     assert( !m_bufferMap2[ buffer ].empty() );
     return buffer;
@@ -197,7 +197,7 @@ Buffer RendererGL::createBuffer( std::pmr::vector<glm::vec2>&& vec, Buffer::Life
 
 Buffer RendererGL::createBuffer( std::pmr::vector<glm::vec3>&& vec, Buffer::Lifetime lft )
 {
-    const Buffer buffer{ reinterpret_cast<uint64_t>( vec.data() ), lft };
+    const Buffer buffer{ reinterpret_cast<uint64_t>( vec.data() ), lft, Buffer::Status::eReady };
     m_bufferMap3.emplace( std::make_pair( buffer, std::move( vec ) ) );
     assert( !m_bufferMap3[ buffer ].empty() );
     return buffer;
@@ -205,7 +205,7 @@ Buffer RendererGL::createBuffer( std::pmr::vector<glm::vec3>&& vec, Buffer::Life
 
 Buffer RendererGL::createBuffer( std::pmr::vector<glm::vec4>&& vec, Buffer::Lifetime lft )
 {
-    const Buffer buffer{ reinterpret_cast<uint64_t>( vec.data() ), lft };
+    const Buffer buffer{ reinterpret_cast<uint64_t>( vec.data() ), lft, Buffer::Status::eReady };
     m_bufferMap4.emplace( std::make_pair( buffer, std::move( vec ) ) );
     assert( !m_bufferMap4[ buffer ].empty() );
     return buffer;

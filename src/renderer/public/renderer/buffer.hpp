@@ -8,25 +8,33 @@ struct Buffer {
         eOneTimeUse, // get deleted after using
     };
 
+    enum struct Status {
+        eNone,
+        ePending,
+        eReady,
+    };
+
     uint64_t m_id = 0;
     Lifetime m_lifetime = Lifetime::ePersistent;
+    Status m_status = Status::eNone;
 
     ~Buffer() noexcept = default;
     constexpr Buffer() noexcept = default;
     constexpr explicit Buffer( uint64_t id, Lifetime lft ) noexcept
         : m_id{ id }, m_lifetime{ lft } { }
+    constexpr explicit Buffer( uint64_t id, Lifetime lft, Status s ) noexcept
+        : m_id{ id }, m_lifetime{ lft }, m_status{ s } { }
     constexpr Buffer( const Buffer& ) noexcept = default;
     constexpr Buffer( Buffer&& ) noexcept = default;
     constexpr Buffer& operator = ( const Buffer& ) noexcept = default;
     constexpr Buffer& operator = ( Buffer&& ) noexcept = default;
 
-    constexpr operator bool () const noexcept
+    constexpr operator Status () const noexcept
     {
-        return m_id;
+        return m_status;
     }
 
-    constexpr bool operator ! () const noexcept
-    {
-        return !m_id;
-    }
+    operator bool () const = delete;
+    bool operator ! () const = delete;
+
 };

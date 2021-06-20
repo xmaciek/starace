@@ -64,7 +64,7 @@ static Buffer makeColorBuffer( Renderer* renderer, uint32_t count, const glm::ve
 
 void Thruster::renderAt( RenderContext rctx, const glm::vec3& pos ) const
 {
-    if ( !s_innerCone[ 0 ] ) {
+    if ( s_innerCone[ 0 ] == Buffer::Status::eNone ) {
         s_innerCone[ 0 ] = makeBuffer( rctx.renderer, m_inner );
         s_innerCone[ 1 ] = makeColorBuffer( rctx.renderer, m_inner.segments() + 2, m_colorScheme[ 0 ], m_colorScheme[ 1 ] );
         s_outerCone[ 0 ] = makeBuffer( rctx.renderer, m_outer );

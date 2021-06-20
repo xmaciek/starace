@@ -99,7 +99,7 @@ void Game::renderHUDBar( RenderContext rctx, const glm::vec4& xywh, float ratio 
 
         static Buffer outline{};
         static Buffer outlineCol{};
-        if ( !outline ) {
+        if ( outline == Buffer::Status::eNone ) {
             std::pmr::vector<glm::vec3> vec{ rctx.renderer->allocator() };
             vec.reserve( 4 );
             vec.emplace_back( -4.0f, xywh.w + 4.0f, 0.0f );
@@ -293,7 +293,7 @@ void Game::renderHUD( RenderContext rctx )
 
             static Buffer colors{};
             static Buffer vertices{};
-            if ( !colors ) {
+            if ( colors == Buffer::Status::eNone ) {
                 std::pmr::vector<glm::vec4> col{ 5, color, rctx.renderer->allocator() };
                 std::pmr::vector<glm::vec3> vec{ rctx.renderer->allocator() };
                 vec.reserve( 5 );
@@ -316,7 +316,7 @@ void Game::renderHUD( RenderContext rctx )
 
         static Buffer ringVertices{};
         static Buffer ringColors{};
-        if ( !ringVertices ) {
+        if ( ringVertices == Buffer::Status::eNone ) {
             const uint32_t segments = m_speedFanRing->segments() + 1;
             std::pmr::vector<glm::vec4> colors{ segments, color, rctx2.renderer->allocator() };
             ringColors = rctx2.renderer->createBuffer( std::move( colors ), Buffer::Lifetime::ePersistent );

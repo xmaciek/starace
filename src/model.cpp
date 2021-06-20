@@ -20,7 +20,7 @@ Model::~Model()
 
 void Model::render( RenderContext rctx ) const
 {
-    if ( !m_vertices ) {
+    if ( m_vertices == Buffer::Status::eNone ) {
         std::pmr::vector<glm::vec3> vertices{ rctx.renderer->allocator() };
         vertices.reserve( m_faces.size() * 3 );
         for ( const Face& it : m_faces ) {
@@ -28,10 +28,10 @@ void Model::render( RenderContext rctx ) const
         }
         assert( !vertices.empty() );
         m_vertices = rctx.renderer->createBuffer( std::move( vertices ), Buffer::Lifetime::ePersistent );
-        assert( m_vertices );
+        assert( m_vertices != Buffer::Status::eNone );
     }
 
-    if ( !m_normals ) {
+    if ( m_normals == Buffer::Status::eNone  ) {
         std::pmr::vector<glm::vec3> normals{ rctx.renderer->allocator() };
         normals.reserve( m_faces.size() * 3 );
         for ( const Face& it : m_faces ) {
@@ -41,10 +41,10 @@ void Model::render( RenderContext rctx ) const
         }
         assert( !normals.empty() );
         m_normals = rctx.renderer->createBuffer( std::move( normals ), Buffer::Lifetime::ePersistent );
-        assert( m_normals );
+        assert( m_vertices != Buffer::Status::eNone );
     }
 
-    if ( !m_uv ) {
+    if ( m_uv == Buffer::Status::eNone  ) {
         std::pmr::vector<glm::vec2> uv{ rctx.renderer->allocator() };
         uv.reserve( m_faces.size() * 3 );
         for ( const Face& it : m_faces ) {
@@ -54,7 +54,7 @@ void Model::render( RenderContext rctx ) const
         }
         assert( !uv.empty() );
         m_uv = rctx.renderer->createBuffer( std::move( uv ), Buffer::Lifetime::ePersistent );
-        assert( m_uv );
+        assert( m_vertices != Buffer::Status::eNone );
     }
 
     PushConstant<Pipeline::eTriangle3dTextureNormal> pushConstant{};

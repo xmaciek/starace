@@ -13,7 +13,7 @@ void Map::render( RenderContext rctx )
     static Buffer uv[ 6 ]{};
 
     // NOTE: this is so bad, should ba model rendering
-    if ( !walls[ 0 ] ) {
+    if ( walls[ 0 ] == Buffer::Status::eNone ) {
         std::pmr::memory_resource* a = rctx.renderer->allocator();
         using Vec = std::pmr::vector<glm::vec3>;
         using Uv = std::pmr::vector<glm::vec2>;

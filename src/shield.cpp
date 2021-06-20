@@ -23,7 +23,7 @@ void Shield::update( const UpdateContext& updateContext )
 void Shield::render( RenderContext rctx ) const
 {
     static Buffer vertices{};
-    if ( !vertices ) {
+    if ( vertices == Buffer::Status::eNone ) {
         std::pmr::vector<glm::vec3> vec{ rctx.renderer->allocator() };
         vec.reserve( m_circle.segments() + 1 );
         for ( uint32_t i = 0; i < m_circle.segments(); ++i ) {
@@ -31,6 +31,7 @@ void Shield::render( RenderContext rctx ) const
         }
         vec.emplace_back( m_circle.x( 0 ), m_circle.y( 0 ), m_radius );
         vertices = rctx.renderer->createBuffer( std::move( vec ), Buffer::Lifetime::ePersistent );
+        assert( vertices != Buffer::Status::eNone );
     }
 
     PushBuffer<Pipeline::eLine3dStripColor1> pushBuffer{};
