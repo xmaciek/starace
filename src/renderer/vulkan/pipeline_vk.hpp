@@ -26,7 +26,7 @@ public:
     ~PipelineVK();
     PipelineVK() = default;
 
-    PipelineVK( VkDevice, VkFormat, uint32_t swapchainCount, const VkExtent2D&, std::string_view vertex, std::string_view fragment );
+    PipelineVK( Pipeline, VkDevice, VkFormat, uint32_t swapchainCount, const VkExtent2D&, std::string_view vertex, std::string_view fragment );
     PipelineVK( PipelineVK&& ) noexcept;
     PipelineVK& operator = ( PipelineVK&& ) noexcept;
 

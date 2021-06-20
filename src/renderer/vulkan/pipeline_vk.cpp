@@ -3,6 +3,10 @@
 #include <renderer/pipeline.hpp>
 #include "shader.hpp"
 
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+
+#include <array>
 #include <cassert>
 #include <iostream>
 
@@ -51,8 +55,76 @@ PipelineVK& PipelineVK::operator = ( PipelineVK&& rhs ) noexcept
     return *this;
 }
 
+static VkPrimitiveTopology topology( Pipeline pip ) noexcept
+{
+    switch ( pip ) {
+    case Pipeline::eGuiTextureColor1: return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+    case Pipeline::eTriangle3dTextureNormal: return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    default:
+        assert( !"unhandled enum" );
+    }
+    return {};
+}
 
-PipelineVK::PipelineVK( VkDevice device, VkFormat format, uint32_t swapchainCount, const VkExtent2D& extent, std::string_view vertex, std::string_view fragment )
+template <typename T>
+constexpr VkFormat formatForType() noexcept;
+
+template <> constexpr VkFormat formatForType<glm::vec2>() noexcept { return VK_FORMAT_R32G32_SFLOAT; }
+template <> constexpr VkFormat formatForType<glm::vec3>() noexcept { return VK_FORMAT_R32G32B32_SFLOAT; }
+
+template <typename T, size_t TBinding = 0>
+static constexpr VkVertexInputBindingDescription binding() noexcept
+{
+    return { .binding = TBinding, .stride = sizeof( T ), .inputRate = VK_VERTEX_INPUT_RATE_VERTEX };
+}
+
+template <typename T, size_t TLocation, size_t TBinding = 0>
+static constexpr VkVertexInputAttributeDescription attribute() noexcept
+{
+    return {  .location = TLocation, .binding = TBinding, .format = formatForType<T>() };
+}
+
+static VkPipelineVertexInputStateCreateInfo vertexInfo( Pipeline pip ) noexcept
+{
+    [[maybe_unused]] static constexpr auto v2_0 = binding<glm::vec2, 0>();
+    [[maybe_unused]] static constexpr auto v2_1 = binding<glm::vec2, 1>();
+    [[maybe_unused]] static constexpr auto v3_0 = binding<glm::vec3, 0>();
+    [[maybe_unused]] static constexpr auto v3_1 = binding<glm::vec3, 1>();
+    [[maybe_unused]] static constexpr auto av2_0 = attribute<glm::vec2, 0>();
+    [[maybe_unused]] static constexpr auto av2_1 = attribute<glm::vec2, 1>();
+    [[maybe_unused]] static constexpr auto av2_2 = attribute<glm::vec2, 2>();
+    [[maybe_unused]] static constexpr auto av3_0 = attribute<glm::vec3, 0>();
+    [[maybe_unused]] static constexpr auto av3_1 = attribute<glm::vec3, 1>();
+    [[maybe_unused]] static constexpr auto av3_2 = attribute<glm::vec3, 2>();
+
+#define VERTEX_INPUT_STATE { \
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO, \
+    .vertexBindingDescriptionCount = bind.size(), \
+    .pVertexBindingDescriptions = bind.data(), \
+    .vertexAttributeDescriptionCount = attr.size(), \
+    .pVertexAttributeDescriptions = attr.data(), \
+};
+
+    switch ( pip ) {
+    case Pipeline::eGuiTextureColor1:
+        return {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO
+        };
+
+    case Pipeline::eTriangle3dTextureNormal: {
+        static constexpr std::array bind = { v3_0, v2_1 };
+        static constexpr std::array attr = { av3_0, av2_1 };
+        return VERTEX_INPUT_STATE;
+    }
+    default:
+        assert( !"unhandled enum" );
+    }
+    return {};
+
+#undef VERTEX_INPUT_STATE
+}
+
+PipelineVK::PipelineVK( Pipeline pip, VkDevice device, VkFormat format, uint32_t swapchainCount, const VkExtent2D& extent, std::string_view vertex, std::string_view fragment )
 : m_device( device )
 {
     DescriptorSet descriptorSet( device, swapchainCount, 100,
@@ -62,7 +134,6 @@ PipelineVK::PipelineVK( VkDevice device, VkFormat format, uint32_t swapchainCoun
         }
     );
     m_descriptorSet = std::move( descriptorSet );
-
     const VkPipelineLayoutCreateInfo pipelineLayoutInfo{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
         .setLayoutCount = 1,
@@ -187,13 +258,11 @@ PipelineVK::PipelineVK( VkDevice device, VkFormat format, uint32_t swapchainCoun
         .pDynamicStates = dynamicStates,
     };
 
-    const VkPipelineVertexInputStateCreateInfo vertexInputInfo{
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-    };
+    const VkPipelineVertexInputStateCreateInfo vertexInputInfo = vertexInfo( pip );
 
     const VkPipelineInputAssemblyStateCreateInfo inputAssembly{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
-        .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN,
+        .topology = topology( pip ),
         .primitiveRestartEnable = VK_FALSE,
     };
 

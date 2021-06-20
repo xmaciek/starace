@@ -9,10 +9,16 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
+#include <optional>
 
 Renderer* Renderer::s_instance = nullptr;
 static PFN_vkCreateDebugUtilsMessengerEXT createDebugUtilsMessengerEXT{};
 static PFN_vkDestroyDebugUtilsMessengerEXT destroyDebugUtilsMessengerEXT{};
+
+static bool operator < ( const Buffer& lhs, const Buffer& rhs ) noexcept
+{
+    return lhs.m_id < rhs.m_id;
+}
 
 static std::pmr::vector<const char*> extensions( SDL_Window* window )
 {
@@ -375,25 +381,37 @@ RendererVK::RendererVK( SDL_Window* window )
         , BufferVK::Purpose::eStaging
         , sizeof( PushConstant<Pipeline::eGuiTextureColor1> )
     );
-    m_pipelines.emplace_back( m_device
+    m_pipelines[ (size_t)Pipeline::eGuiTextureColor1 ] = PipelineVK{ Pipeline::eGuiTextureColor1
+        , m_device
         , m_swapchain.surfaceFormat().format
         , m_swapchain.imageCount()
         , m_swapchain.extent()
         , "shaders/gui_texture_color.vert.spv"
         , "shaders/gui_texture_color.frag.spv"
-    );
+    };
+    m_pipelines[ (size_t)Pipeline::eTriangle3dTextureNormal ] = PipelineVK{ Pipeline::eTriangle3dTextureNormal
+        , m_device
+        , m_swapchain.surfaceFormat().format
+        , m_swapchain.imageCount()
+        , m_swapchain.extent()
+        , "shaders/vert3_texture_normal3.vert.spv"
+        , "shaders/vert3_texture_normal3.frag.spv"
+    };
 
 }
 
 
 RendererVK::~RendererVK()
 {
+    m_bufferMap2.clear();
+    m_bufferMap3.clear();
+    m_bufferMap4.clear();
     for ( TextureVK* it : m_textures ) {
         delete it;
     }
     m_bufferUniformsStaging.clear();
     m_bufferUniform0 = BufferArray();
-    m_pipelines.clear();
+    for ( auto& it : m_pipelines ) { it = {}; }
     if ( m_semaphoreRender ) {
         vkDestroySemaphore( m_device, m_semaphoreRender, nullptr );
     }
@@ -425,19 +443,34 @@ RendererVK::~RendererVK()
     }
 }
 
-Buffer RendererVK::createBuffer( std::pmr::vector<glm::vec2>&&, Buffer::Lifetime )
+Buffer RendererVK::createBuffer( std::pmr::vector<glm::vec2>&& vec, Buffer::Lifetime lft )
 {
-    return {};
+    BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, vec.size() * sizeof( glm::vec2 ) };
+    staging.copyData( reinterpret_cast<const uint8_t*>( vec.data() ) );
+
+    const Buffer retBuffer{ reinterpret_cast<uint64_t>( (VkBuffer)staging ), lft, Buffer::Status::ePending };
+    m_bufferMap2.emplace( std::make_pair( retBuffer, std::move( staging ) ) );
+    return retBuffer;
 }
 
-Buffer RendererVK::createBuffer( std::pmr::vector<glm::vec3>&&, Buffer::Lifetime )
+Buffer RendererVK::createBuffer( std::pmr::vector<glm::vec3>&& vec, Buffer::Lifetime lft )
 {
-    return {};
+    BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, vec.size() * sizeof( glm::vec3 ) };
+    staging.copyData( reinterpret_cast<const uint8_t*>( vec.data() ) );
+
+    const Buffer retBuffer{ reinterpret_cast<uint64_t>( (VkBuffer)staging ), lft, Buffer::Status::ePending };
+    m_bufferMap3.emplace( std::make_pair( retBuffer, std::move( staging ) ) );
+    return retBuffer;
 }
 
-Buffer RendererVK::createBuffer( std::pmr::vector<glm::vec4>&&, Buffer::Lifetime )
+Buffer RendererVK::createBuffer( std::pmr::vector<glm::vec4>&& vec, Buffer::Lifetime lft )
 {
-    return {};
+    BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, vec.size() * sizeof( glm::vec4 ) };
+    staging.copyData( reinterpret_cast<const uint8_t*>( vec.data() ) );
+
+    const Buffer retBuffer{ reinterpret_cast<uint64_t>( (VkBuffer)staging ), lft, Buffer::Status::ePending };
+    m_bufferMap4.emplace( std::make_pair( retBuffer, std::move( staging ) ) );
+    return retBuffer;
 }
 
 std::pmr::memory_resource* RendererVK::allocator()
@@ -447,12 +480,26 @@ std::pmr::memory_resource* RendererVK::allocator()
 
 Texture RendererVK::createTexture( uint32_t width, uint32_t height, Texture::Format fmt, bool, const uint8_t* data )
 {
-    if ( fmt == Texture::Format::eRGB ) {
-        return {};
-    }
     assert( width > 0 );
     assert( height > 0 );
     assert( data );
+
+    std::pmr::vector<uint32_t> vec{ allocator() };
+    if ( fmt == Texture::Format::eRGB ) {
+//         fmt = Texture::Format::eRGBA;
+//         vec.resize( width * height );
+//         using RGB = uint8_t[3];
+//         const RGB* rgb = reinterpret_cast<const RGB*>( data );
+//         const RGB* rgbend = rgb;
+//         std::advance( rgbend, width * height );
+//         std::transform( rgb, rgbend, vec.begin(), []( const RGB& rgb ) {
+//             return ( (uint32_t)rgb[0] << 0 )
+//                 | ( (uint32_t)rgb[1] << 8 )
+//                 | ( (uint32_t)rgb[2] << 16 )
+//                 | 0xff000000;
+//         } );
+//         data = reinterpret_cast<const uint8_t*>( vec.data() );
+    }
     const std::size_t size = width * height * ( fmt == Texture::Format::eRGB ? 3 : 4 );
     BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, size };
 
@@ -461,7 +508,7 @@ Texture RendererVK::createTexture( uint32_t width, uint32_t height, Texture::For
         , VkExtent2D{ width, height }
         , fmt == Texture::Format::eRGB
             ? VK_FORMAT_R8G8B8_SRGB
-            : VK_FORMAT_R8G8B8A8_SRGB
+            : VK_FORMAT_R8G8B8A8_UNORM
     } );
     TextureVK* tex = m_textures.back();
     staging.copyData( data );
@@ -510,7 +557,10 @@ void RendererVK::setViewportSize( uint32_t, uint32_t ) {}
 
 void RendererVK::submit()
 {
-    m_pipelines[ 0 ].end( m_commandBuffers[ m_currentFrame ] );
+    if ( m_lastPipeline ) {
+        m_lastPipeline->end( m_commandBuffers[ m_currentFrame ] );
+        m_lastPipeline = nullptr;
+    }
     if ( const VkResult res = vkEndCommandBuffer( m_commandBuffers[ m_currentFrame ] );
         res != VK_SUCCESS ) {
         assert( !"failed to end command buffer" );
@@ -563,11 +613,19 @@ void RendererVK::present()
 
 void RendererVK::push( void* buffer, void* constant )
 {
-    const Pipeline p = *reinterpret_cast<Pipeline*>( buffer );
+#define CASE( TYPE ) \
+    case Pipeline::TYPE: { \
+        [[maybe_unused]] auto* pushBuffer = reinterpret_cast<PushBuffer<Pipeline::TYPE>*>( buffer ); \
+        [[maybe_unused]] auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::TYPE>*>( constant ); \
+        PipelineVK& currentPipeline = m_pipelines[ (size_t)p ]; \
+        if ( m_lastPipeline != &currentPipeline ) { \
+            if ( m_lastPipeline ) { m_lastPipeline->end( m_commandBuffers[ m_currentFrame ] ); } \
+            m_lastPipeline = &currentPipeline; \
+        }
+
+    Pipeline p = *reinterpret_cast<Pipeline*>( buffer );
     switch ( p ) {
-    case Pipeline::eGuiTextureColor1: {
-        const PushBuffer<Pipeline::eGuiTextureColor1>* pushBuffer =
-            reinterpret_cast<const PushBuffer<Pipeline::eGuiTextureColor1>*>( buffer );
+    CASE( eGuiTextureColor1 )
         const TextureVK* texture = reinterpret_cast<const TextureVK*>( pushBuffer->m_texture.m_data );
         if ( !texture ) {
             return;
@@ -578,16 +636,16 @@ void RendererVK::push( void* buffer, void* constant )
         staging.copyData( reinterpret_cast<const uint8_t*>( constant ) );
         VkBuffer uniform = m_bufferUniform0.next();
         {
-            const VkBufferCopy copyRegion{
+            static constexpr VkBufferCopy copyRegion{
                 .size = sizeof( PushConstant<Pipeline::eGuiTextureColor1> ),
             };
             SingleTimeCommand cmd{ m_device, m_commandPool, m_queueGraphics };
             vkCmdCopyBuffer( cmd, staging, uniform, 1, &copyRegion );
         }
 
-        const VkDescriptorSet descriptorSet = m_pipelines[ 0 ].nextDescriptor();
+        const VkDescriptorSet descriptorSet = currentPipeline.nextDescriptor();
         assert( descriptorSet != VK_NULL_HANDLE );
-        m_pipelines[ 0 ].updateUniforms( uniform
+        currentPipeline.updateUniforms( uniform
             , m_bufferUniform0.size()
             , texture->view()
             , texture->sampler()
@@ -595,7 +653,7 @@ void RendererVK::push( void* buffer, void* constant )
         );
         VkRect2D renderArea{};
         renderArea.extent = m_swapchain.extent();
-        m_pipelines[ 0 ].begin( cmd
+        currentPipeline.begin( cmd
             , m_framebuffers[ m_currentFrame ]
             , renderArea
             , descriptorSet
@@ -603,6 +661,50 @@ void RendererVK::push( void* buffer, void* constant )
         vkCmdDraw( cmd, 4, 1, 0, 0 );
     } break;
 
+    CASE( eTriangle3dTextureNormal )
+        const TextureVK* texture = reinterpret_cast<const TextureVK*>( pushBuffer->m_texture.m_data );
+        assert( texture );
+        if ( !texture ) { return; }
+
+        VkCommandBuffer cmd = m_commandBuffers[ m_currentFrame ];
+        auto vertices = m_bufferMap3.find( pushBuffer->m_vertices );
+        assert( vertices != m_bufferMap3.end() );
+        auto uv = m_bufferMap2.find( pushBuffer->m_uv );
+        assert( uv != m_bufferMap2.end() );
+
+        BufferVK& staging = m_bufferUniformsStaging[ 0 ];
+        staging.copyData( reinterpret_cast<const uint8_t*>( constant ) );
+        VkBuffer uniform = m_bufferUniform0.next();
+        {
+            const VkBufferCopy copyRegion{
+                .size = sizeof( PushConstant<Pipeline::eTriangle3dTextureNormal> ),
+            };
+            SingleTimeCommand cmd{ m_device, m_commandPool, m_queueGraphics };
+            vkCmdCopyBuffer( cmd, staging, uniform, 1, &copyRegion );
+        }
+
+        const VkDescriptorSet descriptorSet = currentPipeline.nextDescriptor();
+        assert( descriptorSet != VK_NULL_HANDLE );
+        currentPipeline.updateUniforms( uniform
+            , m_bufferUniform0.size()
+            , texture->view()
+            , texture->sampler()
+            , descriptorSet
+        );
+        const VkRect2D renderArea{
+            .extent = m_swapchain.extent()
+        };
+        currentPipeline.begin( cmd
+            , m_framebuffers[ m_currentFrame ]
+            , renderArea
+            , descriptorSet
+        );
+        std::array<VkBuffer, 2> buffers{ vertices->second, uv->second };
+        const std::array<VkDeviceSize, 2> offsets{};
+        vkCmdBindVertexBuffers( cmd, 0, 2, buffers.data(), offsets.data());
+        vkCmdDraw( cmd, static_cast<uint32_t>(vertices->second.size()/sizeof(glm::vec3)), 1, 0, 0 );
+        assert( !"ok" );
+    } break;
     default:
         break;
     }

@@ -89,3 +89,4 @@ endfunction()
 
 setup_game( starace_gl renderer_gl )
 setup_game( starace_vk renderer_vk )
+add_dependencies( starace_vk shader )

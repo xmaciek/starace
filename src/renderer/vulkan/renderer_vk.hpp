@@ -12,6 +12,7 @@
 
 #include <vector>
 #include <deque>
+#include <map>
 
 class RendererVK : public Renderer {
     SDL_Window* m_window = nullptr;
@@ -46,10 +47,16 @@ class RendererVK : public Renderer {
     uint32_t currentFrame();
 
     BufferArray m_bufferUniform0;
-    std::pmr::vector<PipelineVK> m_pipelines;
+    std::array<PipelineVK, (size_t)Pipeline::count> m_pipelines{};
+    PipelineVK* m_lastPipeline = nullptr;
+
     std::pmr::vector<BufferVK> m_bufferUniformsStaging;
 
     std::pmr::vector<TextureVK*> m_textures;
+
+    std::pmr::map<Buffer, BufferVK> m_bufferMap2{};
+    std::pmr::map<Buffer, BufferVK> m_bufferMap3{};
+    std::pmr::map<Buffer, BufferVK> m_bufferMap4{};
 
 public:
     virtual ~RendererVK() override;
