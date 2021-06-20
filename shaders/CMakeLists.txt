@@ -12,3 +12,6 @@ endfunction()
 
 compileShader( gui_texture_color.vert )
 compileShader( gui_texture_color.frag )
+
+compileShader( vert3_texture_normal3.vert )
+compileShader( vert3_texture_normal3.frag )
