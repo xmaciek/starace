@@ -381,6 +381,7 @@ RendererVK::RendererVK( SDL_Window* window )
         , BufferVK::Purpose::eStaging
         , sizeof( PushConstant<Pipeline::eGuiTextureColor1> )
     );
+    m_clear = Clear{ m_device, m_swapchain.surfaceFormat().format };
     m_pipelines[ (size_t)Pipeline::eGuiTextureColor1 ] = PipelineVK{ Pipeline::eGuiTextureColor1
         , m_device
         , m_swapchain.surfaceFormat().format
@@ -403,6 +404,7 @@ RendererVK::RendererVK( SDL_Window* window )
 
 RendererVK::~RendererVK()
 {
+    m_clear = {};
     m_bufferMap2.clear();
     m_bufferMap3.clear();
     m_bufferMap4.clear();
@@ -548,6 +550,7 @@ void RendererVK::beginFrame()
         return;
     }
     vkCmdSetViewport( cmd, 0, 1, &viewport );
+    m_clear( cmd, m_framebuffers[ m_currentFrame ], VkRect2D{ .extent = m_swapchain.extent() } );
 }
 
 void RendererVK::clear() { }

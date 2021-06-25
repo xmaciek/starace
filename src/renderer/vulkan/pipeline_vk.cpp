@@ -169,7 +169,7 @@ PipelineVK::PipelineVK( Pipeline pip, VkDevice device, VkFormat format, uint32_t
     const VkAttachmentDescription colorAttachment{
         .format = format,
         .samples = VK_SAMPLE_COUNT_1_BIT,
-        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+        .loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
         .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
         .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
         .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
@@ -295,14 +295,11 @@ PipelineVK::PipelineVK( Pipeline pip, VkDevice device, VkFormat format, uint32_t
 
 void PipelineVK::begin( VkCommandBuffer cmdBuff, VkFramebuffer framebuffer, const VkRect2D& renderArea, VkDescriptorSet descriptorSet )
 {
-    const VkClearValue clearColor{ VkClearColorValue{ { 0.0f, 0.0f, 1.0f, 1.0f } } };
     const VkRenderPassBeginInfo renderPassInfo{
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
         .renderPass = m_renderPass,
         .framebuffer = framebuffer,
         .renderArea = renderArea,
-        .clearValueCount = 1,
-        .pClearValues = &clearColor,
     };
     if ( !m_isActive ) {
         m_isActive = true;

@@ -4,6 +4,7 @@
 
 #include "buffer_array.hpp"
 #include "buffer_vk.hpp"
+#include "clear.hpp"
 #include "pipeline_vk.hpp"
 #include "swapchain.hpp"
 #include "texture_vk.hpp"
@@ -47,6 +48,8 @@ class RendererVK : public Renderer {
     uint32_t currentFrame();
 
     BufferArray m_bufferUniform0;
+
+    Clear m_clear{};
     std::array<PipelineVK, (size_t)Pipeline::count> m_pipelines{};
     PipelineVK* m_lastPipeline = nullptr;
 
