@@ -9,6 +9,8 @@ target_sources( renderer_vk
     buffer_vk.hpp
     clear.cpp
     clear.hpp
+    command_pool.cpp
+    command_pool.hpp
     descriptor_set.cpp
     descriptor_set.hpp
     pipeline_vk.cpp

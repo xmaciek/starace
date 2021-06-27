@@ -1,6 +1,7 @@
 #include "swapchain.hpp"
 
 #include <cassert>
+#include <iostream>
 #include <memory_resource>
 #include <vector>
 
@@ -70,6 +71,9 @@ Swapchain& Swapchain::operator = ( Swapchain&& rhs ) noexcept
 Swapchain::Swapchain( VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, std::array<uint32_t,2> familyAccess )
 : m_device{ device }
 {
+    assert( physicalDevice );
+    assert( device );
+
     VkSurfaceCapabilitiesKHR surfaceCaps{};
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR( physicalDevice, surface, &surfaceCaps );
     uint32_t formatCount = 0;
@@ -108,6 +112,7 @@ Swapchain::Swapchain( VkPhysicalDevice physicalDevice, VkDevice device, VkSurfac
     }
 
     m_extent = surfaceCaps.currentExtent;
+    std::cout << "swapchain image count: " << surfaceCaps.minImageCount << " - " << surfaceCaps.maxImageCount << std::endl;
     m_imageCount = std::clamp( surfaceCaps.minImageCount + 1, surfaceCaps.minImageCount, surfaceCaps.maxImageCount );
 
     const VkSwapchainCreateInfoKHR createInfo{

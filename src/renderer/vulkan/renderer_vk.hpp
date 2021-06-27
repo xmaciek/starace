@@ -5,6 +5,7 @@
 #include "buffer_array.hpp"
 #include "buffer_vk.hpp"
 #include "clear.hpp"
+#include "command_pool.hpp"
 #include "pipeline_vk.hpp"
 #include "swapchain.hpp"
 #include "texture_vk.hpp"
@@ -29,6 +30,10 @@ class RendererVK : public Renderer {
     VkQueue m_queuePresent{};
     VkQueue m_queueTransfer{};
 
+    CommandPool m_graphicsCmd{};
+    CommandPool m_transferCmd{};
+    CommandPool m_transferToGraphicsCmd{};
+
     VkDevice m_device = VK_NULL_HANDLE;
 
     VkSurfaceKHR m_surface = VK_NULL_HANDLE;
@@ -37,9 +42,6 @@ class RendererVK : public Renderer {
 
     std::pmr::vector<VkFramebuffer> m_framebuffers;
     VkRenderPass m_renderPass = VK_NULL_HANDLE;
-
-    VkCommandPool m_commandPool = VK_NULL_HANDLE;
-    std::pmr::vector<VkCommandBuffer> m_commandBuffers;
 
     VkSemaphore m_semaphoreAvailableImage = VK_NULL_HANDLE;
     VkSemaphore m_semaphoreRender = VK_NULL_HANDLE;
@@ -60,6 +62,8 @@ class RendererVK : public Renderer {
     std::pmr::map<Buffer, BufferVK> m_bufferMap2{};
     std::pmr::map<Buffer, BufferVK> m_bufferMap3{};
     std::pmr::map<Buffer, BufferVK> m_bufferMap4{};
+
+    void transferBufferAndWait( VkBuffer src, VkBuffer dst, size_t size );
 
 public:
     virtual ~RendererVK() override;

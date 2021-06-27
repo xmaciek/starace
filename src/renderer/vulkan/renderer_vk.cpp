@@ -224,22 +224,22 @@ RendererVK::RendererVK( SDL_Window* window )
     );
 
     {
-        const float queuePriority = 1.0f;
+        static constexpr std::array<float, 4> queuePriority{ 1.0f, 1.0f, 1.0f, 1.0f };
         VkDeviceQueueCreateInfo queueCreateInfo[ 3 ]{};
         queueCreateInfo[ 0 ].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
         queueCreateInfo[ 0 ].queueFamilyIndex = m_queueFamilyGraphics;
-        queueCreateInfo[ 0 ].queueCount = 1;
-        queueCreateInfo[ 0 ].pQueuePriorities = &queuePriority;
+        queueCreateInfo[ 0 ].queueCount = 2;
+        queueCreateInfo[ 0 ].pQueuePriorities = queuePriority.data();
 
         queueCreateInfo[ 1 ].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
         queueCreateInfo[ 1 ].queueFamilyIndex = m_queueFamilyPresent;
         queueCreateInfo[ 1 ].queueCount = 1;
-        queueCreateInfo[ 1 ].pQueuePriorities = &queuePriority;
+        queueCreateInfo[ 1 ].pQueuePriorities = queuePriority.data();
 
         queueCreateInfo[ 2 ].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
         queueCreateInfo[ 2 ].queueFamilyIndex = m_queueFamilyTransfer;
         queueCreateInfo[ 2 ].queueCount = 1;
-        queueCreateInfo[ 2 ].pQueuePriorities = &queuePriority;
+        queueCreateInfo[ 2 ].pQueuePriorities = queuePriority.data();
 
         static constexpr VkPhysicalDeviceFeatures deviceFeatures{};
         const VkDeviceCreateInfo createInfo{
@@ -260,15 +260,17 @@ RendererVK::RendererVK( SDL_Window* window )
         }
     }
 
-    vkGetDeviceQueue( m_device, m_queueFamilyGraphics, 0, &m_queueGraphics );
-    vkGetDeviceQueue( m_device, m_queueFamilyPresent, 0, &m_queuePresent );
-    vkGetDeviceQueue( m_device, m_queueFamilyTransfer, 0, &m_queueTransfer );
-
     m_swapchain = Swapchain( m_physicalDevice
         , m_device
         , m_surface
         , { m_queueFamilyGraphics, m_queueFamilyPresent }
     );
+
+    vkGetDeviceQueue( m_device, m_queueFamilyPresent, 0, &m_queuePresent );
+
+    m_graphicsCmd = CommandPool{ m_device, m_swapchain.imageCount(), { 1, 0 }, m_queueFamilyGraphics };
+    m_transferToGraphicsCmd = CommandPool{ m_device, m_swapchain.imageCount(), { 1, 1 }, m_queueFamilyGraphics };
+    m_transferCmd = CommandPool{ m_device, m_swapchain.imageCount(), { 1, 0 }, m_queueFamilyTransfer };
 
     {
         VkAttachmentDescription colorAttachment{};
@@ -329,32 +331,6 @@ RendererVK::RendererVK( SDL_Window* window )
     }
 
     {
-        VkCommandPoolCreateInfo poolInfo{};
-        poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-        poolInfo.queueFamilyIndex = m_queueFamilyGraphics;
-        poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-        const VkResult res = vkCreateCommandPool( m_device, &poolInfo, nullptr, &m_commandPool );
-        assert( res == VK_SUCCESS );
-        if ( res != VK_SUCCESS ) {
-            std::cout << "failed to create command pool" << std::endl;
-            return;
-        }
-    }
-    {
-        m_commandBuffers.resize( m_swapchain.imageCount() );
-        VkCommandBufferAllocateInfo allocInfo{};
-        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        allocInfo.commandPool = m_commandPool;
-        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        allocInfo.commandBufferCount = m_swapchain.imageCount();
-        const VkResult res = vkAllocateCommandBuffers( m_device, &allocInfo, m_commandBuffers.data() );
-        assert( res == VK_SUCCESS );
-        if ( res != VK_SUCCESS ) {
-            std::cout << "failed to allocate command buffers" << std::endl;
-            return;
-        }
-    }
-    {
         VkSemaphoreCreateInfo semaphoreInfo{};
         semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
         if ( const VkResult res = vkCreateSemaphore( m_device, &semaphoreInfo, nullptr, &m_semaphoreAvailableImage );
@@ -404,6 +380,9 @@ RendererVK::RendererVK( SDL_Window* window )
 
 RendererVK::~RendererVK()
 {
+    m_graphicsCmd = {};
+    m_transferToGraphicsCmd = {};
+    m_transferCmd = {};
     m_clear = {};
     m_bufferMap2.clear();
     m_bufferMap3.clear();
@@ -419,9 +398,6 @@ RendererVK::~RendererVK()
     }
     if ( m_semaphoreAvailableImage ) {
         vkDestroySemaphore( m_device, m_semaphoreAvailableImage, nullptr );
-    }
-    if ( m_commandPool ) {
-        vkDestroyCommandPool( m_device, m_commandPool, nullptr );
     }
     for ( VkFramebuffer& it : m_framebuffers ) {
         vkDestroyFramebuffer( m_device, it, nullptr );
@@ -450,8 +426,11 @@ Buffer RendererVK::createBuffer( std::pmr::vector<glm::vec2>&& vec, Buffer::Life
     BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, vec.size() * sizeof( glm::vec2 ) };
     staging.copyData( reinterpret_cast<const uint8_t*>( vec.data() ) );
 
-    const Buffer retBuffer{ reinterpret_cast<uint64_t>( (VkBuffer)staging ), lft, Buffer::Status::ePending };
-    m_bufferMap2.emplace( std::make_pair( retBuffer, std::move( staging ) ) );
+    BufferVK data{ m_physicalDevice, m_device, BufferVK::Purpose::eVertex, staging.size() };
+    m_transferCmd.transferBufferAndWait( staging, data, staging.size() );
+
+    const Buffer retBuffer{ reinterpret_cast<uint64_t>( (VkBuffer)data ), lft, Buffer::Status::ePending };
+    m_bufferMap2.emplace( std::make_pair( retBuffer, std::move( data ) ) );
     return retBuffer;
 }
 
@@ -460,8 +439,11 @@ Buffer RendererVK::createBuffer( std::pmr::vector<glm::vec3>&& vec, Buffer::Life
     BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, vec.size() * sizeof( glm::vec3 ) };
     staging.copyData( reinterpret_cast<const uint8_t*>( vec.data() ) );
 
-    const Buffer retBuffer{ reinterpret_cast<uint64_t>( (VkBuffer)staging ), lft, Buffer::Status::ePending };
-    m_bufferMap3.emplace( std::make_pair( retBuffer, std::move( staging ) ) );
+    BufferVK data{ m_physicalDevice, m_device, BufferVK::Purpose::eVertex, staging.size() };
+    m_transferCmd.transferBufferAndWait( staging, data, staging.size() );
+
+    const Buffer retBuffer{ reinterpret_cast<uint64_t>( (VkBuffer)data ), lft, Buffer::Status::ePending };
+    m_bufferMap3.emplace( std::make_pair( retBuffer, std::move( data ) ) );
     return retBuffer;
 }
 
@@ -470,8 +452,11 @@ Buffer RendererVK::createBuffer( std::pmr::vector<glm::vec4>&& vec, Buffer::Life
     BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, vec.size() * sizeof( glm::vec4 ) };
     staging.copyData( reinterpret_cast<const uint8_t*>( vec.data() ) );
 
-    const Buffer retBuffer{ reinterpret_cast<uint64_t>( (VkBuffer)staging ), lft, Buffer::Status::ePending };
-    m_bufferMap4.emplace( std::make_pair( retBuffer, std::move( staging ) ) );
+    BufferVK data{ m_physicalDevice, m_device, BufferVK::Purpose::eVertex, staging.size() };
+    m_transferCmd.transferBufferAndWait( staging, data, staging.size() );
+
+    const Buffer retBuffer{ reinterpret_cast<uint64_t>( (VkBuffer)data ), lft, Buffer::Status::ePending };
+    m_bufferMap4.emplace( std::make_pair( retBuffer, std::move( data ) ) );
     return retBuffer;
 }
 
@@ -488,22 +473,23 @@ Texture RendererVK::createTexture( uint32_t width, uint32_t height, Texture::For
 
     std::pmr::vector<uint32_t> vec{ allocator() };
     if ( fmt == Texture::Format::eRGB ) {
-//         fmt = Texture::Format::eRGBA;
-//         vec.resize( width * height );
-//         using RGB = uint8_t[3];
-//         const RGB* rgb = reinterpret_cast<const RGB*>( data );
-//         const RGB* rgbend = rgb;
-//         std::advance( rgbend, width * height );
-//         std::transform( rgb, rgbend, vec.begin(), []( const RGB& rgb ) {
-//             return ( (uint32_t)rgb[0] << 0 )
-//                 | ( (uint32_t)rgb[1] << 8 )
-//                 | ( (uint32_t)rgb[2] << 16 )
-//                 | 0xff000000;
-//         } );
-//         data = reinterpret_cast<const uint8_t*>( vec.data() );
+        fmt = Texture::Format::eRGBA;
+        vec.resize( width * height );
+        using RGB = uint8_t[3];
+        const RGB* rgb = reinterpret_cast<const RGB*>( data );
+        const RGB* rgbend = rgb;
+        std::advance( rgbend, width * height );
+        std::transform( rgb, rgbend, vec.begin(), []( const RGB& rgb ) {
+            return ( (uint32_t)rgb[0] << 0 )
+                | ( (uint32_t)rgb[1] << 8 )
+                | ( (uint32_t)rgb[2] << 16 )
+                | 0xff000000;
+        } );
+        data = reinterpret_cast<const uint8_t*>( vec.data() );
     }
     const std::size_t size = width * height * ( fmt == Texture::Format::eRGB ? 3 : 4 );
     BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, size };
+    staging.copyData( data );
 
     m_textures.emplace_back( new TextureVK{ m_physicalDevice
         , m_device
@@ -513,9 +499,27 @@ Texture RendererVK::createTexture( uint32_t width, uint32_t height, Texture::For
             : VK_FORMAT_R8G8B8A8_UNORM
     } );
     TextureVK* tex = m_textures.back();
-    staging.copyData( data );
-    SingleTimeCommand singleTimeCommand{ m_device, m_commandPool, m_queueGraphics };
-    tex->transferFrom( singleTimeCommand, staging );
+
+    static constexpr VkCommandBufferBeginInfo beginInfo{
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+        .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
+    };
+
+    VkCommandBuffer cmd = m_transferToGraphicsCmd.buffer();
+    vkBeginCommandBuffer( cmd, &beginInfo );
+    tex->transferFrom( cmd, staging );
+    vkEndCommandBuffer( cmd );
+
+    const VkSubmitInfo submitInfo{
+        .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+        .commandBufferCount = 1,
+        .pCommandBuffers = &cmd,
+    };
+
+    VkQueue queue = m_transferToGraphicsCmd.queue();
+    vkQueueSubmit( queue, 1, &submitInfo, VK_NULL_HANDLE );
+    vkQueueWaitIdle( queue );
+
     return Texture{ reinterpret_cast<uint64_t>( tex ) };
 }
 
@@ -529,6 +533,9 @@ void RendererVK::beginFrame()
         return;
     }
     m_currentFrame = imageIndex;
+    m_graphicsCmd.setFrame( imageIndex );
+    m_transferToGraphicsCmd.setFrame( imageIndex );
+    m_transferCmd.setFrame( imageIndex );
 
     const VkExtent2D extent = m_swapchain.extent();
     const VkViewport viewport{
@@ -541,7 +548,7 @@ void RendererVK::beginFrame()
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
     };
 
-    VkCommandBuffer cmd = m_commandBuffers[ m_currentFrame ];
+    VkCommandBuffer cmd = m_graphicsCmd.buffer();
     vkResetCommandBuffer( cmd, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT );
     if ( const VkResult res = vkBeginCommandBuffer( cmd, &beginInfo );
         res != VK_SUCCESS ) {
@@ -560,11 +567,12 @@ void RendererVK::setViewportSize( uint32_t, uint32_t ) {}
 
 void RendererVK::submit()
 {
+    VkCommandBuffer cmd = m_graphicsCmd.buffer();
     if ( m_lastPipeline ) {
-        m_lastPipeline->end( m_commandBuffers[ m_currentFrame ] );
+        m_lastPipeline->end( cmd );
         m_lastPipeline = nullptr;
     }
-    if ( const VkResult res = vkEndCommandBuffer( m_commandBuffers[ m_currentFrame ] );
+    if ( const VkResult res = vkEndCommandBuffer( cmd );
         res != VK_SUCCESS ) {
         assert( !"failed to end command buffer" );
         std::cout << "failed to end command buffer" << std::endl;
@@ -581,18 +589,19 @@ void RendererVK::submit()
     submitInfo.pWaitSemaphores = waitSemaphores;
     submitInfo.pWaitDstStageMask = waitStages;
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &m_commandBuffers[ m_currentFrame ];
+    submitInfo.pCommandBuffers = &cmd;
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = renderSemaphores;
-    if ( const VkResult res = vkQueueSubmit( m_queueGraphics, 1, &submitInfo, VK_NULL_HANDLE );
+    if ( const VkResult res = vkQueueSubmit( m_graphicsCmd.queue(), 1, &submitInfo, VK_NULL_HANDLE );
         res != VK_SUCCESS ) {
         assert( !"failed to submit queue" );
         std::cout << "failed to submit queue" << std::endl;
         return;
     }
     m_bufferUniform0.reset();
-    m_pipelines[ 0 ].resetDescriptors();
-
+    for ( auto& pipeline : m_pipelines ) {
+        pipeline.resetDescriptors();
+    }
 }
 
 void RendererVK::present()
@@ -622,7 +631,7 @@ void RendererVK::push( void* buffer, void* constant )
         [[maybe_unused]] auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::TYPE>*>( constant ); \
         PipelineVK& currentPipeline = m_pipelines[ (size_t)p ]; \
         if ( m_lastPipeline != &currentPipeline ) { \
-            if ( m_lastPipeline ) { m_lastPipeline->end( m_commandBuffers[ m_currentFrame ] ); } \
+            if ( m_lastPipeline ) { m_lastPipeline->end( m_graphicsCmd.buffer() ); } \
             m_lastPipeline = &currentPipeline; \
         }
 
@@ -634,17 +643,12 @@ void RendererVK::push( void* buffer, void* constant )
             return;
         }
 
-        VkCommandBuffer cmd = m_commandBuffers[ m_currentFrame ];
+        VkCommandBuffer cmd = m_graphicsCmd.buffer();
         BufferVK& staging = m_bufferUniformsStaging[ 0 ];
         staging.copyData( reinterpret_cast<const uint8_t*>( constant ) );
         VkBuffer uniform = m_bufferUniform0.next();
-        {
-            static constexpr VkBufferCopy copyRegion{
-                .size = sizeof( PushConstant<Pipeline::eGuiTextureColor1> ),
-            };
-            SingleTimeCommand cmd{ m_device, m_commandPool, m_queueGraphics };
-            vkCmdCopyBuffer( cmd, staging, uniform, 1, &copyRegion );
-        }
+
+        m_transferCmd.transferBufferAndWait( staging, uniform, sizeof( PushConstant<Pipeline::eGuiTextureColor1> ) );
 
         const VkDescriptorSet descriptorSet = currentPipeline.nextDescriptor();
         assert( descriptorSet != VK_NULL_HANDLE );
@@ -669,7 +673,7 @@ void RendererVK::push( void* buffer, void* constant )
         assert( texture );
         if ( !texture ) { return; }
 
-        VkCommandBuffer cmd = m_commandBuffers[ m_currentFrame ];
+        VkCommandBuffer cmd = m_graphicsCmd.buffer();
         auto vertices = m_bufferMap3.find( pushBuffer->m_vertices );
         assert( vertices != m_bufferMap3.end() );
         auto uv = m_bufferMap2.find( pushBuffer->m_uv );
@@ -678,13 +682,7 @@ void RendererVK::push( void* buffer, void* constant )
         BufferVK& staging = m_bufferUniformsStaging[ 0 ];
         staging.copyData( reinterpret_cast<const uint8_t*>( constant ) );
         VkBuffer uniform = m_bufferUniform0.next();
-        {
-            const VkBufferCopy copyRegion{
-                .size = sizeof( PushConstant<Pipeline::eTriangle3dTextureNormal> ),
-            };
-            SingleTimeCommand cmd{ m_device, m_commandPool, m_queueGraphics };
-            vkCmdCopyBuffer( cmd, staging, uniform, 1, &copyRegion );
-        }
+        m_transferCmd.transferBufferAndWait( staging, uniform, staging.size() );
 
         const VkDescriptorSet descriptorSet = currentPipeline.nextDescriptor();
         assert( descriptorSet != VK_NULL_HANDLE );
@@ -706,7 +704,6 @@ void RendererVK::push( void* buffer, void* constant )
         const std::array<VkDeviceSize, 2> offsets{};
         vkCmdBindVertexBuffers( cmd, 0, 2, buffers.data(), offsets.data());
         vkCmdDraw( cmd, static_cast<uint32_t>(vertices->second.size()/sizeof(glm::vec3)), 1, 0, 0 );
-        assert( !"ok" );
     } break;
     default:
         break;
