@@ -9,7 +9,7 @@ class Clear {
 
 public:
     Clear() noexcept = default;
-    Clear( VkDevice, VkFormat ) noexcept;
+    Clear( VkDevice, VkFormat, bool doTransfer ) noexcept;
     ~Clear() noexcept;
 
     Clear( const Clear& ) = delete;

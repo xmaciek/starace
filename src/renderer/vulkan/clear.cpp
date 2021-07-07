@@ -3,7 +3,7 @@
 #include <cassert>
 #include <utility>
 
-Clear::Clear( VkDevice device, VkFormat format ) noexcept
+Clear::Clear( VkDevice device, VkFormat format, bool doTransfer ) noexcept
 : m_device{ device }
 {
     static constexpr VkAttachmentReference colorAttachmentRef{
@@ -29,12 +29,12 @@ Clear::Clear( VkDevice device, VkFormat format ) noexcept
     const VkAttachmentDescription colorAttachment{
         .format = format,
         .samples = VK_SAMPLE_COUNT_1_BIT,
-        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+        .loadOp = doTransfer ? VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_CLEAR,
         .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
         .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
         .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-        .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+        .initialLayout = doTransfer ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_UNDEFINED,
+        .finalLayout = doTransfer ? VK_IMAGE_LAYOUT_PRESENT_SRC_KHR : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
     };
 
     const VkRenderPassCreateInfo renderPassInfo{

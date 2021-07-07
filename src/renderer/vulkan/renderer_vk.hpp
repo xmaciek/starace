@@ -52,6 +52,7 @@ class RendererVK : public Renderer {
     BufferArray m_bufferUniform0;
 
     Clear m_clear{};
+    Clear m_presentTransfer{};
     std::array<PipelineVK, (size_t)Pipeline::count> m_pipelines{};
     PipelineVK* m_lastPipeline = nullptr;
 

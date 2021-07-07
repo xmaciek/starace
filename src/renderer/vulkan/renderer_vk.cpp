@@ -357,7 +357,8 @@ RendererVK::RendererVK( SDL_Window* window )
         , BufferVK::Purpose::eStaging
         , sizeof( PushConstant<Pipeline::eGuiTextureColor1> )
     );
-    m_clear = Clear{ m_device, m_swapchain.surfaceFormat().format };
+    m_clear = Clear{ m_device, m_swapchain.surfaceFormat().format, false };
+    m_presentTransfer = Clear{ m_device, m_swapchain.surfaceFormat().format, true };
     m_pipelines[ (size_t)Pipeline::eGuiTextureColor1 ] = PipelineVK{ Pipeline::eGuiTextureColor1
         , m_device
         , m_swapchain.surfaceFormat().format
@@ -384,6 +385,7 @@ RendererVK::~RendererVK()
     m_transferToGraphicsCmd = {};
     m_transferCmd = {};
     m_clear = {};
+    m_presentTransfer = {};
     m_bufferMap2.clear();
     m_bufferMap3.clear();
     m_bufferMap4.clear();
@@ -572,6 +574,7 @@ void RendererVK::submit()
         m_lastPipeline->end( cmd );
         m_lastPipeline = nullptr;
     }
+    m_presentTransfer( cmd, m_framebuffers[ m_currentFrame ], VkRect2D{ .extent = m_swapchain.extent() } );
     if ( const VkResult res = vkEndCommandBuffer( cmd );
         res != VK_SUCCESS ) {
         assert( !"failed to end command buffer" );
