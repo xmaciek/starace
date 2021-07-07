@@ -14,49 +14,31 @@ Model::~Model()
 {
     destroyTexture( m_textureID );
     Renderer::instance()->deleteBuffer( m_vertices );
-    Renderer::instance()->deleteBuffer( m_normals );
-    Renderer::instance()->deleteBuffer( m_uv );
 }
 
 void Model::render( RenderContext rctx ) const
 {
     if ( m_vertices == Buffer::Status::eNone ) {
-        std::pmr::vector<glm::vec3> vertices{ rctx.renderer->allocator() };
-        vertices.reserve( m_faces.size() * 3 );
+        std::pmr::vector<float> vertices{ rctx.renderer->allocator() };
+        vertices.reserve( m_faces.size() * 8 );
         for ( const Face& it : m_faces ) {
-            std::copy( it.vertex.begin(), it.vertex.end(), std::back_inserter( vertices ) );
+            assert( it.vertex.size() == 3 );
+            assert( it.texcoord.size() == 3 );
+            for ( size_t j = 0; j < 3; ++j ) {
+                vertices.emplace_back( it.vertex[ j ].x );
+                vertices.emplace_back( it.vertex[ j ].y );
+                vertices.emplace_back( it.vertex[ j ].z );
+                vertices.emplace_back( it.texcoord[ j ].u );
+                vertices.emplace_back( it.texcoord[ j ].v );
+                vertices.emplace_back( (float)it.normal[ 0 ] );
+                vertices.emplace_back( (float)it.normal[ 1 ] );
+                vertices.emplace_back( (float)it.normal[ 2 ] );
+            }
         }
         assert( !vertices.empty() );
         m_vertices = rctx.renderer->createBuffer( std::move( vertices ), Buffer::Lifetime::ePersistent );
         assert( m_vertices != Buffer::Status::eNone );
     }
-
-    if ( m_normals == Buffer::Status::eNone  ) {
-        std::pmr::vector<glm::vec3> normals{ rctx.renderer->allocator() };
-        normals.reserve( m_faces.size() * 3 );
-        for ( const Face& it : m_faces ) {
-            normals.emplace_back( it.normal[ 0 ], it.normal[ 1 ], it.normal[ 2 ] );
-            normals.emplace_back( it.normal[ 0 ], it.normal[ 1 ], it.normal[ 2 ] );
-            normals.emplace_back( it.normal[ 0 ], it.normal[ 1 ], it.normal[ 2 ] );
-        }
-        assert( !normals.empty() );
-        m_normals = rctx.renderer->createBuffer( std::move( normals ), Buffer::Lifetime::ePersistent );
-        assert( m_vertices != Buffer::Status::eNone );
-    }
-
-    if ( m_uv == Buffer::Status::eNone  ) {
-        std::pmr::vector<glm::vec2> uv{ rctx.renderer->allocator() };
-        uv.reserve( m_faces.size() * 3 );
-        for ( const Face& it : m_faces ) {
-            uv.emplace_back( it.texcoord[ 0 ].u, it.texcoord[ 0 ].v );
-            uv.emplace_back( it.texcoord[ 1 ].u, it.texcoord[ 1 ].v );
-            uv.emplace_back( it.texcoord[ 2 ].u, it.texcoord[ 2 ].v );
-        }
-        assert( !uv.empty() );
-        m_uv = rctx.renderer->createBuffer( std::move( uv ), Buffer::Lifetime::ePersistent );
-        assert( m_vertices != Buffer::Status::eNone );
-    }
-
     PushConstant<Pipeline::eTriangle3dTextureNormal> pushConstant{};
     pushConstant.m_model = rctx.model;
     pushConstant.m_view = rctx.view;
@@ -64,8 +46,6 @@ void Model::render( RenderContext rctx ) const
 
     PushBuffer<Pipeline::eTriangle3dTextureNormal> pushBuffer{};
     pushBuffer.m_vertices = m_vertices;
-    pushBuffer.m_normals = m_normals;
-    pushBuffer.m_uv = m_uv;
     pushBuffer.m_texture = m_textureID;
 
     rctx.renderer->push( &pushBuffer, &pushConstant );

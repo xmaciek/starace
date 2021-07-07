@@ -24,6 +24,7 @@ public:
     static Renderer* instance();
     static SDL_WindowFlags windowFlag();
 
+    virtual Buffer createBuffer( std::pmr::vector<float>&&, Buffer::Lifetime ) = 0;
     virtual Buffer createBuffer( std::pmr::vector<glm::vec2>&&, Buffer::Lifetime ) = 0;
     virtual Buffer createBuffer( std::pmr::vector<glm::vec3>&&, Buffer::Lifetime ) = 0;
     virtual Buffer createBuffer( std::pmr::vector<glm::vec4>&&, Buffer::Lifetime ) = 0;

@@ -33,6 +33,7 @@ class RendererGL : public Renderer {
     SDL_Window* m_window = nullptr;
     SDL_GLContext m_contextInit{};
     SDL_GLContext m_contextGL{};
+    std::pmr::map<Buffer, std::pmr::vector<float>> m_bufferMap{};
     std::pmr::map<Buffer, std::pmr::vector<glm::vec2>> m_bufferMap2{};
     std::pmr::map<Buffer, std::pmr::vector<glm::vec3>> m_bufferMap3{};
     std::pmr::map<Buffer, std::pmr::vector<glm::vec4>> m_bufferMap4{};
@@ -43,6 +44,7 @@ public:
     virtual ~RendererGL() override;
     RendererGL( SDL_Window* );
 
+    virtual Buffer createBuffer( std::pmr::vector<float>&&, Buffer::Lifetime ) override;
     virtual Buffer createBuffer( std::pmr::vector<glm::vec2>&&, Buffer::Lifetime ) override;
     virtual Buffer createBuffer( std::pmr::vector<glm::vec3>&&, Buffer::Lifetime ) override;
     virtual Buffer createBuffer( std::pmr::vector<glm::vec4>&&, Buffer::Lifetime ) override;
@@ -182,9 +184,18 @@ void RendererGL::deleteTexture( Texture tex )
 
 void RendererGL::deleteBuffer( const Buffer& b )
 {
+    m_bufferMap.erase( b );
     m_bufferMap2.erase( b );
     m_bufferMap3.erase( b );
     m_bufferMap4.erase( b );
+}
+
+Buffer RendererGL::createBuffer( std::pmr::vector<float>&& vec, Buffer::Lifetime lft )
+{
+    const Buffer buffer{ reinterpret_cast<uint64_t>( vec.data() ), lft, Buffer::Status::eReady };
+    m_bufferMap.emplace( std::make_pair( buffer, std::move( vec ) ) ) ;
+    assert( !m_bufferMap[ buffer ].empty() );
+    return buffer;
 }
 
 Buffer RendererGL::createBuffer( std::pmr::vector<glm::vec2>&& vec, Buffer::Lifetime lft )
@@ -455,11 +466,8 @@ void RendererGL::push( void* buffer, void* constant )
         auto* pushBuffer = reinterpret_cast<PushBuffer<Pipeline::eTriangle3dTextureNormal>*>( buffer );
         auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::eTriangle3dTextureNormal>*>( constant );
 
-        const std::pmr::vector<glm::vec3>& vertices = m_bufferMap3[ pushBuffer->m_vertices ];
-        const std::pmr::vector<glm::vec3>& normals = m_bufferMap3[ pushBuffer->m_normals ];
-        const std::pmr::vector<glm::vec2>& uv = m_bufferMap2[ pushBuffer->m_uv ];
-        assert( vertices.size() == normals.size() );
-        assert( vertices.size() == uv.size() );
+        const std::pmr::vector<float>& vertices = m_bufferMap[ pushBuffer->m_vertices ];
+        assert( !vertices.empty() );
 
         ScopeEnable depthTest( GL_DEPTH_TEST );
         ScopeEnable lightning( GL_LIGHTING );
@@ -474,17 +482,17 @@ void RendererGL::push( void* buffer, void* constant )
         glBindTexture( GL_TEXTURE_2D, static_cast<uint32_t>( pushBuffer->m_texture.m_data ) );
         glBegin( GL_TRIANGLES );
         glColor4f( 1, 1, 1, 1 );
-        for ( size_t i = 0; i < vertices.size(); ++i ) {
-            glNormal3fv( glm::value_ptr( normals[ i ] ) );
-            glTexCoord2fv( glm::value_ptr( uv[ i ] ) );
-            glVertex3fv( glm::value_ptr( vertices[ i ] ) );
+        const float* ptr = vertices.data();
+        const size_t count = vertices.size() / 8;
+        for ( size_t i = 0; i < count; ++i ) {
+            glVertex3fv( ptr ); std::advance( ptr, 3 );
+            glTexCoord2fv( ptr ); std::advance( ptr, 2 );
+            glNormal3fv( ptr ); std::advance( ptr, 3 );
         }
         glEnd();
         glPopMatrix();
 
         maybeDeleteBuffer( pushBuffer->m_vertices );
-        maybeDeleteBuffer( pushBuffer->m_normals );
-        maybeDeleteBuffer( pushBuffer->m_uv );
     } break;
 
     case Pipeline::count:

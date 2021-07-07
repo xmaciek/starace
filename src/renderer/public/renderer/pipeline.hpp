@@ -132,8 +132,6 @@ template <>
 struct PushBuffer<Pipeline::eTriangle3dTextureNormal> {
     Pipeline m_pipeline = Pipeline::eTriangle3dTextureNormal;
     Buffer m_vertices{};
-    Buffer m_normals{};
-    Buffer m_uv{};
     Texture m_texture{};
 
     PushBuffer() = default;
