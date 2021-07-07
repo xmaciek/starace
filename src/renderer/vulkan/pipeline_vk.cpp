@@ -72,39 +72,19 @@ constexpr VkFormat formatForType() noexcept;
 template <> constexpr VkFormat formatForType<glm::vec2>() noexcept { return VK_FORMAT_R32G32_SFLOAT; }
 template <> constexpr VkFormat formatForType<glm::vec3>() noexcept { return VK_FORMAT_R32G32B32_SFLOAT; }
 
-template <typename T, size_t TBinding = 0>
-static constexpr VkVertexInputBindingDescription binding() noexcept
-{
-    return { .binding = TBinding, .stride = sizeof( T ), .inputRate = VK_VERTEX_INPUT_RATE_VERTEX };
-}
-
-template <typename T, size_t TLocation, size_t TBinding = 0>
+template <typename T, size_t TLocation, size_t TOffset>
 static constexpr VkVertexInputAttributeDescription attribute() noexcept
 {
-    return {  .location = TLocation, .binding = TBinding, .format = formatForType<T>() };
+    return {
+        .location = TLocation,
+        .binding = 0,
+        .format = formatForType<T>(),
+        .offset = TOffset,
+    };
 }
 
 static VkPipelineVertexInputStateCreateInfo vertexInfo( Pipeline pip ) noexcept
 {
-    [[maybe_unused]] static constexpr auto v2_0 = binding<glm::vec2, 0>();
-    [[maybe_unused]] static constexpr auto v2_1 = binding<glm::vec2, 1>();
-    [[maybe_unused]] static constexpr auto v3_0 = binding<glm::vec3, 0>();
-    [[maybe_unused]] static constexpr auto v3_1 = binding<glm::vec3, 1>();
-    [[maybe_unused]] static constexpr auto av2_0 = attribute<glm::vec2, 0>();
-    [[maybe_unused]] static constexpr auto av2_1 = attribute<glm::vec2, 1>();
-    [[maybe_unused]] static constexpr auto av2_2 = attribute<glm::vec2, 2>();
-    [[maybe_unused]] static constexpr auto av3_0 = attribute<glm::vec3, 0>();
-    [[maybe_unused]] static constexpr auto av3_1 = attribute<glm::vec3, 1>();
-    [[maybe_unused]] static constexpr auto av3_2 = attribute<glm::vec3, 2>();
-
-#define VERTEX_INPUT_STATE { \
-    .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO, \
-    .vertexBindingDescriptionCount = bind.size(), \
-    .pVertexBindingDescriptions = bind.data(), \
-    .vertexAttributeDescriptionCount = attr.size(), \
-    .pVertexAttributeDescriptions = attr.data(), \
-};
-
     switch ( pip ) {
     case Pipeline::eGuiTextureColor1:
         return {
@@ -112,9 +92,23 @@ static VkPipelineVertexInputStateCreateInfo vertexInfo( Pipeline pip ) noexcept
         };
 
     case Pipeline::eTriangle3dTextureNormal: {
-        static constexpr std::array bind = { v3_0, v2_1 };
-        static constexpr std::array attr = { av3_0, av2_1 };
-        return VERTEX_INPUT_STATE;
+        static constexpr VkVertexInputBindingDescription bind{
+            .binding = 0,
+            .stride = sizeof( float ) * 8,
+            .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
+        };
+        static constexpr std::array attr = {
+            attribute<glm::vec3, 0, 0>(),
+            attribute<glm::vec2, 1, 12>(),
+            attribute<glm::vec3, 2, 20>(),
+        };
+        return {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO, \
+            .vertexBindingDescriptionCount = 1,
+            .pVertexBindingDescriptions = &bind,
+            .vertexAttributeDescriptionCount = attr.size(),
+            .pVertexAttributeDescriptions = attr.data(),
+        };
     }
     default:
         assert( !"unhandled enum" );

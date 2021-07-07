@@ -50,6 +50,7 @@ class RendererVK : public Renderer {
     uint32_t currentFrame();
 
     BufferArray m_bufferUniform0;
+    BufferArray m_bufferUniform1;
 
     Clear m_clear{};
     Clear m_presentTransfer{};
@@ -60,6 +61,7 @@ class RendererVK : public Renderer {
 
     std::pmr::vector<TextureVK*> m_textures;
 
+    std::pmr::map<Buffer, BufferVK> m_bufferMap{};
     std::pmr::map<Buffer, BufferVK> m_bufferMap2{};
     std::pmr::map<Buffer, BufferVK> m_bufferMap3{};
     std::pmr::map<Buffer, BufferVK> m_bufferMap4{};
@@ -70,6 +72,7 @@ public:
     virtual ~RendererVK() override;
     RendererVK( SDL_Window* );
 
+    virtual Buffer createBuffer( std::pmr::vector<float>&&, Buffer::Lifetime ) override;
     virtual Buffer createBuffer( std::pmr::vector<glm::vec2>&&, Buffer::Lifetime ) override;
     virtual Buffer createBuffer( std::pmr::vector<glm::vec3>&&, Buffer::Lifetime ) override;
     virtual Buffer createBuffer( std::pmr::vector<glm::vec4>&&, Buffer::Lifetime ) override;

@@ -351,11 +351,21 @@ RendererVK::RendererVK( SDL_Window* window )
         , sizeof( PushConstant<Pipeline::eGuiTextureColor1> )
         , 200
     );
+    m_bufferUniform1 = BufferArray( m_physicalDevice
+        , m_device
+        , sizeof( PushConstant<Pipeline::eTriangle3dTextureNormal> )
+        , 10
+    );
 
     m_bufferUniformsStaging.emplace_back( m_physicalDevice
         , m_device
         , BufferVK::Purpose::eStaging
         , sizeof( PushConstant<Pipeline::eGuiTextureColor1> )
+    );
+    m_bufferUniformsStaging.emplace_back( m_physicalDevice
+        , m_device
+        , BufferVK::Purpose::eStaging
+        , sizeof( PushConstant<Pipeline::eTriangle3dTextureNormal> )
     );
     m_clear = Clear{ m_device, m_swapchain.surfaceFormat().format, false };
     m_presentTransfer = Clear{ m_device, m_swapchain.surfaceFormat().format, true };
@@ -386,6 +396,7 @@ RendererVK::~RendererVK()
     m_transferCmd = {};
     m_clear = {};
     m_presentTransfer = {};
+    m_bufferMap.clear();
     m_bufferMap2.clear();
     m_bufferMap3.clear();
     m_bufferMap4.clear();
@@ -394,6 +405,7 @@ RendererVK::~RendererVK()
     }
     m_bufferUniformsStaging.clear();
     m_bufferUniform0 = BufferArray();
+    m_bufferUniform1 = BufferArray();
     for ( auto& it : m_pipelines ) { it = {}; }
     if ( m_semaphoreRender ) {
         vkDestroySemaphore( m_device, m_semaphoreRender, nullptr );
@@ -421,6 +433,20 @@ RendererVK::~RendererVK()
     if ( m_instance ) {
         vkDestroyInstance( m_instance, nullptr );
     }
+}
+
+Buffer RendererVK::createBuffer( std::pmr::vector<float>&& vec, Buffer::Lifetime lft )
+{
+    BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, vec.size() * sizeof( float ) };
+    staging.copyData( reinterpret_cast<const uint8_t*>( vec.data() ) );
+
+    BufferVK data{ m_physicalDevice, m_device, BufferVK::Purpose::eVertex, staging.size() };
+    m_transferCmd.transferBufferAndWait( staging, data, staging.size() );
+
+    const Buffer retBuffer{ reinterpret_cast<uint64_t>( (VkBuffer)data ), lft, Buffer::Status::ePending };
+    auto [ it, emplaced ] = m_bufferMap.emplace( std::make_pair( retBuffer, std::move( data ) ) );
+    assert( emplaced );
+    return retBuffer;
 }
 
 Buffer RendererVK::createBuffer( std::pmr::vector<glm::vec2>&& vec, Buffer::Lifetime lft )
@@ -602,6 +628,7 @@ void RendererVK::submit()
         return;
     }
     m_bufferUniform0.reset();
+    m_bufferUniform1.reset();
     for ( auto& pipeline : m_pipelines ) {
         pipeline.resetDescriptors();
     }
@@ -677,20 +704,18 @@ void RendererVK::push( void* buffer, void* constant )
         if ( !texture ) { return; }
 
         VkCommandBuffer cmd = m_graphicsCmd.buffer();
-        auto vertices = m_bufferMap3.find( pushBuffer->m_vertices );
-        assert( vertices != m_bufferMap3.end() );
-        auto uv = m_bufferMap2.find( pushBuffer->m_uv );
-        assert( uv != m_bufferMap2.end() );
+        auto vertices = m_bufferMap.find( pushBuffer->m_vertices );
+        assert( vertices != m_bufferMap.end() );
 
-        BufferVK& staging = m_bufferUniformsStaging[ 0 ];
+        BufferVK& staging = m_bufferUniformsStaging[ 1 ];
         staging.copyData( reinterpret_cast<const uint8_t*>( constant ) );
-        VkBuffer uniform = m_bufferUniform0.next();
+        VkBuffer uniform = m_bufferUniform1.next();
         m_transferCmd.transferBufferAndWait( staging, uniform, staging.size() );
 
         const VkDescriptorSet descriptorSet = currentPipeline.nextDescriptor();
         assert( descriptorSet != VK_NULL_HANDLE );
         currentPipeline.updateUniforms( uniform
-            , m_bufferUniform0.size()
+            , m_bufferUniform1.size()
             , texture->view()
             , texture->sampler()
             , descriptorSet
@@ -703,10 +728,11 @@ void RendererVK::push( void* buffer, void* constant )
             , renderArea
             , descriptorSet
         );
-        std::array<VkBuffer, 2> buffers{ vertices->second, uv->second };
-        const std::array<VkDeviceSize, 2> offsets{};
-        vkCmdBindVertexBuffers( cmd, 0, 2, buffers.data(), offsets.data());
-        vkCmdDraw( cmd, static_cast<uint32_t>(vertices->second.size()/sizeof(glm::vec3)), 1, 0, 0 );
+        std::array<VkBuffer, 1> buffers{ vertices->second };
+        const std::array<VkDeviceSize, 1> offsets{ 0 };
+        const uint32_t verticeCount = vertices->second.size() / ( 8 * sizeof( float ) );
+        vkCmdBindVertexBuffers( cmd, 0, 1, buffers.data(), offsets.data() );
+        vkCmdDraw( cmd, verticeCount, 1, 0, 0 );
     } break;
     default:
         break;
