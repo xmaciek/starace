@@ -659,12 +659,11 @@ void RendererVK::submit()
     submitInfo.pCommandBuffers = &cmd;
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = renderSemaphores;
-    if ( const VkResult res = vkQueueSubmit( m_graphicsCmd.queue(), 1, &submitInfo, VK_NULL_HANDLE );
-        res != VK_SUCCESS ) {
-        assert( !"failed to submit queue" );
-        std::cout << "failed to submit queue" << std::endl;
-        return;
-    }
+
+    [[maybe_unused]]
+    const VkResult submitOK = vkQueueSubmit( m_graphicsCmd.queue(), 1, &submitInfo, VK_NULL_HANDLE );
+    assert( submitOK == VK_SUCCESS );
+    vkQueueWaitIdle( m_graphicsCmd.queue() );
     m_bufferUniform0.reset();
     m_bufferUniform1.reset();
     for ( auto& pipeline : m_pipelines ) {
@@ -683,12 +682,10 @@ void RendererVK::present()
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = swapchain;
     presentInfo.pImageIndices = &m_currentFrame;
-    const VkResult res = vkQueuePresentKHR( m_queuePresent, &presentInfo );
-    assert( res == VK_SUCCESS );
-    if ( res != VK_SUCCESS ) {
-        std::cout << "failed to present queue" << std::endl;
-    }
-    vkDeviceWaitIdle( m_device );
+    [[maybe_unused]]
+    const VkResult presentOK = vkQueuePresentKHR( m_queuePresent, &presentInfo );
+    assert( presentOK == VK_SUCCESS );
+    vkQueueWaitIdle( m_queuePresent );
 }
 
 void RendererVK::push( void* buffer, void* constant )

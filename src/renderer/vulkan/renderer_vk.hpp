@@ -26,9 +26,7 @@ class RendererVK : public Renderer {
     uint32_t m_queueFamilyGraphics = 0;
     uint32_t m_queueFamilyPresent = 0;
     uint32_t m_queueFamilyTransfer = 0;
-    VkQueue m_queueGraphics{};
     VkQueue m_queuePresent{};
-    VkQueue m_queueTransfer{};
 
     CommandPool m_graphicsCmd{};
     CommandPool m_transferCmd{};
