@@ -485,9 +485,10 @@ void RendererGL::push( void* buffer, void* constant )
         const float* ptr = vertices.data();
         const size_t count = vertices.size() / 8;
         for ( size_t i = 0; i < count; ++i ) {
-            glVertex3fv( ptr ); std::advance( ptr, 3 );
+            const float* vert = ptr; std::advance( ptr, 3 );
             glTexCoord2fv( ptr ); std::advance( ptr, 2 );
             glNormal3fv( ptr ); std::advance( ptr, 3 );
+            glVertex3fv( vert );
         }
         glEnd();
         glPopMatrix();
