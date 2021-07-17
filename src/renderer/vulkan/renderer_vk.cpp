@@ -476,8 +476,8 @@ Buffer RendererVK::createBuffer( std::pmr::vector<float>&& vec, Buffer::Lifetime
     BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, vec.size() * sizeof( float ) };
     staging.copyData( reinterpret_cast<const uint8_t*>( vec.data() ) );
 
-    BufferVK data{ m_physicalDevice, m_device, BufferVK::Purpose::eVertex, staging.size() };
-    m_transferCmd.transferBufferAndWait( staging, data, staging.size() );
+    BufferVK data{ m_physicalDevice, m_device, BufferVK::Purpose::eVertex, staging.sizeInBytes() };
+    m_transferCmd.transferBufferAndWait( staging, data, staging.sizeInBytes() );
 
     const Buffer retBuffer{ reinterpret_cast<uint64_t>( (VkBuffer)data ), lft, Buffer::Status::ePending };
     auto [ it, emplaced ] = m_bufferMap.emplace( std::make_pair( retBuffer, std::move( data ) ) );
@@ -490,8 +490,8 @@ Buffer RendererVK::createBuffer( std::pmr::vector<glm::vec2>&& vec, Buffer::Life
     BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, vec.size() * sizeof( glm::vec2 ) };
     staging.copyData( reinterpret_cast<const uint8_t*>( vec.data() ) );
 
-    BufferVK data{ m_physicalDevice, m_device, BufferVK::Purpose::eVertex, staging.size() };
-    m_transferCmd.transferBufferAndWait( staging, data, staging.size() );
+    BufferVK data{ m_physicalDevice, m_device, BufferVK::Purpose::eVertex, staging.sizeInBytes() };
+    m_transferCmd.transferBufferAndWait( staging, data, staging.sizeInBytes() );
 
     const Buffer retBuffer{ reinterpret_cast<uint64_t>( (VkBuffer)data ), lft, Buffer::Status::ePending };
     m_bufferMap2.emplace( std::make_pair( retBuffer, std::move( data ) ) );
@@ -503,8 +503,8 @@ Buffer RendererVK::createBuffer( std::pmr::vector<glm::vec3>&& vec, Buffer::Life
     BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, vec.size() * sizeof( glm::vec3 ) };
     staging.copyData( reinterpret_cast<const uint8_t*>( vec.data() ) );
 
-    BufferVK data{ m_physicalDevice, m_device, BufferVK::Purpose::eVertex, staging.size() };
-    m_transferCmd.transferBufferAndWait( staging, data, staging.size() );
+    BufferVK data{ m_physicalDevice, m_device, BufferVK::Purpose::eVertex, staging.sizeInBytes() };
+    m_transferCmd.transferBufferAndWait( staging, data, staging.sizeInBytes() );
 
     const Buffer retBuffer{ reinterpret_cast<uint64_t>( (VkBuffer)data ), lft, Buffer::Status::ePending };
     m_bufferMap3.emplace( std::make_pair( retBuffer, std::move( data ) ) );
@@ -516,8 +516,8 @@ Buffer RendererVK::createBuffer( std::pmr::vector<glm::vec4>&& vec, Buffer::Life
     BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, vec.size() * sizeof( glm::vec4 ) };
     staging.copyData( reinterpret_cast<const uint8_t*>( vec.data() ) );
 
-    BufferVK data{ m_physicalDevice, m_device, BufferVK::Purpose::eVertex, staging.size() };
-    m_transferCmd.transferBufferAndWait( staging, data, staging.size() );
+    BufferVK data{ m_physicalDevice, m_device, BufferVK::Purpose::eVertex, staging.sizeInBytes() };
+    m_transferCmd.transferBufferAndWait( staging, data, staging.sizeInBytes() );
 
     const Buffer retBuffer{ reinterpret_cast<uint64_t>( (VkBuffer)data ), lft, Buffer::Status::ePending };
     m_bufferMap4.emplace( std::make_pair( retBuffer, std::move( data ) ) );
@@ -716,7 +716,8 @@ void RendererVK::push( void* buffer, void* constant )
         staging.copyData( reinterpret_cast<const uint8_t*>( constant ) );
         VkBuffer uniform = m_bufferUniform0.next();
 
-        m_transferCmd.transferBufferAndWait( staging, uniform, sizeof( PushConstant<Pipeline::eGuiTextureColor1> ) );
+        assert( staging.sizeInBytes() == sizeof( PushConstant<Pipeline::eGuiTextureColor1> ) );
+        m_transferCmd.transferBufferAndWait( staging, uniform, staging.sizeInBytes() );
 
         const VkDescriptorSet descriptorSet = currentPipeline.nextDescriptor();
         assert( descriptorSet != VK_NULL_HANDLE );
@@ -748,7 +749,8 @@ void RendererVK::push( void* buffer, void* constant )
         BufferVK& staging = m_bufferUniformsStaging[ 1 ];
         staging.copyData( reinterpret_cast<const uint8_t*>( constant ) );
         VkBuffer uniform = m_bufferUniform1.next();
-        m_transferCmd.transferBufferAndWait( staging, uniform, staging.size() );
+        assert( staging.sizeInBytes() == sizeof( PushConstant<Pipeline::eTriangle3dTextureNormal> ) );
+        m_transferCmd.transferBufferAndWait( staging, uniform, staging.sizeInBytes() );
 
         const VkDescriptorSet descriptorSet = currentPipeline.nextDescriptor();
         assert( descriptorSet != VK_NULL_HANDLE );
@@ -768,7 +770,7 @@ void RendererVK::push( void* buffer, void* constant )
         );
         std::array<VkBuffer, 1> buffers{ vertices->second };
         const std::array<VkDeviceSize, 1> offsets{ 0 };
-        const uint32_t verticeCount = vertices->second.size() / ( 8 * sizeof( float ) );
+        const uint32_t verticeCount = vertices->second.sizeInBytes() / ( 8 * sizeof( float ) );
         vkCmdBindVertexBuffers( cmd, 0, 1, buffers.data(), offsets.data() );
         vkCmdDraw( cmd, verticeCount, 1, 0, 0 );
     } break;

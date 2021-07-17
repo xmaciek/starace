@@ -153,7 +153,7 @@ BufferVK::operator VkBuffer () const
     return m_buffer;
 }
 
-std::size_t BufferVK::size() const
+std::size_t BufferVK::sizeInBytes() const
 {
     return m_size;
 }

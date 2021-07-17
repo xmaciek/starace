@@ -32,7 +32,7 @@ public:
 
     void transferFrom( const BufferVK&, VkCommandBuffer );
     void copyData( const uint8_t* );
-    std::size_t size() const;
+    std::size_t sizeInBytes() const;
 
     operator VkBuffer () const;
 };
