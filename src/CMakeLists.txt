@@ -35,6 +35,7 @@ set( STARACE_HEADERS
     shield.hpp
     texture.hpp
     thruster.hpp
+    tga.hpp
     update_context.hpp
     utils.hpp
 )
