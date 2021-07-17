@@ -273,31 +273,62 @@ RendererVK::RendererVK( SDL_Window* window )
     m_transferCmd = CommandPool{ m_device, m_swapchain.imageCount(), { 1, 0 }, m_queueFamilyTransfer };
 
     {
-        VkAttachmentDescription colorAttachment{};
-        colorAttachment.format = m_swapchain.surfaceFormat().format;
-        colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-        colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-        colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-        colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        const VkAttachmentDescription colorAttachment{
+            .format = m_swapchain.surfaceFormat().format,
+            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+            .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+            .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+        };
+        const VkAttachmentDescription depthAttachment{
+            .format = m_swapchain.depthFormat(),
+            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+            .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+            .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+            .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+        };
+        static constexpr VkAttachmentReference colorAttachmentRef{
+            .attachment = 0,
+            .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        };
 
-        VkAttachmentReference colorAttachmentRef{};
-        colorAttachmentRef.attachment = 0;
-        colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        static constexpr VkAttachmentReference depthAttachmentRef{
+            .attachment = 1,
+            .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+        };
 
-        VkSubpassDescription subpass{};
-        subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-        subpass.colorAttachmentCount = 1;
-        subpass.pColorAttachments = &colorAttachmentRef;
+        static constexpr VkSubpassDescription subpass{
+            .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+            .colorAttachmentCount = 1,
+            .pColorAttachments = &colorAttachmentRef,
+            .pDepthStencilAttachment = &depthAttachmentRef,
+        };
 
-        VkRenderPassCreateInfo renderPassInfo{};
-        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-        renderPassInfo.attachmentCount = 1;
-        renderPassInfo.pAttachments = &colorAttachment;
-        renderPassInfo.subpassCount = 1;
-        renderPassInfo.pSubpasses = &subpass;
+        static constexpr VkSubpassDependency dependency{
+            .srcSubpass = VK_SUBPASS_EXTERNAL,
+            .dstSubpass = 0,
+            .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+            .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+            .srcAccessMask = 0,
+            .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+        };
+
+        const std::array attachments = { colorAttachment, depthAttachment };
+        const VkRenderPassCreateInfo renderPassInfo{
+            .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+            .attachmentCount = attachments.size(),
+            .pAttachments = attachments.data(),
+            .subpassCount = 1,
+            .pSubpasses = &subpass,
+            .dependencyCount = 1,
+            .pDependencies = &dependency,
+        };
 
         const VkResult res = vkCreateRenderPass( m_device, &renderPassInfo, nullptr, &m_renderPass );
         assert( res == VK_SUCCESS );
@@ -308,24 +339,25 @@ RendererVK::RendererVK( SDL_Window* window )
     }
 
     {
-        for ( const VkImageView& it : m_swapchain.imageViews() ) {
-            assert( it != VK_NULL_HANDLE );
-            VkImageView attachments[]{ it };
+        const std::pmr::vector<VkImageView>& imageViews = m_swapchain.imageViews();
+        const std::pmr::vector<VkImageView>& depthViews = m_swapchain.depthViews();
+        const uint32_t imageCount = m_swapchain.imageCount();
+        assert( imageCount == imageViews.size() );
+        assert( imageCount == depthViews.size() );
+        for ( uint32_t i = 0; i < imageCount; ++i ) {
+            std::array attachments = { imageViews[ i ], depthViews[ i ] };
             VkFramebufferCreateInfo framebufferInfo{};
             framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
             framebufferInfo.renderPass = m_renderPass;
-            framebufferInfo.attachmentCount = 1;
-            framebufferInfo.pAttachments = attachments;
+            framebufferInfo.attachmentCount = attachments.size();
+            framebufferInfo.pAttachments = attachments.data();
             framebufferInfo.width = m_swapchain.extent().width;
             framebufferInfo.height = m_swapchain.extent().height;
             framebufferInfo.layers = 1;
-            VkFramebuffer framebuffer{};
-            const VkResult res = vkCreateFramebuffer( m_device, &framebufferInfo, nullptr, &framebuffer );
-            assert( res == VK_SUCCESS );
-            if ( res != VK_SUCCESS ) {
-                std::cout << "failed to create framebuffer" << std::endl;
-                return;
-            }
+            VkFramebuffer framebuffer = VK_NULL_HANDLE;
+            [[maybe_unused]]
+            const VkResult frameBufferOK = vkCreateFramebuffer( m_device, &framebufferInfo, nullptr, &framebuffer );
+            assert( frameBufferOK == VK_SUCCESS );
             m_framebuffers.emplace_back( framebuffer );
         }
     }
@@ -367,11 +399,13 @@ RendererVK::RendererVK( SDL_Window* window )
         , BufferVK::Purpose::eStaging
         , sizeof( PushConstant<Pipeline::eTriangle3dTextureNormal> )
     );
-    m_clear = Clear{ m_device, m_swapchain.surfaceFormat().format, false };
-    m_presentTransfer = Clear{ m_device, m_swapchain.surfaceFormat().format, true };
+    m_clear = Clear{ m_device, m_swapchain.surfaceFormat().format, m_swapchain.depthFormat(), false };
+    m_presentTransfer = Clear{ m_device, m_swapchain.surfaceFormat().format, m_swapchain.depthFormat(), true };
     m_pipelines[ (size_t)Pipeline::eGuiTextureColor1 ] = PipelineVK{ Pipeline::eGuiTextureColor1
         , m_device
         , m_swapchain.surfaceFormat().format
+        , m_swapchain.depthFormat()
+        , false
         , m_swapchain.imageCount()
         , m_swapchain.extent()
         , "shaders/gui_texture_color.vert.spv"
@@ -380,6 +414,8 @@ RendererVK::RendererVK( SDL_Window* window )
     m_pipelines[ (size_t)Pipeline::eTriangle3dTextureNormal ] = PipelineVK{ Pipeline::eTriangle3dTextureNormal
         , m_device
         , m_swapchain.surfaceFormat().format
+        , m_swapchain.depthFormat()
+        , true
         , m_swapchain.imageCount()
         , m_swapchain.extent()
         , "shaders/vert3_texture_normal3.vert.spv"
@@ -571,6 +607,8 @@ void RendererVK::beginFrame()
         .y = (float)extent.height,
         .width = (float)extent.width,
         .height = -(float)extent.height,
+        .minDepth = 0.0f,
+        .maxDepth = 1.0f,
     };
     constexpr static VkCommandBufferBeginInfo beginInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
