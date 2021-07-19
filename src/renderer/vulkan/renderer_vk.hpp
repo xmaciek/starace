@@ -2,7 +2,6 @@
 
 #include <renderer/renderer.hpp>
 
-#include "buffer_array.hpp"
 #include "buffer_vk.hpp"
 #include "clear.hpp"
 #include "command_pool.hpp"
