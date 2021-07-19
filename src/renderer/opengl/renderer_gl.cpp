@@ -273,11 +273,8 @@ void RendererGL::push( void* buffer, void* constant )
         auto* pushBuffer = reinterpret_cast<PushBuffer<Pipeline::eLine3dStripColor>*>( buffer );
         auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::eLine3dStripColor>*>( constant );
 
-        const std::pmr::vector<glm::vec3>& vertices = m_bufferMap3[ pushBuffer->m_vertices ];
-        const std::pmr::vector<glm::vec4>& colors = m_bufferMap4[ pushBuffer->m_colors ];
-        assert( vertices.size() == colors.size() );
-        assert( !vertices.empty() );
-
+        assert( pushBuffer->m_verticeCount <= pushConstant->m_vertices.size() );
+        assert( pushBuffer->m_verticeCount <= pushConstant->m_colors.size() );
         ScopeEnable blend( GL_BLEND );
         ScopeEnable depthTest( GL_DEPTH_TEST );
 
@@ -289,15 +286,13 @@ void RendererGL::push( void* buffer, void* constant )
 
         glLineWidth( pushBuffer->m_lineWidth );
         glBegin( GL_LINE_STRIP );
-        for ( size_t i = 0; i < vertices.size(); ++i ) {
-            glColor4fv( glm::value_ptr( colors[ i ] ) );
-            glVertex3fv( glm::value_ptr( vertices[ i ] ) );
+        for ( size_t i = 0; i < pushBuffer->m_verticeCount; ++i ) {
+            glColor4fv( glm::value_ptr( pushConstant->m_colors[ i ] ) );
+            glVertex3fv( glm::value_ptr( pushConstant->m_vertices[ i ] ) );
         }
         glEnd();
         glPopMatrix();
 
-        maybeDeleteBuffer( pushBuffer->m_colors );
-        maybeDeleteBuffer( pushBuffer->m_vertices );
     } break;
 
     case Pipeline::eLine3dStripColor1: {

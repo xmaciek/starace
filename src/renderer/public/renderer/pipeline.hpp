@@ -43,11 +43,21 @@ struct PushBuffer {
 template <>
 struct PushBuffer<Pipeline::eLine3dStripColor> {
     Pipeline m_pipeline = Pipeline::eLine3dStripColor;
-    Buffer m_vertices{};
-    Buffer m_colors{};
+    uint32_t m_verticeCount = 0;
     float m_lineWidth = 1.0f;
 
     PushBuffer() = default;
+};
+
+template <>
+struct PushConstant<Pipeline::eLine3dStripColor> {
+    glm::mat4 m_model{};
+    glm::mat4 m_view{};
+    glm::mat4 m_projection{};
+    std::array<glm::vec4, 32> m_vertices{};
+    std::array<glm::vec4, 32> m_colors{};
+
+    PushConstant() = default;
 };
 
 template <>

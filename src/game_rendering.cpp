@@ -92,30 +92,19 @@ void Game::renderHUDBar( RenderContext rctx, const glm::vec4& xywh, float ratio 
             , m_hudColor4fv[ m_hudColor ][ 2 ]
             , m_hudColor4fv[ m_hudColor ][ 3 ]
         };
+        PushBuffer<Pipeline::eLine3dStripColor> pushBuffer{};
+        pushBuffer.m_lineWidth = 2.0f;
+        pushBuffer.m_verticeCount = 4;
+
         PushConstant<Pipeline::eLine3dStripColor> pushConstant{};
         pushConstant.m_model = rctx.model;
         pushConstant.m_view = rctx.view;
         pushConstant.m_projection = rctx.projection;
-
-        static Buffer outline{};
-        static Buffer outlineCol{};
-        if ( outline == Buffer::Status::eNone ) {
-            std::pmr::vector<glm::vec3> vec{ rctx.renderer->allocator() };
-            vec.reserve( 4 );
-            vec.emplace_back( -4.0f, xywh.w + 4.0f, 0.0f );
-            vec.emplace_back( xywh.z + 4.0f, xywh.w + 4.0f, 0.0f );
-            vec.emplace_back( xywh.z + 4.0f, -4.0f, 0.0f );
-            vec.emplace_back( -4.0f, -4.0f, 0.0f );
-            outline = rctx.renderer->createBuffer( std::move( vec ), Buffer::Lifetime::ePersistent );
-            outlineCol = rctx.renderer->createBuffer(
-                std::pmr::vector<glm::vec4>{ 4, color, rctx.renderer->allocator() }
-                , Buffer::Lifetime::ePersistent
-            );
-        }
-        PushBuffer<Pipeline::eLine3dStripColor> pushBuffer{};
-        pushBuffer.m_lineWidth = 2.0f;
-        pushBuffer.m_colors = outlineCol;
-        pushBuffer.m_vertices = outline;
+        pushConstant.m_vertices[ 0 ] = { -4.0f, xywh.w + 4.0f, 0.0f, 0.0f };
+        pushConstant.m_vertices[ 1 ] = { xywh.z + 4.0f, xywh.w + 4.0f, 0.0f, 0.0f };
+        pushConstant.m_vertices[ 2 ] = { xywh.z + 4.0f, -4.0f, 0.0f, 0.0f };
+        pushConstant.m_vertices[ 3 ] = { -4.0f, -4.0f, 0.0f, 0.0f };
+        std::fill_n( pushConstant.m_colors.begin(), 4, color );
         rctx.renderer->push( &pushBuffer, &pushConstant );
     }
 
@@ -314,29 +303,25 @@ void Game::renderHUD( RenderContext rctx )
             rctx2.renderer->push( &pushBuffer, &pushConstant );
         }
 
-        static Buffer ringVertices{};
-        static Buffer ringColors{};
-        if ( ringVertices == Buffer::Status::eNone ) {
-            const uint32_t segments = m_speedFanRing->segments() + 1;
-            std::pmr::vector<glm::vec4> colors{ segments, color, rctx2.renderer->allocator() };
-            ringColors = rctx2.renderer->createBuffer( std::move( colors ), Buffer::Lifetime::ePersistent );
-
-            std::pmr::vector<glm::vec3> vertices{ rctx2.renderer->allocator() };
-            vertices.reserve( segments );
-            for ( size_t i = 0; i < m_speedFanRing->segments(); i++ ) {
-                vertices.emplace_back( m_speedFanRing->x( i ), m_speedFanRing->y( i ), 0.0f );
+        static std::array<glm::vec4, 32> ringVertices{};
+        static std::array<glm::vec4, 32> ringColors{};
+        static bool ringReady = false;
+        if ( !ringReady ) {
+            std::fill_n( ringColors.begin(), 32, color );
+            for ( size_t i = 0; i < m_speedFanRing->segments(); ++i ) {
+                ringVertices[ i ] = { m_speedFanRing->x( i ), m_speedFanRing->y( i ), 0.0f, 0.0f };
             }
-            vertices.emplace_back( m_speedFanRing->x( 0 ), m_speedFanRing->y( 0 ), 0.0f );
-            ringVertices = rctx2.renderer->createBuffer( std::move( vertices ), Buffer::Lifetime::ePersistent );
+            ringReady = true;
         }
         PushConstant<Pipeline::eLine3dStripColor> pushConstant{};
         pushConstant.m_model = rctx2.model;
         pushConstant.m_view = rctx2.view;
         pushConstant.m_projection = rctx2.projection;
+        pushConstant.m_vertices = ringVertices;
+        pushConstant.m_colors = ringColors;
         PushBuffer<Pipeline::eLine3dStripColor> pushBuffer{};
         pushBuffer.m_lineWidth = 1.0f;
-        pushBuffer.m_colors = ringColors;
-        pushBuffer.m_vertices = ringVertices;
+        pushBuffer.m_verticeCount = 32;
         rctx2.renderer->push( &pushBuffer, &pushConstant );
     }
 

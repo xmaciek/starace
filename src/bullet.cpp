@@ -54,53 +54,46 @@ void Bullet::render( RenderContext rctx ) const
     }
 
     assert( m_tail.size() == typeToSegments( m_type ) );
-    std::pmr::vector<glm::vec3> vertices{ rctx.renderer->allocator() };
-    std::pmr::vector<glm::vec4> colors{ rctx.renderer->allocator() };
-    switch ( m_type ) {
-    case Type::eSlug: {
-        vertices.reserve( 2 );
-        vertices.emplace_back( *m_tail.begin() );
-        vertices.emplace_back( *( m_tail.begin() + 1 ) );
-
-        colors.reserve( 2 );
-        colors.emplace_back( m_color1 );
-        colors.emplace_back( m_color1 );
-    } break;
-
-    case Type::eBlaster: {
-        vertices.reserve( 3 );
-        vertices.emplace_back( *m_tail.begin() );
-        vertices.emplace_back( *( m_tail.begin() + 3 ) );
-        vertices.emplace_back( *( m_tail.begin() + 8 ) );
-
-        colors.reserve( 3 );
-        colors.emplace_back( m_color1 );
-        colors.emplace_back( m_color1 );
-        colors.emplace_back( m_color1[ 0 ], m_color1[ 1 ], m_color1[ 2 ], 0.0f );
-    } break;
-
-    case Type::eTorpedo: {
-        vertices.resize( m_tail.size() );
-        std::copy( m_tail.cbegin(), m_tail.cend(), vertices.begin() );
-
-        colors.reserve( m_tail.size() );
-        colors.emplace_back( m_color1 );
-        colors.emplace_back( 1, 1, 1, 1 );
-        for ( size_t i = 2; i < m_tail.size(); ++i ) {
-            colors.emplace_back( 1.0f, 1.0f, 1.0f, 1.0f / i );
-        }
-    } break;
-    }
 
     PushBuffer<Pipeline::eLine3dStripColor> pushBuffer{};
-    pushBuffer.m_colors = rctx.renderer->createBuffer( std::move( colors ), Buffer::Lifetime::eOneTimeUse );
-    pushBuffer.m_vertices = rctx.renderer->createBuffer( std::move( vertices ), Buffer::Lifetime::eOneTimeUse );
     pushBuffer.m_lineWidth = 2.0f;
-
     PushConstant<Pipeline::eLine3dStripColor> pushConstant{};
     pushConstant.m_model = rctx.model;
     pushConstant.m_view = rctx.view;
     pushConstant.m_projection = rctx.projection;
+
+    switch ( m_type ) {
+    case Type::eSlug: {
+        pushBuffer.m_verticeCount = 2;
+        pushConstant.m_vertices[ 0 ] = { m_tail[ 0 ], 0.0f };
+        pushConstant.m_vertices[ 1 ] = { m_tail[ 1 ], 0.0f };
+        pushConstant.m_colors[ 0 ] = m_color1;
+        pushConstant.m_colors[ 1 ] = m_color1;
+    } break;
+
+    case Type::eBlaster: {
+        pushBuffer.m_verticeCount = 3;
+        pushConstant.m_vertices[ 0 ] = { m_tail[ 0 ], 0.0f };
+        pushConstant.m_vertices[ 1 ] = { m_tail[ 3 ], 0.0f };
+        pushConstant.m_vertices[ 2 ] = { m_tail[ 8 ], 0.0f };
+        pushConstant.m_colors[ 0 ] = m_color1;
+        pushConstant.m_colors[ 1 ] = m_color1;
+        pushConstant.m_colors[ 2 ] = m_color1;
+        pushConstant.m_colors[ 2 ].a = 0.0f;
+    } break;
+
+    case Type::eTorpedo: {
+        pushBuffer.m_verticeCount = std::min( pushConstant.m_vertices.size(), m_tail.size() );
+        std::transform( m_tail.cbegin(), m_tail.cend(), pushConstant.m_vertices.begin(),
+            []( glm::vec3 v ) { return glm::vec4{ v, 0.0f }; }
+        );
+        pushConstant.m_colors[ 0 ] = m_color1;
+        pushConstant.m_colors[ 1 ] = { 1, 1, 1, 1 };
+        for ( size_t i = 2; i < pushBuffer.m_verticeCount; ++i ) {
+            pushConstant.m_colors[ i ] = { 1.0f, 1.0f, 1.0f, 1.0f / i };
+        }
+    } break;
+    }
 
     rctx.renderer->push( &pushBuffer, &pushConstant );
 }

@@ -57,6 +57,7 @@ PipelineVK& PipelineVK::operator = ( PipelineVK&& rhs ) noexcept
 static VkPrimitiveTopology topology( Pipeline pip ) noexcept
 {
     switch ( pip ) {
+    case Pipeline::eLine3dStripColor: return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
     case Pipeline::eGuiTextureColor1: return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
     case Pipeline::eTriangle3dTextureNormal: return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     default:
@@ -86,6 +87,7 @@ static VkPipelineVertexInputStateCreateInfo vertexInfo( Pipeline pip ) noexcept
 {
     switch ( pip ) {
     case Pipeline::eGuiTextureColor1:
+    case Pipeline::eLine3dStripColor:
         return {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO
         };
@@ -120,7 +122,7 @@ static VkPipelineVertexInputStateCreateInfo vertexInfo( Pipeline pip ) noexcept
 PipelineVK::PipelineVK( Pipeline pip, VkDevice device, VkFormat format, VkFormat depthFormat, bool depthTest, uint32_t swapchainCount, const VkExtent2D& extent, std::string_view vertex, std::string_view fragment )
 : m_device( device )
 {
-    DescriptorSet descriptorSet( device, swapchainCount, 100,
+    DescriptorSet descriptorSet( device, swapchainCount, 200,
         {
             std::make_pair( VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT )
             , std::make_pair( VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT )
@@ -266,6 +268,7 @@ PipelineVK::PipelineVK( Pipeline pip, VkDevice device, VkFormat format, VkFormat
 
     const VkDynamicState dynamicStates[]{
         VK_DYNAMIC_STATE_VIEWPORT,
+        VK_DYNAMIC_STATE_LINE_WIDTH,
     };
 
     const VkPipelineDynamicStateCreateInfo dynamicState{
@@ -360,7 +363,8 @@ void PipelineVK::updateUniforms( const VkBuffer& buff
             .pImageInfo = &imageInfo,
         },
     };
-    vkUpdateDescriptorSets( m_device, std::size( descriptorWrites ), descriptorWrites, 0, nullptr );
+    const uint32_t writeCount = imageView ? (uint32_t)std::size( descriptorWrites ) : 1u;
+    vkUpdateDescriptorSets( m_device, writeCount, descriptorWrites, 0, nullptr );
 }
 
 VkDescriptorSet PipelineVK::nextDescriptor()

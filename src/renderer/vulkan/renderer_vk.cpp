@@ -241,7 +241,9 @@ RendererVK::RendererVK( SDL_Window* window )
         queueCreateInfo[ 2 ].queueCount = 1;
         queueCreateInfo[ 2 ].pQueuePriorities = queuePriority.data();
 
-        static constexpr VkPhysicalDeviceFeatures deviceFeatures{};
+        static constexpr VkPhysicalDeviceFeatures deviceFeatures{
+            .wideLines = VK_TRUE,
+        };
         const VkDeviceCreateInfo createInfo{
             .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
             .queueCreateInfoCount = std::size( queueCreateInfo ),
@@ -263,6 +265,7 @@ RendererVK::RendererVK( SDL_Window* window )
     for ( BufferPool& it : m_uniforms ) {
         it = BufferPool{ m_physicalDevice, m_device };
         it.reserve( sizeof( PushConstant<Pipeline::eGuiTextureColor1> ), 200 );
+        it.reserve( sizeof( PushConstant<Pipeline::eLine3dStripColor> ), 300 );
         it.reserve( sizeof( PushConstant<Pipeline::eTriangle3dTextureNormal> ), 3 );
     }
 
@@ -396,6 +399,16 @@ RendererVK::RendererVK( SDL_Window* window )
         , m_swapchain.extent()
         , "shaders/gui_texture_color.vert.spv"
         , "shaders/gui_texture_color.frag.spv"
+    };
+    m_pipelines[ (size_t)Pipeline::eLine3dStripColor ] = PipelineVK{ Pipeline::eLine3dStripColor
+        , m_device
+        , m_swapchain.surfaceFormat().format
+        , m_swapchain.depthFormat()
+        , true
+        , m_swapchain.imageCount()
+        , m_swapchain.extent()
+        , "shaders/line3_strip_color.vert.spv"
+        , "shaders/line3_strip_color.frag.spv"
     };
     m_pipelines[ (size_t)Pipeline::eTriangle3dTextureNormal ] = PipelineVK{ Pipeline::eTriangle3dTextureNormal
         , m_device
@@ -747,6 +760,32 @@ void RendererVK::push( void* buffer, void* constant )
             , descriptorSet
         );
         vkCmdDraw( cmd, 4, 1, 0, 0 );
+    } break;
+
+    CASE( eLine3dStripColor )
+        BufferTransfer uniform = m_uniforms[ m_currentFrame ].getBuffer( sizeof( PushConstant<Pipeline::eLine3dStripColor> ) );
+        uniform.copyToStaging( reinterpret_cast<const uint8_t*>( constant ) );
+        m_pending.emplace_back( uniform );
+
+        VkCommandBuffer cmd = m_graphicsCmd.buffer();
+
+        const VkDescriptorSet descriptorSet = currentPipeline.nextDescriptor();
+        assert( descriptorSet != VK_NULL_HANDLE );
+        currentPipeline.updateUniforms( uniform.dst()
+            , uniform.sizeInBytes()
+            , VK_NULL_HANDLE
+            , VK_NULL_HANDLE
+            , descriptorSet
+        );
+        VkRect2D renderArea{};
+        renderArea.extent = m_swapchain.extent();
+        currentPipeline.begin( cmd
+            , m_framebuffers[ m_currentFrame ]
+            , renderArea
+            , descriptorSet
+        );
+        vkCmdSetLineWidth( cmd, pushBuffer->m_lineWidth );
+        vkCmdDraw( cmd, pushBuffer->m_verticeCount, 1, 0, 0 );
     } break;
 
     CASE( eTriangle3dTextureNormal )

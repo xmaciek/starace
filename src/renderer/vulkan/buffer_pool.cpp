@@ -181,8 +181,7 @@ BufferTransfer BufferPool::getBuffer( size_t sizeInBytes )
 {
     std::pmr::vector<BufferTransfer>& bvec = m_available[ sizeInBytes ];
     if ( bvec.empty() ) {
-        assert( !"exceeded reseve" );
-        reserve( sizeInBytes, 1 );
+        reserve( sizeInBytes, 10 );
     }
     assert( !bvec.empty() );
     BufferTransfer ret = bvec.back();
