@@ -9,6 +9,7 @@
 #include "pipeline_vk.hpp"
 #include "swapchain.hpp"
 #include "texture_vk.hpp"
+#include "buffer_pool.hpp"
 
 #include <vulkan/vulkan.h>
 
@@ -47,15 +48,13 @@ class RendererVK : public Renderer {
     uint32_t m_currentFrame = 0;
     uint32_t currentFrame();
 
-    BufferArray m_bufferUniform0;
-    BufferArray m_bufferUniform1;
+    BufferPool m_uniforms[ 3 ];
+    std::pmr::vector<BufferTransfer> m_pending{};
 
     Clear m_clear{};
     Clear m_presentTransfer{};
     std::array<PipelineVK, (size_t)Pipeline::count> m_pipelines{};
     PipelineVK* m_lastPipeline = nullptr;
-
-    std::pmr::vector<BufferVK> m_bufferUniformsStaging;
 
     std::pmr::vector<TextureVK*> m_textures;
 
@@ -65,6 +64,8 @@ class RendererVK : public Renderer {
     std::pmr::map<Buffer, BufferVK> m_bufferMap4{};
 
     void transferBufferAndWait( VkBuffer src, VkBuffer dst, size_t size );
+
+    void flushUniforms();
 
 public:
     virtual ~RendererVK() override;

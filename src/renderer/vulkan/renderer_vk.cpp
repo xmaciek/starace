@@ -260,6 +260,12 @@ RendererVK::RendererVK( SDL_Window* window )
         }
     }
 
+    for ( BufferPool& it : m_uniforms ) {
+        it = BufferPool{ m_physicalDevice, m_device };
+        it.reserve( sizeof( PushConstant<Pipeline::eGuiTextureColor1> ), 200 );
+        it.reserve( sizeof( PushConstant<Pipeline::eTriangle3dTextureNormal> ), 3 );
+    }
+
     m_swapchain = Swapchain( m_physicalDevice
         , m_device
         , m_surface
@@ -378,27 +384,7 @@ RendererVK::RendererVK( SDL_Window* window )
             return;
         }
     }
-    m_bufferUniform0 = BufferArray( m_physicalDevice
-        , m_device
-        , sizeof( PushConstant<Pipeline::eGuiTextureColor1> )
-        , 200
-    );
-    m_bufferUniform1 = BufferArray( m_physicalDevice
-        , m_device
-        , sizeof( PushConstant<Pipeline::eTriangle3dTextureNormal> )
-        , 10
-    );
 
-    m_bufferUniformsStaging.emplace_back( m_physicalDevice
-        , m_device
-        , BufferVK::Purpose::eStaging
-        , sizeof( PushConstant<Pipeline::eGuiTextureColor1> )
-    );
-    m_bufferUniformsStaging.emplace_back( m_physicalDevice
-        , m_device
-        , BufferVK::Purpose::eStaging
-        , sizeof( PushConstant<Pipeline::eTriangle3dTextureNormal> )
-    );
     m_clear = Clear{ m_device, m_swapchain.surfaceFormat().format, m_swapchain.depthFormat(), false };
     m_presentTransfer = Clear{ m_device, m_swapchain.surfaceFormat().format, m_swapchain.depthFormat(), true };
     m_pipelines[ (size_t)Pipeline::eGuiTextureColor1 ] = PipelineVK{ Pipeline::eGuiTextureColor1
@@ -439,9 +425,10 @@ RendererVK::~RendererVK()
     for ( TextureVK* it : m_textures ) {
         delete it;
     }
-    m_bufferUniformsStaging.clear();
-    m_bufferUniform0 = BufferArray();
-    m_bufferUniform1 = BufferArray();
+    for ( BufferPool& it : m_uniforms ) {
+        it = {};
+    }
+
     for ( auto& it : m_pipelines ) { it = {}; }
     if ( m_semaphoreRender ) {
         vkDestroySemaphore( m_device, m_semaphoreRender, nullptr );
@@ -469,6 +456,35 @@ RendererVK::~RendererVK()
     if ( m_instance ) {
         vkDestroyInstance( m_instance, nullptr );
     }
+}
+
+void RendererVK::flushUniforms()
+{
+    std::pmr::vector<BufferTransfer> pendingTransfers = std::move( m_pending );
+    static constexpr VkCommandBufferBeginInfo beginInfo{
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+        .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
+    };
+    VkCommandBuffer cmd = m_transferCmd.buffer();
+    vkBeginCommandBuffer( cmd, &beginInfo );
+    for ( BufferTransfer& it : pendingTransfers ) {
+        const VkBufferCopy copyRegion{
+            .size = it.sizeInBytes(),
+        };
+        vkCmdCopyBuffer( cmd, it.staging(), it.dst(), 1, &copyRegion );
+    }
+
+    vkEndCommandBuffer( cmd );
+    const VkSubmitInfo submitInfo{
+        .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+        .commandBufferCount = 1,
+        .pCommandBuffers = &cmd,
+    };
+
+    VkQueue q = m_transferCmd.queue();
+    vkQueueSubmit( q, 1, &submitInfo, VK_NULL_HANDLE );
+    vkQueueWaitIdle( q );
+    m_uniforms[ m_currentFrame ].reset();
 }
 
 Buffer RendererVK::createBuffer( std::pmr::vector<float>&& vec, Buffer::Lifetime lft )
@@ -638,6 +654,7 @@ void RendererVK::submit()
         m_lastPipeline->end( cmd );
         m_lastPipeline = nullptr;
     }
+
     m_presentTransfer( cmd, m_framebuffers[ m_currentFrame ], VkRect2D{ .extent = m_swapchain.extent() } );
     if ( const VkResult res = vkEndCommandBuffer( cmd );
         res != VK_SUCCESS ) {
@@ -660,12 +677,12 @@ void RendererVK::submit()
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = renderSemaphores;
 
+    flushUniforms();
+
     [[maybe_unused]]
     const VkResult submitOK = vkQueueSubmit( m_graphicsCmd.queue(), 1, &submitInfo, VK_NULL_HANDLE );
     assert( submitOK == VK_SUCCESS );
     vkQueueWaitIdle( m_graphicsCmd.queue() );
-    m_bufferUniform0.reset();
-    m_bufferUniform1.reset();
     for ( auto& pipeline : m_pipelines ) {
         pipeline.resetDescriptors();
     }
@@ -708,18 +725,16 @@ void RendererVK::push( void* buffer, void* constant )
             return;
         }
 
-        VkCommandBuffer cmd = m_graphicsCmd.buffer();
-        BufferVK& staging = m_bufferUniformsStaging[ 0 ];
-        staging.copyData( reinterpret_cast<const uint8_t*>( constant ) );
-        VkBuffer uniform = m_bufferUniform0.next();
+        BufferTransfer uniform = m_uniforms[ m_currentFrame ].getBuffer( sizeof( PushConstant<Pipeline::eGuiTextureColor1> ) );
+        uniform.copyToStaging( reinterpret_cast<const uint8_t*>( constant ) );
+        m_pending.emplace_back( uniform );
 
-        assert( staging.sizeInBytes() == sizeof( PushConstant<Pipeline::eGuiTextureColor1> ) );
-        m_transferCmd.transferBufferAndWait( staging, uniform, staging.sizeInBytes() );
+        VkCommandBuffer cmd = m_graphicsCmd.buffer();
 
         const VkDescriptorSet descriptorSet = currentPipeline.nextDescriptor();
         assert( descriptorSet != VK_NULL_HANDLE );
-        currentPipeline.updateUniforms( uniform
-            , m_bufferUniform0.size()
+        currentPipeline.updateUniforms( uniform.dst()
+            , uniform.sizeInBytes()
             , texture->view()
             , texture->sampler()
             , descriptorSet
@@ -739,20 +754,19 @@ void RendererVK::push( void* buffer, void* constant )
         assert( texture );
         if ( !texture ) { return; }
 
+
+        BufferTransfer uniform = m_uniforms[ m_currentFrame ].getBuffer( sizeof( PushConstant<Pipeline::eTriangle3dTextureNormal> ) );
+        uniform.copyToStaging( reinterpret_cast<const uint8_t*>( constant ) );
+        m_pending.emplace_back( uniform );
+
         VkCommandBuffer cmd = m_graphicsCmd.buffer();
         auto vertices = m_bufferMap.find( pushBuffer->m_vertices );
         assert( vertices != m_bufferMap.end() );
 
-        BufferVK& staging = m_bufferUniformsStaging[ 1 ];
-        staging.copyData( reinterpret_cast<const uint8_t*>( constant ) );
-        VkBuffer uniform = m_bufferUniform1.next();
-        assert( staging.sizeInBytes() == sizeof( PushConstant<Pipeline::eTriangle3dTextureNormal> ) );
-        m_transferCmd.transferBufferAndWait( staging, uniform, staging.sizeInBytes() );
-
         const VkDescriptorSet descriptorSet = currentPipeline.nextDescriptor();
         assert( descriptorSet != VK_NULL_HANDLE );
-        currentPipeline.updateUniforms( uniform
-            , m_bufferUniform1.size()
+        currentPipeline.updateUniforms( uniform.dst()
+            , uniform.sizeInBytes()
             , texture->view()
             , texture->sampler()
             , descriptorSet

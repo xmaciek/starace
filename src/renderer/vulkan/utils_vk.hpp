@@ -11,3 +11,5 @@ std::pair<VkImage, VkDeviceMemory> createImage( VkPhysicalDevice, VkDevice, VkEx
 VkImageView createImageView( VkDevice, VkImage, VkFormat, VkImageAspectFlagBits );
 
 VkFormat pickSupportedFormat( VkPhysicalDevice, const std::pmr::vector<VkFormat>&, VkImageTiling, VkFormatFeatureFlags );
+
+uint32_t memoryType( VkPhysicalDevice, uint32_t typeBits, VkMemoryPropertyFlags );

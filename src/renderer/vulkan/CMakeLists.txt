@@ -5,6 +5,8 @@ target_sources( renderer_vk
     PRIVATE
     buffer_array.cpp
     buffer_array.hpp
+    buffer_pool.cpp
+    buffer_pool.hpp
     buffer_vk.cpp
     buffer_vk.hpp
     clear.cpp
