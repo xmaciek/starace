@@ -10,12 +10,24 @@
 #include <cassert>
 #include <cmath>
 
-Buffer Thruster::s_innerCone[ 2 ]{};
-Buffer Thruster::s_outerCone[ 2 ]{};
+static std::array<glm::vec4, 32> getCircle( float rad ) noexcept
+{
+    std::array<glm::vec4, 32> ret{};
+    const float angle = 2.0f * M_PI / 31;
+    for ( size_t i = 0; i < 32; ++i ) {
+        ret[ i ] = {
+            std::sin( angle * ( i % 31 ) ) * rad,
+            std::cos( angle * ( i % 31 ) ) * rad,
+            0.0f, 0.0f
+        };
+    }
+    return ret;
+}
 
-Thruster::Thruster( float length, float radius )
-: m_inner( 32, radius * 0.6 )
-, m_outer( 32, radius )
+static const std::array<glm::vec4, 32> s_outter = getCircle( 0.35f * 0.04285f );
+static const std::array<glm::vec4, 32> s_inner = getCircle( 0.35f * 0.04285f * 0.6f );
+
+Thruster::Thruster( float length, float )
 {
     setLength( length );
 }
@@ -39,52 +51,24 @@ void Thruster::update( const UpdateContext& updateContext )
     m_length = m_lengthRange.x + f * diff;
 }
 
-static Buffer makeBuffer( Renderer* renderer, const Circle& c )
-{
-    assert( renderer );
-    std::pmr::vector<glm::vec3> cone{ renderer->allocator() };
-    cone.reserve( c.segments() + 2 );
-    cone.emplace_back( 0.0f, 0.0f, 1.0f );
-    for ( size_t i = 0; i < c.segments() ; ++i ) {
-        cone.emplace_back( c.x( i ), c.y( i ), 0.0f );
-    }
-    cone.emplace_back( c.x( 0 ), c.y( 0 ), 0.0f );
-    std::reverse( cone.begin() + 1, cone.end() );
-    return renderer->createBuffer( std::move( cone ), Buffer::Lifetime::ePersistent );
-}
-
-static Buffer makeColorBuffer( Renderer* renderer, uint32_t count, const glm::vec4& a, const glm::vec4& b )
-{
-    assert( renderer );
-    std::pmr::vector<glm::vec4> colors{ renderer->allocator() };
-    colors.resize( count, a );
-    colors.front() = b;
-    return renderer->createBuffer( std::move( colors ), Buffer::Lifetime::ePersistent );
-}
-
 void Thruster::renderAt( RenderContext rctx, const glm::vec3& pos ) const
 {
-    if ( s_innerCone[ 0 ] == Buffer::Status::eNone ) {
-        s_innerCone[ 0 ] = makeBuffer( rctx.renderer, m_inner );
-        s_innerCone[ 1 ] = makeColorBuffer( rctx.renderer, m_inner.segments() + 2, m_colorScheme[ 0 ], m_colorScheme[ 1 ] );
-        s_outerCone[ 0 ] = makeBuffer( rctx.renderer, m_outer );
-        s_outerCone[ 1 ] = makeColorBuffer( rctx.renderer, m_outer.segments() + 2, m_colorScheme[ 2 ], m_colorScheme[ 3 ] );
-    }
 
+    PushBuffer<Pipeline::eTriangleFan3dColor> pushBuffer{};
+    pushBuffer.m_verticeCount = 33;
     PushConstant<Pipeline::eTriangleFan3dColor> pushConstant{};
     pushConstant.m_model = glm::translate( rctx.model, pos );
     pushConstant.m_model = glm::scale( pushConstant.m_model, glm::vec3{ 1.0f, 1.0f, m_length } );
     pushConstant.m_view = rctx.view;
     pushConstant.m_projection = rctx.projection;
+    pushConstant.m_vertices[ 0 ] = { 0.0f, 0.0f, 1.0f, 0.0f };
+    std::copy( s_inner.rbegin(), s_inner.rend(), pushConstant.m_vertices.begin() + 1 );
+    pushConstant.m_colors[ 0 ] = m_colorScheme[ 1 ];
+    std::fill_n( pushConstant.m_colors.begin() + 1, 32, m_colorScheme[ 0 ] );
+    rctx.renderer->push( &pushBuffer, &pushConstant );
 
-    PushBuffer<Pipeline::eTriangleFan3dColor> pushInner{};
-    PushBuffer<Pipeline::eTriangleFan3dColor> pushOuter{};
-
-    pushInner.m_vertices = s_innerCone[ 0 ];
-    pushInner.m_colors = s_innerCone[ 1 ];
-    pushOuter.m_vertices = s_outerCone[ 0 ];
-    pushOuter.m_colors = s_outerCone[ 1 ];
-
-    rctx.renderer->push( &pushInner, &pushConstant );
-    rctx.renderer->push( &pushOuter, &pushConstant );
+    std::copy( s_outter.rbegin(), s_outter.rend(), pushConstant.m_vertices.begin() + 1 );
+    pushConstant.m_colors[ 0 ] = m_colorScheme[ 3 ];
+    std::fill_n( pushConstant.m_colors.begin() + 1, 32, m_colorScheme[ 2 ] );
+    rctx.renderer->push( &pushBuffer, &pushConstant );
 }

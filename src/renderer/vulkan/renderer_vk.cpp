@@ -410,6 +410,16 @@ RendererVK::RendererVK( SDL_Window* window )
         , "shaders/line3_strip_color.vert.spv"
         , "shaders/line3_strip_color.frag.spv"
     };
+    m_pipelines[ (size_t)Pipeline::eTriangleFan3dColor ] = PipelineVK{ Pipeline::eTriangleFan3dColor
+        , m_device
+        , m_swapchain.surfaceFormat().format
+        , m_swapchain.depthFormat()
+        , true
+        , m_swapchain.imageCount()
+        , m_swapchain.extent()
+        , "shaders/trianglefan_color.vert.spv"
+        , "shaders/trianglefan_color.frag.spv"
+    };
     m_pipelines[ (size_t)Pipeline::eTriangle3dTextureNormal ] = PipelineVK{ Pipeline::eTriangle3dTextureNormal
         , m_device
         , m_swapchain.surfaceFormat().format
@@ -785,6 +795,31 @@ void RendererVK::push( void* buffer, void* constant )
             , descriptorSet
         );
         vkCmdSetLineWidth( cmd, pushBuffer->m_lineWidth );
+        vkCmdDraw( cmd, pushBuffer->m_verticeCount, 1, 0, 0 );
+    } break;
+
+    CASE( eTriangleFan3dColor )
+        BufferTransfer uniform = m_uniforms[ m_currentFrame ].getBuffer( sizeof( PushConstant<Pipeline::eTriangleFan3dColor> ) );
+        uniform.copyToStaging( reinterpret_cast<const uint8_t*>( constant ) );
+        m_pending.emplace_back( uniform );
+
+        VkCommandBuffer cmd = m_graphicsCmd.buffer();
+
+        const VkDescriptorSet descriptorSet = currentPipeline.nextDescriptor();
+        assert( descriptorSet != VK_NULL_HANDLE );
+        currentPipeline.updateUniforms( uniform.dst()
+            , uniform.sizeInBytes()
+            , VK_NULL_HANDLE
+            , VK_NULL_HANDLE
+            , descriptorSet
+        );
+        VkRect2D renderArea{};
+        renderArea.extent = m_swapchain.extent();
+        currentPipeline.begin( cmd
+            , m_framebuffers[ m_currentFrame ]
+            , renderArea
+            , descriptorSet
+        );
         vkCmdDraw( cmd, pushBuffer->m_verticeCount, 1, 0, 0 );
     } break;
 

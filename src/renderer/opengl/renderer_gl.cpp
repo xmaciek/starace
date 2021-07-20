@@ -404,11 +404,6 @@ void RendererGL::push( void* buffer, void* constant )
         auto* pushBuffer = reinterpret_cast<PushBuffer<Pipeline::eTriangleFan3dColor>*>( buffer );
         auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::eTriangleFan3dColor>*>( constant );
 
-        const std::pmr::vector<glm::vec3>& vec = m_bufferMap3[ pushBuffer->m_vertices ];
-        const std::pmr::vector<glm::vec4>& col = m_bufferMap4[ pushBuffer->m_colors ];
-        assert( vec.size() == col.size() );
-        assert( !vec.empty() );
-
         ScopeEnable blend( GL_BLEND );
         ScopeEnable depthTest( GL_DEPTH_TEST );
 
@@ -419,15 +414,12 @@ void RendererGL::push( void* buffer, void* constant )
         glLoadMatrixf( glm::value_ptr( pushConstant->m_view * pushConstant->m_model ) );
 
         glBegin( GL_TRIANGLE_FAN );
-        for ( size_t i = 0; i < vec.size(); ++i ) {
-            glColor4fv( glm::value_ptr( col[ i ] ) );
-            glVertex3fv( glm::value_ptr( vec[ i ] ) );
+        for ( size_t i = 0; i < pushBuffer->m_verticeCount; ++i ) {
+            glColor4fv( glm::value_ptr( pushConstant->m_colors[ i ] ) );
+            glVertex3fv( glm::value_ptr( pushConstant->m_vertices[ i ] ) );
         }
         glEnd();
         glPopMatrix();
-
-        maybeDeleteBuffer( pushBuffer->m_colors );
-        maybeDeleteBuffer( pushBuffer->m_vertices );
     } break;
 
     case Pipeline::eLine3dColor1: {

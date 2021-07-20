@@ -59,6 +59,7 @@ static VkPrimitiveTopology topology( Pipeline pip ) noexcept
     switch ( pip ) {
     case Pipeline::eLine3dStripColor: return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
     case Pipeline::eGuiTextureColor1: return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+    case Pipeline::eTriangleFan3dColor: return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
     case Pipeline::eTriangle3dTextureNormal: return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     default:
         assert( !"unhandled enum" );
@@ -88,6 +89,7 @@ static VkPipelineVertexInputStateCreateInfo vertexInfo( Pipeline pip ) noexcept
     switch ( pip ) {
     case Pipeline::eGuiTextureColor1:
     case Pipeline::eLine3dStripColor:
+    case Pipeline::eTriangleFan3dColor:
         return {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO
         };

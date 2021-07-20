@@ -17,10 +17,6 @@ private:
     float m_length = 0.25f;
     float m_wiggle = 0.0f;
     ColorScheme m_colorScheme{};
-    Circle m_inner;
-    Circle m_outer;
-    static Buffer s_innerCone[ 2 ];
-    static Buffer s_outerCone[ 2 ];
 
 public:
     Thruster( float length, float radius );

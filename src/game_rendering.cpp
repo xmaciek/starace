@@ -279,25 +279,15 @@ void Game::renderHUD( RenderContext rctx )
             pushConstant.m_model = glm::rotate( rctx2.model, (float)glm::radians( m_speedAnim ), glm::vec3{ 0.0f, 0.0f, 1.0f } );
             pushConstant.m_view = rctx2.view;
             pushConstant.m_projection = rctx2.projection;
-
-            static Buffer colors{};
-            static Buffer vertices{};
-            if ( colors == Buffer::Status::eNone ) {
-                std::pmr::vector<glm::vec4> col{ 5, color, rctx.renderer->allocator() };
-                std::pmr::vector<glm::vec3> vec{ rctx.renderer->allocator() };
-                vec.reserve( 5 );
-                vec.emplace_back( -3, 0, 0 );
-                vec.emplace_back( 3, 0, 0 );
-                vec.emplace_back( 12, 24, 0 );
-                vec.emplace_back( 0, 26.5, 0 );
-                vec.emplace_back( -12, 24, 0 );
-                colors = rctx.renderer->createBuffer( std::move( col ), Buffer::Lifetime::ePersistent );
-                vertices = rctx.renderer->createBuffer( std::move( vec ), Buffer::Lifetime::ePersistent );
-            }
+            std::fill_n( pushConstant.m_colors.begin(), 5, color );
+            pushConstant.m_vertices[ 0 ] = { -3.0f, 0.0f, 0.0f, 0.0f };
+            pushConstant.m_vertices[ 1 ] = { 3.0f, 0.0f, 0.0f, 0.0f };
+            pushConstant.m_vertices[ 2 ] = { 12.0f, 24.0f, 0.0f, 0.0f };
+            pushConstant.m_vertices[ 3 ] = { 0.0f, 26.5f, 0.0f, 0.0f };
+            pushConstant.m_vertices[ 4 ] = { -12.0f, 24.0f, 0.0f, 0.0f };
 
             PushBuffer<Pipeline::eTriangleFan3dColor> pushBuffer{};
-            pushBuffer.m_colors = colors;
-            pushBuffer.m_vertices = vertices;
+            pushBuffer.m_verticeCount = 5;
             rctx2.renderer->push( &pushBuffer, &pushConstant );
             pushConstant.m_model = glm::rotate( pushConstant.m_model, glm::radians( 180.0f ), glm::vec3{ 0.0f, 0.0f, 1.0f } );
             rctx2.renderer->push( &pushBuffer, &pushConstant );

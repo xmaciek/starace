@@ -150,8 +150,18 @@ struct PushBuffer<Pipeline::eTriangle3dTextureNormal> {
 template <>
 struct PushBuffer<Pipeline::eTriangleFan3dColor> {
     Pipeline m_pipeline = Pipeline::eTriangleFan3dColor;
-    Buffer m_vertices{};
-    Buffer m_colors{};
+    uint32_t m_verticeCount = 0;
 
     PushBuffer() = default;
+};
+
+template <>
+struct PushConstant<Pipeline::eTriangleFan3dColor> {
+    glm::mat4 m_model{};
+    glm::mat4 m_view{};
+    glm::mat4 m_projection{};
+    std::array<glm::vec4, 48> m_vertices{};
+    std::array<glm::vec4, 48> m_colors{};
+
+    PushConstant() = default;
 };
