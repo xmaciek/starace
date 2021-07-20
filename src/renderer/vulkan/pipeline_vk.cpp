@@ -122,7 +122,7 @@ static VkPipelineVertexInputStateCreateInfo vertexInfo( Pipeline pip ) noexcept
 PipelineVK::PipelineVK( Pipeline pip, VkDevice device, VkFormat format, VkFormat depthFormat, bool depthTest, uint32_t swapchainCount, const VkExtent2D& extent, std::string_view vertex, std::string_view fragment )
 : m_device( device )
 {
-    DescriptorSet descriptorSet( device, swapchainCount, 200,
+    DescriptorSet descriptorSet( device, swapchainCount, 400,
         {
             std::make_pair( VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT )
             , std::make_pair( VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT )

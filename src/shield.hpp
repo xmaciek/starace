@@ -1,6 +1,5 @@
 #pragma once
 
-#include "circle.hpp"
 #include "render_context.hpp"
 #include "update_context.hpp"
 
@@ -9,7 +8,6 @@
 class Shield {
 private:
     glm::vec4 m_color{};
-    Circle m_circle{};
     float m_rotAngle = 0.0;
     float m_radius = 0.0;
 
