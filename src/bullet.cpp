@@ -10,7 +10,7 @@
 #include <cassert>
 #include <random>
 
-static uint16_t typeToSegments( Bullet::Type e )
+static constexpr uint16_t typeToSegments( Bullet::Type e ) noexcept
 {
     switch ( e ) {
     case Bullet::Type::eTorpedo:
@@ -22,6 +22,19 @@ static uint16_t typeToSegments( Bullet::Type e )
     default:
         return 0;
     }
+}
+static std::array<glm::vec4, 23> getTailColors() noexcept
+{
+    std::array<glm::vec4, 23> ret{};
+    const glm::vec4 a{ 1.0f, 1.0f, 1.0f, 1.0f };
+    const glm::vec4 diff{ 0.0f, 0.0f, 0.0f, -1.0f };
+    size_t i = 0;
+    const float f = 1.0f / ret.size();
+    for ( auto& it : ret ) {
+        const float n = f * (float)i++;
+        it = a + diff * ( 0.5f - std::cos( n * (float)M_PI ) * 0.5f );
+    }
+    return ret;
 }
 
 Bullet::Bullet( const BulletProto& bp )
@@ -88,10 +101,8 @@ void Bullet::render( RenderContext rctx ) const
             []( glm::vec3 v ) { return glm::vec4{ v, 0.0f }; }
         );
         pushConstant.m_colors[ 0 ] = m_color1;
-        pushConstant.m_colors[ 1 ] = { 1, 1, 1, 1 };
-        for ( size_t i = 2; i < pushBuffer.m_verticeCount; ++i ) {
-            pushConstant.m_colors[ i ] = { 1.0f, 1.0f, 1.0f, 1.0f / i };
-        }
+        static const std::array<glm::vec4,23> tail = getTailColors();
+        std::copy( tail.begin(), tail.end(), pushConstant.m_colors.begin() + 1 );
     } break;
     }
 
@@ -101,6 +112,7 @@ void Bullet::render( RenderContext rctx ) const
 void Bullet::update( const UpdateContext& updateContext )
 {
     if ( status() == Status::eDead ) {
+        assert( !"this is dead" );
         return;
     }
     if ( m_range > m_maxRange ) {
