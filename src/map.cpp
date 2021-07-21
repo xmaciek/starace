@@ -1,5 +1,7 @@
 #include "map.hpp"
 
+#include <algorithm>
+
 #include "utils.hpp"
 #include <renderer/pipeline.hpp>
 #include <renderer/renderer.hpp>
@@ -7,119 +9,123 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+static constexpr float uvmin = 0.00125f;
+static constexpr float uvmax = 0.99875f;
+static constexpr float size = 1000.0f;
+
+static constexpr std::array<glm::vec4, 4> wall1{
+    glm::vec4{ -size, -size, -size, 0.0f },
+    glm::vec4{  size, -size, -size, 0.0f },
+    glm::vec4{  size,  size, -size, 0.0f },
+    glm::vec4{ -size,  size, -size, 0.0f }
+};
+static constexpr std::array<glm::vec4, 4> wall2{
+    glm::vec4{ -size,  size,  size, 0.0f },
+    glm::vec4{  size,  size,  size, 0.0f },
+    glm::vec4{  size, -size,  size, 0.0f },
+    glm::vec4{ -size, -size,  size, 0.0f }
+};
+static constexpr std::array<glm::vec4, 4> wall3{
+    glm::vec4{ -size, -size,  size, 0.0f },
+    glm::vec4{ -size, -size, -size, 0.0f },
+    glm::vec4{ -size,  size, -size, 0.0f },
+    glm::vec4{ -size,  size,  size, 0.0f }
+};
+static constexpr std::array<glm::vec4, 4> wall4{
+    glm::vec4{  size,  size,  size, 0.0f },
+    glm::vec4{  size,  size, -size, 0.0f },
+    glm::vec4{  size, -size, -size, 0.0f },
+    glm::vec4{  size, -size,  size, 0.0f }
+};
+static constexpr std::array<glm::vec4, 4> wall5{
+    glm::vec4{ -size,  size,  size, 0.0f },
+    glm::vec4{ -size,  size, -size, 0.0f },
+    glm::vec4{  size,  size, -size, 0.0f },
+    glm::vec4{  size,  size,  size, 0.0f }
+};
+static constexpr std::array<glm::vec4, 4> wall6{
+    glm::vec4{ -size, -size,  size, 0.0f },
+    glm::vec4{  size, -size,  size, 0.0f },
+    glm::vec4{  size, -size, -size, 0.0f },
+    glm::vec4{ -size, -size, -size, 0.0f }
+};
+
+static constexpr std::array<glm::vec4,4> uv1 {
+    glm::vec4{ uvmin, uvmin, 0.0f, 0.0f },
+    glm::vec4{ uvmax, uvmin, 0.0f, 0.0f },
+    glm::vec4{ uvmax, uvmax, 0.0f, 0.0f },
+    glm::vec4{ uvmin, uvmax, 0.0f, 0.0f }
+};
+static constexpr std::array<glm::vec4,4> uv2 {
+    glm::vec4{ uvmin, uvmax, 0.0f, 0.0f },
+    glm::vec4{ uvmax, uvmax, 0.0f, 0.0f },
+    glm::vec4{ uvmax, uvmin, 0.0f, 0.0f },
+    glm::vec4{ uvmin, uvmin, 0.0f, 0.0f }
+};
+static constexpr std::array<glm::vec4,4> uv3 {
+    glm::vec4{ uvmin, uvmin, 0.0f, 0.0f },
+    glm::vec4{ uvmax, uvmin, 0.0f, 0.0f },
+    glm::vec4{ uvmax, uvmax, 0.0f, 0.0f },
+    glm::vec4{ uvmin, uvmax, 0.0f, 0.0f }
+};
+static constexpr std::array<glm::vec4,4> uv4 {
+    glm::vec4{ uvmin, uvmax, 0.0f, 0.0f },
+    glm::vec4{ uvmax, uvmax, 0.0f, 0.0f },
+    glm::vec4{ uvmax, uvmin, 0.0f, 0.0f },
+    glm::vec4{ uvmin, uvmin, 0.0f, 0.0f }
+};
+static constexpr std::array<glm::vec4,4> uv5 {
+    glm::vec4{ uvmin, uvmin, 0.0f, 0.0f },
+    glm::vec4{ uvmax, uvmin, 0.0f, 0.0f },
+    glm::vec4{ uvmax, uvmax, 0.0f, 0.0f },
+    glm::vec4{ uvmin, uvmax, 0.0f, 0.0f }
+};
+static constexpr std::array<glm::vec4,4> uv6 {
+    glm::vec4{ uvmin, uvmin, 0.0f, 0.0f },
+    glm::vec4{ uvmax, uvmin, 0.0f, 0.0f },
+    glm::vec4{ uvmax, uvmax, 0.0f, 0.0f },
+    glm::vec4{ uvmin, uvmax, 0.0f, 0.0f }
+};
+
 void Map::render( RenderContext rctx )
 {
-    static Buffer walls[ 6 ]{};
-    static Buffer uv[ 6 ]{};
-
     // NOTE: this is so bad, should ba model rendering
-    if ( walls[ 0 ] == Buffer::Status::eNone ) {
-        std::pmr::memory_resource* a = rctx.renderer->allocator();
-        using Vec = std::pmr::vector<glm::vec3>;
-        using Uv = std::pmr::vector<glm::vec2>;
-        std::pmr::vector<glm::vec3> w[ 6 ] = { Vec{ 4, a },Vec{ 4, a },Vec{ 4, a },Vec{ 4, a },Vec{ 4, a },Vec{ 4, a } };
-        std::pmr::vector<glm::vec2> auv[ 6 ] ={ Uv{ 4, a }, Uv{ 4, a }, Uv{ 4, a }, Uv{ 4, a }, Uv{ 4, a }, Uv{ 4, a } };
-
-        int i = 0;
-        int j = 0;
-
-        w[ i ][ j++ ] = glm::vec3{ -m_v1, -m_v1, -m_v1 };
-        w[ i ][ j++ ] = glm::vec3{ m_v1, -m_v1, -m_v1 };
-        w[ i ][ j++ ] = glm::vec3{ m_v1, m_v1, -m_v1 };
-        w[ i ][ j++ ] = glm::vec3{ -m_v1, m_v1, -m_v1 };
-        j = 0;
-        auv[ i ][ j++ ] = glm::vec2{ m_min, m_min };
-        auv[ i ][ j++ ] = glm::vec2{ m_max, m_min };
-        auv[ i ][ j++ ] = glm::vec2{ m_max, m_max };
-        auv[ i ][ j++ ] = glm::vec2{ m_min, m_max };
-        walls[ i ] = rctx.renderer->createBuffer( std::move( w[ i ] ), Buffer::Lifetime::ePersistent );
-        uv[ i ] = rctx.renderer->createBuffer( std::move( auv[ i ] ), Buffer::Lifetime::ePersistent  );
-        i++;
-        j = 0;
-
-        w[ i ][ j++ ] = glm::vec3{ -m_v1, m_v1, m_v1 };
-        w[ i ][ j++ ] = glm::vec3{ m_v1, m_v1, m_v1 };
-        w[ i ][ j++ ] = glm::vec3{ m_v1, -m_v1, m_v1 };
-        w[ i ][ j++ ] = glm::vec3{ -m_v1, -m_v1, m_v1 };
-        j = 0;
-        auv[ i ][ j++ ] = glm::vec2{ m_min, m_max };
-        auv[ i ][ j++ ] = glm::vec2{ m_max, m_max };
-        auv[ i ][ j++ ] = glm::vec2{ m_max, m_min };
-        auv[ i ][ j++ ] = glm::vec2{ m_min, m_min };
-        walls[ i ] = rctx.renderer->createBuffer( std::move( w[ i ] ), Buffer::Lifetime::ePersistent  );
-        uv[ i ] = rctx.renderer->createBuffer( std::move( auv[ i ] ), Buffer::Lifetime::ePersistent  );
-        i++;
-        j = 0;
-
-        w[ i ][ j++ ] = glm::vec3{ -m_v1, -m_v1, m_v1 };
-        w[ i ][ j++ ] = glm::vec3{ -m_v1, -m_v1, -m_v1 };
-        w[ i ][ j++ ] = glm::vec3{ -m_v1, m_v1, -m_v1 };
-        w[ i ][ j++ ] = glm::vec3{ -m_v1, m_v1, m_v1 };
-        j = 0;
-        auv[ i ][ j++ ] = glm::vec2{ m_min, m_min };
-        auv[ i ][ j++ ] = glm::vec2{ m_max, m_min };
-        auv[ i ][ j++ ] = glm::vec2{ m_max, m_max };
-        auv[ i ][ j++ ] = glm::vec2{ m_min, m_max };
-        walls[ i ] = rctx.renderer->createBuffer( std::move( w[ i ] ), Buffer::Lifetime::ePersistent  );
-        uv[ i ] = rctx.renderer->createBuffer( std::move( auv[ i ] ), Buffer::Lifetime::ePersistent  );
-        i++;
-        j = 0;
-
-        w[ i ][ j++ ] = glm::vec3{ m_v1, m_v1, m_v1 };
-        w[ i ][ j++ ] = glm::vec3{ m_v1, m_v1, -m_v1 };
-        w[ i ][ j++ ] = glm::vec3{ m_v1, -m_v1, -m_v1 };
-        w[ i ][ j++ ] = glm::vec3{ m_v1, -m_v1, m_v1 };
-        j = 0;
-        auv[ i ][ j++ ] = glm::vec2{ m_min, m_max };
-        auv[ i ][ j++ ] = glm::vec2{ m_max, m_max };
-        auv[ i ][ j++ ] = glm::vec2{ m_max, m_min };
-        auv[ i ][ j++ ] = glm::vec2{ m_min, m_min };
-        walls[ i ] = rctx.renderer->createBuffer( std::move( w[ i ] ), Buffer::Lifetime::ePersistent  );
-        uv[ i ] = rctx.renderer->createBuffer( std::move( auv[ i ] ), Buffer::Lifetime::ePersistent  );
-        i++;
-        j = 0;
-
-        w[ i ][ j++ ] = glm::vec3{ -m_v1, m_v1, m_v1 };
-        w[ i ][ j++ ] = glm::vec3{ -m_v1, m_v1, -m_v1 };
-        w[ i ][ j++ ] = glm::vec3{ m_v1, m_v1, -m_v1 };
-        w[ i ][ j++ ] = glm::vec3{ m_v1, m_v1, m_v1 };
-        j = 0;
-        auv[ i ][ j++ ] = glm::vec2{ m_min, m_min };
-        auv[ i ][ j++ ] = glm::vec2{ m_max, m_min };
-        auv[ i ][ j++ ] = glm::vec2{ m_max, m_max };
-        auv[ i ][ j++ ] = glm::vec2{ m_min, m_max };
-        walls[ i ] = rctx.renderer->createBuffer( std::move( w[ i ] ), Buffer::Lifetime::ePersistent  );
-        uv[ i ] = rctx.renderer->createBuffer( std::move( auv[ i ] ), Buffer::Lifetime::ePersistent  );
-        i++;
-        j = 0;
-
-        w[ i ][ j++ ] = glm::vec3{ -m_v1, -m_v1, m_v1 };
-        w[ i ][ j++ ] = glm::vec3{ m_v1, -m_v1, m_v1 };
-        w[ i ][ j++ ] = glm::vec3{ m_v1, -m_v1, -m_v1 };
-        w[ i ][ j++ ] = glm::vec3{ -m_v1, -m_v1, -m_v1 };
-        j = 0;
-        auv[ i ][ j++ ] = glm::vec2{ m_min, m_min };
-        auv[ i ][ j++ ] = glm::vec2{ m_max, m_min };
-        auv[ i ][ j++ ] = glm::vec2{ m_max, m_max };
-        auv[ i ][ j++ ] = glm::vec2{ m_min, m_max };
-        walls[ i ] = rctx.renderer->createBuffer( std::move( w[ i ] ), Buffer::Lifetime::ePersistent  );
-        uv[ i ] = rctx.renderer->createBuffer( std::move( auv[ i ] ), Buffer::Lifetime::ePersistent  );
-    }
-
     {
+        PushBuffer<Pipeline::eTriangleFan3dTexture> pushBuffer{};
         PushConstant<Pipeline::eTriangleFan3dTexture> pushConstant{};
         pushConstant.m_model = rctx.model;
         pushConstant.m_view = rctx.view;
         pushConstant.m_projection = rctx.projection;
 
-        const Texture tex[ 6 ] = { m_back, m_front, m_left, m_right, m_top, m_bottom };
-        PushBuffer<Pipeline::eTriangleFan3dTexture> pushBuffer{};
-        for ( int i = 0; i < 6; i++ ) {
-            pushBuffer.m_texture = tex[ i ];
-            pushBuffer.m_vertices = walls[ i ];
-            pushBuffer.m_uv = uv[ i ];
-            rctx.renderer->push( &pushBuffer, &pushConstant );
-        }
+        pushBuffer.m_texture = m_back;
+        std::copy_n( wall1.begin(), 4, pushConstant.m_vertices.begin() );
+        std::copy_n( uv1.begin(), 4, pushConstant.m_uv.begin() );
+        rctx.renderer->push( &pushBuffer, &pushConstant );
+
+        pushBuffer.m_texture = m_front;
+        std::copy_n( wall2.begin(), 4, pushConstant.m_vertices.begin() );
+        std::copy_n( uv2.begin(), 4, pushConstant.m_uv.begin() );
+        rctx.renderer->push( &pushBuffer, &pushConstant );
+
+        pushBuffer.m_texture = m_left;
+        std::copy_n( wall3.begin(), 4, pushConstant.m_vertices.begin() );
+        std::copy_n( uv3.begin(), 4, pushConstant.m_uv.begin() );
+        rctx.renderer->push( &pushBuffer, &pushConstant );
+
+        pushBuffer.m_texture = m_right;
+        std::copy_n( wall4.begin(), 4, pushConstant.m_vertices.begin() );
+        std::copy_n( uv4.begin(), 4, pushConstant.m_uv.begin() );
+        rctx.renderer->push( &pushBuffer, &pushConstant );
+
+        pushBuffer.m_texture = m_top;
+        std::copy_n( wall5.begin(), 4, pushConstant.m_vertices.begin() );
+        std::copy_n( uv5.begin(), 4, pushConstant.m_uv.begin() );
+        rctx.renderer->push( &pushBuffer, &pushConstant );
+
+        pushBuffer.m_texture = m_bottom;
+        std::copy_n( wall6.begin(), 4, pushConstant.m_vertices.begin() );
+        std::copy_n( uv6.begin(), 4, pushConstant.m_uv.begin() );
+        rctx.renderer->push( &pushBuffer, &pushConstant );
     }
 
     {

@@ -371,11 +371,6 @@ void RendererGL::push( void* buffer, void* constant )
         auto* pushBuffer = reinterpret_cast<PushBuffer<Pipeline::eTriangleFan3dTexture>*>( buffer );
         auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::eTriangleFan3dTexture>*>( constant );
 
-        const std::pmr::vector<glm::vec3>& vertices = m_bufferMap3[ pushBuffer->m_vertices ];
-        const std::pmr::vector<glm::vec2>& uv = m_bufferMap2[ pushBuffer->m_uv ];
-        assert( vertices.size() == uv.size() );
-        assert( !vertices.empty() );
-
         ScopeEnable blend( GL_BLEND );
         ScopeEnable depthTest( GL_DEPTH_TEST );
         ScopeEnable texture2d( GL_TEXTURE_2D );
@@ -389,15 +384,12 @@ void RendererGL::push( void* buffer, void* constant )
         glBindTexture( GL_TEXTURE_2D, static_cast<uint32_t>( pushBuffer->m_texture.m_data ) );
         glBegin( GL_TRIANGLE_FAN );
         glColor4f( 1, 1, 1, 1 );
-        for ( size_t i = 0; i < vertices.size(); ++i ) {
-            glTexCoord2fv( glm::value_ptr( uv[ i ] ) );
-            glVertex3fv( glm::value_ptr( vertices[ i ] ) );
+        for ( size_t i = 0; i < pushConstant->m_vertices.size(); ++i ) {
+            glTexCoord2fv( glm::value_ptr( pushConstant->m_uv[ i ] ) );
+            glVertex3fv( glm::value_ptr( pushConstant->m_vertices[ i ] ) );
         }
         glEnd();
         glPopMatrix();
-
-        maybeDeleteBuffer( pushBuffer->m_vertices );
-        maybeDeleteBuffer( pushBuffer->m_uv );
     } break;
 
     case Pipeline::eTriangleFan3dColor: {

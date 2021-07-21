@@ -81,11 +81,20 @@ struct PushConstant<Pipeline::eLine3dStripColor1> {
 template <>
 struct PushBuffer<Pipeline::eTriangleFan3dTexture> {
     Pipeline m_pipeline = Pipeline::eTriangleFan3dTexture;
-    Buffer m_vertices{};
-    Buffer m_uv{};
     Texture m_texture{};
 
     PushBuffer() = default;
+};
+
+template <>
+struct PushConstant<Pipeline::eTriangleFan3dTexture> {
+    glm::mat4 m_model{};
+    glm::mat4 m_view{};
+    glm::mat4 m_projection{};
+    std::array<glm::vec4, 4> m_vertices{};
+    std::array<glm::vec4, 4> m_uv{};
+
+    PushConstant() = default;
 };
 
 template <>

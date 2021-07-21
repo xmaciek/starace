@@ -410,6 +410,16 @@ RendererVK::RendererVK( SDL_Window* window )
         , "shaders/line3_strip_color.vert.spv"
         , "shaders/line3_strip_color.frag.spv"
     };
+    m_pipelines[ (size_t)Pipeline::eTriangleFan3dTexture ] = PipelineVK{ Pipeline::eTriangleFan3dTexture
+        , m_device
+        , m_swapchain.surfaceFormat().format
+        , m_swapchain.depthFormat()
+        , true
+        , m_swapchain.imageCount()
+        , m_swapchain.extent()
+        , "shaders/trianglefan_texture.vert.spv"
+        , "shaders/trianglefan_texture.frag.spv"
+    };
     m_pipelines[ (size_t)Pipeline::eTriangleFan3dColor ] = PipelineVK{ Pipeline::eTriangleFan3dColor
         , m_device
         , m_swapchain.surfaceFormat().format
@@ -821,6 +831,37 @@ void RendererVK::push( void* buffer, void* constant )
             , descriptorSet
         );
         vkCmdDraw( cmd, pushBuffer->m_verticeCount, 1, 0, 0 );
+    } break;
+
+    CASE( eTriangleFan3dTexture )
+        const TextureVK* texture = reinterpret_cast<const TextureVK*>( pushBuffer->m_texture.m_data );
+        assert( texture );
+        if ( !texture ) { return; }
+
+
+        BufferTransfer uniform = m_uniforms[ m_currentFrame ].getBuffer( sizeof( PushConstant<Pipeline::eTriangleFan3dTexture> ) );
+        uniform.copyToStaging( reinterpret_cast<const uint8_t*>( constant ) );
+        m_pending.emplace_back( uniform );
+
+        VkCommandBuffer cmd = m_graphicsCmd.buffer();
+
+        const VkDescriptorSet descriptorSet = currentPipeline.nextDescriptor();
+        assert( descriptorSet != VK_NULL_HANDLE );
+        currentPipeline.updateUniforms( uniform.dst()
+            , uniform.sizeInBytes()
+            , texture->view()
+            , texture->sampler()
+            , descriptorSet
+        );
+        const VkRect2D renderArea{
+            .extent = m_swapchain.extent()
+        };
+        currentPipeline.begin( cmd
+            , m_framebuffers[ m_currentFrame ]
+            , renderArea
+            , descriptorSet
+        );
+        vkCmdDraw( cmd, pushConstant->m_vertices.size(), 1, 0, 0 );
     } break;
 
     CASE( eTriangle3dTextureNormal )
