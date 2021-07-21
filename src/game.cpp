@@ -12,8 +12,6 @@
 
 Game::Game()
 {
-    m_radar = new Circle( 48, 64 );
-
     m_hudColor4fv[ 0 ][ 0 ] = 0.0275f;
     m_hudColor4fv[ 0 ][ 1 ] = 1.0f;
     m_hudColor4fv[ 0 ][ 2 ] = 0.075f;
@@ -45,8 +43,6 @@ Game::~Game()
     delete m_fontPauseTxt;
     delete m_fontGuiTxt;
     delete m_fontBig;
-    delete m_speedFanRing;
-    delete m_radar;
 
     destroyTexture( m_hudTex );
     destroyTexture( m_buttonTexture );
@@ -286,8 +282,6 @@ void Game::initRoadAdditions()
     m_starfieldTexture = loadTexture( "textures/star_field_transparent.tga" );
     m_alphaValue = 1;
     m_backgroundEffectEquation = false;
-
-    m_speedFanRing = new Circle( 32, 26 );
 
     m_cyberRingTexture[ 0 ] = loadTexture( "textures/cyber_ring1.tga" );
     m_cyberRingTexture[ 1 ] = loadTexture( "textures/cyber_ring2.tga" );

@@ -43,8 +43,6 @@ private:
     };
 
     audio::Engine* m_audio = nullptr;
-    Circle* m_radar = nullptr;
-    Circle* m_speedFanRing = nullptr;
     Font* m_fontBig = nullptr;
     Font* m_fontGuiTxt = nullptr;
     Font* m_fontPauseTxt = nullptr;

@@ -43,7 +43,6 @@ set( STARACE_HEADERS
 set( STARACE_SOURCES
     bullet.cpp
     button.cpp
-    circle.cpp
     enemy.cpp
     font.cpp
     fps_meter.cpp

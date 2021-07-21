@@ -1,7 +1,6 @@
 #pragma once
 
 #include "bullet.hpp"
-#include "circle.hpp"
 #include "model.hpp"
 #include "model_proto.hpp"
 #include "reactor.hpp"
@@ -16,7 +15,6 @@
 
 class Jet : public SAObject {
 private:
-    Circle m_crosshair;
     Thruster m_thruster;
     Shield m_shield;
 

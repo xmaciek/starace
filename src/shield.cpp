@@ -6,20 +6,15 @@
 #include <renderer/buffer.hpp>
 #include <renderer/pipeline.hpp>
 #include <renderer/renderer.hpp>
+#include "circle.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
 
 static std::array<glm::vec4, 7> getCircle( float radius ) noexcept
 {
-    std::array<glm::vec4, 7> ret{};
-    const float angle = 2 * M_PI / 6;
-    for ( int i = 0; i < 7; ++i ) {
-        ret[ i ] = {
-            std::sin( angle * (float)( i % 6 ) ) * radius,
-            std::cos( angle * (float)( i % 6 ) ) * radius,
-            0.1f,
-            0.0f
-        };
+    std::array<glm::vec4, 7> ret = CircleGen<glm::vec4>::getCircle<7>( radius );
+    for ( auto& it : ret ) {
+        it.z = 0.1f;
     }
     return ret;
 }

@@ -295,22 +295,15 @@ void Game::renderHUD( RenderContext rctx )
             rctx2.renderer->push( &pushBuffer, &pushConstant );
         }
 
-        static std::array<glm::vec4, 32> ringVertices{};
-        static std::array<glm::vec4, 32> ringColors{};
-        static bool ringReady = false;
-        if ( !ringReady ) {
-            std::fill_n( ringColors.begin(), 32, color );
-            for ( size_t i = 0; i < m_speedFanRing->segments(); ++i ) {
-                ringVertices[ i ] = { m_speedFanRing->x( i ), m_speedFanRing->y( i ), 0.0f, 0.0f };
-            }
-            ringReady = true;
-        }
+        static const std::array<glm::vec4, 32> ringVertices = CircleGen<glm::vec4>::getCircle<32>( 26.0f );
+
         PushConstant<Pipeline::eLine3dStripColor> pushConstant{};
         pushConstant.m_model = rctx2.model;
         pushConstant.m_view = rctx2.view;
         pushConstant.m_projection = rctx2.projection;
         pushConstant.m_vertices = ringVertices;
-        pushConstant.m_colors = ringColors;
+        std::fill_n( pushConstant.m_colors.begin(), 32, color );
+
         PushBuffer<Pipeline::eLine3dStripColor> pushBuffer{};
         pushBuffer.m_lineWidth = 1.0f;
         pushBuffer.m_verticeCount = 32;

@@ -2,6 +2,7 @@
 
 #include <renderer/pipeline.hpp>
 #include <renderer/renderer.hpp>
+#include "circle.hpp"
 
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -10,22 +11,8 @@
 #include <cassert>
 #include <cmath>
 
-static std::array<glm::vec4, 32> getCircle( float rad ) noexcept
-{
-    std::array<glm::vec4, 32> ret{};
-    const float angle = 2.0f * M_PI / 31;
-    for ( size_t i = 0; i < 32; ++i ) {
-        ret[ i ] = {
-            std::sin( angle * ( i % 31 ) ) * rad,
-            std::cos( angle * ( i % 31 ) ) * rad,
-            0.0f, 0.0f
-        };
-    }
-    return ret;
-}
-
-static const std::array<glm::vec4, 32> s_outter = getCircle( 0.35f * 0.04285f );
-static const std::array<glm::vec4, 32> s_inner = getCircle( 0.35f * 0.04285f * 0.6f );
+static const std::array<glm::vec4, 32> s_outter = CircleGen<glm::vec4>::getCircle<32>( 0.35f * 0.04285f );
+static const std::array<glm::vec4, 32> s_inner = CircleGen<glm::vec4>::getCircle<32>( 0.35f * 0.04285f * 0.6f );
 
 Thruster::Thruster( float length, float )
 {

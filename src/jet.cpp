@@ -20,8 +20,7 @@ constexpr static glm::vec3 defaultPyrLimits{ 40.0_deg, 20.0_deg, 60.0_deg };
 constexpr static glm::vec3 defaultPyrAnimLimits{ 5.0_deg, 5.0_deg, 15.0_deg };
 
 Jet::Jet( const ModelProto& modelData )
-: m_crosshair( 32, 0.06 )
-, m_thruster( modelData.scale, (float)modelData.scale * 0.04285f )
+: m_thruster( modelData.scale, (float)modelData.scale * 0.04285f )
 , m_shield( 0.15, 0.03 )
 , m_pyrAccelleration{ defaultPyrAcceleration }
 , m_pyrLimits{ defaultPyrLimits }
