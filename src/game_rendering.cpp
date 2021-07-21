@@ -109,22 +109,24 @@ void Game::renderHUDBar( RenderContext rctx, const glm::vec4& xywh, float ratio 
     }
 
     {
-        PushBuffer<Pipeline::eGuiQuadColor1> pushBuffer{};
-        PushConstant<Pipeline::eGuiQuadColor1> pushConstant{};
+        PushBuffer<Pipeline::eTriangleFan3dColor> pushBuffer{};
+        pushBuffer.m_verticeCount = 4;
+        PushConstant<Pipeline::eTriangleFan3dColor> pushConstant{};
         pushConstant.m_model = rctx.model;
         pushConstant.m_view = rctx.view;
         pushConstant.m_projection = rctx.projection;
-        pushConstant.m_color = glm::vec4{
+        const glm::vec4 color{
             1.0f - ratio + colorHalf( ratio )
             , ratio + colorHalf( ratio )
             , 0.0f
             , 1.0f
         };
+        std::fill_n( pushConstant.m_colors.begin(), 4, color );
 
-        pushConstant.m_vertices[ 0 ] = glm::vec2{ 0, 0 };
-        pushConstant.m_vertices[ 1 ] = glm::vec2{ xywh.z, 0 };
-        pushConstant.m_vertices[ 2 ] = glm::vec2{ xywh.z, ratio * xywh.w };
-        pushConstant.m_vertices[ 3 ] = glm::vec2{ 0.0f, ratio * xywh.w };
+        pushConstant.m_vertices[ 0 ] = glm::vec4{ 0.0f, 0.0f, 0.0f, 0.0f };
+        pushConstant.m_vertices[ 1 ] = glm::vec4{ xywh.z, 0.0f, 0.0f, 0.0f };
+        pushConstant.m_vertices[ 2 ] = glm::vec4{ xywh.z, ratio * xywh.w, 0.0f, 0.0f };
+        pushConstant.m_vertices[ 3 ] = glm::vec4{ 0.0f, ratio * xywh.w, 0.0f, 0.0f };
         rctx.renderer->push( &pushBuffer, &pushConstant );
     }
 

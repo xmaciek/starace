@@ -347,26 +347,6 @@ void RendererGL::push( void* buffer, void* constant )
         glPopMatrix();
     } break;
 
-    case Pipeline::eGuiQuadColor1: {
-        auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::eGuiQuadColor1>*>( constant );
-
-        ScopeEnable blend( GL_BLEND );
-
-        glPushMatrix();
-        glMatrixMode( GL_PROJECTION );
-        glLoadMatrixf( glm::value_ptr( pushConstant->m_projection ) );
-        glMatrixMode( GL_MODELVIEW );
-        glLoadMatrixf( glm::value_ptr( pushConstant->m_view * pushConstant->m_model ) );
-
-        glBegin( GL_TRIANGLE_FAN );
-        glColor4fv( glm::value_ptr( pushConstant->m_color ) );
-        for ( const glm::vec2& it : pushConstant->m_vertices ) {
-            glVertex2fv( glm::value_ptr( it ) );
-        }
-        glEnd();
-        glPopMatrix();
-    } break;
-
     case Pipeline::eTriangleFan3dTexture: {
         auto* pushBuffer = reinterpret_cast<PushBuffer<Pipeline::eTriangleFan3dTexture>*>( buffer );
         auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::eTriangleFan3dTexture>*>( constant );

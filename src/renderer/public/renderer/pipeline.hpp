@@ -15,7 +15,6 @@
 
 enum struct Pipeline {
     eGuiTextureColor1,
-    eGuiQuadColor1,
     eLine3dColor1,
     eLine3dStripColor,
     eLine3dStripColor1,
@@ -112,17 +111,6 @@ struct PushConstant<Pipeline::eGuiTextureColor1> {
     glm::mat4 m_projection{};
     std::array<glm::vec4, 4> m_vertices{};
     std::array<glm::vec4, 4> m_uv{};
-    glm::vec4 m_color{};
-
-    PushConstant() = default;
-};
-
-template <>
-struct PushConstant<Pipeline::eGuiQuadColor1> {
-    glm::mat4 m_model{};
-    glm::mat4 m_view{};
-    glm::mat4 m_projection{};
-    std::array<glm::vec2, 4> m_vertices{};
     glm::vec4 m_color{};
 
     PushConstant() = default;
