@@ -440,6 +440,16 @@ RendererVK::RendererVK( SDL_Window* window )
         , "shaders/vert3_texture_normal3.vert.spv"
         , "shaders/vert3_texture_normal3.frag.spv"
     };
+    m_pipelines[ (size_t)Pipeline::eLine3dColor1 ] = PipelineVK{ Pipeline::eLine3dColor1
+        , m_device
+        , m_swapchain.surfaceFormat().format
+        , m_swapchain.depthFormat()
+        , true
+        , m_swapchain.imageCount()
+        , m_swapchain.extent()
+        , "shaders/lines_color1.vert.spv"
+        , "shaders/lines_color1.frag.spv"
+    };
 
 }
 
@@ -805,6 +815,33 @@ void RendererVK::push( void* buffer, void* constant )
             , descriptorSet
         );
         vkCmdSetLineWidth( cmd, pushBuffer->m_lineWidth );
+        vkCmdDraw( cmd, pushBuffer->m_verticeCount, 1, 0, 0 );
+    } break;
+
+    CASE( eLine3dColor1 )
+        BufferTransfer uniform = m_uniforms[ m_currentFrame ].getBuffer( sizeof( PushConstant<Pipeline::eLine3dColor1> ) );
+        uniform.copyToStaging( reinterpret_cast<const uint8_t*>( constant ) );
+        m_pending.emplace_back( uniform );
+
+        VkCommandBuffer cmd = m_graphicsCmd.buffer();
+
+        const VkDescriptorSet descriptorSet = currentPipeline.nextDescriptor();
+        assert( descriptorSet != VK_NULL_HANDLE );
+        currentPipeline.updateUniforms( uniform.dst()
+            , uniform.sizeInBytes()
+            , VK_NULL_HANDLE
+            , VK_NULL_HANDLE
+            , descriptorSet
+        );
+        VkRect2D renderArea{};
+        renderArea.extent = m_swapchain.extent();
+        currentPipeline.begin( cmd
+            , m_framebuffers[ m_currentFrame ]
+            , renderArea
+            , descriptorSet
+        );
+        vkCmdSetLineWidth( cmd, pushBuffer->m_lineWidth );
+        assert( pushBuffer->m_verticeCount <= pushConstant->m_vertices.size() );
         vkCmdDraw( cmd, pushBuffer->m_verticeCount, 1, 0, 0 );
     } break;
 

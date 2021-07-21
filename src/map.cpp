@@ -129,30 +129,32 @@ void Map::render( RenderContext rctx )
     }
 
     {
-        PushConstant<Pipeline::eLine3dColor1> linePushConstant{};
-        linePushConstant.m_model = rctx.model;
-        linePushConstant.m_view = rctx.view;
-        linePushConstant.m_projection = rctx.projection;
-        linePushConstant.m_color = glm::vec4{ 1.0f, 1.0f, 1.0f, 0.4f };
-        PushBuffer<Pipeline::eLine3dColor1> linePushBuffer{};
+        PushConstant<Pipeline::eLine3dColor1> pushConstant{};
+        pushConstant.m_model = rctx.model;
+        pushConstant.m_view = rctx.view;
+        pushConstant.m_projection = rctx.projection;
+        pushConstant.m_color = glm::vec4{ 1.0f, 1.0f, 1.0f, 0.4f };
 
-        std::pmr::vector<glm::vec3> particles{ rctx.renderer->allocator() };
-        particles.reserve( m_particleList.size() * 2 );
-        for ( const glm::vec3& it : m_particleList ) {
-            particles.emplace_back( it );
-            particles.emplace_back( it + m_particleLength );
+        PushBuffer<Pipeline::eLine3dColor1> pushBuffer{};
+        pushBuffer.m_lineWidth = 1.0f;
+        pushBuffer.m_verticeCount = m_particleList.size() * 2;
+        assert( pushBuffer.m_verticeCount <= pushConstant.m_vertices.size() );
+
+        size_t i = 0;
+        for ( const glm::vec4& it : m_particleList ) {
+            pushConstant.m_vertices[ i++ ] = it;
+            pushConstant.m_vertices[ i++ ] = it + m_particleLength;
         }
-        linePushBuffer.m_vertices = rctx.renderer->createBuffer( std::move( particles ), Buffer::Lifetime::eOneTimeUse );
-        rctx.renderer->push( &linePushBuffer, &linePushConstant );
+        rctx.renderer->push( &pushBuffer, &pushConstant );
     }
 }
 
 void Map::update( const UpdateContext& updateContext )
 {
-    const glm::vec3 tmpVelocity = m_jetVelocity * -0.1f * updateContext.deltaTime;
+    const glm::vec4 tmpVelocity{ m_jetVelocity * -0.1f * updateContext.deltaTime, 0.0f };
     for ( auto& it : m_particleList ) {
         it += tmpVelocity;
-        if ( glm::distance( it, m_jetPosition ) >= 1.5 ) {
+        if ( glm::distance( glm::vec3{ it }, m_jetPosition ) >= 1.5 ) {
             it.x = randomRange( m_jetPosition.x - 1, m_jetPosition.x + 1 );
             it.y = randomRange( m_jetPosition.y - 1, m_jetPosition.y + 1 );
             it.z = randomRange( m_jetPosition.z - 1, m_jetPosition.z + 1 );
@@ -169,23 +171,20 @@ Map::Map( const MapProto& data )
     m_front = loadTexture( data.FRONT.c_str() );
     m_back = loadTexture( data.BACK.c_str() );
 
-    m_min = 0.00125;
-    m_max = 0.99875;
-
     m_particleList.reserve( 100 );
     for ( int i = 0; i < 100; i++ ) {
-        m_particleList.emplace_back( randomRange( -1, 1 ), randomRange( -1, 1 ), randomRange( -1, 1 ) );
+        const float x = randomRange( -1, 1 );
+        const float y = randomRange( -1, 1 );
+        const float z = randomRange( -1, 1 );
+        m_particleList.emplace_back( x, y, z, 0.0f );
     }
-
-    m_v1 = 1000;
-    m_v2 = 100;
 }
 
 void Map::setJetData( const glm::vec3& position, const glm::vec3& velocity )
 {
     m_jetPosition = position;
     m_jetVelocity = velocity;
-    m_particleLength = m_jetVelocity * 0.05f;
+    m_particleLength = glm::vec4{ m_jetVelocity * 0.05f, 0.0f };
 }
 
 Map::~Map()

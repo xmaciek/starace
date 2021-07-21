@@ -2,10 +2,11 @@
 
 #include <random>
 
-double randomRange( double a, double b )
+float randomRange( float a, float b )
 {
-    static std::mt19937 random( std::random_device{}() );
-    return ( b - a ) * static_cast<double>( random() ) / std::mt19937::max() + a;
+    thread_local std::mt19937 random( std::random_device{}() );
+    const uint64_t r = random();
+    return ( b - a ) * static_cast<float>( r ) / random.max() + a;
 }
 
 double colorHalf( double col )

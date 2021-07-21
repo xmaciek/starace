@@ -33,14 +33,10 @@ private:
     Texture m_left{};
     Texture m_right{};
     Texture m_top{};
-    std::vector<glm::vec3> m_particleList{};
-    double m_max = 0.0;
-    double m_min = 0.0;
-    double m_v1 = 0.0;
-    double m_v2 = 0.0;
+    std::vector<glm::vec4> m_particleList{};
     glm::vec3 m_jetPosition{};
     glm::vec3 m_jetVelocity{};
-    glm::vec3 m_particleLength{};
+    glm::vec4 m_particleLength{};
 
 public:
     ~Map();

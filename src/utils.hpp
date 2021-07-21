@@ -1,4 +1,4 @@
 #pragma once
 
-double randomRange( double a, double b );
+float randomRange( float a, float b );
 double colorHalf( double col );

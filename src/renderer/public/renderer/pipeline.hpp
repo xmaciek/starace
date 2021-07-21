@@ -103,6 +103,7 @@ struct PushConstant<Pipeline::eLine3dColor1> {
     glm::mat4 m_view{};
     glm::mat4 m_projection{};
     glm::vec4 m_color{};
+    std::array<glm::vec4, 200> m_vertices{};
 
     PushConstant() = default;
 };
@@ -110,7 +111,7 @@ struct PushConstant<Pipeline::eLine3dColor1> {
 template <>
 struct PushBuffer<Pipeline::eLine3dColor1> {
     Pipeline m_pipeline = Pipeline::eLine3dColor1;
-    Buffer m_vertices{};
+    uint32_t m_verticeCount = 0;
     float m_lineWidth = 1.0f;
 
     PushBuffer() = default;

@@ -24,3 +24,6 @@ compileShader( trianglefan_color.frag )
 
 compileShader( trianglefan_texture.vert )
 compileShader( trianglefan_texture.frag )
+
+compileShader( lines_color1.vert )
+compileShader( lines_color1.frag )

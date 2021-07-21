@@ -370,8 +370,6 @@ void RendererGL::push( void* buffer, void* constant )
         auto* pushBuffer = reinterpret_cast<PushBuffer<Pipeline::eLine3dColor1>*>( buffer );
         auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::eLine3dColor1>*>( constant );
 
-        const std::pmr::vector<glm::vec3>& vec = m_bufferMap3[ pushBuffer->m_vertices ];
-        assert( !vec.empty() );
         ScopeEnable blend( GL_BLEND );
         ScopeEnable depthTest( GL_DEPTH_TEST );
 
@@ -384,13 +382,11 @@ void RendererGL::push( void* buffer, void* constant )
         glLineWidth( pushBuffer->m_lineWidth );
         glBegin( GL_LINES );
         glColor4fv( glm::value_ptr( pushConstant->m_color ) );
-        for ( const glm::vec3& it : vec ) {
-            glVertex3fv( glm::value_ptr( it ) );
+        for ( size_t i = 0; i < pushBuffer->m_verticeCount; ++i ) {
+            glVertex3fv( glm::value_ptr( pushConstant->m_vertices[ i ] ) );
         }
         glEnd();
         glPopMatrix();
-
-        maybeDeleteBuffer( pushBuffer->m_vertices );
     } break;
 
     case Pipeline::eTriangle3dTextureNormal: {
