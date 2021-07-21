@@ -295,34 +295,6 @@ void RendererGL::push( void* buffer, void* constant )
 
     } break;
 
-    case Pipeline::eLine3dStripColor1: {
-        auto* pushBuffer = reinterpret_cast<PushBuffer<Pipeline::eLine3dStripColor1>*>( buffer );
-        auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::eLine3dStripColor1>*>( constant );
-
-        const std::pmr::vector<glm::vec3>& vertices = m_bufferMap3[ pushBuffer->m_vertices ];
-        assert( !vertices.empty() );
-
-        ScopeEnable blend( GL_BLEND );
-        ScopeEnable depthTest( GL_DEPTH_TEST );
-
-        glPushMatrix();
-        glMatrixMode( GL_PROJECTION );
-        glLoadMatrixf( glm::value_ptr( pushConstant->m_projection ) );
-        glMatrixMode( GL_MODELVIEW );
-        glLoadMatrixf( glm::value_ptr( pushConstant->m_view * pushConstant->m_model ) );
-
-        glLineWidth( pushBuffer->m_lineWidth );
-        glBegin( GL_LINE_STRIP );
-        glColor4fv( glm::value_ptr( pushConstant->m_color ) );
-        for ( const glm::vec3& it : vertices ) {
-            glVertex3fv( glm::value_ptr( it ) );
-        }
-        glEnd();
-        glPopMatrix();
-
-        maybeDeleteBuffer( pushBuffer->m_vertices );
-    } break;
-
     case Pipeline::eGuiTextureColor1: {
         auto* pushBuffer = reinterpret_cast<PushBuffer<Pipeline::eGuiTextureColor1>*>( buffer );
         auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::eGuiTextureColor1>*>( constant );
