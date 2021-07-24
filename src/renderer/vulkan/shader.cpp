@@ -18,7 +18,7 @@ static std::pmr::vector<char> getShaderContent( std::string_view filePath )
     assert( size % 4 == 0 );
     std::pmr::vector<char> vec( size );
     ifs.seekg( 0 );
-    ifs.read( vec.data(), size );
+    ifs.read( vec.data(), (int)size );
     return vec;
 }
 
