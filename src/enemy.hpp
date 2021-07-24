@@ -20,7 +20,7 @@ public:
     virtual ~Enemy() override = default;
     Enemy();
 
-    Bullet* weapon();
+    Bullet* weapon( void* );
     bool isWeaponReady() const;
     static void drawCollisionIndicator();
     virtual void processCollision( SAObject* ) override;

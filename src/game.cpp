@@ -30,10 +30,8 @@ Game::Game()
     changeScreen( Screen::eMainMenu );
 
     m_enemies.reserve( 100 );
-    m_enemyGarbage.reserve( 32 );
     m_bullets.reserve( 500 );
     m_enemyBullets.reserve( 1000 );
-    m_bulletGarbage.reserve( 200 );
 }
 
 Game::~Game()
@@ -463,22 +461,19 @@ void Game::updateGame( const UpdateContext& updateContext )
         for ( Enemy*& e : m_enemies ) {
             e->update( updateContext );
             if ( e->isWeaponReady() ) {
-                m_enemyBullets.push_back( e->weapon() );
+                m_enemyBullets.push_back( e->weapon( m_poolBullets.alloc() ) );
             }
             if ( e->status() == Enemy::Status::eDead ) {
                 m_jet->addScore( e->score(), true );
-                m_enemyGarbage.push_back( e );
+                m_jet->untarget( e );
+                std::destroy_at( e );
+                m_poolEnemies.dealloc( e );
                 e = nullptr;
             }
         }
         m_enemies.erase( std::remove( m_enemies.begin(), m_enemies.end(), nullptr ), m_enemies.end() );
     }
 
-    {
-        for ( Bullet* it : m_enemyBullets ) {
-            it->processCollision( m_jet );
-        }
-    }
 
     {
         glm::vec3 jetPosition{};
@@ -503,14 +498,15 @@ void Game::updateGame( const UpdateContext& updateContext )
     {
         for ( Bullet*& b : m_bullets ) {
             assert( b );
+            b->update( updateContext );
             for ( Enemy* e : m_enemies ) {
                 assert( e );
                 b->processCollision( e );
             }
 
-            b->update( updateContext );
             if ( b->status() == Bullet::Status::eDead ) {
-                m_bulletGarbage.push_back( b );
+                std::destroy_at( b );
+                m_poolBullets.dealloc( b );
                 b = nullptr;
             }
         }
@@ -520,29 +516,15 @@ void Game::updateGame( const UpdateContext& updateContext )
     {
         for ( Bullet*& b : m_enemyBullets ) {
             b->update( updateContext );
+            b->processCollision( m_jet );
             if ( b->status() == Bullet::Status::eDead ) {
-                m_bulletGarbage.push_back( b );
+                std::destroy_at( b );
+                m_poolBullets.dealloc( b );
                 b = nullptr;
             }
         }
         m_enemyBullets.erase( std::remove( m_enemyBullets.begin(), m_enemyBullets.end(), nullptr ), m_enemyBullets.end() );
     }
-
-    for ( Enemy*& e : m_enemyGarbage ) {
-        if ( e->deleteMe() ) {
-            delete e;
-            e = nullptr;
-        }
-    }
-    m_enemyGarbage.erase( std::remove( m_enemyGarbage.begin(), m_enemyGarbage.end(), nullptr ), m_enemyGarbage.end() );
-
-    for ( Bullet*& b : m_bulletGarbage ) {
-        if ( b->deleteMe() ) {
-            delete b;
-            b = nullptr;
-        }
-    }
-    m_bulletGarbage.erase( std::remove( m_bulletGarbage.begin(), m_bulletGarbage.end(), nullptr ), m_bulletGarbage.end() );
 
     updateCyberRings( updateContext );
 }
@@ -555,9 +537,10 @@ void Game::addBullet( uint32_t wID )
         return;
     }
     m_jet->takeEnergy( wID );
-    m_bullets.push_back( m_jet->weapon( wID ) );
+    Bullet* bullet = m_jet->weapon( wID, m_poolBullets.alloc() );
+    m_bullets.push_back( bullet );
     m_shotsDone++;
-    switch ( m_bullets.back()->type() ) {
+    switch ( bullet->type() ) {
     case Bullet::Type::eBlaster:
         m_audio->play( m_blaster );
         break;
@@ -594,29 +577,21 @@ void Game::updateGameScreenBriefing( const UpdateContext& updateContext )
 void Game::clearMapData()
 {
     for ( Enemy* e : m_enemies ) {
-        delete e;
+        std::destroy_at( e );
     }
-    m_enemies.clear();
 
     for ( Bullet* b : m_bullets ) {
-        delete b;
+        std::destroy_at( b );
     }
-    m_bullets.clear();
 
     for ( Bullet* b : m_enemyBullets ) {
-        delete b;
+        std::destroy_at( b );
     }
+    m_bullets.clear();
     m_enemyBullets.clear();
-
-    for ( Enemy* e : m_enemyGarbage ) {
-        delete e;
-    }
-    m_enemyGarbage.clear();
-
-    for ( Bullet* b : m_bulletGarbage ) {
-        delete b;
-    }
-    m_bulletGarbage.clear();
+    m_enemies.clear();
+    m_poolBullets.discardAll();
+    m_poolEnemies.discardAll();
 
     delete m_map;
     m_map = nullptr;
@@ -635,12 +610,12 @@ void Game::createMapData( const MapProto& mapData, const ModelProto& modelData )
     m_jet->setWeapon( m_weapons[ m_weap2 ], 1 );
     m_jet->setWeapon( m_weapons[ m_weap3 ], 2 );
 
-    m_enemies.clear();
-    m_enemies.reserve( mapData.enemies );
-    for ( uint32_t i = 0; i < mapData.enemies; i++ ) {
-        m_enemies.push_back( new Enemy() );
-        m_enemies.back()->setTarget( m_jet );
-        m_enemies.back()->setWeapon( m_weapons[ 3 ] );
+    assert( m_enemies.empty() );
+    m_enemies.resize( mapData.enemies );
+    for ( Enemy*& it : m_enemies ) {
+        it = new ( m_poolEnemies.alloc() ) Enemy();
+        it->setTarget( m_jet );
+        it->setWeapon( m_weapons[ 3 ] );
     }
 
     for ( MapProto& it : m_mapsContainer ) {

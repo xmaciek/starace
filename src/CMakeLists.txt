@@ -29,6 +29,7 @@ set( STARACE_HEADERS
     map.hpp
     model.hpp
     model_proto.hpp
+    pool.hpp
     reactor.hpp
     render_context.hpp
     saobject.hpp

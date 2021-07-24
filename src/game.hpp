@@ -8,6 +8,7 @@
 #include "jet.hpp"
 #include "map.hpp"
 #include "model_proto.hpp"
+#include "pool.hpp"
 #include "render_context.hpp"
 #include "texture.hpp"
 #include "update_context.hpp"
@@ -59,10 +60,10 @@ private:
     audio::Chunk m_torpedo{};
 
     std::string m_lastSelectedJetName{};
-    std::vector<Bullet*> m_bulletGarbage{};
+    Pool<Bullet, 1024> m_poolBullets{};
+    Pool<Enemy, 100> m_poolEnemies{};
     std::vector<Bullet*> m_bullets{};
     std::vector<Bullet*> m_enemyBullets{};
-    std::vector<Enemy*> m_enemyGarbage{};
     std::vector<Enemy*> m_enemies{};
     std::vector<MapProto> m_mapsContainer{};
     std::vector<ModelProto> m_jetsContainer{};

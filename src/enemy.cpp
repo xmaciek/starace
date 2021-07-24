@@ -29,10 +29,11 @@ void Enemy::setWeapon( const BulletProto& b )
     m_shotFactor = randomRange( 0, m_weapon.delay );
 }
 
-Bullet* Enemy::weapon()
+Bullet* Enemy::weapon( void* ptr )
 {
+    assert( ptr );
     m_weapon.position = m_position;
-    Bullet* bullet = new Bullet( m_weapon );
+    Bullet* bullet = new ( ptr ) Bullet( m_weapon );
     bullet->setDirection( direction() );
     bullet->setTarget( m_target );
     m_shotFactor = 0;

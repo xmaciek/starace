@@ -206,11 +206,12 @@ glm::vec3 Jet::weaponPoint( uint32_t weaponNum )
     return w;
 }
 
-Bullet* Jet::weapon( uint32_t weaponNum )
+Bullet* Jet::weapon( uint32_t weaponNum, void* ptr )
 {
+    assert( ptr );
     BulletProto tmp = m_weapon[ weaponNum ];
     tmp.position = glm::rotate( quat(), m_model.weapon( weaponNum ) ) + position();
-    Bullet* b = new Bullet( tmp );
+    Bullet* b = new ( ptr ) Bullet( tmp );
     b->setDirection( direction() );
 
     switch ( b->type() ) {
@@ -327,4 +328,11 @@ glm::quat Jet::quat() const
 glm::quat Jet::rotation() const
 {
     return glm::inverse( m_quaternion );
+}
+
+void Jet::untarget( const SAObject* tgt )
+{
+    if ( m_target == tgt ) {
+        m_target = nullptr;
+    }
 }

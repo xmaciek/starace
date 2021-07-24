@@ -328,6 +328,11 @@ void Game::renderHUD( RenderContext rctx )
         const double posx = (double)viewportWidth() / 2.0 - textMid;
         m_fontGuiTxt->renderText( rctx, color, posx, viewportHeight() - 28, msg );
     }
+    {
+        std::string msg{ "Bullet pool: " };
+        msg += std::to_string( m_poolBullets.allocCount() );
+        m_fontGuiTxt->renderText( rctx, color, 64, viewportHeight() - 64, msg );
+    }
     m_fontPauseTxt->renderText( rctx, color, 10, 120, "PWR" );
     m_fontPauseTxt->renderText( rctx, color, 66, 120, "HP" );
 }

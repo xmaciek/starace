@@ -62,7 +62,7 @@ public:
     virtual ~Jet() override = default;
     explicit Jet( const ModelProto& );
 
-    Bullet* weapon( uint32_t weaponNum );
+    Bullet* weapon( uint32_t weaponNum, void* ptr );
     bool isShooting( uint32_t weaponNum ) const;
     bool isWeaponReady( uint32_t weaponNum ) const;
     double energy() const;
@@ -87,6 +87,7 @@ public:
     void speedDown( bool );
     void speedUp( bool );
     void takeEnergy( uint32_t weaponNum );
+    void untarget( const SAObject* );
     void yawLeft( bool );
     void yawRight( bool );
 };
