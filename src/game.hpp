@@ -59,6 +59,9 @@ private:
     audio::Chunk m_laser{};
     audio::Chunk m_torpedo{};
 
+    std::vector<SDL_Event> m_events{};
+    std::mutex m_eventsBottleneck{};
+
     std::string m_lastSelectedJetName{};
     Pool<Bullet, 1024> m_poolBullets{};
     Pool<Enemy, 100> m_poolEnemies{};

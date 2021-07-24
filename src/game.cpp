@@ -67,10 +67,11 @@ int32_t Game::run()
     }
 
     m_thread = std::thread( &Game::loopGame, this );
-    SDL_Event Event{};
+    SDL_Event event{};
     while ( m_isRunning ) {
-        while ( SDL_PollEvent( &Event ) ) {
-            onEvent( Event );
+        while ( SDL_PollEvent( &event ) ) {
+            std::scoped_lock lock{ m_eventsBottleneck };
+            m_events.emplace_back( event );
         }
         std::this_thread::sleep_for( std::chrono::milliseconds( 10 ) );
     }
@@ -94,7 +95,14 @@ void Game::loopGame()
         m_renderer->submit();
 
         onUpdate( updateContext );
-
+        std::vector<SDL_Event> events{};
+        {
+            std::scoped_lock lock{ m_eventsBottleneck };
+            events = std::move( m_events );
+        }
+        for ( SDL_Event& it : events ) {
+            onEvent( it );
+        }
         m_fpsMeter.frameEnd();
         m_renderer->present();
 
