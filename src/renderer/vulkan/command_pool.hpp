@@ -16,7 +16,7 @@ class CommandPool {
 public:
     ~CommandPool() noexcept;
     CommandPool() noexcept = default;
-    CommandPool( VkDevice device, uint32_t commandBuffersCount, std::pair<uint32_t, uint32_t> queueCount, uint32_t queueFamily ) noexcept;
+    CommandPool( VkDevice device, uint32_t commandBuffersCount, std::pair<uint32_t, uint32_t> queues, uint32_t queueFamily ) noexcept;
 
     CommandPool( const CommandPool& ) = delete;
     CommandPool& operator = ( const CommandPool& ) = delete;
