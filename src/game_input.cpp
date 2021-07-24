@@ -309,3 +309,26 @@ void Game::onMouseClickLeft( int32_t x, int32_t y )
     }
 }
 
+void Game::onMouseMove( const SDL_MouseMotionEvent& event )
+{
+    const uint32_t y = viewportHeight() - event.y;
+    const uint32_t x = (uint32_t)event.x;
+    m_btnChangeFiltering.mouseMove( x, y );
+    m_btnCustomizeReturn.mouseMove( x, y );
+    m_btnCustomize.mouseMove( x, y );
+    m_btnExit.mouseMove( x, y );
+    m_btnGO.mouseMove( x, y );
+    m_btnNextJet.mouseMove( x, y );
+    m_btnNextMap.mouseMove( x, y );
+    m_btnPrevJet.mouseMove( x, y );
+    m_btnPrevMap.mouseMove( x, y );
+    m_btnQuitMission.mouseMove( x, y );
+    m_btnReturnToMainMenu.mouseMove( x, y );
+    m_btnReturnToMissionSelection.mouseMove( x, y );
+    m_btnSelectMissionCancel.mouseMove( x, y );
+    m_btnSelectMission.mouseMove( x, y );
+    m_btnStartMission.mouseMove( x, y );
+    m_btnWeap1.mouseMove( x, y );
+    m_btnWeap2.mouseMove( x, y );
+    m_btnWeap3.mouseMove( x, y );
+}

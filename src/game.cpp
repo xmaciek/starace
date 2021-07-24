@@ -144,6 +144,9 @@ void Game::onEvent( const SDL_Event& event )
             onMouseClickLeft( event.button.x, event.button.y );
         }
         break;
+    case SDL_MOUSEMOTION:
+        onMouseMove( event.motion );
+        break;
     }
 }
 

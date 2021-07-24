@@ -59,7 +59,7 @@ void Button::render( RenderContext rctx )
     pushConstant.m_uv[ 2 ] = glm::vec4{ 1.0f, 1.0f, 0.0f, 0.0f };
     pushConstant.m_uv[ 3 ] = glm::vec4{ 1.0f, 0.0f, 0.0f, 0.0f };
     pushConstant.m_color =  m_enabled
-        ? color::lightSkyBlue
+        ? m_color
         : color::lightSteelBlue;
 
     rctx.renderer->push( &pushBuffer, &pushConstant );
@@ -97,4 +97,9 @@ bool Button::isEnabled() const
 void Button::setText( std::string_view txt )
 {
     m_label.setText( txt );
+}
+
+void Button::mouseMove( uint32_t x, uint32_t y )
+{
+    m_color = isClicked( x, y ) ? color::lightSkyBlue : color::dodgerBlue;
 }

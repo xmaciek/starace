@@ -1,5 +1,6 @@
 #pragma once
 
+#include "colors.hpp"
 #include "label.hpp"
 #include "render_context.hpp"
 #include <renderer/texture.hpp>
@@ -7,10 +8,13 @@
 #include <cstdint>
 #include <string_view>
 
+#include <glm/vec4.hpp>
+
 class Font;
 
 class Button {
 private:
+    glm::vec4 m_color = color::lightSkyBlue;
     uint32_t m_x = 0;
     uint32_t m_y = 0;
     uint32_t m_width = 192;
@@ -25,6 +29,7 @@ public:
     Button( std::string_view, Font*, Texture texture );
     Button( Font*, Texture texture );
 
+    void mouseMove( uint32_t x, uint32_t y );
     bool isClicked( uint32_t x, uint32_t y ) const;
     bool isEnabled() const;
     void render( RenderContext );

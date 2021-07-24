@@ -162,6 +162,7 @@ private:
     void onKeyDown( const SDL_Keysym& );
     void onKeyUp( const SDL_Keysym& );
     void onMouseClickLeft( int32_t x, int32_t y );
+    void onMouseMove( const SDL_MouseMotionEvent& );
     void onRender();
     void onResize( uint32_t w, uint32_t h );
     void onUpdate( const UpdateContext& );
