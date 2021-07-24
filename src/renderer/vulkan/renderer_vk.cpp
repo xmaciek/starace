@@ -1,7 +1,6 @@
 #include "renderer_vk.hpp"
 
 #include "buffer_vk.hpp"
-#include "single_time_command.hpp"
 #include "texture_vk.hpp"
 
 #include <SDL2/SDL_vulkan.h>

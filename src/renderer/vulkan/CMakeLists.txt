@@ -19,8 +19,6 @@ target_sources( renderer_vk
     renderer_vk.hpp
     shader.cpp
     shader.hpp
-    single_time_command.cpp
-    single_time_command.hpp
     swapchain.cpp
     swapchain.hpp
     texture_vk.cpp
