@@ -4,9 +4,11 @@
 
 float randomRange( float a, float b )
 {
-    thread_local std::mt19937 random( std::random_device{}() );
+    using Rand = std::mt19937;
+    static constexpr float max = (float)Rand::max();
+    thread_local Rand random( std::random_device{}() );
     const uint64_t r = random();
-    return ( b - a ) * static_cast<float>( r ) / (float)random.max() + a;
+    return ( b - a ) * static_cast<float>( r ) / max + a;
 }
 
 double colorHalf( double col )
