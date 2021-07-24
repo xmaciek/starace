@@ -102,7 +102,7 @@ void Clear::operator () ( VkCommandBuffer cmd, VkFramebuffer framebuffer, const 
     assert( cmd );
     assert( framebuffer );
     std::array<VkClearValue,2> clearColor{};
-    clearColor[ 0 ].color = { 0.0f, 0.0f, 1.0f, 1.0f };
+    clearColor[ 0 ].color = { { 0.0f, 0.0f, 1.0f, 1.0f } };
     clearColor[ 1 ].depthStencil = { 1.0f, 0 };
 
     const VkRenderPassBeginInfo renderPassInfo{

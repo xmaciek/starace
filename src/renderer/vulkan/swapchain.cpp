@@ -14,12 +14,6 @@ constexpr static bool operator == ( const VkSurfaceFormatKHR& lhs, const VkSurfa
         && lhs.colorSpace == rhs.colorSpace;
         ;
 }
-constexpr static bool operator != ( const VkSurfaceFormatKHR& lhs, const VkSurfaceFormatKHR& rhs ) noexcept
-{
-    return lhs.format != rhs.format
-        || lhs.colorSpace != rhs.colorSpace;
-        ;
-}
 
 void Swapchain::destroyResources()
 {
