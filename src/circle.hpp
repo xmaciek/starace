@@ -2,10 +2,10 @@
 
 #include <array>
 #include <algorithm>
+#include <cassert>
+#include <cstddef>
 #include <cstdint>
-#include <vector>
 #include <cmath>
-#include <glm/vec2.hpp>
 
 template <typename TScalar>
 class CircleGen {
@@ -22,7 +22,7 @@ public:
         m_angle = 2.0f * (float)M_PI / (float)segments;
     }
 
-    constexpr TScalar operator ()() noexcept
+    TScalar operator ()() noexcept
     {
         const float angle = m_angle * ( m_i++ % m_max );
         const float x = -std::cos( angle ) * m_size;
@@ -35,14 +35,15 @@ public:
         } else if constexpr ( nfloat == 4 ) {
             return { x, y, 0.0f, 0.0f };
         } else {
-            return throw("");
+            assert( !"not supported scalar type" );
+            return {};
         };
     }
 
     template<size_t TSegments>
     static std::array<TScalar, TSegments> getCircle( float size ) noexcept
     {
-        std::array<TScalar, TSegments> ret;
+        std::array<TScalar, TSegments> ret{};
         std::generate( ret.begin(), ret.end(), CircleGen<TScalar>{ TSegments, size } );
         return ret;
     }
