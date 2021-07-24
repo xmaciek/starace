@@ -11,6 +11,8 @@ target_sources( renderer_vk
     clear.hpp
     command_pool.cpp
     command_pool.hpp
+    debug_messanger.cpp
+    debug_messanger.hpp
     descriptor_set.cpp
     descriptor_set.hpp
     pipeline_vk.cpp

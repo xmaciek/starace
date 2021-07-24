@@ -11,8 +11,6 @@
 #include <optional>
 
 static Renderer* g_instance = nullptr;
-static PFN_vkCreateDebugUtilsMessengerEXT createDebugUtilsMessengerEXT{};
-static PFN_vkDestroyDebugUtilsMessengerEXT destroyDebugUtilsMessengerEXT{};
 
 static bool operator < ( const Buffer& lhs, const Buffer& rhs ) noexcept
 {
@@ -41,31 +39,6 @@ static std::pmr::vector<const char*> layers()
     return {
         "VK_LAYER_KHRONOS_validation"
     };
-}
-
-static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT severity
-    , VkDebugUtilsMessageTypeFlagsEXT type
-    , const VkDebugUtilsMessengerCallbackDataEXT* data
-    , void* )
-{
-    static constexpr uint32_t expectedSeverity =
-        VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT
-        | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-    if ( !( severity & expectedSeverity ) ) {
-        return VK_FALSE;
-    }
-
-    static constexpr uint32_t expectedType =
-        VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT
-        | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-    if ( !( type & expectedType ) ) {
-        return VK_FALSE;
-    }
-
-    std::cout << "[ FAIL ] " << data->pMessage << std::endl << std::flush;
-    std::abort();
-    return VK_FALSE;
 }
 
 static std::pmr::vector<VkPhysicalDevice> devices( VkInstance instance )
@@ -179,24 +152,7 @@ RendererVK::RendererVK( SDL_Window* window )
             return;
         }
     }
-    {
-        VkDebugUtilsMessengerCreateInfoEXT debugMsg{};
-        debugMsg.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-        debugMsg.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-        debugMsg.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-        debugMsg.pfnUserCallback = debugCallback;
-
-        createDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>( vkGetInstanceProcAddr( m_instance, "vkCreateDebugUtilsMessengerEXT" ) );
-        destroyDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>( vkGetInstanceProcAddr( m_instance, "vkDestroyDebugUtilsMessengerEXT" ) );
-        if ( createDebugUtilsMessengerEXT ) {
-            const VkResult res = createDebugUtilsMessengerEXT( m_instance, &debugMsg, nullptr, &m_debug );
-            assert( res == VK_SUCCESS );
-            if ( res != VK_SUCCESS ) {
-                std::cout << "Failed to create debug callback" << std::endl;
-                return;
-            }
-        }
-    }
+    m_debugMsg = DebugMsg{ m_instance };
 
     for ( VkPhysicalDevice it : devices( m_instance ) ) {
         VkPhysicalDeviceProperties deviceProperties{};
@@ -493,9 +449,7 @@ RendererVK::~RendererVK()
     if ( m_device ) {
         vkDestroyDevice( m_device, nullptr );
     }
-    if ( m_debug ) {
-        destroyDebugUtilsMessengerEXT( m_instance, m_debug, nullptr );
-    }
+    m_debugMsg = {};
     if ( m_instance ) {
         vkDestroyInstance( m_instance, nullptr );
     }

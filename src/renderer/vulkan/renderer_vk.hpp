@@ -9,6 +9,7 @@
 #include "swapchain.hpp"
 #include "texture_vk.hpp"
 #include "buffer_pool.hpp"
+#include "debug_messanger.hpp"
 
 #include <vulkan/vulkan.h>
 
@@ -19,7 +20,7 @@
 class RendererVK : public Renderer {
     SDL_Window* m_window = nullptr;
 
-    VkDebugUtilsMessengerEXT m_debug = VK_NULL_HANDLE;
+    DebugMsg m_debugMsg{};
     VkInstance m_instance = VK_NULL_HANDLE;
     VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
 
