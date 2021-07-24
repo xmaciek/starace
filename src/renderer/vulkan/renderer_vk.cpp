@@ -418,9 +418,6 @@ RendererVK::~RendererVK()
     m_clear = {};
     m_presentTransfer = {};
     m_bufferMap.clear();
-    m_bufferMap2.clear();
-    m_bufferMap3.clear();
-    m_bufferMap4.clear();
     for ( TextureVK* it : m_textures ) {
         delete it;
     }
@@ -495,45 +492,6 @@ Buffer RendererVK::createBuffer( std::pmr::vector<float>&& vec, Buffer::Lifetime
     const Buffer retBuffer{ reinterpret_cast<uint64_t>( (VkBuffer)data ), lft, Buffer::Status::ePending };
     auto [ it, emplaced ] = m_bufferMap.emplace( std::make_pair( retBuffer, std::move( data ) ) );
     assert( emplaced );
-    return retBuffer;
-}
-
-Buffer RendererVK::createBuffer( std::pmr::vector<glm::vec2>&& vec, Buffer::Lifetime lft )
-{
-    BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, vec.size() * sizeof( glm::vec2 ) };
-    staging.copyData( reinterpret_cast<const uint8_t*>( vec.data() ) );
-
-    BufferVK data{ m_physicalDevice, m_device, BufferVK::Purpose::eVertex, staging.sizeInBytes() };
-    m_transferCmd.transferBufferAndWait( staging, data, staging.sizeInBytes() );
-
-    const Buffer retBuffer{ reinterpret_cast<uint64_t>( (VkBuffer)data ), lft, Buffer::Status::ePending };
-    m_bufferMap2.emplace( std::make_pair( retBuffer, std::move( data ) ) );
-    return retBuffer;
-}
-
-Buffer RendererVK::createBuffer( std::pmr::vector<glm::vec3>&& vec, Buffer::Lifetime lft )
-{
-    BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, vec.size() * sizeof( glm::vec3 ) };
-    staging.copyData( reinterpret_cast<const uint8_t*>( vec.data() ) );
-
-    BufferVK data{ m_physicalDevice, m_device, BufferVK::Purpose::eVertex, staging.sizeInBytes() };
-    m_transferCmd.transferBufferAndWait( staging, data, staging.sizeInBytes() );
-
-    const Buffer retBuffer{ reinterpret_cast<uint64_t>( (VkBuffer)data ), lft, Buffer::Status::ePending };
-    m_bufferMap3.emplace( std::make_pair( retBuffer, std::move( data ) ) );
-    return retBuffer;
-}
-
-Buffer RendererVK::createBuffer( std::pmr::vector<glm::vec4>&& vec, Buffer::Lifetime lft )
-{
-    BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, vec.size() * sizeof( glm::vec4 ) };
-    staging.copyData( reinterpret_cast<const uint8_t*>( vec.data() ) );
-
-    BufferVK data{ m_physicalDevice, m_device, BufferVK::Purpose::eVertex, staging.sizeInBytes() };
-    m_transferCmd.transferBufferAndWait( staging, data, staging.sizeInBytes() );
-
-    const Buffer retBuffer{ reinterpret_cast<uint64_t>( (VkBuffer)data ), lft, Buffer::Status::ePending };
-    m_bufferMap4.emplace( std::make_pair( retBuffer, std::move( data ) ) );
     return retBuffer;
 }
 

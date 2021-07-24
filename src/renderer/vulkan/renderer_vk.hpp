@@ -59,9 +59,6 @@ class RendererVK : public Renderer {
     std::pmr::vector<TextureVK*> m_textures;
 
     std::pmr::map<Buffer, BufferVK> m_bufferMap{};
-    std::pmr::map<Buffer, BufferVK> m_bufferMap2{};
-    std::pmr::map<Buffer, BufferVK> m_bufferMap3{};
-    std::pmr::map<Buffer, BufferVK> m_bufferMap4{};
 
     void transferBufferAndWait( VkBuffer src, VkBuffer dst, size_t size );
 
@@ -72,9 +69,6 @@ public:
     RendererVK( SDL_Window* );
 
     virtual Buffer createBuffer( std::pmr::vector<float>&&, Buffer::Lifetime ) override;
-    virtual Buffer createBuffer( std::pmr::vector<glm::vec2>&&, Buffer::Lifetime ) override;
-    virtual Buffer createBuffer( std::pmr::vector<glm::vec3>&&, Buffer::Lifetime ) override;
-    virtual Buffer createBuffer( std::pmr::vector<glm::vec4>&&, Buffer::Lifetime ) override;
     virtual std::pmr::memory_resource* allocator() override;
     virtual Texture createTexture( uint32_t w, uint32_t h, Texture::Format, bool, const uint8_t* ) override;
     virtual void beginFrame() override;

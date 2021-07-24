@@ -34,20 +34,12 @@ class RendererGL : public Renderer {
     SDL_GLContext m_contextInit{};
     SDL_GLContext m_contextGL{};
     std::pmr::map<Buffer, std::pmr::vector<float>> m_bufferMap{};
-    std::pmr::map<Buffer, std::pmr::vector<glm::vec2>> m_bufferMap2{};
-    std::pmr::map<Buffer, std::pmr::vector<glm::vec3>> m_bufferMap3{};
-    std::pmr::map<Buffer, std::pmr::vector<glm::vec4>> m_bufferMap4{};
-
-    void maybeDeleteBuffer( const Buffer& );
 
 public:
     virtual ~RendererGL() override;
     RendererGL( SDL_Window* );
 
     virtual Buffer createBuffer( std::pmr::vector<float>&&, Buffer::Lifetime ) override;
-    virtual Buffer createBuffer( std::pmr::vector<glm::vec2>&&, Buffer::Lifetime ) override;
-    virtual Buffer createBuffer( std::pmr::vector<glm::vec3>&&, Buffer::Lifetime ) override;
-    virtual Buffer createBuffer( std::pmr::vector<glm::vec4>&&, Buffer::Lifetime ) override;
     virtual std::pmr::memory_resource* allocator() override;
     virtual Texture createTexture( uint32_t w, uint32_t h, Texture::Format, bool, const uint8_t* ) override;
     virtual void beginFrame() override;
@@ -186,9 +178,6 @@ void RendererGL::deleteTexture( Texture tex )
 void RendererGL::deleteBuffer( const Buffer& b )
 {
     m_bufferMap.erase( b );
-    m_bufferMap2.erase( b );
-    m_bufferMap3.erase( b );
-    m_bufferMap4.erase( b );
 }
 
 Buffer RendererGL::createBuffer( std::pmr::vector<float>&& vec, Buffer::Lifetime lft )
@@ -197,37 +186,6 @@ Buffer RendererGL::createBuffer( std::pmr::vector<float>&& vec, Buffer::Lifetime
     m_bufferMap.emplace( std::make_pair( buffer, std::move( vec ) ) ) ;
     assert( !m_bufferMap[ buffer ].empty() );
     return buffer;
-}
-
-Buffer RendererGL::createBuffer( std::pmr::vector<glm::vec2>&& vec, Buffer::Lifetime lft )
-{
-    const Buffer buffer{ reinterpret_cast<uint64_t>( vec.data() ), lft, Buffer::Status::eReady };
-    m_bufferMap2.emplace( std::make_pair( buffer, std::move( vec ) ) ) ;
-    assert( !m_bufferMap2[ buffer ].empty() );
-    return buffer;
-}
-
-Buffer RendererGL::createBuffer( std::pmr::vector<glm::vec3>&& vec, Buffer::Lifetime lft )
-{
-    const Buffer buffer{ reinterpret_cast<uint64_t>( vec.data() ), lft, Buffer::Status::eReady };
-    m_bufferMap3.emplace( std::make_pair( buffer, std::move( vec ) ) );
-    assert( !m_bufferMap3[ buffer ].empty() );
-    return buffer;
-}
-
-Buffer RendererGL::createBuffer( std::pmr::vector<glm::vec4>&& vec, Buffer::Lifetime lft )
-{
-    const Buffer buffer{ reinterpret_cast<uint64_t>( vec.data() ), lft, Buffer::Status::eReady };
-    m_bufferMap4.emplace( std::make_pair( buffer, std::move( vec ) ) );
-    assert( !m_bufferMap4[ buffer ].empty() );
-    return buffer;
-}
-
-void RendererGL::maybeDeleteBuffer( const Buffer& buf )
-{
-    if ( buf.m_lifetime == Buffer::Lifetime::eOneTimeUse ) {
-        deleteBuffer( buf );
-    }
 }
 
 Texture RendererGL::createTexture( uint32_t w, uint32_t h, Texture::Format fmt, bool genMips, const uint8_t* ptr )
@@ -420,8 +378,6 @@ void RendererGL::push( void* buffer, void* constant )
         }
         glEnd();
         glPopMatrix();
-
-        maybeDeleteBuffer( pushBuffer->m_vertices );
     } break;
 
     case Pipeline::count:

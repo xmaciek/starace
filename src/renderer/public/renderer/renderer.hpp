@@ -3,9 +3,6 @@
 #include <renderer/buffer.hpp>
 #include <renderer/texture.hpp>
 
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
-#include <glm/vec4.hpp>
 #include <SDL2/SDL.h>
 
 #include <cstdint>
@@ -22,9 +19,6 @@ public:
     static SDL_WindowFlags windowFlag();
 
     virtual Buffer createBuffer( std::pmr::vector<float>&&, Buffer::Lifetime ) = 0;
-    virtual Buffer createBuffer( std::pmr::vector<glm::vec2>&&, Buffer::Lifetime ) = 0;
-    virtual Buffer createBuffer( std::pmr::vector<glm::vec3>&&, Buffer::Lifetime ) = 0;
-    virtual Buffer createBuffer( std::pmr::vector<glm::vec4>&&, Buffer::Lifetime ) = 0;
     virtual std::pmr::memory_resource* allocator() = 0;
     virtual Texture createTexture( uint32_t w, uint32_t h, Texture::Format, bool genMips, const uint8_t* ) = 0;
     virtual void beginFrame() = 0;
