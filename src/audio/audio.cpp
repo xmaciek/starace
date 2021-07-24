@@ -69,7 +69,7 @@ SDLAudioEngine::SDLAudioEngine()
     SDL_InitSubSystem( SDL_INIT_AUDIO );
     std::vector<std::string> audioDrivers( SDL_GetNumAudioDrivers() );
     for ( size_t i = 0; i < audioDrivers.size(); ++i ) {
-        audioDrivers[ i ] = SDL_GetAudioDriver( i );
+        audioDrivers[ i ] = SDL_GetAudioDriver( (int)i );
     }
 
     for ( const std::string& it : audioDrivers ) {
@@ -81,7 +81,7 @@ SDLAudioEngine::SDLAudioEngine()
 
     std::vector<std::string> audioDevices( SDL_GetNumAudioDevices( false ) );
     for ( size_t i = 0; i < audioDevices.size(); ++i ) {
-        audioDevices[ i ] = SDL_GetAudioDeviceName( i, false );
+        audioDevices[ i ] = SDL_GetAudioDeviceName( (int)i, false );
     }
 
     SDL_AudioSpec want{};
@@ -137,10 +137,11 @@ void SDLAudioEngine::callback( void* userData, Uint8* stream, int len )
 Chunk SDLAudioEngine::load( std::string_view file )
 {
     Buffer buffer{};
-
     Uint8* tmpBuff = nullptr;
     Uint32 tmpLen = 0;
-    [[maybe_unused]] SDL_AudioSpec* specPtr = SDL_LoadWAV( file.data(), &buffer.spec, &tmpBuff, &tmpLen );
+
+    [[maybe_unused]]
+    SDL_AudioSpec* specPtr = SDL_LoadWAV( file.data(), &buffer.spec, &tmpBuff, &tmpLen );
     assert( specPtr );
     assert( &buffer.spec == specPtr );
 
@@ -150,19 +151,19 @@ Chunk SDLAudioEngine::load( std::string_view file )
 
     buffer.data.resize( tmpLen * cvt.len_mult );
     cvt.buf = buffer.data.data();
-    cvt.len = tmpLen;
+    cvt.len = (int)tmpLen;
     std::copy( tmpBuff, tmpBuff + tmpLen, buffer.data.begin() );
 
-    [[maybe_unused]] const bool convertOK = SDL_ConvertAudio( &cvt ) == 0;
-    assert( convertOK );
+    [[maybe_unused]]
+    const int convertErr = SDL_ConvertAudio( &cvt );
+    assert( convertErr == 0 );
     buffer.data.resize( cvt.len_cvt );
 
     buffer.spec = m_spec;
     SDL_FreeWAV( tmpBuff );
 
     void* bufferId = buffer.data.data();
-    const auto ret = m_loadedBuffers.emplace(
-        std::make_pair( bufferId, std::move( buffer ) ) );
+    const auto ret = m_loadedBuffers.emplace( std::make_pair( bufferId, std::move( buffer ) ) );
     assert( ret.second );
     return Chunk{ bufferId };
 }
