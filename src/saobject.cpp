@@ -93,7 +93,7 @@ void SAObject::interceptTarget()
     tgt = m_position - tgt;
     tgt = glm::normalize( tgt );
 
-    const double tmp = tan( std::atan( glm::dot( dir, tgt ) - m_turnrate ) );
+    const float tmp = (float)std::tan( std::atan( glm::dot( dir, tgt ) - m_turnrate ) );
     dir = glm::cross( tgt, glm::cross( dir, tgt ) );
     dir += tgt * glm::vec3( tmp );
 
@@ -126,12 +126,12 @@ bool SAObject::deleteMe()
     return false;
 }
 
-int32_t SAObject::score() const
+uint32_t SAObject::score() const
 {
     return m_score;
 }
 
-void SAObject::addScore( int32_t s, bool )
+void SAObject::addScore( uint32_t s, bool )
 {
     m_score += s;
 }

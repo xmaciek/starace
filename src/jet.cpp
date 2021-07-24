@@ -12,7 +12,7 @@
 
 constexpr static float operator ""_deg ( long double f ) noexcept
 {
-    return glm::radians( f );
+    return glm::radians( static_cast<float>( f ) );
 }
 
 constexpr static glm::vec3 defaultPyrAcceleration{ 15.0_deg, 10.0_deg, 50.0_deg };
@@ -263,12 +263,12 @@ void Jet::setWeapon( BulletProto bp, uint32_t id )
 bool Jet::isWeaponReady( uint32_t weaponNum ) const
 {
     return ( m_shotFactor[ weaponNum ] >= m_weapon[ weaponNum ].delay )
-        && ( m_reactor.power() >= m_weapon[ weaponNum ].energy );
+        && ( (uint32_t)m_reactor.power() >= m_weapon[ weaponNum ].energy );
 }
 
 void Jet::takeEnergy( uint32_t weaponNum )
 {
-    m_reactor.consume( m_weapon[ weaponNum ].energy );
+    m_reactor.consume( (float)m_weapon[ weaponNum ].energy );
     m_shotFactor[ weaponNum ] = 0;
 }
 
@@ -302,7 +302,7 @@ void Jet::processCollision( SAObject* )
     assert( !"shall not be called" );
 };
 
-void Jet::addScore( int32_t s, bool b )
+void Jet::addScore( uint32_t s, bool b )
 {
     if ( b ) {
         m_score += s;
