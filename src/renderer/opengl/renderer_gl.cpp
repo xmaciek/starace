@@ -11,11 +11,11 @@
 #include <map>
 #include <utility>
 
-Renderer* Renderer::s_instance = nullptr;
+static Renderer* g_instance = nullptr;
 
 Renderer* Renderer::instance()
 {
-    return s_instance;
+    return g_instance;
 }
 
 SDL_WindowFlags Renderer::windowFlag()
@@ -104,7 +104,7 @@ static int typeToFormat( Texture::Format e )
 
 RendererGL::~RendererGL()
 {
-    s_instance = nullptr;
+    g_instance = nullptr;
     SDL_GL_DeleteContext( m_contextGL );
     SDL_GL_DeleteContext( m_contextInit );
 }
@@ -112,7 +112,8 @@ RendererGL::~RendererGL()
 RendererGL::RendererGL( SDL_Window* window )
 : m_window{ window }
 {
-    s_instance = this;
+    assert( !g_instance );
+    g_instance = this;
 
     m_contextGL = SDL_GL_CreateContext( window );
 

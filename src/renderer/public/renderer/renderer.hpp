@@ -13,9 +13,6 @@
 #include <vector>
 
 class Renderer {
-protected:
-    static Renderer* s_instance;
-
 public:
     virtual ~Renderer() = default;
     Renderer() = default;

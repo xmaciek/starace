@@ -11,7 +11,7 @@
 #include <iostream>
 #include <optional>
 
-Renderer* Renderer::s_instance = nullptr;
+static Renderer* g_instance = nullptr;
 static PFN_vkCreateDebugUtilsMessengerEXT createDebugUtilsMessengerEXT{};
 static PFN_vkDestroyDebugUtilsMessengerEXT destroyDebugUtilsMessengerEXT{};
 
@@ -130,7 +130,7 @@ void queueFamilies( VkPhysicalDevice device, VkSurfaceKHR surface, uint32_t* gra
 
 Renderer* Renderer::instance()
 {
-    return s_instance;
+    return g_instance;
 }
 
 SDL_WindowFlags Renderer::windowFlag()
@@ -146,7 +146,8 @@ Renderer* Renderer::create( SDL_Window* window )
 RendererVK::RendererVK( SDL_Window* window )
 : m_window( window )
 {
-    s_instance = this;
+    assert( !g_instance );
+    g_instance = this;
 
     const std::pmr::vector<const char*> lay = layers();
     const std::pmr::vector<const char*> dextension = deviceExtensions();
