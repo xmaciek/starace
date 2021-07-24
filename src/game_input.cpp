@@ -159,7 +159,7 @@ void Game::gameKeyboardPausedUnpressed( SDL_Scancode sc )
 void Game::onMouseClickLeft( int32_t x, int32_t y )
 {
     assert( m_audio );
-    y = viewportHeight() - y;
+    y = (int32_t)viewportHeight() - y;
     switch ( m_currentScreen ) {
     case Screen::eGamePaused:
         if ( m_btnQuitMission.isClicked( x, y ) ) {

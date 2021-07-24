@@ -68,23 +68,19 @@ Font::Font( std::string_view fontname, uint32_t h )
 , m_height( h )
 {
     FT_Library library{};
-    if ( const FT_Error error = FT_Init_FreeType( &library ); error ) {
-        std::cout << "Unable to initialize freetype " << std::endl;
-        return;
-    }
+    [[maybe_unused]]
+    const FT_Error freetypeInitErr = FT_Init_FreeType( &library );
+    assert( !freetypeInitErr );
 
     FT_Face face{};
-    if ( const FT_Error error = FT_New_Face( library, fontname.data(), 0, &face ); error ) {
-        std::cout << "Unable to load font file: " << fontname << std::endl;
-        FT_Done_FreeType( library );
-        return;
-    }
+    [[maybe_unused]]
+    const FT_Error newFaceErr = FT_New_Face( library, fontname.data(), 0, &face );
+    assert( !newFaceErr );
 
-    if ( const FT_Error error = FT_Set_Pixel_Sizes( face, 0, h * FONT_SIZE_SCALE ); error ) {
-        std::cout << "Failed to set font size" << std::endl;
-        FT_Done_FreeType( library );
-        return;
-    }
+    [[maybe_unused]]
+    const FT_UInt pixelSize = static_cast<FT_UInt>( FONT_SIZE_SCALE * (float)h );
+    const FT_Error pixelSizeErr = FT_Set_Pixel_Sizes( face, 0, pixelSize );
+    assert( !pixelSizeErr );
 
     for ( char16_t i = 0; i < 128; i++ ) {
         m_glyphs[ i ] = makeDlist( face, i );
@@ -102,11 +98,11 @@ Font::~Font()
 
 uint32_t Font::textLength( std::string_view text )
 {
-    uint32_t length = 0;
+    float length = 0;
     for ( char i : text ) {
         length += m_glyphs[ static_cast<size_t>( i ) ].advance.x;
     }
-    return length;
+    return static_cast<uint32_t>( length );
 }
 
 uint32_t Font::height() const

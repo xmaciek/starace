@@ -53,7 +53,7 @@ protected:
     glm::vec3 m_direction{};
     glm::vec3 m_position{};
     glm::vec3 m_velocity{};
-    int32_t m_score = 0;
+    uint32_t m_score = 0;
     uint32_t m_ttl = 0;
     Status m_status = Status::eDead;
     bool m_collisionFlag = false;

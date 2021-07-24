@@ -21,7 +21,7 @@ private:
     std::vector<glm::vec3> m_tail{};
     double m_maxRange = 150.0;
     double m_range = 0.0;
-    double m_damage = 0.0;
+    uint32_t m_damage = 0;
     uint32_t m_rotation = 0;
     glm::vec4 m_color1{};
     glm::vec4 m_color2{};
@@ -45,9 +45,9 @@ public:
 
 struct BulletProto {
     glm::vec3 position{};
-    double damage = 0.0;
-    double delay = 0.0;
-    float speed = 0.0;
+    float delay = 0.0f;
+    float speed = 0.0f;
+    uint32_t damage = 0;
     uint32_t texture1 = 0;
     uint32_t texture2 = 0;
     uint32_t energy = 0;

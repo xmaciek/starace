@@ -101,7 +101,8 @@ void Game::loopGame()
         m_renderer->present();
 
         const std::chrono::time_point now = std::chrono::steady_clock::now();
-        updateContext.deltaTime = std::chrono::duration_cast<std::chrono::microseconds>( now - tp ).count();
+        const auto dt = std::chrono::duration_cast<std::chrono::microseconds>( now - tp );
+        updateContext.deltaTime = (float)dt.count();
         // TODO: fix game speed later
         updateContext.deltaTime /= 500'000;
     }
@@ -184,30 +185,33 @@ bool Game::onInit()
     return true;
 }
 
-void Game::onResize( int32_t w, int32_t h )
+void Game::onResize( uint32_t w, uint32_t h )
 {
     m_maxDimention = std::max( w, h );
     m_minDimention = std::min( w, h );
     m_renderer->setViewportSize( w, h );
 
-    m_btnExit.setPosition( ( viewportWidth() / 2 ) + 4, viewportHeight() * 0.15 );
-    m_btnQuitMission.setPosition( ( viewportWidth() / 2 ) - 196, viewportHeight() * 0.15 );
+    const uint32_t halfW = viewportWidth() >> 1;
+    const uint32_t halfH = viewportHeight() >> 1;
+    const uint32_t h015 = (uint32_t)( (float)viewportHeight() * 0.15f );
+    m_btnExit.setPosition( halfW + 4, h015 );
+    m_btnQuitMission.setPosition( halfW - 196, h015 );
     m_btnChangeFiltering.setPosition( 512, viewportHeight() - 192 );
-    m_btnSelectMission.setPosition( ( viewportWidth() / 2 ) - 96, viewportHeight() * 0.15 + 52 );
-    m_btnGO.setPosition( ( viewportWidth() / 2 ) - 96, viewportHeight() * 0.15 );
-    m_btnStartMission.setPosition( ( viewportWidth() / 2 ) + 4, viewportHeight() * 0.15 );
-    m_btnReturnToMainMenu.setPosition( ( viewportWidth() / 2 ) - 196, viewportHeight() * 0.15 );
-    m_btnReturnToMissionSelection.setPosition( ( viewportWidth() / 2 ) - 96, viewportHeight() * 0.15 );
-    m_btnNextMap.setPosition( viewportWidth() - 240, viewportHeight() / 2 - 24 );
-    m_btnPrevMap.setPosition( 48, viewportHeight() / 2 - 24 );
-    m_btnCustomize.setPosition( ( viewportWidth() / 2 ) - 196, viewportHeight() * 0.15 );
-    m_btnCustomizeReturn.setPosition( ( viewportWidth() / 2 ) - 96, viewportHeight() * 0.15 + 52 );
-    m_btnNextJet.setPosition( viewportWidth() - 240, viewportHeight() / 2 - 24 );
-    m_btnPrevJet.setPosition( 48, viewportHeight() / 2 - 24 );
+    m_btnSelectMission.setPosition( halfW - 96, h015 + 52 );
+    m_btnGO.setPosition( halfW - 96, h015 );
+    m_btnStartMission.setPosition( halfW + 4, h015 );
+    m_btnReturnToMainMenu.setPosition( halfW - 196, h015 );
+    m_btnReturnToMissionSelection.setPosition( halfW - 96, h015 );
+    m_btnNextMap.setPosition( viewportWidth() - 240, halfH - 24 );
+    m_btnPrevMap.setPosition( 48, halfH - 24 );
+    m_btnCustomize.setPosition( halfW - 196, h015 );
+    m_btnCustomizeReturn.setPosition( halfW - 96, h015 + 52 );
+    m_btnNextJet.setPosition( viewportWidth() - 240, halfH - 24 );
+    m_btnPrevJet.setPosition( 48, halfH - 24 );
 
-    m_btnWeap1.setPosition( viewportWidth() / 2 - 196 - 96, viewportHeight() * 0.15 + 52 - 76 );
-    m_btnWeap2.setPosition( viewportWidth() / 2 - 96, viewportHeight() * 0.15 + 52 - 76 );
-    m_btnWeap3.setPosition( viewportWidth() / 2 + 100, viewportHeight() * 0.15 + 52 - 76 );
+    m_btnWeap1.setPosition( halfW - 196 - 96, h015 + 52 - 76 );
+    m_btnWeap2.setPosition( halfW - 96, h015 + 52 - 76 );
+    m_btnWeap3.setPosition( halfW + 100, h015 + 52 - 76 );
 }
 
 void Game::initRoadAdditions()
@@ -354,7 +358,7 @@ void Game::onRender()
     m_renderer->clear();
     RenderContext rctx{};
     rctx.renderer = m_renderer;
-    rctx.projection = glm::ortho<float>( 0.0f, viewportWidth(), 0.0f, viewportHeight(), -100.0f, 100.0f );
+    rctx.projection = glm::ortho<float>( 0.0f, (float)viewportWidth(), 0.0f, (float)viewportHeight(), -100.0f, 100.0f );
     switch ( m_currentScreen ) {
     case Screen::eGame:
         renderGameScreen( rctx );
@@ -939,20 +943,26 @@ void Game::updateDeadScreen( const UpdateContext& updateContext )
     updateCyberRings( updateContext );
 }
 
-double Game::viewportWidth() const
+uint32_t Game::viewportWidth() const
 {
     return m_viewportWidth;
 }
 
-double Game::viewportHeight() const
+uint32_t Game::viewportHeight() const
 {
     return m_viewportHeight;
 }
 
-void Game::setViewportSize( double w, double h )
+float Game::viewportAspect() const
+{
+    return m_viewportAspect;
+}
+
+void Game::setViewportSize( uint32_t w, uint32_t h )
 {
     m_viewportWidth = w;
     m_viewportHeight = h;
+    m_viewportAspect = (float)w / (float)h;
 }
 
 void Game::reloadPreviewModel()

@@ -25,8 +25,8 @@ void Game::renderGameScreenPaused( RenderContext rctx )
 
 void Game::renderCyberRings( RenderContext rctx )
 {
-    const double sw = viewportWidth() / 2;
-    const double sh = viewportHeight() / 2;
+    const double sw = (double)viewportWidth() / 2.0;
+    const double sh = (double)viewportHeight() / 2.0;
     rctx.model = glm::translate( rctx.model, glm::vec3{ sw, sh, 0.0f } );
     for ( size_t i = 0; i < 3; i++ ) {
         PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{};
@@ -56,8 +56,8 @@ void Game::renderCyberRings( RenderContext rctx )
 
 void Game::renderCyberRingsMini( RenderContext rctx )
 {
-    const double sw = viewportWidth() / 2;
-    const double sh = viewportHeight() / 2 - 8;
+    const double sw = (double)viewportWidth() / 2.0;
+    const double sh = (double)viewportHeight() / 2.0 - 8;
     rctx.model = glm::translate( rctx.model, glm::vec3{ sw, sh, 0.0 } );
     for ( size_t i = 0; i < 3; i++ ) {
         PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{};
@@ -139,7 +139,7 @@ void Game::renderPauseText( RenderContext rctx )
 
     m_btnQuitMission.render( rctx );
     constexpr static char PAUSED[] = "PAUSED";
-    const double posx = viewportWidth() / 2 - static_cast<double>( m_fontPauseTxt->textLength( PAUSED ) ) / 2;
+    const double posx = (double)viewportWidth() / 2 - static_cast<double>( m_fontPauseTxt->textLength( PAUSED ) ) / 2;
     m_fontPauseTxt->renderText( rctx, color::yellow, posx, viewportHeight() - 128, PAUSED );
 }
 
@@ -152,9 +152,9 @@ void Game::renderHudTex( RenderContext rctx, const glm::vec4& color )
     pushConstant.m_view = rctx.view;
     pushConstant.m_projection = rctx.projection;
     pushConstant.m_color = color;
-    pushConstant.m_vertices[ 0 ] = glm::vec4{ 0, 0, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 1 ] = glm::vec4{ viewportWidth(), 0.0, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 2 ] = glm::vec4{ viewportWidth(), viewportHeight(), 0.0f, 0.0f };
+    pushConstant.m_vertices[ 0 ] = glm::vec4{ 0.0f, 0.0f, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 1 ] = glm::vec4{ (float)viewportWidth(), 0.0f, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 2 ] = glm::vec4{ (float)viewportWidth(), (float)viewportHeight(), 0.0f, 0.0f };
     pushConstant.m_vertices[ 3 ] = glm::vec4{ 0.0, viewportHeight(), 0.0f, 0.0f };
     pushConstant.m_uv[ 0 ] = glm::vec4{ 0, 0, 0.0f, 0.0f };
     pushConstant.m_uv[ 1 ] = glm::vec4{ 1, 0, 0.0f, 0.0f };
@@ -325,7 +325,7 @@ void Game::renderHUD( RenderContext rctx )
         msg += ", calculated: ";
         msg += std::to_string( m_fpsMeter.calculated() );
         const double textMid = static_cast<double>( m_fontGuiTxt->textLength( "FPS done: XXX, calculated: xxxx.xx" ) ) / 2;
-        const double posx = viewportWidth() / 2 - textMid;
+        const double posx = (double)viewportWidth() / 2.0 - textMid;
         m_fontGuiTxt->renderText( rctx, color, posx, viewportHeight() - 28, msg );
     }
     m_fontPauseTxt->renderText( rctx, color, 10, 120, "PWR" );
@@ -335,7 +335,7 @@ void Game::renderHUD( RenderContext rctx )
 void Game::render3D( RenderContext rctx )
 {
     assert( m_jet );
-    rctx.projection = glm::perspective( glm::radians( m_angle + m_jet->speed() * 6 ), static_cast<float>( viewportWidth() / viewportHeight() ), 0.001f, 2000.0f );
+    rctx.projection = glm::perspective( glm::radians( m_angle + m_jet->speed() * 6 ), viewportAspect(), 0.001f, 2000.0f );
     rctx.view = glm::translate( rctx.view, glm::vec3{ 0, -0.255, -1 } );
     rctx.view *= glm::toMat4( m_jet->rotation() );
     rctx.view = glm::translate( rctx.view, -m_jet->position() );
@@ -381,9 +381,9 @@ void Game::renderClouds( RenderContext rctx ) const
     pushConstant.m_uv[ 2 ] = glm::vec4{ 1, 1, 0.0f, 0.0f };
     pushConstant.m_uv[ 3 ] = glm::vec4{ 0, 1, 0.0f, 0.0f };
     pushConstant.m_vertices[ 0 ] = glm::vec4{ 0.0f, 0.0f, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 1 ] = glm::vec4{ viewportWidth(), 0.0f, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 2 ] = glm::vec4{ viewportWidth(), viewportHeight(), 0.0f, 0.0f };
-    pushConstant.m_vertices[ 3 ] = glm::vec4{ 0.0f, viewportHeight(), 0.0f, 0.0f };
+    pushConstant.m_vertices[ 1 ] = glm::vec4{ (float)viewportWidth(), 0.0f, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 2 ] = glm::vec4{ (float)viewportWidth(), viewportHeight(), 0.0f, 0.0f };
+    pushConstant.m_vertices[ 3 ] = glm::vec4{ 0.0f, (float)viewportHeight(), 0.0f, 0.0f };
 
     PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{};
     pushBuffer.m_texture = m_menuBackground;
@@ -411,7 +411,7 @@ void Game::renderWinScreen( RenderContext rctx )
     constexpr static char missionOK[] = "MISSION SUCCESSFUL";
     m_fontBig->renderText( rctx
         , color::white
-        , viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( missionOK ) ) / 2
+        , (float)viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( missionOK ) ) / 2
         , viewportHeight() - 128
         , missionOK
     );
@@ -421,7 +421,7 @@ void Game::renderWinScreen( RenderContext rctx )
     const std::string str = std::string{ "Your score: " } + std::to_string( score );
     m_fontBig->renderText( rctx
         , color::white
-        , viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( str.c_str() ) ) / 2
+        , (float)viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( str.c_str() ) ) / 2
         , viewportHeight() - 128 - 36
         , str
     );
@@ -437,7 +437,7 @@ void Game::renderDeadScreen( RenderContext rctx )
     constexpr static char txt[] = "MISSION FAILED";
     m_fontBig->renderText( rctx
         , color::white
-        , viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( txt ) ) / 2
+        , (float)viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( txt ) ) / 2
         , viewportHeight() - 128
         , txt
     );
@@ -447,7 +447,7 @@ void Game::renderDeadScreen( RenderContext rctx )
     const std::string str = std::string{ "Your score: " } + std::to_string( score );
     m_fontBig->renderText( rctx
         , color::white
-        , viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( str.c_str() ) ) / 2
+        , (float)viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( str.c_str() ) ) / 2
         , viewportHeight() - 128 - 36
         , str
     );
@@ -483,12 +483,12 @@ void Game::renderMissionSelectionScreen( RenderContext rctx )
     rctx.renderer->push( &pushBuffer, &pushConstant );
     {
         const std::string str = std::string{ "Map: " } + m_mapsContainer.at( m_currentMap ).name;
-        const double posx = viewportWidth() / 2 - static_cast<double>( m_fontPauseTxt->textLength( str.c_str() ) ) / 2;
+        const double posx = (double)viewportWidth() / 2.0 - static_cast<double>( m_fontPauseTxt->textLength( str.c_str() ) ) / 2;
         m_fontPauseTxt->renderText( rctx, color::white, posx, viewportHeight() - 128, str );
     }
     {
         const std::string str = std::string{ "Enemies: " } + std::to_string( m_mapsContainer.at( m_currentMap ).enemies );
-        const double posx = viewportWidth() / 2 - static_cast<double>( m_fontPauseTxt->textLength( str.c_str() ) ) / 2;
+        const double posx = (double)viewportWidth() / 2 - static_cast<double>( m_fontPauseTxt->textLength( str.c_str() ) ) / 2;
         m_fontPauseTxt->renderText( rctx, color::white, posx, viewportHeight() - 148, str );
     }
 
@@ -520,14 +520,14 @@ void Game::renderScreenCustomize( RenderContext rctx )
     renderHudTex( rctx, color::dodgerBlue );
 
     {
-        const double posx = viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( m_jetsContainer.at( m_currentJet ).name.c_str() ) ) / 2;
+        const double posx = (double)viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( m_jetsContainer.at( m_currentJet ).name.c_str() ) ) / 2;
         m_fontBig->renderText( rctx,  color::white, posx, viewportHeight() - 64, m_jetsContainer.at( m_currentJet ).name );
     }
     {
         RenderContext rctx2 = rctx;
         rctx2.projection = glm::perspective(
             glm::radians( m_angle )
-            , static_cast<float>( viewportWidth() / viewportHeight() )
+            , viewportAspect()
             , 0.001f
             , 2000.0f
         );

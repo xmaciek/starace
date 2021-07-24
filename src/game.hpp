@@ -98,9 +98,6 @@ private:
     Texture m_menuBackground{};
     Texture m_starfieldTexture{};
 
-    double m_viewportHeight = 540.0;
-    double m_viewportWidth = 960;
-
     double m_alphaValue = 0.0;
     double m_rotation = 0.0;
     double m_modelRotation = 0.0;
@@ -113,8 +110,11 @@ private:
     float m_lightPosition[ 4 ]{};
     float m_cyberRingColor[ 3 ][ 4 ]{};
     int32_t m_currentResolution = 0;
-    int32_t m_maxDimention = 0;
-    int32_t m_minDimention = 0;
+    uint32_t m_maxDimention = 0;
+    uint32_t m_minDimention = 0;
+    uint32_t m_viewportHeight = 540.0;
+    uint32_t m_viewportWidth = 960;
+    float m_viewportAspect = 0.0f;
     uint32_t m_currentJet = 0;
     uint32_t m_currentMap = 0;
     uint32_t m_hudColor = 0;
@@ -135,8 +135,9 @@ private:
     bool m_isSoundEnabled = false;
 
     bool onInit();
-    double viewportHeight() const;
-    double viewportWidth() const;
+    uint32_t viewportHeight() const;
+    uint32_t viewportWidth() const;
+    float viewportAspect() const;
     void addBullet( uint32_t wID );
     void changeScreen( Screen );
     void clearMapData();
@@ -158,7 +159,7 @@ private:
     void onKeyUp( const SDL_Keysym& );
     void onMouseClickLeft( int32_t x, int32_t y );
     void onRender();
-    void onResize( int32_t w, int32_t h );
+    void onResize( uint32_t w, uint32_t h );
     void onUpdate( const UpdateContext& );
     void pause();
     void playSound( Mix_Chunk* ) const;
@@ -186,7 +187,7 @@ private:
     void retarget();
     void saveConfig();
     void setCamera();
-    void setViewportSize( double, double );
+    void setViewportSize( uint32_t, uint32_t );
     void unpause();
     void updateClouds( const UpdateContext& );
     void updateCustomize( const UpdateContext& );

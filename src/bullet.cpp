@@ -177,7 +177,7 @@ void Bullet::processCollision( SAObject* object )
         object->addScore( score(), false );
         switch ( m_type ) {
         case Type::eSlug:
-            object->setDamage( m_damage * m_color1[ 3 ] );
+            object->setDamage( (float)m_damage * m_color1[ 3 ] );
             break;
         default:
             object->setDamage( m_damage );
