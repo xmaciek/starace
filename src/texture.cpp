@@ -53,7 +53,7 @@ Texture loadTexture( std::string_view filename )
     const size_t textureSize = header.width * header.height * bytesPerPixel;
 
     std::vector<uint8_t> texture( textureSize );
-    ifs.read( reinterpret_cast<char*>( texture.data() ), texture.size() );
+    ifs.read( reinterpret_cast<char*>( texture.data() ), (int)texture.size() );
     ifs.close();
 
     if ( bytesPerPixel == 3 ) {
