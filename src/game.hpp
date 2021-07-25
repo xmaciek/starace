@@ -102,10 +102,11 @@ private:
     Texture m_menuBackground{};
     Texture m_starfieldTexture{};
 
-    double m_alphaValue = 0.0;
     double m_rotation = 0.0;
     double m_modelRotation = 0.0;
     double m_speedAnim = 0.0;
+    float m_alphaValue = 0.0f;
+    float m_alphaN = 0.0f;
     float m_angle = 55.0f;
     float m_cyberRingRotation[ 3 ]{};
     float m_hudColor4fv[ 3 ][ 4 ]{};
@@ -133,7 +134,6 @@ private:
     bool m_isFullscreen = false;
     bool m_isRunning = true;
     bool m_waitForEnd = true;
-    bool m_backgroundEffectEquation = false;
     bool m_cyberRingRotationDirection[ 3 ]{};
     bool m_doUpdate = false;
     bool m_isSoundEnabled = false;

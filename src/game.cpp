@@ -294,7 +294,6 @@ void Game::initRoadAdditions()
     m_menuBackgroundOverlay = loadTexture( "textures/background-overlay.tga" );
     m_starfieldTexture = loadTexture( "textures/star_field_transparent.tga" );
     m_alphaValue = 1;
-    m_backgroundEffectEquation = false;
 
     m_cyberRingTexture[ 0 ] = loadTexture( "textures/cyber_ring1.tga" );
     m_cyberRingTexture[ 1 ] = loadTexture( "textures/cyber_ring2.tga" );
@@ -887,19 +886,8 @@ void Game::saveConfig()
 
 void Game::updateClouds( const UpdateContext& updateContext )
 {
-    if ( m_backgroundEffectEquation ) {
-        m_alphaValue += 0.1 * updateContext.deltaTime;
-    }
-    else {
-        m_alphaValue -= 0.1 * updateContext.deltaTime;
-    }
-
-    if ( m_alphaValue >= 1 ) {
-        m_backgroundEffectEquation = false;
-    }
-    if ( m_alphaValue <= 0.2 ) {
-        m_backgroundEffectEquation = true;
-    }
+    m_alphaN = fmodf( m_alphaN + updateContext.deltaTime * 0.1f, 1.0f );
+    m_alphaValue = 0.65f + 0.35f * std::cos( lerp( -M_PI, M_PI, m_alphaN ) );
 }
 
 void Game::updateCustomize( const UpdateContext& updateContext )
