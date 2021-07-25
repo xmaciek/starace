@@ -14,7 +14,7 @@ class Font;
 
 class Button {
 private:
-    glm::vec4 m_color = color::lightSkyBlue;
+    glm::vec4 m_color = color::dodgerBlue;
     uint32_t m_x = 0;
     uint32_t m_y = 0;
     uint32_t m_width = 192;
