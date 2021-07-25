@@ -124,7 +124,7 @@ void Bullet::update( const UpdateContext& updateContext )
     switch ( m_type ) {
     case Type::eSlug:
         m_color1[ 3 ] -= 2.0f * updateContext.deltaTime;
-        m_range += m_maxRange * 2.0 * updateContext.deltaTime;
+        m_range += m_maxRange * 2.0f * updateContext.deltaTime;
         break;
 
     case Type::eTorpedo:

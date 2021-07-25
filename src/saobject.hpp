@@ -49,10 +49,10 @@ protected:
     double m_collisionDistance = 0.0;
     double m_health = 0.0;
     double m_turnrate = 0;
-    float m_speed = 0.0;
     glm::vec3 m_direction{};
     glm::vec3 m_position{};
     glm::vec3 m_velocity{};
+    float m_speed = 0.0;
     uint32_t m_score = 0;
     uint32_t m_ttl = 0;
     Status m_status = Status::eDead;
