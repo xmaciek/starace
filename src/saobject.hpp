@@ -9,7 +9,7 @@
 
 class SAObject {
 public:
-    enum struct Status {
+    enum struct Status : uint8_t {
         eDead,
         eAlive,
         eOut,
@@ -22,9 +22,9 @@ public:
     Status status() const;
     bool canCollide() const;
     bool deleteMe();
-    double collisionDamage() const;
+    uint8_t collisionDamage() const;
     double collisionDistance() const;
-    double health() const;
+    uint8_t health() const;
     float speed() const;
     float x() const;
     float y() const;
@@ -38,23 +38,22 @@ public:
     virtual void render( RenderContext ) const = 0;
     virtual void update( const UpdateContext& ) = 0;
     void kill();
-    void setDamage( double d );
+    void setDamage( uint8_t d );
     void setStatus( Status s );
     void setTarget( SAObject* t );
     void targetMe( bool );
 
 protected:
     SAObject* m_target = nullptr;
-    double m_collisionDamage = 0.0;
-    double m_collisionDistance = 0.0;
-    double m_health = 0.0;
-    double m_turnrate = 0;
     glm::vec3 m_direction{};
     glm::vec3 m_position{};
     glm::vec3 m_velocity{};
-    float m_speed = 0.0;
+    float m_collisionDistance = 0.0f;
+    float m_turnrate = 0.0f;
+    float m_speed = 0.0f;
     uint32_t m_score = 0;
-    uint32_t m_ttl = 0;
+    uint8_t m_health = 0;
+    uint8_t m_collisionDamage = 0;
     Status m_status = Status::eDead;
     bool m_collisionFlag = false;
     bool m_isTargeted = false;

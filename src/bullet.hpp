@@ -35,7 +35,7 @@ public:
     virtual ~Bullet() = default;
     explicit Bullet( const BulletProto& bp );
 
-    uint32_t damage() const;
+    uint8_t damage() const;
     Type type() const;
     virtual void processCollision( SAObject* object ) override;
     virtual void render( RenderContext ) const override;

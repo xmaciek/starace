@@ -11,7 +11,7 @@ Enemy::Enemy()
 : m_shield( 0.1, 0.02 )
 {
     reinitCoordinates();
-    m_speed = 2.1;
+    m_speed = 2.1f;
     setStatus( Status::eAlive );
     m_health = 100;
     m_direction = glm::vec3( 0.0f, 0.0f, 1.0f );
@@ -20,7 +20,6 @@ Enemy::Enemy()
     m_collisionFlag = true;
 
     m_velocity = m_direction * speed();
-    m_ttl = 10;
 }
 
 void Enemy::setWeapon( const BulletProto& b )
@@ -73,13 +72,13 @@ void Enemy::update( const UpdateContext& updateContext )
         , 1.0f
     } );
     if ( m_shotFactor < m_weapon.delay ) {
-        m_shotFactor += 1.0 * updateContext.deltaTime;
+        m_shotFactor += updateContext.deltaTime;
     }
 
     m_turnrate = glm::radians( speed() * 5 * updateContext.deltaTime );
     interceptTarget();
     m_position += velocity() * updateContext.deltaTime;
-    m_healthPerc = m_health / 100;
+    m_healthPerc = (float)m_health / 100;
 }
 
 void Enemy::drawCollisionIndicator()
@@ -119,15 +118,3 @@ void Enemy::drawRadarPosition( const glm::vec3&, float ) const
 //     glPopMatrix();
 }
 
-void Enemy::processCollision( SAObject* object )
-{
-    assert( object );
-    if ( !object->canCollide() || status() == Status::eDead || object->status() != Status::eAlive ) {
-        return;
-    }
-
-    if ( glm::distance( position(), object->position() ) <= collisionDistance() + object->collisionDistance() ) {
-        setDamage( collisionDamage() + object->collisionDamage() );
-        object->setDamage( collisionDamage() + object->collisionDamage() );
-    }
-}

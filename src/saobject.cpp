@@ -65,15 +65,15 @@ void SAObject::kill()
     setStatus( Status::eDead );
 }
 
-void SAObject::setDamage( double d )
+void SAObject::setDamage( uint8_t d )
 {
-    m_health -= d;
-    if ( m_health <= 0.0 ) {
+    m_health -= std::min( m_health, d );
+    if ( m_health == 0 ) {
         setStatus( Status::eDead );
     }
 }
 
-double SAObject::health() const
+uint8_t SAObject::health() const
 {
     return m_health;
 }
@@ -112,18 +112,9 @@ double SAObject::collisionDistance() const
     return m_collisionDistance;
 }
 
-double SAObject::collisionDamage() const
+uint8_t SAObject::collisionDamage() const
 {
     return m_collisionDamage;
-}
-
-bool SAObject::deleteMe()
-{
-    if ( m_ttl == 0 ) {
-        return true;
-    }
-    m_ttl--;
-    return false;
 }
 
 uint32_t SAObject::score() const

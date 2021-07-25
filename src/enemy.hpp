@@ -8,11 +8,8 @@ class Enemy : public SAObject {
 private:
     BulletProto m_weapon{};
     Shield m_shield;
-    double m_visibleRange = 0.0;
-    double m_outRange = 1.0;
-    double m_shotFactor = 0.0;
-    double m_healthPerc = 1.0;
-    int32_t m_shieldStrength = 0;
+    float m_shotFactor = 0.0f;
+    float m_healthPerc = 1.0f;
 
     void reinitCoordinates();
 
@@ -23,10 +20,8 @@ public:
     Bullet* weapon( void* );
     bool isWeaponReady() const;
     static void drawCollisionIndicator();
-    virtual void processCollision( SAObject* ) override;
     virtual void render( RenderContext ) const override;
     virtual void update( const UpdateContext& ) override;
     void drawRadarPosition( const glm::vec3& modifier, float scale ) const;
-    void setVisibleRange( double );
     void setWeapon( const BulletProto& b );
 };

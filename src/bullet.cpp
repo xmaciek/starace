@@ -56,7 +56,6 @@ Bullet::Bullet( const BulletProto& bp )
     m_position = bp.position;
     static std::mt19937_64 rng{ std::random_device()() };
     m_rotation = rng() % 360;
-    m_ttl = 20;
     setStatus( Status::eAlive );
 };
 
@@ -173,17 +172,17 @@ bool Bullet::collisionTest( const SAObject* object ) const
 void Bullet::processCollision( SAObject* object )
 {
     assert( object );
-    if ( collisionTest( object ) ) {
-        object->addScore( score(), false );
-        switch ( m_type ) {
-        case Type::eSlug:
-            object->setDamage( (float)m_damage * m_color1[ 3 ] );
-            break;
-        default:
-            object->setDamage( m_damage );
-            setStatus( Status::eDead );
-            break;
-        }
+    if ( !collisionTest( object ) ) {
+        return;
+    }
+    object->addScore( score(), false );
+    switch ( m_type ) {
+    case Type::eSlug:
+        break;
+    default:
+        object->setDamage( m_damage );
+        setStatus( Status::eDead );
+        break;
     }
 }
 
@@ -215,7 +214,7 @@ void Bullet::setDirection( const glm::vec3& v )
     }
 }
 
-uint32_t Bullet::damage() const
+uint8_t Bullet::damage() const
 {
     return m_damage;
 }
