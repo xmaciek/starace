@@ -54,33 +54,6 @@ void Game::renderCyberRings( RenderContext rctx )
     }
 }
 
-void Game::renderCyberRingsMini( RenderContext rctx )
-{
-    const double sw = (double)viewportWidth() / 2.0;
-    const double sh = (double)viewportHeight() / 2.0 - 8;
-    rctx.model = glm::translate( rctx.model, glm::vec3{ sw, sh, 0.0 } );
-    for ( size_t i = 0; i < 3; i++ ) {
-        PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{};
-        pushBuffer.m_texture = m_cyberRingTexture[ i ];
-        PushConstant<Pipeline::eGuiTextureColor1> pushConstant{};
-        pushConstant.m_color = glm::vec4{ m_hudColor4fv[ m_hudColor ][ 0 ], m_hudColor4fv[ m_hudColor ][ 1 ], m_hudColor4fv[ m_hudColor ][ 2 ], m_cyberRingColor[ i ][ 3 ] };
-        pushConstant.m_projection = rctx.projection;
-        pushConstant.m_view = rctx.view;
-        pushConstant.m_model = glm::rotate( rctx.model, glm::radians( m_cyberRingRotation[ i ] ), glm::vec3{ 0.0f, 0.0f, 1.0f } );
-
-        pushConstant.m_vertices[ 0 ] = glm::vec4{ 32, 32, 0.0f, 0.0f };
-        pushConstant.m_vertices[ 1 ] = glm::vec4{ -32, 32, 0.0f, 0.0f };
-        pushConstant.m_vertices[ 2 ] = glm::vec4{ -32, -32, 0.0f, 0.0f };
-        pushConstant.m_vertices[ 3 ] = glm::vec4{ 32, -32, 0.0f, 0.0f };
-        pushConstant.m_uv[ 0 ] = glm::vec4{ 1, 1, 0.0f, 0.0f };
-        pushConstant.m_uv[ 1 ] = glm::vec4{ 0, 1, 0.0f, 0.0f };
-        pushConstant.m_uv[ 2 ] = glm::vec4{ 0, 0, 0.0f, 0.0f };
-        pushConstant.m_uv[ 3 ] = glm::vec4{ 1, 0, 0.0f, 0.0f };
-
-        rctx.renderer->push( &pushBuffer, &pushConstant );
-    }
-}
-
 void Game::renderHUDBar( RenderContext rctx, const glm::vec4& xywh, float ratio )
 {
     rctx.model = glm::translate( rctx.model, glm::vec3{ xywh.x, xywh.y, 0.0f } );
@@ -309,8 +282,6 @@ void Game::renderHUD( RenderContext rctx )
         pushBuffer.m_verticeCount = 32;
         rctx2.renderer->push( &pushBuffer, &pushConstant );
     }
-
-    renderCyberRingsMini( rctx );
 
     assert( m_jet );
     const float power = (float)m_jet->energy();

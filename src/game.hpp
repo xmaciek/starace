@@ -175,7 +175,6 @@ private:
     void renderClouds( RenderContext ) const;
     void renderCrosshair( RenderContext );
     void renderCyberRings( RenderContext );
-    void renderCyberRingsMini( RenderContext );
     void renderDeadScreen( RenderContext );
     void renderGameScreen( RenderContext );
     void renderGameScreenBriefing( RenderContext );
