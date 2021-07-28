@@ -17,6 +17,8 @@ target_sources( renderer_vk
     descriptor_set.hpp
     pipeline_vk.cpp
     pipeline_vk.hpp
+    render_target.cpp
+    render_target.hpp
     renderer_vk.cpp
     renderer_vk.hpp
     shader.cpp

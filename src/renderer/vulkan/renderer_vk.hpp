@@ -10,6 +10,7 @@
 #include "texture_vk.hpp"
 #include "buffer_pool.hpp"
 #include "debug_messanger.hpp"
+#include "render_target.hpp"
 
 #include <vulkan/vulkan.h>
 
@@ -39,6 +40,7 @@ class RendererVK : public Renderer {
 
     Swapchain m_swapchain{};
 
+    std::pmr::vector<RenderTarget> m_mainTargets;
     std::pmr::vector<VkFramebuffer> m_framebuffers;
     VkRenderPass m_renderPass = VK_NULL_HANDLE;
 

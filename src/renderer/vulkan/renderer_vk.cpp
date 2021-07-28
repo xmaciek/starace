@@ -311,6 +311,14 @@ RendererVK::RendererVK( SDL_Window* window )
         assert( imageCount == imageViews.size() );
         assert( imageCount == depthViews.size() );
         for ( uint32_t i = 0; i < imageCount; ++i ) {
+            m_mainTargets.emplace_back(
+                m_physicalDevice
+                , m_device
+                , m_renderPass
+                , m_swapchain.extent()
+                , m_swapchain.surfaceFormat().format
+                , m_swapchain.depthFormat()
+            );
             std::array attachments = { imageViews[ i ], depthViews[ i ] };
             VkFramebufferCreateInfo framebufferInfo{};
             framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -412,6 +420,7 @@ RendererVK::~RendererVK()
     m_transferCmd = {};
     m_clear = {};
     m_bufferMap.clear();
+    m_mainTargets.clear();
     for ( TextureVK* it : m_textures ) {
         delete it;
     }
@@ -588,7 +597,9 @@ void RendererVK::beginFrame()
         return;
     }
     vkCmdSetViewport( cmd, 0, 1, &viewport );
-    m_clear( cmd, m_framebuffers[ m_currentFrame ], VkRect2D{ .extent = m_swapchain.extent() } );
+    const VkRect2D rect{ .extent = m_swapchain.extent() };
+    m_clear( cmd, m_framebuffers[ m_currentFrame ], rect );
+    m_clear( cmd, m_mainTargets[ m_currentFrame ].framebuffer(), rect );
 }
 
 void RendererVK::clear() { }
@@ -603,18 +614,42 @@ void RendererVK::submit()
         m_lastPipeline->end( cmd );
         m_lastPipeline = nullptr;
     }
-
     static constexpr TransferInfo src{
         .m_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
         .m_access = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
         .m_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
     };
-    static constexpr TransferInfo dst{
+
+    static constexpr TransferInfo general{
+        .m_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        .m_access = VK_ACCESS_TRANSFER_WRITE_BIT,
+        .m_stage = VK_PIPELINE_STAGE_TRANSFER_BIT,
+    };
+    transferImage( cmd, m_swapchain.image( m_currentFrame ), src, general );
+
+    const VkExtent2D extent = m_swapchain.extent();
+    const VkImageCopy region{
+        .srcSubresource{ .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .layerCount = 1 },
+        .dstSubresource{ .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .layerCount = 1 },
+        .extent = { .width = extent.width, .height = extent.height, .depth = 1 }
+    };
+
+    m_mainTargets[ m_currentFrame ].transferToRead( cmd );
+    vkCmdCopyImage( cmd
+        , m_mainTargets[ m_currentFrame ].image().first
+        , m_mainTargets[ m_currentFrame ].layout()
+        , m_swapchain.image( m_currentFrame )
+        , general.m_layout
+        , 1
+        , &region
+    );
+
+    static constexpr TransferInfo present{
         .m_layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
         .m_access = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
         .m_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
     };
-    transferImage( cmd, m_swapchain.image( m_currentFrame ), src, dst );
+    transferImage( cmd, m_swapchain.image( m_currentFrame ), general, present );
 
     if ( const VkResult res = vkEndCommandBuffer( cmd );
         res != VK_SUCCESS ) {
@@ -699,11 +734,11 @@ void RendererVK::push( void* buffer, void* constant )
             , texture->sampler()
             , descriptorSet
         );
-        VkRect2D renderArea{};
-        renderArea.extent = m_swapchain.extent();
+
+        RenderTarget& tgt = m_mainTargets[ m_currentFrame ];
         currentPipeline.begin( cmd
-            , m_framebuffers[ m_currentFrame ]
-            , renderArea
+            , tgt.framebuffer()
+            , tgt.rect()
             , descriptorSet
         );
         vkCmdDraw( cmd, 4, 1, 0, 0 );
@@ -724,11 +759,11 @@ void RendererVK::push( void* buffer, void* constant )
             , VK_NULL_HANDLE
             , descriptorSet
         );
-        VkRect2D renderArea{};
-        renderArea.extent = m_swapchain.extent();
+
+        RenderTarget& tgt = m_mainTargets[ m_currentFrame ];
         currentPipeline.begin( cmd
-            , m_framebuffers[ m_currentFrame ]
-            , renderArea
+            , tgt.framebuffer()
+            , tgt.rect()
             , descriptorSet
         );
         vkCmdSetLineWidth( cmd, pushBuffer->m_lineWidth );
@@ -750,11 +785,11 @@ void RendererVK::push( void* buffer, void* constant )
             , VK_NULL_HANDLE
             , descriptorSet
         );
-        VkRect2D renderArea{};
-        renderArea.extent = m_swapchain.extent();
+
+        RenderTarget& tgt = m_mainTargets[ m_currentFrame ];
         currentPipeline.begin( cmd
-            , m_framebuffers[ m_currentFrame ]
-            , renderArea
+            , tgt.framebuffer()
+            , tgt.rect()
             , descriptorSet
         );
         vkCmdSetLineWidth( cmd, pushBuffer->m_lineWidth );
@@ -777,11 +812,11 @@ void RendererVK::push( void* buffer, void* constant )
             , VK_NULL_HANDLE
             , descriptorSet
         );
-        VkRect2D renderArea{};
-        renderArea.extent = m_swapchain.extent();
+
+        RenderTarget& tgt = m_mainTargets[ m_currentFrame ];
         currentPipeline.begin( cmd
-            , m_framebuffers[ m_currentFrame ]
-            , renderArea
+            , tgt.framebuffer()
+            , tgt.rect()
             , descriptorSet
         );
         vkCmdDraw( cmd, pushBuffer->m_verticeCount, 1, 0, 0 );
@@ -807,12 +842,11 @@ void RendererVK::push( void* buffer, void* constant )
             , texture->sampler()
             , descriptorSet
         );
-        const VkRect2D renderArea{
-            .extent = m_swapchain.extent()
-        };
+
+        RenderTarget& tgt = m_mainTargets[ m_currentFrame ];
         currentPipeline.begin( cmd
-            , m_framebuffers[ m_currentFrame ]
-            , renderArea
+            , tgt.framebuffer()
+            , tgt.rect()
             , descriptorSet
         );
         vkCmdDraw( cmd, pushConstant->m_vertices.size(), 1, 0, 0 );
@@ -840,12 +874,11 @@ void RendererVK::push( void* buffer, void* constant )
             , texture->sampler()
             , descriptorSet
         );
-        const VkRect2D renderArea{
-            .extent = m_swapchain.extent()
-        };
+
+        RenderTarget& tgt = m_mainTargets[ m_currentFrame ];
         currentPipeline.begin( cmd
-            , m_framebuffers[ m_currentFrame ]
-            , renderArea
+            , tgt.framebuffer()
+            , tgt.rect()
             , descriptorSet
         );
         std::array<VkBuffer, 1> buffers{ vertices->second };
