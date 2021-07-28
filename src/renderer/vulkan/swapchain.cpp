@@ -194,17 +194,18 @@ Swapchain::Swapchain( VkPhysicalDevice physicalDevice, VkDevice device, VkSurfac
     );
     m_depth.reserve( imageCount );
     for ( uint32_t i = 0; i < imageCount; ++i ) {
-        auto [ image, memory ] = createImage(
+        auto [ image, imageView, memory ] = createImage(
             physicalDevice,
             device,
             m_extent,
             m_depthFormat,
             VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+            VK_IMAGE_ASPECT_DEPTH_BIT
         );
         m_depth.emplace_back( image );
+        m_depthView.emplace_back( imageView );
         m_depthMemory.emplace_back( memory );
-        m_depthView.emplace_back( createImageView( m_device, image, m_depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT ) );
     }
 
 }

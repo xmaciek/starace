@@ -20,13 +20,14 @@ static uint32_t memType( VkPhysicalDevice device, uint32_t typeBits, VkMemoryPro
     return 0;
 }
 
-std::pair<VkImage, VkDeviceMemory> createImage(
+std::tuple<VkImage, VkImageView, VkDeviceMemory> createImage(
     VkPhysicalDevice physDevice,
     VkDevice device,
     VkExtent2D extent,
     VkFormat format,
     VkImageUsageFlags usage,
-    VkMemoryPropertyFlags memoryFlags
+    VkMemoryPropertyFlags memoryFlags,
+    VkImageAspectFlagBits aspect
 )
 {
     assert( device );
@@ -72,7 +73,10 @@ std::pair<VkImage, VkDeviceMemory> createImage(
     const VkResult bindOK = vkBindImageMemory( device, image, imageMemory, 0 );
     assert( bindOK == VK_SUCCESS );
 
-    return { image, imageMemory };
+    VkImageView view = createImageView( device, image, format, aspect );
+
+    assert( view != VK_NULL_HANDLE );
+    return { image, view, imageMemory };
 }
 
 VkImageView createImageView( VkDevice device, VkImage image, VkFormat format, VkImageAspectFlagBits flags )
@@ -109,7 +113,6 @@ VkImageView createImageView( VkDevice device, VkImage image, VkFormat format, Vk
     assert( view != VK_NULL_HANDLE );
     return view;
 }
-
 
 VkFormat pickSupportedFormat( VkPhysicalDevice physicalDevice, const std::pmr::vector<VkFormat>& formats, VkImageTiling tiling, VkFormatFeatureFlags flags )
 {
