@@ -14,6 +14,14 @@ VkFormat pickSupportedFormat( VkPhysicalDevice, const std::pmr::vector<VkFormat>
 
 uint32_t memoryType( VkPhysicalDevice, uint32_t typeBits, VkMemoryPropertyFlags );
 
+struct TransferInfo {
+    VkImageLayout m_layout{};
+    VkAccessFlags m_access{};
+    VkPipelineStageFlags m_stage{};
+};
+
+void transferImage( VkCommandBuffer, VkImage, const TransferInfo& src, const TransferInfo& dst );
+
 template <typename T>
 void moveClear( T& lhs, T& rhs ) noexcept
 {

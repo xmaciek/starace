@@ -52,7 +52,6 @@ class RendererVK : public Renderer {
     std::pmr::vector<BufferTransfer> m_pending{};
 
     Clear m_clear{};
-    Clear m_presentTransfer{};
     std::array<PipelineVK, (size_t)Pipeline::count> m_pipelines{};
     PipelineVK* m_lastPipeline = nullptr;
 

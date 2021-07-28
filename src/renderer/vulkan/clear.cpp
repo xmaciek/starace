@@ -4,7 +4,9 @@
 #include <cassert>
 #include <utility>
 
-Clear::Clear( VkDevice device, VkFormat format, VkFormat depthFormat, bool doTransfer ) noexcept
+#include "utils_vk.hpp"
+
+Clear::Clear( VkDevice device, VkFormat format, VkFormat depthFormat ) noexcept
 : m_device{ device }
 {
     static constexpr VkAttachmentReference colorAttachmentRef{
@@ -36,23 +38,23 @@ Clear::Clear( VkDevice device, VkFormat format, VkFormat depthFormat, bool doTra
     const VkAttachmentDescription colorAttachment{
         .format = format,
         .samples = VK_SAMPLE_COUNT_1_BIT,
-        .loadOp = doTransfer ? VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_CLEAR,
+        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
         .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
         .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
         .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-        .initialLayout = doTransfer ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_UNDEFINED,
-        .finalLayout = doTransfer ? VK_IMAGE_LAYOUT_PRESENT_SRC_KHR : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        .finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
     };
 
     const VkAttachmentDescription depthAttachment{
         .format = depthFormat,
         .samples = VK_SAMPLE_COUNT_1_BIT,
-        .loadOp = doTransfer ? VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_CLEAR,
+        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
         .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
         .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
         .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-        .initialLayout = doTransfer ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_UNDEFINED,
-        .finalLayout = doTransfer ? VK_IMAGE_LAYOUT_PRESENT_SRC_KHR : VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
     };
 
     const std::array attachments = { colorAttachment, depthAttachment };
@@ -73,9 +75,7 @@ Clear::Clear( VkDevice device, VkFormat format, VkFormat depthFormat, bool doTra
 
 Clear::~Clear() noexcept
 {
-    if ( m_renderPass ) {
-        vkDestroyRenderPass( m_device, m_renderPass, nullptr );
-    }
+    destroy<vkDestroyRenderPass, VkRenderPass>( m_device, m_renderPass );
 }
 
 Clear::Clear( Clear&& rhs ) noexcept
@@ -86,13 +86,9 @@ Clear::Clear( Clear&& rhs ) noexcept
 
 Clear& Clear::operator = ( Clear&& rhs ) noexcept
 {
-    if ( m_renderPass ) {
-        vkDestroyRenderPass( m_device, m_renderPass, nullptr );
-    }
-    m_renderPass = rhs.m_renderPass;
-    m_device = rhs.m_device;
-    rhs.m_renderPass = VK_NULL_HANDLE;
-    rhs.m_device = VK_NULL_HANDLE;
+    destroy<vkDestroyRenderPass, VkRenderPass>( m_device, m_renderPass );
+    moveClear( m_renderPass, rhs.m_renderPass );
+    moveClear( m_device, rhs.m_device );
     return *this;
 }
 
@@ -101,9 +97,10 @@ void Clear::operator () ( VkCommandBuffer cmd, VkFramebuffer framebuffer, const 
     assert( m_renderPass );
     assert( cmd );
     assert( framebuffer );
-    std::array<VkClearValue,2> clearColor{};
-    clearColor[ 0 ].color = { { 0.0f, 0.0f, 1.0f, 1.0f } };
-    clearColor[ 1 ].depthStencil = { 1.0f, 0 };
+    static constexpr std::array clearColor{
+        VkClearValue{ .color = { .float32{ 0.0f, 0.0f, 1.0f, 0.0f } } },
+        VkClearValue{ .depthStencil = { 1.0f, 0u } }
+    };
 
     const VkRenderPassBeginInfo renderPassInfo{
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,

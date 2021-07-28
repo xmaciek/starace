@@ -156,3 +156,31 @@ uint32_t memoryType( VkPhysicalDevice device, uint32_t typeBits, VkMemoryPropert
     assert( !"failed to find requested memory type" );
     return 0;
 }
+
+void transferImage( VkCommandBuffer cmd, VkImage image, const TransferInfo& src, const TransferInfo& dst )
+{
+    static constexpr VkImageSubresourceRange imageSubresourceRange{
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .baseMipLevel = 0,
+        .levelCount = 1,
+        .baseArrayLayer = 0,
+        .layerCount = 1,
+    };
+
+    assert( cmd );
+    const VkImageMemoryBarrier imageBarrier{
+        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        .srcAccessMask = src.m_access,
+        .dstAccessMask = dst.m_access,
+        .oldLayout = src.m_layout,
+        .newLayout = dst.m_layout,
+        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .image = image,
+        .subresourceRange = imageSubresourceRange,
+    };
+
+    vkCmdPipelineBarrier( cmd, src.m_stage, dst.m_stage, 0, 0, nullptr, 0, nullptr, 1, &imageBarrier );
+
+}
+

@@ -244,3 +244,9 @@ Swapchain::operator VkSwapchainKHR () const
 {
     return m_swapchain;
 }
+
+VkImage Swapchain::image( size_t i ) const
+{
+    assert( i <= m_images.size() );
+    return m_images[ i ];
+}

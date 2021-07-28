@@ -9,6 +9,7 @@
 #include <cassert>
 #include <iostream>
 #include <optional>
+#include "utils_vk.hpp"
 
 static Renderer* g_instance = nullptr;
 
@@ -252,7 +253,7 @@ RendererVK::RendererVK( SDL_Window* window )
             .format = m_swapchain.depthFormat(),
             .samples = VK_SAMPLE_COUNT_1_BIT,
             .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
-            .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
             .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
             .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
             .initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
@@ -344,8 +345,8 @@ RendererVK::RendererVK( SDL_Window* window )
         }
     }
 
-    m_clear = Clear{ m_device, m_swapchain.surfaceFormat().format, m_swapchain.depthFormat(), false };
-    m_presentTransfer = Clear{ m_device, m_swapchain.surfaceFormat().format, m_swapchain.depthFormat(), true };
+    m_clear = Clear{ m_device, m_swapchain.surfaceFormat().format, m_swapchain.depthFormat() };
+
     m_pipelines[ (size_t)Pipeline::eGuiTextureColor1 ] = PipelineVK{ Pipeline::eGuiTextureColor1
         , m_device
         , m_renderPass
@@ -410,7 +411,6 @@ RendererVK::~RendererVK()
     m_transferToGraphicsCmd = {};
     m_transferCmd = {};
     m_clear = {};
-    m_presentTransfer = {};
     m_bufferMap.clear();
     for ( TextureVK* it : m_textures ) {
         delete it;
@@ -604,7 +604,18 @@ void RendererVK::submit()
         m_lastPipeline = nullptr;
     }
 
-    m_presentTransfer( cmd, m_framebuffers[ m_currentFrame ], VkRect2D{ .extent = m_swapchain.extent() } );
+    static constexpr TransferInfo src{
+        .m_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        .m_access = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+        .m_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+    };
+    static constexpr TransferInfo dst{
+        .m_layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+        .m_access = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+        .m_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+    };
+    transferImage( cmd, m_swapchain.image( m_currentFrame ), src, dst );
+
     if ( const VkResult res = vkEndCommandBuffer( cmd );
         res != VK_SUCCESS ) {
         assert( !"failed to end command buffer" );

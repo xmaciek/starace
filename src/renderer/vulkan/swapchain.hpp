@@ -38,6 +38,7 @@ public:
     VkFormat depthFormat() const;
     const std::pmr::vector<VkImageView>& imageViews() const;
     const std::pmr::vector<VkImageView>& depthViews() const;
+    VkImage image( size_t ) const;
     uint32_t imageCount() const;
 
     operator VkSwapchainKHR () const;
