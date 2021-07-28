@@ -241,21 +241,21 @@ RendererVK::RendererVK( SDL_Window* window )
         const VkAttachmentDescription colorAttachment{
             .format = m_swapchain.surfaceFormat().format,
             .samples = VK_SAMPLE_COUNT_1_BIT,
-            .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+            .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
             .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
             .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
             .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-            .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+            .initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
         };
         const VkAttachmentDescription depthAttachment{
             .format = m_swapchain.depthFormat(),
             .samples = VK_SAMPLE_COUNT_1_BIT,
-            .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+            .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
             .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
             .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
             .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
             .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
         };
         static constexpr VkAttachmentReference colorAttachmentRef{
@@ -348,8 +348,7 @@ RendererVK::RendererVK( SDL_Window* window )
     m_presentTransfer = Clear{ m_device, m_swapchain.surfaceFormat().format, m_swapchain.depthFormat(), true };
     m_pipelines[ (size_t)Pipeline::eGuiTextureColor1 ] = PipelineVK{ Pipeline::eGuiTextureColor1
         , m_device
-        , m_swapchain.surfaceFormat().format
-        , m_swapchain.depthFormat()
+        , m_renderPass
         , false
         , m_swapchain.imageCount()
         , m_swapchain.extent()
@@ -358,8 +357,7 @@ RendererVK::RendererVK( SDL_Window* window )
     };
     m_pipelines[ (size_t)Pipeline::eLine3dStripColor ] = PipelineVK{ Pipeline::eLine3dStripColor
         , m_device
-        , m_swapchain.surfaceFormat().format
-        , m_swapchain.depthFormat()
+        , m_renderPass
         , true
         , m_swapchain.imageCount()
         , m_swapchain.extent()
@@ -368,8 +366,7 @@ RendererVK::RendererVK( SDL_Window* window )
     };
     m_pipelines[ (size_t)Pipeline::eTriangleFan3dTexture ] = PipelineVK{ Pipeline::eTriangleFan3dTexture
         , m_device
-        , m_swapchain.surfaceFormat().format
-        , m_swapchain.depthFormat()
+        , m_renderPass
         , true
         , m_swapchain.imageCount()
         , m_swapchain.extent()
@@ -378,8 +375,7 @@ RendererVK::RendererVK( SDL_Window* window )
     };
     m_pipelines[ (size_t)Pipeline::eTriangleFan3dColor ] = PipelineVK{ Pipeline::eTriangleFan3dColor
         , m_device
-        , m_swapchain.surfaceFormat().format
-        , m_swapchain.depthFormat()
+        , m_renderPass
         , true
         , m_swapchain.imageCount()
         , m_swapchain.extent()
@@ -388,8 +384,7 @@ RendererVK::RendererVK( SDL_Window* window )
     };
     m_pipelines[ (size_t)Pipeline::eTriangle3dTextureNormal ] = PipelineVK{ Pipeline::eTriangle3dTextureNormal
         , m_device
-        , m_swapchain.surfaceFormat().format
-        , m_swapchain.depthFormat()
+        , m_renderPass
         , true
         , m_swapchain.imageCount()
         , m_swapchain.extent()
@@ -398,8 +393,7 @@ RendererVK::RendererVK( SDL_Window* window )
     };
     m_pipelines[ (size_t)Pipeline::eLine3dColor1 ] = PipelineVK{ Pipeline::eLine3dColor1
         , m_device
-        , m_swapchain.surfaceFormat().format
-        , m_swapchain.depthFormat()
+        , m_renderPass
         , true
         , m_swapchain.imageCount()
         , m_swapchain.extent()
