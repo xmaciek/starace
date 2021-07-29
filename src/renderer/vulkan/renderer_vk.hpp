@@ -41,7 +41,6 @@ class RendererVK : public Renderer {
     Swapchain m_swapchain{};
 
     std::pmr::vector<RenderTarget> m_mainTargets;
-    std::pmr::vector<VkFramebuffer> m_framebuffers;
     VkRenderPass m_renderPass = VK_NULL_HANDLE;
 
     VkSemaphore m_semaphoreAvailableImage = VK_NULL_HANDLE;

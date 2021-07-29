@@ -319,20 +319,6 @@ RendererVK::RendererVK( SDL_Window* window )
                 , m_swapchain.surfaceFormat().format
                 , m_swapchain.depthFormat()
             );
-            std::array attachments = { imageViews[ i ], depthViews[ i ] };
-            VkFramebufferCreateInfo framebufferInfo{};
-            framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-            framebufferInfo.renderPass = m_renderPass;
-            framebufferInfo.attachmentCount = attachments.size();
-            framebufferInfo.pAttachments = attachments.data();
-            framebufferInfo.width = m_swapchain.extent().width;
-            framebufferInfo.height = m_swapchain.extent().height;
-            framebufferInfo.layers = 1;
-            VkFramebuffer framebuffer = VK_NULL_HANDLE;
-            [[maybe_unused]]
-            const VkResult frameBufferOK = vkCreateFramebuffer( m_device, &framebufferInfo, nullptr, &framebuffer );
-            assert( frameBufferOK == VK_SUCCESS );
-            m_framebuffers.emplace_back( framebuffer );
         }
     }
 
@@ -435,9 +421,7 @@ RendererVK::~RendererVK()
     if ( m_semaphoreAvailableImage ) {
         vkDestroySemaphore( m_device, m_semaphoreAvailableImage, nullptr );
     }
-    for ( VkFramebuffer& it : m_framebuffers ) {
-        vkDestroyFramebuffer( m_device, it, nullptr );
-    }
+
     if ( m_renderPass ) {
         vkDestroyRenderPass( m_device, m_renderPass, nullptr );
     }
@@ -598,7 +582,6 @@ void RendererVK::beginFrame()
     }
     vkCmdSetViewport( cmd, 0, 1, &viewport );
     const VkRect2D rect{ .extent = m_swapchain.extent() };
-    m_clear( cmd, m_framebuffers[ m_currentFrame ], rect );
     m_clear( cmd, m_mainTargets[ m_currentFrame ].framebuffer(), rect );
 }
 
@@ -614,9 +597,9 @@ void RendererVK::submit()
         m_lastPipeline->end( cmd );
         m_lastPipeline = nullptr;
     }
-    static constexpr TransferInfo src{
-        .m_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-        .m_access = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+    static constexpr TransferInfo undefined{
+        .m_layout = VK_IMAGE_LAYOUT_UNDEFINED,
+        .m_access = 0,
         .m_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
     };
 
@@ -625,7 +608,7 @@ void RendererVK::submit()
         .m_access = VK_ACCESS_TRANSFER_WRITE_BIT,
         .m_stage = VK_PIPELINE_STAGE_TRANSFER_BIT,
     };
-    transferImage( cmd, m_swapchain.image( m_currentFrame ), src, general );
+    transferImage( cmd, m_swapchain.image( m_currentFrame ), undefined, general );
 
     const VkExtent2D extent = m_swapchain.extent();
     const VkImageCopy region{
