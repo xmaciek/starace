@@ -16,10 +16,10 @@ class CircleGen {
 
 public:
     constexpr CircleGen( size_t segments, float size ) noexcept
-    : m_max{ segments - 1u }
+    : m_max{ segments }
     , m_size{ size }
     {
-        m_angle = 2.0f * (float)M_PI / (float)segments;
+        m_angle = 2.0f * (float)M_PI / (float)( segments - 1 );
     }
 
     TScalar operator ()() noexcept
