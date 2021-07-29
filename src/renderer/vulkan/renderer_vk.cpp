@@ -240,7 +240,7 @@ RendererVK::RendererVK( SDL_Window* window )
 
     {
         const VkAttachmentDescription colorAttachment{
-            .format = m_swapchain.surfaceFormat().format,
+            .format = VK_FORMAT_B8G8R8A8_UNORM,
             .samples = VK_SAMPLE_COUNT_1_BIT,
             .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
             .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
@@ -316,7 +316,7 @@ RendererVK::RendererVK( SDL_Window* window )
                 , m_device
                 , m_renderPass
                 , m_swapchain.extent()
-                , m_swapchain.surfaceFormat().format
+                , VK_FORMAT_B8G8R8A8_UNORM
                 , m_swapchain.depthFormat()
             );
         }
@@ -339,7 +339,7 @@ RendererVK::RendererVK( SDL_Window* window )
         }
     }
 
-    m_clear = Clear{ m_device, m_swapchain.surfaceFormat().format, m_swapchain.depthFormat() };
+    m_clear = Clear{ m_device, VK_FORMAT_B8G8R8A8_UNORM, m_swapchain.depthFormat() };
 
     m_pipelines[ (size_t)Pipeline::eGuiTextureColor1 ] = PipelineVK{ Pipeline::eGuiTextureColor1
         , m_device
