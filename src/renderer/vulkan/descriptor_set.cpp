@@ -103,7 +103,7 @@ DescriptorSet::DescriptorSet( VkDevice device, uint32_t swapchainCount, uint32_t
         return;
     }
 
-    for ( VkDescriptorSet it : m_set ) {
+    for ( [[maybe_unused]] VkDescriptorSet it : m_set ) {
         assert( it != VK_NULL_HANDLE );
     }
 }

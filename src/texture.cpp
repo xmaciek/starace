@@ -41,6 +41,7 @@ Texture loadTexture( std::string_view filename )
     std::ifstream ifs( std::string( filename ), std::ios::binary | std::ios::ate );
     assert( ifs.is_open() );
 
+    [[maybe_unused]]
     const size_t size = ifs.tellg();
     assert( size >= sizeof( tga::Header ) );
     ifs.seekg( 0 );

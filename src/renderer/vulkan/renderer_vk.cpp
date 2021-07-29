@@ -305,7 +305,9 @@ RendererVK::RendererVK( SDL_Window* window )
     }
 
     {
+        [[maybe_unused]]
         const std::pmr::vector<VkImageView>& imageViews = m_swapchain.imageViews();
+        [[maybe_unused]]
         const std::pmr::vector<VkImageView>& depthViews = m_swapchain.depthViews();
         const uint32_t imageCount = m_swapchain.imageCount();
         assert( imageCount == imageViews.size() );
@@ -477,6 +479,7 @@ Buffer RendererVK::createBuffer( std::pmr::vector<float>&& vec, Buffer::Lifetime
     m_transferCmd.transferBufferAndWait( staging, data, staging.sizeInBytes() );
 
     const Buffer retBuffer{ reinterpret_cast<uint64_t>( (VkBuffer)data ), lft, Buffer::Status::ePending };
+    [[maybe_unused]]
     auto [ it, emplaced ] = m_bufferMap.emplace( std::make_pair( retBuffer, std::move( data ) ) );
     assert( emplaced );
     return retBuffer;

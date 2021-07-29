@@ -163,6 +163,7 @@ Chunk SDLAudioEngine::load( std::string_view file )
     SDL_FreeWAV( tmpBuff );
 
     void* bufferId = buffer.data.data();
+    [[maybe_unused]]
     const auto ret = m_loadedBuffers.emplace( std::make_pair( bufferId, std::move( buffer ) ) );
     assert( ret.second );
     return Chunk{ bufferId };

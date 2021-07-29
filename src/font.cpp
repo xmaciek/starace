@@ -77,8 +77,8 @@ Font::Font( std::string_view fontname, uint32_t h )
     const FT_Error newFaceErr = FT_New_Face( library, fontname.data(), 0, &face );
     assert( !newFaceErr );
 
-    [[maybe_unused]]
     const FT_UInt pixelSize = static_cast<FT_UInt>( FONT_SIZE_SCALE * (float)h );
+    [[maybe_unused]]
     const FT_Error pixelSizeErr = FT_Set_Pixel_Sizes( face, 0, pixelSize );
     assert( !pixelSizeErr );
 
