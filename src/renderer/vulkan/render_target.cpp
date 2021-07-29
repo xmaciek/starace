@@ -92,15 +92,11 @@ RenderTarget::RenderTarget( RenderTarget&& rhs ) noexcept
     std::swap( m_imageView, rhs.m_imageView );
     std::swap( m_imageMemory, rhs.m_imageMemory );
     std::swap( m_imageFormat, rhs.m_imageFormat );
-    std::swap( m_imageStage, rhs.m_imageStage );
-    std::swap( m_imageAccess, rhs.m_imageAccess );
 
     std::swap( m_depth, rhs.m_depth );
     std::swap( m_depthView, rhs.m_depthView );
     std::swap( m_depthMemory, rhs.m_depthMemory );
     std::swap( m_depthFormat, rhs.m_depthFormat );
-    std::swap( m_depthStage, rhs.m_depthStage );
-    std::swap( m_depthAccess, rhs.m_depthAccess );
 }
 
 RenderTarget& RenderTarget::operator = ( RenderTarget&& rhs ) noexcept
@@ -114,70 +110,13 @@ RenderTarget& RenderTarget::operator = ( RenderTarget&& rhs ) noexcept
     moveClear( m_imageView, rhs.m_imageView );
     moveClear( m_imageMemory, rhs.m_imageMemory );
     moveClear( m_imageFormat, rhs.m_imageFormat );
-    moveClear( m_imageStage, rhs.m_imageStage );
-    moveClear( m_imageAccess, rhs.m_imageAccess );
 
     moveClear( m_depth, rhs.m_depth );
     moveClear( m_depthView, rhs.m_depthView );
     moveClear( m_depthMemory, rhs.m_depthMemory );
     moveClear( m_depthFormat, rhs.m_depthFormat );
-    moveClear( m_depthStage, rhs.m_depthStage );
-    moveClear( m_depthAccess, rhs.m_depthAccess );
 
     return *this;
-}
-
-void RenderTarget::transferToWrite( VkCommandBuffer cmd )
-{
-    assert( cmd );
-
-    const TransferInfo src{
-        .m_layout = m_imageLayout,
-        .m_access = m_imageAccess,
-        .m_stage = m_imageStage,
-    };
-
-    static constexpr TransferInfo dst{
-        .m_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-        .m_access = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-        .m_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-    };
-    transferImage( cmd, m_image, src, dst );
-
-    m_imageLayout = dst.m_layout;
-    m_imageAccess = dst.m_access;
-    m_imageStage = dst.m_stage;
-}
-
-
-void RenderTarget::transferToRead( VkCommandBuffer cmd )
-{
-    assert( cmd );
-
-    pretendIsWrite();
-    const TransferInfo src{
-        .m_layout = m_imageLayout,
-        .m_access = m_imageAccess,
-        .m_stage = m_imageStage,
-    };
-
-    static constexpr TransferInfo dst{
-        .m_layout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-        .m_access = VK_ACCESS_TRANSFER_READ_BIT,
-        .m_stage = VK_PIPELINE_STAGE_TRANSFER_BIT,
-    };
-    transferImage( cmd, m_image, src, dst );
-
-    m_imageLayout = dst.m_layout;
-    m_imageAccess = dst.m_access;
-    m_imageStage = dst.m_stage;
-}
-
-void RenderTarget::pretendIsWrite()
-{
-    m_imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    m_imageAccess = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-    m_imageStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 }
 
 std::pair<VkImage, VkImageView> RenderTarget::image() const
@@ -203,7 +142,11 @@ VkExtent2D RenderTarget::extent() const
     return m_extent;
 }
 
-VkImageLayout RenderTarget::layout() const
+VkExtent3D RenderTarget::extent3D() const
 {
-    return m_imageLayout;
+    return {
+        .width = m_extent.width,
+        .height = m_extent.height,
+        .depth = 1,
+    };
 }

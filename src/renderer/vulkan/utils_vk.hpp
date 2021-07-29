@@ -14,14 +14,6 @@ VkFormat pickSupportedFormat( VkPhysicalDevice, const std::pmr::vector<VkFormat>
 
 uint32_t memoryType( VkPhysicalDevice, uint32_t typeBits, VkMemoryPropertyFlags );
 
-struct TransferInfo {
-    VkImageLayout m_layout{};
-    VkAccessFlags m_access{};
-    VkPipelineStageFlags m_stage{};
-};
-
-void transferImage( VkCommandBuffer, VkImage, const TransferInfo& src, const TransferInfo& dst );
-
 template <typename T>
 void moveClear( T& lhs, T& rhs ) noexcept
 {
@@ -37,3 +29,45 @@ void destroy( VkDevice device, T t ) noexcept
         pfnDestroy( device, t, nullptr );
     }
 }
+
+struct TransferInfo {
+    VkImageLayout m_layout{};
+    VkAccessFlags m_access{};
+    VkPipelineStageFlags m_stage{};
+};
+
+void transferImage( VkCommandBuffer, VkImage, const TransferInfo& src, const TransferInfo& dst );
+
+namespace constants {
+
+static constexpr TransferInfo undefined{
+    .m_layout = VK_IMAGE_LAYOUT_UNDEFINED,
+    .m_access = 0,
+    .m_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+};
+
+static constexpr TransferInfo fragmentOut{
+    .m_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+    .m_access = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+    .m_stage = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+};
+
+static constexpr TransferInfo present{
+    .m_layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+    .m_access = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+    .m_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+};
+
+static constexpr TransferInfo copyTo{
+    .m_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+    .m_access = VK_ACCESS_TRANSFER_WRITE_BIT,
+    .m_stage = VK_PIPELINE_STAGE_TRANSFER_BIT,
+};
+
+static constexpr TransferInfo copyFrom{
+    .m_layout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+    .m_access = VK_ACCESS_TRANSFER_WRITE_BIT,
+    .m_stage = VK_PIPELINE_STAGE_TRANSFER_BIT,
+};
+
+} // namespace constants

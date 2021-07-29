@@ -597,49 +597,31 @@ void RendererVK::submit()
         m_lastPipeline->end( cmd );
         m_lastPipeline = nullptr;
     }
-    static constexpr TransferInfo undefined{
-        .m_layout = VK_IMAGE_LAYOUT_UNDEFINED,
-        .m_access = 0,
-        .m_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-    };
 
-    static constexpr TransferInfo general{
-        .m_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-        .m_access = VK_ACCESS_TRANSFER_WRITE_BIT,
-        .m_stage = VK_PIPELINE_STAGE_TRANSFER_BIT,
-    };
-    transferImage( cmd, m_swapchain.image( m_currentFrame ), undefined, general );
+    RenderTarget& mainTgt = m_mainTargets[ m_currentFrame ];
+    transferImage( cmd, mainTgt.image().first, constants::fragmentOut, constants::copyFrom );
+    transferImage( cmd, m_swapchain.image( m_currentFrame ), constants::undefined, constants::copyTo );
 
-    const VkExtent2D extent = m_swapchain.extent();
     const VkImageCopy region{
         .srcSubresource{ .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .layerCount = 1 },
         .dstSubresource{ .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .layerCount = 1 },
-        .extent = { .width = extent.width, .height = extent.height, .depth = 1 }
+        .extent = mainTgt.extent3D()
     };
 
-    m_mainTargets[ m_currentFrame ].transferToRead( cmd );
     vkCmdCopyImage( cmd
-        , m_mainTargets[ m_currentFrame ].image().first
-        , m_mainTargets[ m_currentFrame ].layout()
+        , mainTgt.image().first
+        , constants::copyFrom.m_layout
         , m_swapchain.image( m_currentFrame )
-        , general.m_layout
+        , constants::copyTo.m_layout
         , 1
         , &region
     );
 
-    static constexpr TransferInfo present{
-        .m_layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-        .m_access = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-        .m_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-    };
-    transferImage( cmd, m_swapchain.image( m_currentFrame ), general, present );
+    transferImage( cmd, m_swapchain.image( m_currentFrame ), constants::copyTo, constants::present );
 
-    if ( const VkResult res = vkEndCommandBuffer( cmd );
-        res != VK_SUCCESS ) {
-        assert( !"failed to end command buffer" );
-        std::cout << "failed to end command buffer" << std::endl;
-        return;
-    }
+    [[maybe_unused]]
+    const VkResult cmdEnd = vkEndCommandBuffer( cmd );
+    assert( cmdEnd == VK_SUCCESS );
 
     VkSemaphore waitSemaphores[]{ m_semaphoreAvailableImage };
     VkSemaphore renderSemaphores[]{ m_semaphoreRender };
