@@ -6,13 +6,12 @@
 #include <iostream>
 #include <vector>
 
+#include "utils_vk.hpp"
+
 static std::pmr::vector<char> getShaderContent( std::string_view filePath )
 {
     std::ifstream ifs( std::string{ filePath }, std::ios::binary | std::ios::ate );
-    if ( !ifs.is_open() ) {
-        assert( !"failed to open shader file" );
-        return {};
-    }
+    assert( ifs.is_open() );
     const std::size_t size = ifs.tellg();
     assert( size > 0 );
     assert( size % 4 == 0 );
@@ -22,63 +21,49 @@ static std::pmr::vector<char> getShaderContent( std::string_view filePath )
     return vec;
 }
 
-Shader::Shader( VkDevice device, std::string_view vertex, std::string_view fragment )
+Shader::Shader( VkDevice device, std::string_view filePath ) noexcept
 : m_device( device )
 {
-    std::pmr::vector<char> contentVertex = getShaderContent( vertex );
-    std::pmr::vector<char> contentFragment = getShaderContent( fragment );
-    assert( !contentVertex.empty() );
-    assert( !contentFragment.empty() );
+    std::pmr::vector<char> content = getShaderContent( filePath );
+    assert( !content.empty() );
 
     const VkShaderModuleCreateInfo vertexInfo{
         .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-        .codeSize = contentVertex.size(),
-        .pCode = reinterpret_cast<uint32_t*>( contentVertex.data() ),
+        .codeSize = content.size(),
+        .pCode = reinterpret_cast<uint32_t*>( content.data() ),
     };
-    if ( const VkResult res = vkCreateShaderModule( device, &vertexInfo, nullptr, &m_moduleVertex );
-        res != VK_SUCCESS ) {
-        assert( !"failed to create vertex shader module" );
-        std::cout << "failed to create vertex shader module" << std::endl;
-        return;
-    }
-
-    const VkShaderModuleCreateInfo fragmentInfo{
-        .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-        .codeSize = contentFragment.size(),
-        .pCode = reinterpret_cast<uint32_t*>( contentFragment.data() ),
-    };
-    if ( const VkResult res = vkCreateShaderModule( device, &fragmentInfo, nullptr, &m_moduleFrgment );
-        res != VK_SUCCESS ) {
-        assert( !"failed to create fragment shader module" );
-        std::cout << "failed to create fragment shader module" << std::endl;
-        return;
-    }
+    [[maybe_unused]]
+    const VkResult moduleOK = vkCreateShaderModule( device, &vertexInfo, nullptr, &m_module );
+    assert( moduleOK == VK_SUCCESS );
 }
 
-Shader::~Shader()
+Shader::~Shader() noexcept
 {
-    if ( m_moduleFrgment ) {
-        vkDestroyShaderModule( m_device, m_moduleFrgment, nullptr );
-    }
-    if ( m_moduleVertex ) {
-        vkDestroyShaderModule( m_device, m_moduleVertex, nullptr );
-    }
+    destroy<vkDestroyShaderModule, VkShaderModule>( m_device, m_module );
 }
 
-std::array<VkPipelineShaderStageCreateInfo, 2> Shader::stages() const
+template <VkShaderStageFlagBits TStage>
+static VkPipelineShaderStageCreateInfo getStage( VkShaderModule m )
 {
-    const VkPipelineShaderStageCreateInfo vertShaderStageInfo{
+    return {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-        .stage = VK_SHADER_STAGE_VERTEX_BIT,
-        .module = m_moduleVertex,
+        .stage = TStage,
+        .module = m,
         .pName = "main",
     };
+}
 
-    const VkPipelineShaderStageCreateInfo fragShaderStageInfo{
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-        .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
-        .module = m_moduleFrgment,
-        .pName = "main",
-    };
-    return { vertShaderStageInfo, fragShaderStageInfo };
+VkPipelineShaderStageCreateInfo Shader::vertex() const
+{
+    return getStage<VK_SHADER_STAGE_VERTEX_BIT>( m_module );
+}
+
+VkPipelineShaderStageCreateInfo Shader::fragment() const
+{
+    return getStage<VK_SHADER_STAGE_FRAGMENT_BIT>( m_module );
+}
+
+VkPipelineShaderStageCreateInfo Shader::compute() const
+{
+    return getStage<VK_SHADER_STAGE_COMPUTE_BIT>( m_module );
 }

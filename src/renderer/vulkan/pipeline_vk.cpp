@@ -233,8 +233,12 @@ PipelineVK::PipelineVK( Pipeline pip, VkDevice device, VkRenderPass renderPass, 
         .primitiveRestartEnable = VK_FALSE,
     };
 
-    const Shader shader( device, vertex, fragment );
-    const auto stages = shader.stages();
+    const Shader vertexShader{ device, vertex };
+    const Shader fragmentShader{ device, fragment };
+    const std::array stages = {
+        vertexShader.vertex(),
+        fragmentShader.fragment()
+    };
 
     const VkGraphicsPipelineCreateInfo pipelineInfo{
         .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,

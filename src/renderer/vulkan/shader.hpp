@@ -7,12 +7,18 @@
 
 class Shader {
     VkDevice m_device = VK_NULL_HANDLE;
-    VkShaderModule m_moduleVertex = VK_NULL_HANDLE;
-    VkShaderModule m_moduleFrgment = VK_NULL_HANDLE;
+    VkShaderModule m_module = VK_NULL_HANDLE;
 
 public:
-    ~Shader();
-    Shader( VkDevice, std::string_view vertex, std::string_view fragment );
+    ~Shader() noexcept;
+    Shader( VkDevice, std::string_view filePath ) noexcept;
 
-    std::array<VkPipelineShaderStageCreateInfo, 2> stages() const;
+    Shader( const Shader& ) = delete;
+    Shader& operator = ( const Shader& ) = delete;
+    Shader( Shader&& ) = delete;
+    Shader& operator = ( Shader&& ) = delete;
+
+    VkPipelineShaderStageCreateInfo vertex() const;
+    VkPipelineShaderStageCreateInfo fragment() const;
+    VkPipelineShaderStageCreateInfo compute() const;
 };
