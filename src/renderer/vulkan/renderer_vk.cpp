@@ -167,6 +167,13 @@ RendererVK::RendererVK( SDL_Window* window )
 
     assert( m_physicalDevice );
 
+    m_depthFormat = pickSupportedFormat(
+        m_physicalDevice,
+        { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
+        VK_IMAGE_TILING_OPTIMAL,
+        VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
+    );
+
     if ( !SDL_Vulkan_CreateSurface( m_window, m_instance, &m_surface ) ) {
         assert( 0 );
         std::cout << "Failed to create sdl surface" << std::endl;
@@ -250,7 +257,7 @@ RendererVK::RendererVK( SDL_Window* window )
             .finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
         };
         const VkAttachmentDescription depthAttachment{
-            .format = m_swapchain.depthFormat(),
+            .format = m_depthFormat,
             .samples = VK_SAMPLE_COUNT_1_BIT,
             .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
             .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
@@ -305,13 +312,7 @@ RendererVK::RendererVK( SDL_Window* window )
     }
 
     {
-        [[maybe_unused]]
-        const std::pmr::vector<VkImageView>& imageViews = m_swapchain.imageViews();
-        [[maybe_unused]]
-        const std::pmr::vector<VkImageView>& depthViews = m_swapchain.depthViews();
         const uint32_t imageCount = m_swapchain.imageCount();
-        assert( imageCount == imageViews.size() );
-        assert( imageCount == depthViews.size() );
         for ( uint32_t i = 0; i < imageCount; ++i ) {
             m_mainTargets.emplace_back(
                 m_physicalDevice
@@ -319,7 +320,7 @@ RendererVK::RendererVK( SDL_Window* window )
                 , m_renderPass
                 , m_swapchain.extent()
                 , VK_FORMAT_B8G8R8A8_UNORM
-                , m_swapchain.depthFormat()
+                , m_depthFormat
             );
         }
     }
@@ -341,7 +342,7 @@ RendererVK::RendererVK( SDL_Window* window )
         }
     }
 
-    m_clear = Clear{ m_device, VK_FORMAT_B8G8R8A8_UNORM, m_swapchain.depthFormat() };
+    m_clear = Clear{ m_device, VK_FORMAT_B8G8R8A8_UNORM, m_depthFormat };
 
     m_pipelines[ (size_t)Pipeline::eGuiTextureColor1 ] = PipelineVK{ Pipeline::eGuiTextureColor1
         , m_device
@@ -417,18 +418,11 @@ RendererVK::~RendererVK()
     }
 
     for ( auto& it : m_pipelines ) { it = {}; }
-    if ( m_semaphoreRender ) {
-        vkDestroySemaphore( m_device, m_semaphoreRender, nullptr );
-    }
-    if ( m_semaphoreAvailableImage ) {
-        vkDestroySemaphore( m_device, m_semaphoreAvailableImage, nullptr );
-    }
-
-    if ( m_renderPass ) {
-        vkDestroyRenderPass( m_device, m_renderPass, nullptr );
-    }
-
+    destroy<vkDestroySemaphore, VkSemaphore>( m_device, m_semaphoreRender );
+    destroy<vkDestroySemaphore, VkSemaphore>( m_device, m_semaphoreAvailableImage );
+    destroy<vkDestroyRenderPass, VkRenderPass>( m_device, m_renderPass );
     m_swapchain = Swapchain();
+
     if ( m_surface ) {
         vkDestroySurfaceKHR( m_instance, m_surface, nullptr );
     }
