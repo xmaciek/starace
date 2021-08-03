@@ -46,8 +46,11 @@ bool Enemy::isWeaponReady() const
 
 void Enemy::reinitCoordinates()
 {
-    m_position = glm::vec3(
-        randomRange( -10.0, 10.0 ), randomRange( -10.0, 10.0 ), randomRange( -10.0, 10.0 ) );
+    m_position = glm::vec3{
+        randomRange( -10.0f, 10.0f ),
+        randomRange( -10.0f, 10.0f ),
+        randomRange( -10.0f, 10.0f )
+    };
 }
 
 void Enemy::render( RenderContext rctx ) const
@@ -56,6 +59,12 @@ void Enemy::render( RenderContext rctx ) const
         return;
     }
     rctx.model = glm::translate( rctx.model, position() );
+
+    const glm::mat4 mat = rctx.projection * rctx.view * rctx.model;
+    const glm::vec3 vec = project3dTo2d( mat, glm::vec3{}, rctx.viewport );
+    if ( !isOnScreen( vec, rctx.viewport ) ) {
+        return;
+    }
     m_shield.render( rctx );
 }
 

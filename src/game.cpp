@@ -366,6 +366,7 @@ void Game::onRender()
     m_renderer->clear();
     RenderContext rctx{};
     rctx.renderer = m_renderer;
+    rctx.viewport = { m_viewportWidth, m_viewportHeight };
     rctx.projection = glm::ortho<float>( 0.0f, (float)viewportWidth(), 0.0f, (float)viewportHeight(), -100.0f, 100.0f );
     switch ( m_currentScreen ) {
     case Screen::eGame:

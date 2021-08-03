@@ -3,6 +3,8 @@
 #include <renderer/pipeline.hpp>
 #include <renderer/renderer.hpp>
 
+#include "utils.hpp"
+
 #include <glm/vec4.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -73,6 +75,20 @@ void Bullet::render( RenderContext rctx ) const
     pushConstant.m_model = rctx.model;
     pushConstant.m_view = rctx.view;
     pushConstant.m_projection = rctx.projection;
+
+    // culling
+    {
+        const auto begin = m_tail.begin();
+        const auto end = begin + typeToSegments( m_type );
+        const glm::mat4 mvp = rctx.projection * rctx.view * rctx.model;
+        const glm::vec2 viewport = rctx.viewport;
+        const auto onScreen = [ mvp, viewport ] ( const::glm::vec3& v ) {
+            return isOnScreen( mvp, v, viewport );
+        };
+        if ( std::none_of( begin, end, onScreen ) ) {
+            return;
+        }
+    }
 
     switch ( m_type ) {
     case Type::eSlug: {
