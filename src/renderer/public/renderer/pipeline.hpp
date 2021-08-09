@@ -20,6 +20,7 @@ enum struct Pipeline {
     eTriangle3dTextureNormal,
     eTriangleFan3dColor,
     eTriangleFan3dTexture,
+    eShortString,
     count,
 };
 
@@ -141,6 +142,29 @@ struct PushConstant<Pipeline::eTriangleFan3dColor> {
     glm::mat4 m_projection{};
     std::array<glm::vec4, 48> m_vertices{};
     std::array<glm::vec4, 48> m_colors{};
+
+    PushConstant() = default;
+};
+
+template <>
+struct PushBuffer<Pipeline::eShortString> {
+    Pipeline m_pipeline = Pipeline::eShortString;
+    Texture m_texture{};
+    uint32_t m_verticeCount = 0;
+
+    PushBuffer() = default;
+};
+
+template <>
+struct PushConstant<Pipeline::eShortString> {
+    glm::mat4 m_model{};
+    glm::mat4 m_view{};
+    glm::mat4 m_projection{};
+    glm::vec4 m_color{};
+
+    static constexpr size_t charCount = 48;
+    std::array<glm::vec4, charCount * 6> m_vertices{};
+    std::array<glm::vec4, charCount * 6> m_uv{};
 
     PushConstant() = default;
 };

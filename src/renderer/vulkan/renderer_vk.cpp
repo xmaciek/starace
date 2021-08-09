@@ -229,6 +229,7 @@ RendererVK::RendererVK( SDL_Window* window )
     for ( BufferPool& it : m_uniforms ) {
         it = BufferPool{ m_physicalDevice, m_device };
         it.reserve( sizeof( PushConstant<Pipeline::eGuiTextureColor1> ), 200 );
+        it.reserve( sizeof( PushConstant<Pipeline::eShortString> ), 60 );
         it.reserve( sizeof( PushConstant<Pipeline::eLine3dStripColor> ), 300 );
         it.reserve( sizeof( PushConstant<Pipeline::eTriangle3dTextureNormal> ), 3 );
     }
@@ -397,6 +398,15 @@ RendererVK::RendererVK( SDL_Window* window )
         , m_swapchain.extent()
         , "shaders/lines_color1.vert.spv"
         , "shaders/lines_color1.frag.spv"
+    };
+    m_pipelines[ (size_t)Pipeline::eShortString ] = PipelineVK{ Pipeline::eShortString
+        , m_device
+        , m_renderPass
+        , false
+        , m_swapchain.imageCount()
+        , m_swapchain.extent()
+        , "shaders/short_string.vert.spv"
+        , "shaders/short_string.frag.spv"
     };
 
 }
@@ -704,6 +714,36 @@ void RendererVK::push( void* buffer, void* constant )
             , descriptorSet
         );
         vkCmdDraw( cmd, 4, 1, 0, 0 );
+    } break;
+
+    CASE( eShortString )
+        const TextureVK* texture = reinterpret_cast<const TextureVK*>( pushBuffer->m_texture.m_data );
+        if ( !texture ) {
+            return;
+        }
+
+        BufferTransfer uniform = m_uniforms[ m_currentFrame ].getBuffer( sizeof( PushConstant<Pipeline::eShortString> ) );
+        uniform.copyToStaging( reinterpret_cast<const uint8_t*>( constant ) );
+        m_pending.emplace_back( uniform );
+
+        VkCommandBuffer cmd = m_graphicsCmd.buffer();
+
+        const VkDescriptorSet descriptorSet = currentPipeline.nextDescriptor();
+        assert( descriptorSet != VK_NULL_HANDLE );
+        currentPipeline.updateUniforms( uniform.dst()
+            , uniform.sizeInBytes()
+            , texture->view()
+            , texture->sampler()
+            , descriptorSet
+        );
+
+        RenderTarget& tgt = m_mainTargets[ m_currentFrame ];
+        currentPipeline.begin( cmd
+            , tgt.framebuffer()
+            , tgt.rect()
+            , descriptorSet
+        );
+        vkCmdDraw( cmd, pushBuffer->m_verticeCount, 1, 0, 0 );
     } break;
 
     CASE( eLine3dStripColor )

@@ -380,6 +380,31 @@ void RendererGL::push( void* buffer, void* constant )
         glPopMatrix();
     } break;
 
+    case Pipeline::eShortString: {
+        auto* pushBuffer = reinterpret_cast<PushBuffer<Pipeline::eShortString>*>( buffer );
+        auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::eShortString>*>( constant );
+
+        ScopeEnable blend( GL_BLEND );
+        ScopeEnable texture2d( GL_TEXTURE_2D );
+
+        glPushMatrix();
+        glMatrixMode( GL_PROJECTION );
+        glLoadMatrixf( glm::value_ptr( pushConstant->m_projection ) );
+        glMatrixMode( GL_MODELVIEW );
+        glLoadMatrixf( glm::value_ptr( pushConstant->m_view * pushConstant->m_model ) );
+
+        glBindTexture( GL_TEXTURE_2D, static_cast<uint32_t>( pushBuffer->m_texture.m_data ) );
+        glBegin( GL_TRIANGLES );
+        glColor4fv( glm::value_ptr( pushConstant->m_color ) );
+        for ( size_t i = 0; i < pushBuffer->m_verticeCount; ++i ) {
+            glTexCoord2fv( glm::value_ptr( pushConstant->m_uv[ i ] ) );
+            glVertex2fv( glm::value_ptr( pushConstant->m_vertices[ i ] ) );
+        }
+        glEnd();
+
+        glPopMatrix();
+    } break;
+
     case Pipeline::count:
         assert( !"not a pipeline" );
         break;

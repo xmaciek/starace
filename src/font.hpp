@@ -2,10 +2,12 @@
 
 #include "render_context.hpp"
 #include <renderer/texture.hpp>
+#include <renderer/pipeline.hpp>
 
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 
+#include <memory_resource>
 #include <cstdint>
 #include <string>
 #include <string_view>
@@ -14,16 +16,19 @@
 class Font {
 public:
     struct Glyph {
-        Texture texture{};
+        glm::vec4 uv{};
         glm::vec2 size{};
         glm::vec2 advance{};
-        glm::vec2 bearing{};
+        glm::vec2 padding{};
+        uint32_t dataPitch = 0;
+        std::pmr::vector<uint8_t> data{};
     };
 
 private:
-    std::string m_name{};
-    std::vector<Glyph> m_glyphs{};
+    std::pmr::string m_name{};
+    std::pmr::vector<Glyph> m_glyphs{};
     uint32_t m_height = 0;
+    Texture m_texture{};
 
 public:
     ~Font();
@@ -32,4 +37,6 @@ public:
     uint32_t height() const;
     uint32_t textLength( std::string_view );
     void renderText( RenderContext, const glm::vec4& color, double x, double y, std::string_view );
+    using RenderText = std::pair<PushBuffer<Pipeline::eShortString>, PushConstant<Pipeline::eShortString>>;
+    RenderText composeText( const glm::vec4& color, std::string_view );
 };
