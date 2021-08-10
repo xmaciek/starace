@@ -21,6 +21,7 @@ private:
     std::vector<glm::vec3> m_tail{};
     glm::vec4 m_color1{};
     glm::vec4 m_color2{};
+    float m_tailChunkLength = 0.0f;
     float m_seankyDeltaTime = 0.0f;
     float m_maxRange = 150.0;
     float m_range = 0.0;

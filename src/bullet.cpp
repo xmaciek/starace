@@ -49,6 +49,7 @@ Bullet::Bullet( const BulletProto& bp )
     m_speed = bp.speed;
     m_damage = bp.damage;
     m_score = bp.score_per_hit;
+    m_tailChunkLength = m_speed / 30.0f;
 
     if ( m_type == Type::eSlug ) {
         m_color1 = m_color2;
@@ -149,7 +150,9 @@ void Bullet::update( const UpdateContext& updateContext )
 
     case Type::eBlaster:
         m_position += m_velocity * updateContext.deltaTime;
-        std::rotate( m_tail.begin(), m_tail.end() - 1, m_tail.end() );
+        if ( glm::length( m_tail[ 1 ] - m_position ) > m_tailChunkLength ) {
+            std::rotate( m_tail.begin(), m_tail.end() - 1, m_tail.end() );
+        }
         m_tail.front() = position();
         m_range += m_speed * updateContext.deltaTime;
         break;
