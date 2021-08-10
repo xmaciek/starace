@@ -7,6 +7,8 @@ set( STARACE_PATCH_VERSION 0 )
 
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
+include( glm.cmake )
+
 add_subdirectory( misc )
 add_subdirectory( models )
 add_subdirectory( shaders )
