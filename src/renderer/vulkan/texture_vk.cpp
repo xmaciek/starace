@@ -117,13 +117,12 @@ TextureVK::TextureVK( VkPhysicalDevice physDevice, VkDevice device, VkExtent2D e
         .magFilter = VK_FILTER_LINEAR,
         .minFilter = VK_FILTER_LINEAR,
         .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
-        .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
-        .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
-        .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
+        .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+        .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+        .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
         .mipLodBias = 0.0f,
         .minLod = 0.0f,
         .maxLod = 0.0f,
-        .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
         .unnormalizedCoordinates = VK_FALSE,
     };
     if ( const VkResult res = vkCreateSampler( m_device, &samplerInfo, nullptr, &m_sampler );
