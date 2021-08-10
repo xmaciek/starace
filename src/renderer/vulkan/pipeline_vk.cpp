@@ -119,7 +119,6 @@ static VkPipelineVertexInputStateCreateInfo vertexInfo( Pipeline pip ) noexcept
     }
     return {};
 
-#undef VERTEX_INPUT_STATE
 }
 
 PipelineVK::PipelineVK( Pipeline pip, VkDevice device, VkRenderPass renderPass, bool depthTest, uint32_t swapchainCount, const VkExtent2D& extent, std::string_view vertex, std::string_view fragment )
