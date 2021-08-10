@@ -2,6 +2,7 @@
 
 #include <renderer/pipeline.hpp>
 #include "shader.hpp"
+#include "utils_vk.hpp"
 
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
@@ -29,7 +30,6 @@ PipelineVK::PipelineVK( PipelineVK&& rhs ) noexcept
 {
     std::swap( m_device, rhs.m_device );
     std::swap( m_layout, rhs.m_layout );
-    std::swap( m_renderPass, rhs.m_renderPass );
     std::swap( m_pipeline, rhs.m_pipeline );
     std::swap( m_descriptorSet, rhs.m_descriptorSet );
 }
@@ -37,16 +37,10 @@ PipelineVK::PipelineVK( PipelineVK&& rhs ) noexcept
 PipelineVK& PipelineVK::operator = ( PipelineVK&& rhs ) noexcept
 {
     destroyResources();
-    m_device = rhs.m_device;
-    m_layout = rhs.m_layout;
-    m_renderPass = rhs.m_renderPass;
-    m_pipeline = rhs.m_pipeline;
     m_descriptorSet = std::move( rhs.m_descriptorSet );
-
-    rhs.m_device = VK_NULL_HANDLE;
-    rhs.m_layout = VK_NULL_HANDLE;
-    rhs.m_renderPass = VK_NULL_HANDLE;
-    rhs.m_pipeline = VK_NULL_HANDLE;
+    moveClear( m_device, rhs.m_device );
+    moveClear( m_layout, rhs.m_layout );
+    moveClear( m_pipeline, rhs.m_pipeline );
 
     return *this;
 }
@@ -130,7 +124,6 @@ static VkPipelineVertexInputStateCreateInfo vertexInfo( Pipeline pip ) noexcept
 
 PipelineVK::PipelineVK( Pipeline pip, VkDevice device, VkRenderPass renderPass, bool depthTest, uint32_t swapchainCount, const VkExtent2D& extent, std::string_view vertex, std::string_view fragment )
 : m_device( device )
-, m_renderPass{ renderPass }
 {
     assert( device );
     assert( renderPass );
@@ -255,7 +248,7 @@ PipelineVK::PipelineVK( Pipeline pip, VkDevice device, VkRenderPass renderPass, 
         .pColorBlendState = &colorBlending,
         .pDynamicState = &dynamicState,
         .layout = m_layout,
-        .renderPass = m_renderPass,
+        .renderPass = renderPass,
     };
 
     assert( viewportState.scissorCount == 1 );
@@ -264,18 +257,11 @@ PipelineVK::PipelineVK( Pipeline pip, VkDevice device, VkRenderPass renderPass, 
     assert( pipelineOK == VK_SUCCESS );
 }
 
-void PipelineVK::begin( VkCommandBuffer cmdBuff, VkFramebuffer framebuffer, const VkRect2D& renderArea, VkDescriptorSet descriptorSet )
+void PipelineVK::begin( VkCommandBuffer cmdBuff, VkDescriptorSet descriptorSet )
 {
-    const VkRenderPassBeginInfo renderPassInfo{
-        .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-        .renderPass = m_renderPass,
-        .framebuffer = framebuffer,
-        .renderArea = renderArea,
-    };
     if ( !m_isActive ) {
         m_isActive = true;
         vkCmdBindPipeline( cmdBuff, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline );
-        vkCmdBeginRenderPass( cmdBuff, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE );
     }
     vkCmdBindDescriptorSets( cmdBuff, VK_PIPELINE_BIND_POINT_GRAPHICS, m_layout, 0, 1, &descriptorSet, 0, nullptr );
 }
@@ -331,13 +317,9 @@ void PipelineVK::resetDescriptors()
     m_descriptorSet.reset();
 }
 
-void PipelineVK::end( VkCommandBuffer cmdBuff )
+void PipelineVK::end()
 {
-    if ( !m_isActive ) {
-        return;
-    }
     m_isActive = false;
-    vkCmdEndRenderPass( cmdBuff );
 }
 
 VkPipelineLayout PipelineVK::layout() const

@@ -246,79 +246,14 @@ RendererVK::RendererVK( SDL_Window* window )
     m_transferToGraphicsCmd = CommandPool{ m_device, m_swapchain.imageCount(), { 1, 1 }, m_queueFamilyGraphics };
     m_transferCmd = CommandPool{ m_device, m_swapchain.imageCount(), { 1, 0 }, m_queueFamilyTransfer };
 
-    {
-        const VkAttachmentDescription colorAttachment{
-            .format = VK_FORMAT_B8G8R8A8_UNORM,
-            .samples = VK_SAMPLE_COUNT_1_BIT,
-            .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
-            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-            .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-            .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-            .initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-            .finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-        };
-        const VkAttachmentDescription depthAttachment{
-            .format = m_depthFormat,
-            .samples = VK_SAMPLE_COUNT_1_BIT,
-            .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
-            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-            .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-            .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-            .initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-            .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-        };
-        static constexpr VkAttachmentReference colorAttachmentRef{
-            .attachment = 0,
-            .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-        };
-
-        static constexpr VkAttachmentReference depthAttachmentRef{
-            .attachment = 1,
-            .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-        };
-
-        static constexpr VkSubpassDescription subpass{
-            .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
-            .colorAttachmentCount = 1,
-            .pColorAttachments = &colorAttachmentRef,
-            .pDepthStencilAttachment = &depthAttachmentRef,
-        };
-
-        static constexpr VkSubpassDependency dependency{
-            .srcSubpass = VK_SUBPASS_EXTERNAL,
-            .dstSubpass = 0,
-            .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
-            .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
-            .srcAccessMask = 0,
-            .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-        };
-
-        const std::array attachments = { colorAttachment, depthAttachment };
-        const VkRenderPassCreateInfo renderPassInfo{
-            .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-            .attachmentCount = attachments.size(),
-            .pAttachments = attachments.data(),
-            .subpassCount = 1,
-            .pSubpasses = &subpass,
-            .dependencyCount = 1,
-            .pDependencies = &dependency,
-        };
-
-        const VkResult res = vkCreateRenderPass( m_device, &renderPassInfo, nullptr, &m_renderPass );
-        assert( res == VK_SUCCESS );
-        if ( res != VK_SUCCESS ) {
-            std::cout << "failed to create render pass" << std::endl;
-            return;
-        }
-    }
-
+    m_mainPass = RenderPass{ m_device, VK_FORMAT_B8G8R8A8_UNORM, m_depthFormat };
     {
         const uint32_t imageCount = m_swapchain.imageCount();
         for ( uint32_t i = 0; i < imageCount; ++i ) {
             m_mainTargets.emplace_back(
                 m_physicalDevice
                 , m_device
-                , m_renderPass
+                , m_mainPass
                 , m_swapchain.extent()
                 , VK_FORMAT_B8G8R8A8_UNORM
                 , m_depthFormat
@@ -343,11 +278,10 @@ RendererVK::RendererVK( SDL_Window* window )
         }
     }
 
-    m_clear = Clear{ m_device, VK_FORMAT_B8G8R8A8_UNORM, m_depthFormat };
 
     m_pipelines[ (size_t)Pipeline::eGuiTextureColor1 ] = PipelineVK{ Pipeline::eGuiTextureColor1
         , m_device
-        , m_renderPass
+        , m_mainPass
         , false
         , m_swapchain.imageCount()
         , m_swapchain.extent()
@@ -356,7 +290,7 @@ RendererVK::RendererVK( SDL_Window* window )
     };
     m_pipelines[ (size_t)Pipeline::eLine3dStripColor ] = PipelineVK{ Pipeline::eLine3dStripColor
         , m_device
-        , m_renderPass
+        , m_mainPass
         , true
         , m_swapchain.imageCount()
         , m_swapchain.extent()
@@ -365,7 +299,7 @@ RendererVK::RendererVK( SDL_Window* window )
     };
     m_pipelines[ (size_t)Pipeline::eTriangleFan3dTexture ] = PipelineVK{ Pipeline::eTriangleFan3dTexture
         , m_device
-        , m_renderPass
+        , m_mainPass
         , true
         , m_swapchain.imageCount()
         , m_swapchain.extent()
@@ -374,7 +308,7 @@ RendererVK::RendererVK( SDL_Window* window )
     };
     m_pipelines[ (size_t)Pipeline::eTriangleFan3dColor ] = PipelineVK{ Pipeline::eTriangleFan3dColor
         , m_device
-        , m_renderPass
+        , m_mainPass
         , true
         , m_swapchain.imageCount()
         , m_swapchain.extent()
@@ -383,7 +317,7 @@ RendererVK::RendererVK( SDL_Window* window )
     };
     m_pipelines[ (size_t)Pipeline::eTriangle3dTextureNormal ] = PipelineVK{ Pipeline::eTriangle3dTextureNormal
         , m_device
-        , m_renderPass
+        , m_mainPass
         , true
         , m_swapchain.imageCount()
         , m_swapchain.extent()
@@ -392,7 +326,7 @@ RendererVK::RendererVK( SDL_Window* window )
     };
     m_pipelines[ (size_t)Pipeline::eLine3dColor1 ] = PipelineVK{ Pipeline::eLine3dColor1
         , m_device
-        , m_renderPass
+        , m_mainPass
         , true
         , m_swapchain.imageCount()
         , m_swapchain.extent()
@@ -401,7 +335,7 @@ RendererVK::RendererVK( SDL_Window* window )
     };
     m_pipelines[ (size_t)Pipeline::eShortString ] = PipelineVK{ Pipeline::eShortString
         , m_device
-        , m_renderPass
+        , m_mainPass
         , false
         , m_swapchain.imageCount()
         , m_swapchain.extent()
@@ -417,7 +351,6 @@ RendererVK::~RendererVK()
     m_graphicsCmd = {};
     m_transferToGraphicsCmd = {};
     m_transferCmd = {};
-    m_clear = {};
     m_bufferMap.clear();
     m_mainTargets.clear();
     for ( TextureVK* it : m_textures ) {
@@ -430,7 +363,7 @@ RendererVK::~RendererVK()
     for ( auto& it : m_pipelines ) { it = {}; }
     destroy<vkDestroySemaphore, VkSemaphore>( m_device, m_semaphoreRender );
     destroy<vkDestroySemaphore, VkSemaphore>( m_device, m_semaphoreAvailableImage );
-    destroy<vkDestroyRenderPass, VkRenderPass>( m_device, m_renderPass );
+    m_mainPass = {};
     m_swapchain = Swapchain();
 
     if ( m_surface ) {
@@ -589,7 +522,7 @@ void RendererVK::beginFrame()
     }
     vkCmdSetViewport( cmd, 0, 1, &viewport );
     const VkRect2D rect{ .extent = m_swapchain.extent() };
-    m_clear( cmd, m_mainTargets[ m_currentFrame ].framebuffer(), rect );
+    m_mainPass.begin( cmd, m_mainTargets[ m_currentFrame ].framebuffer(), rect );
 }
 
 void RendererVK::clear() { }
@@ -600,8 +533,9 @@ void RendererVK::setViewportSize( uint32_t, uint32_t ) {}
 void RendererVK::submit()
 {
     VkCommandBuffer cmd = m_graphicsCmd.buffer();
+    m_mainPass.end( cmd );
     if ( m_lastPipeline ) {
-        m_lastPipeline->end( cmd );
+        m_lastPipeline->end();
         m_lastPipeline = nullptr;
     }
 
@@ -680,7 +614,7 @@ void RendererVK::push( void* buffer, void* constant )
         [[maybe_unused]] auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::TYPE>*>( constant ); \
         PipelineVK& currentPipeline = m_pipelines[ (size_t)p ]; \
         if ( m_lastPipeline != &currentPipeline ) { \
-            if ( m_lastPipeline ) { m_lastPipeline->end( m_graphicsCmd.buffer() ); } \
+            if ( m_lastPipeline ) { m_lastPipeline->end(); } \
             m_lastPipeline = &currentPipeline; \
         }
 
@@ -707,12 +641,7 @@ void RendererVK::push( void* buffer, void* constant )
             , descriptorSet
         );
 
-        RenderTarget& tgt = m_mainTargets[ m_currentFrame ];
-        currentPipeline.begin( cmd
-            , tgt.framebuffer()
-            , tgt.rect()
-            , descriptorSet
-        );
+        currentPipeline.begin( cmd, descriptorSet );
         vkCmdDraw( cmd, 4, 1, 0, 0 );
     } break;
 
@@ -737,12 +666,7 @@ void RendererVK::push( void* buffer, void* constant )
             , descriptorSet
         );
 
-        RenderTarget& tgt = m_mainTargets[ m_currentFrame ];
-        currentPipeline.begin( cmd
-            , tgt.framebuffer()
-            , tgt.rect()
-            , descriptorSet
-        );
+        currentPipeline.begin( cmd, descriptorSet );
         vkCmdDraw( cmd, pushBuffer->m_verticeCount, 1, 0, 0 );
     } break;
 
@@ -762,12 +686,7 @@ void RendererVK::push( void* buffer, void* constant )
             , descriptorSet
         );
 
-        RenderTarget& tgt = m_mainTargets[ m_currentFrame ];
-        currentPipeline.begin( cmd
-            , tgt.framebuffer()
-            , tgt.rect()
-            , descriptorSet
-        );
+        currentPipeline.begin( cmd, descriptorSet );
         vkCmdSetLineWidth( cmd, pushBuffer->m_lineWidth );
         vkCmdDraw( cmd, pushBuffer->m_verticeCount, 1, 0, 0 );
     } break;
@@ -788,12 +707,7 @@ void RendererVK::push( void* buffer, void* constant )
             , descriptorSet
         );
 
-        RenderTarget& tgt = m_mainTargets[ m_currentFrame ];
-        currentPipeline.begin( cmd
-            , tgt.framebuffer()
-            , tgt.rect()
-            , descriptorSet
-        );
+        currentPipeline.begin( cmd, descriptorSet );
         vkCmdSetLineWidth( cmd, pushBuffer->m_lineWidth );
         assert( pushBuffer->m_verticeCount <= pushConstant->m_vertices.size() );
         vkCmdDraw( cmd, pushBuffer->m_verticeCount, 1, 0, 0 );
@@ -815,12 +729,7 @@ void RendererVK::push( void* buffer, void* constant )
             , descriptorSet
         );
 
-        RenderTarget& tgt = m_mainTargets[ m_currentFrame ];
-        currentPipeline.begin( cmd
-            , tgt.framebuffer()
-            , tgt.rect()
-            , descriptorSet
-        );
+        currentPipeline.begin( cmd, descriptorSet );
         vkCmdDraw( cmd, pushBuffer->m_verticeCount, 1, 0, 0 );
     } break;
 
@@ -845,12 +754,7 @@ void RendererVK::push( void* buffer, void* constant )
             , descriptorSet
         );
 
-        RenderTarget& tgt = m_mainTargets[ m_currentFrame ];
-        currentPipeline.begin( cmd
-            , tgt.framebuffer()
-            , tgt.rect()
-            , descriptorSet
-        );
+        currentPipeline.begin( cmd, descriptorSet );
         vkCmdDraw( cmd, pushConstant->m_vertices.size(), 1, 0, 0 );
     } break;
 
@@ -877,12 +781,7 @@ void RendererVK::push( void* buffer, void* constant )
             , descriptorSet
         );
 
-        RenderTarget& tgt = m_mainTargets[ m_currentFrame ];
-        currentPipeline.begin( cmd
-            , tgt.framebuffer()
-            , tgt.rect()
-            , descriptorSet
-        );
+        currentPipeline.begin( cmd, descriptorSet );
         std::array<VkBuffer, 1> buffers{ vertices->second };
         const std::array<VkDeviceSize, 1> offsets{ 0 };
         const uint32_t verticeCount = vertices->second.sizeInBytes() / ( 8 * sizeof( float ) );

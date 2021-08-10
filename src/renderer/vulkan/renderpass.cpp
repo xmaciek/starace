@@ -1,4 +1,4 @@
-#include "clear.hpp"
+#include "renderpass.hpp"
 
 #include <array>
 #include <cassert>
@@ -6,7 +6,7 @@
 
 #include "utils_vk.hpp"
 
-Clear::Clear( VkDevice device, VkFormat format, VkFormat depthFormat ) noexcept
+RenderPass::RenderPass( VkDevice device, VkFormat format, VkFormat depthFormat ) noexcept
 : m_device{ device }
 {
     static constexpr VkAttachmentReference colorAttachmentRef{
@@ -73,18 +73,18 @@ Clear::Clear( VkDevice device, VkFormat format, VkFormat depthFormat ) noexcept
     assert( res == VK_SUCCESS );
 }
 
-Clear::~Clear() noexcept
+RenderPass::~RenderPass() noexcept
 {
     destroy<vkDestroyRenderPass, VkRenderPass>( m_device, m_renderPass );
 }
 
-Clear::Clear( Clear&& rhs ) noexcept
+RenderPass::RenderPass( RenderPass&& rhs ) noexcept
 {
     std::swap( m_device, rhs.m_device );
     std::swap( m_renderPass, rhs.m_renderPass );
 }
 
-Clear& Clear::operator = ( Clear&& rhs ) noexcept
+RenderPass& RenderPass::operator = ( RenderPass&& rhs ) noexcept
 {
     destroy<vkDestroyRenderPass, VkRenderPass>( m_device, m_renderPass );
     moveClear( m_renderPass, rhs.m_renderPass );
@@ -92,7 +92,12 @@ Clear& Clear::operator = ( Clear&& rhs ) noexcept
     return *this;
 }
 
-void Clear::operator () ( VkCommandBuffer cmd, VkFramebuffer framebuffer, const VkRect2D& renderArea ) noexcept
+RenderPass::operator VkRenderPass () const noexcept
+{
+    return m_renderPass;
+}
+
+void RenderPass::begin( VkCommandBuffer cmd, VkFramebuffer framebuffer, const VkRect2D& renderArea ) noexcept
 {
     assert( m_renderPass );
     assert( cmd );
@@ -111,5 +116,10 @@ void Clear::operator () ( VkCommandBuffer cmd, VkFramebuffer framebuffer, const 
         .pClearValues = clearColor.data(),
     };
     vkCmdBeginRenderPass( cmd, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE );
+}
+
+void RenderPass::end( VkCommandBuffer cmd ) noexcept
+{
+    assert( cmd );
     vkCmdEndRenderPass( cmd );
 }

@@ -14,7 +14,6 @@
 class PipelineVK {
     VkDevice m_device = VK_NULL_HANDLE;
     VkPipelineLayout m_layout = VK_NULL_HANDLE;
-    VkRenderPass m_renderPass = VK_NULL_HANDLE;
     VkPipeline m_pipeline = VK_NULL_HANDLE;
 
     DescriptorSet m_descriptorSet;
@@ -32,9 +31,9 @@ public:
 
     VkDescriptorSet nextDescriptor();
     void resetDescriptors();
-    void begin( VkCommandBuffer, VkFramebuffer, const VkRect2D&, VkDescriptorSet );
+    void begin( VkCommandBuffer, VkDescriptorSet );
     void updateUniforms( const VkBuffer&, uint32_t, VkImageView, VkSampler, VkDescriptorSet );
-    void end( VkCommandBuffer );
+    void end();
 
     VkPipelineLayout layout() const;
 };

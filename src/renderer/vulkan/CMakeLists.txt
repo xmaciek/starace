@@ -7,8 +7,6 @@ target_sources( renderer_vk
     buffer_pool.hpp
     buffer_vk.cpp
     buffer_vk.hpp
-    clear.cpp
-    clear.hpp
     command_pool.cpp
     command_pool.hpp
     debug_messanger.cpp
@@ -21,6 +19,8 @@ target_sources( renderer_vk
     render_target.hpp
     renderer_vk.cpp
     renderer_vk.hpp
+    renderpass.cpp
+    renderpass.hpp
     shader.cpp
     shader.hpp
     swapchain.cpp

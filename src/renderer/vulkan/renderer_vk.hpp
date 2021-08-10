@@ -3,7 +3,7 @@
 #include <renderer/renderer.hpp>
 
 #include "buffer_vk.hpp"
-#include "clear.hpp"
+#include "renderpass.hpp"
 #include "command_pool.hpp"
 #include "pipeline_vk.hpp"
 #include "swapchain.hpp"
@@ -41,7 +41,6 @@ class RendererVK : public Renderer {
     Swapchain m_swapchain{};
 
     std::pmr::vector<RenderTarget> m_mainTargets;
-    VkRenderPass m_renderPass = VK_NULL_HANDLE;
 
     VkSemaphore m_semaphoreAvailableImage = VK_NULL_HANDLE;
     VkSemaphore m_semaphoreRender = VK_NULL_HANDLE;
@@ -52,7 +51,7 @@ class RendererVK : public Renderer {
     BufferPool m_uniforms[ 3 ];
     std::pmr::vector<BufferTransfer> m_pending{};
 
-    Clear m_clear{};
+    RenderPass m_mainPass{};
     std::array<PipelineVK, (size_t)Pipeline::count> m_pipelines{};
     PipelineVK* m_lastPipeline = nullptr;
 
