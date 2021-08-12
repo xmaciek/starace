@@ -284,7 +284,6 @@ RendererVK::RendererVK( SDL_Window* window )
         , m_mainPass
         , false
         , m_swapchain.imageCount()
-        , m_swapchain.extent()
         , "shaders/gui_texture_color.vert.spv"
         , "shaders/gui_texture_color.frag.spv"
     };
@@ -293,7 +292,6 @@ RendererVK::RendererVK( SDL_Window* window )
         , m_mainPass
         , true
         , m_swapchain.imageCount()
-        , m_swapchain.extent()
         , "shaders/line3_strip_color.vert.spv"
         , "shaders/line3_strip_color.frag.spv"
     };
@@ -302,7 +300,6 @@ RendererVK::RendererVK( SDL_Window* window )
         , m_mainPass
         , true
         , m_swapchain.imageCount()
-        , m_swapchain.extent()
         , "shaders/trianglefan_texture.vert.spv"
         , "shaders/trianglefan_texture.frag.spv"
     };
@@ -311,7 +308,6 @@ RendererVK::RendererVK( SDL_Window* window )
         , m_mainPass
         , true
         , m_swapchain.imageCount()
-        , m_swapchain.extent()
         , "shaders/trianglefan_color.vert.spv"
         , "shaders/trianglefan_color.frag.spv"
     };
@@ -320,7 +316,6 @@ RendererVK::RendererVK( SDL_Window* window )
         , m_mainPass
         , true
         , m_swapchain.imageCount()
-        , m_swapchain.extent()
         , "shaders/vert3_texture_normal3.vert.spv"
         , "shaders/vert3_texture_normal3.frag.spv"
     };
@@ -329,7 +324,6 @@ RendererVK::RendererVK( SDL_Window* window )
         , m_mainPass
         , true
         , m_swapchain.imageCount()
-        , m_swapchain.extent()
         , "shaders/lines_color1.vert.spv"
         , "shaders/lines_color1.frag.spv"
     };
@@ -338,7 +332,6 @@ RendererVK::RendererVK( SDL_Window* window )
         , m_mainPass
         , false
         , m_swapchain.imageCount()
-        , m_swapchain.extent()
         , "shaders/short_string.vert.spv"
         , "shaders/short_string.frag.spv"
     };
