@@ -500,6 +500,7 @@ void RendererVK::beginFrame()
     m_transferCmd.setFrame( imageIndex );
 
     const VkExtent2D extent = m_swapchain.extent();
+    const VkRect2D rect{ .extent = extent };
     const VkViewport viewport{
         .x = 0,
         .y = (float)extent.height,
@@ -508,6 +509,7 @@ void RendererVK::beginFrame()
         .minDepth = 0.0f,
         .maxDepth = 1.0f,
     };
+
     constexpr static VkCommandBufferBeginInfo beginInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
     };
@@ -521,7 +523,7 @@ void RendererVK::beginFrame()
         return;
     }
     vkCmdSetViewport( cmd, 0, 1, &viewport );
-    const VkRect2D rect{ .extent = m_swapchain.extent() };
+    vkCmdSetScissor( cmd, 0, 1, &rect );
     m_mainPass.begin( cmd, m_mainTargets[ m_currentFrame ].framebuffer(), rect );
 }
 
@@ -529,6 +531,32 @@ void RendererVK::clear() { }
 void RendererVK::deleteBuffer( const Buffer& ) {}
 void RendererVK::deleteTexture( Texture ) {}
 void RendererVK::setViewportSize( uint32_t, uint32_t ) {}
+
+void RendererVK::recreateSwapchain()
+{
+    vkDeviceWaitIdle( m_device );
+
+    m_swapchain = Swapchain( m_physicalDevice
+        , m_device
+        , m_surface
+        , { m_queueFamilyGraphics, m_queueFamilyPresent }
+        , m_swapchain.steal()
+    );
+
+    const uint32_t imageCount = m_swapchain.imageCount();
+    m_mainTargets.clear();
+    for ( uint32_t i = 0; i < imageCount; ++i ) {
+        m_mainTargets.emplace_back(
+            m_physicalDevice
+            , m_device
+            , m_mainPass
+            , m_swapchain.extent()
+            , VK_FORMAT_B8G8R8A8_UNORM
+            , m_depthFormat
+        );
+    }
+    vkDeviceWaitIdle( m_device );
+}
 
 void RendererVK::submit()
 {
@@ -583,6 +611,7 @@ void RendererVK::submit()
     [[maybe_unused]]
     const VkResult submitOK = vkQueueSubmit( m_graphicsCmd.queue(), 1, &submitInfo, VK_NULL_HANDLE );
     assert( submitOK == VK_SUCCESS );
+
     vkQueueWaitIdle( m_graphicsCmd.queue() );
     for ( auto& pipeline : m_pipelines ) {
         pipeline.resetDescriptors();
@@ -600,9 +629,17 @@ void RendererVK::present()
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = swapchain;
     presentInfo.pImageIndices = &m_currentFrame;
-    [[maybe_unused]]
-    const VkResult presentOK = vkQueuePresentKHR( m_queuePresent, &presentInfo );
-    assert( presentOK == VK_SUCCESS );
+
+    switch ( vkQueuePresentKHR( m_queuePresent, &presentInfo ) ) {
+    case VK_SUCCESS: break;
+    case VK_ERROR_OUT_OF_DATE_KHR:
+    case VK_SUBOPTIMAL_KHR:
+        recreateSwapchain();
+        break;
+    default:
+        assert( !"failed to present" );
+    }
+
     vkQueueWaitIdle( m_queuePresent );
 }
 

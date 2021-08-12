@@ -97,16 +97,23 @@ static std::optional<VkPresentModeKHR> findBestPresentMode( VkPhysicalDevice phy
     return {};
 }
 
-Swapchain::Swapchain( VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, std::array<uint32_t,2> familyAccess )
+Swapchain::Swapchain( VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, std::array<uint32_t,2> familyAccess, VkSwapchainKHR oldSwapchain )
 : m_device{ device }
 {
     assert( physicalDevice );
     assert( device );
 
+    for ( uint32_t idx : familyAccess ) {
+        VkBool32 supportOK = VK_FALSE;
+        [[maybe_unused]]
+        const VkResult surface0OK = vkGetPhysicalDeviceSurfaceSupportKHR( physicalDevice, idx, surface, &supportOK );
+        assert( supportOK == VK_TRUE );
+    }
+
     VkSurfaceCapabilitiesKHR surfaceCaps{};
     [[maybe_unused]]
-    const VkResult surfaceOK = vkGetPhysicalDeviceSurfaceCapabilitiesKHR( physicalDevice, surface, &surfaceCaps );
-    assert( surfaceOK == VK_SUCCESS );
+    const VkResult surfaceCapsOK = vkGetPhysicalDeviceSurfaceCapabilitiesKHR( physicalDevice, surface, &surfaceCaps );
+    assert( surfaceCapsOK == VK_SUCCESS );
 
     const std::optional<VkSurfaceFormatKHR> surfaceFormat = findBestFormat( physicalDevice, surface );
     assert( surfaceFormat );
@@ -135,6 +142,7 @@ Swapchain::Swapchain( VkPhysicalDevice physicalDevice, VkDevice device, VkSurfac
         .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
         .presentMode = m_presentMode,
         .clipped = VK_FALSE,
+        .oldSwapchain = oldSwapchain,
     };
 
     [[maybe_unused]]
@@ -150,6 +158,13 @@ Swapchain::Swapchain( VkPhysicalDevice physicalDevice, VkDevice device, VkSurfac
     const VkResult getImagesOK = vkGetSwapchainImagesKHR( m_device, m_swapchain, &imageCount, m_images.data() );
     assert( getImagesOK == VK_SUCCESS );
 
+}
+
+VkSwapchainKHR Swapchain::steal()
+{
+    VkSwapchainKHR ret = m_swapchain;
+    m_swapchain = VK_NULL_HANDLE;
+    return ret;
 }
 
 uint32_t Swapchain::imageCount() const

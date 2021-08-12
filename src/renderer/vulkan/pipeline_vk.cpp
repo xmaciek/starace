@@ -121,7 +121,7 @@ static VkPipelineVertexInputStateCreateInfo vertexInfo( Pipeline pip ) noexcept
 
 }
 
-PipelineVK::PipelineVK( Pipeline pip, VkDevice device, VkRenderPass renderPass, bool depthTest, uint32_t swapchainCount, const VkExtent2D& extent, std::string_view vertex, std::string_view fragment )
+PipelineVK::PipelineVK( Pipeline pip, VkDevice device, VkRenderPass renderPass, bool depthTest, uint32_t swapchainCount, const VkExtent2D& /*extent*/, std::string_view vertex, std::string_view fragment )
 : m_device( device )
 {
     assert( device );
@@ -145,26 +145,13 @@ PipelineVK::PipelineVK( Pipeline pip, VkDevice device, VkRenderPass renderPass, 
     const VkResult layoutOK = vkCreatePipelineLayout( m_device, &pipelineLayoutInfo, nullptr, &m_layout );
     assert( layoutOK == VK_SUCCESS );
 
-    const VkViewport viewport{
-        .width = static_cast<float>( extent.width ),
-        .height = static_cast<float>( extent.height ),
-        .minDepth = 0.0f,
-        .maxDepth = 1.0f,
-    };
-
-    const VkRect2D scissor{
-        .extent = extent,
-    };
-
-    const VkPipelineViewportStateCreateInfo viewportState{
+    static constexpr VkPipelineViewportStateCreateInfo viewportState{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
         .viewportCount = 1,
-        .pViewports = &viewport,
         .scissorCount = 1,
-        .pScissors = &scissor,
     };
 
-    const VkPipelineRasterizationStateCreateInfo rasterizer{
+    static constexpr VkPipelineRasterizationStateCreateInfo rasterizer{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
         .depthClampEnable = VK_FALSE,
         .rasterizerDiscardEnable = VK_FALSE,
@@ -174,7 +161,7 @@ PipelineVK::PipelineVK( Pipeline pip, VkDevice device, VkRenderPass renderPass, 
         .lineWidth = 1.0f,
     };
 
-    const VkPipelineMultisampleStateCreateInfo multisampling{
+    static constexpr VkPipelineMultisampleStateCreateInfo multisampling{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
         .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
         .sampleShadingEnable = VK_FALSE,
@@ -189,7 +176,7 @@ PipelineVK::PipelineVK( Pipeline pip, VkDevice device, VkRenderPass renderPass, 
         .stencilTestEnable = VK_FALSE,
     };
 
-    const VkPipelineColorBlendAttachmentState colorBlendAttachment{
+    static constexpr VkPipelineColorBlendAttachmentState colorBlendAttachment{
         .blendEnable = VK_TRUE,
         .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
         .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
@@ -208,15 +195,16 @@ PipelineVK::PipelineVK( Pipeline pip, VkDevice device, VkRenderPass renderPass, 
         .pAttachments = &colorBlendAttachment,
     };
 
-    const VkDynamicState dynamicStates[]{
+    static constexpr std::array dynamicStates = {
         VK_DYNAMIC_STATE_VIEWPORT,
+        VK_DYNAMIC_STATE_SCISSOR,
         VK_DYNAMIC_STATE_LINE_WIDTH,
     };
 
     const VkPipelineDynamicStateCreateInfo dynamicState{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
-        .dynamicStateCount = std::size( dynamicStates ),
-        .pDynamicStates = dynamicStates,
+        .dynamicStateCount = dynamicStates.size(),
+        .pDynamicStates = dynamicStates.data(),
     };
 
     const VkPipelineVertexInputStateCreateInfo vertexInputInfo = vertexInfo( pip );
@@ -250,7 +238,7 @@ PipelineVK::PipelineVK( Pipeline pip, VkDevice device, VkRenderPass renderPass, 
         .renderPass = renderPass,
     };
 
-    assert( viewportState.scissorCount == 1 );
+//     assert( viewportState.scissorCount == 1 );
     [[maybe_unused]]
     const VkResult pipelineOK = vkCreateGraphicsPipelines( device, nullptr, 1, &pipelineInfo, nullptr, &m_pipeline );
     assert( pipelineOK == VK_SUCCESS );

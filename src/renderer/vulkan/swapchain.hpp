@@ -20,7 +20,7 @@ public:
     void destroyResources();
     ~Swapchain();
     Swapchain() = default;
-    Swapchain( VkPhysicalDevice, VkDevice, VkSurfaceKHR, std::array<uint32_t, 2> familyAccess );
+    Swapchain( VkPhysicalDevice, VkDevice, VkSurfaceKHR, std::array<uint32_t, 2> familyAccess, VkSwapchainKHR oldSwapchain = VK_NULL_HANDLE );
     Swapchain( Swapchain&& ) noexcept;
     Swapchain& operator = ( Swapchain&& ) noexcept;
 
@@ -28,6 +28,9 @@ public:
     VkSurfaceFormatKHR surfaceFormat() const;
     VkImage image( size_t ) const;
     uint32_t imageCount() const;
+
+    [[nodiscard]]
+    VkSwapchainKHR steal();
 
     operator VkSwapchainKHR () const;
 

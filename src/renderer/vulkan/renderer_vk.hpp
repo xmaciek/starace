@@ -64,6 +64,7 @@ class RendererVK : public Renderer {
     void transferBufferAndWait( VkBuffer src, VkBuffer dst, size_t size );
 
     void flushUniforms();
+    void recreateSwapchain();
 
 public:
     virtual ~RendererVK() override;
