@@ -12,13 +12,8 @@
 
 void PipelineVK::destroyResources()
 {
-    if ( m_pipeline ) {
-        vkDestroyPipeline( m_device, m_pipeline, nullptr );
-    }
-    if ( m_layout ) {
-        vkDestroyPipelineLayout( m_device, m_layout, nullptr );
-    }
-
+    destroy<vkDestroyPipeline>( m_device, m_pipeline );
+    destroy<vkDestroyPipelineLayout>( m_device, m_layout );
 }
 
 PipelineVK::~PipelineVK()
@@ -31,13 +26,11 @@ PipelineVK::PipelineVK( PipelineVK&& rhs ) noexcept
     std::swap( m_device, rhs.m_device );
     std::swap( m_layout, rhs.m_layout );
     std::swap( m_pipeline, rhs.m_pipeline );
-    std::swap( m_descriptorSet, rhs.m_descriptorSet );
 }
 
 PipelineVK& PipelineVK::operator = ( PipelineVK&& rhs ) noexcept
 {
     destroyResources();
-    m_descriptorSet = std::move( rhs.m_descriptorSet );
     moveClear( m_device, rhs.m_device );
     moveClear( m_layout, rhs.m_layout );
     moveClear( m_pipeline, rhs.m_pipeline );
@@ -121,25 +114,20 @@ static VkPipelineVertexInputStateCreateInfo vertexInfo( Pipeline pip ) noexcept
 
 }
 
-PipelineVK::PipelineVK( Pipeline pip, VkDevice device, VkRenderPass renderPass, bool depthTest, uint32_t swapchainCount, std::string_view vertex, std::string_view fragment )
+PipelineVK::PipelineVK( Pipeline pip, VkDevice device, VkRenderPass renderPass, VkDescriptorSetLayout layout, bool depthTest, std::string_view vertex, std::string_view fragment )
 : m_device( device )
 {
     assert( device );
     assert( renderPass );
-
-    m_descriptorSet = DescriptorSet{ device, swapchainCount, 400,
-        {
-            std::make_pair( VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT )
-            , std::make_pair( VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT )
-        }
-    };
+    assert( layout );
+    assert( !vertex.empty() );
+    assert( !fragment.empty() );
 
     const VkPipelineLayoutCreateInfo pipelineLayoutInfo{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
         .setLayoutCount = 1,
-        .pSetLayouts = m_descriptorSet.layout(),
+        .pSetLayouts = &layout,
     };
-    assert( pipelineLayoutInfo.pSetLayouts != VK_NULL_HANDLE );
 
     [[maybe_unused]]
     const VkResult layoutOK = vkCreatePipelineLayout( m_device, &pipelineLayoutInfo, nullptr, &m_layout );
@@ -292,16 +280,6 @@ void PipelineVK::updateUniforms( const VkBuffer& buff
     };
     const uint32_t writeCount = imageView ? (uint32_t)std::size( descriptorWrites ) : 1u;
     vkUpdateDescriptorSets( m_device, writeCount, descriptorWrites, 0, nullptr );
-}
-
-VkDescriptorSet PipelineVK::nextDescriptor()
-{
-    return m_descriptorSet.next();
-}
-
-void PipelineVK::resetDescriptors()
-{
-    m_descriptorSet.reset();
 }
 
 void PipelineVK::end()

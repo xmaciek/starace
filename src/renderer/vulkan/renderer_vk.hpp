@@ -51,6 +51,10 @@ class RendererVK : public Renderer {
     BufferPool m_uniforms[ 3 ];
     std::pmr::vector<BufferTransfer> m_pending{};
 
+
+    std::pmr::vector<DescriptorSet> m_descriptorSetBufferSampler{};
+    std::pmr::vector<DescriptorSet> m_descriptorSetBuffer{};
+
     RenderPass m_mainPass{};
     std::array<PipelineVK, (size_t)Pipeline::count> m_pipelines{};
     PipelineVK* m_lastPipeline = nullptr;
@@ -60,7 +64,7 @@ class RendererVK : public Renderer {
     std::pmr::map<Buffer, BufferVK> m_bufferMap{};
 
     VkFormat m_depthFormat = {};
-    
+
     void transferBufferAndWait( VkBuffer src, VkBuffer dst, size_t size );
 
     void flushUniforms();

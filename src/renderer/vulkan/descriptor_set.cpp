@@ -41,7 +41,7 @@ DescriptorSet& DescriptorSet::operator = ( DescriptorSet&& rhs ) noexcept
     return *this;
 }
 
-DescriptorSet::DescriptorSet( VkDevice device, uint32_t swapchainCount, uint32_t setsPerFrame, const std::pmr::vector<std::pair<VkDescriptorType, VkShaderStageFlagBits>>& types )
+DescriptorSet::DescriptorSet( VkDevice device, uint32_t setsPerFrame, const std::pmr::vector<UniformObject>& types )
 : m_device{ device }
 {
     std::pmr::vector<VkDescriptorSetLayoutBinding> layoutBinding{};
@@ -71,11 +71,11 @@ DescriptorSet::DescriptorSet( VkDevice device, uint32_t swapchainCount, uint32_t
     std::pmr::vector<VkDescriptorPoolSize> descriptorPoolSize{ types.size() };
     for ( size_t i = 0; i < types.size(); ++i ) {
         descriptorPoolSize[ i ].type = types[ i ].first;
-        descriptorPoolSize[ i ].descriptorCount = swapchainCount * setsPerFrame;
+        descriptorPoolSize[ i ].descriptorCount =  setsPerFrame;
     }
     const VkDescriptorPoolCreateInfo poolInfo{
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-        .maxSets = swapchainCount * setsPerFrame,
+        .maxSets = setsPerFrame,
         .poolSizeCount = (uint32_t)descriptorPoolSize.size(),
         .pPoolSizes = descriptorPoolSize.data(),
     };
@@ -87,12 +87,12 @@ DescriptorSet::DescriptorSet( VkDevice device, uint32_t swapchainCount, uint32_t
         return;
     }
 
-    m_set.resize( swapchainCount * setsPerFrame );
-    const std::pmr::vector<VkDescriptorSetLayout> layouts( swapchainCount * setsPerFrame, m_layout );
+    m_set.resize( setsPerFrame );
+    const std::pmr::vector<VkDescriptorSetLayout> layouts( setsPerFrame, m_layout );
     const VkDescriptorSetAllocateInfo allocInfo{
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
         .descriptorPool = m_pool,
-        .descriptorSetCount = swapchainCount * setsPerFrame,
+        .descriptorSetCount = setsPerFrame,
         .pSetLayouts = layouts.data(),
     };
 
@@ -109,13 +109,16 @@ DescriptorSet::DescriptorSet( VkDevice device, uint32_t swapchainCount, uint32_t
 }
 
 
-const VkDescriptorSetLayout* DescriptorSet::layout() const
+VkDescriptorSetLayout DescriptorSet::layout() const
 {
-    return &m_layout;
+    return m_layout;
 }
 
 VkDescriptorSet DescriptorSet::next()
 {
+    if ( m_current == m_set.size() ) {
+        std::cout << m_current << std::endl;
+    }
     assert( m_current < m_set.size() );
     return m_set[ m_current++ ];
 }

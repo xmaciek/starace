@@ -246,6 +246,25 @@ RendererVK::RendererVK( SDL_Window* window )
     m_transferToGraphicsCmd = CommandPool{ m_device, m_swapchain.imageCount(), { 1, 1 }, m_queueFamilyGraphics };
     m_transferCmd = CommandPool{ m_device, m_swapchain.imageCount(), { 1, 0 }, m_queueFamilyTransfer };
 
+
+    for ( size_t i = 0; i < m_swapchain.imageCount(); ++i ) {
+        m_descriptorSetBufferSampler.emplace_back(
+            m_device
+            , 30
+            , std::pmr::vector<DescriptorSet::UniformObject>{
+                DescriptorSet::uniformBuffer,
+                DescriptorSet::imageSampler
+            }
+        );
+        m_descriptorSetBuffer.emplace_back(
+            m_device
+            , 800
+            , std::pmr::vector<DescriptorSet::UniformObject>{
+                DescriptorSet::uniformBuffer
+            }
+        );
+    }
+
     m_mainPass = RenderPass{ m_device, VK_FORMAT_B8G8R8A8_UNORM, m_depthFormat };
     {
         const uint32_t imageCount = m_swapchain.imageCount();
@@ -282,56 +301,56 @@ RendererVK::RendererVK( SDL_Window* window )
     m_pipelines[ (size_t)Pipeline::eGuiTextureColor1 ] = PipelineVK{ Pipeline::eGuiTextureColor1
         , m_device
         , m_mainPass
+        , m_descriptorSetBufferSampler[ 0 ].layout()
         , false
-        , m_swapchain.imageCount()
         , "shaders/gui_texture_color.vert.spv"
         , "shaders/gui_texture_color.frag.spv"
     };
     m_pipelines[ (size_t)Pipeline::eLine3dStripColor ] = PipelineVK{ Pipeline::eLine3dStripColor
         , m_device
         , m_mainPass
+        , m_descriptorSetBuffer[ 0 ].layout()
         , true
-        , m_swapchain.imageCount()
         , "shaders/line3_strip_color.vert.spv"
         , "shaders/line3_strip_color.frag.spv"
     };
     m_pipelines[ (size_t)Pipeline::eTriangleFan3dTexture ] = PipelineVK{ Pipeline::eTriangleFan3dTexture
         , m_device
         , m_mainPass
+        , m_descriptorSetBufferSampler[ 0 ].layout()
         , true
-        , m_swapchain.imageCount()
         , "shaders/trianglefan_texture.vert.spv"
         , "shaders/trianglefan_texture.frag.spv"
     };
     m_pipelines[ (size_t)Pipeline::eTriangleFan3dColor ] = PipelineVK{ Pipeline::eTriangleFan3dColor
         , m_device
         , m_mainPass
+        , m_descriptorSetBuffer[ 0 ].layout()
         , true
-        , m_swapchain.imageCount()
         , "shaders/trianglefan_color.vert.spv"
         , "shaders/trianglefan_color.frag.spv"
     };
     m_pipelines[ (size_t)Pipeline::eTriangle3dTextureNormal ] = PipelineVK{ Pipeline::eTriangle3dTextureNormal
         , m_device
         , m_mainPass
+        , m_descriptorSetBufferSampler[ 0 ].layout()
         , true
-        , m_swapchain.imageCount()
         , "shaders/vert3_texture_normal3.vert.spv"
         , "shaders/vert3_texture_normal3.frag.spv"
     };
     m_pipelines[ (size_t)Pipeline::eLine3dColor1 ] = PipelineVK{ Pipeline::eLine3dColor1
         , m_device
         , m_mainPass
+        , m_descriptorSetBuffer[ 0 ].layout()
         , true
-        , m_swapchain.imageCount()
         , "shaders/lines_color1.vert.spv"
         , "shaders/lines_color1.frag.spv"
     };
     m_pipelines[ (size_t)Pipeline::eShortString ] = PipelineVK{ Pipeline::eShortString
         , m_device
         , m_mainPass
+        , m_descriptorSetBufferSampler[ 0 ].layout()
         , false
-        , m_swapchain.imageCount()
         , "shaders/short_string.vert.spv"
         , "shaders/short_string.frag.spv"
     };
@@ -353,6 +372,8 @@ RendererVK::~RendererVK()
         it = {};
     }
 
+    m_descriptorSetBuffer.clear();
+    m_descriptorSetBufferSampler.clear();
     for ( auto& it : m_pipelines ) { it = {}; }
     destroy<vkDestroySemaphore, VkSemaphore>( m_device, m_semaphoreRender );
     destroy<vkDestroySemaphore, VkSemaphore>( m_device, m_semaphoreAvailableImage );
@@ -491,6 +512,8 @@ void RendererVK::beginFrame()
     m_graphicsCmd.setFrame( imageIndex );
     m_transferToGraphicsCmd.setFrame( imageIndex );
     m_transferCmd.setFrame( imageIndex );
+    m_descriptorSetBuffer[ imageIndex ].reset();
+    m_descriptorSetBufferSampler[ imageIndex ].reset();
 
     const VkExtent2D extent = m_swapchain.extent();
     const VkRect2D rect{ .extent = extent };
@@ -606,9 +629,6 @@ void RendererVK::submit()
     assert( submitOK == VK_SUCCESS );
 
     vkQueueWaitIdle( m_graphicsCmd.queue() );
-    for ( auto& pipeline : m_pipelines ) {
-        pipeline.resetDescriptors();
-    }
 }
 
 void RendererVK::present()
@@ -662,7 +682,7 @@ void RendererVK::push( void* buffer, void* constant )
 
         VkCommandBuffer cmd = m_graphicsCmd.buffer();
 
-        const VkDescriptorSet descriptorSet = currentPipeline.nextDescriptor();
+        const VkDescriptorSet descriptorSet = m_descriptorSetBufferSampler[ m_currentFrame ].next();
         assert( descriptorSet != VK_NULL_HANDLE );
         currentPipeline.updateUniforms( uniform.dst()
             , uniform.sizeInBytes()
@@ -687,7 +707,7 @@ void RendererVK::push( void* buffer, void* constant )
 
         VkCommandBuffer cmd = m_graphicsCmd.buffer();
 
-        const VkDescriptorSet descriptorSet = currentPipeline.nextDescriptor();
+        const VkDescriptorSet descriptorSet = m_descriptorSetBufferSampler[ m_currentFrame ].next();
         assert( descriptorSet != VK_NULL_HANDLE );
         currentPipeline.updateUniforms( uniform.dst()
             , uniform.sizeInBytes()
@@ -707,7 +727,7 @@ void RendererVK::push( void* buffer, void* constant )
 
         VkCommandBuffer cmd = m_graphicsCmd.buffer();
 
-        const VkDescriptorSet descriptorSet = currentPipeline.nextDescriptor();
+        const VkDescriptorSet descriptorSet = m_descriptorSetBuffer[ m_currentFrame ].next();
         assert( descriptorSet != VK_NULL_HANDLE );
         currentPipeline.updateUniforms( uniform.dst()
             , uniform.sizeInBytes()
@@ -728,7 +748,7 @@ void RendererVK::push( void* buffer, void* constant )
 
         VkCommandBuffer cmd = m_graphicsCmd.buffer();
 
-        const VkDescriptorSet descriptorSet = currentPipeline.nextDescriptor();
+        const VkDescriptorSet descriptorSet = m_descriptorSetBuffer[ m_currentFrame ].next();
         assert( descriptorSet != VK_NULL_HANDLE );
         currentPipeline.updateUniforms( uniform.dst()
             , uniform.sizeInBytes()
@@ -750,7 +770,7 @@ void RendererVK::push( void* buffer, void* constant )
 
         VkCommandBuffer cmd = m_graphicsCmd.buffer();
 
-        const VkDescriptorSet descriptorSet = currentPipeline.nextDescriptor();
+        const VkDescriptorSet descriptorSet = m_descriptorSetBuffer[ m_currentFrame ].next();
         assert( descriptorSet != VK_NULL_HANDLE );
         currentPipeline.updateUniforms( uniform.dst()
             , uniform.sizeInBytes()
@@ -775,7 +795,7 @@ void RendererVK::push( void* buffer, void* constant )
 
         VkCommandBuffer cmd = m_graphicsCmd.buffer();
 
-        const VkDescriptorSet descriptorSet = currentPipeline.nextDescriptor();
+        const VkDescriptorSet descriptorSet = m_descriptorSetBufferSampler[ m_currentFrame ].next();
         assert( descriptorSet != VK_NULL_HANDLE );
         currentPipeline.updateUniforms( uniform.dst()
             , uniform.sizeInBytes()
@@ -802,7 +822,7 @@ void RendererVK::push( void* buffer, void* constant )
         auto vertices = m_bufferMap.find( pushBuffer->m_vertices );
         assert( vertices != m_bufferMap.end() );
 
-        const VkDescriptorSet descriptorSet = currentPipeline.nextDescriptor();
+        const VkDescriptorSet descriptorSet = m_descriptorSetBufferSampler[ m_currentFrame ].next();
         assert( descriptorSet != VK_NULL_HANDLE );
         currentPipeline.updateUniforms( uniform.dst()
             , uniform.sizeInBytes()
