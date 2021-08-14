@@ -21,6 +21,7 @@
 
 #include <mutex>
 #include <thread>
+#include <tuple>
 
 struct Mix_Chunk;
 
@@ -169,6 +170,8 @@ private:
     void pause();
     void playSound( Mix_Chunk* ) const;
     void reloadPreviewModel();
+
+    std::tuple<glm::mat4, glm::mat4> getCameraMatrix() const;
 
     // purposefully copy argument
     void render3D( RenderContext );

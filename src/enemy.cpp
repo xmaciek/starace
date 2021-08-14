@@ -55,24 +55,22 @@ void Enemy::reinitCoordinates()
 
 void Enemy::render( RenderContext rctx ) const
 {
-    if ( status() != Status::eAlive ) {
+    assert( status() == Status::eAlive );
+    if ( !m_isOnScreen ) {
         return;
     }
     rctx.model = glm::translate( rctx.model, position() );
-
-    const glm::mat4 mat = rctx.projection * rctx.view * rctx.model;
-    const glm::vec3 vec = project3dTo2d( mat, glm::vec3{}, rctx.viewport );
-    if ( !isOnScreen( vec, rctx.viewport ) ) {
-        return;
-    }
     m_shield.render( rctx );
 }
 
 void Enemy::update( const UpdateContext& updateContext )
 {
-    if ( status() != Status::eAlive ) {
+    assert( status() != Status::eDead );
+    SAObject::update( updateContext );
+    if ( status() == Status::eDead ) {
         return;
     }
+
     m_shield.update( updateContext );
     m_shield.setColor( glm::vec4{
         1.0f - m_healthPerc + colorHalf( 1.0 - m_healthPerc )
@@ -84,10 +82,12 @@ void Enemy::update( const UpdateContext& updateContext )
         m_shotFactor += updateContext.deltaTime;
     }
 
+    m_healthPerc = (float)m_health / 100;
     m_turnrate = glm::radians( speed() * 5 * updateContext.deltaTime );
     interceptTarget();
     m_position += velocity() * updateContext.deltaTime;
-    m_healthPerc = (float)m_health / 100;
+    m_screenPos = project3dTo2d( updateContext.camera, m_position, updateContext.viewport );
+    m_isOnScreen = isOnScreen( m_screenPos, updateContext.viewport );
 }
 
 void Enemy::drawCollisionIndicator()

@@ -308,13 +308,22 @@ void Game::renderHUD( RenderContext rctx )
     m_fontPauseTxt->renderText( rctx, color, 66, 120, "HP" );
 }
 
-void Game::render3D( RenderContext rctx )
+
+std::tuple<glm::mat4, glm::mat4> Game::getCameraMatrix() const
 {
     assert( m_jet );
-    rctx.projection = glm::perspective( glm::radians( m_angle + m_jet->speed() * 6 ), viewportAspect(), 0.001f, 2000.0f );
-    rctx.view = glm::translate( rctx.view, glm::vec3{ 0, -0.255, -1 } );
-    rctx.view *= glm::toMat4( m_jet->rotation() );
-    rctx.view = glm::translate( rctx.view, -m_jet->position() );
+    glm::mat4 view = glm::translate( glm::mat4( 1.0f ), glm::vec3{ 0, -0.255, -1 } );
+    view *= glm::toMat4( m_jet->rotation() );
+    view = glm::translate( view, -m_jet->position() );
+    return {
+        view,
+        glm::perspective( glm::radians( m_angle + m_jet->speed() * 6 ), viewportAspect(), 0.001f, 2000.0f )
+    };
+}
+
+void Game::render3D( RenderContext rctx )
+{
+    std::tie( rctx.view, rctx.projection ) = getCameraMatrix();
 
     assert( m_map );
     m_map->render( rctx );

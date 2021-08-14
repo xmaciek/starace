@@ -85,7 +85,7 @@ int32_t Game::run()
 
 void Game::loopGame()
 {
-    UpdateContext updateContext{ 0.0166f };
+    UpdateContext updateContext{ .deltaTime = 0.0166f };
     while ( m_isRunning ) {
         const std::chrono::time_point tp = std::chrono::steady_clock::now();
         m_fpsMeter.frameBegin();
@@ -469,24 +469,6 @@ void Game::updateGame( const UpdateContext& updateContext )
     }
 
     {
-        for ( Enemy*& e : m_enemies ) {
-            e->update( updateContext );
-            if ( e->isWeaponReady() ) {
-                m_enemyBullets.push_back( e->weapon( m_poolBullets.alloc() ) );
-            }
-            if ( e->status() == Enemy::Status::eDead ) {
-                m_jet->addScore( e->score(), true );
-                m_jet->untarget( e );
-                std::destroy_at( e );
-                m_poolEnemies.dealloc( e );
-                e = nullptr;
-            }
-        }
-        m_enemies.erase( std::remove( m_enemies.begin(), m_enemies.end(), nullptr ), m_enemies.end() );
-    }
-
-
-    {
         glm::vec3 jetPosition{};
         glm::vec3 jetVelocity{};
         {
@@ -536,7 +518,30 @@ void Game::updateGame( const UpdateContext& updateContext )
         }
         m_enemyBullets.erase( std::remove( m_enemyBullets.begin(), m_enemyBullets.end(), nullptr ), m_enemyBullets.end() );
     }
+    {
+        const auto [ view, projection ] = getCameraMatrix();
+        const UpdateContext next{
+            .camera = projection * view,
+            .viewport = { m_viewportWidth, m_viewportHeight },
+            .deltaTime = updateContext.deltaTime,
+        };
 
+        for ( auto& e : m_enemies ) {
+            e->update( next );
+            if ( e->status() == Enemy::Status::eDead ) {
+                m_jet->addScore( e->score(), true );
+                m_jet->untarget( e );
+                std::destroy_at( e );
+                m_poolEnemies.dealloc( e );
+                e = nullptr;
+                continue;
+            }
+            if ( e->isWeaponReady() ) {
+                m_enemyBullets.push_back( e->weapon( m_poolBullets.alloc() ) );
+            }
+        }
+        m_enemies.erase( std::remove( m_enemies.begin(), m_enemies.end(), nullptr ), m_enemies.end() );
+    }
     updateCyberRings( updateContext );
 }
 

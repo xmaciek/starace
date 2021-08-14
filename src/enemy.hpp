@@ -8,9 +8,10 @@ class Enemy : public SAObject {
 private:
     BulletProto m_weapon{};
     Shield m_shield;
+    glm::vec3 m_screenPos{};
     float m_shotFactor = 0.0f;
     float m_healthPerc = 1.0f;
-
+    bool m_isOnScreen = false;
     void reinitCoordinates();
 
 public:

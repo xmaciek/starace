@@ -36,7 +36,7 @@ public:
     virtual void addScore( uint32_t s, bool b );
     virtual void processCollision( SAObject* );
     virtual void render( RenderContext ) const = 0;
-    virtual void update( const UpdateContext& ) = 0;
+    virtual void update( const UpdateContext& );
     void kill();
     void setDamage( uint8_t d );
     void setStatus( Status s );
@@ -52,6 +52,7 @@ protected:
     float m_turnrate = 0.0f;
     float m_speed = 0.0f;
     uint32_t m_score = 0;
+    uint16_t m_pendingDamage = 0;
     uint8_t m_health = 0;
     uint8_t m_collisionDamage = 0;
     Status m_status = Status::eDead;

@@ -64,6 +64,10 @@ void Jet::lockTarget( SAObject* t )
 
 void Jet::update( const UpdateContext& updateContext )
 {
+    SAObject::update( updateContext );
+    if ( status() == Status::eDead ) {
+        return;
+    }
     m_reactor.update( updateContext );
 
     const glm::vec3 pyrControl{

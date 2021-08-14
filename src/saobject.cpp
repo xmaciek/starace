@@ -67,10 +67,7 @@ void SAObject::kill()
 
 void SAObject::setDamage( uint8_t d )
 {
-    m_health -= std::min( m_health, d );
-    if ( m_health == 0 ) {
-        setStatus( Status::eDead );
-    }
+    m_pendingDamage += d;
 }
 
 uint8_t SAObject::health() const
@@ -125,4 +122,13 @@ uint32_t SAObject::score() const
 void SAObject::addScore( uint32_t s, bool )
 {
     m_score += s;
+}
+
+void SAObject::update( const UpdateContext& )
+{
+    m_health -= std::min<uint16_t>( m_health, m_pendingDamage );
+    m_pendingDamage = 0;
+    if ( m_health == 0 ) {
+        setStatus( Status::eDead );
+    }
 }
