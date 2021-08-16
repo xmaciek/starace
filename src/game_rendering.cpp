@@ -111,9 +111,8 @@ void Game::renderPauseText( RenderContext rctx )
     renderHudTex( rctx, color::pause );
 
     m_btnQuitMission.render( rctx );
-    constexpr static char PAUSED[] = "PAUSED";
-    const double posx = (double)viewportWidth() / 2 - static_cast<double>( m_fontPauseTxt->textLength( PAUSED ) ) / 2;
-    m_fontPauseTxt->renderText( rctx, color::yellow, posx, viewportHeight() - 128, PAUSED );
+    m_lblPaused.setPosition( { viewportWidth() / 2, viewportHeight() - 128 } );
+    m_lblPaused.render( rctx );
 }
 
 void Game::renderHudTex( RenderContext rctx, const glm::vec4& color )

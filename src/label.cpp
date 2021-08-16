@@ -83,3 +83,8 @@ void Label::setText( std::string_view str )
     m_text = str;
     m_renderText = m_font->composeText( m_color, str );
 }
+
+void Label::setPosition( glm::vec2 pos )
+{
+    m_position = pos;
+}

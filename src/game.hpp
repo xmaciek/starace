@@ -96,6 +96,8 @@ private:
     Button m_btnWeap2{};
     Button m_btnWeap3{};
 
+    Label m_lblPaused{};
+
     Texture m_buttonTexture{};
     Texture m_cyberRingTexture[ 3 ]{};
     Texture m_hudTex{};

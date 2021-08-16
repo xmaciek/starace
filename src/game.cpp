@@ -288,6 +288,7 @@ void Game::initRoadAdditions()
         break;
     }
 
+    m_lblPaused = Label{ "PAUSED", Label::HAlign::eCenter, Label::VAlign::eMiddle, m_fontPauseTxt, {}, color::yellow };
     m_hudTex = loadTexture( "textures/HUDtex.tga" );
 
     m_menuBackground = loadTexture( "textures/background.tga" );

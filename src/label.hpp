@@ -39,4 +39,5 @@ public:
 
     void render( RenderContext ) const;
     void setText( std::string_view );
+    void setPosition( glm::vec2 );
 };
