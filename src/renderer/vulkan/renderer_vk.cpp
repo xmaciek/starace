@@ -656,19 +656,19 @@ void RendererVK::present()
     vkQueueWaitIdle( m_queuePresent );
 }
 
-void RendererVK::push( void* buffer, void* constant )
+void RendererVK::push( const void* buffer, const void* constant )
 {
 #define CASE( TYPE ) \
     case Pipeline::TYPE: { \
-        [[maybe_unused]] auto* pushBuffer = reinterpret_cast<PushBuffer<Pipeline::TYPE>*>( buffer ); \
-        [[maybe_unused]] auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::TYPE>*>( constant ); \
+        [[maybe_unused]] auto* pushBuffer = reinterpret_cast<const PushBuffer<Pipeline::TYPE>*>( buffer ); \
+        [[maybe_unused]] auto* pushConstant = reinterpret_cast<const PushConstant<Pipeline::TYPE>*>( constant ); \
         PipelineVK& currentPipeline = m_pipelines[ (size_t)p ]; \
         if ( m_lastPipeline != &currentPipeline ) { \
             if ( m_lastPipeline ) { m_lastPipeline->end(); } \
             m_lastPipeline = &currentPipeline; \
         }
 
-    Pipeline p = *reinterpret_cast<Pipeline*>( buffer );
+    Pipeline p = *reinterpret_cast<const Pipeline*>( buffer );
     switch ( p ) {
     CASE( eGuiTextureColor1 )
         const TextureVK* texture = reinterpret_cast<const TextureVK*>( pushBuffer->m_texture.m_data );

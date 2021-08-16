@@ -47,7 +47,7 @@ public:
     virtual void deleteBuffer( const Buffer& ) override;
     virtual void deleteTexture( Texture ) override;
     virtual void present() override;
-    virtual void push( void* buffer, void* constant ) override;
+    virtual void push( const void* buffer, const void* constant ) override;
     virtual void setViewportSize( uint32_t w, uint32_t h ) override;
     virtual void submit() override;
 };
@@ -225,12 +225,20 @@ Texture RendererGL::createTexture( uint32_t w, uint32_t h, Texture::Format fmt, 
     return Texture{ textureID };
 }
 
-void RendererGL::push( void* buffer, void* constant )
+template <Pipeline TPipeline>
+std::pair<const PushBuffer<TPipeline>*, const PushConstant<TPipeline>* > cast2( const void* b, const void* c )
 {
-    switch ( *reinterpret_cast<Pipeline*>( buffer ) ) {
+    return {
+        reinterpret_cast<const PushBuffer<TPipeline>*>( b ),
+        reinterpret_cast<const PushConstant<TPipeline>*>( c )
+    };
+}
+
+void RendererGL::push( const void* buffer, const void* constant )
+{
+    switch ( *reinterpret_cast<const Pipeline*>( buffer ) ) {
     case Pipeline::eLine3dStripColor: {
-        auto* pushBuffer = reinterpret_cast<PushBuffer<Pipeline::eLine3dStripColor>*>( buffer );
-        auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::eLine3dStripColor>*>( constant );
+        const auto [ pushBuffer, pushConstant ] = cast2<Pipeline::eLine3dStripColor>( buffer, constant );
 
         assert( pushBuffer->m_verticeCount <= pushConstant->m_vertices.size() );
         assert( pushBuffer->m_verticeCount <= pushConstant->m_colors.size() );
@@ -255,8 +263,7 @@ void RendererGL::push( void* buffer, void* constant )
     } break;
 
     case Pipeline::eGuiTextureColor1: {
-        auto* pushBuffer = reinterpret_cast<PushBuffer<Pipeline::eGuiTextureColor1>*>( buffer );
-        auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::eGuiTextureColor1>*>( constant );
+        const auto [ pushBuffer, pushConstant ] = cast2<Pipeline::eGuiTextureColor1>( buffer, constant );
 
         ScopeEnable blend( GL_BLEND );
         ScopeEnable texture2d( GL_TEXTURE_2D );
@@ -279,8 +286,7 @@ void RendererGL::push( void* buffer, void* constant )
     } break;
 
     case Pipeline::eTriangleFan3dTexture: {
-        auto* pushBuffer = reinterpret_cast<PushBuffer<Pipeline::eTriangleFan3dTexture>*>( buffer );
-        auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::eTriangleFan3dTexture>*>( constant );
+        const auto [ pushBuffer, pushConstant ] = cast2<Pipeline::eTriangleFan3dTexture>( buffer, constant );
 
         ScopeEnable blend( GL_BLEND );
         ScopeEnable depthTest( GL_DEPTH_TEST );
@@ -304,8 +310,7 @@ void RendererGL::push( void* buffer, void* constant )
     } break;
 
     case Pipeline::eTriangleFan3dColor: {
-        auto* pushBuffer = reinterpret_cast<PushBuffer<Pipeline::eTriangleFan3dColor>*>( buffer );
-        auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::eTriangleFan3dColor>*>( constant );
+        const auto [ pushBuffer, pushConstant ] = cast2<Pipeline::eTriangleFan3dColor>( buffer, constant );
 
         ScopeEnable blend( GL_BLEND );
         ScopeEnable depthTest( GL_DEPTH_TEST );
@@ -326,8 +331,7 @@ void RendererGL::push( void* buffer, void* constant )
     } break;
 
     case Pipeline::eLine3dColor1: {
-        auto* pushBuffer = reinterpret_cast<PushBuffer<Pipeline::eLine3dColor1>*>( buffer );
-        auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::eLine3dColor1>*>( constant );
+        const auto [ pushBuffer, pushConstant ] = cast2<Pipeline::eLine3dColor1>( buffer, constant );
 
         ScopeEnable blend( GL_BLEND );
         ScopeEnable depthTest( GL_DEPTH_TEST );
@@ -349,8 +353,7 @@ void RendererGL::push( void* buffer, void* constant )
     } break;
 
     case Pipeline::eTriangle3dTextureNormal: {
-        auto* pushBuffer = reinterpret_cast<PushBuffer<Pipeline::eTriangle3dTextureNormal>*>( buffer );
-        auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::eTriangle3dTextureNormal>*>( constant );
+        const auto [ pushBuffer, pushConstant ] = cast2<Pipeline::eTriangle3dTextureNormal>( buffer, constant );
 
         const std::pmr::vector<float>& vertices = m_bufferMap[ pushBuffer->m_vertices ];
         assert( !vertices.empty() );
@@ -381,8 +384,7 @@ void RendererGL::push( void* buffer, void* constant )
     } break;
 
     case Pipeline::eShortString: {
-        auto* pushBuffer = reinterpret_cast<PushBuffer<Pipeline::eShortString>*>( buffer );
-        auto* pushConstant = reinterpret_cast<PushConstant<Pipeline::eShortString>*>( constant );
+        const auto [ pushBuffer, pushConstant ] = cast2<Pipeline::eShortString>( buffer, constant );
 
         ScopeEnable blend( GL_BLEND );
         ScopeEnable texture2d( GL_TEXTURE_2D );

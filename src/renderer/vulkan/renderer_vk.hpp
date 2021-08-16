@@ -82,7 +82,7 @@ public:
     virtual void deleteBuffer( const Buffer& ) override;
     virtual void deleteTexture( Texture ) override;
     virtual void present() override;
-    virtual void push( void* buffer, void* constant ) override;
+    virtual void push( const void* buffer, const void* constant ) override;
     virtual void setViewportSize( uint32_t w, uint32_t h ) override;
     virtual void submit() override;
 };

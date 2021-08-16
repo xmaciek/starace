@@ -26,7 +26,7 @@ public:
     virtual void deleteBuffer( const Buffer& ) = 0;
     virtual void deleteTexture( Texture ) = 0;
     virtual void present() = 0;
-    virtual void push( void* buffer, void* constant ) = 0;
+    virtual void push( const void* buffer, const void* constant ) = 0;
     virtual void setViewportSize( uint32_t w, uint32_t h ) = 0;
     virtual void submit() = 0;
 };
