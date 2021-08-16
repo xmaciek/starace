@@ -1,6 +1,9 @@
 #include "label.hpp"
 
+#include <renderer/renderer.hpp>
+
 #include <cassert>
+#include <glm/gtc/matrix_transform.hpp>
 
 static glm::vec2 calculatePositionOffset( Font* f, std::string_view s, Label::HAlign ah, Label::VAlign av )
 {
@@ -37,6 +40,7 @@ Label::Label( std::string_view s, Font* f, const glm::vec2& position, const glm:
 {
     assert( f );
     m_positionOffset = calculatePositionOffset( f, s, m_halign, m_valign );
+    m_renderText = f->composeText( color, s );
 }
 
 Label::Label( std::string_view s, HAlign ah, VAlign av, Font* f, const glm::vec2& position, const glm::vec4& color )
@@ -49,6 +53,7 @@ Label::Label( std::string_view s, HAlign ah, VAlign av, Font* f, const glm::vec2
 {
     assert( f );
     m_positionOffset = calculatePositionOffset( f, s, ah, av );
+    m_renderText = f->composeText( color, s );
 }
 
 Label::Label( Font* f, HAlign ah, VAlign av, const glm::vec2& position, const glm::vec4& color )
@@ -64,12 +69,17 @@ Label::Label( Font* f, HAlign ah, VAlign av, const glm::vec2& position, const gl
 void Label::render( RenderContext rctx ) const
 {
     assert( m_font );
-    const glm::vec2 pos = m_position + m_positionOffset;
-    m_font->renderText( rctx, m_color, pos.x, pos.y, m_text );
+    const glm::vec3 pos{ m_position + m_positionOffset, 0.0f };
+
+    m_renderText.second.m_model = glm::translate( rctx.model, pos );
+    m_renderText.second.m_view = rctx.view;
+    m_renderText.second.m_projection = rctx.projection;
+    rctx.renderer->push( &m_renderText.first, &m_renderText.second );
 }
 
 void Label::setText( std::string_view str )
 {
     m_positionOffset = calculatePositionOffset( m_font, str, m_halign, m_valign );
     m_text = str;
+    m_renderText = m_font->composeText( m_color, str );
 }

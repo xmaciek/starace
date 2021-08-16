@@ -23,7 +23,8 @@ public:
 
 private:
     Font* m_font = nullptr;
-    std::string m_text{};
+    mutable Font::RenderText m_renderText{};
+    std::pmr::string m_text{};
     glm::vec4 m_color{};
     glm::vec2 m_position{};
     glm::vec2 m_positionOffset{};
