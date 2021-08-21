@@ -74,7 +74,6 @@ public:
     virtual void processCollision( SAObject* ) override;
     virtual void render( RenderContext ) const override;
     virtual void update( const UpdateContext& ) override;
-    void drawWireframe();
     void lockTarget( SAObject* );
     void pitchDown( bool );
     void pitchUp( bool );

@@ -950,7 +950,6 @@ void Game::reloadPreviewModel()
 {
     Model* model = new Model();
     model->loadOBJ( m_jetsContainer.at( m_currentJet ).model_file.c_str() );
-    model->calculateNormal();
     model->bindTexture( loadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() ) );
     std::swap( model, m_previewModel );
     delete model;

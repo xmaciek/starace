@@ -35,7 +35,6 @@ Jet::Jet( const ModelProto& modelData )
     m_model.loadOBJ( modelData.model_file.c_str() );
     m_model.bindTexture( loadTexture( modelData.model_texture.c_str() ) );
     m_model.scale( modelData.scale );
-    m_model.calculateNormal();
 
     m_thruster.setColorScheme( colorscheme::ion );
 };
@@ -275,11 +274,6 @@ void Jet::takeEnergy( uint32_t weaponNum )
 {
     m_reactor.consume( (float)m_weapon[ weaponNum ].energy );
     m_shotFactor[ weaponNum ] = 0;
-}
-
-void Jet::drawWireframe()
-{
-    m_model.drawWireframe();
 }
 
 void Jet::processCollision( std::vector<Bullet*>& bullets )

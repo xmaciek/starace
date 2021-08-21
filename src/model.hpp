@@ -6,29 +6,18 @@
 
 #include <glm/vec3.hpp>
 
+#include <memory_resource>
 #include <cstdint>
 #include <vector>
 
-struct UV {
-    float u = 0;
-    float v = 0;
-};
-
-struct Face {
-    std::vector<glm::vec3> vertex{};
-    std::vector<UV> texcoord{};
-    double normal[ 3 ]{};
-};
-
 class Model {
 private:
+    std::pmr::vector<float> m_model{};
     mutable Buffer m_vertices{};
-    mutable Buffer m_normals{};
-    mutable Buffer m_uv{};
     Texture m_textureID{};
-    std::vector<Face> m_faces{};
     std::vector<glm::vec3> m_thrusters{};
-    glm::vec3 m_weapons[ 3 ]{};
+    std::array<glm::vec3, 3> m_weapons{};
+    float m_scale = 1.0f;
 
 public:
     ~Model();
@@ -37,11 +26,7 @@ public:
     glm::vec3 weapon( uint32_t ) const;
     std::vector<glm::vec3> thrusters() const;
     void bindTexture( Texture );
-    void calculateNormal();
     void render( RenderContext ) const;
-    void draw() const;
-    void drawWireframe();
     void loadOBJ( const char* filename );
-    void normalizeSize();
     void scale( float scale );
 };

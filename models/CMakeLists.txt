@@ -1,5 +1,18 @@
-configure_file( a1.obj a1.obj COPYONLY )
-configure_file( a2.obj a2.obj COPYONLY )
-configure_file( a3.obj a3.obj COPYONLY )
-configure_file( a4.obj a4.obj COPYONLY )
-configure_file( a5.obj a5.obj COPYONLY )
+add_custom_target( model )
+
+function( cook_obj file )
+    add_custom_target( "model.${file}" DEPENDS "${file}.objc" )
+    add_custom_command(
+        OUTPUT "${file}.objc"
+        DEPENDS cooker_obj
+        DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${file}.obj"
+        COMMAND "${CMAKE_BINARY_DIR}/cooker_obj" "${CMAKE_CURRENT_SOURCE_DIR}/${file}.obj" "${file}.objc"
+    )
+    add_dependencies( model "model.${file}" )
+endfunction()
+
+#cook_obj( a1 )
+cook_obj( a2 )
+cook_obj( a3 )
+cook_obj( a4 )
+cook_obj( a5 )

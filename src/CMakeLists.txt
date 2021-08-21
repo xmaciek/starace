@@ -21,6 +21,7 @@ set( STARACE_HEADERS
     map.hpp
     model.hpp
     model_proto.hpp
+    obj.hpp
     pool.hpp
     reactor.hpp
     render_context.hpp
@@ -47,6 +48,7 @@ set( STARACE_SOURCES
     main.cpp
     map.cpp
     model.cpp
+    obj.cpp
     reactor.cpp
     saobject.cpp
     shield.cpp
@@ -82,4 +84,16 @@ endfunction()
 
 setup_game( starace_gl renderer_gl )
 setup_game( starace_vk renderer_vk )
-add_dependencies( starace_vk shader )
+add_dependencies( starace_vk shader model )
+
+target_sources( cooker_obj
+    PRIVATE
+    cooker_obj.cpp
+    obj.hpp
+)
+set_target_properties( cooker_obj PROPERTIES
+    CXX_STANDARD 17
+    CXX_STANDARD_REQUIRED 17
+)
+
+
