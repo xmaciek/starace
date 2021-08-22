@@ -40,92 +40,20 @@ void Game::onKeyUp( const SDL_Keysym& ks )
 
 void Game::gameKeyboardPressed( SDL_Scancode sc )
 {
-    assert( m_jet );
     switch ( sc ) {
     case SDL_SCANCODE_ESCAPE:
         pause();
-        break;
-    case SDL_SCANCODE_A:
-        m_jet->rollLeft( true );
-        break;
-    case SDL_SCANCODE_D:
-        m_jet->rollRight( true );
-        break;
-    case SDL_SCANCODE_Q:
-        m_jet->yawLeft( true );
-        break;
-    case SDL_SCANCODE_E:
-        m_jet->yawRight( true );
-        break;
-    case SDL_SCANCODE_W:
-        m_jet->pitchUp( true );
-        break;
-    case SDL_SCANCODE_S:
-        m_jet->pitchDown( true );
-        break;
-    case SDL_SCANCODE_O:
-        m_jet->speedUp( true );
-        break;
-    case SDL_SCANCODE_U:
-        m_jet->speedDown( true );
-        break;
-    case SDL_SCANCODE_J:
-        m_jet->shoot( 0, true );
-        break;
-    case SDL_SCANCODE_K:
-        m_jet->shoot( 1, true );
-        break;
-    case SDL_SCANCODE_L:
-        m_jet->shoot( 2, true );
-        break;
+        return;
     case SDL_SCANCODE_I:
         retarget();
-        break;
+        return;
     default:
         break;
     }
 }
 
-void Game::gameKeyboardUnpressed( SDL_Scancode sym )
+void Game::gameKeyboardUnpressed( SDL_Scancode )
 {
-    assert( m_jet );
-    switch ( sym ) {
-    case SDL_SCANCODE_A:
-        m_jet->rollLeft( false );
-        break;
-    case SDL_SCANCODE_D:
-        m_jet->rollRight( false );
-        break;
-    case SDL_SCANCODE_Q:
-        m_jet->yawLeft( false );
-        break;
-    case SDL_SCANCODE_E:
-        m_jet->yawRight( false );
-        break;
-    case SDL_SCANCODE_W:
-        m_jet->pitchUp( false );
-        break;
-    case SDL_SCANCODE_S:
-        m_jet->pitchDown( false );
-        break;
-    case SDL_SCANCODE_O:
-        m_jet->speedUp( false );
-        break;
-    case SDL_SCANCODE_U:
-        m_jet->speedDown( false );
-        break;
-    case SDL_SCANCODE_J:
-        m_jet->shoot( 0, false );
-        break;
-    case SDL_SCANCODE_K:
-        m_jet->shoot( 1, false );
-        break;
-    case SDL_SCANCODE_L:
-        m_jet->shoot( 2, false );
-        break;
-    default:
-        break;
-    }
 }
 
 void Game::gameKeyboardBriefingPressed( SDL_Scancode sc )

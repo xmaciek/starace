@@ -14,6 +14,17 @@
 #include <vector>
 
 class Jet : public SAObject {
+public:
+    struct Input {
+        float pitch = 0.0f;
+        float yaw = 0.0f;
+        float roll = 0.0f;
+        float speed = 0.0f;
+        bool shoot1 = false;
+        bool shoot2 = false;
+        bool shoot3 = false;
+    };
+
 private:
     Thruster m_thruster;
     Shield m_shield;
@@ -34,7 +45,7 @@ private:
 
     Reactor m_reactor{};
 
-    double m_shotFactor[ 3 ]{};
+    float m_shotFactor[ 3 ]{};
     float m_speedMax = 5.0f;
     float m_speedMin = 0.5f;
     float m_speedNorm = 2.0f;
@@ -45,18 +56,7 @@ private:
     int32_t m_maxAngleY = 5;
     int32_t m_maxAngleZ = 15;
 
-    bool m_btnPitchDown = false;
-    bool m_btnPitchUp = false;
-    bool m_btnRollLeft = false;
-    bool m_btnRollRight = false;
-    bool m_btnYawLeft = false;
-    bool m_btnYawRight = false;
-    bool m_speedUp = false;
-    bool m_speedDown = false;
-
-    bool m_shooting[ 3 ]{};
-    bool m_targetLocked[ 3 ]{};
-    uint8_t m_circleLoop = 0;
+    Input m_input{};
 
 public:
     virtual ~Jet() override = default;
@@ -75,18 +75,10 @@ public:
     virtual void render( RenderContext ) const override;
     virtual void update( const UpdateContext& ) override;
     void lockTarget( SAObject* );
-    void pitchDown( bool );
-    void pitchUp( bool );
     void processCollision( std::vector<Bullet*>& );
-    void rollLeft( bool );
-    void rollRight( bool );
     void setModel( Model* );
     void setWeapon( BulletProto bp, uint32_t id );
-    void shoot( uint32_t weaponNum, bool );
-    void speedDown( bool );
-    void speedUp( bool );
     void takeEnergy( uint32_t weaponNum );
     void untarget( const SAObject* );
-    void yawLeft( bool );
-    void yawRight( bool );
+    void setInput( const Input& );
 };

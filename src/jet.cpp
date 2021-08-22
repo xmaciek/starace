@@ -1,6 +1,7 @@
 #include "jet.hpp"
 
 #include "texture.hpp"
+#include "utils.hpp"
 
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -69,11 +70,7 @@ void Jet::update( const UpdateContext& updateContext )
     }
     m_reactor.update( updateContext );
 
-    const glm::vec3 pyrControl{
-        ( m_btnPitchDown ? 1.0f : 0.0f ) + ( m_btnPitchUp ? -1.0f : 0.0f )
-        , ( m_btnYawLeft ? 1.0f : 0.0f ) + ( m_btnYawRight ? -1.0f : 0.0f )
-        , ( m_btnRollLeft ? 1.0f : 0.0f ) + ( m_btnRollRight ? -1.0f : 0.0f )
-    };
+    const glm::vec3 pyrControl{ m_input.pitch, m_input.yaw, m_input.roll };
     m_pyrTarget = pyrControl * m_pyrLimits;
     const glm::vec3 dir = m_pyrTarget - m_pyrCurrent;
     if ( const float length = glm::length( dir ); length > 0.0f ) {
@@ -104,19 +101,12 @@ void Jet::update( const UpdateContext& updateContext )
         }
     }
 
-    switch ( m_speedDown << 1 | m_speedUp ) {
-    case 0b11:
-    case 0:
-        m_speedTarget = m_speedNorm;
-        break;
-    case 0b10:
-        m_speedTarget = m_speedMin;
-        break;
-    case 0b01: {
+    m_speedTarget = m_input.speed >= 0
+        ? lerp( m_speedNorm, m_speedMax, m_input.speed )
+        : lerp( m_speedMin, m_speedNorm, 1.0f + m_input.speed );
+    if ( m_input.speed > 0 ) {
         const float afterburnerCost = 70.0f * updateContext.deltaTime;
         m_reactor.consume( afterburnerCost );
-        m_speedTarget = m_speedMax;
-    } break;
     }
 
     m_speed += glm::clamp( m_speedTarget - m_speed, -m_speedAcceleration, m_speedAcceleration )
@@ -131,13 +121,13 @@ void Jet::update( const UpdateContext& updateContext )
     }
 
     if ( m_shotFactor[ 0 ] < m_weapon[ 0 ].delay ) {
-        m_shotFactor[ 0 ] += 1.0 * updateContext.deltaTime;
+        m_shotFactor[ 0 ] += 1.0f * updateContext.deltaTime;
     }
     if ( m_shotFactor[ 1 ] < m_weapon[ 1 ].delay ) {
-        m_shotFactor[ 1 ] += 1.0 * updateContext.deltaTime;
+        m_shotFactor[ 1 ] += 1.0f * updateContext.deltaTime;
     }
     if ( m_shotFactor[ 2 ] < m_weapon[ 2 ].delay ) {
-        m_shotFactor[ 2 ] += 1.0 * updateContext.deltaTime;
+        m_shotFactor[ 2 ] += 1.0f * updateContext.deltaTime;
     }
 
 
@@ -152,54 +142,14 @@ void Jet::update( const UpdateContext& updateContext )
     }
 }
 
-void Jet::rollLeft( bool doit )
-{
-    m_btnRollLeft = doit;
-}
-
-void Jet::rollRight( bool doit )
-{
-    m_btnRollRight = doit;
-}
-
-void Jet::yawLeft( bool doit )
-{
-    m_btnYawLeft = doit;
-}
-
-void Jet::yawRight( bool doit )
-{
-    m_btnYawRight = doit;
-}
-
-void Jet::pitchUp( bool doit )
-{
-    m_btnPitchUp = doit;
-}
-
-void Jet::pitchDown( bool doit )
-{
-    m_btnPitchDown = doit;
-}
-
-void Jet::speedUp( bool doit )
-{
-    m_speedUp = doit;
-}
-
-void Jet::speedDown( bool doit )
-{
-    m_speedDown = doit;
-}
-
 bool Jet::isShooting( uint32_t weaponNum ) const
 {
-    return m_shooting[ weaponNum ];
-}
-
-void Jet::shoot( uint32_t weaponNum, bool doit )
-{
-    m_shooting[ weaponNum ] = doit;
+    switch ( weaponNum ) {
+    case 0: return m_input.shoot1;
+    case 1: return m_input.shoot2;
+    case 2: return m_input.shoot3;
+    default: return false;
+    }
 }
 
 glm::vec3 Jet::weaponPoint( uint32_t weaponNum )
@@ -333,4 +283,9 @@ void Jet::untarget( const SAObject* tgt )
     if ( m_target == tgt ) {
         m_target = nullptr;
     }
+}
+
+void Jet::setInput( const Jet::Input& input )
+{
+    m_input = input;
 }

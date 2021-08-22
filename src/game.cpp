@@ -446,6 +446,22 @@ void Game::updateGamePaused( const UpdateContext& updateContext )
 
 void Game::updateGame( const UpdateContext& updateContext )
 {
+    assert( m_jet );
+    Jet::Input jetInput{};
+    const Uint8* kbd = SDL_GetKeyboardState( nullptr );
+    jetInput.pitch += kbd[ SDL_SCANCODE_W ] ? -1.0f : 0.0f;
+    jetInput.pitch += kbd[ SDL_SCANCODE_S ] ?  1.0f : 0.0f;
+    jetInput.yaw += kbd[ SDL_SCANCODE_Q ] ?  1.0f : 0.0f;
+    jetInput.yaw += kbd[ SDL_SCANCODE_E ] ? -1.0f : 0.0f;
+    jetInput.roll += kbd[ SDL_SCANCODE_A ] ?  1.0f : 0.0f;
+    jetInput.roll += kbd[ SDL_SCANCODE_D ] ? -1.0f : 0.0f;
+    jetInput.speed += kbd[ SDL_SCANCODE_U ] ? -1.0f : 0.0f;
+    jetInput.speed += kbd[ SDL_SCANCODE_O ] ?  1.0f : 0.0f;
+    jetInput.shoot1 = !!kbd[ SDL_SCANCODE_J ];
+    jetInput.shoot2 = !!kbd[ SDL_SCANCODE_K ];
+    jetInput.shoot3 = !!kbd[ SDL_SCANCODE_L ];
+    m_jet->setInput( jetInput );
+
     if ( m_jet->status() == Jet::Status::eDead ) {
         changeScreen( Screen::eDead );
     }
@@ -470,23 +486,16 @@ void Game::updateGame( const UpdateContext& updateContext )
     }
 
     {
-        glm::vec3 jetPosition{};
-        glm::vec3 jetVelocity{};
-        {
-            assert( m_jet );
-            m_jet->update( updateContext );
-            jetPosition = m_jet->position();
-            jetVelocity = m_jet->velocity();
-            m_speedAnim += m_jet->speed() * 270.0f * updateContext.deltaTime;
-        }
+        m_jet->update( updateContext );
+        const glm::vec3 jetPosition = m_jet->position();
+        const glm::vec3 jetVelocity = m_jet->velocity();
+        m_speedAnim += m_jet->speed() * 270.0f * updateContext.deltaTime;
         if ( m_speedAnim >= 360 ) {
             m_speedAnim -= 360;
         }
-        {
-            assert( m_map );
-            m_map->setJetData( jetPosition, jetVelocity );
-            m_map->update( updateContext );
-        }
+        assert( m_map );
+        m_map->setJetData( jetPosition, jetVelocity );
+        m_map->update( updateContext );
     }
 
     {
