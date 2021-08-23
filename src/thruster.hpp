@@ -16,9 +16,10 @@ private:
     glm::vec2 m_lengthRange{};
     float m_length = 0.25f;
     float m_wiggle = 0.0f;
-    ColorScheme m_colorScheme{};
+    ColorScheme m_colorScheme = colorscheme::ion;
 
 public:
+    Thruster() = default;
     Thruster( float length, float radius );
 
     void renderAt( RenderContext, const glm::vec3& ) const;

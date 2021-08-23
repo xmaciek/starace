@@ -11,8 +11,9 @@
 #include <cassert>
 #include <cmath>
 
-static const std::array<glm::vec4, 32> s_outter = CircleGen<glm::vec4>::getCircle<32>( 0.35f * 0.04285f );
-static const std::array<glm::vec4, 32> s_inner = CircleGen<glm::vec4>::getCircle<32>( 0.35f * 0.04285f * 0.6f );
+static constexpr float rad = 0.32f * 0.04285f;
+static const std::array<glm::vec4, 32> s_outter = CircleGen<glm::vec4>::getCircle<32>( rad );
+static const std::array<glm::vec4, 32> s_inner = CircleGen<glm::vec4>::getCircle<32>( rad * 0.6f );
 
 Thruster::Thruster( float length, float )
 {

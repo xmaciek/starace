@@ -3,6 +3,7 @@
 #include "render_context.hpp"
 #include <renderer/buffer.hpp>
 #include <renderer/texture.hpp>
+#include <renderer/renderer.hpp>
 
 #include <glm/vec3.hpp>
 
@@ -22,6 +23,7 @@ private:
 public:
     ~Model();
     Model() = default;
+    Model( const char*, Texture, Renderer*, float scale = 1.0f );
 
     glm::vec3 weapon( uint32_t ) const;
     std::vector<glm::vec3> thrusters() const;

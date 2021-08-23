@@ -15,6 +15,20 @@ Model::~Model()
     Renderer::instance()->deleteBuffer( m_vertices );
 }
 
+Model::Model( const char* path, Texture t, Renderer* renderer, float scale )
+: m_textureID{ t }
+, m_scale{ scale }
+{
+    loadOBJ( path );
+    std::pmr::vector<float> vertices{ renderer->allocator() };
+    vertices.resize( m_model.size() );
+    std::copy( m_model.begin(), m_model.end(), vertices.begin() );
+    assert( !vertices.empty() );
+    m_vertices = renderer->createBuffer( std::move( vertices ), Buffer::Lifetime::ePersistent );
+    assert( m_vertices != Buffer::Status::eNone );
+}
+
+
 void Model::render( RenderContext rctx ) const
 {
     if ( m_vertices == Buffer::Status::eNone ) {

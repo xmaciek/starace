@@ -55,6 +55,8 @@ private:
     SDL_Window* m_display = nullptr;
     std::thread m_thread{};
 
+    Model* m_enemyModel = nullptr;
+
     audio::Chunk m_blaster{};
     audio::Chunk m_click{};
     audio::Chunk m_laser{};

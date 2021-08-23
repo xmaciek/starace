@@ -54,6 +54,7 @@ Game::~Game()
         destroyTexture( it.preview_image );
     }
     delete m_previewModel;
+    delete m_enemyModel;
     delete m_renderer;
     delete m_audio;
     SDL_DestroyWindow( m_display );
@@ -335,6 +336,8 @@ void Game::initRoadAdditions()
     tmpWeapon.score_per_hit = 2;
     tmpWeapon.color1 = color::orchid;
     m_weapons[ 2 ] = tmpWeapon;
+
+    m_enemyModel = new Model{ "models/a2.objc", loadTexture( "textures/a2.tga" ), m_renderer, 0.45f };
 }
 
 void Game::updateCyberRings( const UpdateContext& updateContext )
@@ -639,7 +642,7 @@ void Game::createMapData( const MapProto& mapData, const ModelProto& modelData )
     assert( m_enemies.empty() );
     m_enemies.resize( mapData.enemies );
     for ( Enemy*& it : m_enemies ) {
-        it = new ( m_poolEnemies.alloc() ) Enemy();
+        it = new ( m_poolEnemies.alloc() ) Enemy( m_enemyModel );
         it->setTarget( m_jet );
         it->setWeapon( m_weapons[ 3 ] );
     }
