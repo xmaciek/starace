@@ -496,7 +496,7 @@ Texture RendererVK::createTexture( uint32_t width, uint32_t height, Texture::For
     vkQueueSubmit( queue, 1, &submitInfo, VK_NULL_HANDLE );
     vkQueueWaitIdle( queue );
 
-    return Texture{ reinterpret_cast<uint64_t>( tex ) };
+    return Texture{ tex };
 }
 
 void RendererVK::beginFrame()
@@ -671,7 +671,7 @@ void RendererVK::push( const void* buffer, const void* constant )
     Pipeline p = *reinterpret_cast<const Pipeline*>( buffer );
     switch ( p ) {
     CASE( eGuiTextureColor1 )
-        const TextureVK* texture = reinterpret_cast<const TextureVK*>( pushBuffer->m_texture.m_data );
+        const TextureVK* texture = reinterpret_cast<const TextureVK*>( pushBuffer->m_texture.data.ptr );
         if ( !texture ) {
             return;
         }
@@ -696,7 +696,7 @@ void RendererVK::push( const void* buffer, const void* constant )
     } break;
 
     CASE( eShortString )
-        const TextureVK* texture = reinterpret_cast<const TextureVK*>( pushBuffer->m_texture.m_data );
+        const TextureVK* texture = reinterpret_cast<const TextureVK*>( pushBuffer->m_texture.data.ptr );
         if ( !texture ) {
             return;
         }
@@ -784,7 +784,7 @@ void RendererVK::push( const void* buffer, const void* constant )
     } break;
 
     CASE( eTriangleFan3dTexture )
-        const TextureVK* texture = reinterpret_cast<const TextureVK*>( pushBuffer->m_texture.m_data );
+        const TextureVK* texture = reinterpret_cast<const TextureVK*>( pushBuffer->m_texture.data.ptr );
         assert( texture );
         if ( !texture ) { return; }
 
@@ -809,7 +809,7 @@ void RendererVK::push( const void* buffer, const void* constant )
     } break;
 
     CASE( eTriangle3dTextureNormal )
-        const TextureVK* texture = reinterpret_cast<const TextureVK*>( pushBuffer->m_texture.m_data );
+        const TextureVK* texture = reinterpret_cast<const TextureVK*>( pushBuffer->m_texture.data.ptr );
         assert( texture );
         if ( !texture ) { return; }
 

@@ -156,7 +156,7 @@ std::pmr::memory_resource* RendererGL::allocator()
 
 void RendererGL::setViewportSize( uint32_t w, uint32_t h )
 {
-    glViewport( 0, 0, w, h );
+    glViewport( 0, 0, static_cast<GLsizei>( w ), static_cast<GLsizei>( h ) );
 }
 
 void RendererGL::clear()
@@ -171,8 +171,7 @@ void RendererGL::present()
 
 void RendererGL::deleteTexture( Texture tex )
 {
-    uint32_t t = static_cast<uint32_t>( tex.m_data );
-    glDeleteTextures( 1, &t );
+    glDeleteTextures( 1, &tex.data.id );
 }
 
 void RendererGL::deleteBuffer( const Buffer& b )
@@ -202,8 +201,8 @@ Texture RendererGL::createTexture( uint32_t w, uint32_t h, Texture::Format fmt, 
         glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0f );
         gluBuild2DMipmaps( GL_TEXTURE_2D
             , typeToInternalFormat( fmt )
-            , w
-            , h
+            , static_cast<GLsizei>( w )
+            , static_cast<GLsizei>( h )
             , typeToFormat( fmt )
             , GL_UNSIGNED_BYTE
             , ptr
@@ -214,8 +213,8 @@ Texture RendererGL::createTexture( uint32_t w, uint32_t h, Texture::Format fmt, 
         glTexImage2D( GL_TEXTURE_2D
             , 0
             , typeToInternalFormat( fmt )
-            , w
-            , h
+            , static_cast<GLsizei>( w )
+            , static_cast<GLsizei>( h )
             , 0
             , typeToFormat( fmt )
             , GL_UNSIGNED_BYTE
@@ -274,7 +273,7 @@ void RendererGL::push( const void* buffer, const void* constant )
         glMatrixMode( GL_MODELVIEW );
         glLoadMatrixf( glm::value_ptr( pushConstant->m_view * pushConstant->m_model ) );
 
-        glBindTexture( GL_TEXTURE_2D, static_cast<uint32_t>( pushBuffer->m_texture.m_data ) );
+        glBindTexture( GL_TEXTURE_2D, pushBuffer->m_texture.data.id );
         glBegin( GL_TRIANGLE_FAN );
         glColor4fv( glm::value_ptr( pushConstant->m_color ) );
         for ( size_t i = 0; i < pushConstant->m_vertices.size(); ++i ) {
@@ -298,7 +297,7 @@ void RendererGL::push( const void* buffer, const void* constant )
         glMatrixMode( GL_MODELVIEW );
         glLoadMatrixf( glm::value_ptr( pushConstant->m_view * pushConstant->m_model ) );
 
-        glBindTexture( GL_TEXTURE_2D, static_cast<uint32_t>( pushBuffer->m_texture.m_data ) );
+        glBindTexture( GL_TEXTURE_2D, pushBuffer->m_texture.data.id );
         glBegin( GL_TRIANGLE_FAN );
         glColor4f( 1, 1, 1, 1 );
         for ( size_t i = 0; i < pushConstant->m_vertices.size(); ++i ) {
@@ -368,7 +367,7 @@ void RendererGL::push( const void* buffer, const void* constant )
         glMatrixMode( GL_MODELVIEW );
         glLoadMatrixf( glm::value_ptr( pushConstant->m_view * pushConstant->m_model ) );
 
-        glBindTexture( GL_TEXTURE_2D, static_cast<uint32_t>( pushBuffer->m_texture.m_data ) );
+        glBindTexture( GL_TEXTURE_2D, pushBuffer->m_texture.data.id );
         glBegin( GL_TRIANGLES );
         glColor4f( 1, 1, 1, 1 );
         const float* ptr = vertices.data();
@@ -395,7 +394,7 @@ void RendererGL::push( const void* buffer, const void* constant )
         glMatrixMode( GL_MODELVIEW );
         glLoadMatrixf( glm::value_ptr( pushConstant->m_view * pushConstant->m_model ) );
 
-        glBindTexture( GL_TEXTURE_2D, static_cast<uint32_t>( pushBuffer->m_texture.m_data ) );
+        glBindTexture( GL_TEXTURE_2D, pushBuffer->m_texture.data.id );
         glBegin( GL_TRIANGLES );
         glColor4fv( glm::value_ptr( pushConstant->m_color ) );
         for ( size_t i = 0; i < pushBuffer->m_verticeCount; ++i ) {

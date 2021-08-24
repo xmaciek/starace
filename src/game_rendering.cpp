@@ -443,7 +443,7 @@ void Game::renderMissionSelectionScreen( RenderContext rctx )
 {
     {
         MapProto& map = m_mapsContainer[ m_currentMap ];
-        if ( map.preview_image.m_data == 0 ) {
+        if ( !map.preview_image ) {
             map.preview_image = loadTexture( map.preview_image_location.c_str() );
         }
     }

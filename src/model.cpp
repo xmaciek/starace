@@ -84,7 +84,7 @@ void Model::loadOBJ( const char* filename )
 
 void Model::bindTexture( Texture tex )
 {
-    if ( m_textureID.m_data != 0 ) {
+    if ( m_textureID ) {
         destroyTexture( m_textureID );
     }
     m_textureID = tex;
