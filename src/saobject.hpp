@@ -42,6 +42,7 @@ public:
     void setStatus( Status s );
     void setTarget( SAObject* t );
     void targetMe( bool );
+    SAObject* target() const;
 
 protected:
     SAObject* m_target = nullptr;

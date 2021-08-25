@@ -12,6 +12,8 @@
 #include "render_context.hpp"
 #include "texture.hpp"
 #include "update_context.hpp"
+#include "targeting.hpp"
+
 #include <audio/audio.hpp>
 #include <renderer/texture.hpp>
 #include <renderer/renderer.hpp>
@@ -106,6 +108,8 @@ private:
     Texture m_menuBackgroundOverlay{};
     Texture m_menuBackground{};
     Texture m_starfieldTexture{};
+
+    Targeting m_targeting{};
 
     double m_rotation = 0.0;
     double m_modelRotation = 0.0;

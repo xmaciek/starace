@@ -372,6 +372,10 @@ void Game::onRender()
     rctx.renderer = m_renderer;
     rctx.viewport = { m_viewportWidth, m_viewportHeight };
     rctx.projection = glm::ortho<float>( 0.0f, (float)viewportWidth(), 0.0f, (float)viewportHeight(), -100.0f, 100.0f );
+
+    const auto [view, projection] = getCameraMatrix();
+    rctx.camera3d = projection * view;
+
     switch ( m_currentScreen ) {
     case Screen::eGame:
         renderGameScreen( rctx );
@@ -556,6 +560,12 @@ void Game::updateGame( const UpdateContext& updateContext )
         m_enemies.erase( std::remove( m_enemies.begin(), m_enemies.end(), nullptr ), m_enemies.end() );
     }
     updateCyberRings( updateContext );
+    const SAObject* tgt = m_jet->target();
+    if ( tgt ) {
+        m_targeting.setPos( tgt->position() );
+    } else {
+        m_targeting.hide();
+    }
 }
 
 void Game::addBullet( uint32_t wID )

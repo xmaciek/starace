@@ -132,3 +132,8 @@ void SAObject::update( const UpdateContext& )
         setStatus( Status::eDead );
     }
 }
+
+SAObject* SAObject::target() const
+{
+    return m_target;
+}

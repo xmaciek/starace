@@ -305,12 +305,17 @@ void Game::renderHUD( RenderContext rctx )
     }
     m_fontPauseTxt->renderText( rctx, color, 10, 120, "PWR" );
     m_fontPauseTxt->renderText( rctx, color, 66, 120, "HP" );
+
+    m_targeting.render( rctx );
 }
 
 
 std::tuple<glm::mat4, glm::mat4> Game::getCameraMatrix() const
 {
-    assert( m_jet );
+    if ( !m_jet ) {
+        return {};
+    }
+
     glm::mat4 view = glm::translate( glm::mat4( 1.0f ), glm::vec3{ 0, -0.255, -1 } );
     view *= glm::toMat4( m_jet->rotation() );
     view = glm::translate( view, -m_jet->position() );

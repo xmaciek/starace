@@ -27,6 +27,7 @@ set( STARACE_HEADERS
     render_context.hpp
     saobject.hpp
     shield.hpp
+    targeting.hpp
     texture.hpp
     thruster.hpp
     tga.hpp
@@ -52,6 +53,7 @@ set( STARACE_SOURCES
     reactor.cpp
     saobject.cpp
     shield.cpp
+    targeting.cpp
     texture.cpp
     thruster.cpp
     utils.cpp
