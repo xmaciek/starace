@@ -15,30 +15,17 @@ Model::~Model()
     Renderer::instance()->deleteBuffer( m_vertices );
 }
 
-Model::Model( const char* path, Texture t, Renderer* renderer, float scale )
+Model::Model( const std::filesystem::path& path, Texture t, Renderer* renderer, float scale )
 : m_textureID{ t }
 , m_scale{ scale }
 {
-    loadOBJ( path );
-    std::pmr::vector<float> vertices{ renderer->allocator() };
-    vertices.resize( m_model.size() );
-    std::copy( m_model.begin(), m_model.end(), vertices.begin() );
-    assert( !vertices.empty() );
-    m_vertices = renderer->createBuffer( std::move( vertices ), Buffer::Lifetime::ePersistent );
-    assert( m_vertices != Buffer::Status::eNone );
+    assert( renderer );
+    loadOBJ( path.c_str(), renderer );
 }
 
 
 void Model::render( RenderContext rctx ) const
 {
-    if ( m_vertices == Buffer::Status::eNone ) {
-        std::pmr::vector<float> vertices{ rctx.renderer->allocator() };
-        vertices.resize( m_model.size() );
-        std::copy( m_model.begin(), m_model.end(), vertices.begin() );
-        assert( !vertices.empty() );
-        m_vertices = rctx.renderer->createBuffer( std::move( vertices ), Buffer::Lifetime::ePersistent );
-        assert( m_vertices != Buffer::Status::eNone );
-    }
     PushConstant<Pipeline::eTriangle3dTextureNormal> pushConstant{};
     pushConstant.m_model = glm::scale( rctx.model, glm::vec3( m_scale ) );
     pushConstant.m_view = rctx.view;
@@ -51,7 +38,7 @@ void Model::render( RenderContext rctx ) const
     rctx.renderer->push( &pushBuffer, &pushConstant );
 }
 
-void Model::loadOBJ( const char* filename )
+void Model::loadOBJ( const char* filename, Renderer* renderer )
 {
     using namespace std::literals::string_view_literals;
     auto data = obj::load( filename );
@@ -60,7 +47,8 @@ void Model::loadOBJ( const char* filename )
         if ( "hull"sv == it.first.name ) {
             assert( it.first.magic == obj::Chunk::c_magic );
             assert( it.first.dataType == obj::DataType::vtn );
-            m_model = std::move( it.second );
+            assert( m_vertices == Buffer::Status::eNone );
+            m_vertices = renderer->createBuffer( std::move( it.second ), Buffer::Lifetime::ePersistent );
         }
         else if ( "weapons"sv == it.first.name ) {
             assert( it.first.magic == obj::Chunk::c_magic );
@@ -77,17 +65,9 @@ void Model::loadOBJ( const char* filename )
             std::copy_n( it.second.data(), it.second.size(), ptr );
         }
     }
-    assert( !m_model.empty() );
+    assert( m_vertices != Buffer::Status::eNone );
     assert( !m_thrusters.empty() );
     assert( !m_weapons.empty() );
-}
-
-void Model::bindTexture( Texture tex )
-{
-    if ( m_textureID ) {
-        destroyTexture( m_textureID );
-    }
-    m_textureID = tex;
 }
 
 void Model::scale( float scale )

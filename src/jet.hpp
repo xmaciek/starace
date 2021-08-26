@@ -13,6 +13,7 @@
 
 #include <vector>
 
+class Renderer;
 class Jet : public SAObject {
 public:
     struct Input {
@@ -60,7 +61,7 @@ private:
 
 public:
     virtual ~Jet() override = default;
-    explicit Jet( const ModelProto& );
+    explicit Jet( const ModelProto&, Renderer* );
 
     Bullet* weapon( uint32_t weaponNum, void* ptr );
     bool isShooting( uint32_t weaponNum ) const;

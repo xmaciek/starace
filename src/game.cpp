@@ -643,7 +643,7 @@ void Game::createMapData( const MapProto& mapData, const ModelProto& modelData )
 {
     m_shotsDone = 0;
     m_hudColor = 0;
-    m_jet = new Jet( modelData );
+    m_jet = new Jet( modelData, m_renderer );
     m_map = new Map( mapData );
     m_jet->setWeapon( m_weapons[ m_weap1 ], 0 );
     m_jet->setWeapon( m_weapons[ m_weap2 ], 1 );
@@ -970,9 +970,11 @@ void Game::setViewportSize( uint32_t w, uint32_t h )
 
 void Game::reloadPreviewModel()
 {
-    Model* model = new Model();
-    model->loadOBJ( m_jetsContainer.at( m_currentJet ).model_file.c_str() );
-    model->bindTexture( loadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() ) );
+    Model* model = new Model(
+        m_jetsContainer.at( m_currentJet ).model_file
+        , loadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() )
+        , m_renderer
+    );
     std::swap( model, m_previewModel );
     delete model;
 }

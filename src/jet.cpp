@@ -20,12 +20,13 @@ constexpr static glm::vec3 defaultPyrAcceleration{ 15.0_deg, 10.0_deg, 50.0_deg 
 constexpr static glm::vec3 defaultPyrLimits{ 40.0_deg, 20.0_deg, 60.0_deg };
 constexpr static glm::vec3 defaultPyrAnimLimits{ 5.0_deg, 5.0_deg, 15.0_deg };
 
-Jet::Jet( const ModelProto& modelData )
+Jet::Jet( const ModelProto& modelData, Renderer* renderer )
 : m_thruster( modelData.scale, (float)modelData.scale * 0.04285f )
 , m_shield( 0.15, 0.03 )
 , m_pyrAccelleration{ defaultPyrAcceleration }
 , m_pyrLimits{ defaultPyrLimits }
 {
+    assert( renderer );
     m_collisionDistance = 0.08;
     m_collisionFlag = true;
     m_direction.z = -1;
@@ -33,11 +34,11 @@ Jet::Jet( const ModelProto& modelData )
     m_speed = 2;
     setStatus( Status::eAlive );
 
-    m_model.loadOBJ( modelData.model_file.c_str() );
-    m_model.bindTexture( loadTexture( modelData.model_texture.c_str() ) );
-    m_model.scale( modelData.scale );
-
-    m_thruster.setColorScheme( colorscheme::ion );
+    m_model = Model(  modelData.model_file
+        ,  loadTexture( modelData.model_texture.c_str() )
+        , renderer
+        , modelData.scale
+    );
 };
 
 void Jet::render( RenderContext rctx ) const

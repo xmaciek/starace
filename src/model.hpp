@@ -7,28 +7,28 @@
 
 #include <glm/vec3.hpp>
 
+#include <filesystem>
 #include <memory_resource>
 #include <cstdint>
 #include <vector>
 
 class Model {
 private:
-    std::pmr::vector<float> m_model{};
-    mutable Buffer m_vertices{};
+    Buffer m_vertices{};
     Texture m_textureID{};
     std::vector<glm::vec3> m_thrusters{};
     std::array<glm::vec3, 3> m_weapons{};
     float m_scale = 1.0f;
 
+    void loadOBJ( const char* filename, Renderer* );
+
 public:
     ~Model();
     Model() = default;
-    Model( const char*, Texture, Renderer*, float scale = 1.0f );
+    Model( const std::filesystem::path&, Texture, Renderer*, float scale = 1.0f );
 
     glm::vec3 weapon( uint32_t ) const;
     std::vector<glm::vec3> thrusters() const;
-    void bindTexture( Texture );
     void render( RenderContext ) const;
-    void loadOBJ( const char* filename );
     void scale( float scale );
 };
