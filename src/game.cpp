@@ -12,6 +12,16 @@
 
 Game::Game()
 {
+    m_io = std::make_unique<asyncio::Service>();
+    m_io->enqueue( "textures/button1.tga" );
+    m_io->enqueue( "textures/HUDtex.tga" );
+    m_io->enqueue( "textures/background.tga" );
+    m_io->enqueue( "textures/background-overlay.tga" );
+    m_io->enqueue( "textures/star_field_transparent.tga" );
+    m_io->enqueue( "textures/cyber_ring1.tga" );
+    m_io->enqueue( "textures/cyber_ring2.tga" );
+    m_io->enqueue( "textures/cyber_ring3.tga" );
+
     m_hudColor4fv[ 0 ][ 0 ] = 0.0275f;
     m_hudColor4fv[ 0 ][ 1 ] = 1.0f;
     m_hudColor4fv[ 0 ][ 2 ] = 0.075f;
@@ -230,7 +240,7 @@ void Game::initRoadAdditions()
     m_fontGuiTxt = new Font( "misc/DejaVuSans-Bold.ttf", 12 );
     m_fontBig = new Font( "misc/DejaVuSans-Bold.ttf", 32 );
 
-    m_buttonTexture = loadTexture( "textures/button1.tga" );
+    m_buttonTexture = loadTexture( m_io->getWait( "textures/button1.tga" ) );
 
     m_btnExit = Button( "Exit Game", m_fontGuiTxt, m_buttonTexture );
     m_btnSelectMission = Button( "Select Mission", m_fontGuiTxt, m_buttonTexture );
@@ -289,21 +299,15 @@ void Game::initRoadAdditions()
         break;
     }
 
-    m_lblPaused = Label{ "PAUSED", Label::HAlign::eCenter, Label::VAlign::eMiddle, m_fontPauseTxt, {}, color::yellow };
-    m_hudTex = loadTexture( "textures/HUDtex.tga" );
-
-    m_menuBackground = loadTexture( "textures/background.tga" );
-    m_menuBackgroundOverlay = loadTexture( "textures/background-overlay.tga" );
-    m_starfieldTexture = loadTexture( "textures/star_field_transparent.tga" );
     m_alphaValue = 1;
-
-    m_cyberRingTexture[ 0 ] = loadTexture( "textures/cyber_ring1.tga" );
-    m_cyberRingTexture[ 1 ] = loadTexture( "textures/cyber_ring2.tga" );
-    m_cyberRingTexture[ 2 ] = loadTexture( "textures/cyber_ring3.tga" );
-
-    float temp_colors[ 4 ][ 4 ] = { { 1, 1, 1, 0.8 }, { 1, 1, 1, 0.7 }, { 1, 1, 1, 0.6 }, { 1, 1, 1, 0.7 } };
-
-    memcpy( m_cyberRingColor, temp_colors, sizeof( float ) * 12 );
+    m_lblPaused = Label{ "PAUSED", Label::HAlign::eCenter, Label::VAlign::eMiddle, m_fontPauseTxt, {}, color::yellow };
+    m_hudTex = loadTexture( m_io->getWait( "textures/HUDtex.tga" ) );
+    m_menuBackground = loadTexture( m_io->getWait( "textures/background.tga" ) );
+    m_menuBackgroundOverlay = loadTexture( m_io->getWait( "textures/background-overlay.tga" ) );
+    m_starfieldTexture = loadTexture( m_io->getWait( "textures/star_field_transparent.tga" ) );
+    m_cyberRingTexture[ 0 ] = loadTexture( m_io->getWait( "textures/cyber_ring1.tga" ) );
+    m_cyberRingTexture[ 1 ] = loadTexture( m_io->getWait( "textures/cyber_ring2.tga" ) );
+    m_cyberRingTexture[ 2 ] = loadTexture( m_io->getWait( "textures/cyber_ring3.tga" ) );
 
     BulletProto tmpWeapon;
     tmpWeapon.type = Bullet::Type::eSlug;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "async_io.hpp"
 #include "bullet.hpp"
 #include "button.hpp"
 #include "enemy.hpp"
@@ -46,6 +47,7 @@ private:
         eMainMenu,
     };
 
+    std::unique_ptr<asyncio::Service> m_io{};
     audio::Engine* m_audio = nullptr;
     Font* m_fontBig = nullptr;
     Font* m_fontGuiTxt = nullptr;
@@ -122,7 +124,7 @@ private:
     float m_lightAmbient[ 4 ]{};
     float m_lightDiffuse[ 4 ]{};
     float m_lightPosition[ 4 ]{};
-    float m_cyberRingColor[ 3 ][ 4 ]{};
+    float m_cyberRingColor[ 3 ][ 4 ] = { { 1, 1, 1, 0.8 }, { 1, 1, 1, 0.7 }, { 1, 1, 1, 0.6 } };
     int32_t m_currentResolution = 0;
     uint32_t m_maxDimention = 0;
     uint32_t m_minDimention = 0;

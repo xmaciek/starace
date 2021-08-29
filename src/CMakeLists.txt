@@ -8,6 +8,7 @@ add_subdirectory( audio )
 add_subdirectory( renderer )
 
 set( STARACE_HEADERS
+    async_io.hpp
     bullet.hpp
     button.hpp
     circle.hpp
@@ -36,6 +37,7 @@ set( STARACE_HEADERS
 )
 
 set( STARACE_SOURCES
+    async_io.cpp
     bullet.cpp
     button.cpp
     enemy.cpp

@@ -36,17 +36,13 @@ Texture loadDefault()
     return Renderer::instance()->createTexture( 64, 64, Texture::Format::eRGB, false, DEF );
 }
 
-Texture loadTexture( std::string_view filename )
+Texture loadTexture( std::pmr::vector<uint8_t>&& data )
 {
-    std::ifstream ifs( std::string( filename ), std::ios::binary | std::ios::ate );
-    assert( ifs.is_open() );
-
-    [[maybe_unused]]
-    const size_t size = ifs.tellg();
-    assert( size >= sizeof( tga::Header ) );
-    ifs.seekg( 0 );
+    assert( data.size() >= sizeof( tga::Header ) );
     tga::Header header{};
-    ifs.read( reinterpret_cast<char*>( &header ), sizeof( header ) );
+    auto it = data.begin();
+    std::copy_n( it, sizeof( header ), reinterpret_cast<uint8_t*>( &header ) );
+    std::advance( it, sizeof( header ) );
     assert( header.imageType == tga::ImageType::eTrueColor );
     assert( header.width > 0 );
     assert( header.height > 0 );
@@ -55,8 +51,7 @@ Texture loadTexture( std::string_view filename )
     const size_t textureSize = header.width * header.height * bytesPerPixel;
 
     std::vector<uint8_t> texture( textureSize );
-    ifs.read( reinterpret_cast<char*>( texture.data() ), (int)texture.size() );
-    ifs.close();
+    std::copy_n( it, texture.size(), texture.begin() );
 
     if ( bytesPerPixel == 3 ) {
         std::vector<uint8_t> tmp( header.width * header.height * 4 );
@@ -74,6 +69,19 @@ Texture loadTexture( std::string_view filename )
     }
 
     return Renderer::instance()->createTexture( header.width, header.height, Texture::Format::eRGBA, true, texture.data() );
+}
+
+Texture loadTexture( std::string_view filename )
+{
+    std::ifstream ifs( std::string( filename ), std::ios::binary | std::ios::ate );
+    assert( ifs.is_open() );
+
+    const size_t size = ifs.tellg();
+    ifs.seekg( 0 );
+    std::pmr::vector<uint8_t> data( size );
+    ifs.read( reinterpret_cast<char*>( data.data() ), (uint32_t)data.size() );
+    ifs.close();
+    return loadTexture( std::move( data ) );
 }
 
 void destroyTexture( Texture tex )
