@@ -113,6 +113,7 @@ private:
 
     Targeting m_targeting{};
 
+    glm::vec4 m_currentHudColor = color::winScreen;
     double m_rotation = 0.0;
     double m_modelRotation = 0.0;
     double m_speedAnim = 0.0;
@@ -120,11 +121,6 @@ private:
     float m_alphaN = 0.0f;
     float m_angle = 55.0f;
     float m_cyberRingRotation[ 3 ]{};
-    float m_hudColor4fv[ 3 ][ 4 ]{};
-    float m_lightAmbient[ 4 ]{};
-    float m_lightDiffuse[ 4 ]{};
-    float m_lightPosition[ 4 ]{};
-    float m_cyberRingColor[ 3 ][ 4 ] = { { 1, 1, 1, 0.8 }, { 1, 1, 1, 0.7 }, { 1, 1, 1, 0.6 } };
     int32_t m_currentResolution = 0;
     uint32_t m_maxDimention = 0;
     uint32_t m_minDimention = 0;
@@ -133,7 +129,6 @@ private:
     float m_viewportAspect = 0.0f;
     uint32_t m_currentJet = 0;
     uint32_t m_currentMap = 0;
-    uint32_t m_hudColor = 0;
     uint32_t m_resolutions[ 4 ][ 2 ]{};
     uint32_t m_shotsDone = 0;
 

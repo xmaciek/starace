@@ -9,6 +9,7 @@
 #include <fstream>
 #include <iostream>
 #include <random>
+#include <cmath>
 
 Game::Game()
 {
@@ -21,21 +22,6 @@ Game::Game()
     m_io->enqueue( "textures/cyber_ring1.tga" );
     m_io->enqueue( "textures/cyber_ring2.tga" );
     m_io->enqueue( "textures/cyber_ring3.tga" );
-
-    m_hudColor4fv[ 0 ][ 0 ] = 0.0275f;
-    m_hudColor4fv[ 0 ][ 1 ] = 1.0f;
-    m_hudColor4fv[ 0 ][ 2 ] = 0.075f;
-    m_hudColor4fv[ 0 ][ 3 ] = 1.0f;
-
-    m_hudColor4fv[ 1 ][ 0 ] = 1;
-    m_hudColor4fv[ 1 ][ 1 ] = 0.6f;
-    m_hudColor4fv[ 1 ][ 2 ] = 0.1f;
-    m_hudColor4fv[ 1 ][ 3 ] = 0.8f;
-
-    m_hudColor4fv[ 2 ][ 0 ] = 1;
-    m_hudColor4fv[ 2 ][ 1 ] = 0.1f;
-    m_hudColor4fv[ 2 ][ 2 ] = 0.1f;
-    m_hudColor4fv[ 2 ][ 3 ] = 1.0f;
 
     changeScreen( Screen::eMainMenu );
 
@@ -326,27 +312,23 @@ void Game::initRoadAdditions()
 
 void Game::updateCyberRings( const UpdateContext& updateContext )
 {
-    m_cyberRingRotation[ 0 ] += 25.0f * updateContext.deltaTime;
-    m_cyberRingRotation[ 1 ] -= 15.0f * updateContext.deltaTime;
-    if ( m_cyberRingRotationDirection[ 2 ] ) {
-        m_cyberRingRotation[ 2 ] += 35.0f * updateContext.deltaTime;
-    }
-    else {
-        m_cyberRingRotation[ 2 ] -= 20.0f * updateContext.deltaTime;
-    }
+    static constexpr auto warp = []( float f )
+    {
+        constexpr float pie = (float)M_PI;
+        if ( f > pie ) { return f - pie * 2.0f; }
+        if ( f < -pie ) { return f + pie * 2.0f; }
+        return f;
+    };
+    m_cyberRingRotation[ 0 ] = warp( m_cyberRingRotation[ 0 ] + 25.0_deg * updateContext.deltaTime );
+    m_cyberRingRotation[ 1 ] = warp( m_cyberRingRotation[ 1 ] - 15.0_deg * updateContext.deltaTime );
 
-    if ( m_cyberRingRotation[ 0 ] >= 360 ) {
-        m_cyberRingRotation[ 0 ] -= 360;
+    static float speed = 35.0_deg;
+    if ( m_cyberRingRotation[ 2 ] <= 0.0_deg ) {
+        speed = 35.0_deg;
+    } else if ( m_cyberRingRotation[ 2 ] > 90.0_deg ) {
+        speed = -20.0_deg;
     }
-    if ( m_cyberRingRotation[ 1 ] < 0 ) {
-        m_cyberRingRotation[ 1 ] += 360;
-    }
-    if ( m_cyberRingRotation[ 2 ] < 0 ) {
-        m_cyberRingRotationDirection[ 2 ] = true;
-    }
-    if ( m_cyberRingRotation[ 2 ] > 90 ) {
-        m_cyberRingRotationDirection[ 2 ] = false;
-    }
+    m_cyberRingRotation[ 2 ] += speed * updateContext.deltaTime;
 }
 
 void Game::onRender()
@@ -459,12 +441,7 @@ void Game::updateGame( const UpdateContext& updateContext )
     if ( m_enemies.empty() ) {
         changeScreen( Screen::eWin );
     }
-    if ( m_jet->health() <= 20 ) {
-        m_hudColor = 2;
-    }
-    else {
-        m_hudColor = 0;
-    }
+    m_currentHudColor = m_jet->health() <= 20 ? color::crimson : color::winScreen;
 
     if ( m_jet->isShooting( 0 ) ) {
         addBullet( 0 );
@@ -626,7 +603,6 @@ void Game::clearMapData()
 void Game::createMapData( const MapProto& mapData, const ModelProto& modelData )
 {
     m_shotsDone = 0;
-    m_hudColor = 0;
     m_jet = new Jet( modelData, m_renderer );
     m_map = new Map( mapData );
     m_jet->setWeapon( m_weapons[ m_weap1 ], 0 );

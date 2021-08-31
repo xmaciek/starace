@@ -11,11 +11,6 @@
 #include <algorithm>
 #include <cassert>
 
-constexpr static float operator ""_deg ( long double f ) noexcept
-{
-    return glm::radians( static_cast<float>( f ) );
-}
-
 constexpr static glm::vec3 defaultPyrAcceleration{ 15.0_deg, 10.0_deg, 50.0_deg };
 constexpr static glm::vec3 defaultPyrLimits{ 40.0_deg, 20.0_deg, 60.0_deg };
 constexpr static glm::vec3 defaultPyrAnimLimits{ 5.0_deg, 5.0_deg, 15.0_deg };

@@ -25,6 +25,11 @@ void Game::renderGameScreenPaused( RenderContext rctx )
 
 void Game::renderCyberRings( RenderContext rctx )
 {
+    static constexpr std::array color = {
+        glm::vec4{ 1.0f, 1.0f, 1.0f, 0.8f },
+        glm::vec4{ 1.0f, 1.0f, 1.0f, 0.7f },
+        glm::vec4{ 1.0f, 1.0f, 1.0f, 0.6f },
+    };
     const double sw = (double)viewportWidth() / 2.0;
     const double sh = (double)viewportHeight() / 2.0;
     rctx.model = glm::translate( rctx.model, glm::vec3{ sw, sh, 0.0f } );
@@ -33,12 +38,11 @@ void Game::renderCyberRings( RenderContext rctx )
         pushBuffer.m_texture = m_cyberRingTexture[ i ];
 
         PushConstant<Pipeline::eGuiTextureColor1> pushConstant{};
-        pushConstant.m_model = glm::rotate( rctx.model, glm::radians( m_cyberRingRotation[ i ] ), glm::vec3{ 0.0f, 0.0f, 1.0f } );
+        pushConstant.m_model = glm::rotate( rctx.model, m_cyberRingRotation[ i ], glm::vec3{ 0.0f, 0.0f, 1.0f } );
         pushConstant.m_model = glm::translate( pushConstant.m_model, glm::vec3{ m_maxDimention * -0.5, m_maxDimention * -0.5, 0.0 } );
         pushConstant.m_projection = rctx.projection;
         pushConstant.m_view = rctx.view;
-
-        pushConstant.m_color = glm::vec4{ m_cyberRingColor[ i ][ 0 ], m_cyberRingColor[ i ][ 1 ], m_cyberRingColor[ i ][ 2 ], m_cyberRingColor[ i ][ 3 ] };
+        pushConstant.m_color = color[ i ];
 
         pushConstant.m_vertices[ 0 ] = glm::vec4{ m_maxDimention, m_maxDimention, 0.0f, 0.0f };
         pushConstant.m_vertices[ 1 ] = glm::vec4{ 0, m_maxDimention, 0.0f, 0.0f };
@@ -59,12 +63,6 @@ void Game::renderHUDBar( RenderContext rctx, const glm::vec4& xywh, float ratio 
     rctx.model = glm::translate( rctx.model, glm::vec3{ xywh.x, xywh.y, 0.0f } );
 
     {
-        const glm::vec4 color{
-            m_hudColor4fv[ m_hudColor ][ 0 ]
-            , m_hudColor4fv[ m_hudColor ][ 1 ]
-            , m_hudColor4fv[ m_hudColor ][ 2 ]
-            , m_hudColor4fv[ m_hudColor ][ 3 ]
-        };
         PushBuffer<Pipeline::eLine3dStripColor> pushBuffer{};
         pushBuffer.m_lineWidth = 2.0f;
         pushBuffer.m_verticeCount = 4;
@@ -77,7 +75,7 @@ void Game::renderHUDBar( RenderContext rctx, const glm::vec4& xywh, float ratio 
         pushConstant.m_vertices[ 1 ] = { xywh.z + 4.0f, xywh.w + 4.0f, 0.0f, 0.0f };
         pushConstant.m_vertices[ 2 ] = { xywh.z + 4.0f, -4.0f, 0.0f, 0.0f };
         pushConstant.m_vertices[ 3 ] = { -4.0f, -4.0f, 0.0f, 0.0f };
-        std::fill_n( pushConstant.m_colors.begin(), 4, color );
+        std::fill_n( pushConstant.m_colors.begin(), 4, m_currentHudColor );
         rctx.renderer->push( &pushBuffer, &pushConstant );
     }
 
@@ -137,12 +135,7 @@ void Game::renderHudTex( RenderContext rctx, const glm::vec4& color )
 
 void Game::renderHUD( RenderContext rctx )
 {
-    const glm::vec4 color{ m_hudColor4fv[ m_hudColor ][ 0 ]
-        , m_hudColor4fv[ m_hudColor ][ 1 ]
-        , m_hudColor4fv[ m_hudColor ][ 2 ]
-        , m_hudColor4fv[ m_hudColor ][ 3 ]
-    };
-
+    const glm::vec4 color = m_currentHudColor;
     char hudmessage[ 48 ]{};
     std::snprintf( hudmessage, sizeof( hudmessage ), "Shots: %d", m_shotsDone );
     m_fontGuiTxt->renderText( rctx, color, 320, viewportHeight() - 16, hudmessage );
