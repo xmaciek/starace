@@ -259,48 +259,26 @@ void Game::initRoadAdditions()
     m_btnPrevJet = Button( "Previous Jet", m_fontGuiTxt, m_buttonTexture );
     m_btnCustomizeReturn = Button( "Done", m_fontGuiTxt, m_buttonTexture );
     m_btnCustomize = Button( "Customize", m_fontGuiTxt, m_buttonTexture );
-    m_btnWeap1 = Button( m_fontGuiTxt, m_buttonTexture );
-    m_btnWeap2 = Button( m_fontGuiTxt, m_buttonTexture );
-    m_btnWeap3 = Button( m_fontGuiTxt, m_buttonTexture );
 
-    switch ( m_weap1 ) {
-    case 0:
-        m_btnWeap1.setText( "Laser" );
-        break;
-    case 1:
-        m_btnWeap1.setText( "Blaster" );
-        break;
-    case 2:
-        m_btnWeap1.setText( "Torpedo" );
-        break;
-    }
+    constexpr auto weaponToString = []( int i ) -> std::string_view
+    {
+        using namespace std::string_view_literals;
+        switch ( i ) {
+        case 0:
+            return "Laser"sv;
+        case 1:
+            return "Blaster"sv;
+        case 2:
+            return "Torpedo"sv;
+        }
+        assert( !"invalid weapon id" );
+        return "invalid id"sv;
+    };
 
-    switch ( m_weap2 ) {
-    case 0:
-        m_btnWeap2.setText( "Laser" );
-        break;
-    case 1:
-        m_btnWeap2.setText( "Blaster" );
-        break;
-    case 2:
-        m_btnWeap2.setText( "Torpedo" );
-        break;
-    }
+    m_btnWeap1 = Button( weaponToString( m_weap1 ), m_fontGuiTxt, m_buttonTexture );
+    m_btnWeap2 = Button( weaponToString( m_weap2 ), m_fontGuiTxt, m_buttonTexture );
+    m_btnWeap3 = Button( weaponToString( m_weap1 ), m_fontGuiTxt, m_buttonTexture );
 
-    switch ( m_weap3 ) {
-    case 0:
-        m_btnWeap3.setText( "Laser" );
-        break;
-    case 1:
-        m_btnWeap3.setText( "Blaster" );
-        break;
-    case 2:
-        m_btnWeap3.setText( "Torpedo" );
-        break;
-    }
-
-    m_alphaValue = 1;
-    m_lblPaused = Label{ "PAUSED", Label::HAlign::eCenter, Label::VAlign::eMiddle, m_fontPauseTxt, {}, color::yellow };
     m_hudTex = loadTexture( m_io->getWait( "textures/HUDtex.tga" ) );
     m_menuBackground = loadTexture( m_io->getWait( "textures/background.tga" ) );
     m_menuBackgroundOverlay = loadTexture( m_io->getWait( "textures/background-overlay.tga" ) );
@@ -309,7 +287,9 @@ void Game::initRoadAdditions()
     m_cyberRingTexture[ 1 ] = loadTexture( m_io->getWait( "textures/cyber_ring2.tga" ) );
     m_cyberRingTexture[ 2 ] = loadTexture( m_io->getWait( "textures/cyber_ring3.tga" ) );
 
-    BulletProto tmpWeapon;
+    m_lblPaused = Label{ "PAUSED", Label::HAlign::eCenter, Label::VAlign::eMiddle, m_fontPauseTxt, {}, color::yellow };
+
+    BulletProto tmpWeapon{};
     tmpWeapon.type = Bullet::Type::eSlug;
     tmpWeapon.delay = 0.1;
     tmpWeapon.energy = 15;

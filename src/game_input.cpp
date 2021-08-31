@@ -157,7 +157,7 @@ void Game::onMouseClickLeft( int32_t x, int32_t y )
         }
         break;
 
-    case Screen::eCustomize:
+    case Screen::eCustomize: {
         if ( m_btnNextJet.isClicked( x, y ) ) {
             m_audio->play( m_click );
             m_currentJet++;
@@ -179,58 +179,38 @@ void Game::onMouseClickLeft( int32_t x, int32_t y )
             changeScreen( Screen::eMainMenu );
             break;
         }
+
+        constexpr auto weaponToString = []( int i ) -> std::string_view
+        {
+            using namespace std::string_view_literals;
+            switch ( i ) {
+            case 0:
+                return "Laser"sv;
+            case 1:
+                return "Blaster"sv;
+            case 2:
+                return "Torpedo"sv;
+            }
+            assert( !"invalid weapon id" );
+            return "invalid id"sv;
+        };
+
         if ( m_btnWeap1.isClicked( x, y ) ) {
             m_audio->play( m_click );
-            m_weap1++;
-            if ( m_weap1 == 3 ) {
-                m_weap1 = 0;
-            }
-            if ( m_weap1 == 0 ) {
-                m_btnWeap1.setText( "Laser" );
-            }
-            if ( m_weap1 == 1 ) {
-                m_btnWeap1.setText( "Blaster" );
-            }
-            if ( m_weap1 == 2 ) {
-                m_btnWeap1.setText( "Torpedo" );
-            }
-            break;
+            m_weap1 = ( m_weap1 + 1  ) % 3;
+            m_btnWeap1.setText( weaponToString( m_weap1 ) );
         }
-        if ( m_btnWeap2.isClicked( x, y ) ) {
+        else if ( m_btnWeap2.isClicked( x, y ) ) {
             m_audio->play( m_click );
-            m_weap2++;
-            if ( m_weap2 == 3 ) {
-                m_weap2 = 0;
-            }
-            if ( m_weap2 == 0 ) {
-                m_btnWeap2.setText( "Laser" );
-            }
-            if ( m_weap2 == 1 ) {
-                m_btnWeap2.setText( "Blaster" );
-            }
-            if ( m_weap2 == 2 ) {
-                m_btnWeap2.setText( "Torpedo" );
-            }
-            break;
+            m_weap2 = ( m_weap2 + 1  ) % 3;
+            m_btnWeap2.setText( weaponToString( m_weap2 ) );
         }
-        if ( m_btnWeap3.isClicked( x, y ) ) {
+        else if ( m_btnWeap3.isClicked( x, y ) ) {
             m_audio->play( m_click );
-            m_weap3++;
-            if ( m_weap3 == 3 ) {
-                m_weap3 = 0;
-            }
-            if ( m_weap3 == 0 ) {
-                m_btnWeap3.setText( "Laser" );
-            }
-            if ( m_weap3 == 1 ) {
-                m_btnWeap3.setText( "Blaster" );
-            }
-            if ( m_weap3 == 2 ) {
-                m_btnWeap3.setText( "Torpedo" );
-            }
-            break;
+            m_weap3 = ( m_weap3 + 1  ) % 3;
+            m_btnWeap3.setText( weaponToString( m_weap3 ) );
         }
-        break;
+    } break;
 
     default:
         break;

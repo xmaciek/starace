@@ -116,7 +116,7 @@ private:
     double m_rotation = 0.0;
     double m_modelRotation = 0.0;
     double m_speedAnim = 0.0;
-    float m_alphaValue = 0.0f;
+    float m_alphaValue = 1.0f;
     float m_alphaN = 0.0f;
     float m_angle = 55.0f;
     float m_cyberRingRotation[ 3 ]{};
