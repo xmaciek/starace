@@ -84,8 +84,8 @@ static std::optional<VkPresentModeKHR> findBestPresentMode( VkPhysicalDevice phy
     vkGetPhysicalDeviceSurfacePresentModesKHR( physicalDevice, surface, &presentModeCount, presentModes.data() );
 
     static constexpr VkPresentModeKHR prefferedPresents[]{
-        VK_PRESENT_MODE_IMMEDIATE_KHR,
         VK_PRESENT_MODE_FIFO_KHR,
+        VK_PRESENT_MODE_IMMEDIATE_KHR,
         VK_PRESENT_MODE_MAILBOX_KHR,
     };
     for ( const VkPresentModeKHR& it : prefferedPresents ) {
