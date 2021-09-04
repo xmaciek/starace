@@ -22,5 +22,5 @@ target_link_libraries( renderer
     SDL2::SDL2
 )
 
-add_subdirectory( opengl )
+#add_subdirectory( opengl )
 add_subdirectory( vulkan )
