@@ -7,64 +7,61 @@ set( CMAKE_CXX_CLANG_TIDY clang-tidy )
 add_subdirectory( audio )
 add_subdirectory( renderer )
 
-set( STARACE_HEADERS
+set( STARACE_SOURCES
+    async_io.cpp
     async_io.hpp
+    bullet.cpp
     bullet.hpp
+    button.cpp
     button.hpp
     circle.hpp
     colors.hpp
-    enemy.hpp
-    font.hpp
-    fps_meter.hpp
-    game.hpp
-    jet.hpp
-    label.hpp
-    map.hpp
-    model.hpp
-    model_proto.hpp
-    obj.hpp
-    pool.hpp
-    reactor.hpp
-    render_context.hpp
-    saobject.hpp
-    shield.hpp
-    targeting.hpp
-    texture.hpp
-    thruster.hpp
-    tga.hpp
-    update_context.hpp
-    utils.hpp
-)
-
-set( STARACE_SOURCES
-    async_io.cpp
-    bullet.cpp
-    button.cpp
     enemy.cpp
+    enemy.hpp
     font.cpp
+    font.hpp
     fps_meter.cpp
+    fps_meter.hpp
     game.cpp
+    game.hpp
     game_input.cpp
     game_rendering.cpp
     jet.cpp
+    jet.hpp
     label.cpp
+    label.hpp
     main.cpp
     map.cpp
+    map.hpp
     model.cpp
+    model.hpp
+    model_proto.hpp
     obj.cpp
+    obj.hpp
+    pool.hpp
     reactor.cpp
+    reactor.hpp
+    render_context.hpp
     saobject.cpp
+    saobject.hpp
     shield.cpp
+    shield.hpp
     targeting.cpp
+    targeting.hpp
     texture.cpp
+    texture.hpp
+    tga.hpp
     thruster.cpp
+    thruster.hpp
+    update_context.hpp
     utils.cpp
+    utils.hpp
 )
 
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
 
 set( bin_name "starace" )
-add_executable( ${bin_name} ${STARACE_SOURCES} ${STARACE_HEADERS} )
+add_executable( ${bin_name} ${STARACE_SOURCES} )
 target_compile_options( ${bin_name} PRIVATE -Werror -Wall -Wextra )
 target_compile_definitions( ${bin_name} PRIVATE
     GLM_FORCE_RADIANS=1
