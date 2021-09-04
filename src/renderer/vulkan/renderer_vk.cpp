@@ -519,9 +519,9 @@ void RendererVK::beginFrame()
     const VkRect2D rect{ .extent = extent };
     const VkViewport viewport{
         .x = 0,
-        .y = (float)extent.height,
+        .y = 0,
         .width = (float)extent.width,
-        .height = -(float)extent.height,
+        .height = (float)extent.height,
         .minDepth = 0.0f,
         .maxDepth = 1.0f,
     };

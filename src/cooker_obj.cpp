@@ -69,6 +69,7 @@ int main( int argc, char** argv )
         else if ( sv == "v " ) {
             Vec3& v = vertices.emplace_back();
             std::sscanf( line.c_str() + 2, "%f %f %f", v.data, v.data + 1, v.data + 2 );
+            v.data[ 1 ] *= -1.0f; // blender fix
         }
         else if ( sv == "vt" ) {
             Vec2& v = uv.emplace_back();

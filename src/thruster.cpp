@@ -50,12 +50,12 @@ void Thruster::renderAt( RenderContext rctx, const glm::vec3& pos ) const
     pushConstant.m_view = rctx.view;
     pushConstant.m_projection = rctx.projection;
     pushConstant.m_vertices[ 0 ] = { 0.0f, 0.0f, 1.0f, 0.0f };
-    std::copy( s_inner.rbegin(), s_inner.rend(), pushConstant.m_vertices.begin() + 1 );
+    std::copy( s_inner.begin(), s_inner.end(), pushConstant.m_vertices.begin() + 1 );
     pushConstant.m_colors[ 0 ] = m_colorScheme[ 1 ];
     std::fill_n( pushConstant.m_colors.begin() + 1, 32, m_colorScheme[ 0 ] );
     rctx.renderer->push( &pushBuffer, &pushConstant );
 
-    std::copy( s_outter.rbegin(), s_outter.rend(), pushConstant.m_vertices.begin() + 1 );
+    std::copy( s_outter.begin(), s_outter.end(), pushConstant.m_vertices.begin() + 1 );
     pushConstant.m_colors[ 0 ] = m_colorScheme[ 3 ];
     std::fill_n( pushConstant.m_colors.begin() + 1, 32, m_colorScheme[ 2 ] );
     rctx.renderer->push( &pushBuffer, &pushConstant );

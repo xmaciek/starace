@@ -50,10 +50,10 @@ void Button::render( RenderContext rctx )
     pushConstant.m_model = rctx.model;
     pushConstant.m_view = rctx.view;
     pushConstant.m_projection = rctx.projection;
-    pushConstant.m_vertices[ 0 ] = glm::vec4{ 0.0f, m_height, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 1 ] = glm::vec4{ 0.0f, 0.0f, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 2 ] = glm::vec4{ m_width, 0.0f, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 3 ] = glm::vec4{ m_width, m_height, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 0 ] = glm::vec4{ 0.0f, 0.0f, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 1 ] = glm::vec4{ 0.0f, m_height, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 2 ] = glm::vec4{ m_width, m_height, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 3 ] = glm::vec4{ m_width, 0.0f, 0.0f, 0.0f };
     pushConstant.m_uv[ 0 ] = glm::vec4{ 0.0f, 0.0f, 0.0f, 0.0f };
     pushConstant.m_uv[ 1 ] = glm::vec4{ 0.0f, 1.0f, 0.0f, 0.0f };
     pushConstant.m_uv[ 2 ] = glm::vec4{ 1.0f, 1.0f, 0.0f, 0.0f };

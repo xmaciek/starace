@@ -87,7 +87,6 @@ void Game::gameKeyboardPausedUnpressed( SDL_Scancode sc )
 void Game::onMouseClickLeft( int32_t x, int32_t y )
 {
     assert( m_audio );
-    y = (int32_t)viewportHeight() - y;
     switch ( m_currentScreen ) {
     case Screen::eGamePaused:
         if ( m_btnQuitMission.isClicked( x, y ) ) {
@@ -221,7 +220,6 @@ void Game::onMouseMove( const SDL_MouseMotionEvent& event )
 {
     const uint32_t y = viewportHeight() - event.y;
     const uint32_t x = (uint32_t)event.x;
-    m_btnChangeFiltering.mouseMove( x, y );
     m_btnCustomizeReturn.mouseMove( x, y );
     m_btnCustomize.mouseMove( x, y );
     m_btnExit.mouseMove( x, y );

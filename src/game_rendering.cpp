@@ -44,14 +44,14 @@ void Game::renderCyberRings( RenderContext rctx )
         pushConstant.m_view = rctx.view;
         pushConstant.m_color = color[ i ];
 
-        pushConstant.m_vertices[ 0 ] = glm::vec4{ m_maxDimention, m_maxDimention, 0.0f, 0.0f };
+        pushConstant.m_vertices[ 0 ] = glm::vec4{ 0, 0, 0.0f, 0.0f };
         pushConstant.m_vertices[ 1 ] = glm::vec4{ 0, m_maxDimention, 0.0f, 0.0f };
-        pushConstant.m_vertices[ 2 ] = glm::vec4{ 0, 0, 0.0f, 0.0f };
+        pushConstant.m_vertices[ 2 ] = glm::vec4{ m_maxDimention, m_maxDimention, 0.0f, 0.0f };
         pushConstant.m_vertices[ 3 ] = glm::vec4{ m_maxDimention, 0, 0.0f, 0.0f };
 
-        pushConstant.m_uv[ 0 ] = glm::vec4{ 1, 1, 0.0f, 0.0f };
+        pushConstant.m_uv[ 0 ] = glm::vec4{ 0, 0, 0.0f, 0.0f };
         pushConstant.m_uv[ 1 ] = glm::vec4{ 0, 1, 0.0f, 0.0f };
-        pushConstant.m_uv[ 2 ] = glm::vec4{ 0, 0, 0.0f, 0.0f };
+        pushConstant.m_uv[ 2 ] = glm::vec4{ 1, 1, 0.0f, 0.0f };
         pushConstant.m_uv[ 3 ] = glm::vec4{ 1, 0, 0.0f, 0.0f };
 
         rctx.renderer->push( &pushBuffer, &pushConstant );
@@ -60,8 +60,7 @@ void Game::renderCyberRings( RenderContext rctx )
 
 void Game::renderHUDBar( RenderContext rctx, const glm::vec4& xywh, float ratio )
 {
-    rctx.model = glm::translate( rctx.model, glm::vec3{ xywh.x, xywh.y, 0.0f } );
-
+    rctx.model = glm::translate( rctx.model, glm::vec3{ xywh.x, (float)viewportHeight() - xywh.w - xywh.y, 0.0f } );
     {
         PushBuffer<Pipeline::eLine3dStripColor> pushBuffer{};
         pushBuffer.m_lineWidth = 2.0f;
@@ -94,10 +93,10 @@ void Game::renderHUDBar( RenderContext rctx, const glm::vec4& xywh, float ratio 
         };
         std::fill_n( pushConstant.m_colors.begin(), 4, color );
 
-        pushConstant.m_vertices[ 0 ] = glm::vec4{ 0.0f, 0.0f, 0.0f, 0.0f };
-        pushConstant.m_vertices[ 1 ] = glm::vec4{ xywh.z, 0.0f, 0.0f, 0.0f };
-        pushConstant.m_vertices[ 2 ] = glm::vec4{ xywh.z, ratio * xywh.w, 0.0f, 0.0f };
-        pushConstant.m_vertices[ 3 ] = glm::vec4{ 0.0f, ratio * xywh.w, 0.0f, 0.0f };
+        pushConstant.m_vertices[ 0 ] = glm::vec4{ 0.0f, xywh.w, 0.0f, 0.0f };
+        pushConstant.m_vertices[ 1 ] = glm::vec4{ xywh.z, xywh.w, 0.0f, 0.0f };
+        pushConstant.m_vertices[ 2 ] = glm::vec4{ xywh.z, xywh.w - ratio * xywh.w, 0.0f, 0.0f };
+        pushConstant.m_vertices[ 3 ] = glm::vec4{ 0.0f, xywh.w - ratio * xywh.w, 0.0f, 0.0f };
         rctx.renderer->push( &pushBuffer, &pushConstant );
     }
 
@@ -109,7 +108,7 @@ void Game::renderPauseText( RenderContext rctx )
     renderHudTex( rctx, color::pause );
 
     m_btnQuitMission.render( rctx );
-    m_lblPaused.setPosition( { viewportWidth() / 2, viewportHeight() - 128 } );
+    m_lblPaused.setPosition( { viewportWidth() / 2, 128 } );
     m_lblPaused.render( rctx );
 }
 
@@ -123,13 +122,13 @@ void Game::renderHudTex( RenderContext rctx, const glm::vec4& color )
     pushConstant.m_projection = rctx.projection;
     pushConstant.m_color = color;
     pushConstant.m_vertices[ 0 ] = glm::vec4{ 0.0f, 0.0f, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 1 ] = glm::vec4{ (float)viewportWidth(), 0.0f, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 1 ] = glm::vec4{ 0.0, viewportHeight(), 0.0f, 0.0f };
     pushConstant.m_vertices[ 2 ] = glm::vec4{ (float)viewportWidth(), (float)viewportHeight(), 0.0f, 0.0f };
-    pushConstant.m_vertices[ 3 ] = glm::vec4{ 0.0, viewportHeight(), 0.0f, 0.0f };
+    pushConstant.m_vertices[ 3 ] = glm::vec4{ (float)viewportWidth(), 0.0f, 0.0f, 0.0f };
     pushConstant.m_uv[ 0 ] = glm::vec4{ 0, 0, 0.0f, 0.0f };
-    pushConstant.m_uv[ 1 ] = glm::vec4{ 1, 0, 0.0f, 0.0f };
+    pushConstant.m_uv[ 1 ] = glm::vec4{ 0, 1, 0.0f, 0.0f };
     pushConstant.m_uv[ 2 ] = glm::vec4{ 1, 1, 0.0f, 0.0f };
-    pushConstant.m_uv[ 3 ] = glm::vec4{ 0, 1, 0.0f, 0.0f };
+    pushConstant.m_uv[ 3 ] = glm::vec4{ 1, 0, 0.0f, 0.0f };
     rctx.renderer->push( &pushBuffer, &pushConstant );
 }
 
@@ -138,12 +137,12 @@ void Game::renderHUD( RenderContext rctx )
     const glm::vec4 color = m_currentHudColor;
     char hudmessage[ 48 ]{};
     std::snprintf( hudmessage, sizeof( hudmessage ), "Shots: %d", m_shotsDone );
-    m_fontGuiTxt->renderText( rctx, color, 320, viewportHeight() - 16, hudmessage );
+    m_fontGuiTxt->renderText( rctx, color, 320, 16, hudmessage );
 
     assert( m_jet );
     const uint32_t score = m_jet->score();;
     std::snprintf( hudmessage, sizeof( hudmessage ), "SCORE: %u", score );
-    m_fontGuiTxt->renderText( rctx, color, 64, viewportHeight() - 100, hudmessage );
+    m_fontGuiTxt->renderText( rctx, color, 64, 100, hudmessage );
     /*radar*/
 #if 0
     const glm::mat4x4 jetMat = glm::toMat4( m_jet->quat() );
@@ -289,15 +288,15 @@ void Game::renderHUD( RenderContext rctx )
         msg += std::to_string( m_fpsMeter.calculated() );
         const double textMid = static_cast<double>( m_fontGuiTxt->textLength( "FPS done: XXX, calculated: xxxx.xx" ) ) / 2;
         const double posx = (double)viewportWidth() / 2.0 - textMid;
-        m_fontGuiTxt->renderText( rctx, color, posx, viewportHeight() - 28, msg );
+        m_fontGuiTxt->renderText( rctx, color, posx, 28, msg );
     }
     {
         std::string msg{ "Bullet pool: " };
         msg += std::to_string( m_poolBullets.allocCount() );
-        m_fontGuiTxt->renderText( rctx, color, 64, viewportHeight() - 64, msg );
+        m_fontGuiTxt->renderText( rctx, color, 64, 64, msg );
     }
-    m_fontPauseTxt->renderText( rctx, color, 10, 120, "PWR" );
-    m_fontPauseTxt->renderText( rctx, color, 66, 120, "HP" );
+    m_fontPauseTxt->renderText( rctx, color, 10, viewportHeight() - 120, "PWR" );
+    m_fontPauseTxt->renderText( rctx, color, 66, viewportHeight() - 120, "HP" );
 
     m_targeting.render( rctx );
 }
@@ -309,7 +308,7 @@ std::tuple<glm::mat4, glm::mat4> Game::getCameraMatrix() const
         return {};
     }
 
-    glm::mat4 view = glm::translate( glm::mat4( 1.0f ), glm::vec3{ 0, -0.255, -1 } );
+    glm::mat4 view = glm::translate( glm::mat4( 1.0f ), glm::vec3{ 0, 0.255, -1 } );
     view *= glm::toMat4( m_jet->rotation() );
     view = glm::translate( view, -m_jet->position() );
     return {
@@ -359,13 +358,13 @@ void Game::renderClouds( RenderContext rctx ) const
     pushConstant.m_projection = rctx.projection;
     pushConstant.m_color = color::lightSkyBlue;
     pushConstant.m_uv[ 0 ] = glm::vec4{ 0, 0, 0.0f, 0.0f };
-    pushConstant.m_uv[ 1 ] = glm::vec4{ 1, 0, 0.0f, 0.0f };
+    pushConstant.m_uv[ 1 ] = glm::vec4{ 0, 1, 0.0f, 0.0f };
     pushConstant.m_uv[ 2 ] = glm::vec4{ 1, 1, 0.0f, 0.0f };
-    pushConstant.m_uv[ 3 ] = glm::vec4{ 0, 1, 0.0f, 0.0f };
+    pushConstant.m_uv[ 3 ] = glm::vec4{ 1, 0, 0.0f, 0.0f };
     pushConstant.m_vertices[ 0 ] = glm::vec4{ 0.0f, 0.0f, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 1 ] = glm::vec4{ (float)viewportWidth(), 0.0f, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 1 ] = glm::vec4{ 0.0f, (float)viewportHeight(), 0.0f, 0.0f };
     pushConstant.m_vertices[ 2 ] = glm::vec4{ (float)viewportWidth(), viewportHeight(), 0.0f, 0.0f };
-    pushConstant.m_vertices[ 3 ] = glm::vec4{ 0.0f, (float)viewportHeight(), 0.0f, 0.0f };
+    pushConstant.m_vertices[ 3 ] = glm::vec4{ (float)viewportWidth(), 0.0f, 0.0f, 0.0f };
 
     PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{};
     pushBuffer.m_texture = m_menuBackground;
@@ -378,9 +377,9 @@ void Game::renderClouds( RenderContext rctx ) const
 
     pushBuffer.m_texture = m_starfieldTexture;
     pushConstant.m_vertices[ 0 ] = glm::vec4{ 0.0f, 0.0f, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 1 ] = glm::vec4{ m_maxDimention, 0.0f, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 1 ] = glm::vec4{ 0.0f, m_maxDimention, 0.0f, 0.0f };
     pushConstant.m_vertices[ 2 ] = glm::vec4{ m_maxDimention, m_maxDimention, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 3 ] = glm::vec4{ 0.0f, m_maxDimention, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 3 ] = glm::vec4{ m_maxDimention, 0.0f, 0.0f, 0.0f };
     rctx.renderer->push( &pushBuffer, &pushConstant );
 }
 
@@ -394,7 +393,7 @@ void Game::renderWinScreen( RenderContext rctx )
     m_fontBig->renderText( rctx
         , color::white
         , (float)viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( missionOK ) ) / 2
-        , viewportHeight() - 128
+        , 96
         , missionOK
     );
 
@@ -404,7 +403,7 @@ void Game::renderWinScreen( RenderContext rctx )
     m_fontBig->renderText( rctx
         , color::white
         , (float)viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( str.c_str() ) ) / 2
-        , viewportHeight() - 128 - 36
+        , 128
         , str
     );
     m_btnReturnToMissionSelection.render( rctx );
@@ -420,7 +419,7 @@ void Game::renderDeadScreen( RenderContext rctx )
     m_fontBig->renderText( rctx
         , color::white
         , (float)viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( txt ) ) / 2
-        , viewportHeight() - 128
+        , 96
         , txt
     );
 
@@ -430,7 +429,7 @@ void Game::renderDeadScreen( RenderContext rctx )
     m_fontBig->renderText( rctx
         , color::white
         , (float)viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( str.c_str() ) ) / 2
-        , viewportHeight() - 128 - 36
+        , 128
         , str
     );
 
@@ -452,13 +451,13 @@ void Game::renderMissionSelectionScreen( RenderContext rctx )
     pushConstant.m_projection = rctx.projection;
     pushConstant.m_color = color::white;
     pushConstant.m_uv[ 0 ] = glm::vec4{ 0.0f, 0.0f, 0.0f, 0.0f };
-    pushConstant.m_uv[ 1 ] = glm::vec4{ 1.0f, 0.0f, 0.0f, 0.0f };
+    pushConstant.m_uv[ 1 ] = glm::vec4{ 0.0f, 1.0f, 0.0f, 0.0f };
     pushConstant.m_uv[ 2 ] = glm::vec4{ 1.0f, 1.0f, 0.0f, 0.0f };
-    pushConstant.m_uv[ 3 ] = glm::vec4{ 0.0f, 1.0f, 0.0f, 0.0f };
+    pushConstant.m_uv[ 3 ] = glm::vec4{ 1.0f, 0.0f, 0.0f, 0.0f };
     pushConstant.m_vertices[ 0 ] = glm::vec4{ 0.0f, 0.0f, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 1 ] = glm::vec4{ m_maxDimention, 0.0f, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 1 ] = glm::vec4{ 0.0f, m_maxDimention, 0.0f, 0.0f };
     pushConstant.m_vertices[ 2 ] = glm::vec4{ m_maxDimention, m_maxDimention, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 3 ] = glm::vec4{ 0.0f, m_maxDimention, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 3 ] = glm::vec4{ m_maxDimention, 0.0f, 0.0f, 0.0f };
 
     PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{};
     pushBuffer.m_texture = m_mapsContainer[ m_currentMap ].preview_image;
@@ -466,12 +465,12 @@ void Game::renderMissionSelectionScreen( RenderContext rctx )
     {
         const std::string str = std::string{ "Map: " } + m_mapsContainer.at( m_currentMap ).name;
         const double posx = (double)viewportWidth() / 2.0 - static_cast<double>( m_fontPauseTxt->textLength( str.c_str() ) ) / 2;
-        m_fontPauseTxt->renderText( rctx, color::white, posx, viewportHeight() - 128, str );
+        m_fontPauseTxt->renderText( rctx, color::white, posx, 128, str );
     }
     {
         const std::string str = std::string{ "Enemies: " } + std::to_string( m_mapsContainer.at( m_currentMap ).enemies );
         const double posx = (double)viewportWidth() / 2 - static_cast<double>( m_fontPauseTxt->textLength( str.c_str() ) ) / 2;
-        m_fontPauseTxt->renderText( rctx, color::white, posx, viewportHeight() - 148, str );
+        m_fontPauseTxt->renderText( rctx, color::white, posx, 148, str );
     }
 
     renderCyberRings( rctx );
@@ -486,11 +485,11 @@ void Game::renderGameScreenBriefing( RenderContext rctx )
 {
     renderGameScreen( rctx );
     renderCyberRings( rctx );
-    m_fontPauseTxt->renderText( rctx, color::white, 192, viewportHeight() - 292, "Movement: AWSD QE" );
-    m_fontPauseTxt->renderText( rctx, color::white, 192, viewportHeight() - 310, "Speed controll: UO" );
-    m_fontPauseTxt->renderText( rctx, color::white, 192, viewportHeight() - 328, "Weapons: JKL" );
-    m_fontPauseTxt->renderText( rctx, color::white, 192, viewportHeight() - 346, "Targeting: I" );
-    m_fontPauseTxt->renderText( rctx, color::white, 192, viewportHeight() - 380, "Press space to launch..." );
+    m_fontPauseTxt->renderText( rctx, color::white, 192, 292, "Movement: AWSD QE" );
+    m_fontPauseTxt->renderText( rctx, color::white, 192, 310, "Speed controll: UO" );
+    m_fontPauseTxt->renderText( rctx, color::white, 192, 328, "Weapons: JKL" );
+    m_fontPauseTxt->renderText( rctx, color::white, 192, 346, "Targeting: I" );
+    m_fontPauseTxt->renderText( rctx, color::white, 192, 380, "Press space to launch..." );
     renderHudTex( rctx, color::dodgerBlue );
     m_btnGO.render( rctx );
 }
@@ -503,7 +502,7 @@ void Game::renderScreenCustomize( RenderContext rctx )
 
     {
         const double posx = (double)viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( m_jetsContainer.at( m_currentJet ).name.c_str() ) ) / 2;
-        m_fontBig->renderText( rctx,  color::white, posx, viewportHeight() - 64, m_jetsContainer.at( m_currentJet ).name );
+        m_fontBig->renderText( rctx,  color::white, posx, 64, m_jetsContainer.at( m_currentJet ).name );
     }
     {
         RenderContext rctx2 = rctx;
@@ -513,8 +512,8 @@ void Game::renderScreenCustomize( RenderContext rctx )
             , 0.001f
             , 2000.0f
         );
-        rctx2.model = glm::translate( rctx2.model, glm::vec3{ 0, -0.1, -1.25 } );
-        rctx2.model = glm::rotate( rctx2.model, glm::radians( 15.0f ), glm::vec3{ 1, 0, 0 } );
+        rctx2.model = glm::translate( rctx2.model, glm::vec3{ 0, 0.1, -1.25 } );
+        rctx2.model = glm::rotate( rctx2.model, glm::radians( -15.0f ), glm::vec3{ 1, 0, 0 } );
         rctx2.model = glm::rotate( rctx2.model, glm::radians( (float)m_modelRotation ), glm::vec3{ 0, 1, 0 } );
         assert( m_previewModel );
         m_previewModel->render( rctx2 );

@@ -20,22 +20,23 @@ static std::array<glm::vec4, 6> composeUV( glm::vec4 vec )
     return {
         glm::vec4{ vec.x, vec.y, 0.0f, 0.0f },
         glm::vec4{ vec.x, vec.w, 0.0f, 0.0f },
-        glm::vec4{ vec.z, vec.y, 0.0f, 0.0f },
-        glm::vec4{ vec.z, vec.y, 0.0f, 0.0f },
-        glm::vec4{ vec.x, vec.w, 0.0f, 0.0f },
         glm::vec4{ vec.z, vec.w, 0.0f, 0.0f },
+        glm::vec4{ vec.z, vec.w, 0.0f, 0.0f },
+        glm::vec4{ vec.z, vec.y, 0.0f, 0.0f },
+        glm::vec4{ vec.x, vec.y, 0.0f, 0.0f },
     };
 }
 
 static std::array<glm::vec4, 6> composeVertice( glm::vec2 advance, glm::vec2 size, glm::vec2 padding )
 {
     return {
-        glm::vec4{ advance.x + padding.x, padding.y, 0.0f, 0.0f },
-        glm::vec4{ advance.x + padding.x, padding.y - size.y, 0.0f, 0.0f },
-        glm::vec4{ advance.x + padding.x + size.x, padding.y, 0.0f, 0.0f },
-        glm::vec4{ advance.x + padding.x + size.x, padding.y, 0.0f, 0.0f },
-        glm::vec4{ advance.x + padding.x, padding.y - size.y, 0.0f, 0.0f },
-        glm::vec4{ advance.x + padding.x + size.x, padding.y - size.y, 0.0f, 0.0f },
+        glm::vec4{ advance.x + padding.x, -padding.y, 0.0f, 0.0f },
+        glm::vec4{ advance.x + padding.x, size.y - padding.y, 0.0f, 0.0f },
+        glm::vec4{ advance.x + padding.x + size.x, size.y - padding.y, 0.0f, 0.0f },
+
+        glm::vec4{ advance.x + padding.x + size.x, size.y - padding.y, 0.0f, 0.0f },
+        glm::vec4{ advance.x + padding.x + size.x, -padding.y, 0.0f, 0.0f },
+        glm::vec4{ advance.x + padding.x, -padding.y, 0.0f, 0.0f },
     };
 }
 

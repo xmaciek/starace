@@ -14,40 +14,40 @@ static constexpr float uvmax = 0.99875f;
 static constexpr float size = 1000.0f;
 
 static constexpr std::array<glm::vec4, 4> wall1{
-    glm::vec4{ -size, -size, -size, 0.0f },
-    glm::vec4{  size, -size, -size, 0.0f },
-    glm::vec4{  size,  size, -size, 0.0f },
-    glm::vec4{ -size,  size, -size, 0.0f }
+    glm::vec4{ -size, -size, size, 0.0f },
+    glm::vec4{  size, -size, size, 0.0f },
+    glm::vec4{  size,  size, size, 0.0f },
+    glm::vec4{ -size,  size, size, 0.0f }
 };
 static constexpr std::array<glm::vec4, 4> wall2{
-    glm::vec4{ -size,  size,  size, 0.0f },
-    glm::vec4{  size,  size,  size, 0.0f },
-    glm::vec4{  size, -size,  size, 0.0f },
-    glm::vec4{ -size, -size,  size, 0.0f }
-};
-static constexpr std::array<glm::vec4, 4> wall3{
-    glm::vec4{ -size, -size,  size, 0.0f },
-    glm::vec4{ -size, -size, -size, 0.0f },
-    glm::vec4{ -size,  size, -size, 0.0f },
-    glm::vec4{ -size,  size,  size, 0.0f }
-};
-static constexpr std::array<glm::vec4, 4> wall4{
-    glm::vec4{  size,  size,  size, 0.0f },
-    glm::vec4{  size,  size, -size, 0.0f },
-    glm::vec4{  size, -size, -size, 0.0f },
-    glm::vec4{  size, -size,  size, 0.0f }
-};
-static constexpr std::array<glm::vec4, 4> wall5{
-    glm::vec4{ -size,  size,  size, 0.0f },
     glm::vec4{ -size,  size, -size, 0.0f },
     glm::vec4{  size,  size, -size, 0.0f },
-    glm::vec4{  size,  size,  size, 0.0f }
-};
-static constexpr std::array<glm::vec4, 4> wall6{
-    glm::vec4{ -size, -size,  size, 0.0f },
-    glm::vec4{  size, -size,  size, 0.0f },
     glm::vec4{  size, -size, -size, 0.0f },
     glm::vec4{ -size, -size, -size, 0.0f }
+};
+static constexpr std::array<glm::vec4, 4> wall3{
+    glm::vec4{ -size, -size, -size, 0.0f },
+    glm::vec4{ -size, -size, size, 0.0f },
+    glm::vec4{ -size,  size, size, 0.0f },
+    glm::vec4{ -size,  size, -size, 0.0f }
+};
+static constexpr std::array<glm::vec4, 4> wall4{
+    glm::vec4{  size,  size, -size, 0.0f },
+    glm::vec4{  size,  size, size, 0.0f },
+    glm::vec4{  size, -size, size, 0.0f },
+    glm::vec4{  size, -size, -size, 0.0f }
+};
+static constexpr std::array<glm::vec4, 4> wall5{
+    glm::vec4{ -size,  size, -size, 0.0f },
+    glm::vec4{ -size,  size, size, 0.0f },
+    glm::vec4{  size,  size, size, 0.0f },
+    glm::vec4{  size,  size, -size, 0.0f }
+};
+static constexpr std::array<glm::vec4, 4> wall6{
+    glm::vec4{ -size, -size, -size, 0.0f },
+    glm::vec4{  size, -size, -size, 0.0f },
+    glm::vec4{  size, -size, size, 0.0f },
+    glm::vec4{ -size, -size, size, 0.0f }
 };
 
 static constexpr std::array<glm::vec4,4> uv1 {

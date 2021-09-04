@@ -199,11 +199,10 @@ void Game::onResize( uint32_t w, uint32_t h )
 
     const uint32_t halfW = viewportWidth() >> 1;
     const uint32_t halfH = viewportHeight() >> 1;
-    const uint32_t h015 = (uint32_t)( (float)viewportHeight() * 0.15f );
+    const uint32_t h015 = viewportHeight() - (uint32_t)( (float)viewportHeight() * 0.15f );
     m_btnExit.setPosition( halfW + 4, h015 );
     m_btnQuitMission.setPosition( halfW - 196, h015 );
-    m_btnChangeFiltering.setPosition( 512, viewportHeight() - 192 );
-    m_btnSelectMission.setPosition( halfW - 96, h015 + 52 );
+    m_btnSelectMission.setPosition( halfW - 96, h015 - 52 );
     m_btnGO.setPosition( halfW - 96, h015 );
     m_btnStartMission.setPosition( halfW + 4, h015 );
     m_btnReturnToMainMenu.setPosition( halfW - 196, h015 );
@@ -422,12 +421,12 @@ void Game::updateGame( const UpdateContext& updateContext )
     assert( m_jet );
     Jet::Input jetInput{};
     const Uint8* kbd = SDL_GetKeyboardState( nullptr );
-    jetInput.pitch += kbd[ SDL_SCANCODE_W ] ? -1.0f : 0.0f;
-    jetInput.pitch += kbd[ SDL_SCANCODE_S ] ?  1.0f : 0.0f;
+    jetInput.pitch += kbd[ SDL_SCANCODE_W ] ? 1.0f : 0.0f;
+    jetInput.pitch += kbd[ SDL_SCANCODE_S ] ? -1.0f : 0.0f;
     jetInput.yaw += kbd[ SDL_SCANCODE_Q ] ?  1.0f : 0.0f;
     jetInput.yaw += kbd[ SDL_SCANCODE_E ] ? -1.0f : 0.0f;
-    jetInput.roll += kbd[ SDL_SCANCODE_A ] ?  1.0f : 0.0f;
-    jetInput.roll += kbd[ SDL_SCANCODE_D ] ? -1.0f : 0.0f;
+    jetInput.roll += kbd[ SDL_SCANCODE_A ] ? -1.0f : 0.0f;
+    jetInput.roll += kbd[ SDL_SCANCODE_D ] ?  1.0f : 0.0f;
     jetInput.speed += kbd[ SDL_SCANCODE_U ] ? -1.0f : 0.0f;
     jetInput.speed += kbd[ SDL_SCANCODE_O ] ?  1.0f : 0.0f;
     jetInput.shoot1 = !!kbd[ SDL_SCANCODE_J ];

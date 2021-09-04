@@ -83,7 +83,6 @@ private:
     FPSMeter m_fpsMeter{};
 
     BulletProto m_weapons[ 4 ]{};
-    Button m_btnChangeFiltering{};
     Button m_btnCustomizeReturn{};
     Button m_btnCustomize{};
     Button m_btnExit{};
