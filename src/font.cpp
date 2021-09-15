@@ -171,19 +171,6 @@ Font::Font( std::string_view fontname, uint32_t h )
 
     FT_Done_FreeType( library );
 
-    const auto makeRGBA = []( uint8_t c )
-    {
-        uint32_t ret = 0;
-        ret = c;
-        ret <<= 8;
-        ret |= c;
-        ret <<= 8;
-        ret |= c;
-        ret <<= 8;
-        ret |= c;
-        return ret;
-    };
-
     const size_t textureSize = ( FONT_SIZE_SCALE * h * 12 ) * ( FONT_SIZE_SCALE * h * 12);
     std::pmr::vector<uint8_t> texture( textureSize );
     const size_t dstPitch = static_cast<size_t>( FONT_SIZE_SCALE * (float)h * 12 );
@@ -197,14 +184,12 @@ Font::Font( std::string_view fontname, uint32_t h )
         std::copy_n( glyph.data.begin(), glyph.data.size(), dst );
     }
 
-    std::pmr::vector<uint32_t> tex( texture.size() );
-    std::transform( texture.begin(), texture.end(), tex.begin(), makeRGBA );
     m_texture = Renderer::instance()->createTexture(
         dstPitch
         , dstPitch
-        , Texture::Format::eRGBA
+        , Texture::Format::eR
         , false
-        , reinterpret_cast<const uint8_t*>( tex.data() )
+        , reinterpret_cast<const uint8_t*>( texture.data() )
     );
 
 }

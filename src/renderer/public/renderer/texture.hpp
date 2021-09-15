@@ -6,8 +6,11 @@ struct Texture {
     void* ptr = nullptr;
 
     enum struct Format {
+        eR,
         eRGB,
         eRGBA,
+        eBGRA,
+        eBGR,
     };
 
 

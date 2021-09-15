@@ -11,5 +11,7 @@ layout( location = 0 ) out vec4 outColor;
 
 void main()
 {
-    outColor = texture( fontTexture, fragUV ).rgba * fragColor;
+    vec4 color = fragColor;
+    color.a *= texture( fontTexture, fragUV ).r;
+    outColor = color;
 }

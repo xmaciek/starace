@@ -445,6 +445,39 @@ std::pmr::memory_resource* RendererVK::allocator()
     return std::pmr::get_default_resource();
 }
 
+static VkFormat convertFormat( Texture::Format fmt )
+{
+    switch ( fmt ) {
+    case Texture::Format::eR:
+        return VK_FORMAT_R8_UNORM;
+    case Texture::Format::eRGB:
+    case Texture::Format::eRGBA:
+        return VK_FORMAT_R8G8B8A8_UNORM;
+    case Texture::Format::eBGR:
+    case Texture::Format::eBGRA:
+        return VK_FORMAT_B8G8R8A8_UNORM;
+    default:
+        assert( !"unhandled format" );
+        return VK_FORMAT_UNDEFINED;
+    }
+}
+
+static size_t formatToSize( Texture::Format fmt )
+{
+    switch ( fmt ) {
+    case Texture::Format::eR:
+        return 1;
+    case Texture::Format::eRGB:
+    case Texture::Format::eRGBA:
+    case Texture::Format::eBGR:
+    case Texture::Format::eBGRA:
+        return 4;
+    default:
+        assert( !"unhandled format" );
+        return 0;
+    }
+}
+
 Texture RendererVK::createTexture( uint32_t width, uint32_t height, Texture::Format fmt, bool, const uint8_t* data )
 {
     assert( width > 0 );
@@ -452,8 +485,10 @@ Texture RendererVK::createTexture( uint32_t width, uint32_t height, Texture::For
     assert( data );
 
     std::pmr::vector<uint32_t> vec{ allocator() };
-    if ( fmt == Texture::Format::eRGB ) {
-        fmt = Texture::Format::eRGBA;
+    switch ( fmt ) {
+    case Texture::Format::eRGB:
+    case Texture::Format::eBGR:
+    {
         vec.resize( width * height );
         using RGB = uint8_t[3];
         const RGB* rgb = reinterpret_cast<const RGB*>( data );
@@ -466,17 +501,17 @@ Texture RendererVK::createTexture( uint32_t width, uint32_t height, Texture::For
                 | 0xff000000;
         } );
         data = reinterpret_cast<const uint8_t*>( vec.data() );
+    } break;
+    default: break;
     }
-    const std::size_t size = width * height * ( fmt == Texture::Format::eRGB ? 3 : 4 );
+    const std::size_t size = width * height * formatToSize( fmt );
     BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, size };
     staging.copyData( data );
 
     m_textures.emplace_back( new TextureVK{ m_physicalDevice
         , m_device
         , VkExtent2D{ width, height }
-        , fmt == Texture::Format::eRGB
-            ? VK_FORMAT_R8G8B8_SRGB
-            : VK_FORMAT_R8G8B8A8_UNORM
+        , convertFormat( fmt )
     } );
     TextureVK* tex = m_textures.back();
 
@@ -558,7 +593,7 @@ void RendererVK::deleteBuffer( const Buffer& b )
 
 void RendererVK::deleteTexture( Texture t )
 {
-    assert( t.ptr );
+    if ( !t.ptr ) { return; }
     TextureVK* ptr = reinterpret_cast<TextureVK*>( t.ptr );
     m_textures.erase( std::remove( m_textures.begin(), m_textures.end(), ptr ), m_textures.end() );
     m_texturesPendingDelete.push_back( ptr );

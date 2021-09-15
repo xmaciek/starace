@@ -47,28 +47,21 @@ Texture loadTexture( std::pmr::vector<uint8_t>&& data )
     assert( header.width > 0 );
     assert( header.height > 0 );
     const size_t bytesPerPixel = header.bitsPerPixel / 8;
-    assert( bytesPerPixel == 3 || bytesPerPixel == 4 );
     const size_t textureSize = header.width * header.height * bytesPerPixel;
 
     std::vector<uint8_t> texture( textureSize );
     std::copy_n( it, texture.size(), texture.begin() );
 
-    if ( bytesPerPixel == 3 ) {
-        std::vector<uint8_t> tmp( header.width * header.height * 4 );
-        struct BGR { uint8_t b,g,r; };
-        struct RGBA { uint8_t r,g,b,a; };
-        BGR* begin = reinterpret_cast<BGR*>( texture.data() );
-        BGR* end = begin + header.width * header.height;
-        RGBA* dataOut = reinterpret_cast<RGBA*>( tmp.data() );
-        std::transform( begin, end, dataOut, []( BGR bgr ) { return RGBA{ bgr.r, bgr.g, bgr.b, 255u }; } );
-        texture = std::move( tmp );
-    } else {
-        for ( uint8_t* ptr = texture.data(); ptr < &texture.back(); ptr += 4 ) {
-            std::swap( ptr[ 0 ], ptr[ 2 ] );
-        }
+    Texture::Format fmt = {};
+    switch ( bytesPerPixel ) {
+    case 1: fmt = Texture::Format::eR; break;
+    case 3: fmt = Texture::Format::eBGR; break;
+    case 4: fmt = Texture::Format::eBGRA; break;
+    default:
+        assert( !"unhandled format" );
+        break;
     }
-
-    return Renderer::instance()->createTexture( header.width, header.height, Texture::Format::eRGBA, true, texture.data() );
+    return Renderer::instance()->createTexture( header.width, header.height, fmt, true, texture.data() );
 }
 
 Texture loadTexture( std::string_view filename )
