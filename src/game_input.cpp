@@ -218,7 +218,7 @@ void Game::onMouseClickLeft( int32_t x, int32_t y )
 
 void Game::onMouseMove( const SDL_MouseMotionEvent& event )
 {
-    const uint32_t y = viewportHeight() - event.y;
+    const uint32_t y = event.y;
     const uint32_t x = (uint32_t)event.x;
     m_btnCustomizeReturn.mouseMove( x, y );
     m_btnCustomize.mouseMove( x, y );
