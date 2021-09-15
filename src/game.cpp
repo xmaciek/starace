@@ -38,17 +38,6 @@ Game::~Game()
     delete m_fontGuiTxt;
     delete m_fontBig;
 
-    destroyTexture( m_hudTex );
-    destroyTexture( m_buttonTexture );
-    destroyTexture( m_menuBackground );
-    destroyTexture( m_menuBackgroundOverlay );
-    for ( auto it : m_cyberRingTexture ) {
-        destroyTexture( it );
-    }
-    destroyTexture( m_starfieldTexture );
-    for ( auto& it : m_mapsContainer ) {
-        destroyTexture( it.preview_image );
-    }
     delete m_previewModel;
     delete m_enemyModel;
     delete m_renderer;

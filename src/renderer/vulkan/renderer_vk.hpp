@@ -59,9 +59,11 @@ class RendererVK : public Renderer {
     std::array<PipelineVK, (size_t)Pipeline::count> m_pipelines{};
     PipelineVK* m_lastPipeline = nullptr;
 
-    std::pmr::vector<TextureVK*> m_textures;
+    std::pmr::vector<TextureVK*> m_textures{};
+    std::pmr::vector<TextureVK*> m_texturesPendingDelete{};
 
     std::pmr::map<Buffer, BufferVK> m_bufferMap{};
+    std::pmr::vector<BufferVK> m_bufferPendingDelete{};
 
     VkFormat m_depthFormat = {};
 

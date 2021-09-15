@@ -364,8 +364,12 @@ RendererVK::~RendererVK()
     m_transferToGraphicsCmd = {};
     m_transferCmd = {};
     m_bufferMap.clear();
+    m_bufferPendingDelete.clear();
     m_mainTargets.clear();
     for ( TextureVK* it : m_textures ) {
+        delete it;
+    }
+    for ( TextureVK* it : m_texturesPendingDelete ) {
         delete it;
     }
     for ( BufferPool& it : m_uniforms ) {
@@ -543,8 +547,22 @@ void RendererVK::beginFrame()
     m_mainPass.begin( cmd, m_mainTargets[ m_currentFrame ].framebuffer(), rect );
 }
 
-void RendererVK::deleteBuffer( const Buffer& ) {}
-void RendererVK::deleteTexture( Texture ) {}
+void RendererVK::deleteBuffer( const Buffer& b )
+{
+    auto it = m_bufferMap.find( b );
+    if ( it != m_bufferMap.end() ) {
+        m_bufferPendingDelete.emplace_back( std::move( it->second ) );
+        m_bufferMap.erase( it );
+    }
+}
+
+void RendererVK::deleteTexture( Texture t )
+{
+    assert( t.ptr );
+    TextureVK* ptr = reinterpret_cast<TextureVK*>( t.ptr );
+    m_textures.erase( std::remove( m_textures.begin(), m_textures.end(), ptr ), m_textures.end() );
+    m_texturesPendingDelete.push_back( ptr );
+}
 
 void RendererVK::recreateSwapchain()
 {
@@ -627,6 +645,11 @@ void RendererVK::submit()
     assert( submitOK == VK_SUCCESS );
 
     vkQueueWaitIdle( m_graphicsCmd.queue() );
+    auto bufferDel = std::move( m_bufferPendingDelete );
+    auto textureDel = std::move( m_texturesPendingDelete );
+    for ( auto* it : textureDel ) {
+        delete it;
+    }
 }
 
 void RendererVK::present()
@@ -669,7 +692,7 @@ void RendererVK::push( const void* buffer, const void* constant )
     Pipeline p = *reinterpret_cast<const Pipeline*>( buffer );
     switch ( p ) {
     CASE( eGuiTextureColor1 )
-        const TextureVK* texture = reinterpret_cast<const TextureVK*>( pushBuffer->m_texture.data.ptr );
+        const TextureVK* texture = reinterpret_cast<const TextureVK*>( pushBuffer->m_texture.ptr );
         if ( !texture ) {
             return;
         }
@@ -694,7 +717,7 @@ void RendererVK::push( const void* buffer, const void* constant )
     } break;
 
     CASE( eShortString )
-        const TextureVK* texture = reinterpret_cast<const TextureVK*>( pushBuffer->m_texture.data.ptr );
+        const TextureVK* texture = reinterpret_cast<const TextureVK*>( pushBuffer->m_texture.ptr );
         if ( !texture ) {
             return;
         }
@@ -782,7 +805,7 @@ void RendererVK::push( const void* buffer, const void* constant )
     } break;
 
     CASE( eTriangleFan3dTexture )
-        const TextureVK* texture = reinterpret_cast<const TextureVK*>( pushBuffer->m_texture.data.ptr );
+        const TextureVK* texture = reinterpret_cast<const TextureVK*>( pushBuffer->m_texture.ptr );
         assert( texture );
         if ( !texture ) { return; }
 
@@ -807,7 +830,7 @@ void RendererVK::push( const void* buffer, const void* constant )
     } break;
 
     CASE( eTriangle3dTextureNormal )
-        const TextureVK* texture = reinterpret_cast<const TextureVK*>( pushBuffer->m_texture.data.ptr );
+        const TextureVK* texture = reinterpret_cast<const TextureVK*>( pushBuffer->m_texture.ptr );
         assert( texture );
         if ( !texture ) { return; }
 
