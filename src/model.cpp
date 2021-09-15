@@ -11,18 +11,46 @@
 
 Model::~Model()
 {
-    destroyTexture( m_textureID );
-    Renderer::instance()->deleteBuffer( m_vertices );
+    destroy();
+}
+
+void Model::destroy()
+{
+    if ( m_vertices.m_id ) {
+        Renderer::instance()->deleteBuffer( m_vertices );
+    }
+    if ( m_texture ) {
+        destroyTexture( m_texture );
+    }
 }
 
 Model::Model( const std::filesystem::path& path, Texture t, Renderer* renderer, float scale )
-: m_textureID{ t }
+: m_texture{ t }
 , m_scale{ scale }
 {
     assert( renderer );
     loadOBJ( path.c_str(), renderer );
 }
 
+Model::Model( Model&& rhs ) noexcept
+{
+    std::swap( m_vertices, rhs.m_vertices );
+    std::swap( m_texture, rhs.m_texture );
+    std::swap( m_thrusters, rhs.m_thrusters );
+    std::swap( m_weapons, rhs.m_weapons );
+    std::swap( m_scale, rhs.m_scale );
+}
+
+Model& Model::operator = ( Model&& rhs ) noexcept
+{
+    destroy();
+    m_vertices = rhs.m_vertices; rhs.m_vertices = {};
+    m_texture = rhs.m_texture; rhs.m_texture = {};
+    m_thrusters = std::move( rhs.m_thrusters );
+    m_weapons = rhs.m_weapons; rhs.m_weapons = {};
+    m_scale = rhs.m_scale; rhs.m_scale = {};
+    return *this;
+}
 
 void Model::render( RenderContext rctx ) const
 {
@@ -33,7 +61,7 @@ void Model::render( RenderContext rctx ) const
 
     PushBuffer<Pipeline::eTriangle3dTextureNormal> pushBuffer{};
     pushBuffer.m_vertices = m_vertices;
-    pushBuffer.m_texture = m_textureID;
+    pushBuffer.m_texture = m_texture;
 
     rctx.renderer->push( &pushBuffer, &pushConstant );
 }
