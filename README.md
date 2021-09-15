@@ -1,12 +1,15 @@
 # StarAce
-OpenGL based space shooter game for Linux
+Space shooter game for Linux
 
 ### About:
-This project is my bachelor/engineer diploma work made in late 2012 and sucessfuly defneded in march 2013 with best mark.
-Although this game is made using OpenGL 2 specification, it was due to time limitation (6 months) and my quite archaic hardware at the time which did not support newer OpenGL very well.
+This project is my bachelor/engineer diploma work made in late 2012 using OpenGL and sucessfuly defneded in march 2013 with best mark.
 
-Also in mid 2013 I suffered hard disk failure and I lost every further improvements like billboarding and sprites support. So I didn't do anything more with it.
-
+### Fast forward to 2021
+Hello Vulkan and few more improvements that should be there from the beginning :)
 
 ### Requirments:
-Linux, SDL 1.2
+* Linux
+* Vulkan >= 1.1
+* SDL 2 >= 2.0
+* GLM >= 0.9.9
+* Freetype 2 >= 2.10
