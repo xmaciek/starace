@@ -6,6 +6,7 @@
 #include "enemy.hpp"
 #include "font.hpp"
 #include "fps_meter.hpp"
+#include "hud.hpp"
 #include "jet.hpp"
 #include "map.hpp"
 #include "model_proto.hpp"
@@ -25,6 +26,7 @@
 #include <mutex>
 #include <thread>
 #include <tuple>
+#include <optional>
 
 struct Mix_Chunk;
 
@@ -81,6 +83,9 @@ private:
     std::mutex m_mutexJet{};
 
     FPSMeter m_fpsMeter{};
+
+    HudData m_hudData{};
+    std::optional<Hud> m_hud{};
 
     BulletProto m_weapons[ 4 ]{};
     Button m_btnCustomizeReturn{};

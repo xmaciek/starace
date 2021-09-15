@@ -135,14 +135,7 @@ void Game::renderHudTex( RenderContext rctx, const glm::vec4& color )
 void Game::renderHUD( RenderContext rctx )
 {
     const glm::vec4 color = m_currentHudColor;
-    char hudmessage[ 48 ]{};
-    std::snprintf( hudmessage, sizeof( hudmessage ), "Shots: %d", m_shotsDone );
-    m_fontGuiTxt->renderText( rctx, color, 320, 16, hudmessage );
-
-    assert( m_jet );
-    const uint32_t score = m_jet->score();;
-    std::snprintf( hudmessage, sizeof( hudmessage ), "SCORE: %u", score );
-    m_fontGuiTxt->renderText( rctx, color, 64, 100, hudmessage );
+    m_hud->render( rctx );
     /*radar*/
 #if 0
     const glm::mat4x4 jetMat = glm::toMat4( m_jet->quat() );
@@ -280,21 +273,6 @@ void Game::renderHUD( RenderContext rctx )
 
     renderHUDBar( rctx, glm::vec4{ 12, 12, 36, 96 }, power / 100 );
     renderHUDBar( rctx, glm::vec4{ 64, 12, 36, 96 }, health / 100 );
-
-    {
-        std::string msg{ "FPS done: " };
-        msg += std::to_string( m_fpsMeter.fps() );
-        msg += ", calculated: ";
-        msg += std::to_string( m_fpsMeter.calculated() );
-        const double textMid = static_cast<double>( m_fontGuiTxt->textLength( "FPS done: XXX, calculated: xxxx.xx" ) ) / 2;
-        const double posx = (double)viewportWidth() / 2.0 - textMid;
-        m_fontGuiTxt->renderText( rctx, color, posx, 28, msg );
-    }
-    {
-        std::string msg{ "Bullet pool: " };
-        msg += std::to_string( m_poolBullets.allocCount() );
-        m_fontGuiTxt->renderText( rctx, color, 64, 64, msg );
-    }
     m_fontPauseTxt->renderText( rctx, color, 10, viewportHeight() - 120, "PWR" );
     m_fontPauseTxt->renderText( rctx, color, 66, viewportHeight() - 120, "HP" );
 

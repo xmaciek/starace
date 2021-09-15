@@ -250,7 +250,7 @@ RendererVK::RendererVK( SDL_Window* window )
     for ( size_t i = 0; i < m_swapchain.imageCount(); ++i ) {
         m_descriptorSetBufferSampler.emplace_back(
             m_device
-            , 30
+            , 100
             , std::pmr::vector<DescriptorSet::UniformObject>{
                 DescriptorSet::uniformBuffer,
                 DescriptorSet::imageSampler

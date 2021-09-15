@@ -34,36 +34,32 @@ static glm::vec2 calculatePositionOffset( Font* f, std::string_view s, Label::HA
 
 Label::Label( std::string_view s, Font* f, const glm::vec2& position, const glm::vec4& color )
 : m_font( f )
-, m_text( s )
 , m_color( color )
-, m_position( position )
 {
     assert( f );
-    m_positionOffset = calculatePositionOffset( f, s, m_halign, m_valign );
-    m_renderText = f->composeText( color, s );
+    setPosition( position );
+    setText( s );
 }
 
 Label::Label( std::string_view s, HAlign ah, VAlign av, Font* f, const glm::vec2& position, const glm::vec4& color )
 : m_font( f )
-, m_text( s )
 , m_color( color )
-, m_position( position )
 , m_halign( ah )
 , m_valign( av )
 {
     assert( f );
-    m_positionOffset = calculatePositionOffset( f, s, ah, av );
-    m_renderText = f->composeText( color, s );
+    setPosition( position );
+    setText( s );
 }
 
 Label::Label( Font* f, HAlign ah, VAlign av, const glm::vec2& position, const glm::vec4& color )
 : m_font( f )
 , m_color( color )
-, m_position( position )
 , m_halign( ah )
 , m_valign( av )
 {
     assert( f );
+    setPosition( position );
 }
 
 void Label::render( RenderContext rctx ) const
@@ -82,9 +78,5 @@ void Label::setText( std::string_view str )
     m_positionOffset = calculatePositionOffset( m_font, str, m_halign, m_valign );
     m_text = str;
     m_renderText = m_font->composeText( m_color, str );
-}
-
-void Label::setPosition( glm::vec2 pos )
-{
-    m_position = pos;
+    m_size = { m_font->textLength( m_text ), m_font->height() };
 }

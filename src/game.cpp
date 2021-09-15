@@ -225,6 +225,8 @@ void Game::initRoadAdditions()
     m_fontGuiTxt = new Font( "misc/DejaVuSans-Bold.ttf", 12 );
     m_fontBig = new Font( "misc/DejaVuSans-Bold.ttf", 32 );
 
+    m_hud.emplace( &m_hudData, m_fontGuiTxt );
+
     m_buttonTexture = loadTexture( m_io->getWait( "textures/button1.tga" ) );
 
     m_btnExit = Button( "Exit Game", m_fontGuiTxt, m_buttonTexture );
@@ -399,6 +401,10 @@ void Game::onUpdate( const UpdateContext& updateContext )
         updateCustomize( updateContext );
         break;
     }
+    m_hudData.calc = (uint32_t)m_fpsMeter.calculated();
+    m_hudData.fps = (uint32_t)m_fpsMeter.fps();
+    m_hudData.pool = m_poolBullets.allocCount();
+    m_hud->update( updateContext );
 }
 
 void Game::pause()
@@ -419,6 +425,9 @@ void Game::updateGamePaused( const UpdateContext& updateContext )
 void Game::updateGame( const UpdateContext& updateContext )
 {
     assert( m_jet );
+
+    m_hudData.score = m_jet->score();
+    m_hudData.shots = m_shotsDone;
     Jet::Input jetInput{};
     const Uint8* kbd = SDL_GetKeyboardState( nullptr );
     jetInput.pitch += kbd[ SDL_SCANCODE_W ] ? 1.0f : 0.0f;

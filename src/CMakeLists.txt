@@ -26,6 +26,8 @@ set( STARACE_SOURCES
     game.hpp
     game_input.cpp
     game_rendering.cpp
+    hud.cpp
+    hud.hpp
     jet.cpp
     jet.hpp
     label.cpp
@@ -56,6 +58,8 @@ set( STARACE_SOURCES
     update_context.hpp
     utils.cpp
     utils.hpp
+    widget.cpp
+    widget.hpp
 )
 
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
