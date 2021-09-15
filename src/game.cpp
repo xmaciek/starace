@@ -87,11 +87,10 @@ void Game::loopGame()
         const std::chrono::time_point tp = std::chrono::steady_clock::now();
         m_fpsMeter.frameBegin();
 
+        onUpdate( updateContext );
         m_renderer->beginFrame();
         onRender();
-        m_renderer->submit();
 
-        onUpdate( updateContext );
         std::vector<SDL_Event> events{};
         {
             std::scoped_lock lock{ m_eventsBottleneck };
@@ -100,6 +99,7 @@ void Game::loopGame()
         for ( SDL_Event& it : events ) {
             onEvent( it );
         }
+        m_renderer->submit();
         m_fpsMeter.frameEnd();
         m_renderer->present();
 
@@ -195,7 +195,6 @@ void Game::onResize( uint32_t w, uint32_t h )
 {
     m_maxDimention = std::max( w, h );
     m_minDimention = std::min( w, h );
-    m_renderer->setViewportSize( w, h );
 
     const uint32_t halfW = viewportWidth() >> 1;
     const uint32_t halfH = viewportHeight() >> 1;
@@ -334,7 +333,6 @@ void Game::updateCyberRings( const UpdateContext& updateContext )
 
 void Game::onRender()
 {
-    m_renderer->clear();
     RenderContext rctx{};
     rctx.renderer = m_renderer;
     rctx.viewport = { m_viewportWidth, m_viewportHeight };

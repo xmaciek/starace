@@ -543,10 +543,8 @@ void RendererVK::beginFrame()
     m_mainPass.begin( cmd, m_mainTargets[ m_currentFrame ].framebuffer(), rect );
 }
 
-void RendererVK::clear() { }
 void RendererVK::deleteBuffer( const Buffer& ) {}
 void RendererVK::deleteTexture( Texture ) {}
-void RendererVK::setViewportSize( uint32_t, uint32_t ) {}
 
 void RendererVK::recreateSwapchain()
 {
