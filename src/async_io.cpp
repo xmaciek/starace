@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <fstream>
+#include <chrono>
 
 namespace asyncio {
 
@@ -19,6 +20,7 @@ Service::~Service() noexcept
 }
 
 Service::Service() noexcept
+: m_uniqueLock{ m_mutex }
 {
     m_thread = std::thread{ &Service::run, this };
 }
@@ -31,6 +33,7 @@ void Service::enqueue( const std::filesystem::path& path, std::pmr::memory_resou
     Ticket* expected = nullptr;
     for ( auto& it : m_pending ) {
         if ( it.compare_exchange_strong( expected, ticket ) ) {
+            m_notify.notify_all();
             return;
         }
     }
@@ -59,8 +62,9 @@ void Service::finish( Ticket* ticket )
 
 void Service::run()
 {
+    using namespace std::chrono_literals;
     while ( m_isRunning.load() ) {
-        std::this_thread::sleep_for( std::chrono::milliseconds( 5 ) );
+        m_notify.wait_for( m_uniqueLock, 5ms );
         Ticket* ticket = next();
         if ( !ticket ) { continue; }
         std::ifstream ifs( ticket->path, std::ios::binary | std::ios::ate );

@@ -5,6 +5,7 @@
 #include <array>
 #include <atomic>
 #include <cstdint>
+#include <condition_variable>
 #include <filesystem>
 #include <memory_resource>
 #include <mutex>
@@ -28,6 +29,10 @@ class Service {
     std::array<std::atomic<Ticket*>, 16> m_ready{};
     Pool<Ticket, 16> m_pool{};
     std::mutex m_bottleneck{};
+
+    std::condition_variable m_notify;
+    std::mutex m_mutex;
+    std::unique_lock<std::mutex> m_uniqueLock;
 
     void run();
     Ticket* next();
