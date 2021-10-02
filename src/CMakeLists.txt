@@ -16,6 +16,7 @@ set( STARACE_SOURCES
     button.hpp
     circle.hpp
     colors.hpp
+    constants.hpp
     enemy.cpp
     enemy.hpp
     font.cpp
@@ -71,10 +72,7 @@ target_compile_definitions( ${bin_name} PRIVATE
     GLM_FORCE_RADIANS=1
 )
 
-set_target_properties( ${bin_name} PROPERTIES
-    CXX_STANDARD 17
-    CXX_STANDARD_REQUIRED 17
-)
+set_cppver( ${bin_name} 20 )
 
 target_link_libraries( ${bin_name}
     audio
@@ -86,15 +84,10 @@ target_link_libraries( ${bin_name}
 )
 
 add_dependencies( starace shader model )
-
 target_sources( cooker_obj
     PRIVATE
     cooker_obj.cpp
     obj.hpp
 )
-set_target_properties( cooker_obj PROPERTIES
-    CXX_STANDARD 17
-    CXX_STANDARD_REQUIRED 17
-)
-
+set_cppver( cooker_obj 20 )
 

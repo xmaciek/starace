@@ -15,12 +15,6 @@ constexpr double colorHalf( double col ) noexcept
     return ( col >= 0.5 ) ? 1.0 - col : col;
 }
 
-constexpr float lerp( float a, float b, float n ) noexcept
-{
-    const float range = b - a;
-    return a + range * n;
-}
-
 constexpr static float operator ""_deg ( long double f ) noexcept
 {
     return glm::radians( static_cast<float>( f ) );

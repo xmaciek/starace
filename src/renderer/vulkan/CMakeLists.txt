@@ -33,10 +33,7 @@ target_sources( renderer_vk
 
 target_compile_options( renderer_vk PRIVATE -Werror -Wall -Wextra -Wno-missing-field-initializers  )
 
-set_target_properties( renderer_vk PROPERTIES
-    CXX_STANDARD 17
-    CXX_STANDARD_REQUIRED 17
-)
+set_cppver( renderer_vk 20 )
 
 target_link_libraries( renderer_vk
     renderer

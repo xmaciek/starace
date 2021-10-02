@@ -2,6 +2,7 @@
 
 #include "colors.hpp"
 #include "utils.hpp"
+#include "constants.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -303,9 +304,8 @@ void Game::updateCyberRings( const UpdateContext& updateContext )
 {
     static constexpr auto warp = []( float f )
     {
-        constexpr float pie = (float)M_PI;
-        if ( f > pie ) { return f - pie * 2.0f; }
-        if ( f < -pie ) { return f + pie * 2.0f; }
+        if ( f > constants::pi ) { return f - constants::pi * 2.0f; }
+        if ( f < -constants::pi ) { return f + constants::pi * 2.0f; }
         return f;
     };
     m_cyberRingRotation[ 0 ] = warp( m_cyberRingRotation[ 0 ] + 25.0_deg * updateContext.deltaTime );
@@ -871,7 +871,7 @@ void Game::saveConfig()
 void Game::updateClouds( const UpdateContext& updateContext )
 {
     m_alphaN = fmodf( m_alphaN + updateContext.deltaTime * 0.1f, 1.0f );
-    m_alphaValue = 0.65f + 0.35f * std::cos( lerp( -M_PI, M_PI, m_alphaN ) );
+    m_alphaValue = 0.65f + 0.35f * std::cos( std::lerp( -constants::pi, constants::pi, m_alphaN ) );
 }
 
 void Game::updateCustomize( const UpdateContext& updateContext )

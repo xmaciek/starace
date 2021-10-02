@@ -3,6 +3,7 @@
 #include <cassert>
 #include <atomic>
 #include <array>
+#include <bit>
 #include <cstddef>
 
 template <typename T, size_t TCapacity>
@@ -29,10 +30,10 @@ class Pool {
             oldValue = atomic.load();
             const uint64_t neg = ~oldValue;
             if ( neg == 0 ) { return c_invalidIndex; }
-            index = __builtin_clzll( neg );
+            index = std::countl_zero( neg );
             const uint64_t bitToSet = c_bitMax - index;
             const uint64_t bitMask = c_bit << bitToSet;
-            assert( __builtin_popcountll( bitMask ) == 1 );
+            assert( std::popcount( bitMask ) == 1 );
             candidate = oldValue | bitMask;
         } while ( !atomic.compare_exchange_strong( oldValue, candidate ) );
         return index;
@@ -56,7 +57,7 @@ class Pool {
         const uint64_t chunk = index >> 6;
         const uint64_t bit = c_bitMax - ( index & 0b111111 );
         const uint64_t bitMask = c_bit << bit;
-        assert( __builtin_popcountll( bitMask ) == 1 );
+        assert( std::popcount( bitMask ) == 1 );
         return { chunk, bitMask };
     }
 

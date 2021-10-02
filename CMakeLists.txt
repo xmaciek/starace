@@ -1,4 +1,4 @@
-cmake_minimum_required( VERSION 3.18.0 )
+cmake_minimum_required( VERSION 3.20.0 )
 project( StarAce )
 
 set( STARACE_MAJOR_VERSION 1 )
@@ -10,6 +10,14 @@ set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 include( glm.cmake )
 
 add_executable( cooker_obj )
+
+function( set_cppver tgt cppver )
+    set_target_properties( ${tgt} PROPERTIES
+        CXX_STANDARD ${cppver}
+        CXX_STANDARD_REQUIRED ${cppver}
+    )
+endfunction()
+
 
 add_subdirectory( misc )
 add_subdirectory( models )

@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 
 constexpr static glm::vec3 defaultPyrAcceleration{ 15.0_deg, 10.0_deg, 50.0_deg };
 constexpr static glm::vec3 defaultPyrLimits{ 40.0_deg, 20.0_deg, 60.0_deg };
@@ -98,8 +99,8 @@ void Jet::update( const UpdateContext& updateContext )
     }
 
     m_speedTarget = m_input.speed >= 0
-        ? lerp( m_speedNorm, m_speedMax, m_input.speed )
-        : lerp( m_speedMin, m_speedNorm, 1.0f + m_input.speed );
+        ? std::lerp( m_speedNorm, m_speedMax, m_input.speed )
+        : std::lerp( m_speedMin, m_speedNorm, 1.0f + m_input.speed );
     if ( m_input.speed > 0 ) {
         const float afterburnerCost = 70.0f * updateContext.deltaTime;
         m_reactor.consume( afterburnerCost );
