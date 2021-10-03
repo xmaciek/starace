@@ -257,3 +257,12 @@ VkSampler TextureVK::sampler() const
     assert( m_sampler );
     return m_sampler;
 }
+
+VkDescriptorImageInfo TextureVK::imageInfo() const
+{
+    return {
+        .sampler = m_sampler,
+        .imageView = m_view,
+        .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+    };
+}

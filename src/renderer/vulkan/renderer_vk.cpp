@@ -739,6 +739,35 @@ static void updateDescriptor( VkDevice device, VkDescriptorSet descriptorSet, co
     vkUpdateDescriptorSets( device, 1, &descriptorWrite, 0, nullptr );
 }
 
+static void updateDescriptor( VkDevice device
+    , VkDescriptorSet descriptorSet
+    , const VkDescriptorBufferInfo& bufferInfo
+    , const VkDescriptorImageInfo& imageInfo
+)
+{
+    const VkWriteDescriptorSet descriptorWrites[] = {
+        {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstSet = descriptorSet,
+            .dstBinding = 0,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .pBufferInfo = &bufferInfo,
+        },
+        {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstSet = descriptorSet,
+            .dstBinding = 1,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .pImageInfo = &imageInfo,
+        },
+    };
+    const uint32_t writeCount = (uint32_t)std::size( descriptorWrites );;
+    vkUpdateDescriptorSets( device, writeCount, descriptorWrites, 0, nullptr );
+}
 
 void RendererVK::push( const void* buffer, const void* constant )
 {
@@ -761,21 +790,13 @@ void RendererVK::push( const void* buffer, const void* constant )
             return;
         }
 
-        BufferTransfer uniform = m_uniforms[ m_currentFrame ].getBuffer( constantSize );
-        uniform.copyToStaging( reinterpret_cast<const uint8_t*>( constant ) );
-        m_pending.emplace_back( uniform );
-
-        VkCommandBuffer cmd = m_graphicsCmd.buffer();
-
+        const VkDescriptorBufferInfo bufferInfo = m_uniform[ m_currentFrame ].copy( constant, constantSize );
+        const VkDescriptorImageInfo imageInfo = texture->imageInfo();
         const VkDescriptorSet descriptorSet = m_descriptorSetBufferSampler[ m_currentFrame ].next();
         assert( descriptorSet != VK_NULL_HANDLE );
-        currentPipeline.updateUniforms( uniform.dst()
-            , uniform.sizeInBytes()
-            , texture->view()
-            , texture->sampler()
-            , descriptorSet
-        );
+        updateDescriptor( m_device, descriptorSet, bufferInfo, imageInfo );
 
+        VkCommandBuffer cmd = m_graphicsCmd.buffer();
         currentPipeline.begin( cmd, descriptorSet );
         vkCmdDraw( cmd, 4, 1, 0, 0 );
     } break;
@@ -786,21 +807,13 @@ void RendererVK::push( const void* buffer, const void* constant )
             return;
         }
 
-        BufferTransfer uniform = m_uniforms[ m_currentFrame ].getBuffer( constantSize );
-        uniform.copyToStaging( reinterpret_cast<const uint8_t*>( constant ) );
-        m_pending.emplace_back( uniform );
-
-        VkCommandBuffer cmd = m_graphicsCmd.buffer();
-
+        const VkDescriptorBufferInfo bufferInfo = m_uniform[ m_currentFrame ].copy( constant, constantSize );
+        const VkDescriptorImageInfo imageInfo = texture->imageInfo();
         const VkDescriptorSet descriptorSet = m_descriptorSetBufferSampler[ m_currentFrame ].next();
         assert( descriptorSet != VK_NULL_HANDLE );
-        currentPipeline.updateUniforms( uniform.dst()
-            , uniform.sizeInBytes()
-            , texture->view()
-            , texture->sampler()
-            , descriptorSet
-        );
+        updateDescriptor( m_device, descriptorSet, bufferInfo, imageInfo );
 
+        VkCommandBuffer cmd = m_graphicsCmd.buffer();
         currentPipeline.begin( cmd, descriptorSet );
         vkCmdDraw( cmd, pushBuffer->m_verticeCount, 1, 0, 0 );
     } break;
@@ -846,22 +859,13 @@ void RendererVK::push( const void* buffer, const void* constant )
         assert( texture );
         if ( !texture ) { return; }
 
-
-        BufferTransfer uniform = m_uniforms[ m_currentFrame ].getBuffer( constantSize );
-        uniform.copyToStaging( reinterpret_cast<const uint8_t*>( constant ) );
-        m_pending.emplace_back( uniform );
-
-        VkCommandBuffer cmd = m_graphicsCmd.buffer();
-
+        const VkDescriptorBufferInfo bufferInfo = m_uniform[ m_currentFrame ].copy( constant, constantSize );
+        const VkDescriptorImageInfo imageInfo = texture->imageInfo();
         const VkDescriptorSet descriptorSet = m_descriptorSetBufferSampler[ m_currentFrame ].next();
         assert( descriptorSet != VK_NULL_HANDLE );
-        currentPipeline.updateUniforms( uniform.dst()
-            , uniform.sizeInBytes()
-            , texture->view()
-            , texture->sampler()
-            , descriptorSet
-        );
+        updateDescriptor( m_device, descriptorSet, bufferInfo, imageInfo );
 
+        VkCommandBuffer cmd = m_graphicsCmd.buffer();
         currentPipeline.begin( cmd, descriptorSet );
         vkCmdDraw( cmd, pushConstant->m_vertices.size(), 1, 0, 0 );
     } break;
@@ -871,23 +875,15 @@ void RendererVK::push( const void* buffer, const void* constant )
         assert( texture );
         if ( !texture ) { return; }
 
-
-        BufferTransfer uniform = m_uniforms[ m_currentFrame ].getBuffer( constantSize );
-        uniform.copyToStaging( reinterpret_cast<const uint8_t*>( constant ) );
-        m_pending.emplace_back( uniform );
+        const VkDescriptorBufferInfo bufferInfo = m_uniform[ m_currentFrame ].copy( constant, constantSize );
+        const VkDescriptorImageInfo imageInfo = texture->imageInfo();
+        const VkDescriptorSet descriptorSet = m_descriptorSetBufferSampler[ m_currentFrame ].next();
+        assert( descriptorSet != VK_NULL_HANDLE );
+        updateDescriptor( m_device, descriptorSet, bufferInfo, imageInfo );
 
         VkCommandBuffer cmd = m_graphicsCmd.buffer();
         auto vertices = m_bufferMap.find( pushBuffer->m_vertices );
         assert( vertices != m_bufferMap.end() );
-
-        const VkDescriptorSet descriptorSet = m_descriptorSetBufferSampler[ m_currentFrame ].next();
-        assert( descriptorSet != VK_NULL_HANDLE );
-        currentPipeline.updateUniforms( uniform.dst()
-            , uniform.sizeInBytes()
-            , texture->view()
-            , texture->sampler()
-            , descriptorSet
-        );
 
         currentPipeline.begin( cmd, descriptorSet );
         std::array<VkBuffer, 1> buffers{ vertices->second };

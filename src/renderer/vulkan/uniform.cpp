@@ -121,7 +121,7 @@ VkDescriptorBufferInfo Uniform::copy( const void* data, std::size_t size ) noexc
     m_transferSize = offset + size;
     assert( m_transferSize <= m_size );
     auto* ptr = reinterpret_cast<std::byte*>( m_mapped ) + offset;
-    std::memcpy( ptr, data, size);
+    std::memcpy( ptr, data, size );
 
     return {
         .buffer = m_buffer,

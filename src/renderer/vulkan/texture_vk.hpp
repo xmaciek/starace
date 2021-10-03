@@ -31,4 +31,6 @@ public:
 
     VkImageView view() const;
     VkSampler sampler() const;
+    VkDescriptorImageInfo imageInfo() const;
+
 };
