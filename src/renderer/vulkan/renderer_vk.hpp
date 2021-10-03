@@ -8,7 +8,6 @@
 #include "pipeline_vk.hpp"
 #include "swapchain.hpp"
 #include "texture_vk.hpp"
-#include "buffer_pool.hpp"
 #include "debug_messanger.hpp"
 #include "render_target.hpp"
 #include "uniform.hpp"
@@ -48,9 +47,6 @@ class RendererVK : public Renderer {
 
     uint32_t m_currentFrame = 0;
     uint32_t currentFrame();
-
-    BufferPool m_uniforms[ 3 ];
-    std::pmr::vector<BufferTransfer> m_pending{};
 
     Uniform m_uniform[ 3 ];
 

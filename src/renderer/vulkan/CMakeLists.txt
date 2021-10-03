@@ -3,8 +3,6 @@ find_package( Vulkan REQUIRED )
 add_library( renderer_vk STATIC )
 target_sources( renderer_vk
     PRIVATE
-    buffer_pool.cpp
-    buffer_pool.hpp
     buffer_vk.cpp
     buffer_vk.hpp
     command_pool.cpp

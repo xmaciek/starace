@@ -1,8 +1,5 @@
 #include "renderer_vk.hpp"
 
-#include "buffer_vk.hpp"
-#include "texture_vk.hpp"
-
 #include <SDL2/SDL_vulkan.h>
 
 #include <algorithm>
@@ -231,13 +228,6 @@ RendererVK::RendererVK( SDL_Window* window )
         }
     }
 
-    for ( BufferPool& it : m_uniforms ) {
-        it = BufferPool{ m_physicalDevice, m_device };
-        it.reserve( sizeof( PushConstant<Pipeline::eGuiTextureColor1> ), 200 );
-        it.reserve( sizeof( PushConstant<Pipeline::eShortString> ), 60 );
-        it.reserve( sizeof( PushConstant<Pipeline::eTriangle3dTextureNormal> ), 3 );
-    }
-
     for ( auto& it : m_uniform ) {
         it = Uniform{ m_physicalDevice, m_device, 2_MiB, 256 };
     }
@@ -380,9 +370,6 @@ RendererVK::~RendererVK()
     for ( TextureVK* it : m_texturesPendingDelete ) {
         delete it;
     }
-    for ( BufferPool& it : m_uniforms ) {
-        it = {};
-    }
 
     for ( Uniform& it : m_uniform ) {
         it = {};
@@ -409,22 +396,16 @@ RendererVK::~RendererVK()
 
 void RendererVK::flushUniforms()
 {
-    std::pmr::vector<BufferTransfer> pendingTransfers = std::move( m_pending );
     static constexpr VkCommandBufferBeginInfo beginInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
         .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
     };
+
     VkCommandBuffer cmd = m_transferCmd.buffer();
     vkBeginCommandBuffer( cmd, &beginInfo );
     m_uniform[ m_currentFrame ].transfer( cmd );
-    for ( BufferTransfer& it : pendingTransfers ) {
-        const VkBufferCopy copyRegion{
-            .size = it.sizeInBytes(),
-        };
-        vkCmdCopyBuffer( cmd, it.staging(), it.dst(), 1, &copyRegion );
-    }
-
     vkEndCommandBuffer( cmd );
+
     const VkSubmitInfo submitInfo{
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
         .commandBufferCount = 1,
@@ -434,7 +415,6 @@ void RendererVK::flushUniforms()
     VkQueue q = m_transferCmd.queue();
     vkQueueSubmit( q, 1, &submitInfo, VK_NULL_HANDLE );
     vkQueueWaitIdle( q );
-    m_uniforms[ m_currentFrame ].reset();
 }
 
 Buffer RendererVK::createBuffer( std::pmr::vector<float>&& vec, Buffer::Lifetime lft )
