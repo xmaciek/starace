@@ -18,6 +18,12 @@ function( set_cppver tgt cppver )
     )
 endfunction()
 
+function( set_error_checks tgt )
+    if ( NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC" )
+        message( NOTICE "${tgt} extra options " ${ARGN} )
+        target_compile_options( ${tgt} PRIVATE -Werror -Wall -Wextra ${ARGN} )
+    endif()
+endfunction()
 
 add_subdirectory( misc )
 add_subdirectory( models )

@@ -67,11 +67,7 @@ set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
 
 set( bin_name "starace" )
 add_executable( ${bin_name} ${STARACE_SOURCES} )
-target_compile_options( ${bin_name} PRIVATE -Werror -Wall -Wextra )
-target_compile_definitions( ${bin_name} PRIVATE
-    GLM_FORCE_RADIANS=1
-)
-
+set_error_checks( ${bin_name} )
 set_cppver( ${bin_name} 20 )
 
 target_link_libraries( ${bin_name}
@@ -89,5 +85,6 @@ target_sources( cooker_obj
     cooker_obj.cpp
     obj.hpp
 )
+set_error_checks( cooker_obj )
 set_cppver( cooker_obj 20 )
 

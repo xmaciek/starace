@@ -9,7 +9,7 @@ target_sources( audio
     ${CMAKE_CURRENT_SOURCE_DIR}/public/audio/audio.hpp
 )
 
-target_compile_options( audio PRIVATE -Werror -Wall -Wextra )
+set_error_checks( audio )
 
 set_target_properties( audio PROPERTIES
     CXX_STANDARD 17

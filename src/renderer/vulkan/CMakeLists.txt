@@ -31,8 +31,7 @@ target_sources( renderer_vk
     utils_vk.hpp
 )
 
-target_compile_options( renderer_vk PRIVATE -Werror -Wall -Wextra -Wno-missing-field-initializers  )
-
+set_error_checks( renderer_vk -Wno-missing-field-initializers )
 set_cppver( renderer_vk 20 )
 
 target_link_libraries( renderer_vk
