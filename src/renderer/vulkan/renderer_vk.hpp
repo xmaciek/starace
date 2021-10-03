@@ -11,6 +11,7 @@
 #include "buffer_pool.hpp"
 #include "debug_messanger.hpp"
 #include "render_target.hpp"
+#include "uniform.hpp"
 
 #include <vulkan/vulkan.h>
 
@@ -51,6 +52,7 @@ class RendererVK : public Renderer {
     BufferPool m_uniforms[ 3 ];
     std::pmr::vector<BufferTransfer> m_pending{};
 
+    Uniform m_uniform[ 3 ];
 
     std::pmr::vector<DescriptorSet> m_descriptorSetBufferSampler{};
     std::pmr::vector<DescriptorSet> m_descriptorSetBuffer{};

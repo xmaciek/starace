@@ -18,6 +18,11 @@ static bool operator < ( const Buffer& lhs, const Buffer& rhs ) noexcept
     return lhs.m_id < rhs.m_id;
 }
 
+constexpr std::size_t operator ""_MiB( unsigned long long v ) noexcept
+{
+    return v << 20;
+}
+
 static std::pmr::vector<const char*> extensions( SDL_Window* window )
 {
     uint32_t count = 0;
@@ -230,8 +235,11 @@ RendererVK::RendererVK( SDL_Window* window )
         it = BufferPool{ m_physicalDevice, m_device };
         it.reserve( sizeof( PushConstant<Pipeline::eGuiTextureColor1> ), 200 );
         it.reserve( sizeof( PushConstant<Pipeline::eShortString> ), 60 );
-        it.reserve( sizeof( PushConstant<Pipeline::eLine3dStripColor> ), 300 );
         it.reserve( sizeof( PushConstant<Pipeline::eTriangle3dTextureNormal> ), 3 );
+    }
+
+    for ( auto& it : m_uniform ) {
+        it = Uniform{ m_physicalDevice, m_device, 2_MiB, 256 };
     }
 
     m_swapchain = Swapchain( m_physicalDevice
@@ -376,6 +384,9 @@ RendererVK::~RendererVK()
         it = {};
     }
 
+    for ( Uniform& it : m_uniform ) {
+        it = {};
+    }
     m_descriptorSetBuffer.clear();
     m_descriptorSetBufferSampler.clear();
     for ( auto& it : m_pipelines ) { it = {}; }
@@ -405,6 +416,7 @@ void RendererVK::flushUniforms()
     };
     VkCommandBuffer cmd = m_transferCmd.buffer();
     vkBeginCommandBuffer( cmd, &beginInfo );
+    m_uniform[ m_currentFrame ].transfer( cmd );
     for ( BufferTransfer& it : pendingTransfers ) {
         const VkBufferCopy copyRegion{
             .size = it.sizeInBytes(),
@@ -548,11 +560,12 @@ void RendererVK::beginFrame()
         return;
     }
     m_currentFrame = imageIndex;
-    m_graphicsCmd.setFrame( imageIndex );
-    m_transferToGraphicsCmd.setFrame( imageIndex );
-    m_transferCmd.setFrame( imageIndex );
-    m_descriptorSetBuffer[ imageIndex ].reset();
-    m_descriptorSetBufferSampler[ imageIndex ].reset();
+    m_graphicsCmd.setFrame( m_currentFrame );
+    m_transferToGraphicsCmd.setFrame( m_currentFrame );
+    m_transferCmd.setFrame( m_currentFrame );
+    m_descriptorSetBuffer[ m_currentFrame ].reset();
+    m_descriptorSetBufferSampler[ m_currentFrame ].reset();
+    m_uniform[ m_currentFrame ].reset();
 
     const VkExtent2D extent = m_swapchain.extent();
     const VkRect2D rect{ .extent = extent };
@@ -712,12 +725,28 @@ void RendererVK::present()
     vkQueueWaitIdle( m_queuePresent );
 }
 
+static void updateDescriptor( VkDevice device, VkDescriptorSet descriptorSet, const VkDescriptorBufferInfo& bufferInfo )
+{
+    const VkWriteDescriptorSet descriptorWrite{
+        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+        .dstSet = descriptorSet,
+        .dstBinding = 0,
+        .dstArrayElement = 0,
+        .descriptorCount = 1,
+        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        .pBufferInfo = &bufferInfo,
+    };
+    vkUpdateDescriptorSets( device, 1, &descriptorWrite, 0, nullptr );
+}
+
+
 void RendererVK::push( const void* buffer, const void* constant )
 {
 #define CASE( TYPE ) \
     case Pipeline::TYPE: { \
         [[maybe_unused]] auto* pushBuffer = reinterpret_cast<const PushBuffer<Pipeline::TYPE>*>( buffer ); \
         [[maybe_unused]] auto* pushConstant = reinterpret_cast<const PushConstant<Pipeline::TYPE>*>( constant ); \
+        static constexpr std::size_t constantSize = sizeof( PushConstant<Pipeline::TYPE> ); \
         PipelineVK& currentPipeline = m_pipelines[ (size_t)p ]; \
         if ( m_lastPipeline != &currentPipeline ) { \
             if ( m_lastPipeline ) { m_lastPipeline->end(); } \
@@ -732,7 +761,7 @@ void RendererVK::push( const void* buffer, const void* constant )
             return;
         }
 
-        BufferTransfer uniform = m_uniforms[ m_currentFrame ].getBuffer( sizeof( PushConstant<Pipeline::eGuiTextureColor1> ) );
+        BufferTransfer uniform = m_uniforms[ m_currentFrame ].getBuffer( constantSize );
         uniform.copyToStaging( reinterpret_cast<const uint8_t*>( constant ) );
         m_pending.emplace_back( uniform );
 
@@ -757,7 +786,7 @@ void RendererVK::push( const void* buffer, const void* constant )
             return;
         }
 
-        BufferTransfer uniform = m_uniforms[ m_currentFrame ].getBuffer( sizeof( PushConstant<Pipeline::eShortString> ) );
+        BufferTransfer uniform = m_uniforms[ m_currentFrame ].getBuffer( constantSize );
         uniform.copyToStaging( reinterpret_cast<const uint8_t*>( constant ) );
         m_pending.emplace_back( uniform );
 
@@ -777,42 +806,24 @@ void RendererVK::push( const void* buffer, const void* constant )
     } break;
 
     CASE( eLine3dStripColor )
-        BufferTransfer uniform = m_uniforms[ m_currentFrame ].getBuffer( sizeof( PushConstant<Pipeline::eLine3dStripColor> ) );
-        uniform.copyToStaging( reinterpret_cast<const uint8_t*>( constant ) );
-        m_pending.emplace_back( uniform );
-
-        VkCommandBuffer cmd = m_graphicsCmd.buffer();
-
+        const VkDescriptorBufferInfo bufferInfo = m_uniform[ m_currentFrame ].copy( constant, constantSize );
         const VkDescriptorSet descriptorSet = m_descriptorSetBuffer[ m_currentFrame ].next();
         assert( descriptorSet != VK_NULL_HANDLE );
-        currentPipeline.updateUniforms( uniform.dst()
-            , uniform.sizeInBytes()
-            , VK_NULL_HANDLE
-            , VK_NULL_HANDLE
-            , descriptorSet
-        );
+        updateDescriptor( m_device, descriptorSet, bufferInfo );
 
+        VkCommandBuffer cmd = m_graphicsCmd.buffer();
         currentPipeline.begin( cmd, descriptorSet );
         vkCmdSetLineWidth( cmd, pushBuffer->m_lineWidth );
         vkCmdDraw( cmd, pushBuffer->m_verticeCount, 1, 0, 0 );
     } break;
 
     CASE( eLine3dColor1 )
-        BufferTransfer uniform = m_uniforms[ m_currentFrame ].getBuffer( sizeof( PushConstant<Pipeline::eLine3dColor1> ) );
-        uniform.copyToStaging( reinterpret_cast<const uint8_t*>( constant ) );
-        m_pending.emplace_back( uniform );
-
-        VkCommandBuffer cmd = m_graphicsCmd.buffer();
-
+        const VkDescriptorBufferInfo bufferInfo = m_uniform[ m_currentFrame ].copy( constant, constantSize );
         const VkDescriptorSet descriptorSet = m_descriptorSetBuffer[ m_currentFrame ].next();
         assert( descriptorSet != VK_NULL_HANDLE );
-        currentPipeline.updateUniforms( uniform.dst()
-            , uniform.sizeInBytes()
-            , VK_NULL_HANDLE
-            , VK_NULL_HANDLE
-            , descriptorSet
-        );
+        updateDescriptor( m_device, descriptorSet, bufferInfo );
 
+        VkCommandBuffer cmd = m_graphicsCmd.buffer();
         currentPipeline.begin( cmd, descriptorSet );
         vkCmdSetLineWidth( cmd, pushBuffer->m_lineWidth );
         assert( pushBuffer->m_verticeCount <= pushConstant->m_vertices.size() );
@@ -820,21 +831,12 @@ void RendererVK::push( const void* buffer, const void* constant )
     } break;
 
     CASE( eTriangleFan3dColor )
-        BufferTransfer uniform = m_uniforms[ m_currentFrame ].getBuffer( sizeof( PushConstant<Pipeline::eTriangleFan3dColor> ) );
-        uniform.copyToStaging( reinterpret_cast<const uint8_t*>( constant ) );
-        m_pending.emplace_back( uniform );
-
-        VkCommandBuffer cmd = m_graphicsCmd.buffer();
-
+        const VkDescriptorBufferInfo bufferInfo = m_uniform[ m_currentFrame ].copy( constant, constantSize );
         const VkDescriptorSet descriptorSet = m_descriptorSetBuffer[ m_currentFrame ].next();
         assert( descriptorSet != VK_NULL_HANDLE );
-        currentPipeline.updateUniforms( uniform.dst()
-            , uniform.sizeInBytes()
-            , VK_NULL_HANDLE
-            , VK_NULL_HANDLE
-            , descriptorSet
-        );
+        updateDescriptor( m_device, descriptorSet, bufferInfo );
 
+        VkCommandBuffer cmd = m_graphicsCmd.buffer();
         currentPipeline.begin( cmd, descriptorSet );
         vkCmdDraw( cmd, pushBuffer->m_verticeCount, 1, 0, 0 );
     } break;
@@ -845,7 +847,7 @@ void RendererVK::push( const void* buffer, const void* constant )
         if ( !texture ) { return; }
 
 
-        BufferTransfer uniform = m_uniforms[ m_currentFrame ].getBuffer( sizeof( PushConstant<Pipeline::eTriangleFan3dTexture> ) );
+        BufferTransfer uniform = m_uniforms[ m_currentFrame ].getBuffer( constantSize );
         uniform.copyToStaging( reinterpret_cast<const uint8_t*>( constant ) );
         m_pending.emplace_back( uniform );
 
@@ -870,7 +872,7 @@ void RendererVK::push( const void* buffer, const void* constant )
         if ( !texture ) { return; }
 
 
-        BufferTransfer uniform = m_uniforms[ m_currentFrame ].getBuffer( sizeof( PushConstant<Pipeline::eTriangle3dTextureNormal> ) );
+        BufferTransfer uniform = m_uniforms[ m_currentFrame ].getBuffer( constantSize );
         uniform.copyToStaging( reinterpret_cast<const uint8_t*>( constant ) );
         m_pending.emplace_back( uniform );
 

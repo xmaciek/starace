@@ -27,6 +27,8 @@ target_sources( renderer_vk
     swapchain.hpp
     texture_vk.cpp
     texture_vk.hpp
+    uniform.cpp
+    uniform.hpp
     utils_vk.cpp
     utils_vk.hpp
 )
