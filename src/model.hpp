@@ -20,7 +20,7 @@ private:
     std::array<glm::vec3, 3> m_weapons{};
     float m_scale = 1.0f;
 
-    void loadOBJ( const char* filename, Renderer* );
+    void loadOBJ( const std::filesystem::path& filename, Renderer* );
     void destroy();
 
 public:

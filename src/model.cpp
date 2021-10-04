@@ -18,9 +18,11 @@ void Model::destroy()
 {
     if ( m_vertices ) {
         Renderer::instance()->deleteBuffer( m_vertices );
+        m_vertices = 0;
     }
     if ( m_texture ) {
         destroyTexture( m_texture );
+        m_texture = 0;
     }
 }
 
@@ -66,7 +68,7 @@ void Model::render( RenderContext rctx ) const
     rctx.renderer->push( &pushBuffer, &pushConstant );
 }
 
-void Model::loadOBJ( const char* filename, Renderer* renderer )
+void Model::loadOBJ( const std::filesystem::path& filename, Renderer* renderer )
 {
     using namespace std::literals::string_view_literals;
     auto data = obj::load( filename );
