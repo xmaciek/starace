@@ -10,11 +10,6 @@
 
 static Renderer* g_instance = nullptr;
 
-static bool operator < ( const Buffer& lhs, const Buffer& rhs ) noexcept
-{
-    return lhs.m_id < rhs.m_id;
-}
-
 constexpr std::size_t operator ""_MiB( unsigned long long v ) noexcept
 {
     return v << 20;
@@ -364,8 +359,8 @@ RendererVK::~RendererVK()
     m_bufferMap.clear();
     m_bufferPendingDelete.clear();
     m_mainTargets.clear();
-    for ( TextureVK* it : m_textures ) {
-        delete it;
+    for ( auto it : m_textures ) {
+        delete it.second;
     }
     for ( TextureVK* it : m_texturesPendingDelete ) {
         delete it;
@@ -417,15 +412,15 @@ void RendererVK::flushUniforms()
     vkQueueWaitIdle( q );
 }
 
-Buffer RendererVK::createBuffer( std::pmr::vector<float>&& vec, Buffer::Lifetime lft )
+Buffer RendererVK::createBuffer( std::pmr::vector<float>&& vec )
 {
     BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, vec.size() * sizeof( float ) };
     staging.copyData( reinterpret_cast<const uint8_t*>( vec.data() ) );
 
     BufferVK data{ m_physicalDevice, m_device, BufferVK::Purpose::eVertex, staging.sizeInBytes() };
     m_transferCmd.transferBufferAndWait( staging, data, staging.sizeInBytes() );
-
-    const Buffer retBuffer{ reinterpret_cast<uint64_t>( (VkBuffer)data ), lft, Buffer::Status::ePending };
+    static uint32_t idx = 0;
+    const Buffer retBuffer = ++idx;
     [[maybe_unused]]
     auto [ it, emplaced ] = m_bufferMap.emplace( std::make_pair( retBuffer, std::move( data ) ) );
     assert( emplaced );
@@ -437,16 +432,16 @@ std::pmr::memory_resource* RendererVK::allocator()
     return std::pmr::get_default_resource();
 }
 
-static VkFormat convertFormat( Texture::Format fmt )
+static VkFormat convertFormat( TextureFormat fmt )
 {
     switch ( fmt ) {
-    case Texture::Format::eR:
+    case TextureFormat::eR:
         return VK_FORMAT_R8_UNORM;
-    case Texture::Format::eRGB:
-    case Texture::Format::eRGBA:
+    case TextureFormat::eRGB:
+    case TextureFormat::eRGBA:
         return VK_FORMAT_R8G8B8A8_UNORM;
-    case Texture::Format::eBGR:
-    case Texture::Format::eBGRA:
+    case TextureFormat::eBGR:
+    case TextureFormat::eBGRA:
         return VK_FORMAT_B8G8R8A8_UNORM;
     default:
         assert( !"unhandled format" );
@@ -454,15 +449,15 @@ static VkFormat convertFormat( Texture::Format fmt )
     }
 }
 
-static size_t formatToSize( Texture::Format fmt )
+static size_t formatToSize( TextureFormat fmt )
 {
     switch ( fmt ) {
-    case Texture::Format::eR:
+    case TextureFormat::eR:
         return 1;
-    case Texture::Format::eRGB:
-    case Texture::Format::eRGBA:
-    case Texture::Format::eBGR:
-    case Texture::Format::eBGRA:
+    case TextureFormat::eRGB:
+    case TextureFormat::eRGBA:
+    case TextureFormat::eBGR:
+    case TextureFormat::eBGRA:
         return 4;
     default:
         assert( !"unhandled format" );
@@ -470,7 +465,7 @@ static size_t formatToSize( Texture::Format fmt )
     }
 }
 
-Texture RendererVK::createTexture( uint32_t width, uint32_t height, Texture::Format fmt, bool, const uint8_t* data )
+Texture RendererVK::createTexture( uint32_t width, uint32_t height, TextureFormat fmt, bool, const uint8_t* data )
 {
     assert( width > 0 );
     assert( height > 0 );
@@ -478,8 +473,8 @@ Texture RendererVK::createTexture( uint32_t width, uint32_t height, Texture::For
 
     std::pmr::vector<uint32_t> vec{ allocator() };
     switch ( fmt ) {
-    case Texture::Format::eRGB:
-    case Texture::Format::eBGR:
+    case TextureFormat::eRGB:
+    case TextureFormat::eBGR:
     {
         vec.resize( width * height );
         using RGB = uint8_t[3];
@@ -500,12 +495,10 @@ Texture RendererVK::createTexture( uint32_t width, uint32_t height, Texture::For
     BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, size };
     staging.copyData( data );
 
-    m_textures.emplace_back( new TextureVK{ m_physicalDevice
-        , m_device
-        , VkExtent2D{ width, height }
-        , convertFormat( fmt )
-    } );
-    TextureVK* tex = m_textures.back();
+    static uint32_t sidx = 0;
+    const uint32_t idx = ++sidx;
+    TextureVK* tex = new TextureVK{ m_physicalDevice, m_device, VkExtent2D{ width, height }, convertFormat( fmt ) };
+    m_textures.emplace( std::make_pair( idx, tex ) );
 
     static constexpr VkCommandBufferBeginInfo beginInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -527,7 +520,7 @@ Texture RendererVK::createTexture( uint32_t width, uint32_t height, Texture::For
     vkQueueSubmit( queue, 1, &submitInfo, VK_NULL_HANDLE );
     vkQueueWaitIdle( queue );
 
-    return Texture{ tex };
+    return idx;
 }
 
 void RendererVK::beginFrame()
@@ -586,9 +579,10 @@ void RendererVK::deleteBuffer( const Buffer& b )
 
 void RendererVK::deleteTexture( Texture t )
 {
-    if ( !t.ptr ) { return; }
-    TextureVK* ptr = reinterpret_cast<TextureVK*>( t.ptr );
-    m_textures.erase( std::remove( m_textures.begin(), m_textures.end(), ptr ), m_textures.end() );
+    auto it = m_textures.find( t );
+    if ( it == m_textures.end() ) { return; }
+    TextureVK* ptr = it->second;
+    m_textures.erase( it );
     m_texturesPendingDelete.push_back( ptr );
 }
 
@@ -765,11 +759,11 @@ void RendererVK::push( const void* buffer, const void* constant )
     Pipeline p = *reinterpret_cast<const Pipeline*>( buffer );
     switch ( p ) {
     CASE( eGuiTextureColor1 )
-        const TextureVK* texture = reinterpret_cast<const TextureVK*>( pushBuffer->m_texture.ptr );
-        if ( !texture ) {
+        auto it = m_textures.find( pushBuffer->m_texture );
+        if ( it == m_textures.end() ) {
             return;
         }
-
+        const TextureVK* texture = it->second;
         const VkDescriptorBufferInfo bufferInfo = m_uniform[ m_currentFrame ].copy( constant, constantSize );
         const VkDescriptorImageInfo imageInfo = texture->imageInfo();
         const VkDescriptorSet descriptorSet = m_descriptorSetBufferSampler[ m_currentFrame ].next();
@@ -782,11 +776,11 @@ void RendererVK::push( const void* buffer, const void* constant )
     } break;
 
     CASE( eShortString )
-        const TextureVK* texture = reinterpret_cast<const TextureVK*>( pushBuffer->m_texture.ptr );
-        if ( !texture ) {
+        auto it = m_textures.find( pushBuffer->m_texture );
+        if ( it == m_textures.end() ) {
             return;
         }
-
+        const TextureVK* texture = it->second;
         const VkDescriptorBufferInfo bufferInfo = m_uniform[ m_currentFrame ].copy( constant, constantSize );
         const VkDescriptorImageInfo imageInfo = texture->imageInfo();
         const VkDescriptorSet descriptorSet = m_descriptorSetBufferSampler[ m_currentFrame ].next();
@@ -835,10 +829,11 @@ void RendererVK::push( const void* buffer, const void* constant )
     } break;
 
     CASE( eTriangleFan3dTexture )
-        const TextureVK* texture = reinterpret_cast<const TextureVK*>( pushBuffer->m_texture.ptr );
-        assert( texture );
-        if ( !texture ) { return; }
-
+        auto it = m_textures.find( pushBuffer->m_texture );
+        if ( it == m_textures.end() ) {
+            return;
+        }
+        const TextureVK* texture = it->second;
         const VkDescriptorBufferInfo bufferInfo = m_uniform[ m_currentFrame ].copy( constant, constantSize );
         const VkDescriptorImageInfo imageInfo = texture->imageInfo();
         const VkDescriptorSet descriptorSet = m_descriptorSetBufferSampler[ m_currentFrame ].next();
@@ -851,10 +846,11 @@ void RendererVK::push( const void* buffer, const void* constant )
     } break;
 
     CASE( eTriangle3dTextureNormal )
-        const TextureVK* texture = reinterpret_cast<const TextureVK*>( pushBuffer->m_texture.ptr );
-        assert( texture );
-        if ( !texture ) { return; }
-
+        auto it = m_textures.find( pushBuffer->m_texture );
+        if ( it == m_textures.end() ) {
+            return;
+        }
+        const TextureVK* texture = it->second;
         const VkDescriptorBufferInfo bufferInfo = m_uniform[ m_currentFrame ].copy( constant, constantSize );
         const VkDescriptorImageInfo imageInfo = texture->imageInfo();
         const VkDescriptorSet descriptorSet = m_descriptorSetBufferSampler[ m_currentFrame ].next();

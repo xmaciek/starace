@@ -187,7 +187,7 @@ Font::Font( std::string_view fontname, uint32_t h )
     m_texture = Renderer::instance()->createTexture(
         dstPitch
         , dstPitch
-        , Texture::Format::eR
+        , TextureFormat::eR
         , false
         , reinterpret_cast<const uint8_t*>( texture.data() )
     );

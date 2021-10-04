@@ -57,10 +57,10 @@ class RendererVK : public Renderer {
     std::array<PipelineVK, (size_t)Pipeline::count> m_pipelines{};
     PipelineVK* m_lastPipeline = nullptr;
 
-    std::pmr::vector<TextureVK*> m_textures{};
+    std::pmr::map<Texture, TextureVK*> m_textures{}; // TODO: slot machine
     std::pmr::vector<TextureVK*> m_texturesPendingDelete{};
 
-    std::pmr::map<Buffer, BufferVK> m_bufferMap{};
+    std::pmr::map<Buffer, BufferVK> m_bufferMap{}; // TODO: slot machine
     std::pmr::vector<BufferVK> m_bufferPendingDelete{};
 
     VkFormat m_depthFormat = {};
@@ -74,9 +74,9 @@ public:
     virtual ~RendererVK() override;
     RendererVK( SDL_Window* );
 
-    virtual Buffer createBuffer( std::pmr::vector<float>&&, Buffer::Lifetime ) override;
+    virtual Buffer createBuffer( std::pmr::vector<float>&& ) override;
     virtual std::pmr::memory_resource* allocator() override;
-    virtual Texture createTexture( uint32_t w, uint32_t h, Texture::Format, bool, const uint8_t* ) override;
+    virtual Texture createTexture( uint32_t w, uint32_t h, TextureFormat, bool, const uint8_t* ) override;
     virtual void beginFrame() override;
     virtual void deleteBuffer( const Buffer& ) override;
     virtual void deleteTexture( Texture ) override;

@@ -10,32 +10,6 @@
 #include <fstream>
 #include <vector>
 
-Texture loadDefault()
-{
-    uint8_t DEF[ 64 * 64 * 3 ];
-    bool c = false;
-    uint32_t d = 0;
-    for ( uint32_t i = 0; i < 64 * 64 * 3; i++ ) {
-        if ( i % ( 64 * 3 * 8 ) == 0 ) {
-            c = !c;
-        }
-        if ( ( d < 8 && c ) || ( d >= 8 && !c ) ) {
-            DEF[ i ] = 255;
-            DEF[ i + 1 ] = 0;
-            DEF[ i + 2 ] = 192;
-        }
-        else {
-            DEF[ i ] = DEF[ i + 1 ] = DEF[ i + 2 ] = 0;
-        }
-        i += 2;
-        d++;
-        if ( d >= 16 ) {
-            d = 0;
-        }
-    }
-    return Renderer::instance()->createTexture( 64, 64, Texture::Format::eRGB, false, DEF );
-}
-
 Texture loadTexture( std::pmr::vector<uint8_t>&& data )
 {
     assert( data.size() >= sizeof( tga::Header ) );
@@ -52,11 +26,11 @@ Texture loadTexture( std::pmr::vector<uint8_t>&& data )
     std::vector<uint8_t> texture( textureSize );
     std::copy_n( it, texture.size(), texture.begin() );
 
-    Texture::Format fmt = {};
+    TextureFormat fmt = {};
     switch ( bytesPerPixel ) {
-    case 1: fmt = Texture::Format::eR; break;
-    case 3: fmt = Texture::Format::eBGR; break;
-    case 4: fmt = Texture::Format::eBGRA; break;
+    case 1: fmt = TextureFormat::eR; break;
+    case 3: fmt = TextureFormat::eBGR; break;
+    case 4: fmt = TextureFormat::eBGRA; break;
     default:
         assert( !"unhandled format" );
         break;

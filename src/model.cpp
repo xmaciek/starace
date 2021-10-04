@@ -16,7 +16,7 @@ Model::~Model()
 
 void Model::destroy()
 {
-    if ( m_vertices.m_id ) {
+    if ( m_vertices ) {
         Renderer::instance()->deleteBuffer( m_vertices );
     }
     if ( m_texture ) {
@@ -75,8 +75,8 @@ void Model::loadOBJ( const char* filename, Renderer* renderer )
         if ( "hull"sv == it.first.name ) {
             assert( it.first.magic == obj::Chunk::c_magic );
             assert( it.first.dataType == obj::DataType::vtn );
-            assert( m_vertices == Buffer::Status::eNone );
-            m_vertices = renderer->createBuffer( std::move( it.second ), Buffer::Lifetime::ePersistent );
+            assert( m_vertices == 0 );
+            m_vertices = renderer->createBuffer( std::move( it.second ) );
         }
         else if ( "weapons"sv == it.first.name ) {
             assert( it.first.magic == obj::Chunk::c_magic );
@@ -93,7 +93,8 @@ void Model::loadOBJ( const char* filename, Renderer* renderer )
             std::copy_n( it.second.data(), it.second.size(), ptr );
         }
     }
-    assert( m_vertices != Buffer::Status::eNone );
+
+    assert( m_vertices != 0 );
     assert( !m_thrusters.empty() );
     assert( !m_weapons.empty() );
 }
