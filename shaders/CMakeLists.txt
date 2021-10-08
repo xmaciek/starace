@@ -1,4 +1,5 @@
 add_custom_target( shader )
+add_dependencies( cook shader )
 
 function( compileShader file )
     add_custom_target( "shader.${file}" DEPENDS "${file}.spv" )

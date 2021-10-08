@@ -9,6 +9,7 @@ set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
 include( glm.cmake )
 
+add_custom_target( cook ALL )
 add_executable( cooker_obj )
 
 function( set_cppver tgt cppver )

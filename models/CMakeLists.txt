@@ -1,4 +1,5 @@
 add_custom_target( model )
+add_dependencies( cook model )
 
 function( cook_obj file )
     add_custom_target( "model.${file}" DEPENDS "${file}.objc" )

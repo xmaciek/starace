@@ -79,7 +79,6 @@ target_link_libraries( ${bin_name}
     glm::glm
 )
 
-add_dependencies( starace shader model )
 target_sources( cooker_obj
     PRIVATE
     cooker_obj.cpp
