@@ -612,7 +612,7 @@ void RendererVK::recreateSwapchain()
     vkDeviceWaitIdle( m_device );
 }
 
-void RendererVK::submit()
+void RendererVK::endFrame()
 {
     VkCommandBuffer cmd = m_graphicsCmd.buffer();
     m_mainPass.end( cmd );

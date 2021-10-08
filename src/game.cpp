@@ -80,6 +80,7 @@ void Game::loopGame()
         onUpdate( updateContext );
         m_renderer->beginFrame();
         onRender();
+        m_renderer->endFrame();
 
         std::vector<SDL_Event> events{};
         {
@@ -89,7 +90,6 @@ void Game::loopGame()
         for ( SDL_Event& it : events ) {
             onEvent( it );
         }
-        m_renderer->submit();
         m_fpsMeter.frameEnd();
         m_renderer->present();
 

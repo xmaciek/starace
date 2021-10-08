@@ -78,9 +78,9 @@ public:
     virtual std::pmr::memory_resource* allocator() override;
     virtual Texture createTexture( uint32_t w, uint32_t h, TextureFormat, bool, const uint8_t* ) override;
     virtual void beginFrame() override;
+    virtual void endFrame() override;
     virtual void deleteBuffer( const Buffer& ) override;
     virtual void deleteTexture( Texture ) override;
     virtual void present() override;
     virtual void push( const void* buffer, const void* constant ) override;
-    virtual void submit() override;
 };
