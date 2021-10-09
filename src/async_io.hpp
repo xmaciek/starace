@@ -23,11 +23,12 @@ struct Ticket {
 };
 
 class Service {
+    static constexpr std::size_t c_maxFiles = 32;
     std::thread m_thread{};
     std::atomic<bool> m_isRunning = true;
-    std::array<std::atomic<Ticket*>, 16> m_pending{};
-    std::array<std::atomic<Ticket*>, 16> m_ready{};
-    Pool<Ticket, 16> m_pool{};
+    std::array<std::atomic<Ticket*>, c_maxFiles> m_pending{};
+    std::array<std::atomic<Ticket*>, c_maxFiles> m_ready{};
+    Pool<Ticket, c_maxFiles> m_pool{};
     std::mutex m_bottleneck{};
 
     std::condition_variable m_notify;

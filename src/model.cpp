@@ -20,10 +20,6 @@ void Model::destroy()
         Renderer::instance()->deleteBuffer( m_vertices );
         m_vertices = 0;
     }
-    if ( m_texture ) {
-        destroyTexture( m_texture );
-        m_texture = 0;
-    }
 }
 
 Model::Model( const std::filesystem::path& path, Texture t, Renderer* renderer, float scale )

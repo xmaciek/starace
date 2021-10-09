@@ -324,13 +324,6 @@ void Game::renderDeadScreen( RenderContext rctx )
 
 void Game::renderMissionSelectionScreen( RenderContext rctx )
 {
-    {
-        MapProto& map = m_mapsContainer[ m_currentMap ];
-        if ( !map.preview_image ) {
-            map.preview_image = loadTexture( map.preview_image_location.c_str() );
-        }
-    }
-
     PushConstant<Pipeline::eGuiTextureColor1> pushConstant{};
     pushConstant.m_model = rctx.model;
     pushConstant.m_view = rctx.view;
@@ -346,7 +339,7 @@ void Game::renderMissionSelectionScreen( RenderContext rctx )
     pushConstant.m_vertices[ 3 ] = glm::vec4{ m_maxDimention, 0.0f, 0.0f, 0.0f };
 
     PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{};
-    pushBuffer.m_texture = m_mapsContainer[ m_currentMap ].preview_image;
+    pushBuffer.m_texture = m_mapsContainer[ m_currentMap ].texture[ Map::Wall::ePreview ];
     rctx.renderer->push( &pushBuffer, &pushConstant );
     {
         const std::string str = std::string{ "Map: " } + m_mapsContainer.at( m_currentMap ).name;

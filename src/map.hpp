@@ -7,40 +7,41 @@
 
 #include <glm/vec3.hpp>
 
+#include <array>
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <filesystem>
 
-struct MapProto {
-    Texture preview_image{};
-    uint32_t enemies = 0;
+struct MapCreateInfo {
     std::string name{ "unnamed map" };
-    std::string texture_location{};
-    std::string TOP{};
-    std::string BOTTOM{};
-    std::string LEFT{};
-    std::string RIGHT{};
-    std::string FRONT{};
-    std::string BACK{};
-    std::string preview_image_location{};
+    enum Wall {
+        eTop,
+        eBottom,
+        eLeft,
+        eRight,
+        eFront,
+        eBack,
+        ePreview,
+        max,
+    };
+    std::array<std::filesystem::path,Wall::max> filePath{};
+    std::array<Texture, Wall::max> texture{};
+    uint32_t enemies = 0;
 };
 
 class Map {
 private:
-    Texture m_back{};
-    Texture m_bottom{};
-    Texture m_front{};
-    Texture m_left{};
-    Texture m_right{};
-    Texture m_top{};
+    decltype( MapCreateInfo::texture ) m_texture{};
     std::vector<glm::vec4> m_particleList{};
     glm::vec3 m_jetPosition{};
     glm::vec3 m_jetVelocity{};
     glm::vec4 m_particleLength{};
 
 public:
-    ~Map();
-    explicit Map( const MapProto& data );
+    using Wall = MapCreateInfo::Wall;
+    ~Map() = default;
+    explicit Map( const MapCreateInfo& data );
 
     void render( RenderContext );
     void setJetData( const glm::vec3& position, const glm::vec3& velocity );

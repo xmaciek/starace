@@ -11,19 +11,30 @@
 #include <iostream>
 #include <random>
 #include <cmath>
+#include <set>
+
+static constexpr const char* chunk0[] = {
+    "textures/button1.tga",
+    "textures/HUDtex.tga",
+    "textures/background.tga",
+    "textures/background-overlay.tga",
+    "textures/star_field_transparent.tga",
+    "textures/cyber_ring1.tga",
+    "textures/cyber_ring2.tga",
+    "textures/cyber_ring3.tga",
+};
+
+static constexpr const char* chunk1[] = {
+    "textures/a2.tga",
+    "textures/a3.tga",
+    "textures/a4.tga",
+    "textures/a5.tga",
+};
 
 Game::Game()
 {
     m_io = std::make_unique<asyncio::Service>();
-    m_io->enqueue( "textures/button1.tga" );
-    m_io->enqueue( "textures/HUDtex.tga" );
-    m_io->enqueue( "textures/background.tga" );
-    m_io->enqueue( "textures/background-overlay.tga" );
-    m_io->enqueue( "textures/star_field_transparent.tga" );
-    m_io->enqueue( "textures/cyber_ring1.tga" );
-    m_io->enqueue( "textures/cyber_ring2.tga" );
-    m_io->enqueue( "textures/cyber_ring3.tga" );
-
+    preloadData();
     changeScreen( Screen::eMainMenu );
 
     m_enemies.reserve( 100 );
@@ -68,6 +79,17 @@ int32_t Game::run()
 
     onCleanup();
     return 0;
+}
+
+void Game::preloadData()
+{
+    for ( const char* it : chunk0 ) {
+        m_io->enqueue( it );
+    }
+
+    for ( const char* it : chunk1 ) {
+        m_io->enqueue( it );
+    }
 }
 
 void Game::loopGame()
@@ -176,8 +198,9 @@ bool Game::onInit()
     m_torpedo = m_audio->load( "sounds/torpedo.wav" );
     m_click = m_audio->load( "sounds/click.wav" );
 
-    initRoadAdditions();
+    setup();
     onResize( viewportWidth(), viewportHeight() );
+
     return true;
 }
 
@@ -208,8 +231,10 @@ void Game::onResize( uint32_t w, uint32_t h )
     m_btnWeap3.setPosition( halfW + 100, h015 + 52 - 76 );
 }
 
-void Game::initRoadAdditions()
+void Game::setup()
 {
+    loadMapProto();
+    loadJetProto();
     m_fontPauseTxt = new Font( "misc/DejaVuSans-Bold.ttf", 18 );
     m_fontGuiTxt = new Font( "misc/DejaVuSans-Bold.ttf", 12 );
     m_fontBig = new Font( "misc/DejaVuSans-Bold.ttf", 32 );
@@ -297,7 +322,11 @@ void Game::initRoadAdditions()
     tmpWeapon.color1 = color::orchid;
     m_weapons[ 2 ] = tmpWeapon;
 
-    m_enemyModel = new Model{ "models/a2.objc", loadTexture( "textures/a2.tga" ), m_renderer, 0.45f };
+    for ( const char* it : chunk1 ) {
+        m_textures[ it ] = loadTexture( m_io->getWait( it ) );
+    }
+
+    m_enemyModel = new Model{ "models/a2.objc", m_textures[ "textures/a2.tga" ], m_renderer, 0.45f };
 }
 
 void Game::updateCyberRings( const UpdateContext& updateContext )
@@ -595,27 +624,23 @@ void Game::clearMapData()
     m_jet = nullptr;
 }
 
-void Game::createMapData( const MapProto& mapData, const ModelProto& modelData )
+void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelData )
 {
     m_shotsDone = 0;
     m_jet = new Jet( modelData, m_renderer );
-    m_map = new Map( mapData );
+    m_map = new Map( mapInfo );
     m_jet->setWeapon( m_weapons[ m_weap1 ], 0 );
     m_jet->setWeapon( m_weapons[ m_weap2 ], 1 );
     m_jet->setWeapon( m_weapons[ m_weap3 ], 2 );
 
     assert( m_enemies.empty() );
-    m_enemies.resize( mapData.enemies );
+    m_enemies.resize( mapInfo.enemies );
     for ( Enemy*& it : m_enemies ) {
         it = new ( m_poolEnemies.alloc() ) Enemy( m_enemyModel );
         it->setTarget( m_jet );
         it->setWeapon( m_weapons[ 3 ] );
     }
 
-    for ( MapProto& it : m_mapsContainer ) {
-        destroyTexture( it.preview_image );
-        it.preview_image = Texture{};
-    }
 }
 
 void Game::updateMissionSelection( const UpdateContext& updateContext )
@@ -670,45 +695,66 @@ void Game::goFullscreen( bool )
 void Game::loadMapProto()
 {
     m_mapsContainer.clear();
-    MapProto map;
+    MapCreateInfo map;
     std::ifstream MapFile( "maps.cfg" );
     char value_1[ 48 ]{};
     char value_2[ 48 ]{};
-    std::string line;
+    std::pmr::string line;
+    std::pmr::set<std::pmr::string> uniqueTextures{};
     while ( getline( MapFile, line ) ) {
         std::sscanf( line.c_str(), "%s %s", value_1, value_2 );
         if ( strcmp( value_1, "[MAP]" ) == 0 ) {
             m_mapsContainer.push_back( map );
         }
-        if ( strcmp( value_1, "name" ) == 0 ) {
+        else if ( strcmp( value_1, "name" ) == 0 ) {
             m_mapsContainer.back().name = value_2;
         }
-        if ( strcmp( value_1, "enemies" ) == 0 ) {
+        else if ( strcmp( value_1, "enemies" ) == 0 ) {
             m_mapsContainer.back().enemies = atoi( value_2 );
         }
-        if ( strcmp( value_1, "top" ) == 0 ) {
-            m_mapsContainer.back().TOP = value_2;
+        else if ( strcmp( value_1, "top" ) == 0 ) {
+            m_mapsContainer.back().filePath[ Map::Wall::eTop ] = value_2;
+            uniqueTextures.insert( value_2 );
         }
-        if ( strcmp( value_1, "bottom" ) == 0 ) {
-            m_mapsContainer.back().BOTTOM = value_2;
+        else if ( strcmp( value_1, "bottom" ) == 0 ) {
+            m_mapsContainer.back().filePath[ Map::Wall::eBottom ] = value_2;
+            uniqueTextures.insert( value_2 );
         }
-        if ( strcmp( value_1, "left" ) == 0 ) {
-            m_mapsContainer.back().LEFT = value_2;
+        else if ( strcmp( value_1, "left" ) == 0 ) {
+            m_mapsContainer.back().filePath[ Map::Wall::eLeft ] = value_2;
+            uniqueTextures.insert( value_2 );
         }
-        if ( strcmp( value_1, "right" ) == 0 ) {
-            m_mapsContainer.back().RIGHT = value_2;
+        else if ( strcmp( value_1, "right" ) == 0 ) {
+            m_mapsContainer.back().filePath[ Map::Wall::eRight ] = value_2;
+            uniqueTextures.insert( value_2 );
         }
-        if ( strcmp( value_1, "front" ) == 0 ) {
-            m_mapsContainer.back().FRONT = value_2;
+        else if ( strcmp( value_1, "front" ) == 0 ) {
+            m_mapsContainer.back().filePath[ Map::Wall::eFront ] = value_2;
+            uniqueTextures.insert( value_2 );
         }
-        if ( strcmp( value_1, "back" ) == 0 ) {
-            m_mapsContainer.back().BACK = value_2;
+        else if ( strcmp( value_1, "back" ) == 0 ) {
+            m_mapsContainer.back().filePath[ Map::Wall::eBack ] = value_2;
+            uniqueTextures.insert( value_2 );
         }
-        if ( strcmp( value_1, "preview" ) == 0 ) {
-            m_mapsContainer.back().preview_image_location = value_2;
+        else if ( strcmp( value_1, "preview" ) == 0 ) {
+            m_mapsContainer.back().filePath[ Map::Wall::ePreview ] = value_2;
+            uniqueTextures.insert( value_2 );
         }
     }
     MapFile.close();
+    for ( const auto& it : uniqueTextures ) {
+        m_io->enqueue( it );
+    }
+    for ( const auto& it : uniqueTextures ) {
+        m_textures[ it ] = loadTexture( m_io->getWait( it ) );
+    }
+    for ( auto& it : m_mapsContainer ) {
+        for ( size_t i = 0; i < it.texture.size(); ++i ) {
+            it.texture[ i ] = m_textures[ it.filePath[ i ] ];
+            assert( it.texture[ i ] );
+        }
+    }
+
     if ( m_mapsContainer.empty() ) {
         m_mapsContainer.push_back( map );
         m_btnNextMap.setEnabled( false );
@@ -817,8 +863,6 @@ void Game::loadConfig()
         }
     }
     ConfigFile.close();
-    loadMapProto();
-    loadJetProto();
 }
 
 void Game::saveConfig()
@@ -927,7 +971,7 @@ void Game::reloadPreviewModel()
 {
     Model* model = new Model(
         m_jetsContainer.at( m_currentJet ).model_file
-        , loadTexture( m_jetsContainer.at( m_currentJet ).model_texture.c_str() )
+        , m_textures[ m_jetsContainer.at( m_currentJet ).model_texture ]
         , m_renderer
     );
     std::swap( model, m_previewModel );

@@ -100,6 +100,7 @@ void queueFamilies( VkPhysicalDevice device, VkSurfaceKHR surface, uint32_t* gra
 
 Renderer* Renderer::instance()
 {
+    assert( g_instance );
     return g_instance;
 }
 

@@ -17,11 +17,18 @@ Service::~Service() noexcept
     if ( m_thread.joinable() ) {
         m_thread.join();
     }
+
 }
 
 Service::Service() noexcept
 : m_uniqueLock{ m_mutex }
 {
+    for ( auto& it : m_pending ) {
+        assert( !it.load() );
+    }
+    for ( auto& it : m_ready ) {
+        assert( !it.load() );
+    }
     m_thread = std::thread{ &Service::run, this };
 }
 
@@ -37,7 +44,7 @@ void Service::enqueue( const std::filesystem::path& path, std::pmr::memory_resou
             return;
         }
     }
-    assert( !"unreachable" );
+    assert( !"unable to find free slot" );
 }
 
 Ticket* Service::next()

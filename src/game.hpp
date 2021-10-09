@@ -27,6 +27,7 @@
 #include <thread>
 #include <tuple>
 #include <optional>
+#include <map>
 
 struct Mix_Chunk;
 
@@ -77,7 +78,7 @@ private:
     std::vector<Bullet*> m_bullets{};
     std::vector<Bullet*> m_enemyBullets{};
     std::vector<Enemy*> m_enemies{};
-    std::vector<MapProto> m_mapsContainer{};
+    std::vector<MapCreateInfo> m_mapsContainer{};
     std::vector<ModelProto> m_jetsContainer{};
 
     std::mutex m_mutexJet{};
@@ -114,6 +115,7 @@ private:
     Texture m_menuBackgroundOverlay{};
     Texture m_menuBackground{};
     Texture m_starfieldTexture{};
+    std::pmr::map<std::filesystem::path, Texture> m_textures{};
 
     Targeting m_targeting{};
 
@@ -155,14 +157,13 @@ private:
     void addBullet( uint32_t wID );
     void changeScreen( Screen );
     void clearMapData();
-    void createMapData( const MapProto&, const ModelProto& );
+    void createMapData( const MapCreateInfo&, const ModelProto& );
     void gameKeyboardBriefingPressed( SDL_Scancode );
     void gameKeyboardPausedPressed( SDL_Scancode );
     void gameKeyboardPausedUnpressed( SDL_Scancode );
     void gameKeyboardPressed( SDL_Scancode );
     void gameKeyboardUnpressed( SDL_Scancode );
     void goFullscreen( bool );
-    void initRoadAdditions();
     void loadConfig();
     void loadJetProto();
     void loadMapProto();
@@ -179,6 +180,7 @@ private:
     void pause();
     void playSound( Mix_Chunk* ) const;
     void reloadPreviewModel();
+    void setup();
 
     std::tuple<glm::mat4, glm::mat4> getCameraMatrix() const;
 
@@ -200,6 +202,7 @@ private:
     void renderScreenCustomize( RenderContext );
     void renderWinScreen( RenderContext );
 
+    void preloadData();
     void retarget();
     void saveConfig();
     void setCamera();

@@ -12,6 +12,7 @@
 
 Texture loadTexture( std::pmr::vector<uint8_t>&& data )
 {
+    assert( !data.empty() );
     assert( data.size() >= sizeof( tga::Header ) );
     tga::Header header{};
     auto it = data.begin();
@@ -35,7 +36,9 @@ Texture loadTexture( std::pmr::vector<uint8_t>&& data )
         assert( !"unhandled format" );
         break;
     }
-    return Renderer::instance()->createTexture( header.width, header.height, fmt, true, texture.data() );
+    Renderer* renderer = Renderer::instance();
+    assert( renderer );
+    return renderer->createTexture( header.width, header.height, fmt, true, texture.data() );
 }
 
 Texture loadTexture( std::string_view filename )
