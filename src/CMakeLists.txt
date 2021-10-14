@@ -6,10 +6,9 @@ set( CMAKE_CXX_CLANG_TIDY clang-tidy )
 
 add_subdirectory( audio )
 add_subdirectory( renderer )
+add_subdirectory( engine )
 
 set( STARACE_SOURCES
-    async_io.cpp
-    async_io.hpp
     bullet.cpp
     bullet.hpp
     button.cpp
@@ -41,7 +40,6 @@ set( STARACE_SOURCES
     model_proto.hpp
     obj.cpp
     obj.hpp
-    pool.hpp
     reactor.cpp
     reactor.hpp
     render_context.hpp
@@ -71,6 +69,7 @@ set_error_checks( ${bin_name} )
 set_cppver( ${bin_name} 20 )
 
 target_link_libraries( ${bin_name}
+    engine
     audio
     renderer_vk
     Freetype::Freetype

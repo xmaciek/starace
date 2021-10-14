@@ -1,6 +1,5 @@
 #pragma once
 
-#include "async_io.hpp"
 #include "bullet.hpp"
 #include "button.hpp"
 #include "enemy.hpp"
@@ -10,12 +9,13 @@
 #include "jet.hpp"
 #include "map.hpp"
 #include "model_proto.hpp"
-#include "pool.hpp"
+#include <engine/pool.hpp>
 #include "render_context.hpp"
 #include "texture.hpp"
 #include "update_context.hpp"
 #include "targeting.hpp"
 
+#include <engine/engine.hpp>
 #include <audio/audio.hpp>
 #include <renderer/texture.hpp>
 #include <renderer/renderer.hpp>
@@ -31,7 +31,7 @@
 
 struct Mix_Chunk;
 
-class Game {
+class Game : public Engine {
 public:
     Game();
     ~Game();
@@ -50,7 +50,6 @@ private:
         eMainMenu,
     };
 
-    std::unique_ptr<asyncio::Service> m_io{};
     audio::Engine* m_audio = nullptr;
     Font* m_fontBig = nullptr;
     Font* m_fontGuiTxt = nullptr;

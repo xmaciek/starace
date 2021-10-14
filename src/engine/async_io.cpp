@@ -1,17 +1,15 @@
-#include "async_io.hpp"
+#include <engine/async_io.hpp>
 
 #include <cassert>
 #include <fstream>
 #include <chrono>
 
-namespace asyncio {
-
-Ticket::Ticket( std::filesystem::path&& path, std::pmr::memory_resource* upstream )
+AsyncIO::Ticket::Ticket( std::filesystem::path&& path, std::pmr::memory_resource* upstream )
 : path{ std::move( path ) }
 , data{ upstream }
 {}
 
-Service::~Service() noexcept
+AsyncIO::~AsyncIO() noexcept
 {
     m_isRunning.store( false );
     if ( m_thread.joinable() ) {
@@ -20,19 +18,13 @@ Service::~Service() noexcept
 
 }
 
-Service::Service() noexcept
+AsyncIO::AsyncIO() noexcept
 : m_uniqueLock{ m_mutex }
 {
-    for ( auto& it : m_pending ) {
-        assert( !it.load() );
-    }
-    for ( auto& it : m_ready ) {
-        assert( !it.load() );
-    }
-    m_thread = std::thread{ &Service::run, this };
+    m_thread = std::thread{ &AsyncIO::run, this };
 }
 
-void Service::enqueue( const std::filesystem::path& path, std::pmr::memory_resource* upstream )
+void AsyncIO::enqueue( const std::filesystem::path& path, std::pmr::memory_resource* upstream )
 {
     void* ptr = m_pool.alloc();
     assert( ptr && "too many files in loading in queue" );
@@ -47,7 +39,7 @@ void Service::enqueue( const std::filesystem::path& path, std::pmr::memory_resou
     assert( !"unable to find free slot" );
 }
 
-Ticket* Service::next()
+AsyncIO::Ticket* AsyncIO::next()
 {
     for ( auto& it : m_pending ) {
         Ticket* ticket = it.exchange( nullptr );
@@ -56,7 +48,7 @@ Ticket* Service::next()
     return nullptr;
 }
 
-void Service::finish( Ticket* ticket )
+void AsyncIO::finish( AsyncIO::Ticket* ticket )
 {
     for ( auto& it : m_ready ) {
         Ticket* expected = nullptr;
@@ -67,7 +59,7 @@ void Service::finish( Ticket* ticket )
     assert( !"cannot finish async load, not enough room" );
 }
 
-void Service::run()
+void AsyncIO::run()
 {
     using namespace std::chrono_literals;
     while ( m_isRunning.load() ) {
@@ -87,7 +79,7 @@ void Service::run()
     }
 }
 
-std::optional<std::pmr::vector<uint8_t>> Service::get( const std::filesystem::path& path )
+std::optional<std::pmr::vector<uint8_t>> AsyncIO::get( const std::filesystem::path& path )
 {
     std::scoped_lock<std::mutex> sl( m_bottleneck );
     for ( auto& it : m_ready ) {
@@ -102,7 +94,7 @@ std::optional<std::pmr::vector<uint8_t>> Service::get( const std::filesystem::pa
     return {};
 }
 
-std::pmr::vector<uint8_t> Service::getWait( const std::filesystem::path& path )
+std::pmr::vector<uint8_t> AsyncIO::getWait( const std::filesystem::path& path )
 {
     while ( true ) {
         auto data = get( path );
@@ -110,6 +102,4 @@ std::pmr::vector<uint8_t> Service::getWait( const std::filesystem::path& path )
             return std::move( *data );
         }
     }
-}
-
 }

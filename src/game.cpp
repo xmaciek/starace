@@ -33,7 +33,6 @@ static constexpr const char* chunk1[] = {
 
 Game::Game()
 {
-    m_io = std::make_unique<asyncio::Service>();
     preloadData();
     changeScreen( Screen::eMainMenu );
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pool.hpp"
+#include <engine/pool.hpp>
 
 #include <array>
 #include <atomic>
@@ -13,16 +13,16 @@
 #include <thread>
 #include <vector>
 
-namespace asyncio {
+class AsyncIO {
+public:
+    struct Ticket {
+        std::filesystem::path path{};
+        std::pmr::vector<uint8_t> data{};
 
-struct Ticket {
-    std::filesystem::path path{};
-    std::pmr::vector<uint8_t> data{};
+        Ticket( std::filesystem::path&&, std::pmr::memory_resource* );
+    };
 
-    Ticket( std::filesystem::path&&, std::pmr::memory_resource* );
-};
-
-class Service {
+private:
     static constexpr std::size_t c_maxFiles = 32;
     std::thread m_thread{};
     std::atomic<bool> m_isRunning = true;
@@ -40,13 +40,10 @@ class Service {
     void finish( Ticket* );
 
 public:
-    ~Service() noexcept;
-    Service() noexcept;
+    ~AsyncIO() noexcept;
+    AsyncIO() noexcept;
 
     void enqueue( const std::filesystem::path&, std::pmr::memory_resource* upstream = std::pmr::get_default_resource() );
     std::optional<std::pmr::vector<uint8_t>> get( const std::filesystem::path& );
     std::pmr::vector<uint8_t> getWait( const std::filesystem::path& );
 };
-
-
-} // namespace asyncio
