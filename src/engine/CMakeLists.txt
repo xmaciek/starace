@@ -22,6 +22,8 @@ set_error_checks( engine -Wno-missing-field-initializers )
 set_cppver( engine 20 )
 
 target_link_libraries( engine
+    audio
+    renderer_vk
     glm::glm
     SDL2::SDL2
 )

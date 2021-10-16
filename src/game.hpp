@@ -1,5 +1,8 @@
 #pragma once
 
+#include <engine/engine.hpp>
+#include <engine/pool.hpp>
+
 #include "bullet.hpp"
 #include "button.hpp"
 #include "enemy.hpp"
@@ -9,16 +12,12 @@
 #include "jet.hpp"
 #include "map.hpp"
 #include "model_proto.hpp"
-#include <engine/pool.hpp>
 #include "render_context.hpp"
 #include "texture.hpp"
 #include "update_context.hpp"
 #include "targeting.hpp"
 
-#include <engine/engine.hpp>
-#include <audio/audio.hpp>
 #include <renderer/texture.hpp>
-#include <renderer/renderer.hpp>
 
 #include <glm/vec4.hpp>
 #include <SDL2/SDL.h>
@@ -50,15 +49,12 @@ private:
         eMainMenu,
     };
 
-    audio::Engine* m_audio = nullptr;
     Font* m_fontBig = nullptr;
     Font* m_fontGuiTxt = nullptr;
     Font* m_fontPauseTxt = nullptr;
     Jet* m_jet = nullptr;
     Map* m_map = nullptr;
     Model* m_previewModel = nullptr;
-    Renderer* m_renderer = nullptr;
-    SDL_Window* m_display = nullptr;
     std::thread m_thread{};
 
     Model* m_enemyModel = nullptr;
@@ -129,9 +125,6 @@ private:
     int32_t m_currentResolution = 0;
     uint32_t m_maxDimention = 0;
     uint32_t m_minDimention = 0;
-    uint32_t m_viewportHeight = 540.0;
-    uint32_t m_viewportWidth = 960;
-    float m_viewportAspect = 0.0f;
     uint32_t m_currentJet = 0;
     uint32_t m_currentMap = 0;
     uint32_t m_resolutions[ 4 ][ 2 ]{};
@@ -205,7 +198,6 @@ private:
     void retarget();
     void saveConfig();
     void setCamera();
-    void setViewportSize( uint32_t, uint32_t );
     void unpause();
     void updateClouds( const UpdateContext& );
     void updateCustomize( const UpdateContext& );

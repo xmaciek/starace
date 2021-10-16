@@ -51,10 +51,6 @@ Game::~Game()
 
     delete m_previewModel;
     delete m_enemyModel;
-    delete m_renderer;
-    delete m_audio;
-    SDL_DestroyWindow( m_display );
-    SDL_Quit();
 }
 
 int32_t Game::run()
@@ -140,7 +136,7 @@ void Game::onEvent( const SDL_Event& event )
     case SDL_WINDOWEVENT:
         switch ( event.window.event ) {
         case SDL_WINDOWEVENT_RESIZED:
-            setViewportSize( event.window.data1, event.window.data2 );
+            setViewport( event.window.data1, event.window.data2 );
             onResize( viewportWidth(), viewportHeight() );
         default:
             break;
@@ -165,33 +161,8 @@ void Game::onCleanup()
 
 bool Game::onInit()
 {
-    if ( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_TIMER ) < 0 ) {
-        std::cout << "Unable to init SDL\n"
-                  << SDL_GetError() << "\n";
-        return false;
-    }
-
     loadConfig();
 
-    m_display = SDL_CreateWindow( "Starace"
-        , SDL_WINDOWPOS_UNDEFINED
-        , SDL_WINDOWPOS_UNDEFINED
-        , static_cast<int>( viewportWidth() )
-        , static_cast<int>( viewportHeight() )
-        , Renderer::windowFlag()
-            | ( m_isFullscreen ? SDL_WINDOW_FULLSCREEN : 0 )
-            | SDL_WINDOW_RESIZABLE
-    );
-    assert( m_display );
-    if ( !m_display ) {
-        std::cout << "Unable to create window: "
-                  << SDL_GetError()
-                  << std::endl;
-        return false;
-    }
-
-    m_renderer = Renderer::create( m_display );
-    m_audio = audio::Engine::create();
     m_laser = m_audio->load( "sounds/laser.wav" );
     m_blaster = m_audio->load( "sounds/blaster.wav" );
     m_torpedo = m_audio->load( "sounds/torpedo.wav" );
@@ -352,8 +323,10 @@ void Game::onRender()
 {
     RenderContext rctx{};
     rctx.renderer = m_renderer;
-    rctx.viewport = { m_viewportWidth, m_viewportHeight };
-    rctx.projection = glm::ortho<float>( 0.0f, (float)viewportWidth(), 0.0f, (float)viewportHeight(), -100.0f, 100.0f );
+    [[maybe_unused]]
+    auto [ width, height, aspect ] = viewport();
+    rctx.viewport = { width, height };
+    rctx.projection = glm::ortho<float>( 0.0f, (float)width, 0.0f, (float)height, -100.0f, 100.0f );
 
     const auto [view, projection] = getCameraMatrix();
     rctx.camera3d = projection * view;
@@ -520,10 +493,12 @@ void Game::updateGame( const UpdateContext& updateContext )
         m_enemyBullets.erase( std::remove( m_enemyBullets.begin(), m_enemyBullets.end(), nullptr ), m_enemyBullets.end() );
     }
     {
+        [[maybe_unused]]
+        const auto [ width, height, aspect ] = viewport();
         const auto [ view, projection ] = getCameraMatrix();
         const UpdateContext next{
             .camera = projection * view,
-            .viewport = { m_viewportWidth, m_viewportHeight },
+            .viewport = { width, height },
             .deltaTime = updateContext.deltaTime,
         };
 
@@ -812,12 +787,6 @@ void Game::loadConfig()
     std::string line;
     while ( getline( ConfigFile, line ) ) {
         std::sscanf( line.c_str(), "%s %s", value_1, value_2 );
-        if ( strcmp( value_1, "width" ) == 0 ) {
-            setViewportSize( atoi( value_2 ), viewportHeight() );
-        }
-        if ( strcmp( value_1, "height" ) == 0 ) {
-            setViewportSize( viewportWidth(), atoi( value_2 ) );
-        }
         if ( strcmp( value_1, "fullscreen" ) == 0 ) {
             m_isFullscreen = atoi( value_2 ) != 0;
         }
@@ -946,24 +915,17 @@ void Game::updateDeadScreen( const UpdateContext& updateContext )
 
 uint32_t Game::viewportWidth() const
 {
-    return m_viewportWidth;
+    return std::get<0>( viewport() );
 }
 
 uint32_t Game::viewportHeight() const
 {
-    return m_viewportHeight;
+    return std::get<1>( viewport() );
 }
 
 float Game::viewportAspect() const
 {
-    return m_viewportAspect;
-}
-
-void Game::setViewportSize( uint32_t w, uint32_t h )
-{
-    m_viewportWidth = w;
-    m_viewportHeight = h;
-    m_viewportAspect = (float)w / (float)h;
+    return std::get<2>( viewport() );
 }
 
 void Game::reloadPreviewModel()

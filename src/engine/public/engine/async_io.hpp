@@ -23,7 +23,7 @@ public:
     };
 
 private:
-    static constexpr std::size_t c_maxFiles = 32;
+    static constexpr std::size_t c_maxFiles = 64;
     std::thread m_thread{};
     std::atomic<bool> m_isRunning = true;
     std::array<std::atomic<Ticket*>, c_maxFiles> m_pending{};

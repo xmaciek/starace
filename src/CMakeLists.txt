@@ -70,8 +70,6 @@ set_cppver( ${bin_name} 20 )
 
 target_link_libraries( ${bin_name}
     engine
-    audio
-    renderer_vk
     Freetype::Freetype
     SDL2::SDL2
     Threads::Threads
