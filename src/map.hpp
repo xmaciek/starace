@@ -1,8 +1,9 @@
 #pragma once
 
-#include "render_context.hpp"
 #include "texture.hpp"
-#include "update_context.hpp"
+
+#include <engine/render_context.hpp>
+#include <engine/update_context.hpp>
 #include <renderer/texture.hpp>
 
 #include <glm/vec3.hpp>

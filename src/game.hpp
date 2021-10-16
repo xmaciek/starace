@@ -1,8 +1,5 @@
 #pragma once
 
-#include <engine/engine.hpp>
-#include <engine/pool.hpp>
-
 #include "bullet.hpp"
 #include "button.hpp"
 #include "enemy.hpp"
@@ -12,11 +9,13 @@
 #include "jet.hpp"
 #include "map.hpp"
 #include "model_proto.hpp"
-#include "render_context.hpp"
 #include "texture.hpp"
-#include "update_context.hpp"
 #include "targeting.hpp"
 
+#include <engine/engine.hpp>
+#include <engine/pool.hpp>
+#include <engine/render_context.hpp>
+#include <engine/update_context.hpp>
 #include <renderer/texture.hpp>
 
 #include <glm/vec4.hpp>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "update_context.hpp"
+#include <engine/update_context.hpp>
 
 class Reactor {
     float m_capacity = 100.0f;

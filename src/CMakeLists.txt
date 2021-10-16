@@ -42,7 +42,6 @@ set( STARACE_SOURCES
     obj.hpp
     reactor.cpp
     reactor.hpp
-    render_context.hpp
     saobject.cpp
     saobject.hpp
     shield.cpp
@@ -54,7 +53,6 @@ set( STARACE_SOURCES
     tga.hpp
     thruster.cpp
     thruster.hpp
-    update_context.hpp
     utils.cpp
     utils.hpp
     widget.cpp

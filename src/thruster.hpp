@@ -2,8 +2,9 @@
 
 #include "circle.hpp"
 #include "colors.hpp"
-#include "render_context.hpp"
-#include "update_context.hpp"
+
+#include <engine/render_context.hpp>
+#include <engine/update_context.hpp>
 #include <renderer/buffer.hpp>
 
 #include <glm/vec3.hpp>
