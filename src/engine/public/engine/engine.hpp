@@ -1,6 +1,8 @@
 #pragma once
 
 #include <engine/async_io.hpp>
+#include <engine/update_context.hpp>
+#include <engine/render_context.hpp>
 #include <audio/audio.hpp>
 #include <renderer/renderer.hpp>
 
@@ -26,4 +28,7 @@ protected:
 
     std::tuple<uint32_t, uint32_t, float> viewport() const;
     void setViewport( uint32_t w, uint32_t h );
+
+    virtual void onRender( RenderContext ) = 0;
+    virtual void onUpdate( const UpdateContext& ) = 0;
 };

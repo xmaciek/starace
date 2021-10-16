@@ -8,6 +8,7 @@
 
 Engine::~Engine() noexcept
 {
+    m_rendererPtr.reset();
     SDL_DestroyWindow( m_window );
     SDL_Quit();
 }

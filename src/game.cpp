@@ -91,12 +91,22 @@ void Game::loopGame()
 {
     UpdateContext updateContext{ .deltaTime = 0.0166f };
     while ( m_isRunning ) {
+        [[maybe_unused]]
+        const auto [ width, height, aspect ] = viewport();
+        const auto [ view, projection ] = getCameraMatrix();
+        RenderContext rctx{
+            .renderer = m_renderer,
+            .projection = glm::ortho<float>( 0.0f, (float)width, 0.0f, (float)height, -100.0f, 100.0f ),
+            .camera3d = projection * view,
+            .viewport = { width, height },
+        };
+
         const std::chrono::time_point tp = std::chrono::steady_clock::now();
         m_fpsMeter.frameBegin();
 
         onUpdate( updateContext );
         m_renderer->beginFrame();
-        onRender();
+        onRender( rctx );
         m_renderer->endFrame();
 
         std::vector<SDL_Event> events{};
@@ -319,18 +329,8 @@ void Game::updateCyberRings( const UpdateContext& updateContext )
     m_cyberRingRotation[ 2 ] += speed * updateContext.deltaTime;
 }
 
-void Game::onRender()
+void Game::onRender( RenderContext rctx )
 {
-    RenderContext rctx{};
-    rctx.renderer = m_renderer;
-    [[maybe_unused]]
-    auto [ width, height, aspect ] = viewport();
-    rctx.viewport = { width, height };
-    rctx.projection = glm::ortho<float>( 0.0f, (float)width, 0.0f, (float)height, -100.0f, 100.0f );
-
-    const auto [view, projection] = getCameraMatrix();
-    rctx.camera3d = projection * view;
-
     switch ( m_currentScreen ) {
     case Screen::eGame:
         renderGameScreen( rctx );

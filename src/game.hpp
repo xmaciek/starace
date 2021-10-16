@@ -165,9 +165,7 @@ private:
     void onKeyUp( const SDL_Keysym& );
     void onMouseClickLeft( int32_t x, int32_t y );
     void onMouseMove( const SDL_MouseMotionEvent& );
-    void onRender();
     void onResize( uint32_t w, uint32_t h );
-    void onUpdate( const UpdateContext& );
     void pause();
     void playSound( Mix_Chunk* ) const;
     void reloadPreviewModel();
@@ -208,4 +206,7 @@ private:
     void updateMainMenu( const UpdateContext& );
     void updateMissionSelection( const UpdateContext& );
     void updateWin( const UpdateContext& );
+
+    virtual void onRender( RenderContext ) override;
+    virtual void onUpdate( const UpdateContext& ) override;
 };

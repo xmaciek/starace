@@ -12,5 +12,4 @@ struct RenderContext {
 
     glm::mat4 camera3d = glm::mat4( 1.0f );
     glm::vec2 viewport{};
-    RenderContext() = default;
 };
