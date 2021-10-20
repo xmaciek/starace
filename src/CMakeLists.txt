@@ -20,8 +20,6 @@ set( STARACE_SOURCES
     enemy.hpp
     font.cpp
     font.hpp
-    fps_meter.cpp
-    fps_meter.hpp
     game.cpp
     game.hpp
     game_input.cpp

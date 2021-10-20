@@ -4,7 +4,6 @@
 #include "button.hpp"
 #include "enemy.hpp"
 #include "font.hpp"
-#include "fps_meter.hpp"
 #include "hud.hpp"
 #include "jet.hpp"
 #include "map.hpp"
@@ -76,8 +75,6 @@ private:
     std::vector<ModelProto> m_jetsContainer{};
 
     std::mutex m_mutexJet{};
-
-    FPSMeter m_fpsMeter{};
 
     HudData m_hudData{};
     std::optional<Hud> m_hud{};

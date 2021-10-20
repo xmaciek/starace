@@ -1,6 +1,7 @@
 #pragma once
 
 #include <engine/async_io.hpp>
+#include <engine/fps_meter.hpp>
 #include <engine/update_context.hpp>
 #include <engine/render_context.hpp>
 #include <audio/audio.hpp>
@@ -22,6 +23,7 @@ protected:
     std::unique_ptr<AsyncIO> m_io{};
     Renderer* m_renderer = nullptr;
     std::unique_ptr<audio::Engine> m_audio{};
+    FPSMeter m_fpsMeter{};
 
     ~Engine() noexcept;
     Engine() noexcept;
