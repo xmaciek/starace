@@ -728,9 +728,6 @@ void Game::loadConfig()
     std::string line;
     while ( getline( ConfigFile, line ) ) {
         std::sscanf( line.c_str(), "%s %s", value_1, value_2 );
-        if ( strcmp( value_1, "fullscreen" ) == 0 ) {
-            m_isFullscreen = atoi( value_2 ) != 0;
-        }
         if ( strcmp( value_1, "jet" ) == 0 ) {
             m_lastSelectedJetName = value_2;
         }
@@ -779,7 +776,6 @@ void Game::saveConfig()
     std::ofstream ConfigFile( "config.cfg" );
     ConfigFile << "width " << viewportWidth() << "\n";
     ConfigFile << "height " << viewportHeight() << "\n";
-    ConfigFile << "fullscreen " << m_isFullscreen << "\n";
     ConfigFile << "sound " << m_isSoundEnabled << "\n";
     ConfigFile << "jet " << m_jetsContainer.at( m_currentJet ).name << "\n";
     ConfigFile << "weap1 ";

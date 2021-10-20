@@ -123,11 +123,7 @@ private:
     uint8_t m_weap1 = 0;
     uint8_t m_weap2 = 0;
     uint8_t m_weap3 = 0;
-    bool m_isDynamicCamera = true;
-    bool m_isFullscreen = false;
-    bool m_waitForEnd = true;
     bool m_cyberRingRotationDirection[ 3 ]{};
-    bool m_doUpdate = false;
     bool m_isSoundEnabled = false;
 
     uint32_t viewportHeight() const;

@@ -2,24 +2,17 @@
 
 void Game::onKeyDown( const SDL_Keysym& ks )
 {
-    switch ( ks.scancode ) {
-    case SDL_SCANCODE_F11:
-        goFullscreen( m_isFullscreen );
+    switch ( m_currentScreen ) {
+    case Screen::eGame:
+        gameKeyboardPressed( ks.scancode );
+        break;
+    case Screen::eGamePaused:
+        gameKeyboardPausedPressed( ks.scancode );
+        break;
+    case Screen::eGameBriefing:
+        gameKeyboardBriefingPressed( ks.scancode );
         break;
     default:
-        switch ( m_currentScreen ) {
-        case Screen::eGame:
-            gameKeyboardPressed( ks.scancode );
-            break;
-        case Screen::eGamePaused:
-            gameKeyboardPausedPressed( ks.scancode );
-            break;
-        case Screen::eGameBriefing:
-            gameKeyboardBriefingPressed( ks.scancode );
-            break;
-        default:
-            break;
-        }
         break;
     }
 }
