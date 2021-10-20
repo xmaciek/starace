@@ -157,7 +157,6 @@ private:
     void loadMapProto();
     void loopGame();
     void onCleanup();
-    void onEvent( const SDL_Event& );
     void onKeyDown( const SDL_Keysym& );
     void onKeyUp( const SDL_Keysym& );
     void onMouseClickLeft( int32_t x, int32_t y );
@@ -206,4 +205,5 @@ private:
 
     virtual void onRender( RenderContext ) override;
     virtual void onUpdate( const UpdateContext& ) override;
+    virtual void onEvent( const SDL_Event& ) override;
 };

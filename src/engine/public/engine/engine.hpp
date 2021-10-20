@@ -33,4 +33,5 @@ protected:
 
     virtual void onRender( RenderContext ) = 0;
     virtual void onUpdate( const UpdateContext& ) = 0;
+    virtual void onEvent( const SDL_Event& ) = 0;
 };
