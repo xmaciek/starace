@@ -112,7 +112,7 @@ void Game::loopGame()
         std::vector<SDL_Event> events{};
         {
             std::scoped_lock lock{ m_eventsBottleneck };
-            events = std::move( m_events );
+            std::swap( events, m_events );
         }
         for ( SDL_Event& it : events ) {
             onEvent( it );
