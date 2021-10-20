@@ -103,7 +103,7 @@ void Game::onMouseClickLeft( int32_t x, int32_t y )
         }
         if ( m_btnExit.isClicked( x, y ) ) {
             m_audio->play( m_click );
-            m_isRunning = false;
+            quit();
             break;
         }
         if ( m_btnCustomize.isClicked( x, y ) ) {

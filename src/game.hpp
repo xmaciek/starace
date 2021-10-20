@@ -33,8 +33,6 @@ public:
     Game();
     ~Game();
 
-    int32_t run();
-
 private:
     enum struct Screen {
         eGame,
@@ -53,17 +51,12 @@ private:
     Jet* m_jet = nullptr;
     Map* m_map = nullptr;
     Model* m_previewModel = nullptr;
-    std::thread m_thread{};
-
     Model* m_enemyModel = nullptr;
 
     audio::Chunk m_blaster{};
     audio::Chunk m_click{};
     audio::Chunk m_laser{};
     audio::Chunk m_torpedo{};
-
-    std::vector<SDL_Event> m_events{};
-    std::mutex m_eventsBottleneck{};
 
     std::string m_lastSelectedJetName{};
     Pool<Bullet, 1024> m_poolBullets{};
@@ -132,13 +125,11 @@ private:
     uint8_t m_weap3 = 0;
     bool m_isDynamicCamera = true;
     bool m_isFullscreen = false;
-    bool m_isRunning = true;
     bool m_waitForEnd = true;
     bool m_cyberRingRotationDirection[ 3 ]{};
     bool m_doUpdate = false;
     bool m_isSoundEnabled = false;
 
-    bool onInit();
     uint32_t viewportHeight() const;
     uint32_t viewportWidth() const;
     float viewportAspect() const;
@@ -155,8 +146,6 @@ private:
     void loadConfig();
     void loadJetProto();
     void loadMapProto();
-    void loopGame();
-    void onCleanup();
     void onKeyDown( const SDL_Keysym& );
     void onKeyUp( const SDL_Keysym& );
     void onMouseClickLeft( int32_t x, int32_t y );
@@ -203,6 +192,8 @@ private:
     void updateMissionSelection( const UpdateContext& );
     void updateWin( const UpdateContext& );
 
+    virtual void onInit() override;
+    virtual void onExit() override;
     virtual void onRender( RenderContext ) override;
     virtual void onUpdate( const UpdateContext& ) override;
     virtual void onEvent( const SDL_Event& ) override;

@@ -53,29 +53,6 @@ Game::~Game()
     delete m_enemyModel;
 }
 
-int32_t Game::run()
-{
-    if ( !onInit() ) {
-        return -1;
-    }
-
-    m_thread = std::thread( &Game::loopGame, this );
-    SDL_Event event{};
-    while ( m_isRunning ) {
-        while ( SDL_PollEvent( &event ) ) {
-            std::scoped_lock lock{ m_eventsBottleneck };
-            m_events.emplace_back( event );
-        }
-        std::this_thread::sleep_for( std::chrono::milliseconds( 10 ) );
-    }
-    if ( m_thread.joinable() ) {
-        m_thread.join();
-    }
-
-    onCleanup();
-    return 0;
-}
-
 void Game::preloadData()
 {
     for ( const char* it : chunk0 ) {
@@ -87,52 +64,11 @@ void Game::preloadData()
     }
 }
 
-void Game::loopGame()
-{
-    UpdateContext updateContext{ .deltaTime = 0.0166f };
-    while ( m_isRunning ) {
-        [[maybe_unused]]
-        const auto [ width, height, aspect ] = viewport();
-        const auto [ view, projection ] = getCameraMatrix();
-        RenderContext rctx{
-            .renderer = m_renderer,
-            .projection = glm::ortho<float>( 0.0f, (float)width, 0.0f, (float)height, -100.0f, 100.0f ),
-            .camera3d = projection * view,
-            .viewport = { width, height },
-        };
-
-        const std::chrono::time_point tp = std::chrono::steady_clock::now();
-        m_fpsMeter.frameBegin();
-
-        onUpdate( updateContext );
-        m_renderer->beginFrame();
-        onRender( rctx );
-        m_renderer->endFrame();
-
-        std::vector<SDL_Event> events{};
-        {
-            std::scoped_lock lock{ m_eventsBottleneck };
-            std::swap( events, m_events );
-        }
-        for ( SDL_Event& it : events ) {
-            onEvent( it );
-        }
-        m_fpsMeter.frameEnd();
-        m_renderer->present();
-
-        const std::chrono::time_point now = std::chrono::steady_clock::now();
-        const auto dt = std::chrono::duration_cast<std::chrono::microseconds>( now - tp );
-        updateContext.deltaTime = (float)dt.count();
-        // TODO: fix game speed later
-        updateContext.deltaTime /= 500'000;
-    }
-}
-
 void Game::onEvent( const SDL_Event& event )
 {
     switch ( event.type ) {
     case SDL_QUIT:
-        m_isRunning = false;
+        quit();
         break;
 
     case SDL_KEYDOWN:
@@ -164,12 +100,12 @@ void Game::onEvent( const SDL_Event& event )
     }
 }
 
-void Game::onCleanup()
+void Game::onExit()
 {
     saveConfig();
 }
 
-bool Game::onInit()
+void Game::onInit()
 {
     loadConfig();
 
@@ -181,7 +117,6 @@ bool Game::onInit()
     setup();
     onResize( viewportWidth(), viewportHeight() );
 
-    return true;
 }
 
 void Game::onResize( uint32_t w, uint32_t h )
@@ -331,6 +266,12 @@ void Game::updateCyberRings( const UpdateContext& updateContext )
 
 void Game::onRender( RenderContext rctx )
 {
+    const auto [ width, height, aspect ] = viewport();
+    const auto [ view, projection ] = getCameraMatrix();
+    rctx.projection = glm::ortho<float>( 0.0f, (float)width, 0.0f, (float)height, -100.0f, 100.0f );
+    rctx.camera3d = projection * view;
+    rctx.viewport = { width, height };
+
     switch ( m_currentScreen ) {
     case Screen::eGame:
         renderGameScreen( rctx );
