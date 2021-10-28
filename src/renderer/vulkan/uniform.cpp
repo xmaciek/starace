@@ -23,32 +23,31 @@ Uniform::~Uniform() noexcept
 
 Uniform::Uniform( Uniform&& rhs ) noexcept
 {
-    moveClear( m_device, rhs.m_device );
-    moveClear( m_memoryStaging, rhs.m_memoryStaging );
-    moveClear( m_memoryDeviceLocal, rhs.m_memoryDeviceLocal );
-    moveClear( m_staging, rhs.m_staging );
-    moveClear( m_buffer, rhs.m_buffer );
-    moveClear( m_mapped, rhs.m_mapped );
-    moveClear( m_currentOffset, rhs.m_currentOffset );
-    moveClear( m_minAlign, rhs.m_minAlign );
-    moveClear( m_transferSize, rhs.m_transferSize );
-    moveClear( m_size, rhs.m_size );
+    std::swap( m_device, rhs.m_device );
+    std::swap( m_memoryStaging, rhs.m_memoryStaging );
+    std::swap( m_memoryDeviceLocal, rhs.m_memoryDeviceLocal );
+    std::swap( m_staging, rhs.m_staging );
+    std::swap( m_buffer, rhs.m_buffer );
+    std::swap( m_mapped, rhs.m_mapped );
+    std::swap( m_currentOffset, rhs.m_currentOffset );
+    std::swap( m_minAlign, rhs.m_minAlign );
+    std::swap( m_transferSize, rhs.m_transferSize );
+    std::swap( m_size, rhs.m_size );
 }
 
 Uniform& Uniform::operator = ( Uniform&& rhs ) noexcept
 {
     destroyResources();
-
-    moveClear( m_device, rhs.m_device );
-    moveClear( m_memoryStaging, rhs.m_memoryStaging );
-    moveClear( m_memoryDeviceLocal, rhs.m_memoryDeviceLocal );
-    moveClear( m_staging, rhs.m_staging );
-    moveClear( m_buffer, rhs.m_buffer );
-    moveClear( m_mapped, rhs.m_mapped );
-    moveClear( m_currentOffset, rhs.m_currentOffset );
-    moveClear( m_minAlign, rhs.m_minAlign );
-    moveClear( m_transferSize, rhs.m_transferSize );
-    moveClear( m_size, rhs.m_size );
+    m_device = std::exchange( rhs.m_device, {} );
+    m_memoryStaging = std::exchange( rhs.m_memoryStaging, {} );
+    m_memoryDeviceLocal = std::exchange( rhs.m_memoryDeviceLocal, {} );
+    m_staging = std::exchange( rhs.m_staging, {} );
+    m_buffer = std::exchange( rhs.m_buffer, {} );
+    m_mapped = std::exchange( rhs.m_mapped, {} );
+    m_currentOffset = std::exchange( rhs.m_currentOffset, {} );
+    m_minAlign = std::exchange( rhs.m_minAlign, {} );
+    m_transferSize = std::exchange( rhs.m_transferSize, {} );
+    m_size = std::exchange( rhs.m_size, {} );
 
     return *this;
 }

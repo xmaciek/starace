@@ -14,14 +14,6 @@ VkFormat pickSupportedFormat( VkPhysicalDevice, const std::pmr::vector<VkFormat>
 
 uint32_t memoryType( VkPhysicalDevice, uint32_t typeBits, VkMemoryPropertyFlags );
 
-template <typename T>
-void moveClear( T& lhs, T& rhs ) noexcept
-{
-    static_assert( std::is_trivially_copyable_v<T> );
-    lhs = rhs;
-    rhs = {};
-}
-
 template <auto pfnDestroy, typename T>
 void destroy( VkDevice device, T t ) noexcept
 {

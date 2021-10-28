@@ -39,12 +39,12 @@ Swapchain::Swapchain( Swapchain&& rhs ) noexcept
 Swapchain& Swapchain::operator = ( Swapchain&& rhs ) noexcept
 {
     destroyResources();
-    moveClear( m_device, rhs.m_device );
-    moveClear( m_swapchain, rhs.m_swapchain );
-    moveClear( m_presentMode, rhs.m_presentMode );
-    moveClear( m_surfaceFormat, rhs.m_surfaceFormat );
-    moveClear( m_extent, rhs.m_extent );
-    moveClear( m_imageCount, rhs.m_imageCount );
+    m_device = std::exchange( rhs.m_device, {} );
+    m_swapchain = std::exchange( rhs.m_swapchain, {} );
+    m_presentMode = std::exchange( rhs.m_presentMode, {} );
+    m_surfaceFormat = std::exchange( rhs.m_surfaceFormat, {} );
+    m_extent = std::exchange( rhs.m_extent, {} );
+    m_imageCount = std::exchange( rhs.m_imageCount, {} );
     m_images = std::move( rhs.m_images );
     return *this;
 }

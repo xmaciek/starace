@@ -31,10 +31,9 @@ PipelineVK::PipelineVK( PipelineVK&& rhs ) noexcept
 PipelineVK& PipelineVK::operator = ( PipelineVK&& rhs ) noexcept
 {
     destroyResources();
-    moveClear( m_device, rhs.m_device );
-    moveClear( m_layout, rhs.m_layout );
-    moveClear( m_pipeline, rhs.m_pipeline );
-
+    m_device = std::exchange( rhs.m_device, {} );
+    m_layout = std::exchange( rhs.m_layout, {} );
+    m_pipeline = std::exchange( rhs.m_pipeline, {} );
     return *this;
 }
 

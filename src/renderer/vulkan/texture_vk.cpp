@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <iostream>
+#include <utility>
 
 static uint32_t memType( VkPhysicalDevice device, uint32_t typeBits, VkMemoryPropertyFlags flags )
 {
@@ -150,24 +151,15 @@ TextureVK::TextureVK( TextureVK&& rhs ) noexcept
 TextureVK& TextureVK::operator = ( TextureVK&& rhs ) noexcept
 {
     destroyResources();
-    m_device = rhs.m_device;
-    m_memory = rhs.m_memory;
-    m_extent = rhs.m_extent;
-    m_image = rhs.m_image;
-    m_layout = rhs.m_layout;
-    m_view = rhs.m_view;
-    m_sampler = rhs.m_sampler;
-    m_currentAccess = rhs.m_currentAccess;
-    m_currentStage = rhs.m_currentStage;
-    rhs.m_device = VK_NULL_HANDLE;
-    rhs.m_memory = VK_NULL_HANDLE;
-    rhs.m_extent = {};
-    rhs.m_image = VK_NULL_HANDLE;
-    rhs.m_view = VK_NULL_HANDLE;
-    rhs.m_sampler = VK_NULL_HANDLE;
-    rhs.m_layout = VK_IMAGE_LAYOUT_UNDEFINED;
-    rhs.m_currentAccess = 0;
-    rhs.m_currentStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+    m_device = std::exchange( rhs.m_device, {} );
+    m_memory = std::exchange( rhs.m_memory, {} );
+    m_extent = std::exchange( rhs.m_extent, {} );
+    m_image = std::exchange( rhs.m_image, {} );
+    m_layout = std::exchange( rhs.m_layout, {} );
+    m_view = std::exchange( rhs.m_view, {} );
+    m_sampler = std::exchange( rhs.m_sampler, {} );
+    m_currentAccess = std::exchange( rhs.m_currentAccess, {} );
+    m_currentStage = std::exchange( rhs.m_currentStage, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT );
     return *this;
 }
 

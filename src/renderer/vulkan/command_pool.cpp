@@ -86,16 +86,11 @@ CommandPool::CommandPool( CommandPool&& rhs ) noexcept
 CommandPool& CommandPool::operator = ( CommandPool&& rhs ) noexcept
 {
     destroy();
-    m_device = rhs.m_device;
-    rhs.m_device = VK_NULL_HANDLE;
-
-    m_pool = rhs.m_pool;
-    rhs.m_pool = VK_NULL_HANDLE;
-
+    m_device = std::exchange( rhs.m_device, {} );
+    m_pool = std::exchange( rhs.m_pool, {} );
     m_queues = std::move( rhs.m_queues );
     m_buffers = std::move( rhs.m_buffers );
-    m_currentFrame = rhs.m_currentFrame;
-    rhs.m_currentFrame = 0;
+    m_currentFrame = std::exchange( rhs.m_currentFrame, {} );
     return *this;
 }
 

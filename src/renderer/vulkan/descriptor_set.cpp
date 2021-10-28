@@ -31,13 +31,10 @@ DescriptorSet::DescriptorSet( DescriptorSet&& rhs ) noexcept
 DescriptorSet& DescriptorSet::operator = ( DescriptorSet&& rhs ) noexcept
 {
     destroyResources();
-    m_device = rhs.m_device;
-    m_pool = rhs.m_pool;
-    m_layout = rhs.m_layout;
+    m_device = std::exchange( rhs.m_device, {} );
+    m_pool = std::exchange( rhs.m_pool, {} );
+    m_layout = std::exchange( rhs.m_layout, {} );
     m_set = std::move( rhs.m_set );
-    rhs.m_device = VK_NULL_HANDLE;
-    rhs.m_pool = VK_NULL_HANDLE;
-    rhs.m_layout = VK_NULL_HANDLE;
     return *this;
 }
 

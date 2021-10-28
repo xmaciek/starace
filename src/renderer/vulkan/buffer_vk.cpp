@@ -32,17 +32,11 @@ BufferVK::BufferVK( BufferVK&& rhs ) noexcept
 BufferVK& BufferVK::operator = ( BufferVK&& rhs ) noexcept
 {
     destroyResources();
-    m_device = rhs.m_device;
-    m_memory = rhs.m_memory;
-    m_buffer = rhs.m_buffer;
-    m_size = rhs.m_size;
-    m_purpose = rhs.m_purpose;
-
-    rhs.m_device = VK_NULL_HANDLE;
-    rhs.m_memory = VK_NULL_HANDLE;
-    rhs.m_buffer = VK_NULL_HANDLE;
-    rhs.m_size = 0;
-    rhs.m_purpose = Purpose::eStaging;
+    m_device = std::exchange( rhs.m_device, {} );
+    m_memory = std::exchange( rhs.m_memory, {} );
+    m_buffer = std::exchange( rhs.m_buffer, {} );
+    m_size = std::exchange( rhs.m_size, {} );
+    m_purpose = std::exchange( rhs.m_purpose, Purpose::eStaging );
     return *this;
 }
 static uint32_t memType( VkPhysicalDevice device, uint32_t typeBits, VkMemoryPropertyFlags flags )

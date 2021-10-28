@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <iostream>
+#include <utility>
 
 DebugMsg::DebugMsg( VkInstance instance ) noexcept
 : m_vkInstance{ instance }
@@ -50,12 +51,9 @@ DebugMsg& DebugMsg::operator = ( DebugMsg&& rhs ) noexcept
         assert( m_destroy );
         m_destroy( m_vkInstance, m_inst, nullptr );
     }
-    m_vkInstance = rhs.m_vkInstance;
-    m_inst = rhs.m_inst;
-    m_destroy = rhs.m_destroy;
-    rhs.m_vkInstance = VK_NULL_HANDLE;
-    rhs.m_inst = VK_NULL_HANDLE;
-    rhs.m_destroy = nullptr;
+    m_vkInstance = std::exchange( rhs.m_vkInstance, {} );
+    m_inst = std::exchange( rhs.m_inst, {} );
+    m_destroy = std::exchange( rhs.m_destroy, {} );
     return *this;
 }
 

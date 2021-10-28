@@ -87,8 +87,8 @@ RenderPass::RenderPass( RenderPass&& rhs ) noexcept
 RenderPass& RenderPass::operator = ( RenderPass&& rhs ) noexcept
 {
     destroy<vkDestroyRenderPass, VkRenderPass>( m_device, m_renderPass );
-    moveClear( m_renderPass, rhs.m_renderPass );
-    moveClear( m_device, rhs.m_device );
+    m_renderPass = std::exchange( rhs.m_renderPass, {} );
+    m_device = std::exchange( rhs.m_device, {} );
     return *this;
 }
 

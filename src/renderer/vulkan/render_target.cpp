@@ -102,19 +102,19 @@ RenderTarget::RenderTarget( RenderTarget&& rhs ) noexcept
 RenderTarget& RenderTarget::operator = ( RenderTarget&& rhs ) noexcept
 {
     destroyResources();
-    moveClear( m_device, rhs.m_device );
-    moveClear( m_framebuffer, rhs.m_framebuffer );
-    moveClear( m_extent, rhs.m_extent );
+    m_device = std::exchange( rhs.m_device, {} );
+    m_framebuffer = std::exchange( rhs.m_framebuffer, {} );
+    m_extent = std::exchange( rhs.m_extent, {} );
 
-    moveClear( m_image, rhs.m_image );
-    moveClear( m_imageView, rhs.m_imageView );
-    moveClear( m_imageMemory, rhs.m_imageMemory );
-    moveClear( m_imageFormat, rhs.m_imageFormat );
+    m_image = std::exchange( rhs.m_image, {} );
+    m_imageView = std::exchange( rhs.m_imageView, {} );
+    m_imageMemory = std::exchange( rhs.m_imageMemory, {} );
+    m_imageFormat = std::exchange( rhs.m_imageFormat, {} );
 
-    moveClear( m_depth, rhs.m_depth );
-    moveClear( m_depthView, rhs.m_depthView );
-    moveClear( m_depthMemory, rhs.m_depthMemory );
-    moveClear( m_depthFormat, rhs.m_depthFormat );
+    m_depth = std::exchange( rhs.m_depth, {} );
+    m_depthView = std::exchange( rhs.m_depthView, {} );
+    m_depthMemory = std::exchange( rhs.m_depthMemory, {} );
+    m_depthFormat = std::exchange( rhs.m_depthFormat, {} );
 
     return *this;
 }
