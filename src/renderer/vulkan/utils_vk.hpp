@@ -62,4 +62,10 @@ static constexpr TransferInfo copyFrom{
     .m_stage = VK_PIPELINE_STAGE_TRANSFER_BIT,
 };
 
+static constexpr TransferInfo fragmentRead{
+    .m_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+    .m_access = VK_ACCESS_SHADER_READ_BIT,
+    .m_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+};
+
 } // namespace constants
