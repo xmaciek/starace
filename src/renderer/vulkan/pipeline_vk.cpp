@@ -4,9 +4,6 @@
 #include "shader.hpp"
 #include "utils_vk.hpp"
 
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
-
 #include <array>
 #include <cassert>
 
@@ -26,6 +23,7 @@ PipelineVK::PipelineVK( PipelineVK&& rhs ) noexcept
     std::swap( m_device, rhs.m_device );
     std::swap( m_layout, rhs.m_layout );
     std::swap( m_pipeline, rhs.m_pipeline );
+    std::swap( m_isActive, rhs.m_isActive );
 }
 
 PipelineVK& PipelineVK::operator = ( PipelineVK&& rhs ) noexcept
@@ -34,6 +32,7 @@ PipelineVK& PipelineVK::operator = ( PipelineVK&& rhs ) noexcept
     m_device = std::exchange( rhs.m_device, {} );
     m_layout = std::exchange( rhs.m_layout, {} );
     m_pipeline = std::exchange( rhs.m_pipeline, {} );
+    m_isActive = std::exchange( rhs.m_isActive, {} );
     return *this;
 }
 
@@ -60,8 +59,8 @@ static VkPrimitiveTopology topology( Pipeline pip ) noexcept
 template <typename T>
 constexpr VkFormat formatForType() noexcept;
 
-template <> constexpr VkFormat formatForType<glm::vec2>() noexcept { return VK_FORMAT_R32G32_SFLOAT; }
-template <> constexpr VkFormat formatForType<glm::vec3>() noexcept { return VK_FORMAT_R32G32B32_SFLOAT; }
+template <> constexpr VkFormat formatForType<float[2]>() noexcept { return VK_FORMAT_R32G32_SFLOAT; }
+template <> constexpr VkFormat formatForType<float[3]>() noexcept { return VK_FORMAT_R32G32B32_SFLOAT; }
 
 template <typename T, size_t TLocation, size_t TOffset>
 static constexpr VkVertexInputAttributeDescription attribute() noexcept
@@ -94,9 +93,9 @@ static VkPipelineVertexInputStateCreateInfo vertexInfo( Pipeline pip ) noexcept
             .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
         };
         static constexpr std::array attr = {
-            attribute<glm::vec3, 0, 0>(),
-            attribute<glm::vec2, 1, 12>(),
-            attribute<glm::vec3, 2, 20>(),
+            attribute<float[3], 0, 0>(),
+            attribute<float[2], 1, 12>(),
+            attribute<float[3], 2, 20>(),
         };
         return {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO, \
@@ -225,7 +224,6 @@ PipelineVK::PipelineVK( Pipeline pip, VkDevice device, VkRenderPass renderPass, 
         .renderPass = renderPass,
     };
 
-//     assert( viewportState.scissorCount == 1 );
     [[maybe_unused]]
     const VkResult pipelineOK = vkCreateGraphicsPipelines( device, nullptr, 1, &pipelineInfo, nullptr, &m_pipeline );
     assert( pipelineOK == VK_SUCCESS );
@@ -238,47 +236,6 @@ void PipelineVK::begin( VkCommandBuffer cmdBuff, VkDescriptorSet descriptorSet )
         vkCmdBindPipeline( cmdBuff, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline );
     }
     vkCmdBindDescriptorSets( cmdBuff, VK_PIPELINE_BIND_POINT_GRAPHICS, m_layout, 0, 1, &descriptorSet, 0, nullptr );
-}
-
-void PipelineVK::updateUniforms( const VkBuffer& buff
-    , uint32_t buffSize
-    , [[maybe_unused]] VkImageView imageView
-    , [[maybe_unused]] VkSampler sampler
-    , VkDescriptorSet descriptorSet
-)
-{
-    const VkDescriptorBufferInfo bufferInfo{
-        .buffer = buff,
-        .offset = 0,
-        .range = buffSize,
-    };
-    const VkDescriptorImageInfo imageInfo{
-        .sampler = sampler,
-        .imageView = imageView,
-        .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-    };
-    const VkWriteDescriptorSet descriptorWrites[] = {
-        {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstSet = descriptorSet,
-            .dstBinding = 0,
-            .dstArrayElement = 0,
-            .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .pBufferInfo = &bufferInfo,
-        },
-        {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstSet = descriptorSet,
-            .dstBinding = 1,
-            .dstArrayElement = 0,
-            .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .pImageInfo = &imageInfo,
-        },
-    };
-    const uint32_t writeCount = imageView ? (uint32_t)std::size( descriptorWrites ) : 1u;
-    vkUpdateDescriptorSets( m_device, writeCount, descriptorWrites, 0, nullptr );
 }
 
 void PipelineVK::end()

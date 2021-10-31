@@ -28,7 +28,6 @@ public:
     PipelineVK& operator = ( PipelineVK&& ) noexcept;
 
     void begin( VkCommandBuffer, VkDescriptorSet );
-    void updateUniforms( const VkBuffer&, uint32_t, VkImageView, VkSampler, VkDescriptorSet );
     void end();
 
     VkPipelineLayout layout() const;
