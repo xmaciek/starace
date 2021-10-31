@@ -124,32 +124,29 @@ RendererVK::RendererVK( SDL_Window* window )
     const std::pmr::vector<const char*> dextension = deviceExtensions();
 
     {
-        VkApplicationInfo appInfo{};
-        appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-        appInfo.pApplicationName = "Starace";
-        appInfo.applicationVersion = VK_MAKE_VERSION( 1, 0, 0 );
-        appInfo.pEngineName = "No Engine";
-        appInfo.engineVersion = VK_MAKE_VERSION( 1, 0, 0 );
-        appInfo.apiVersion = VK_API_VERSION_1_1;
-
-        VkInstanceCreateInfo instanceCreateInfo{};
-        instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-        instanceCreateInfo.pApplicationInfo = &appInfo;
+        const VkApplicationInfo appInfo{
+            .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+            .pApplicationName = "Starace",
+            .applicationVersion = VK_MAKE_VERSION( 1, 0, 0 ),
+            .pEngineName = "No Engine",
+            .engineVersion = VK_MAKE_VERSION( 1, 0, 0 ),
+            .apiVersion = VK_API_VERSION_1_1,
+        };
 
         const std::pmr::vector<const char*> ext = extensions( m_window );
-        instanceCreateInfo.enabledExtensionCount = ext.size();
-        instanceCreateInfo.ppEnabledExtensionNames = ext.data();
-
         const std::pmr::vector<const char*> lay = layers();
-        instanceCreateInfo.enabledLayerCount = lay.size();
-        instanceCreateInfo.ppEnabledLayerNames = lay.data();
 
-        const VkResult res = vkCreateInstance( &instanceCreateInfo, nullptr, &m_instance );
-        assert( res == VK_SUCCESS );
-        if ( res != VK_SUCCESS ) {
-            std::cout << "Failed to create instance" << std::endl;
-            return;
-        }
+        const VkInstanceCreateInfo instanceCreateInfo{
+            .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+            .pApplicationInfo = &appInfo,
+            .enabledLayerCount = static_cast<uint32_t>( lay.size() ),
+            .ppEnabledLayerNames = lay.data(),
+            .enabledExtensionCount = static_cast<uint32_t>( ext.size() ),
+            .ppEnabledExtensionNames = ext.data(),
+        };
+
+        const VkResult instanceOK = vkCreateInstance( &instanceCreateInfo, nullptr, &m_instance );
+        assert( instanceOK == VK_SUCCESS );
     }
     m_debugMsg = DebugMsg{ m_instance };
 
@@ -173,8 +170,8 @@ RendererVK::RendererVK( SDL_Window* window )
     );
 
     if ( !SDL_Vulkan_CreateSurface( m_window, m_instance, &m_surface ) ) {
-        assert( 0 );
-        std::cout << "Failed to create sdl surface" << std::endl;
+        assert( !"Failed to create sdl vulkan surface" );
+        std::cout << "Failed to create sdl vulkan surface" << std::endl;
         return;
     }
 
@@ -216,12 +213,9 @@ RendererVK::RendererVK( SDL_Window* window )
             .ppEnabledExtensionNames = dextension.data(),
             .pEnabledFeatures = &deviceFeatures,
         };
-        const VkResult res = vkCreateDevice( m_physicalDevice, &createInfo, nullptr, &m_device );
-        assert( res == VK_SUCCESS );
-        if ( res != VK_SUCCESS ) {
-            std::cout << "Failed to create device" << std::endl;
-            return;
-        }
+        [[maybe_unused]]
+        const VkResult deviceOK = vkCreateDevice( m_physicalDevice, &createInfo, nullptr, &m_device );
+        assert( deviceOK == VK_SUCCESS );
     }
 
     for ( auto& it : m_uniform ) {
@@ -275,20 +269,16 @@ RendererVK::RendererVK( SDL_Window* window )
     }
 
     {
-        VkSemaphoreCreateInfo semaphoreInfo{};
-        semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-        if ( const VkResult res = vkCreateSemaphore( m_device, &semaphoreInfo, nullptr, &m_semaphoreAvailableImage );
-            res != VK_SUCCESS ) {
-            assert( !"failed to create semaphore" );
-            std::cout << "failed to create semaphore" << std::endl;
-            return;
-        }
-        if ( const VkResult res = vkCreateSemaphore( m_device, &semaphoreInfo, nullptr, &m_semaphoreRender );
-            res != VK_SUCCESS ) {
-            assert( !"failed to create render semaphore" );
-            std::cout << "failed to create render semaphore" << std::endl;
-            return;
-        }
+        static constexpr VkSemaphoreCreateInfo semaphoreInfo{
+            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+        };
+        [[maybe_unused]]
+        const VkResult imgOK = vkCreateSemaphore( m_device, &semaphoreInfo, nullptr, &m_semaphoreAvailableImage );
+        assert( imgOK == VK_SUCCESS );
+
+        [[maybe_unused]]
+        const VkResult renderOK = vkCreateSemaphore( m_device, &semaphoreInfo, nullptr, &m_semaphoreRender );
+        assert( renderOK == VK_SUCCESS );
     }
 
 
@@ -420,6 +410,7 @@ Buffer RendererVK::createBuffer( std::pmr::vector<float>&& vec )
 
     BufferVK data{ m_physicalDevice, m_device, BufferVK::Purpose::eVertex, staging.sizeInBytes() };
     m_transferCmd.transferBufferAndWait( staging, data, staging.sizeInBytes() );
+    // TODO: slot machine
     static uint32_t idx = 0;
     const Buffer retBuffer = ++idx;
     [[maybe_unused]]
@@ -496,6 +487,7 @@ Texture RendererVK::createTexture( uint32_t width, uint32_t height, TextureForma
     BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, size };
     staging.copyData( data );
 
+    // TODO: slot machine
     static uint32_t sidx = 0;
     const uint32_t idx = ++sidx;
     TextureVK* tex = new TextureVK{ m_physicalDevice, m_device, VkExtent2D{ width, height }, convertFormat( fmt ) };
@@ -527,12 +519,11 @@ Texture RendererVK::createTexture( uint32_t width, uint32_t height, TextureForma
 void RendererVK::beginFrame()
 {
     uint32_t imageIndex = 0;
-    if ( const VkResult res = vkAcquireNextImageKHR( m_device, m_swapchain, std::numeric_limits<uint64_t>::max(), m_semaphoreAvailableImage, VK_NULL_HANDLE, &imageIndex );
-        res != VK_SUCCESS ) {
-        assert( !"failed to acquire image" );
-        std::cout << "failed to acquire image" << std::endl;
-        return;
-    }
+    static constexpr uint64_t timeout = 8'000'000; // 8ms
+    [[maybe_unused]]
+    const VkResult acquireOK = vkAcquireNextImageKHR( m_device, m_swapchain, timeout, m_semaphoreAvailableImage, VK_NULL_HANDLE, &imageIndex );
+    assert( acquireOK == VK_SUCCESS );
+
     m_currentFrame = imageIndex;
     m_graphicsCmd.setFrame( m_currentFrame );
     m_transferToGraphicsCmd.setFrame( m_currentFrame );
@@ -558,12 +549,10 @@ void RendererVK::beginFrame()
 
     VkCommandBuffer cmd = m_graphicsCmd.buffer();
     vkResetCommandBuffer( cmd, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT );
-    if ( const VkResult res = vkBeginCommandBuffer( cmd, &beginInfo );
-        res != VK_SUCCESS ) {
-        assert( !"failed to begin command buffer" );
-        std::cout << "failed to begin command buffer" << std::endl;
-        return;
-    }
+    [[maybe_unused]]
+    const VkResult cmdOK = vkBeginCommandBuffer( cmd, &beginInfo );
+    assert( cmdOK == VK_SUCCESS );
+
     vkCmdSetViewport( cmd, 0, 1, &viewport );
     vkCmdSetScissor( cmd, 0, 1, &rect );
     m_mainPass.begin( cmd, m_mainTargets[ m_currentFrame ].framebuffer(), rect );
@@ -651,15 +640,16 @@ void RendererVK::endFrame()
     VkSemaphore renderSemaphores[]{ m_semaphoreRender };
     VkPipelineStageFlags waitStages[]{ VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 
-    VkSubmitInfo submitInfo{};
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submitInfo.waitSemaphoreCount = 1;
-    submitInfo.pWaitSemaphores = waitSemaphores;
-    submitInfo.pWaitDstStageMask = waitStages;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &cmd;
-    submitInfo.signalSemaphoreCount = 1;
-    submitInfo.pSignalSemaphores = renderSemaphores;
+    const VkSubmitInfo submitInfo{
+        .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+        .waitSemaphoreCount = 1,
+        .pWaitSemaphores = waitSemaphores,
+        .pWaitDstStageMask = waitStages,
+        .commandBufferCount = 1,
+        .pCommandBuffers = &cmd,
+        .signalSemaphoreCount = 1,
+        .pSignalSemaphores = renderSemaphores,
+    };
 
     flushUniforms();
 
