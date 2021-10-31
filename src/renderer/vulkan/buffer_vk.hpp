@@ -9,7 +9,6 @@ public:
     enum struct Purpose {
         eStaging,
         eVertex,
-        eUniform,
     };
 
 private:
