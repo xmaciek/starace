@@ -12,7 +12,6 @@ target_sources( engine
     ${CMAKE_CURRENT_SOURCE_DIR}/public/engine/async_io.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/engine/engine.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/engine/fps_meter.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/public/engine/pool.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/engine/render_context.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/engine/update_context.hpp
 )
@@ -28,6 +27,7 @@ set_cppver( engine 20 )
 target_link_libraries( engine
     audio
     renderer_vk
+    shared
     glm::glm
     SDL2::SDL2
 )

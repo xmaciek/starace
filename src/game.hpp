@@ -12,10 +12,10 @@
 #include "targeting.hpp"
 
 #include <engine/engine.hpp>
-#include <engine/pool.hpp>
 #include <engine/render_context.hpp>
 #include <engine/update_context.hpp>
 #include <renderer/texture.hpp>
+#include <shared/pool.hpp>
 
 #include <glm/vec4.hpp>
 #include <SDL2/SDL.h>

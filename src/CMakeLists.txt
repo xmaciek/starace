@@ -6,6 +6,7 @@ set( CMAKE_CXX_CLANG_TIDY clang-tidy )
 
 add_subdirectory( audio )
 add_subdirectory( renderer )
+add_subdirectory( shared )
 add_subdirectory( engine )
 
 set( STARACE_SOURCES
