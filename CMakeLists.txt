@@ -26,6 +26,7 @@ function( set_error_checks tgt )
     endif()
 endfunction()
 
+add_subdirectory( sdk )
 add_subdirectory( misc )
 add_subdirectory( models )
 add_subdirectory( shaders )
