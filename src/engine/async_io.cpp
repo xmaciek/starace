@@ -1,5 +1,7 @@
 #include <engine/async_io.hpp>
 
+#include <Tracy.hpp>
+
 #include <cassert>
 #include <fstream>
 #include <chrono>
@@ -26,6 +28,7 @@ AsyncIO::AsyncIO() noexcept
 
 void AsyncIO::enqueue( const std::filesystem::path& path, std::pmr::memory_resource* upstream )
 {
+    ZoneScoped;
     void* ptr = m_pool.alloc();
     assert( ptr && "too many files in loading in queue" );
     Ticket* ticket = new ( ptr ) Ticket( std::filesystem::path{ path }, upstream );
@@ -66,6 +69,7 @@ void AsyncIO::run()
         m_notify.wait_for( m_uniqueLock, 5ms );
         Ticket* ticket = next();
         if ( !ticket ) { continue; }
+        ZoneScopedN( "AsyncIO load file" );
         std::ifstream ifs( ticket->path, std::ios::binary | std::ios::ate );
         if ( !ifs.is_open() ) {
             finish( ticket );
@@ -81,6 +85,7 @@ void AsyncIO::run()
 
 std::optional<std::pmr::vector<uint8_t>> AsyncIO::get( const std::filesystem::path& path )
 {
+    ZoneScoped;
     std::scoped_lock<std::mutex> sl( m_bottleneck );
     for ( auto& it : m_ready ) {
         Ticket* ticket = it.load();
@@ -96,6 +101,7 @@ std::optional<std::pmr::vector<uint8_t>> AsyncIO::get( const std::filesystem::pa
 
 std::pmr::vector<uint8_t> AsyncIO::getWait( const std::filesystem::path& path )
 {
+    ZoneScoped;
     while ( true ) {
         auto data = get( path );
         if ( data ) {

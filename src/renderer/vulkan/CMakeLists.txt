@@ -37,4 +37,5 @@ set_cppver( renderer_vk 20 )
 target_link_libraries( renderer_vk
     renderer
     Vulkan::Vulkan
+    Tracy::Client
 )

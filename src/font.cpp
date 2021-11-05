@@ -7,6 +7,7 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include <glm/gtc/matrix_transform.hpp>
+#include <Tracy.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -121,6 +122,7 @@ struct BlitIterator {
 
 static Font::Glyph makeGlyph( const FT_Face& face, char32_t ch, uint32_t pixelSize )
 {
+    ZoneScoped;
     const FT_UInt glyphIndex = FT_Get_Char_Index( face, ch );
 
     [[maybe_unused]]
@@ -150,6 +152,7 @@ Font::Font( std::string_view fontname, uint32_t h )
 , m_glyphs( 128 )
 , m_height( h )
 {
+    ZoneScoped;
     FT_Library library{};
     [[maybe_unused]]
     const FT_Error freetypeInitErr = FT_Init_FreeType( &library );
@@ -215,6 +218,7 @@ uint32_t Font::height() const
 
 Font::RenderText Font::composeText( const glm::vec4& color, std::string_view text )
 {
+    ZoneScoped;
     assert( text.size() < PushConstant<Pipeline::eShortString>::charCount );
     PushBuffer<Pipeline::eShortString> pushBuffer{};
     pushBuffer.m_texture = m_texture;

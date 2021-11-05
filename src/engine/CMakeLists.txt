@@ -30,6 +30,7 @@ target_link_libraries( engine
     shared
     glm::glm
     SDL2::SDL2
+    Tracy::Client
 )
 
 

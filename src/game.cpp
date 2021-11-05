@@ -4,6 +4,8 @@
 #include "utils.hpp"
 #include "constants.hpp"
 
+#include <Tracy.hpp>
+
 #include <algorithm>
 #include <chrono>
 #include <cstdlib>
@@ -33,6 +35,7 @@ static constexpr const char* chunk1[] = {
 
 Game::Game()
 {
+    ZoneScoped;
     preloadData();
     changeScreen( Screen::eMainMenu );
 
@@ -43,6 +46,7 @@ Game::Game()
 
 Game::~Game()
 {
+    ZoneScoped;
     clearMapData();
 
     delete m_fontPauseTxt;
@@ -55,6 +59,7 @@ Game::~Game()
 
 void Game::preloadData()
 {
+    ZoneScoped;
     for ( const char* it : chunk0 ) {
         m_io->enqueue( it );
     }
@@ -107,6 +112,7 @@ void Game::onExit()
 
 void Game::onInit()
 {
+    ZoneScoped;
     loadConfig();
 
     m_laser = m_audio->load( "sounds/laser.wav" );
@@ -148,6 +154,7 @@ void Game::onResize( uint32_t w, uint32_t h )
 
 void Game::setup()
 {
+    ZoneScoped;
     loadMapProto();
     loadJetProto();
     m_fontPauseTxt = new Font( "misc/DejaVuSans-Bold.ttf", 18 );
@@ -266,6 +273,7 @@ void Game::updateCyberRings( const UpdateContext& updateContext )
 
 void Game::onRender( RenderContext rctx )
 {
+    ZoneScoped;
     const auto [ width, height, aspect ] = viewport();
     const auto [ view, projection ] = getCameraMatrix();
     rctx.projection = glm::ortho<float>( 0.0f, (float)width, 0.0f, (float)height, -100.0f, 100.0f );
@@ -304,6 +312,7 @@ void Game::onRender( RenderContext rctx )
 
 void Game::onUpdate( const UpdateContext& updateContext )
 {
+    ZoneScoped;
     switch ( m_currentScreen ) {
     case Screen::eGame:
         updateGame( updateContext );

@@ -1,6 +1,7 @@
 #include <engine/engine.hpp>
 
 #include <SDL2/SDL.h>
+#include <Tracy.hpp>
 
 #include <chrono>
 #include <cstring>
@@ -9,6 +10,7 @@
 
 Engine::~Engine() noexcept
 {
+    ZoneScoped;
     m_rendererPtr.reset();
     SDL_DestroyWindow( m_window );
     SDL_Quit();
@@ -43,6 +45,7 @@ static BinaryConfigBlob loadConfig()
 Engine::Engine() noexcept
 : m_io{ std::make_unique<AsyncIO>() }
 {
+    ZoneScoped;
     [[maybe_unused]]
     const int initOK = SDL_Init( SDL_INIT_VIDEO | SDL_INIT_TIMER );
     assert( initOK >= 0 );
@@ -98,6 +101,7 @@ void Engine::gameThread()
     };
 
     while ( m_isRunning.load() ) {
+        FrameMark;
         const std::chrono::time_point tp = std::chrono::steady_clock::now();
 
         m_fpsMeter.frameBegin();

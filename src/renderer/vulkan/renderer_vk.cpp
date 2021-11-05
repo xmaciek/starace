@@ -1,12 +1,14 @@
 #include "renderer_vk.hpp"
 
+#include "utils_vk.hpp"
+
 #include <SDL2/SDL_vulkan.h>
+#include <Tracy.hpp>
 
 #include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <optional>
-#include "utils_vk.hpp"
 
 static Renderer* g_instance = nullptr;
 
@@ -55,6 +57,7 @@ static bool testBit( uint32_t a, uint32_t bit, uint32_t bitnot )
 
 void queueFamilies( VkPhysicalDevice device, VkSurfaceKHR surface, uint32_t* graphics, uint32_t* present, uint32_t* transfer )
 {
+    ZoneScoped;
     uint32_t count = 0;
     vkGetPhysicalDeviceQueueFamilyProperties( device, &count, nullptr );
     std::vector<VkQueueFamilyProperties> vec( count );
@@ -117,6 +120,7 @@ Renderer* Renderer::create( SDL_Window* window )
 RendererVK::RendererVK( SDL_Window* window )
 : m_window( window )
 {
+    ZoneScoped;
     assert( !g_instance );
     g_instance = this;
 
@@ -344,6 +348,7 @@ RendererVK::RendererVK( SDL_Window* window )
 
 RendererVK::~RendererVK()
 {
+    ZoneScoped;
     m_graphicsCmd = {};
     m_transferToGraphicsCmd = {};
     m_transferCmd = {};
@@ -382,6 +387,7 @@ RendererVK::~RendererVK()
 
 void RendererVK::flushUniforms()
 {
+    ZoneScoped;
     static constexpr VkCommandBufferBeginInfo beginInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
         .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
@@ -405,6 +411,7 @@ void RendererVK::flushUniforms()
 
 Buffer RendererVK::createBuffer( std::pmr::vector<float>&& vec )
 {
+    ZoneScoped;
     BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, vec.size() * sizeof( float ) };
     staging.copyData( reinterpret_cast<const uint8_t*>( vec.data() ) );
 
@@ -459,6 +466,7 @@ static size_t formatToSize( TextureFormat fmt )
 
 Texture RendererVK::createTexture( uint32_t width, uint32_t height, TextureFormat fmt, bool, const uint8_t* data )
 {
+    ZoneScoped;
     assert( width > 0 );
     assert( height > 0 );
     assert( data );
@@ -518,6 +526,7 @@ Texture RendererVK::createTexture( uint32_t width, uint32_t height, TextureForma
 
 void RendererVK::beginFrame()
 {
+    ZoneScoped;
     uint32_t imageIndex = 0;
     static constexpr uint64_t timeout = 8'000'000; // 8ms
     [[maybe_unused]]
@@ -560,6 +569,7 @@ void RendererVK::beginFrame()
 
 void RendererVK::deleteBuffer( const Buffer& b )
 {
+    ZoneScoped;
     auto it = m_bufferMap.find( b );
     if ( it != m_bufferMap.end() ) {
         m_bufferPendingDelete.emplace_back( std::move( it->second ) );
@@ -569,6 +579,7 @@ void RendererVK::deleteBuffer( const Buffer& b )
 
 void RendererVK::deleteTexture( Texture t )
 {
+    ZoneScoped;
     auto it = m_textures.find( t );
     if ( it == m_textures.end() ) { return; }
     TextureVK* ptr = it->second;
@@ -578,6 +589,7 @@ void RendererVK::deleteTexture( Texture t )
 
 void RendererVK::recreateSwapchain()
 {
+    ZoneScoped;
     vkDeviceWaitIdle( m_device );
 
     m_swapchain = Swapchain( m_physicalDevice
@@ -604,6 +616,7 @@ void RendererVK::recreateSwapchain()
 
 void RendererVK::endFrame()
 {
+    ZoneScoped;
     VkCommandBuffer cmd = m_graphicsCmd.buffer();
     m_mainPass.end( cmd );
     if ( m_lastPipeline ) {
@@ -667,6 +680,7 @@ void RendererVK::endFrame()
 
 void RendererVK::present()
 {
+    ZoneScoped;
     VkSemaphore renderSemaphores[]{ m_semaphoreRender };
     VkSwapchainKHR swapchain[] = { m_swapchain };
     VkPresentInfoKHR presentInfo{};
