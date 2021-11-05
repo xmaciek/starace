@@ -2,8 +2,6 @@ find_package( Threads REQUIRED )
 find_package( Freetype 2 REQUIRED )
 find_package( SDL2 REQUIRED )
 
-set( CMAKE_CXX_CLANG_TIDY clang-tidy )
-
 add_subdirectory( audio )
 add_subdirectory( renderer )
 add_subdirectory( shared )
