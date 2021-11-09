@@ -4,9 +4,10 @@
 
 #include <array>
 #include <atomic>
-#include <cstdint>
 #include <condition_variable>
+#include <cstdint>
 #include <filesystem>
+#include <list>
 #include <memory_resource>
 #include <mutex>
 #include <optional>
@@ -24,13 +25,15 @@ public:
 
 private:
     static constexpr std::size_t c_maxFiles = 64;
-    std::thread m_thread{};
-    std::atomic<bool> m_isRunning = true;
-    std::array<std::atomic<Ticket*>, c_maxFiles> m_pending{};
-    std::array<std::atomic<Ticket*>, c_maxFiles> m_ready{};
     Pool<Ticket, c_maxFiles> m_pool{};
-    std::mutex m_bottleneck{};
+    std::pmr::list<Ticket*> m_pending{};
+    std::pmr::list<Ticket*> m_ready{};
 
+    std::thread m_thread;
+    std::mutex m_bottleneck;
+    std::mutex m_bottleneckReady;
+    std::atomic<uint16_t> m_pendingCount = 0;
+    std::atomic<bool> m_isRunning = true;
     std::condition_variable m_notify;
     std::mutex m_mutex;
     std::unique_lock<std::mutex> m_uniqueLock;

@@ -155,8 +155,6 @@ void Game::onResize( uint32_t w, uint32_t h )
 void Game::setup()
 {
     ZoneScoped;
-    loadMapProto();
-    loadJetProto();
     m_fontPauseTxt = new Font( "misc/DejaVuSans-Bold.ttf", 18 );
     m_fontGuiTxt = new Font( "misc/DejaVuSans-Bold.ttf", 12 );
     m_fontBig = new Font( "misc/DejaVuSans-Bold.ttf", 32 );
@@ -248,6 +246,8 @@ void Game::setup()
         m_textures[ it ] = loadTexture( m_io->getWait( it ) );
     }
 
+    loadMapProto();
+    loadJetProto();
     m_enemyModel = new Model{ "models/a2.objc", m_textures[ "textures/a2.tga" ], m_renderer, 0.45f };
 }
 

@@ -5,6 +5,7 @@
 #include <cassert>
 #include <fstream>
 #include <chrono>
+#include <iostream>
 
 AsyncIO::Ticket::Ticket( std::filesystem::path&& path, std::pmr::memory_resource* upstream )
 : path{ std::move( path ) }
@@ -17,7 +18,6 @@ AsyncIO::~AsyncIO() noexcept
     if ( m_thread.joinable() ) {
         m_thread.join();
     }
-
 }
 
 AsyncIO::AsyncIO() noexcept
@@ -32,41 +32,43 @@ void AsyncIO::enqueue( const std::filesystem::path& path, std::pmr::memory_resou
     void* ptr = m_pool.alloc();
     assert( ptr && "too many files in loading in queue" );
     Ticket* ticket = new ( ptr ) Ticket( std::filesystem::path{ path }, upstream );
-    Ticket* expected = nullptr;
-    for ( auto& it : m_pending ) {
-        if ( it.compare_exchange_strong( expected, ticket ) ) {
-            m_notify.notify_all();
-            return;
-        }
+    {
+        std::scoped_lock<std::mutex> sl( m_bottleneck );
+        m_pending.push_back( ticket );
     }
-    assert( !"unable to find free slot" );
+    m_pendingCount.fetch_add( 1 );
+    m_notify.notify_all();
 }
 
 AsyncIO::Ticket* AsyncIO::next()
 {
-    for ( auto& it : m_pending ) {
-        Ticket* ticket = it.exchange( nullptr );
-        if ( ticket ) { return ticket; }
+    if ( m_pendingCount.load() == 0 ) {
+        return nullptr;
     }
-    return nullptr;
+    std::scoped_lock<std::mutex> sl( m_bottleneck );
+    if ( m_pending.empty() ) {
+        return nullptr;
+    }
+    assert( m_pendingCount.load() != 0 );
+    m_pendingCount.fetch_sub( 1 );
+    AsyncIO::Ticket* t = m_pending.front();
+    m_pending.pop_front();
+    return t;
 }
 
 void AsyncIO::finish( AsyncIO::Ticket* ticket )
 {
-    for ( auto& it : m_ready ) {
-        Ticket* expected = nullptr;
-        if ( it.compare_exchange_strong( expected, ticket ) ) {
-            return;
-        }
-    }
-    assert( !"cannot finish async load, not enough room" );
+    std::scoped_lock<std::mutex> sl( m_bottleneckReady );
+    m_ready.push_back( ticket );
 }
 
 void AsyncIO::run()
 {
     using namespace std::chrono_literals;
     while ( m_isRunning.load() ) {
-        m_notify.wait_for( m_uniqueLock, 5ms );
+        if ( m_pendingCount.load() == 0 ) {
+            m_notify.wait_for( m_uniqueLock, 5ms );
+        }
         Ticket* ticket = next();
         if ( !ticket ) { continue; }
         ZoneScopedN( "AsyncIO load file" );
@@ -85,14 +87,20 @@ void AsyncIO::run()
 
 std::optional<std::pmr::vector<uint8_t>> AsyncIO::get( const std::filesystem::path& path )
 {
+    std::scoped_lock<std::mutex> sl( m_bottleneckReady );
+    if ( m_ready.empty() ) { return {}; }
+
     ZoneScoped;
-    std::scoped_lock<std::mutex> sl( m_bottleneck );
-    for ( auto& it : m_ready ) {
-        Ticket* ticket = it.load();
-        if ( !ticket ) { continue; }
-        if ( ticket->path != path ) { continue; }
-        it.store( nullptr );
+    for ( auto it = m_ready.begin(); it != m_ready.end(); ++it ) {
+        Ticket* ticket = *it;
+        assert( ticket );
+        if ( ticket->path != path ) {
+            std::cout << path.native() << " != " << ticket->path.native() << std::endl;
+            continue; }
+
+        m_ready.erase( it );
         std::pmr::vector<uint8_t> ret = std::move( ticket->data );
+        std::destroy_at<Ticket>( ticket );
         m_pool.dealloc( ticket );
         return ret;
     }
@@ -102,10 +110,11 @@ std::optional<std::pmr::vector<uint8_t>> AsyncIO::get( const std::filesystem::pa
 std::pmr::vector<uint8_t> AsyncIO::getWait( const std::filesystem::path& path )
 {
     ZoneScoped;
-    while ( true ) {
+    while ( m_isRunning.load() ) {
         auto data = get( path );
         if ( data ) {
             return std::move( *data );
         }
     }
+    return {};
 }
