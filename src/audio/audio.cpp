@@ -1,5 +1,7 @@
 #include <audio/audio.hpp>
 
+#include <Tracy.hpp>
+
 #include <SDL2/SDL.h>
 
 #include <algorithm>
@@ -59,6 +61,7 @@ Engine* Engine::create()
 
 SDLAudioEngine::~SDLAudioEngine()
 {
+    ZoneScoped;
     SDL_PauseAudioDevice( m_device, 1 );
     SDL_CloseAudioDevice( m_device );
     SDL_AudioQuit();
@@ -66,6 +69,7 @@ SDLAudioEngine::~SDLAudioEngine()
 
 SDLAudioEngine::SDLAudioEngine()
 {
+    ZoneScoped;
     SDL_InitSubSystem( SDL_INIT_AUDIO );
     std::vector<std::string> audioDrivers( SDL_GetNumAudioDrivers() );
     for ( size_t i = 0; i < audioDrivers.size(); ++i ) {
@@ -107,6 +111,7 @@ SDLAudioEngine::SDLAudioEngine()
 
 void SDLAudioEngine::callback( void* userData, Uint8* stream, int len )
 {
+    ZoneScoped;
     assert( userData );
     assert( stream );
 
@@ -136,6 +141,7 @@ void SDLAudioEngine::callback( void* userData, Uint8* stream, int len )
 
 Chunk SDLAudioEngine::load( std::string_view file )
 {
+    ZoneScoped;
     Buffer buffer{};
     Uint8* tmpBuff = nullptr;
     Uint32 tmpLen = 0;

@@ -23,6 +23,7 @@ struct BinaryConfigBlob {
 
 static BinaryConfigBlob loadConfig()
 {
+    ZoneScoped;
     BinaryConfigBlob ret{};
     std::ifstream file( "engine.cfg" );
     std::array<char, 48> tmp1{};
