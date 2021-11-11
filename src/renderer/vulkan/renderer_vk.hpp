@@ -12,11 +12,13 @@
 #include "render_target.hpp"
 #include "uniform.hpp"
 
+#include <shared/indexer.hpp>
+
 #include <vulkan/vulkan.h>
 
+#include <array>
+#include <memory_resource>
 #include <vector>
-#include <deque>
-#include <map>
 #include <mutex>
 
 class RendererVK : public Renderer {
@@ -58,11 +60,15 @@ class RendererVK : public Renderer {
     std::array<PipelineVK, (size_t)Pipeline::count> m_pipelines{};
     PipelineVK* m_lastPipeline = nullptr;
 
-    std::pmr::map<Texture, TextureVK*> m_textures{}; // TODO: slot machine
-    std::pmr::vector<TextureVK*> m_texturesPendingDelete{};
+    Indexer<64> m_textureIndexer{};
+    std::array<std::atomic<TextureVK*>, 64> m_textureSlots{};
+    std::mutex m_textureBottleneck{};
+    std::pmr::vector<TextureVK*> m_texturePendingDelete{};
 
-    std::pmr::map<Buffer, BufferVK> m_bufferMap{}; // TODO: slot machine
-    std::pmr::vector<BufferVK> m_bufferPendingDelete{};
+    Indexer<64> m_bufferIndexer{};
+    std::array<std::atomic<BufferVK*>, 64> m_bufferSlots{};
+    std::mutex m_bufferBottleneck{};
+    std::pmr::vector<BufferVK*> m_bufferPendingDelete{};
 
     VkFormat m_depthFormat = {};
 
@@ -80,7 +86,7 @@ public:
     virtual Texture createTexture( uint32_t w, uint32_t h, TextureFormat, bool, std::pmr::vector<uint8_t>&& ) override;
     virtual void beginFrame() override;
     virtual void endFrame() override;
-    virtual void deleteBuffer( const Buffer& ) override;
+    virtual void deleteBuffer( Buffer ) override;
     virtual void deleteTexture( Texture ) override;
     virtual void present() override;
     virtual void push( const void* buffer, const void* constant ) override;

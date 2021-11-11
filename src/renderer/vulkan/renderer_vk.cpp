@@ -106,7 +106,6 @@ static std::tuple<QueueCount, QueueCount> queueFamilies( VkPhysicalDevice device
     return pickDifferentValues<QueueCount>( graphicsCandidate, presentCandidate );
 }
 
-
 Renderer* Renderer::instance()
 {
     assert( g_instance );
@@ -127,6 +126,10 @@ RendererVK::RendererVK( SDL_Window* window )
 : m_window( window )
 {
     ZoneScoped;
+    // TODO: slot index offset
+    { [[maybe_unused]] const auto _ = m_textureIndexer.next(); }
+    { [[maybe_unused]] const auto _ = m_bufferIndexer.next(); }
+
     assert( !g_instance );
     g_instance = this;
 
@@ -342,7 +345,6 @@ RendererVK::RendererVK( SDL_Window* window )
         , "shaders/short_string.vert.spv"
         , "shaders/short_string.frag.spv"
     };
-
 }
 
 
@@ -351,13 +353,18 @@ RendererVK::~RendererVK()
     ZoneScoped;
     m_graphicsCmd = {};
     m_transferDataCmd = {};
-    m_bufferMap.clear();
-    m_bufferPendingDelete.clear();
     m_mainTargets.clear();
-    for ( auto it : m_textures ) {
-        delete it.second;
+    for ( const auto& it : m_textureSlots ) {
+        delete it.load();
     }
-    for ( TextureVK* it : m_texturesPendingDelete ) {
+    for ( auto* it : m_texturePendingDelete ) {
+        delete it;
+    }
+
+    for ( const auto& it : m_bufferSlots ) {
+        delete it.load();
+    }
+    for ( auto* it : m_bufferPendingDelete ) {
         delete it;
     }
 
@@ -418,19 +425,19 @@ Buffer RendererVK::createBuffer( std::pmr::vector<float>&& vec )
     BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, vec.size() * sizeof( float ) };
     staging.copyData( reinterpret_cast<const uint8_t*>( vec.data() ) );
 
-    BufferVK data{ m_physicalDevice, m_device, BufferVK::Purpose::eVertex, staging.sizeInBytes() };
+    BufferVK* buff = new BufferVK{ m_physicalDevice, m_device, BufferVK::Purpose::eVertex, staging.sizeInBytes() };
     {
         assert( m_transferDataCmd.queueIndex() < m_cmdBottleneck.size() );
         Bottleneck lock{ m_cmdBottleneck[ m_transferDataCmd.queueIndex() ] };
-        m_transferDataCmd.transferBufferAndWait( staging, data, staging.sizeInBytes() );
+        m_transferDataCmd.transferBufferAndWait( staging, *buff, staging.sizeInBytes() );
     }
-    // TODO: slot machine
-    static uint32_t idx = 0;
-    const Buffer retBuffer = ++idx;
+
+    const uint32_t idx = m_bufferIndexer.next();
+    assert( idx != 0 );
     [[maybe_unused]]
-    auto [ it, emplaced ] = m_bufferMap.emplace( std::make_pair( retBuffer, std::move( data ) ) );
-    assert( emplaced );
-    return retBuffer;
+    BufferVK* oldBuff = m_bufferSlots[ idx ].exchange( buff );
+    assert( !oldBuff );
+    return idx;
 }
 
 std::pmr::memory_resource* RendererVK::allocator()
@@ -503,11 +510,7 @@ Texture RendererVK::createTexture( uint32_t width, uint32_t height, TextureForma
     BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, size };
     staging.copyData( data.data() );
 
-    // TODO: slot machine
-    static uint32_t sidx = 0;
-    const uint32_t idx = ++sidx;
     TextureVK* tex = new TextureVK{ m_physicalDevice, m_device, VkExtent2D{ width, height }, convertFormat( fmt ) };
-    m_textures.emplace( std::make_pair( idx, tex ) );
 
     static constexpr VkCommandBufferBeginInfo beginInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -533,6 +536,11 @@ Texture RendererVK::createTexture( uint32_t width, uint32_t height, TextureForma
     assert( submitOK == VK_SUCCESS );
     vkQueueWaitIdle( queue );
 
+    const uint32_t idx = m_textureIndexer.next();
+    assert( idx != 0 );
+    [[maybe_unused]]
+    TextureVK* oldTex = m_textureSlots[ idx ].exchange( tex );
+    assert( !oldTex );
     return idx;
 }
 
@@ -578,24 +586,24 @@ void RendererVK::beginFrame()
     m_mainPass.begin( cmd, m_mainTargets[ m_currentFrame ].framebuffer(), rect );
 }
 
-void RendererVK::deleteBuffer( const Buffer& b )
+void RendererVK::deleteBuffer( Buffer b )
 {
     ZoneScoped;
-    auto it = m_bufferMap.find( b );
-    if ( it != m_bufferMap.end() ) {
-        m_bufferPendingDelete.emplace_back( std::move( it->second ) );
-        m_bufferMap.erase( it );
-    }
+    BufferVK* buff = m_bufferSlots[ b ].exchange( nullptr );
+    assert( buff );
+    m_bufferIndexer.release( b );
+    Bottleneck bottleneck{ m_bufferBottleneck };
+    m_bufferPendingDelete.push_back( buff );
 }
 
 void RendererVK::deleteTexture( Texture t )
 {
     ZoneScoped;
-    auto it = m_textures.find( t );
-    if ( it == m_textures.end() ) { return; }
-    TextureVK* ptr = it->second;
-    m_textures.erase( it );
-    m_texturesPendingDelete.push_back( ptr );
+    TextureVK* tex = m_textureSlots[ t ].exchange( nullptr );
+    assert( tex );
+    m_textureIndexer.release( t );
+    Bottleneck bottleneck{ m_textureBottleneck };
+    m_texturePendingDelete.push_back( tex );
 }
 
 void RendererVK::recreateSwapchain()
@@ -685,11 +693,25 @@ void RendererVK::endFrame()
         assert( submitOK == VK_SUCCESS );
         vkQueueWaitIdle( m_graphicsCmd.queue() );
     }
-    auto bufferDel = std::move( m_bufferPendingDelete );
-    auto textureDel = std::move( m_texturesPendingDelete );
-    for ( auto* it : textureDel ) {
+
+    decltype( m_bufferPendingDelete ) bufDel;
+    {
+        Bottleneck bottleneck{ m_bufferBottleneck };
+        std::swap( m_bufferPendingDelete, bufDel );
+    }
+    for ( auto* it : bufDel ) {
         delete it;
     }
+
+    decltype( m_texturePendingDelete ) texDel;
+    {
+        Bottleneck bottleneck{ m_textureBottleneck };
+        std::swap( m_texturePendingDelete, texDel );
+    }
+    for ( auto* it : texDel ) {
+        delete it;
+    }
+
 }
 
 void RendererVK::present()
@@ -778,11 +800,11 @@ void RendererVK::push( const void* buffer, const void* constant )
     Pipeline p = *reinterpret_cast<const Pipeline*>( buffer );
     switch ( p ) {
     CASE( eGuiTextureColor1 )
-        auto it = m_textures.find( pushBuffer->m_texture );
-        if ( it == m_textures.end() ) {
+        const TextureVK* texture = m_textureSlots[ pushBuffer->m_texture ];
+        if ( !texture ) {
             return;
         }
-        const TextureVK* texture = it->second;
+
         const VkDescriptorBufferInfo bufferInfo = m_uniform[ m_currentFrame ].copy( constant, constantSize );
         const VkDescriptorImageInfo imageInfo = texture->imageInfo();
         const VkDescriptorSet descriptorSet = m_descriptorSetBufferSampler[ m_currentFrame ].next();
@@ -795,11 +817,11 @@ void RendererVK::push( const void* buffer, const void* constant )
     } break;
 
     CASE( eShortString )
-        auto it = m_textures.find( pushBuffer->m_texture );
-        if ( it == m_textures.end() ) {
+        const TextureVK* texture = m_textureSlots[ pushBuffer->m_texture ];
+        if ( !texture ) {
             return;
         }
-        const TextureVK* texture = it->second;
+
         const VkDescriptorBufferInfo bufferInfo = m_uniform[ m_currentFrame ].copy( constant, constantSize );
         const VkDescriptorImageInfo imageInfo = texture->imageInfo();
         const VkDescriptorSet descriptorSet = m_descriptorSetBufferSampler[ m_currentFrame ].next();
@@ -848,11 +870,11 @@ void RendererVK::push( const void* buffer, const void* constant )
     } break;
 
     CASE( eTriangleFan3dTexture )
-        auto it = m_textures.find( pushBuffer->m_texture );
-        if ( it == m_textures.end() ) {
+        const TextureVK* texture = m_textureSlots[ pushBuffer->m_texture ];
+        if ( !texture ) {
             return;
         }
-        const TextureVK* texture = it->second;
+
         const VkDescriptorBufferInfo bufferInfo = m_uniform[ m_currentFrame ].copy( constant, constantSize );
         const VkDescriptorImageInfo imageInfo = texture->imageInfo();
         const VkDescriptorSet descriptorSet = m_descriptorSetBufferSampler[ m_currentFrame ].next();
@@ -865,11 +887,16 @@ void RendererVK::push( const void* buffer, const void* constant )
     } break;
 
     CASE( eTriangle3dTextureNormal )
-        auto it = m_textures.find( pushBuffer->m_texture );
-        if ( it == m_textures.end() ) {
+        const TextureVK* texture = m_textureSlots[ pushBuffer->m_texture ];
+        if ( !texture ) {
             return;
         }
-        const TextureVK* texture = it->second;
+
+        const BufferVK* buffer = m_bufferSlots[ pushBuffer->m_vertices ];
+        if ( !buffer ) {
+            return;
+        }
+
         const VkDescriptorBufferInfo bufferInfo = m_uniform[ m_currentFrame ].copy( constant, constantSize );
         const VkDescriptorImageInfo imageInfo = texture->imageInfo();
         const VkDescriptorSet descriptorSet = m_descriptorSetBufferSampler[ m_currentFrame ].next();
@@ -877,13 +904,10 @@ void RendererVK::push( const void* buffer, const void* constant )
         updateDescriptor( m_device, descriptorSet, bufferInfo, imageInfo );
 
         VkCommandBuffer cmd = m_graphicsCmd.buffer();
-        auto vertices = m_bufferMap.find( pushBuffer->m_vertices );
-        assert( vertices != m_bufferMap.end() );
-
         currentPipeline.begin( cmd, descriptorSet );
-        std::array<VkBuffer, 1> buffers{ vertices->second };
+        std::array<VkBuffer, 1> buffers{ *buffer };
         const std::array<VkDeviceSize, 1> offsets{ 0 };
-        const uint32_t verticeCount = vertices->second.sizeInBytes() / ( 8 * sizeof( float ) );
+        const uint32_t verticeCount = buffer->sizeInBytes() / ( 8 * sizeof( float ) );
         vkCmdBindVertexBuffers( cmd, 0, 1, buffers.data(), offsets.data() );
         vkCmdDraw( cmd, verticeCount, 1, 0, 0 );
     } break;
