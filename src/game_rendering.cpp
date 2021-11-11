@@ -147,11 +147,11 @@ void Game::renderHUD( RenderContext rctx )
             pushConstant.m_view = rctx2.view;
             pushConstant.m_projection = rctx2.projection;
             std::fill_n( pushConstant.m_colors.begin(), 5, color );
-            pushConstant.m_vertices[ 0 ] = { -3.0f, 0.0f, 0.0f, 0.0f };
-            pushConstant.m_vertices[ 1 ] = { 3.0f, 0.0f, 0.0f, 0.0f };
+            pushConstant.m_vertices[ 0 ] = { -12.0f, 24.0f, 0.0f, 0.0f };
+            pushConstant.m_vertices[ 1 ] = { 0.0f, 26.5f, 0.0f, 0.0f };
             pushConstant.m_vertices[ 2 ] = { 12.0f, 24.0f, 0.0f, 0.0f };
-            pushConstant.m_vertices[ 3 ] = { 0.0f, 26.5f, 0.0f, 0.0f };
-            pushConstant.m_vertices[ 4 ] = { -12.0f, 24.0f, 0.0f, 0.0f };
+            pushConstant.m_vertices[ 3 ] = { 3.0f, 0.0f, 0.0f, 0.0f };
+            pushConstant.m_vertices[ 4 ] = { -3.0f, 0.0f, 0.0f, 0.0f };
 
             PushBuffer<Pipeline::eTriangleFan3dColor> pushBuffer{};
             pushBuffer.m_verticeCount = 5;
