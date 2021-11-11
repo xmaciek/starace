@@ -8,6 +8,7 @@ This project is my bachelor/engineer diploma work made in late 2012 using OpenGL
 Hello Vulkan and few more improvements that should be there from the beginning :)
 
 ### Requirments:
+* C++20 compiler
 * Linux
 * Vulkan >= 1.1
 * SDL 2 >= 2.0
