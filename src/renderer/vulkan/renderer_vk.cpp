@@ -471,36 +471,37 @@ static size_t formatToSize( TextureFormat fmt )
     }
 }
 
-Texture RendererVK::createTexture( uint32_t width, uint32_t height, TextureFormat fmt, bool, const uint8_t* data )
+Texture RendererVK::createTexture( uint32_t width, uint32_t height, TextureFormat fmt, bool, std::pmr::vector<uint8_t>&& data )
 {
     ZoneScoped;
     assert( width > 0 );
     assert( height > 0 );
-    assert( data );
+    assert( !data.empty() );
 
-    std::pmr::vector<uint32_t> vec{ allocator() };
     switch ( fmt ) {
     case TextureFormat::eRGB:
     case TextureFormat::eBGR:
     {
-        vec.resize( width * height );
+        std::pmr::vector<uint8_t> tmp{ width * height * 4, allocator() };
         using RGB = uint8_t[3];
-        const RGB* rgb = reinterpret_cast<const RGB*>( data );
+        const RGB* rgb = reinterpret_cast<const RGB*>( data.data() );
         const RGB* rgbend = rgb;
+        uint32_t* dst = reinterpret_cast<uint32_t*>( tmp.data() );
         std::advance( rgbend, width * height );
-        std::transform( rgb, rgbend, vec.begin(), []( const RGB& rgb ) {
+        std::transform( rgb, rgbend, dst, []( const RGB& rgb ) {
             return ( (uint32_t)rgb[0] << 0 )
                 | ( (uint32_t)rgb[1] << 8 )
                 | ( (uint32_t)rgb[2] << 16 )
                 | 0xff000000;
         } );
-        data = reinterpret_cast<const uint8_t*>( vec.data() );
+        data = std::move( tmp );
     } break;
     default: break;
     }
     const std::size_t size = width * height * formatToSize( fmt );
+    assert( size <= data.size() );
     BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, size };
-    staging.copyData( data );
+    staging.copyData( data.data() );
 
     // TODO: slot machine
     static uint32_t sidx = 0;

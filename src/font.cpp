@@ -175,7 +175,9 @@ Font::Font( std::string_view fontname, uint32_t h )
     FT_Done_FreeType( library );
 
     const size_t textureSize = ( FONT_SIZE_SCALE * h * 12 ) * ( FONT_SIZE_SCALE * h * 12);
-    std::pmr::vector<uint8_t> texture( textureSize );
+    Renderer* renderer = Renderer::instance();
+    assert( renderer );
+    std::pmr::vector<uint8_t> texture( textureSize, renderer->allocator() );
     const size_t dstPitch = static_cast<size_t>( FONT_SIZE_SCALE * (float)h * 12 );
     for ( size_t i = 0; i < m_glyphs.size(); ++i ) {
         Glyph& glyph = m_glyphs[ i ];
@@ -187,12 +189,12 @@ Font::Font( std::string_view fontname, uint32_t h )
         std::copy_n( glyph.data.begin(), glyph.data.size(), dst );
     }
 
-    m_texture = Renderer::instance()->createTexture(
+    m_texture = renderer->createTexture(
         dstPitch
         , dstPitch
         , TextureFormat::eR
         , false
-        , reinterpret_cast<const uint8_t*>( texture.data() )
+        , std::move( texture )
     );
 
 }

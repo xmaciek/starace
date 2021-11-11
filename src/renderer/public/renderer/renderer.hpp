@@ -20,7 +20,7 @@ public:
 
     virtual Buffer createBuffer( std::pmr::vector<float>&& ) = 0;
     virtual std::pmr::memory_resource* allocator() = 0;
-    virtual Texture createTexture( uint32_t w, uint32_t h, TextureFormat, bool genMips, const uint8_t* ) = 0;
+    virtual Texture createTexture( uint32_t w, uint32_t h, TextureFormat, bool genMips, std::pmr::vector<uint8_t>&& ) = 0;
     virtual void beginFrame() = 0;
     virtual void endFrame() = 0;
     virtual void deleteBuffer( const Buffer& ) = 0;

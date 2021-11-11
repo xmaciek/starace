@@ -24,7 +24,9 @@ Texture loadTexture( std::pmr::vector<uint8_t>&& data )
     const size_t bytesPerPixel = header.bitsPerPixel / 8;
     const size_t textureSize = header.width * header.height * bytesPerPixel;
 
-    std::vector<uint8_t> texture( textureSize );
+    Renderer* renderer = Renderer::instance();
+    assert( renderer );
+    std::pmr::vector<uint8_t> texture( textureSize, renderer->allocator() );
     std::copy_n( it, texture.size(), texture.begin() );
 
     TextureFormat fmt = {};
@@ -36,9 +38,7 @@ Texture loadTexture( std::pmr::vector<uint8_t>&& data )
         assert( !"unhandled format" );
         break;
     }
-    Renderer* renderer = Renderer::instance();
-    assert( renderer );
-    return renderer->createTexture( header.width, header.height, fmt, true, texture.data() );
+    return renderer->createTexture( header.width, header.height, fmt, true, std::move( texture ) );
 }
 
 Texture loadTexture( std::string_view filename )
