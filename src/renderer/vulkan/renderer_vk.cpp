@@ -55,49 +55,55 @@ static bool testBit( uint32_t a, uint32_t bit, uint32_t bitnot )
     return ( a & bit ) == bit && ( a & bitnot ) == 0;
 }
 
-void queueFamilies( VkPhysicalDevice device, VkSurfaceKHR surface, uint32_t* graphics, uint32_t* present, uint32_t* transfer )
+template <typename T>
+static std::tuple<T, T> pickDifferentValues( const std::pmr::vector<T>& a, const std::pmr::vector<T>& b )
+{
+    assert( !a.empty() );
+    assert( !b.empty() );
+    for ( const auto& it : a ) {
+        const auto f = std::find( b.begin(), b.end(), it );
+        if ( f != b.end() ) { continue; }
+        return { it, b.front() };
+    };
+    for ( const auto& it : b ) {
+        const auto f = std::find( a.begin(), a.end(), it );
+        if ( f != a.end() ) { continue; }
+        return { a.front(), it };
+    };
+    assert( !"unable to pick different values" );
+    return {};
+}
+
+struct QueueCount {
+    uint32_t queue = 0;
+    uint32_t count = 0;
+    constexpr bool operator == ( const QueueCount& rhs ) const
+    {
+        return queue == rhs.queue;
+    }
+};
+
+static std::tuple<QueueCount, QueueCount> queueFamilies( VkPhysicalDevice device, VkSurfaceKHR surface )
 {
     ZoneScoped;
     uint32_t count = 0;
     vkGetPhysicalDeviceQueueFamilyProperties( device, &count, nullptr );
-    std::vector<VkQueueFamilyProperties> vec( count );
-    std::vector<uint32_t> graphicsCandidate;
-    std::vector<uint32_t> presentCandidate;
-    std::vector<uint32_t> transferCandidate;
+    std::pmr::vector<VkQueueFamilyProperties> vec( count );
+    std::pmr::vector<QueueCount> graphicsCandidate;
+    std::pmr::vector<QueueCount> presentCandidate;
     vkGetPhysicalDeviceQueueFamilyProperties( device, &count, vec.data() );
     for ( uint32_t i = 0; i < vec.size(); ++i ) {
         if ( testBit( vec[ i ].queueFlags, VK_QUEUE_GRAPHICS_BIT, 0 ) ) {
-            graphicsCandidate.emplace_back( i );
-        }
-        if ( testBit( vec[ i ].queueFlags, VK_QUEUE_TRANSFER_BIT, 0 ) ) {
-            transferCandidate.emplace_back( i );
+            graphicsCandidate.emplace_back( i, vec[ i ].queueCount );
         }
 
         VkBool32 presentSupport = false;
         vkGetPhysicalDeviceSurfaceSupportKHR( device, i, surface, &presentSupport );
         if ( presentSupport ) {
-            presentCandidate.emplace_back( i );
+            presentCandidate.emplace_back( i, vec[ i ].queueCount );
         }
     }
-
-    if ( graphicsCandidate.size() == 1 ) {
-        *graphics = graphicsCandidate.front();
-        presentCandidate.erase( std::remove( presentCandidate.begin(), presentCandidate.end(), *graphics ), presentCandidate.end() );
-        transferCandidate.erase( std::remove( transferCandidate.begin(), transferCandidate.end(), *graphics ), transferCandidate.end() );
-    }
-
-    if ( presentCandidate.size() == 1 ) {
-        *present = presentCandidate.front();
-        transferCandidate.erase( std::remove( transferCandidate.begin(), transferCandidate.end(), *present ), transferCandidate.end() );
-    }
-
-    if ( transferCandidate.size() == 1 ) {
-        *transfer = transferCandidate.front();
-    }
-
-    assert( *graphics != *present );
-    assert( *graphics != *transfer );
-    assert( *present != *transfer );
+    return pickDifferentValues<QueueCount>( graphicsCandidate, presentCandidate );
 }
 
 
@@ -179,30 +185,26 @@ RendererVK::RendererVK( SDL_Window* window )
         return;
     }
 
-    queueFamilies( m_physicalDevice
-        , m_surface
-        , &m_queueFamilyGraphics
-        , &m_queueFamilyPresent
-        , &m_queueFamilyTransfer
-    );
+    const auto [ queueGraphics, queuePresent ] = queueFamilies( m_physicalDevice, m_surface );
+    m_queueFamilyGraphics = queueGraphics.queue;
+    m_queueFamilyPresent = queuePresent.queue;
 
     {
-        static constexpr std::array<float, 4> queuePriority{ 1.0f, 1.0f, 1.0f, 1.0f };
-        VkDeviceQueueCreateInfo queueCreateInfo[ 3 ]{};
-        queueCreateInfo[ 0 ].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queueCreateInfo[ 0 ].queueFamilyIndex = m_queueFamilyGraphics;
-        queueCreateInfo[ 0 ].queueCount = 2;
-        queueCreateInfo[ 0 ].pQueuePriorities = queuePriority.data();
-
-        queueCreateInfo[ 1 ].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queueCreateInfo[ 1 ].queueFamilyIndex = m_queueFamilyPresent;
-        queueCreateInfo[ 1 ].queueCount = 1;
-        queueCreateInfo[ 1 ].pQueuePriorities = queuePriority.data();
-
-        queueCreateInfo[ 2 ].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queueCreateInfo[ 2 ].queueFamilyIndex = m_queueFamilyTransfer;
-        queueCreateInfo[ 2 ].queueCount = 1;
-        queueCreateInfo[ 2 ].pQueuePriorities = queuePriority.data();
+        static constexpr std::array queuePriority{ 1.0f, 1.0f };
+        const VkDeviceQueueCreateInfo queueCreateInfo[] {
+            {
+                .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+                .queueFamilyIndex = m_queueFamilyGraphics,
+                .queueCount = std::min( queueGraphics.count, 2u ),
+                .pQueuePriorities = queuePriority.data(),
+            },
+            {
+                .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+                .queueFamilyIndex = m_queueFamilyPresent,
+                .queueCount = 1,
+                .pQueuePriorities = queuePriority.data(),
+            },
+        };
 
         static constexpr VkPhysicalDeviceFeatures deviceFeatures{
             .wideLines = VK_TRUE,
@@ -234,10 +236,8 @@ RendererVK::RendererVK( SDL_Window* window )
 
     vkGetDeviceQueue( m_device, m_queueFamilyPresent, 0, &m_queuePresent );
 
-    m_graphicsCmd = CommandPool{ m_device, m_swapchain.imageCount(), { 1, 0 }, m_queueFamilyGraphics };
-    m_transferToGraphicsCmd = CommandPool{ m_device, m_swapchain.imageCount(), { 1, 1 }, m_queueFamilyGraphics };
-    m_transferCmd = CommandPool{ m_device, m_swapchain.imageCount(), { 1, 0 }, m_queueFamilyTransfer };
-
+    m_graphicsCmd = CommandPool{ m_device, m_swapchain.imageCount(), m_queueFamilyGraphics, 0u };
+    m_transferDataCmd = CommandPool{ m_device, m_swapchain.imageCount(), m_queueFamilyGraphics, std::min( queueGraphics.count, 2u ) - 1u };
 
     for ( size_t i = 0; i < m_swapchain.imageCount(); ++i ) {
         m_descriptorSetBufferSampler.emplace_back(
@@ -350,8 +350,7 @@ RendererVK::~RendererVK()
 {
     ZoneScoped;
     m_graphicsCmd = {};
-    m_transferToGraphicsCmd = {};
-    m_transferCmd = {};
+    m_transferDataCmd = {};
     m_bufferMap.clear();
     m_bufferPendingDelete.clear();
     m_mainTargets.clear();
@@ -393,7 +392,7 @@ void RendererVK::flushUniforms()
         .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
     };
 
-    VkCommandBuffer cmd = m_transferCmd.buffer();
+    VkCommandBuffer cmd = m_transferDataCmd.buffer();
     vkBeginCommandBuffer( cmd, &beginInfo );
     m_uniform[ m_currentFrame ].transfer( cmd );
     vkEndCommandBuffer( cmd );
@@ -404,8 +403,12 @@ void RendererVK::flushUniforms()
         .pCommandBuffers = &cmd,
     };
 
-    VkQueue q = m_transferCmd.queue();
-    vkQueueSubmit( q, 1, &submitInfo, VK_NULL_HANDLE );
+    assert( m_transferDataCmd.queueIndex() < m_cmdBottleneck.size() );
+    Bottleneck lock{ m_cmdBottleneck[ m_transferDataCmd.queueIndex() ] };
+    VkQueue q = m_transferDataCmd.queue();
+    [[maybe_unused]]
+    const VkResult submitOK = vkQueueSubmit( q, 1, &submitInfo, VK_NULL_HANDLE );
+    assert( submitOK == VK_SUCCESS );
     vkQueueWaitIdle( q );
 }
 
@@ -416,7 +419,11 @@ Buffer RendererVK::createBuffer( std::pmr::vector<float>&& vec )
     staging.copyData( reinterpret_cast<const uint8_t*>( vec.data() ) );
 
     BufferVK data{ m_physicalDevice, m_device, BufferVK::Purpose::eVertex, staging.sizeInBytes() };
-    m_transferCmd.transferBufferAndWait( staging, data, staging.sizeInBytes() );
+    {
+        assert( m_transferDataCmd.queueIndex() < m_cmdBottleneck.size() );
+        Bottleneck lock{ m_cmdBottleneck[ m_transferDataCmd.queueIndex() ] };
+        m_transferDataCmd.transferBufferAndWait( staging, data, staging.sizeInBytes() );
+    }
     // TODO: slot machine
     static uint32_t idx = 0;
     const Buffer retBuffer = ++idx;
@@ -506,7 +513,7 @@ Texture RendererVK::createTexture( uint32_t width, uint32_t height, TextureForma
         .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
     };
 
-    VkCommandBuffer cmd = m_transferToGraphicsCmd.buffer();
+    VkCommandBuffer cmd = m_transferDataCmd.buffer();
     vkBeginCommandBuffer( cmd, &beginInfo );
     tex->transferFrom( cmd, staging );
     vkEndCommandBuffer( cmd );
@@ -517,8 +524,12 @@ Texture RendererVK::createTexture( uint32_t width, uint32_t height, TextureForma
         .pCommandBuffers = &cmd,
     };
 
-    VkQueue queue = m_transferToGraphicsCmd.queue();
-    vkQueueSubmit( queue, 1, &submitInfo, VK_NULL_HANDLE );
+    VkQueue queue = m_transferDataCmd.queue();
+    assert( m_transferDataCmd.queueIndex() < m_cmdBottleneck.size() );
+    Bottleneck lock{ m_cmdBottleneck[ m_transferDataCmd.queueIndex() ] };
+    [[maybe_unused]]
+    const VkResult submitOK = vkQueueSubmit( queue, 1, &submitInfo, VK_NULL_HANDLE );
+    assert( submitOK == VK_SUCCESS );
     vkQueueWaitIdle( queue );
 
     return idx;
@@ -535,8 +546,7 @@ void RendererVK::beginFrame()
 
     m_currentFrame = imageIndex;
     m_graphicsCmd.setFrame( m_currentFrame );
-    m_transferToGraphicsCmd.setFrame( m_currentFrame );
-    m_transferCmd.setFrame( m_currentFrame );
+    m_transferDataCmd.setFrame( m_currentFrame );
     m_descriptorSetBuffer[ m_currentFrame ].reset();
     m_descriptorSetBufferSampler[ m_currentFrame ].reset();
     m_uniform[ m_currentFrame ].reset();
@@ -666,11 +676,14 @@ void RendererVK::endFrame()
 
     flushUniforms();
 
-    [[maybe_unused]]
-    const VkResult submitOK = vkQueueSubmit( m_graphicsCmd.queue(), 1, &submitInfo, VK_NULL_HANDLE );
-    assert( submitOK == VK_SUCCESS );
-
-    vkQueueWaitIdle( m_graphicsCmd.queue() );
+    {
+        assert( m_graphicsCmd.queueIndex() < m_cmdBottleneck.size() );
+        Bottleneck lock{ m_cmdBottleneck[ m_graphicsCmd.queueIndex() ] };
+        [[maybe_unused]]
+        const VkResult submitOK = vkQueueSubmit( m_graphicsCmd.queue(), 1, &submitInfo, VK_NULL_HANDLE );
+        assert( submitOK == VK_SUCCESS );
+        vkQueueWaitIdle( m_graphicsCmd.queue() );
+    }
     auto bufferDel = std::move( m_bufferPendingDelete );
     auto textureDel = std::move( m_texturesPendingDelete );
     for ( auto* it : textureDel ) {

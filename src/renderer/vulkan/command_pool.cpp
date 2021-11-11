@@ -1,19 +1,18 @@
 #include "command_pool.hpp"
 
+#include "utils_vk.hpp"
+
 #include <cassert>
-#include <iostream>
 
 CommandPool::~CommandPool() noexcept
 {
-    destroy();
+    destroyResources();
 }
 
-void CommandPool::destroy() noexcept
+void CommandPool::destroyResources() noexcept
 {
-    if ( m_pool ) {
-        vkDestroyCommandPool( m_device, m_pool, nullptr );
-        m_buffers.clear();
-    }
+    destroy<vkDestroyCommandPool>( m_device, m_pool );
+    m_buffers.clear();
 }
 
 VkCommandPool CommandPool::pool() const noexcept
@@ -23,7 +22,7 @@ VkCommandPool CommandPool::pool() const noexcept
 
 VkQueue CommandPool::queue() const noexcept
 {
-    return m_queues[ m_currentFrame % m_queues.size() ];
+    return m_queue;
 }
 
 VkCommandBuffer CommandPool::buffer() const noexcept
@@ -36,35 +35,37 @@ void CommandPool::setFrame( uint32_t frame ) noexcept
     m_currentFrame = frame;
 }
 
-CommandPool::CommandPool( VkDevice device, uint32_t commandBuffersCount, std::pair<uint32_t,uint32_t> queues, uint32_t queueFamily ) noexcept
-: m_device{ device }
+uint32_t CommandPool::queueIndex() const noexcept
 {
+    return m_queueIndex;
+}
 
+CommandPool::CommandPool( VkDevice device, uint32_t commandBuffersCount, uint32_t queueFamily, uint32_t queueIdx ) noexcept
+: m_device{ device }
+, m_queueIndex{ queueIdx }
+{
     assert( device );
     assert( commandBuffersCount > 0 );
-    const auto [ queueCount, queueIndexOffset ] = queues;
-    assert( queueCount > 0 );
 
-    m_queues.resize( queueCount );
-    for ( uint32_t i = 0; i < queueCount; ++i ) {
-        vkGetDeviceQueue( m_device, queueFamily, i + queueIndexOffset, &m_queues[ i ] );
-    }
+    vkGetDeviceQueue( m_device, queueFamily, queueIdx, &m_queue );
 
-    VkCommandPoolCreateInfo poolInfo{};
-    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    poolInfo.queueFamilyIndex = queueFamily;
-    poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    const VkCommandPoolCreateInfo poolInfo{
+        .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+        .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+        .queueFamilyIndex = queueFamily,
+    };
 
     [[maybe_unused]]
     const VkResult poolOK = vkCreateCommandPool( m_device, &poolInfo, nullptr, &m_pool );
     assert( poolOK == VK_SUCCESS );
 
     m_buffers.resize( commandBuffersCount );
-    VkCommandBufferAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.commandPool = m_pool;
-    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandBufferCount = commandBuffersCount;
+    const VkCommandBufferAllocateInfo allocInfo{
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+        .commandPool = m_pool,
+        .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+        .commandBufferCount = commandBuffersCount,
+    };
 
     [[maybe_unused]]
     const VkResult allocOK = vkAllocateCommandBuffers( m_device, &allocInfo, m_buffers.data() );
@@ -74,22 +75,26 @@ CommandPool::CommandPool( VkDevice device, uint32_t commandBuffersCount, std::pa
 CommandPool::CommandPool( CommandPool&& rhs ) noexcept
 : m_device{ rhs.m_device }
 , m_pool{ rhs.m_pool }
-, m_queues{ std::move( rhs.m_queues ) }
+, m_queue{ rhs.m_queue }
 , m_buffers{ std::move( rhs.m_buffers ) }
+, m_queueIndex{ rhs.m_queueIndex }
 , m_currentFrame{ rhs.m_currentFrame }
 {
     rhs.m_device = VK_NULL_HANDLE;
     rhs.m_pool = VK_NULL_HANDLE;
+    rhs.m_queue = VK_NULL_HANDLE;
+    rhs.m_queueIndex = 0;
     rhs.m_currentFrame = 0;
 }
 
 CommandPool& CommandPool::operator = ( CommandPool&& rhs ) noexcept
 {
-    destroy();
+    destroyResources();
     m_device = std::exchange( rhs.m_device, {} );
     m_pool = std::exchange( rhs.m_pool, {} );
-    m_queues = std::move( rhs.m_queues );
+    m_queue = std::exchange( rhs.m_queue, {} );
     m_buffers = std::move( rhs.m_buffers );
+    m_queueIndex = std::exchange( rhs.m_queueIndex, {} );
     m_currentFrame = std::exchange( rhs.m_currentFrame, {} );
     return *this;
 }

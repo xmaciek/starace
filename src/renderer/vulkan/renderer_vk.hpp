@@ -17,6 +17,7 @@
 #include <vector>
 #include <deque>
 #include <map>
+#include <mutex>
 
 class RendererVK : public Renderer {
     SDL_Window* m_window = nullptr;
@@ -27,12 +28,12 @@ class RendererVK : public Renderer {
 
     uint32_t m_queueFamilyGraphics = 0;
     uint32_t m_queueFamilyPresent = 0;
-    uint32_t m_queueFamilyTransfer = 0;
     VkQueue m_queuePresent{};
 
     CommandPool m_graphicsCmd{};
-    CommandPool m_transferCmd{};
-    CommandPool m_transferToGraphicsCmd{};
+    CommandPool m_transferDataCmd{};
+    std::array<std::mutex, 2> m_cmdBottleneck{};
+    using Bottleneck = std::scoped_lock<std::mutex>;
 
     VkDevice m_device = VK_NULL_HANDLE;
 
