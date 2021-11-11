@@ -158,6 +158,7 @@ RendererVK::RendererVK( SDL_Window* window )
             .ppEnabledExtensionNames = ext.data(),
         };
 
+        [[maybe_unused]]
         const VkResult instanceOK = vkCreateInstance( &instanceCreateInfo, nullptr, &m_instance );
         assert( instanceOK == VK_SUCCESS );
     }
