@@ -12,9 +12,8 @@
 Button::Button( std::string_view txt, Font* f, Texture texture )
 : m_label(
         txt
-        , Label::HAlign::eCenter
-        , Label::VAlign::eMiddle
         , f
+        , Align::fCenter | Align::fMiddle
         , glm::vec2{ 0.5f * (float)m_width, 0.5f * (float)m_height }
         , color::white )
 , m_textureID{ texture }
@@ -24,8 +23,7 @@ Button::Button( std::string_view txt, Font* f, Texture texture )
 Button::Button( Font* f, Texture texture )
 : m_label(
     f
-    , Label::HAlign::eCenter
-    , Label::VAlign::eMiddle
+    , Align::fCenter | Align::fMiddle
     , glm::vec2{ 0.5f * (float)m_width, 0.5f * (float)m_height }, color::white )
 , m_textureID{ texture }
 {

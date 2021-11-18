@@ -2,31 +2,33 @@
 
 #include <renderer/renderer.hpp>
 
-#include <cassert>
 #include <glm/gtc/matrix_transform.hpp>
 
-static glm::vec2 calculatePositionOffset( Font* f, std::string_view s, Label::HAlign ah, Label::VAlign av )
+#include <cassert>
+
+constexpr bool operator && ( Align a, Align b ) noexcept
+{
+    using T = std::underlying_type_t<Align>;
+    return ( static_cast<T>( a ) & static_cast<T>( b ) ) == static_cast<T>( b );
+}
+
+static glm::vec2 calculatePositionOffset( Font* f, std::string_view s, Align a )
 {
     assert( f );
     glm::vec2 ret{};
 
-    switch ( ah ) {
-    case Label::HAlign::eLeft:
-        break;
-    case Label::HAlign::eCenter:
+    if ( a && Align::fCenter ) {
         ret += glm::vec2{ -0.5f * (float)f->textLength( s ), 0.0f };
-        break;
+    }
+    else if ( a && Align::fRight ) {
+        assert( !"todo" );
     }
 
-    switch ( av ) {
-    case Label::VAlign::eTop:
-        break;
-    case Label::VAlign::eMiddle:
+    if ( a && Align::fMiddle ) {
         ret += glm::vec2{ 0.0f, 0.5f * (float)f->height() };
-        break;
-    case Label::VAlign::eBottom:
+    }
+    else if ( a && Align::fBottom ) {
         ret += glm::vec2{ 0.0f, f->height() };
-        break;
     }
 
     return ret;
@@ -41,22 +43,20 @@ Label::Label( std::string_view s, Font* f, const glm::vec2& position, const glm:
     setText( s );
 }
 
-Label::Label( std::string_view s, HAlign ah, VAlign av, Font* f, const glm::vec2& position, const glm::vec4& color )
+Label::Label( std::string_view s, Font* f, Align a, const glm::vec2& position, const glm::vec4& color )
 : m_font( f )
 , m_color( color )
-, m_halign( ah )
-, m_valign( av )
+, m_align( a )
 {
     assert( f );
     setPosition( position );
     setText( s );
 }
 
-Label::Label( Font* f, HAlign ah, VAlign av, const glm::vec2& position, const glm::vec4& color )
+Label::Label( Font* f, Align a, const glm::vec2& position, const glm::vec4& color )
 : m_font( f )
 , m_color( color )
-, m_halign( ah )
-, m_valign( av )
+, m_align( a )
 {
     assert( f );
     setPosition( position );
@@ -75,7 +75,7 @@ void Label::render( RenderContext rctx ) const
 
 void Label::setText( std::string_view str )
 {
-    m_positionOffset = calculatePositionOffset( m_font, str, m_halign, m_valign );
+    m_positionOffset = calculatePositionOffset( m_font, str, m_align );
     m_text = str;
     m_renderText = m_font->composeText( m_color, str );
     m_size = { m_font->textLength( m_text ), m_font->height() };
