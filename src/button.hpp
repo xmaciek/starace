@@ -28,7 +28,7 @@ private:
 public:
     ~Button() = default;
     Button() = default;
-    Button( std::string_view, Font*, Texture texture );
+    Button( std::u32string_view, Font*, Texture texture );
     Button( Font*, Texture texture );
 
     void mouseMove( uint32_t x, uint32_t y );
@@ -38,6 +38,6 @@ public:
     void setEnabled( bool );
     void setPosition( uint32_t x, uint32_t y );
     void setSize( uint32_t w, uint32_t h );
-    void setText( std::string_view );
+    void setText( std::u32string_view );
     void setTexture( Texture t );
 };

@@ -9,7 +9,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 
-Button::Button( std::string_view txt, Font* f, Texture texture )
+Button::Button( std::u32string_view txt, Font* f, Texture texture )
 : m_label(
         txt
         , f
@@ -92,7 +92,7 @@ bool Button::isEnabled() const
     return m_enabled;
 }
 
-void Button::setText( std::string_view txt )
+void Button::setText( std::u32string_view txt )
 {
     m_label.setText( txt );
 }

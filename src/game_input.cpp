@@ -172,19 +172,19 @@ void Game::onMouseClickLeft( int32_t x, int32_t y )
             break;
         }
 
-        constexpr auto weaponToString = []( int i ) -> std::string_view
+        constexpr auto weaponToString = []( int i ) -> std::u32string_view
         {
             using namespace std::string_view_literals;
             switch ( i ) {
             case 0:
-                return "Laser"sv;
+                return U"Laser"sv;
             case 1:
-                return "Blaster"sv;
+                return U"Blaster"sv;
             case 2:
-                return "Torpedo"sv;
+                return U"Torpedo"sv;
             }
             assert( !"invalid weapon id" );
-            return "invalid id"sv;
+            return U"invalid id"sv;
         };
 
         if ( m_btnWeap1.isClicked( x, y ) ) {

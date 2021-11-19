@@ -17,7 +17,7 @@ constexpr uint32_t operator ""_bit( unsigned long long n ) noexcept
     return 1ull << n;
 }
 
-enum struct Align : uint32_t {
+enum class Align : uint32_t {
     fLeft = 0_bit,
     fCenter = 1_bit,
     fRight = 2_bit,
@@ -37,28 +37,18 @@ constexpr Align operator | ( Align a, Align b ) noexcept
 class Label : public Widget {
 private:
     Font* m_font = nullptr;
-    mutable Font::RenderText m_renderText{};
-    std::pmr::string m_text{};
+    std::pmr::u32string m_text{};
     glm::vec4 m_color{};
     glm::vec2 m_positionOffset{};
     Align m_align = Align::fLeft | Align::fBottom;
-
-    template <typename T>
-    static inline std::string toString( T t ) { return std::to_string( t ); }
-    static inline std::string toString( const char* t ) { return t; }
+    mutable Font::RenderText m_renderText{};
 
 public:
     Label() = default;
-    Label( std::string_view, Font*, const glm::vec2& position, const glm::vec4& color );
-    Label( std::string_view, Font*, Align, const glm::vec2& position, const glm::vec4& color );
+    Label( std::u32string_view, Font*, const glm::vec2& position, const glm::vec4& color );
+    Label( std::u32string_view, Font*, Align, const glm::vec2& position, const glm::vec4& color );
     Label( Font*, Align, const glm::vec2& position, const glm::vec4& color );
 
     virtual void render( RenderContext ) const override;
-    void setText( std::string_view );
-
-    template <typename T>
-    void arg( const T& t )
-    {
-        setText( toString( t ) );
-    }
+    void setText( std::u32string_view );
 };

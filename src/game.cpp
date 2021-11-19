@@ -163,37 +163,37 @@ void Game::setup()
 
     m_buttonTexture = loadTexture( m_io->getWait( "textures/button1.tga" ) );
 
-    m_btnExit = Button( "Exit Game", m_fontGuiTxt, m_buttonTexture );
-    m_btnSelectMission = Button( "Select Mission", m_fontGuiTxt, m_buttonTexture );
-    m_btnQuitMission = Button( "Quit Mission", m_fontGuiTxt, m_buttonTexture );
-    m_btnStartMission = Button( "Start Mission", m_fontGuiTxt, m_buttonTexture );
-    m_btnReturnToMissionSelection = Button( "Return", m_fontGuiTxt, m_buttonTexture );
-    m_btnReturnToMainMenu = Button( "Return", m_fontGuiTxt, m_buttonTexture );
-    m_btnGO = Button( "GO!", m_fontGuiTxt, m_buttonTexture );
-    m_btnNextMap = Button( "Next Map", m_fontGuiTxt, m_buttonTexture );
+    m_btnExit = Button( U"Exit Game", m_fontGuiTxt, m_buttonTexture );
+    m_btnSelectMission = Button( U"Select Mission", m_fontGuiTxt, m_buttonTexture );
+    m_btnQuitMission = Button( U"Quit Mission", m_fontGuiTxt, m_buttonTexture );
+    m_btnStartMission = Button( U"Start Mission", m_fontGuiTxt, m_buttonTexture );
+    m_btnReturnToMissionSelection = Button( U"Return", m_fontGuiTxt, m_buttonTexture );
+    m_btnReturnToMainMenu = Button( U"Return", m_fontGuiTxt, m_buttonTexture );
+    m_btnGO = Button( U"GO!", m_fontGuiTxt, m_buttonTexture );
+    m_btnNextMap = Button( U"Next Map", m_fontGuiTxt, m_buttonTexture );
 
-    m_btnPrevMap = Button( "Previous Map", m_fontGuiTxt, m_buttonTexture );
-    m_btnNextJet = Button( "Next Jet", m_fontGuiTxt, m_buttonTexture );
+    m_btnPrevMap = Button( U"Previous Map", m_fontGuiTxt, m_buttonTexture );
+    m_btnNextJet = Button( U"Next Jet", m_fontGuiTxt, m_buttonTexture );
     m_btnPrevJet.setEnabled( m_currentJet > 0 );
     m_btnNextJet.setEnabled( m_currentJet < m_jetsContainer.size() - 1 );
 
-    m_btnPrevJet = Button( "Previous Jet", m_fontGuiTxt, m_buttonTexture );
-    m_btnCustomizeReturn = Button( "Done", m_fontGuiTxt, m_buttonTexture );
-    m_btnCustomize = Button( "Customize", m_fontGuiTxt, m_buttonTexture );
+    m_btnPrevJet = Button( U"Previous Jet", m_fontGuiTxt, m_buttonTexture );
+    m_btnCustomizeReturn = Button( U"Done", m_fontGuiTxt, m_buttonTexture );
+    m_btnCustomize = Button( U"Customize", m_fontGuiTxt, m_buttonTexture );
 
-    constexpr auto weaponToString = []( int i ) -> std::string_view
+    constexpr auto weaponToString = []( int i ) -> std::u32string_view
     {
         using namespace std::string_view_literals;
         switch ( i ) {
         case 0:
-            return "Laser"sv;
+            return U"Laser"sv;
         case 1:
-            return "Blaster"sv;
+            return U"Blaster"sv;
         case 2:
-            return "Torpedo"sv;
+            return U"Torpedo"sv;
         }
         assert( !"invalid weapon id" );
-        return "invalid id"sv;
+        return U"invalid id"sv;
     };
 
     m_btnWeap1 = Button( weaponToString( m_weap1 ), m_fontGuiTxt, m_buttonTexture );
@@ -208,7 +208,7 @@ void Game::setup()
     m_cyberRingTexture[ 1 ] = loadTexture( m_io->getWait( "textures/cyber_ring2.tga" ) );
     m_cyberRingTexture[ 2 ] = loadTexture( m_io->getWait( "textures/cyber_ring3.tga" ) );
 
-    m_lblPaused = Label{ "PAUSED", m_fontPauseTxt, Align::fCenter | Align::fMiddle, {}, color::yellow };
+    m_lblPaused = Label{ U"PAUSED", m_fontPauseTxt, Align::fCenter | Align::fMiddle, {}, color::yellow };
 
     BulletProto tmpWeapon{};
     tmpWeapon.type = Bullet::Type::eSlug;

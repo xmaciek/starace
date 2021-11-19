@@ -208,67 +208,16 @@ Font::~Font()
     destroyTexture( m_texture );
 }
 
-uint32_t Font::textLength( std::string_view text )
-{
-    float length = 0;
-    for ( char i : text ) {
-        Glyph* glyph = m_glyphs[ static_cast<char32_t>( i ) ];
-        assert( glyph );
-        length += glyph->advance.x;
-    }
-    return static_cast<uint32_t>( length );
-}
-
 uint32_t Font::height() const
 {
     return m_height;
 }
 
-Font::RenderText Font::composeText( const glm::vec4& color, std::string_view text )
-{
-    ZoneScoped;
-    assert( text.size() < PushConstant<Pipeline::eShortString>::charCount );
-    PushBuffer<Pipeline::eShortString> pushBuffer{};
-    pushBuffer.m_texture = m_texture;
-    pushBuffer.m_verticeCount = text.size() * 6;
-
-    PushConstant<Pipeline::eShortString> pushConstant{};
-    pushConstant.m_color = color;
-    auto verticeIt = pushConstant.m_vertices.begin();
-    auto uvIt = pushConstant.m_uv.begin();
-    glm::vec2 advance{};
-
-    for ( auto ch : text ) {
-        const Glyph* glyph = m_glyphs[ static_cast<char32_t>( ch ) ];
-        assert( glyph );
-        const auto vertice = composeVertice( advance, glyph->size, glyph->padding );
-        const auto uv = composeUV( glyph->uv );
-        std::copy_n( vertice.begin(), vertice.size(), verticeIt );
-        std::copy_n( uv.begin(), uv.size(), uvIt );
-        std::advance( verticeIt, vertice.size() );
-        std::advance( uvIt, uv.size() );
-        advance += glyph->advance;
-    }
-    return { pushBuffer, pushConstant };
-}
-
-void Font::renderText( RenderContext rctx, const glm::vec4& color, double x, double y, std::string_view text )
-{
-    assert( !text.empty() );
-    rctx.model = glm::translate( rctx.model, glm::vec3{ x, y, 0.0 } );
-
-    auto [ pushBuffer, pushConstant ] = composeText( color, text );
-    pushConstant.m_model = rctx.model;
-    pushConstant.m_view = rctx.view;
-    pushConstant.m_projection = rctx.projection;
-    rctx.renderer->push( &pushBuffer, &pushConstant );
-}
-
 uint32_t Font::textLength( std::u32string_view text )
 {
     float length = 0;
-    for ( char i : text ) {
-        Glyph* glyph = m_glyphs[ i ];
+    for ( auto ch : text ) {
+        Glyph* glyph = m_glyphs[ ch ];
         assert( glyph );
         length += glyph->advance.x;
     }

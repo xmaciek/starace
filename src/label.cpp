@@ -12,7 +12,7 @@ constexpr bool operator && ( Align a, Align b ) noexcept
     return ( static_cast<T>( a ) & static_cast<T>( b ) ) == static_cast<T>( b );
 }
 
-static glm::vec2 calculatePositionOffset( Font* f, std::string_view s, Align a )
+static glm::vec2 calculatePositionOffset( Font* f, std::u32string_view s, Align a )
 {
     assert( f );
     glm::vec2 ret{};
@@ -34,7 +34,7 @@ static glm::vec2 calculatePositionOffset( Font* f, std::string_view s, Align a )
     return ret;
 }
 
-Label::Label( std::string_view s, Font* f, const glm::vec2& position, const glm::vec4& color )
+Label::Label( std::u32string_view s, Font* f, const glm::vec2& position, const glm::vec4& color )
 : m_font( f )
 , m_color( color )
 {
@@ -43,7 +43,7 @@ Label::Label( std::string_view s, Font* f, const glm::vec2& position, const glm:
     setText( s );
 }
 
-Label::Label( std::string_view s, Font* f, Align a, const glm::vec2& position, const glm::vec4& color )
+Label::Label( std::u32string_view s, Font* f, Align a, const glm::vec2& position, const glm::vec4& color )
 : m_font( f )
 , m_color( color )
 , m_align( a )
@@ -73,10 +73,10 @@ void Label::render( RenderContext rctx ) const
     rctx.renderer->push( &m_renderText.first, &m_renderText.second );
 }
 
-void Label::setText( std::string_view str )
+void Label::setText( std::u32string_view str )
 {
-    m_positionOffset = calculatePositionOffset( m_font, str, m_align );
     m_text = str;
+    m_positionOffset = calculatePositionOffset( m_font, m_text, m_align );
     m_renderText = m_font->composeText( m_color, str );
     m_size = { m_font->textLength( m_text ), m_font->height() };
 }

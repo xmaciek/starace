@@ -139,8 +139,11 @@ void Game::renderHUD( RenderContext rctx )
     {
         RenderContext rctx2 = rctx;
         rctx2.model = glm::translate( rctx.model, glm::vec3{ 32, viewportHeight() / 2, 0  } );
-        const std::string str = std::string{ "SPEED: " } + std::to_string( static_cast<int>( m_jet->speed() * 270 ) );
+
+        // TODO: hud labels
+        const std::pmr::u32string str = U"SPEED: " + intToUTF32( static_cast<int>( m_jet->speed() * 270 ) );
         m_fontGuiTxt->renderText( rctx2, color, 38, 0, str );
+
         {
             PushConstant<Pipeline::eTriangleFan3dColor> pushConstant{};
             pushConstant.m_model = glm::rotate( rctx2.model, (float)glm::radians( m_speedAnim ), glm::vec3{ 0.0f, 0.0f, 1.0f } );
@@ -181,8 +184,8 @@ void Game::renderHUD( RenderContext rctx )
 
     renderHUDBar( rctx, glm::vec4{ 12, 12, 36, 96 }, power / 100 );
     renderHUDBar( rctx, glm::vec4{ 64, 12, 36, 96 }, health / 100 );
-    m_fontPauseTxt->renderText( rctx, color, 10, viewportHeight() - 120, "PWR" );
-    m_fontPauseTxt->renderText( rctx, color, 66, viewportHeight() - 120, "HP" );
+    m_fontPauseTxt->renderText( rctx, color, 10, viewportHeight() - 120, U"PWR" );
+    m_fontPauseTxt->renderText( rctx, color, 66, viewportHeight() - 120, U"HP" );
 
     m_targeting.render( rctx );
 }
@@ -275,7 +278,8 @@ void Game::renderWinScreen( RenderContext rctx )
     renderCyberRings( rctx );
     renderHudTex( rctx, color::winScreen );
 
-    constexpr static char missionOK[] = "MISSION SUCCESSFUL";
+    // TODO: hud labels
+    constexpr static char32_t missionOK[] = U"MISSION SUCCESSFUL";
     m_fontBig->renderText( rctx
         , color::white
         , (float)viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( missionOK ) ) / 2
@@ -284,14 +288,14 @@ void Game::renderWinScreen( RenderContext rctx )
     );
 
     assert( m_jet );
-    const uint32_t score = m_jet->score();;
-    const std::string str = std::string{ "Your score: " } + std::to_string( score );
+    const std::pmr::u32string str = U"Your score: " + intToUTF32( m_jet->score() );
     m_fontBig->renderText( rctx
         , color::white
-        , (float)viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( str.c_str() ) ) / 2
+        , (float)viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( str ) ) / 2
         , 128
         , str
     );
+
     m_btnReturnToMissionSelection.render( rctx );
 }
 
@@ -301,7 +305,8 @@ void Game::renderDeadScreen( RenderContext rctx )
     renderCyberRings( rctx );
     renderHudTex( rctx, color::crimson );
 
-    constexpr static char txt[] = "MISSION FAILED";
+    // TODO: hud labels
+    constexpr static char32_t txt[] = U"MISSION FAILED";
     m_fontBig->renderText( rctx
         , color::white
         , (float)viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( txt ) ) / 2
@@ -310,11 +315,10 @@ void Game::renderDeadScreen( RenderContext rctx )
     );
 
     assert( m_jet );
-    const uint32_t score = m_jet->score();;
-    const std::string str = std::string{ "Your score: " } + std::to_string( score );
+    const std::pmr::u32string str = U"Your score: " + intToUTF32( m_jet->score() );
     m_fontBig->renderText( rctx
         , color::white
-        , (float)viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( str.c_str() ) ) / 2
+        , (float)viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( str ) ) / 2
         , 128
         , str
     );
@@ -342,13 +346,17 @@ void Game::renderMissionSelectionScreen( RenderContext rctx )
     pushBuffer.m_texture = m_mapsContainer[ m_currentMap ].texture[ Map::Wall::ePreview ];
     rctx.renderer->push( &pushBuffer, &pushConstant );
     {
-        const std::string str = std::string{ "Map: " } + m_mapsContainer.at( m_currentMap ).name;
+        // TODO: hud labels
+        std::pmr::u32string str{ U"Map: " };
+        const std::string& name = m_mapsContainer[ m_currentMap ].name;
+        std::copy( name.begin(), name.end(), std::back_inserter( str ) );
         const double posx = (double)viewportWidth() / 2.0 - static_cast<double>( m_fontPauseTxt->textLength( str.c_str() ) ) / 2;
         m_fontPauseTxt->renderText( rctx, color::white, posx, 128, str );
     }
     {
-        const std::string str = std::string{ "Enemies: " } + std::to_string( m_mapsContainer.at( m_currentMap ).enemies );
-        const double posx = (double)viewportWidth() / 2 - static_cast<double>( m_fontPauseTxt->textLength( str.c_str() ) ) / 2;
+        // TODO: hud labels
+        const std::pmr::u32string str = U"Enemies: " + intToUTF32( m_mapsContainer[ m_currentMap ].enemies );
+        const double posx = (double)viewportWidth() / 2 - static_cast<double>( m_fontPauseTxt->textLength( str ) ) / 2;
         m_fontPauseTxt->renderText( rctx, color::white, posx, 148, str );
     }
 
@@ -364,11 +372,13 @@ void Game::renderGameScreenBriefing( RenderContext rctx )
 {
     renderGameScreen( rctx );
     renderCyberRings( rctx );
-    m_fontPauseTxt->renderText( rctx, color::white, 192, 292, "Movement: AWSD QE" );
-    m_fontPauseTxt->renderText( rctx, color::white, 192, 310, "Speed controll: UO" );
-    m_fontPauseTxt->renderText( rctx, color::white, 192, 328, "Weapons: JKL" );
-    m_fontPauseTxt->renderText( rctx, color::white, 192, 346, "Targeting: I" );
-    m_fontPauseTxt->renderText( rctx, color::white, 192, 380, "Press space to launch..." );
+
+    // TODO: hud labels
+    m_fontPauseTxt->renderText( rctx, color::white, 192, 292, U"Movement: AWSD QE" );
+    m_fontPauseTxt->renderText( rctx, color::white, 192, 310, U"Speed: UO" );
+    m_fontPauseTxt->renderText( rctx, color::white, 192, 328, U"Weapons: JKL" );
+    m_fontPauseTxt->renderText( rctx, color::white, 192, 346, U"Targeting: I" );
+    m_fontPauseTxt->renderText( rctx, color::white, 192, 380, U"Press space to launch..." );
     renderHudTex( rctx, color::dodgerBlue );
     m_btnGO.render( rctx );
 }
@@ -380,8 +390,12 @@ void Game::renderScreenCustomize( RenderContext rctx )
     renderHudTex( rctx, color::dodgerBlue );
 
     {
-        const double posx = (double)viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( m_jetsContainer.at( m_currentJet ).name.c_str() ) ) / 2;
-        m_fontBig->renderText( rctx,  color::white, posx, 64, m_jetsContainer.at( m_currentJet ).name );
+        // TODO: hud labels
+        std::pmr::u32string jetName{};
+        const std::string& name = m_jetsContainer[ m_currentJet ].name;
+        std::copy( name.begin(), name.end(), std::back_inserter( jetName ) );
+        const double posx = (double)viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( jetName ) ) / 2;
+        m_fontBig->renderText( rctx,  color::white, posx, 64, jetName );
     }
     {
         RenderContext rctx2 = rctx;

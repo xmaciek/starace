@@ -1,20 +1,22 @@
 #include "hud.hpp"
 
 #include "colors.hpp"
+#include "utils.hpp"
+
 #include <iostream>
 
 Hud::Hud( const HudData* displayData, Font* font ) noexcept
 : m_displayData{ displayData }
-, m_score{ "Score: ", font, {}, color::winScreen }
-, m_scoreValue{ "", font, {}, color::winScreen }
-, m_shots{ "Shots: ", font, {}, color::winScreen }
-, m_shotsValue{ "", font, {}, color::winScreen }
-, m_pool{ "Pool: ", font, {}, color::winScreen }
-, m_poolValue{ "", font, {}, color::winScreen }
-, m_fps{ "FPS: ", font, {}, color::winScreen }
-, m_fpsValue{ "", font, {}, color::winScreen }
-, m_calc{ "Calculated: ", font, {}, color::winScreen }
-, m_calcValue{ "", font, {}, color::winScreen }
+, m_score{ U"Score: ", font, {}, color::winScreen }
+, m_scoreValue{ U"", font, {}, color::winScreen }
+, m_shots{ U"Shots: ", font, {}, color::winScreen }
+, m_shotsValue{ U"", font, {}, color::winScreen }
+, m_pool{ U"Pool: ", font, {}, color::winScreen }
+, m_poolValue{ U"", font, {}, color::winScreen }
+, m_fps{ U"FPS: ", font, {}, color::winScreen }
+, m_fpsValue{ U"", font, {}, color::winScreen }
+, m_calc{ U"Calculated: ", font, {}, color::winScreen }
+, m_calcValue{ U"", font, {}, color::winScreen }
 {
     m_layout.setPosition( { 4.0f, 4.0f } );
 
@@ -47,11 +49,11 @@ void Hud::render( RenderContext rctx ) const
 
 void Hud::update( const UpdateContext& uctx )
 {
-    m_scoreValue.arg( m_displayData->score );
-    m_shotsValue.arg( m_displayData->shots );
-    m_poolValue.arg( m_displayData->pool );
-    m_fpsValue.arg( m_displayData->fps );
-    m_calcValue.arg( m_displayData->calc );
+    m_scoreValue.setText( intToUTF32( m_displayData->score ) );
+    m_shotsValue.setText( intToUTF32( m_displayData->shots ) );
+    m_poolValue.setText( intToUTF32( m_displayData->pool ) );
+    m_fpsValue.setText( intToUTF32( m_displayData->fps ) );
+    m_calcValue.setText( intToUTF32( m_displayData->calc ) );
     m_layout.update( uctx );
 }
 

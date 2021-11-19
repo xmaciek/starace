@@ -5,6 +5,11 @@
 #include <glm/mat4x4.hpp>
 #include <glm/trigonometric.hpp>
 
+#include <algorithm>
+#include <memory_resource>
+#include <string>
+#include <type_traits>
+
 glm::vec3 project3dTo2d( const glm::mat4& mvp, const glm::vec3& point, const glm::vec2& viewport );
 bool isOnScreen( const glm::vec3& point, const glm::vec2& viewport );
 bool isOnScreen( const glm::mat4& mvp, const glm::vec3& point, const glm::vec2& viewport );
@@ -18,4 +23,16 @@ constexpr double colorHalf( double col ) noexcept
 constexpr static float operator ""_deg ( long double f ) noexcept
 {
     return glm::radians( static_cast<float>( f ) );
+}
+
+// TODO: copy-less conversion
+template <typename T>
+std::pmr::u32string intToUTF32( T t )
+{
+    static_assert( std::is_integral_v<T> );
+    const std::string str = std::to_string( t );
+    std::pmr::u32string ret;
+    ret.resize( str.size() );
+    std::copy( str.begin(), str.end(), ret.begin() );
+    return ret;
 }
