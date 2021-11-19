@@ -120,7 +120,7 @@ struct BlitIterator {
     }
 };
 
-static Font::Glyph makeGlyph( const FT_Face& face, char32_t ch, uint32_t pixelSize )
+static std::tuple<Font::Glyph, uint32_t, std::pmr::vector<uint8_t>> makeGlyph( const FT_Face& face, char32_t ch, uint32_t index, uint32_t pixelSize )
 {
     ZoneScoped;
     const FT_UInt glyphIndex = FT_Get_Char_Index( face, ch );
@@ -136,20 +136,19 @@ static Font::Glyph makeGlyph( const FT_Face& face, char32_t ch, uint32_t pixelSi
     assert( slot->bitmap.pixel_mode == FT_PIXEL_MODE_GRAY );
 
     Font::Glyph glyph{};
-    glyph.dataPitch = slot->bitmap.pitch;
-    glyph.data.resize( slot->bitmap.pitch * slot->bitmap.rows );
-    std::copy_n( slot->bitmap.buffer, glyph.data.size(), glyph.data.begin() );
+    std::pmr::vector<uint8_t> data{};
+    data.resize( slot->bitmap.pitch * slot->bitmap.rows );
+    std::copy_n( slot->bitmap.buffer, data.size(), data.begin() );
 
     glyph.advance = glm::vec2{ slot->metrics.horiAdvance, slot->metrics.vertAdvance } / FONT_RESOLUTION_SCALE;
     glyph.padding = glm::vec2{ slot->metrics.horiBearingX, slot->metrics.horiBearingY } / FONT_RESOLUTION_SCALE;
     glyph.size = glm::vec2{ slot->metrics.width, slot->metrics.height } / FONT_RESOLUTION_SCALE;
-    glyph.uv = makeSlotUV<12>( ch, glyph.size / (float)pixelSize * FONT_SIZE_SCALE );
-    return glyph;
+    glyph.uv = makeSlotUV<12>( index, glyph.size / (float)pixelSize * FONT_SIZE_SCALE );
+    return { glyph, slot->bitmap.pitch, data };
 }
 
 Font::Font( std::string_view fontname, uint32_t h )
 : m_name( fontname )
-, m_glyphs( 128 )
 , m_height( h )
 {
     ZoneScoped;
@@ -168,26 +167,32 @@ Font::Font( std::string_view fontname, uint32_t h )
     const FT_Error pixelSizeErr = FT_Set_Pixel_Sizes( face, 0, pixelSize );
     assert( !pixelSizeErr );
 
-    for ( char16_t i = 0; i < 128; i++ ) {
-        m_glyphs[ i ] = makeGlyph( face, i, pixelSize );
-    }
-
-    FT_Done_FreeType( library );
-
     const size_t textureSize = ( FONT_SIZE_SCALE * h * 12 ) * ( FONT_SIZE_SCALE * h * 12);
     Renderer* renderer = Renderer::instance();
     assert( renderer );
     std::pmr::vector<uint8_t> texture( textureSize, renderer->allocator() );
     const size_t dstPitch = static_cast<size_t>( FONT_SIZE_SCALE * (float)h * 12 );
-    for ( size_t i = 0; i < m_glyphs.size(); ++i ) {
-        Glyph& glyph = m_glyphs[ i ];
-        if ( glyph.dataPitch == 0 ) { continue; }
+
+    char32_t chars[] = U"0123456789"
+        U"abcdefghijklmnopqrstuvwxyz"
+        U"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        U" `~',./\\?+-*!@#$%^&()[]{};:<>";
+    std::sort( std::begin( chars ), std::end( chars ) - 1 );
+
+    for ( size_t i = 0; i < std::size( chars ) - 1; i++ ) {
+        auto [ glyph, pitch, data ] = makeGlyph( face, chars[ i ], i, pixelSize );
+        m_glyphs.pushBack( chars[ i ], glyph );
+        if ( pitch == 0 ) {
+            continue;
+        }
         auto [ x, y ] = indexToXY<12>( i );
         x *= dstPitch / 12;
         y *= dstPitch / 12;
-        BlitIterator dst{ texture.data(), dstPitch, x, y, glyph.dataPitch };
-        std::copy_n( glyph.data.begin(), glyph.data.size(), dst );
+        BlitIterator dst{ texture.data(), dstPitch, x, y, pitch };
+        std::copy( data.begin(), data.end(), dst );
     }
+
+    FT_Done_FreeType( library );
 
     m_texture = renderer->createTexture(
         dstPitch
@@ -196,7 +201,6 @@ Font::Font( std::string_view fontname, uint32_t h )
         , false
         , std::move( texture )
     );
-
 }
 
 Font::~Font()
@@ -208,7 +212,9 @@ uint32_t Font::textLength( std::string_view text )
 {
     float length = 0;
     for ( char i : text ) {
-        length += m_glyphs[ static_cast<size_t>( i ) ].advance.x;
+        Glyph* glyph = m_glyphs[ static_cast<char32_t>( i ) ];
+        assert( glyph );
+        length += glyph->advance.x;
     }
     return static_cast<uint32_t>( length );
 }
@@ -233,14 +239,15 @@ Font::RenderText Font::composeText( const glm::vec4& color, std::string_view tex
     glm::vec2 advance{};
 
     for ( auto ch : text ) {
-        const Font::Glyph& glyph = m_glyphs[ ch ];
-        const auto vertice = composeVertice( advance, glyph.size, glyph.padding );
-        const auto uv = composeUV( glyph.uv );
+        const Glyph* glyph = m_glyphs[ static_cast<char32_t>( ch ) ];
+        assert( glyph );
+        const auto vertice = composeVertice( advance, glyph->size, glyph->padding );
+        const auto uv = composeUV( glyph->uv );
         std::copy_n( vertice.begin(), vertice.size(), verticeIt );
         std::copy_n( uv.begin(), uv.size(), uvIt );
         std::advance( verticeIt, vertice.size() );
         std::advance( uvIt, uv.size() );
-        advance += glyph.advance;
+        advance += glyph->advance;
     }
     return { pushBuffer, pushConstant };
 }

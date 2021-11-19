@@ -1,5 +1,6 @@
 #pragma once
 
+#include <shared/fixed_map.hpp>
 #include <engine/render_context.hpp>
 #include <renderer/texture.hpp>
 #include <renderer/pipeline.hpp>
@@ -12,6 +13,7 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include <utility>
 
 class Font {
 public:
@@ -20,13 +22,11 @@ public:
         glm::vec2 size{};
         glm::vec2 advance{};
         glm::vec2 padding{};
-        uint32_t dataPitch = 0;
-        std::pmr::vector<uint8_t> data{};
     };
 
 private:
     std::pmr::string m_name{};
-    std::pmr::vector<Glyph> m_glyphs{};
+    FixedMap<char32_t, Glyph, 128> m_glyphs{};
     uint32_t m_height = 0;
     Texture m_texture{};
 
