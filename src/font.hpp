@@ -25,14 +25,13 @@ public:
     };
 
 private:
-    std::pmr::string m_name{};
-    FixedMap<char32_t, Glyph, 128> m_glyphs{};
-    uint32_t m_height = 0;
     Texture m_texture{};
+    uint32_t m_height = 0;
+    FixedMap<char32_t, Glyph, 128> m_glyphs{};
 
 public:
     ~Font();
-    Font( std::string_view, uint32_t h );
+    Font( const std::pmr::vector<uint8_t>& fontFileContent, uint32_t height );
 
     uint32_t height() const;
     uint32_t textLength( std::u32string_view );

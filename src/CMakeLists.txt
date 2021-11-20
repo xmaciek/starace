@@ -60,7 +60,7 @@ set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
 
 set( bin_name "starace" )
 add_executable( ${bin_name} ${STARACE_SOURCES} )
-set_error_checks( ${bin_name} )
+set_error_checks( ${bin_name} -Wno-missing-field-initializers )
 set_cppver( ${bin_name} 20 )
 
 target_link_libraries( ${bin_name}

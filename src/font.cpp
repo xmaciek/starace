@@ -147,9 +147,8 @@ static std::tuple<Font::Glyph, uint32_t, std::pmr::vector<uint8_t>> makeGlyph( c
     return { glyph, slot->bitmap.pitch, data };
 }
 
-Font::Font( std::string_view fontname, uint32_t h )
-: m_name( fontname )
-, m_height( h )
+Font::Font( const std::pmr::vector<uint8_t>& fontFileContent, uint32_t height )
+: m_height( height )
 {
     ZoneScoped;
     FT_Library library{};
@@ -157,21 +156,27 @@ Font::Font( std::string_view fontname, uint32_t h )
     const FT_Error freetypeInitErr = FT_Init_FreeType( &library );
     assert( !freetypeInitErr );
 
+    const FT_Open_Args openArgs{
+        .flags = FT_OPEN_MEMORY,
+        .memory_base = reinterpret_cast<const FT_Byte*>( fontFileContent.data() ),
+        .memory_size = static_cast<FT_Long>( fontFileContent.size() ),
+    };
+
     FT_Face face{};
     [[maybe_unused]]
-    const FT_Error newFaceErr = FT_New_Face( library, fontname.data(), 0, &face );
+    const FT_Error newFaceErr = FT_Open_Face( library, &openArgs, 0, &face );
     assert( !newFaceErr );
 
-    const FT_UInt pixelSize = static_cast<FT_UInt>( FONT_SIZE_SCALE * (float)h );
+    const FT_UInt pixelSize = static_cast<FT_UInt>( FONT_SIZE_SCALE * (float)height );
     [[maybe_unused]]
     const FT_Error pixelSizeErr = FT_Set_Pixel_Sizes( face, 0, pixelSize );
     assert( !pixelSizeErr );
 
-    const size_t textureSize = ( FONT_SIZE_SCALE * h * 12 ) * ( FONT_SIZE_SCALE * h * 12);
+    const size_t textureSize = ( FONT_SIZE_SCALE * height * 12 ) * ( FONT_SIZE_SCALE * height * 12);
     Renderer* renderer = Renderer::instance();
     assert( renderer );
     std::pmr::vector<uint8_t> texture( textureSize, renderer->allocator() );
-    const size_t dstPitch = static_cast<size_t>( FONT_SIZE_SCALE * (float)h * 12 );
+    const size_t dstPitch = static_cast<size_t>( FONT_SIZE_SCALE * (float)height * 12 );
 
     char32_t chars[] = U"0123456789"
         U"abcdefghijklmnopqrstuvwxyz"

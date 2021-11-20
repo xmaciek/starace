@@ -16,6 +16,7 @@
 #include <set>
 
 static constexpr const char* chunk0[] = {
+    "misc/DejaVuSans-Bold.ttf",
     "textures/button1.tga",
     "textures/HUDtex.tga",
     "textures/background.tga",
@@ -155,10 +156,12 @@ void Game::onResize( uint32_t w, uint32_t h )
 void Game::setup()
 {
     ZoneScoped;
-    m_fontPauseTxt = new Font( "misc/DejaVuSans-Bold.ttf", 18 );
-    m_fontGuiTxt = new Font( "misc/DejaVuSans-Bold.ttf", 12 );
-    m_fontBig = new Font( "misc/DejaVuSans-Bold.ttf", 32 );
-
+    {
+        std::pmr::vector<uint8_t> fontFileContent = m_io->getWait( "misc/DejaVuSans-Bold.ttf" );
+        m_fontPauseTxt = new Font( fontFileContent, 18 );
+        m_fontGuiTxt = new Font( fontFileContent, 12 );
+        m_fontBig = new Font( fontFileContent, 32 );
+    }
     m_hud.emplace( &m_hudData, m_fontGuiTxt );
 
     m_buttonTexture = loadTexture( m_io->getWait( "textures/button1.tga" ) );
