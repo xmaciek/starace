@@ -15,6 +15,7 @@
 
 constexpr static float FONT_SIZE_SCALE = 2.0f;
 constexpr static float FONT_RESOLUTION_SCALE = 64.0f * FONT_SIZE_SCALE;
+constexpr static uint32_t TILE_COUNT = 12;
 
 static std::array<glm::vec4, 6> composeUV( glm::vec4 vec )
 {
@@ -143,7 +144,7 @@ static std::tuple<Font::Glyph, uint32_t, std::pmr::vector<uint8_t>> makeGlyph( c
     glyph.advance = glm::vec2{ slot->metrics.horiAdvance, slot->metrics.vertAdvance } / FONT_RESOLUTION_SCALE;
     glyph.padding = glm::vec2{ slot->metrics.horiBearingX, slot->metrics.horiBearingY } / FONT_RESOLUTION_SCALE;
     glyph.size = glm::vec2{ slot->metrics.width, slot->metrics.height } / FONT_RESOLUTION_SCALE;
-    glyph.uv = makeSlotUV<12>( index, glyph.size / (float)pixelSize * FONT_SIZE_SCALE );
+    glyph.uv = makeSlotUV<TILE_COUNT>( index, glyph.size / (float)pixelSize * FONT_SIZE_SCALE );
     return { glyph, slot->bitmap.pitch, data };
 }
 
@@ -172,11 +173,11 @@ Font::Font( const std::pmr::vector<uint8_t>& fontFileContent, uint32_t height )
     const FT_Error pixelSizeErr = FT_Set_Pixel_Sizes( face, 0, pixelSize );
     assert( !pixelSizeErr );
 
-    const size_t textureSize = ( FONT_SIZE_SCALE * height * 12 ) * ( FONT_SIZE_SCALE * height * 12);
+    const size_t textureSize = ( FONT_SIZE_SCALE * height * TILE_COUNT ) * ( FONT_SIZE_SCALE * height * TILE_COUNT);
     Renderer* renderer = Renderer::instance();
     assert( renderer );
     std::pmr::vector<uint8_t> texture( textureSize, renderer->allocator() );
-    const size_t dstPitch = static_cast<size_t>( FONT_SIZE_SCALE * (float)height * 12 );
+    const size_t dstPitch = static_cast<size_t>( FONT_SIZE_SCALE * (float)height * TILE_COUNT );
 
     char32_t chars[] = U"0123456789"
         U"abcdefghijklmnopqrstuvwxyz"
@@ -190,9 +191,9 @@ Font::Font( const std::pmr::vector<uint8_t>& fontFileContent, uint32_t height )
         if ( pitch == 0 ) {
             continue;
         }
-        auto [ x, y ] = indexToXY<12>( i );
-        x *= dstPitch / 12;
-        y *= dstPitch / 12;
+        auto [ x, y ] = indexToXY<TILE_COUNT>( i );
+        x *= dstPitch / TILE_COUNT;
+        y *= dstPitch / TILE_COUNT;
         BlitIterator dst{ texture.data(), dstPitch, x, y, pitch };
         std::copy( data.begin(), data.end(), dst );
     }
