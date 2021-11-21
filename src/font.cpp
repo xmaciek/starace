@@ -15,7 +15,8 @@
 
 constexpr static float FONT_SIZE_SCALE = 2.0f;
 constexpr static float FONT_RESOLUTION_SCALE = 64.0f * FONT_SIZE_SCALE;
-constexpr static uint32_t TILE_COUNT = 12;
+constexpr static uint32_t TILE_COUNT = 10;
+constexpr static uint32_t TILE_PADDING = 2;
 
 static std::array<glm::vec4, 6> composeUV( glm::vec4 vec )
 {
@@ -52,15 +53,15 @@ constexpr std::pair<size_t, size_t> indexToXY( size_t i ) noexcept
 }
 
 template <size_t TPitch>
-glm::vec4 makeSlotUV( size_t i, glm::vec2 normUV ) noexcept
+glm::vec4 makeSlotUV( size_t i, glm::vec2 renornalizedUV ) noexcept
 {
     constexpr float advance = 1.0f / TPitch;
     const auto [ x, y ] = indexToXY<TPitch>( i );
     return {
         advance * x,
         advance * y,
-        advance * x + advance * normUV.x,
-        advance * y + advance * normUV.y,
+        advance * x + renornalizedUV.x,
+        advance * y + renornalizedUV.y,
     };
 }
 
@@ -121,7 +122,7 @@ struct BlitIterator {
     }
 };
 
-static std::tuple<Font::Glyph, uint32_t, std::pmr::vector<uint8_t>> makeGlyph( const FT_Face& face, char32_t ch, uint32_t index, uint32_t pixelSize )
+static std::tuple<Font::Glyph, uint32_t, std::pmr::vector<uint8_t>> makeGlyph( const FT_Face& face, char32_t ch, uint32_t index, uint32_t dstPitch )
 {
     ZoneScoped;
     const FT_UInt glyphIndex = FT_Get_Char_Index( face, ch );
@@ -144,7 +145,12 @@ static std::tuple<Font::Glyph, uint32_t, std::pmr::vector<uint8_t>> makeGlyph( c
     glyph.advance = glm::vec2{ slot->metrics.horiAdvance, slot->metrics.vertAdvance } / FONT_RESOLUTION_SCALE;
     glyph.padding = glm::vec2{ slot->metrics.horiBearingX, slot->metrics.horiBearingY } / FONT_RESOLUTION_SCALE;
     glyph.size = glm::vec2{ slot->metrics.width, slot->metrics.height } / FONT_RESOLUTION_SCALE;
-    glyph.uv = makeSlotUV<TILE_COUNT>( index, glyph.size / (float)pixelSize * FONT_SIZE_SCALE );
+    const glm::vec2 renormalizedUV = glyph.size / (float)dstPitch * FONT_SIZE_SCALE;
+    glyph.uv = makeSlotUV<TILE_COUNT>( index, renormalizedUV );
+    assert( glyph.uv.x >= 0.0f );
+    assert( glyph.uv.x <= 1.0f );
+    assert( glyph.uv.y >= 0.0f );
+    assert( glyph.uv.y <= 1.0f );
     return { glyph, slot->bitmap.pitch, data };
 }
 
@@ -173,20 +179,22 @@ Font::Font( const std::pmr::vector<uint8_t>& fontFileContent, uint32_t height )
     const FT_Error pixelSizeErr = FT_Set_Pixel_Sizes( face, 0, pixelSize );
     assert( !pixelSizeErr );
 
-    const size_t textureSize = ( FONT_SIZE_SCALE * height * TILE_COUNT ) * ( FONT_SIZE_SCALE * height * TILE_COUNT);
+    const size_t textureSize = std::pow( FONT_SIZE_SCALE * ( height + TILE_PADDING ) * TILE_COUNT, 2.0f );
     Renderer* renderer = Renderer::instance();
     assert( renderer );
     std::pmr::vector<uint8_t> texture( textureSize, renderer->allocator() );
-    const size_t dstPitch = static_cast<size_t>( FONT_SIZE_SCALE * (float)height * TILE_COUNT );
+    const size_t dstPitch = static_cast<size_t>( FONT_SIZE_SCALE * (float)( height + TILE_PADDING ) * TILE_COUNT );
 
     char32_t chars[] = U"0123456789"
         U"abcdefghijklmnopqrstuvwxyz"
         U"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        U" `~',./\\?+-*!@#$%^&()[]{};:<>";
+        U" `~'\",./\\?+-*!@#$%^&()[]{};:<>";
     std::sort( std::begin( chars ), std::end( chars ) - 1 );
 
+    assert( std::size( chars ) - 1 <= TILE_COUNT * TILE_COUNT );
+
     for ( size_t i = 0; i < std::size( chars ) - 1; i++ ) {
-        auto [ glyph, pitch, data ] = makeGlyph( face, chars[ i ], i, pixelSize );
+        auto [ glyph, pitch, data ] = makeGlyph( face, chars[ i ], i, dstPitch );
         m_glyphs.pushBack( chars[ i ], glyph );
         if ( pitch == 0 ) {
             continue;
