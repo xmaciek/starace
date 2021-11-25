@@ -74,19 +74,23 @@ struct BlitIterator {
     using iterator_category = std::bidirectional_iterator_tag;
 
     pointer m_data = nullptr;
+    const pointer m_end = nullptr;
     size_type m_dstPitch = 0;
     size_type m_dstX = 0;
     size_type m_dstY = 0;
     size_type m_srcWidth = 0;
     size_type m_i = 0;
 
-    BlitIterator( pointer p, size_type dstPitch, size_type dstX, size_type dstY, size_type srcWidth ) noexcept
+    BlitIterator( pointer p, const pointer end, size_type dstPitch, size_type dstX, size_type dstY, size_type srcWidth ) noexcept
     : m_data{ p }
+    , m_end{ end }
     , m_dstPitch{ dstPitch }
     , m_dstX{ dstX }
     , m_dstY{ dstY }
     , m_srcWidth{ srcWidth }
-    {}
+    {
+        assert( p < end );
+    }
 
     reference operator * () const
     {
@@ -95,7 +99,9 @@ struct BlitIterator {
         assert( m_srcWidth );
         const size_t begin = m_dstPitch * m_dstY + m_dstX;
         const size_t offset = m_dstPitch * ( m_i / m_srcWidth ) + ( m_i % m_srcWidth );
-        return *( m_data + begin + offset );
+        pointer address = m_data + begin + offset;
+        assert( address < m_end );
+        return *address;
     }
 
     BlitIterator& operator ++ ()
@@ -202,7 +208,7 @@ Font::Font( const std::pmr::vector<uint8_t>& fontFileContent, uint32_t height )
         auto [ x, y ] = indexToXY<TILE_COUNT>( i );
         x *= dstPitch / TILE_COUNT;
         y *= dstPitch / TILE_COUNT;
-        BlitIterator dst{ texture.data(), dstPitch, x, y, pitch };
+        BlitIterator dst{ texture.data(), texture.data() + texture.size(), dstPitch, x, y, pitch };
         std::copy( data.begin(), data.end(), dst );
     }
 
