@@ -1,7 +1,9 @@
 #include "game.hpp"
 
 #include "colors.hpp"
+#include "ui_image.hpp"
 #include "utils.hpp"
+
 #include <renderer/buffer.hpp>
 #include <renderer/pipeline.hpp>
 #include <renderer/renderer.hpp>
@@ -114,22 +116,10 @@ void Game::renderPauseText( RenderContext rctx )
 
 void Game::renderHudTex( RenderContext rctx, const glm::vec4& color )
 {
-    PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{};
-    pushBuffer.m_texture = m_hudTex;
-    PushConstant<Pipeline::eGuiTextureColor1> pushConstant{};
-    pushConstant.m_model = rctx.model;
-    pushConstant.m_view = rctx.view;
-    pushConstant.m_projection = rctx.projection;
-    pushConstant.m_color = color;
-    pushConstant.m_vertices[ 0 ] = glm::vec4{ 0.0f, 0.0f, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 1 ] = glm::vec4{ 0.0, viewportHeight(), 0.0f, 0.0f };
-    pushConstant.m_vertices[ 2 ] = glm::vec4{ (float)viewportWidth(), (float)viewportHeight(), 0.0f, 0.0f };
-    pushConstant.m_vertices[ 3 ] = glm::vec4{ (float)viewportWidth(), 0.0f, 0.0f, 0.0f };
-    pushConstant.m_uv[ 0 ] = glm::vec4{ 0, 0, 0.0f, 0.0f };
-    pushConstant.m_uv[ 1 ] = glm::vec4{ 0, 1, 0.0f, 0.0f };
-    pushConstant.m_uv[ 2 ] = glm::vec4{ 1, 1, 0.0f, 0.0f };
-    pushConstant.m_uv[ 3 ] = glm::vec4{ 1, 0, 0.0f, 0.0f };
-    rctx.renderer->push( &pushBuffer, &pushConstant );
+    UIImage hudTex{ m_hudTex };
+    hudTex.setColor( color );
+    hudTex.setSize( { (float)viewportWidth(), (float)viewportHeight() } );
+    hudTex.render( rctx );
 }
 
 void Game::renderHUD( RenderContext rctx )
@@ -241,35 +231,21 @@ void Game::renderMainMenu( RenderContext rctx )
 
 void Game::renderClouds( RenderContext rctx ) const
 {
-    PushConstant<Pipeline::eGuiTextureColor1> pushConstant{};
-    pushConstant.m_model = rctx.model;
-    pushConstant.m_view = rctx.view;
-    pushConstant.m_projection = rctx.projection;
-    pushConstant.m_color = color::lightSkyBlue;
-    pushConstant.m_uv[ 0 ] = glm::vec4{ 0, 0, 0.0f, 0.0f };
-    pushConstant.m_uv[ 1 ] = glm::vec4{ 0, 1, 0.0f, 0.0f };
-    pushConstant.m_uv[ 2 ] = glm::vec4{ 1, 1, 0.0f, 0.0f };
-    pushConstant.m_uv[ 3 ] = glm::vec4{ 1, 0, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 0 ] = glm::vec4{ 0.0f, 0.0f, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 1 ] = glm::vec4{ 0.0f, (float)viewportHeight(), 0.0f, 0.0f };
-    pushConstant.m_vertices[ 2 ] = glm::vec4{ (float)viewportWidth(), viewportHeight(), 0.0f, 0.0f };
-    pushConstant.m_vertices[ 3 ] = glm::vec4{ (float)viewportWidth(), 0.0f, 0.0f, 0.0f };
+    const glm::vec2 size = { (float)viewportWidth(), (float)viewportHeight() };
+    UIImage cloud1{ m_menuBackground };
+    cloud1.setSize( size );
+    cloud1.setColor( color::lightSkyBlue );
+    cloud1.render( rctx );
 
-    PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{};
-    pushBuffer.m_texture = m_menuBackground;
+    UIImage cloud2{ m_menuBackgroundOverlay };
+    cloud2.setSize( size );
+    cloud2.setColor( { 1, 1, 1, m_alphaValue } );
+    cloud2.render( rctx );
 
-    rctx.renderer->push( &pushBuffer, &pushConstant );
-
-    pushBuffer.m_texture = m_menuBackgroundOverlay;
-    pushConstant.m_color = glm::vec4{ 1, 1, 1, m_alphaValue };
-    rctx.renderer->push( &pushBuffer, &pushConstant );
-
-    pushBuffer.m_texture = m_starfieldTexture;
-    pushConstant.m_vertices[ 0 ] = glm::vec4{ 0.0f, 0.0f, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 1 ] = glm::vec4{ 0.0f, m_maxDimention, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 2 ] = glm::vec4{ m_maxDimention, m_maxDimention, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 3 ] = glm::vec4{ m_maxDimention, 0.0f, 0.0f, 0.0f };
-    rctx.renderer->push( &pushBuffer, &pushConstant );
+    UIImage cloud3{ m_starfieldTexture };
+    cloud3.setSize( { m_maxDimention, m_maxDimention } );
+    cloud3.setColor( { 1, 1, 1, m_alphaValue } );
+    cloud3.render( rctx );
 }
 
 void Game::renderWinScreen( RenderContext rctx )
@@ -328,23 +304,9 @@ void Game::renderDeadScreen( RenderContext rctx )
 
 void Game::renderMissionSelectionScreen( RenderContext rctx )
 {
-    PushConstant<Pipeline::eGuiTextureColor1> pushConstant{};
-    pushConstant.m_model = rctx.model;
-    pushConstant.m_view = rctx.view;
-    pushConstant.m_projection = rctx.projection;
-    pushConstant.m_color = color::white;
-    pushConstant.m_uv[ 0 ] = glm::vec4{ 0.0f, 0.0f, 0.0f, 0.0f };
-    pushConstant.m_uv[ 1 ] = glm::vec4{ 0.0f, 1.0f, 0.0f, 0.0f };
-    pushConstant.m_uv[ 2 ] = glm::vec4{ 1.0f, 1.0f, 0.0f, 0.0f };
-    pushConstant.m_uv[ 3 ] = glm::vec4{ 1.0f, 0.0f, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 0 ] = glm::vec4{ 0.0f, 0.0f, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 1 ] = glm::vec4{ 0.0f, m_maxDimention, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 2 ] = glm::vec4{ m_maxDimention, m_maxDimention, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 3 ] = glm::vec4{ m_maxDimention, 0.0f, 0.0f, 0.0f };
-
-    PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{};
-    pushBuffer.m_texture = m_mapsContainer[ m_currentMap ].texture[ Map::Wall::ePreview ];
-    rctx.renderer->push( &pushBuffer, &pushConstant );
+    UIImage preview{ m_mapsContainer[ m_currentMap ].texture[ Map::Wall::ePreview ] };
+    preview.setSize( { m_maxDimention, m_maxDimention } );
+    preview.render( rctx );
     {
         // TODO: hud labels
         std::pmr::u32string str{ U"Map: " };
