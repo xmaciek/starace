@@ -199,9 +199,9 @@ void Game::setup()
         return U"invalid id"sv;
     };
 
-    m_btnWeap1 = Button( weaponToString( m_weap1 ), m_fontGuiTxt, m_buttonTexture );
-    m_btnWeap2 = Button( weaponToString( m_weap2 ), m_fontGuiTxt, m_buttonTexture );
-    m_btnWeap3 = Button( weaponToString( m_weap1 ), m_fontGuiTxt, m_buttonTexture );
+    m_btnWeap1 = Button( weaponToString( *m_weap1 ), m_fontGuiTxt, m_buttonTexture );
+    m_btnWeap2 = Button( weaponToString( *m_weap2 ), m_fontGuiTxt, m_buttonTexture );
+    m_btnWeap3 = Button( weaponToString( *m_weap1 ), m_fontGuiTxt, m_buttonTexture );
 
     m_hudTex = loadTexture( m_io->getWait( "textures/HUDtex.tga" ) );
     m_menuBackground = loadTexture( m_io->getWait( "textures/background.tga" ) );
@@ -556,9 +556,9 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
     m_shotsDone = 0;
     m_jet = new Jet( modelData, m_renderer );
     m_map = new Map( mapInfo );
-    m_jet->setWeapon( m_weapons[ m_weap1 ], 0 );
-    m_jet->setWeapon( m_weapons[ m_weap2 ], 1 );
-    m_jet->setWeapon( m_weapons[ m_weap3 ], 2 );
+    m_jet->setWeapon( m_weapons[ *m_weap1 ], 0 );
+    m_jet->setWeapon( m_weapons[ *m_weap2 ], 1 );
+    m_jet->setWeapon( m_weapons[ *m_weap3 ], 2 );
 
     assert( m_enemies.empty() );
     m_enemies.resize( mapInfo.enemies );
@@ -790,42 +790,10 @@ void Game::saveConfig()
     ConfigFile << "height " << viewportHeight() << "\n";
     ConfigFile << "sound " << m_isSoundEnabled << "\n";
     ConfigFile << "jet " << m_jetsContainer.at( m_currentJet ).name << "\n";
-    ConfigFile << "weap1 ";
-    switch ( m_weap1 ) {
-    case 0:
-        ConfigFile << "laser\n";
-        break;
-    case 1:
-        ConfigFile << "blaster\n";
-        break;
-    case 2:
-        ConfigFile << "torpedo\n";
-        break;
-    }
-    ConfigFile << "weap2 ";
-    switch ( m_weap2 ) {
-    case 0:
-        ConfigFile << "laser\n";
-        break;
-    case 1:
-        ConfigFile << "blaster\n";
-        break;
-    case 2:
-        ConfigFile << "torpedo\n";
-        break;
-    }
-    ConfigFile << "weap3 ";
-    switch ( m_weap3 ) {
-    case 0:
-        ConfigFile << "laser\n";
-        break;
-    case 1:
-        ConfigFile << "blaster\n";
-        break;
-    case 2:
-        ConfigFile << "torpedo\n";
-        break;
-    }
+    constexpr std::array weapName = { "laser\n", "blaster\n", "torpedo\n" };
+    ConfigFile << "weap1 " << weapName[ *m_weap1 ];
+    ConfigFile << "weap2 " << weapName[ *m_weap2 ];
+    ConfigFile << "weap3 " << weapName[ *m_weap3 ];
     ConfigFile.close();
 }
 

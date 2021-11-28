@@ -16,6 +16,7 @@
 #include <engine/update_context.hpp>
 #include <renderer/texture.hpp>
 #include <shared/pool.hpp>
+#include <shared/rotary_index.hpp>
 
 #include <glm/vec4.hpp>
 #include <SDL2/SDL.h>
@@ -120,9 +121,9 @@ private:
     uint32_t m_shotsDone = 0;
 
     Screen m_currentScreen = Screen::eGame;
-    uint8_t m_weap1 = 0;
-    uint8_t m_weap2 = 0;
-    uint8_t m_weap3 = 0;
+    RotaryIndex<> m_weap1{};
+    RotaryIndex<> m_weap2{};
+    RotaryIndex<> m_weap3{};
     bool m_cyberRingRotationDirection[ 3 ]{};
     bool m_isSoundEnabled = false;
 

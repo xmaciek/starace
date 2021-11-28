@@ -189,18 +189,15 @@ void Game::onMouseClickLeft( int32_t x, int32_t y )
 
         if ( m_btnWeap1.isClicked( x, y ) ) {
             m_audio->play( m_click );
-            m_weap1 = ( m_weap1 + 1  ) % 3;
-            m_btnWeap1.setText( weaponToString( m_weap1 ) );
+            m_btnWeap1.setText( weaponToString( *++m_weap1 ) );
         }
         else if ( m_btnWeap2.isClicked( x, y ) ) {
             m_audio->play( m_click );
-            m_weap2 = ( m_weap2 + 1  ) % 3;
-            m_btnWeap2.setText( weaponToString( m_weap2 ) );
+            m_btnWeap2.setText( weaponToString( *++m_weap2 ) );
         }
         else if ( m_btnWeap3.isClicked( x, y ) ) {
             m_audio->play( m_click );
-            m_weap3 = ( m_weap3 + 1  ) % 3;
-            m_btnWeap3.setText( weaponToString( m_weap3 ) );
+            m_btnWeap3.setText( weaponToString( *++m_weap3 ) );
         }
     } break;
 
