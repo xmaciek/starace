@@ -27,8 +27,6 @@
 #include <optional>
 #include <map>
 
-struct Mix_Chunk;
-
 class Game : public Engine {
 public:
     Game();
@@ -105,7 +103,6 @@ private:
     Targeting m_targeting{};
 
     glm::vec4 m_currentHudColor = color::winScreen;
-    double m_rotation = 0.0;
     double m_modelRotation = 0.0;
     double m_speedAnim = 0.0;
     float m_alphaValue = 1.0f;
@@ -139,7 +136,6 @@ private:
     void gameKeyboardPausedUnpressed( SDL_Scancode );
     void gameKeyboardPressed( SDL_Scancode );
     void gameKeyboardUnpressed( SDL_Scancode );
-    void goFullscreen( bool );
     void loadConfig();
     void loadJetProto();
     void loadMapProto();
@@ -149,7 +145,6 @@ private:
     void onMouseMove( const SDL_MouseMotionEvent& );
     void onResize( uint32_t w, uint32_t h );
     void pause();
-    void playSound( Mix_Chunk* ) const;
     void reloadPreviewModel();
     void setup();
 

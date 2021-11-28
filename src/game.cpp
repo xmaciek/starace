@@ -626,10 +626,6 @@ void Game::changeScreen( Screen scr )
     }
 }
 
-void Game::goFullscreen( bool )
-{
-}
-
 void Game::loadMapProto()
 {
     m_mapsContainer.clear();
@@ -821,13 +817,6 @@ void Game::updateCustomize( const UpdateContext& updateContext )
     m_modelRotation += 30.0 * updateContext.deltaTime;
     if ( m_modelRotation >= 360.0 ) {
         m_modelRotation -= 360.0;
-    }
-}
-
-void Game::playSound( Mix_Chunk* /*sound*/ ) const
-{
-    if ( m_isSoundEnabled ) {
-//         Mix_Playing( Mix_PlayChannel( -1, sound, 0 ) );
     }
 }
 
