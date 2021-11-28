@@ -10,11 +10,12 @@
 
 #include <memory_resource>
 #include <cstdint>
-#include <string>
 #include <string_view>
 #include <vector>
 #include <utility>
 
+
+class Renderer;
 class Font {
 public:
     struct Glyph {
@@ -31,11 +32,17 @@ private:
 
 public:
     ~Font();
-    Font( const std::pmr::vector<uint8_t>& fontFileContent, uint32_t height );
+
+    struct CreateInfo {
+        const std::pmr::vector<uint8_t>* fontFileContent = nullptr;
+        Renderer* renderer = nullptr;
+        std::u32string_view charset{};
+    };
+    Font( const CreateInfo&, uint32_t height );
 
     uint32_t height() const;
-    uint32_t textLength( std::u32string_view );
-    void renderText( RenderContext, const glm::vec4& color, double x, double y, std::u32string_view );
+    float textLength( std::u32string_view ) const;
+    void renderText( RenderContext, const glm::vec4& color, double x, double y, std::u32string_view ) const;
     using RenderText = std::pair<PushBuffer<Pipeline::eShortString>, PushConstant<Pipeline::eShortString>>;
-    RenderText composeText( const glm::vec4& color, std::u32string_view );
+    RenderText composeText( const glm::vec4& color, std::u32string_view ) const;
 };

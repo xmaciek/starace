@@ -157,10 +157,21 @@ void Game::setup()
 {
     ZoneScoped;
     {
-        std::pmr::vector<uint8_t> fontFileContent = m_io->getWait( "misc/DejaVuSans-Bold.ttf" );
-        m_fontPauseTxt = new Font( fontFileContent, 18 );
-        m_fontGuiTxt = new Font( fontFileContent, 12 );
-        m_fontBig = new Font( fontFileContent, 32 );
+        std::pmr::u32string charset = U"0123456789"
+        U"abcdefghijklmnopqrstuvwxyz"
+        U"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        U" `~'\",./\\?+-*!@#$%^&()[]{};:<>";
+        std::sort( charset.begin(), charset.end() );
+        const std::pmr::vector<uint8_t> fontFileContent = m_io->getWait( "misc/DejaVuSans-Bold.ttf" );
+        const Font::CreateInfo createInfo{
+            .fontFileContent = &fontFileContent,
+            .renderer = m_renderer,
+            .charset = charset,
+        };
+
+        m_fontPauseTxt = new Font( createInfo, 18 );
+        m_fontGuiTxt = new Font( createInfo, 12 );
+        m_fontBig = new Font( createInfo, 32 );
     }
     m_hud.emplace( &m_hudData, m_fontGuiTxt );
 

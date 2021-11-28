@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
+#include <numeric>
 
 constexpr static float FONT_SIZE_SCALE = 2.0f;
 constexpr static float FONT_RESOLUTION_SCALE = 64.0f * FONT_SIZE_SCALE;
@@ -160,10 +161,18 @@ static std::tuple<Font::Glyph, uint32_t, std::pmr::vector<uint8_t>> makeGlyph( c
     return { glyph, slot->bitmap.pitch, data };
 }
 
-Font::Font( const std::pmr::vector<uint8_t>& fontFileContent, uint32_t height )
+Font::Font( const CreateInfo& fontInfo, uint32_t height )
 : m_height( height )
 {
     ZoneScoped;
+    assert( fontInfo.fontFileContent );
+    assert( !fontInfo.fontFileContent->empty() );
+    assert( fontInfo.renderer );
+    assert( !fontInfo.charset.empty() );
+    assert( fontInfo.charset.size() <= TILE_COUNT * TILE_COUNT );
+    assert( std::is_sorted( fontInfo.charset.begin(), fontInfo.charset.end() ) );
+    assert( height > 0 );
+
     FT_Library library{};
     [[maybe_unused]]
     const FT_Error freetypeInitErr = FT_Init_FreeType( &library );
@@ -171,8 +180,8 @@ Font::Font( const std::pmr::vector<uint8_t>& fontFileContent, uint32_t height )
 
     const FT_Open_Args openArgs{
         .flags = FT_OPEN_MEMORY,
-        .memory_base = reinterpret_cast<const FT_Byte*>( fontFileContent.data() ),
-        .memory_size = static_cast<FT_Long>( fontFileContent.size() ),
+        .memory_base = reinterpret_cast<const FT_Byte*>( fontInfo.fontFileContent->data() ),
+        .memory_size = static_cast<FT_Long>( fontInfo.fontFileContent->size() ),
     };
 
     FT_Face face{};
@@ -186,22 +195,12 @@ Font::Font( const std::pmr::vector<uint8_t>& fontFileContent, uint32_t height )
     assert( !pixelSizeErr );
 
     const size_t textureSize = std::pow( FONT_SIZE_SCALE * ( height + TILE_PADDING ) * TILE_COUNT, 2.0f );
-    Renderer* renderer = Renderer::instance();
-    assert( renderer );
-    std::pmr::vector<uint8_t> texture( textureSize, renderer->allocator() );
+    std::pmr::vector<uint8_t> texture( textureSize, fontInfo.renderer->allocator() );
     const size_t dstPitch = static_cast<size_t>( FONT_SIZE_SCALE * (float)( height + TILE_PADDING ) * TILE_COUNT );
 
-    char32_t chars[] = U"0123456789"
-        U"abcdefghijklmnopqrstuvwxyz"
-        U"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        U" `~'\",./\\?+-*!@#$%^&()[]{};:<>";
-    std::sort( std::begin( chars ), std::end( chars ) - 1 );
-
-    assert( std::size( chars ) - 1 <= TILE_COUNT * TILE_COUNT );
-
-    for ( size_t i = 0; i < std::size( chars ) - 1; i++ ) {
-        auto [ glyph, pitch, data ] = makeGlyph( face, chars[ i ], i, dstPitch );
-        m_glyphs.pushBack( chars[ i ], glyph );
+    for ( size_t i = 0; i < fontInfo.charset.size(); i++ ) {
+        auto [ glyph, pitch, data ] = makeGlyph( face, fontInfo.charset[ i ], i, dstPitch );
+        m_glyphs.pushBack( fontInfo.charset[ i ], glyph );
         if ( pitch == 0 ) {
             continue;
         }
@@ -214,7 +213,7 @@ Font::Font( const std::pmr::vector<uint8_t>& fontFileContent, uint32_t height )
 
     FT_Done_FreeType( library );
 
-    m_texture = renderer->createTexture(
+    m_texture = fontInfo.renderer->createTexture(
         dstPitch
         , dstPitch
         , TextureFormat::eR
@@ -233,18 +232,20 @@ uint32_t Font::height() const
     return m_height;
 }
 
-uint32_t Font::textLength( std::u32string_view text )
+float Font::textLength( std::u32string_view text ) const
 {
-    float length = 0;
-    for ( auto ch : text ) {
-        Glyph* glyph = m_glyphs[ ch ];
+    float ret = 0.0f;
+    const auto sum = [this]( auto ch ) -> float
+    {
+        const Glyph* glyph = m_glyphs[ ch ];
         assert( glyph );
-        length += glyph->advance.x;
-    }
-    return static_cast<uint32_t>( length );
+        return glyph->advance.x;
+    };
+    for ( auto ch : text ) { ret += sum( ch ); }
+    return ret;
 }
 
-Font::RenderText Font::composeText( const glm::vec4& color, std::u32string_view text )
+Font::RenderText Font::composeText( const glm::vec4& color, std::u32string_view text ) const
 {
     ZoneScoped;
     assert( text.size() < PushConstant<Pipeline::eShortString>::charCount );
@@ -272,7 +273,7 @@ Font::RenderText Font::composeText( const glm::vec4& color, std::u32string_view 
     return { pushBuffer, pushConstant };
 }
 
-void Font::renderText( RenderContext rctx, const glm::vec4& color, double x, double y, std::u32string_view text )
+void Font::renderText( RenderContext rctx, const glm::vec4& color, double x, double y, std::u32string_view text ) const
 {
     assert( !text.empty() );
     rctx.model = glm::translate( rctx.model, glm::vec3{ x, y, 0.0 } );
