@@ -14,6 +14,7 @@ class UIImage : public Widget {
 public:
     UIImage() = default;
     UIImage( Texture t );
+    UIImage( glm::vec2 position, glm::vec2 extent, glm::vec4 color, Texture );
 
     virtual void render( RenderContext ) const override;
     void setColor( glm::vec4 );

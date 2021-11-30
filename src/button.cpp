@@ -8,83 +8,53 @@
 #include <glm/vec3.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+static constexpr glm::vec4 colorNormal = color::dodgerBlue;
+static constexpr glm::vec4 colorHover = color::lightSkyBlue;
+static constexpr glm::vec4 colorDisabled = color::lightSteelBlue;
+
 
 Button::Button( std::u32string_view txt, Font* f, Texture texture )
-: m_label(
-        txt
-        , f
-        , Align::fCenter | Align::fMiddle
-        , glm::vec2{ 0.5f * (float)m_width, 0.5f * (float)m_height }
-        , color::white )
-, m_textureID{ texture }
+: UIImage{ {}, { 192.0f, 48.0f }, colorNormal, texture }
+, m_label(
+    txt
+    , f
+    , Align::fCenter | Align::fMiddle
+    , size() * 0.5f
+    , color::white )
 {
 }
 
 Button::Button( Font* f, Texture texture )
-: m_label(
+: UIImage{ {}, { 192.0f, 48.0f }, colorNormal, texture }
+, m_label(
     f
     , Align::fCenter | Align::fMiddle
-    , glm::vec2{ 0.5f * (float)m_width, 0.5f * (float)m_height }, color::white )
-, m_textureID{ texture }
+    , size() * 0.5f
+    , color::white )
 {
 }
 
 bool Button::isClicked( uint32_t x, uint32_t y ) const
 {
-    return m_enabled
-        && ( x >= m_x )
-        && ( x <= m_x + m_width )
-        && ( y >= m_y )
-        && ( y <= m_y + m_height );
+    return m_enabled && testRect( glm::vec2{ x, y } );
 }
 
-void Button::render( RenderContext rctx )
+void Button::render( RenderContext rctx ) const
 {
-    rctx.model = glm::translate( rctx.model, glm::vec3{ m_x, m_y, 0.0f } );
-    PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{};
-    pushBuffer.m_texture = m_textureID;
-
-    PushConstant<Pipeline::eGuiTextureColor1> pushConstant;
-    pushConstant.m_model = rctx.model;
-    pushConstant.m_view = rctx.view;
-    pushConstant.m_projection = rctx.projection;
-    pushConstant.m_vertices[ 0 ] = glm::vec4{ 0.0f, 0.0f, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 1 ] = glm::vec4{ 0.0f, m_height, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 2 ] = glm::vec4{ m_width, m_height, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 3 ] = glm::vec4{ m_width, 0.0f, 0.0f, 0.0f };
-    pushConstant.m_uv[ 0 ] = glm::vec4{ 0.0f, 0.0f, 0.0f, 0.0f };
-    pushConstant.m_uv[ 1 ] = glm::vec4{ 0.0f, 1.0f, 0.0f, 0.0f };
-    pushConstant.m_uv[ 2 ] = glm::vec4{ 1.0f, 1.0f, 0.0f, 0.0f };
-    pushConstant.m_uv[ 3 ] = glm::vec4{ 1.0f, 0.0f, 0.0f, 0.0f };
-    pushConstant.m_color =  m_enabled
-        ? m_color
-        : color::lightSteelBlue;
-
-    rctx.renderer->push( &pushBuffer, &pushConstant );
-
+    UIImage::render( rctx );
+    rctx.model = glm::translate( rctx.model, glm::vec3{ m_position.x, m_position.y, 0.0f } );
     m_label.render( rctx );
 }
 
-void Button::setPosition( uint32_t x, uint32_t y )
+void Button::updateColor()
 {
-    m_x = x;
-    m_y = y;
-};
-
-void Button::setTexture( Texture t )
-{
-    m_textureID = t;
-}
-
-void Button::setSize( uint32_t w, const uint32_t h )
-{
-    m_width = w;
-    m_height = h;
+    setColor( m_enabled ? ( m_mouseHover ? colorHover : colorNormal ) : colorDisabled );
 }
 
 void Button::setEnabled( bool b )
 {
     m_enabled = b;
+    updateColor();
 }
 
 bool Button::isEnabled() const
@@ -97,7 +67,9 @@ void Button::setText( std::u32string_view txt )
     m_label.setText( txt );
 }
 
-void Button::mouseMove( uint32_t x, uint32_t y )
+bool Button::onMouseEvent( const MouseEvent& event )
 {
-    m_color = isClicked( x, y ) ? color::lightSkyBlue : color::dodgerBlue;
+    m_mouseHover = testRect( event );
+    updateColor();
+    return m_mouseHover;
 }

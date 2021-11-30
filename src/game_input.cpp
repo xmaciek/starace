@@ -208,23 +208,22 @@ void Game::onMouseClickLeft( int32_t x, int32_t y )
 
 void Game::onMouseMove( const SDL_MouseMotionEvent& event )
 {
-    const uint32_t y = event.y;
-    const uint32_t x = (uint32_t)event.x;
-    m_btnCustomizeReturn.mouseMove( x, y );
-    m_btnCustomize.mouseMove( x, y );
-    m_btnExit.mouseMove( x, y );
-    m_btnGO.mouseMove( x, y );
-    m_btnNextJet.mouseMove( x, y );
-    m_btnNextMap.mouseMove( x, y );
-    m_btnPrevJet.mouseMove( x, y );
-    m_btnPrevMap.mouseMove( x, y );
-    m_btnQuitMission.mouseMove( x, y );
-    m_btnReturnToMainMenu.mouseMove( x, y );
-    m_btnReturnToMissionSelection.mouseMove( x, y );
-    m_btnSelectMissionCancel.mouseMove( x, y );
-    m_btnSelectMission.mouseMove( x, y );
-    m_btnStartMission.mouseMove( x, y );
-    m_btnWeap1.mouseMove( x, y );
-    m_btnWeap2.mouseMove( x, y );
-    m_btnWeap3.mouseMove( x, y );
+    const Widget::MouseEvent mouseEvent{ event.x, event.y };
+    m_btnCustomizeReturn.onMouseEvent( mouseEvent );
+    m_btnCustomize.onMouseEvent( mouseEvent );
+    m_btnExit.onMouseEvent( mouseEvent );
+    m_btnGO.onMouseEvent( mouseEvent );
+    m_btnNextJet.onMouseEvent( mouseEvent );
+    m_btnNextMap.onMouseEvent( mouseEvent );
+    m_btnPrevJet.onMouseEvent( mouseEvent );
+    m_btnPrevMap.onMouseEvent( mouseEvent );
+    m_btnQuitMission.onMouseEvent( mouseEvent );
+    m_btnReturnToMainMenu.onMouseEvent( mouseEvent );
+    m_btnReturnToMissionSelection.onMouseEvent( mouseEvent );
+    m_btnSelectMissionCancel.onMouseEvent( mouseEvent );
+    m_btnSelectMission.onMouseEvent( mouseEvent );
+    m_btnStartMission.onMouseEvent( mouseEvent );
+    m_btnWeap1.onMouseEvent( mouseEvent );
+    m_btnWeap2.onMouseEvent( mouseEvent );
+    m_btnWeap3.onMouseEvent( mouseEvent );
 }

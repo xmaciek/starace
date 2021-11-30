@@ -12,7 +12,10 @@ protected:
     glm::vec2 m_position{};
     glm::vec2 m_size{};
 
+    bool testRect( glm::vec2 ) const;
+
 public:
+    using MouseEvent = glm::vec2;
     virtual ~Widget() noexcept = default;
     Widget() noexcept = default;
     inline Widget( glm::vec2 pos, glm::vec2 size ) noexcept
@@ -22,6 +25,7 @@ public:
 
     virtual void update( const UpdateContext& );
     virtual void render( RenderContext ) const = 0;
+    virtual bool onMouseEvent( const MouseEvent& );
 
     void setPosition( glm::vec2 );
     void setSize( glm::vec2 );

@@ -11,6 +11,14 @@ UIImage::UIImage( Texture t )
     assert( t );
 };
 
+UIImage::UIImage( glm::vec2 position, glm::vec2 extent, glm::vec4 color, Texture t )
+: Widget{ position, extent }
+, m_color{ color }
+, m_texture{ t }
+{
+    assert( t );
+}
+
 void UIImage::render( RenderContext rctx ) const
 {
     assert( m_texture );

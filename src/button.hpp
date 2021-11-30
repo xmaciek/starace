@@ -2,42 +2,36 @@
 
 #include "colors.hpp"
 #include "label.hpp"
+#include "ui_image.hpp"
 
 #include <engine/render_context.hpp>
 #include <renderer/texture.hpp>
 
-#include <glm/vec4.hpp>
-
+#include <array>
 #include <cstdint>
 #include <string_view>
 
-
 class Font;
 
-class Button {
+class Button : public UIImage {
 private:
-    glm::vec4 m_color = color::dodgerBlue;
-    uint32_t m_x = 0;
-    uint32_t m_y = 0;
-    uint32_t m_width = 192;
-    uint32_t m_height = 48;
     Label m_label{};
-    Texture m_textureID{};
+    bool m_mouseHover = false;
     bool m_enabled = true;
 
+    void updateColor();
 public:
     ~Button() = default;
     Button() = default;
     Button( std::u32string_view, Font*, Texture texture );
     Button( Font*, Texture texture );
 
-    void mouseMove( uint32_t x, uint32_t y );
+    virtual bool onMouseEvent( const MouseEvent& ) override;
+    virtual void render( RenderContext ) const override;
+
     bool isClicked( uint32_t x, uint32_t y ) const;
     bool isEnabled() const;
-    void render( RenderContext );
     void setEnabled( bool );
-    void setPosition( uint32_t x, uint32_t y );
-    void setSize( uint32_t w, uint32_t h );
     void setText( std::u32string_view );
     void setTexture( Texture t );
 };

@@ -134,23 +134,23 @@ void Game::onResize( uint32_t w, uint32_t h )
     const uint32_t halfW = viewportWidth() >> 1;
     const uint32_t halfH = viewportHeight() >> 1;
     const uint32_t h015 = viewportHeight() - (uint32_t)( (float)viewportHeight() * 0.15f );
-    m_btnExit.setPosition( halfW + 4, h015 );
-    m_btnQuitMission.setPosition( halfW - 196, h015 );
-    m_btnSelectMission.setPosition( halfW - 96, h015 - 52 );
-    m_btnGO.setPosition( halfW - 96, h015 );
-    m_btnStartMission.setPosition( halfW + 4, h015 );
-    m_btnReturnToMainMenu.setPosition( halfW - 196, h015 );
-    m_btnReturnToMissionSelection.setPosition( halfW - 96, h015 );
-    m_btnNextMap.setPosition( viewportWidth() - 240, halfH - 24 );
-    m_btnPrevMap.setPosition( 48, halfH - 24 );
-    m_btnCustomize.setPosition( halfW - 196, h015 );
-    m_btnCustomizeReturn.setPosition( halfW - 96, h015 + 52 );
-    m_btnNextJet.setPosition( viewportWidth() - 240, halfH - 24 );
-    m_btnPrevJet.setPosition( 48, halfH - 24 );
+    m_btnExit.setPosition( { halfW + 4, h015 } );
+    m_btnQuitMission.setPosition( { halfW - 196, h015 } );
+    m_btnSelectMission.setPosition( { halfW - 96, h015 - 52 } );
+    m_btnGO.setPosition( { halfW - 96, h015 } );
+    m_btnStartMission.setPosition( { halfW + 4, h015 } );
+    m_btnReturnToMainMenu.setPosition( { halfW - 196, h015 } );
+    m_btnReturnToMissionSelection.setPosition( { halfW - 96, h015 } );
+    m_btnNextMap.setPosition( { viewportWidth() - 240, halfH - 24 } );
+    m_btnPrevMap.setPosition( { 48, halfH - 24 } );
+    m_btnCustomize.setPosition( { halfW - 196, h015 } );
+    m_btnCustomizeReturn.setPosition( { halfW - 96, h015 + 52 } );
+    m_btnNextJet.setPosition( { viewportWidth() - 240, halfH - 24 } );
+    m_btnPrevJet.setPosition( { 48, halfH - 24 } );
 
-    m_btnWeap1.setPosition( halfW - 196 - 96, h015 + 52 - 76 );
-    m_btnWeap2.setPosition( halfW - 96, h015 + 52 - 76 );
-    m_btnWeap3.setPosition( halfW + 100, h015 + 52 - 76 );
+    m_btnWeap1.setPosition( { halfW - 196 - 96, h015 + 52 - 76 } );
+    m_btnWeap2.setPosition( { halfW - 96, h015 + 52 - 76 } );
+    m_btnWeap3.setPosition( { halfW + 100, h015 + 52 - 76 } );
 }
 
 void Game::setup()

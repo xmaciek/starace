@@ -23,8 +23,22 @@ glm::vec2 Widget::size() const
     return m_size;
 }
 
+bool Widget::onMouseEvent( const MouseEvent& )
+{
+    return false;
+}
+
 void Widget::update( const UpdateContext& )
 {
+}
+
+bool Widget::testRect( glm::vec2 p ) const
+{
+    const glm::vec2 br = m_position + m_size;
+    return ( p.x >= m_position.x )
+        && ( p.y >= m_position.y )
+        && ( p.x < br.x )
+        && ( p.y < br.y );
 }
 
 void Layout::render( RenderContext rctx ) const
