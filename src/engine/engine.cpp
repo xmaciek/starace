@@ -43,7 +43,7 @@ static BinaryConfigBlob loadConfig()
 }
 
 
-Engine::Engine() noexcept
+Engine::Engine( int, char** ) noexcept
 : m_io{ std::make_unique<AsyncIO>() }
 {
     ZoneScoped;

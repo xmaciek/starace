@@ -38,7 +38,7 @@ protected:
     FPSMeter m_fpsMeter{};
 
     ~Engine() noexcept;
-    Engine() noexcept;
+    Engine( int, char** ) noexcept;
 
     std::tuple<uint32_t, uint32_t, float> viewport() const;
     void setViewport( uint32_t w, uint32_t h );

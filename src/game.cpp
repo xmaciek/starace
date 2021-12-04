@@ -34,7 +34,8 @@ static constexpr const char* chunk1[] = {
     "textures/a5.tga",
 };
 
-Game::Game()
+Game::Game( int argc, char** argv )
+: Engine{ argc, argv }
 {
     ZoneScoped;
     preloadData();

@@ -29,7 +29,7 @@
 
 class Game : public Engine {
 public:
-    Game();
+    Game( int argc, char** argv );
     ~Game();
 
 private:
