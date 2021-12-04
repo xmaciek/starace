@@ -110,7 +110,8 @@ Uniform::Uniform( VkPhysicalDevice physDevice, VkDevice device, std::size_t size
 static std::uintptr_t align( std::uintptr_t p, std::size_t a )
 {
     assert( std::popcount( a ) == 1 );
-    return p + ( -p & ( a - 1 ) );
+    const std::size_t bitmask = a - 1;
+    return ( p + bitmask ) & ~bitmask;
 }
 
 VkDescriptorBufferInfo Uniform::copy( const void* data, std::size_t size ) noexcept
