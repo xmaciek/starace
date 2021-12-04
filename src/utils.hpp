@@ -7,8 +7,11 @@
 
 #include <algorithm>
 #include <memory_resource>
+#include <random>
 #include <string>
 #include <type_traits>
+
+using Random = std::minstd_rand;
 
 glm::vec3 project3dTo2d( const glm::mat4& mvp, const glm::vec3& point, const glm::vec2& viewport );
 bool isOnScreen( const glm::vec3& point, const glm::vec2& viewport );

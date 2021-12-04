@@ -6,9 +6,8 @@
 
 float randomRange( float a, float b )
 {
-    using Rand = std::minstd_rand;
-    static constexpr float max = (float)Rand::max();
-    thread_local Rand random( std::random_device{}() );
+    static constexpr float max = (float)Random::max();
+    thread_local Random random( std::random_device{}() );
     const uint64_t r = random();
     return ( b - a ) * static_cast<float>( r ) / max + a;
 }

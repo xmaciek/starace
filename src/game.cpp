@@ -520,7 +520,7 @@ void Game::retarget()
     if ( m_enemies.empty() ) {
         return;
     }
-    static std::mt19937_64 random{ std::random_device()() };
+    static Random random{ std::random_device()() };
     assert( m_jet );
     m_jet->lockTarget( m_enemies[ random() % m_enemies.size() ] );
 }

@@ -25,7 +25,6 @@ private:
     float m_seankyDeltaTime = 0.0f;
     float m_maxRange = 150.0;
     float m_range = 0.0;
-    uint16_t m_rotation = 0;
     uint8_t m_damage = 0;
     Type m_type = Type::eSlug;
 

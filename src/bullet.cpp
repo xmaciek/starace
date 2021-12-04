@@ -57,8 +57,6 @@ Bullet::Bullet( const BulletProto& bp )
         m_color2.a = 0.0f;
     }
     m_position = bp.position;
-    static std::mt19937_64 rng{ std::random_device()() };
-    m_rotation = rng() % 360;
     setStatus( Status::eAlive );
 };
 
