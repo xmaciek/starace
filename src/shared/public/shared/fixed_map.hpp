@@ -36,21 +36,19 @@ public:
     FixedMap() noexcept = default;
     const TValue* operator [] ( const TKey& k ) const noexcept
     {
-        auto it = std::upper_bound( keyBegin(), keyEnd(), k );
+        auto it = std::lower_bound( keyBegin(), keyEnd(), k );
         if ( it == keyEnd() ) { return nullptr; }
-        if ( it == keyBegin() ) { return nullptr; }
-        assert( *(it-1) == k );
-        const size_t dist = it - keyBegin() - 1;
+        if ( *it != k ) { return nullptr; }
+        const size_t dist = it - keyBegin();
         return valueBegin() + dist;
     }
 
     TValue* operator [] ( const TKey& k ) noexcept
     {
-        auto it = std::upper_bound( keyBegin(), keyEnd(), k );
+        auto it = std::lower_bound( keyBegin(), keyEnd(), k );
         if ( it == keyEnd() ) { return nullptr; }
-        if ( it == keyBegin() ) { return nullptr; }
-        assert( *(it-1) == k );
-        const size_t dist = it - keyBegin() - 1;
+        if ( *it != k ) { return nullptr; }
+        const size_t dist = it - keyBegin();
         return valueBegin() + dist;
     }
 
