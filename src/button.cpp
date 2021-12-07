@@ -18,7 +18,7 @@ Button::Button( std::u32string_view txt, Font* f, Texture texture )
 , m_label(
     txt
     , f
-    , Align::fCenter | Align::fMiddle
+    , Anchor::fCenter | Anchor::fMiddle
     , size() * 0.5f
     , color::white )
 {
@@ -28,7 +28,7 @@ Button::Button( Font* f, Texture texture )
 : UIImage{ {}, { 192.0f, 48.0f }, colorNormal, texture }
 , m_label(
     f
-    , Align::fCenter | Align::fMiddle
+    , Anchor::fCenter | Anchor::fMiddle
     , size() * 0.5f
     , color::white )
 {

@@ -223,7 +223,7 @@ void Game::setup()
     m_cyberRingTexture[ 1 ] = loadTexture( m_io->getWait( "textures/cyber_ring2.tga" ) );
     m_cyberRingTexture[ 2 ] = loadTexture( m_io->getWait( "textures/cyber_ring3.tga" ) );
 
-    m_lblPaused = Label{ U"PAUSED", m_fontPauseTxt, Align::fCenter | Align::fMiddle, {}, color::yellow };
+    m_lblPaused = Label{ U"PAUSED", m_fontPauseTxt, Anchor::fCenter | Anchor::fMiddle, {}, color::yellow };
 
     BulletProto tmpWeapon{};
     tmpWeapon.type = Bullet::Type::eSlug;

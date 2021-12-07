@@ -6,66 +6,59 @@
 
 #include <cassert>
 
-constexpr bool operator && ( Align a, Align b ) noexcept
+static glm::vec2 positionAnchor( glm::vec2 sizeExtent, Anchor a )
 {
-    using T = std::underlying_type_t<Align>;
-    return ( static_cast<T>( a ) & static_cast<T>( b ) ) == static_cast<T>( b );
-}
-
-static glm::vec2 calculatePositionOffset( Font* f, std::u32string_view s, Align a )
-{
-    assert( f );
     glm::vec2 ret{};
 
-    if ( a && Align::fCenter ) {
-        ret += glm::vec2{ -0.5f * (float)f->textLength( s ), 0.0f };
+    if ( a && Anchor::fCenter ) {
+        ret.x = sizeExtent.x * -0.5f;
     }
-    else if ( a && Align::fRight ) {
-        assert( !"todo" );
+    else if ( a && Anchor::fRight ) {
+        ret.x = -sizeExtent.x;
     }
+    // else ret.x = 0.0f;
 
-    if ( a && Align::fMiddle ) {
-        ret += glm::vec2{ 0.0f, 0.5f * (float)f->height() };
+    if ( a && Anchor::fMiddle ) {
+        ret.y = sizeExtent.y *  0.5f;
     }
-    else if ( a && Align::fBottom ) {
-        ret += glm::vec2{ 0.0f, f->height() };
+    else if ( a && Anchor::fBottom ) {
+        ret.y = sizeExtent.y;
     }
+    // else ret.x = 0.0f;
 
     return ret;
 }
 
 Label::Label( std::u32string_view s, Font* f, const glm::vec2& position, const glm::vec4& color )
-: m_font( f )
-, m_color( color )
+: Widget{ position, {} }
+, m_font{ f }
+, m_color{ color }
 {
     assert( f );
-    setPosition( position );
     setText( s );
 }
 
-Label::Label( std::u32string_view s, Font* f, Align a, const glm::vec2& position, const glm::vec4& color )
-: m_font( f )
-, m_color( color )
-, m_align( a )
+Label::Label( std::u32string_view s, Font* f, Anchor a, const glm::vec2& position, const glm::vec4& color )
+: Widget{ position, {}, a }
+, m_font{ f }
+, m_color{ color }
 {
     assert( f );
-    setPosition( position );
     setText( s );
 }
 
-Label::Label( Font* f, Align a, const glm::vec2& position, const glm::vec4& color )
-: m_font( f )
-, m_color( color )
-, m_align( a )
+Label::Label( Font* f, Anchor a, const glm::vec2& position, const glm::vec4& color )
+: Widget{ position, {}, a }
+, m_font{ f }
+, m_color{ color }
 {
     assert( f );
-    setPosition( position );
 }
 
 void Label::render( RenderContext rctx ) const
 {
     assert( m_font );
-    const glm::vec3 pos{ m_position + m_positionOffset, 0.0f };
+    const glm::vec3 pos{ m_position + positionAnchor( m_textExtent, m_anchor ), 0.0f };
 
     m_renderText.second.m_model = glm::translate( rctx.model, pos );
     m_renderText.second.m_view = rctx.view;
@@ -76,7 +69,7 @@ void Label::render( RenderContext rctx ) const
 void Label::setText( std::u32string_view str )
 {
     m_text = str;
-    m_positionOffset = calculatePositionOffset( m_font, m_text, m_align );
     m_renderText = m_font->composeText( m_color, str );
     m_size = { m_font->textLength( m_text ), m_font->height() };
+    m_textExtent = m_size;
 }
