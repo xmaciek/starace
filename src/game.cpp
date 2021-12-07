@@ -180,22 +180,55 @@ void Game::setup()
 
     m_buttonTexture = loadTexture( m_io->getWait( "textures/button1.tga" ) );
 
-    m_btnExit = Button( U"Exit Game", m_fontGuiTxt, m_buttonTexture );
-    m_btnSelectMission = Button( U"Select Mission", m_fontGuiTxt, m_buttonTexture );
-    m_btnQuitMission = Button( U"Quit Mission", m_fontGuiTxt, m_buttonTexture );
-    m_btnStartMission = Button( U"Start Mission", m_fontGuiTxt, m_buttonTexture );
-    m_btnReturnToMainMenu = Button( U"Return", m_fontGuiTxt, m_buttonTexture );
-    m_btnGO = Button( U"GO!", m_fontGuiTxt, m_buttonTexture );
-    m_btnNextMap = Button( U"Next Map", m_fontGuiTxt, m_buttonTexture );
+    auto chgScr = [this]( Screen scr ) { m_audio->play( m_click ); changeScreen( scr ); };
+    m_btnExit = Button( U"Exit Game", m_fontGuiTxt, m_buttonTexture, [this](){ m_audio->play( m_click ); quit(); } );
+    m_btnSelectMission = Button( U"Select Mission", m_fontGuiTxt, m_buttonTexture, [chgScr](){ chgScr( Screen::eMissionSelection ); } );
+    m_btnQuitMission = Button( U"Quit Mission", m_fontGuiTxt, m_buttonTexture, [chgScr](){ chgScr( Screen::eDead ); } );
+    m_btnStartMission = Button( U"Start Mission", m_fontGuiTxt, m_buttonTexture, [chgScr](){ chgScr( Screen::eGameBriefing ); } );
+    m_btnReturnToMainMenu = Button( U"Return", m_fontGuiTxt, m_buttonTexture, [chgScr](){ chgScr( Screen::eMainMenu ); } );
+    m_btnGO = Button( U"GO!", m_fontGuiTxt, m_buttonTexture, [chgScr](){ chgScr( Screen::eGame ); } );
 
-    m_btnPrevMap = Button( U"Previous Map", m_fontGuiTxt, m_buttonTexture );
-    m_btnNextJet = Button( U"Next Jet", m_fontGuiTxt, m_buttonTexture );
-    m_btnPrevJet.setEnabled( m_currentJet > 0 );
+    auto nextMap = [this]()
+    {
+        m_audio->play( m_click );
+        m_currentMap++;
+        m_btnNextMap.setEnabled( m_currentMap < m_mapsContainer.size() - 1 );
+        m_btnPrevMap.setEnabled( m_currentMap > 0 );
+    };
+    auto prevMap = [this]()
+    {
+        m_audio->play( m_click );
+        m_currentMap--;
+        m_btnNextMap.setEnabled( m_currentMap < m_mapsContainer.size() - 1 );
+        m_btnPrevMap.setEnabled( m_currentMap > 0 );
+    };
+
+    m_btnNextMap = Button( U"Next Map", m_fontGuiTxt, m_buttonTexture, std::move( nextMap ) );
+    m_btnPrevMap = Button( U"Previous Map", m_fontGuiTxt, m_buttonTexture, std::move( prevMap ) );
+
+    auto nextJet = [this]()
+    {
+        m_audio->play( m_click );
+        m_currentJet++;
+        m_btnPrevJet.setEnabled( m_currentJet > 0 );
+        m_btnNextJet.setEnabled( m_currentJet < m_jetsContainer.size() - 1 );
+        reloadPreviewModel();
+    };
+    auto prevJet = [this]()
+    {
+        m_audio->play( m_click );
+        m_currentJet--;
+        m_btnPrevJet.setEnabled( m_currentJet > 0 );
+        m_btnNextJet.setEnabled( m_currentJet < m_jetsContainer.size() - 1 );
+        reloadPreviewModel();
+    };
+
+    m_btnNextJet = Button( U"Next Jet", m_fontGuiTxt, m_buttonTexture, std::move( nextJet ) );
+    m_btnPrevJet = Button( U"Previous Jet", m_fontGuiTxt, m_buttonTexture, std::move( prevJet ) );
     m_btnNextJet.setEnabled( m_currentJet < m_jetsContainer.size() - 1 );
-
-    m_btnPrevJet = Button( U"Previous Jet", m_fontGuiTxt, m_buttonTexture );
-    m_btnCustomizeReturn = Button( U"Done", m_fontGuiTxt, m_buttonTexture );
-    m_btnCustomize = Button( U"Customize", m_fontGuiTxt, m_buttonTexture );
+    m_btnPrevJet.setEnabled( m_currentJet > 0 );
+    m_btnCustomizeReturn = Button( U"Done", m_fontGuiTxt, m_buttonTexture, [chgScr](){ chgScr( Screen::eMainMenu ); } );
+    m_btnCustomize = Button( U"Customize", m_fontGuiTxt, m_buttonTexture, [chgScr](){ chgScr( Screen::eCustomize ); } );
 
     constexpr auto weaponToString = []( int i ) -> std::u32string_view
     {
@@ -211,10 +244,9 @@ void Game::setup()
         assert( !"invalid weapon id" );
         return U"invalid id"sv;
     };
-
-    m_btnWeap1 = Button( weaponToString( *m_weap1 ), m_fontGuiTxt, m_buttonTexture );
-    m_btnWeap2 = Button( weaponToString( *m_weap2 ), m_fontGuiTxt, m_buttonTexture );
-    m_btnWeap3 = Button( weaponToString( *m_weap1 ), m_fontGuiTxt, m_buttonTexture );
+    m_btnWeap1 = Button( weaponToString( *m_weap1 ), m_fontGuiTxt, m_buttonTexture, [this, weaponToString](){ m_audio->play( m_click ); m_btnWeap1.setText( weaponToString( *++m_weap1 ) ); } );
+    m_btnWeap2 = Button( weaponToString( *m_weap2 ), m_fontGuiTxt, m_buttonTexture, [this, weaponToString](){ m_audio->play( m_click ); m_btnWeap2.setText( weaponToString( *++m_weap2 ) ); } );
+    m_btnWeap3 = Button( weaponToString( *m_weap3 ), m_fontGuiTxt, m_buttonTexture, [this, weaponToString](){ m_audio->play( m_click ); m_btnWeap3.setText( weaponToString( *++m_weap3 ) ); } );
 
     m_hudTex = loadTexture( m_io->getWait( "textures/HUDtex.tga" ) );
     m_menuBackground = loadTexture( m_io->getWait( "textures/background.tga" ) );

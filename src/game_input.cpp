@@ -84,56 +84,22 @@ void Game::onMouseClickLeft( int32_t x, int32_t y )
 
     switch ( m_currentScreen ) {
     case Screen::eGamePaused:
-        if ( m_btnQuitMission.isClicked( x, y ) ) {
-            m_audio->play( m_click );
-            changeScreen( Screen::eDead );
-        }
+        m_btnQuitMission.onMouseEvent( mouseEvent );
         break;
 
     case Screen::eMainMenu:
-        if ( m_btnSelectMission.isClicked( x, y ) ) {
-            m_audio->play( m_click );
-            changeScreen( Screen::eMissionSelection );
-            break;
-        }
-        if ( m_btnExit.isClicked( x, y ) ) {
-            m_audio->play( m_click );
-            quit();
-            break;
-        }
-        if ( m_btnCustomize.isClicked( x, y ) ) {
-            m_audio->play( m_click );
-            changeScreen( Screen::eCustomize );
-            break;
-        }
+        m_btnSelectMission.onMouseEvent( mouseEvent )
+        || m_btnCustomize.onMouseEvent( mouseEvent )
+        || m_btnExit.onMouseEvent( mouseEvent )
+        ;
         break;
 
     case Screen::eMissionSelection:
-        if ( m_btnStartMission.isClicked( x, y ) ) {
-            m_audio->play( m_click );
-            changeScreen( Screen::eGameBriefing );
-            break;
-        }
-        if ( m_btnReturnToMainMenu.isClicked( x, y ) ) {
-            m_audio->play( m_click );
-            changeScreen( Screen::eMainMenu );
-            break;
-        }
-        assert( !m_mapsContainer.empty() );
-        if ( m_btnNextMap.isClicked( x, y ) ) {
-            m_currentMap++;
-            m_btnNextMap.setEnabled( m_currentMap < m_mapsContainer.size() - 1 );
-            m_btnPrevMap.setEnabled( m_currentMap > 0 );
-            m_audio->play( m_click );
-            break;
-        }
-        if ( m_btnPrevMap.isClicked( x, y ) ) {
-            m_currentMap--;
-            m_btnNextMap.setEnabled( m_currentMap < m_mapsContainer.size() - 1 );
-            m_btnPrevMap.setEnabled( m_currentMap > 0 );
-            m_audio->play( m_click );
-            break;
-        }
+        m_btnStartMission.onMouseEvent( mouseEvent )
+        || m_btnReturnToMainMenu.onMouseEvent( mouseEvent )
+        || m_btnNextMap.onMouseEvent( mouseEvent )
+        || m_btnPrevMap.onMouseEvent( mouseEvent )
+        ;
         break;
 
     case Screen::eDead:
@@ -145,63 +111,18 @@ void Game::onMouseClickLeft( int32_t x, int32_t y )
         break;
 
     case Screen::eGameBriefing:
-        if ( m_btnGO.isClicked( x, y ) ) {
-            m_audio->play( m_click );
-            changeScreen( Screen::eGame );
-        }
+        m_btnGO.onMouseEvent( mouseEvent );
         break;
 
-    case Screen::eCustomize: {
-        if ( m_btnNextJet.isClicked( x, y ) ) {
-            m_audio->play( m_click );
-            m_currentJet++;
-            m_btnPrevJet.setEnabled( m_currentJet > 0 );
-            m_btnNextJet.setEnabled( m_currentJet < m_jetsContainer.size() - 1 );
-            reloadPreviewModel();
-            break;
-        }
-        if ( m_btnPrevJet.isClicked( x, y ) ) {
-            m_audio->play( m_click );
-            m_currentJet--;
-            m_btnPrevJet.setEnabled( m_currentJet > 0 );
-            m_btnNextJet.setEnabled( m_currentJet < m_jetsContainer.size() - 1 );
-            reloadPreviewModel();
-            break;
-        }
-        if ( m_btnCustomizeReturn.isClicked( x, y ) ) {
-            m_audio->play( m_click );
-            changeScreen( Screen::eMainMenu );
-            break;
-        }
-
-        constexpr auto weaponToString = []( int i ) -> std::u32string_view
-        {
-            using namespace std::string_view_literals;
-            switch ( i ) {
-            case 0:
-                return U"Laser"sv;
-            case 1:
-                return U"Blaster"sv;
-            case 2:
-                return U"Torpedo"sv;
-            }
-            assert( !"invalid weapon id" );
-            return U"invalid id"sv;
-        };
-
-        if ( m_btnWeap1.isClicked( x, y ) ) {
-            m_audio->play( m_click );
-            m_btnWeap1.setText( weaponToString( *++m_weap1 ) );
-        }
-        else if ( m_btnWeap2.isClicked( x, y ) ) {
-            m_audio->play( m_click );
-            m_btnWeap2.setText( weaponToString( *++m_weap2 ) );
-        }
-        else if ( m_btnWeap3.isClicked( x, y ) ) {
-            m_audio->play( m_click );
-            m_btnWeap3.setText( weaponToString( *++m_weap3 ) );
-        }
-    } break;
+    case Screen::eCustomize:
+        m_btnPrevJet.onMouseEvent( mouseEvent )
+        || m_btnNextJet.onMouseEvent( mouseEvent )
+        || m_btnCustomizeReturn.onMouseEvent( mouseEvent )
+        || m_btnWeap1.onMouseEvent( mouseEvent )
+        || m_btnWeap2.onMouseEvent( mouseEvent )
+        || m_btnWeap3.onMouseEvent( mouseEvent )
+        ;
+        break;
 
     default:
         break;

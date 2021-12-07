@@ -25,13 +25,12 @@ private:
 public:
     ~Button() = default;
     Button() = default;
-    Button( std::u32string_view, Font*, Texture texture, std::function<void()>&& onClick = {} );
-    Button( Font*, Texture texture, std::function<void()>&& onClick = {} );
+    Button( std::u32string_view, Font*, Texture texture, std::function<void()>&& onClick );
+    Button( Font*, Texture texture, std::function<void()>&& onClick );
 
     virtual bool onMouseEvent( const MouseEvent& ) override;
     virtual void render( RenderContext ) const override;
 
-    bool isClicked( uint32_t x, uint32_t y ) const;
     bool isEnabled() const;
     void setEnabled( bool );
     void setText( std::u32string_view );

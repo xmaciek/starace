@@ -36,11 +36,6 @@ Button::Button( Font* f, Texture texture, std::function<void()>&& onClick )
 {
 }
 
-bool Button::isClicked( uint32_t x, uint32_t y ) const
-{
-    return m_enabled && testRect( glm::vec2{ x, y } );
-}
-
 void Button::render( RenderContext rctx ) const
 {
     UIImage::render( rctx );
