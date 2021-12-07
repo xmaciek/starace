@@ -80,6 +80,8 @@ void Game::gameKeyboardPausedUnpressed( SDL_Scancode sc )
 void Game::onMouseClickLeft( int32_t x, int32_t y )
 {
     assert( m_audio );
+    const MouseEvent mouseEvent = MouseClick{ glm::vec2{ x, y } };
+
     switch ( m_currentScreen ) {
     case Screen::eGamePaused:
         if ( m_btnQuitMission.isClicked( x, y ) ) {
@@ -135,11 +137,11 @@ void Game::onMouseClickLeft( int32_t x, int32_t y )
         break;
 
     case Screen::eDead:
+        m_screenLoose.onMouseEvent( mouseEvent );
+        break;
+
     case Screen::eWin:
-        if ( m_btnReturnToMissionSelection.isClicked( x, y ) ) {
-            m_audio->play( m_click );
-            changeScreen( Screen::eMissionSelection );
-        }
+        m_screenWin.onMouseEvent( mouseEvent );
         break;
 
     case Screen::eGameBriefing:
@@ -208,7 +210,7 @@ void Game::onMouseClickLeft( int32_t x, int32_t y )
 
 void Game::onMouseMove( const SDL_MouseMotionEvent& event )
 {
-    const Widget::MouseEvent mouseEvent{ event.x, event.y };
+    const MouseEvent mouseEvent = MouseMove{ glm::vec2{ event.x, event.y } };
     m_btnCustomizeReturn.onMouseEvent( mouseEvent );
     m_btnCustomize.onMouseEvent( mouseEvent );
     m_btnExit.onMouseEvent( mouseEvent );
@@ -219,11 +221,13 @@ void Game::onMouseMove( const SDL_MouseMotionEvent& event )
     m_btnPrevMap.onMouseEvent( mouseEvent );
     m_btnQuitMission.onMouseEvent( mouseEvent );
     m_btnReturnToMainMenu.onMouseEvent( mouseEvent );
-    m_btnReturnToMissionSelection.onMouseEvent( mouseEvent );
     m_btnSelectMissionCancel.onMouseEvent( mouseEvent );
     m_btnSelectMission.onMouseEvent( mouseEvent );
     m_btnStartMission.onMouseEvent( mouseEvent );
     m_btnWeap1.onMouseEvent( mouseEvent );
     m_btnWeap2.onMouseEvent( mouseEvent );
     m_btnWeap3.onMouseEvent( mouseEvent );
+
+    m_screenWin.onMouseEvent( mouseEvent );
+    m_screenLoose.onMouseEvent( mouseEvent );
 }

@@ -8,6 +8,11 @@
 #include <glm/vec2.hpp>
 
 #include <array>
+#include <variant>
+
+struct MouseMove : glm::vec2 {};
+struct MouseClick : glm::vec2 {};
+using MouseEvent = std::variant<std::monostate, MouseMove, MouseClick>;
 
 class Widget {
 protected:
@@ -18,8 +23,6 @@ protected:
     bool testRect( glm::vec2 ) const;
 
 public:
-    using MouseEvent = glm::vec2;
-
     virtual ~Widget() noexcept = default;
     Widget() noexcept = default;
     inline Widget( Anchor a ) noexcept

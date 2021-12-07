@@ -13,7 +13,7 @@ static constexpr glm::vec4 colorHover = color::lightSkyBlue;
 static constexpr glm::vec4 colorDisabled = color::lightSteelBlue;
 
 
-Button::Button( std::u32string_view txt, Font* f, Texture texture )
+Button::Button( std::u32string_view txt, Font* f, Texture texture, std::function<void()>&& onClick )
 : UIImage{ {}, { 192.0f, 48.0f }, colorNormal, texture }
 , m_label(
     txt
@@ -21,16 +21,18 @@ Button::Button( std::u32string_view txt, Font* f, Texture texture )
     , Anchor::fCenter | Anchor::fMiddle
     , size() * 0.5f
     , color::white )
+, m_onClick{ onClick }
 {
 }
 
-Button::Button( Font* f, Texture texture )
+Button::Button( Font* f, Texture texture, std::function<void()>&& onClick )
 : UIImage{ {}, { 192.0f, 48.0f }, colorNormal, texture }
 , m_label(
     f
     , Anchor::fCenter | Anchor::fMiddle
     , size() * 0.5f
     , color::white )
+, m_onClick{ onClick }
 {
 }
 
@@ -69,7 +71,18 @@ void Button::setText( std::u32string_view txt )
 
 bool Button::onMouseEvent( const MouseEvent& event )
 {
-    m_mouseHover = testRect( event );
-    updateColor();
-    return m_mouseHover;
+    switch ( event.index() ) {
+    case 1:
+        m_mouseHover = testRect( std::get<MouseMove>( event ) );
+        updateColor();
+        return m_mouseHover;
+    case 2:
+        if ( !m_enabled ) { return false; }
+        if ( !testRect( std::get<MouseClick>( event ) ) ) { return false; }
+        assert( m_onClick );
+        m_onClick();
+        return true;
+    default:
+        return false;
+    }
 }

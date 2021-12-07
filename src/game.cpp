@@ -141,7 +141,6 @@ void Game::onResize( uint32_t w, uint32_t h )
     m_btnGO.setPosition( { halfW - 96, h015 } );
     m_btnStartMission.setPosition( { halfW + 4, h015 } );
     m_btnReturnToMainMenu.setPosition( { halfW - 196, h015 } );
-    m_btnReturnToMissionSelection.setPosition( { halfW - 96, h015 } );
     m_btnNextMap.setPosition( { viewportWidth() - 240, halfH - 24 } );
     m_btnPrevMap.setPosition( { 48, halfH - 24 } );
     m_btnCustomize.setPosition( { halfW - 196, h015 } );
@@ -152,6 +151,9 @@ void Game::onResize( uint32_t w, uint32_t h )
     m_btnWeap1.setPosition( { halfW - 196 - 96, h015 + 52 - 76 } );
     m_btnWeap2.setPosition( { halfW - 96, h015 + 52 - 76 } );
     m_btnWeap3.setPosition( { halfW + 100, h015 + 52 - 76 } );
+
+    m_screenWin.resize( { w, h } );
+    m_screenLoose.resize( { w, h } );
 }
 
 void Game::setup()
@@ -182,7 +184,6 @@ void Game::setup()
     m_btnSelectMission = Button( U"Select Mission", m_fontGuiTxt, m_buttonTexture );
     m_btnQuitMission = Button( U"Quit Mission", m_fontGuiTxt, m_buttonTexture );
     m_btnStartMission = Button( U"Start Mission", m_fontGuiTxt, m_buttonTexture );
-    m_btnReturnToMissionSelection = Button( U"Return", m_fontGuiTxt, m_buttonTexture );
     m_btnReturnToMainMenu = Button( U"Return", m_fontGuiTxt, m_buttonTexture );
     m_btnGO = Button( U"GO!", m_fontGuiTxt, m_buttonTexture );
     m_btnNextMap = Button( U"Next Map", m_fontGuiTxt, m_buttonTexture );
@@ -224,6 +225,31 @@ void Game::setup()
     m_cyberRingTexture[ 2 ] = loadTexture( m_io->getWait( "textures/cyber_ring3.tga" ) );
 
     m_lblPaused = Label{ U"PAUSED", m_fontPauseTxt, Anchor::fCenter | Anchor::fMiddle, {}, color::yellow };
+
+    auto onWinLoose = [this]()
+    {
+        m_audio->play( m_click );
+        changeScreen( Screen::eMissionSelection );
+    };
+    m_screenWin = ScreenWinLoose{
+        m_hudTex
+        , m_buttonTexture
+        , color::winScreen
+        , m_fontGuiTxt
+        , m_fontBig
+        , U"MISSION SUCCESSFULL"
+        , decltype( onWinLoose ){ onWinLoose }
+    };
+    m_screenLoose = ScreenWinLoose{
+        m_hudTex
+        , m_buttonTexture
+        , color::crimson
+        , m_fontGuiTxt
+        , m_fontBig
+        , U"MISSION FAILED"
+        , decltype( onWinLoose ){ onWinLoose }
+    };
+
 
     BulletProto tmpWeapon{};
     tmpWeapon.type = Bullet::Type::eSlug;

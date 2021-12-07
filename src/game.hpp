@@ -10,6 +10,7 @@
 #include "model_proto.hpp"
 #include "texture.hpp"
 #include "targeting.hpp"
+#include "screen_win_loose.hpp"
 
 #include <engine/engine.hpp>
 #include <engine/render_context.hpp>
@@ -82,7 +83,6 @@ private:
     Button m_btnPrevMap{};
     Button m_btnQuitMission{};
     Button m_btnReturnToMainMenu{};
-    Button m_btnReturnToMissionSelection{};
     Button m_btnSelectMissionCancel{};
     Button m_btnSelectMission{};
     Button m_btnStartMission{};
@@ -99,6 +99,9 @@ private:
     Texture m_menuBackground{};
     Texture m_starfieldTexture{};
     std::pmr::map<std::filesystem::path, Texture> m_textures{};
+
+    ScreenWinLoose m_screenWin{};
+    ScreenWinLoose m_screenLoose{};
 
     Targeting m_targeting{};
 

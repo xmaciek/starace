@@ -252,54 +252,14 @@ void Game::renderWinScreen( RenderContext rctx )
 {
     renderGameScreen( rctx );
     renderCyberRings( rctx );
-    renderHudTex( rctx, color::winScreen );
-
-    // TODO: hud labels
-    constexpr static char32_t missionOK[] = U"MISSION SUCCESSFUL";
-    m_fontBig->renderText( rctx
-        , color::white
-        , (float)viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( missionOK ) ) / 2
-        , 96
-        , missionOK
-    );
-
-    assert( m_jet );
-    const std::pmr::u32string str = U"Your score: " + intToUTF32( m_jet->score() );
-    m_fontBig->renderText( rctx
-        , color::white
-        , (float)viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( str ) ) / 2
-        , 128
-        , str
-    );
-
-    m_btnReturnToMissionSelection.render( rctx );
+    m_screenWin.render( rctx );
 }
 
 void Game::renderDeadScreen( RenderContext rctx )
 {
     renderGameScreen( rctx );
     renderCyberRings( rctx );
-    renderHudTex( rctx, color::crimson );
-
-    // TODO: hud labels
-    constexpr static char32_t txt[] = U"MISSION FAILED";
-    m_fontBig->renderText( rctx
-        , color::white
-        , (float)viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( txt ) ) / 2
-        , 96
-        , txt
-    );
-
-    assert( m_jet );
-    const std::pmr::u32string str = U"Your score: " + intToUTF32( m_jet->score() );
-    m_fontBig->renderText( rctx
-        , color::white
-        , (float)viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( str ) ) / 2
-        , 128
-        , str
-    );
-
-    m_btnReturnToMissionSelection.render( rctx );
+    m_screenLoose.render( rctx );
 }
 
 void Game::renderMissionSelectionScreen( RenderContext rctx )

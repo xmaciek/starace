@@ -42,6 +42,8 @@ set( STARACE_SOURCES
     reactor.hpp
     saobject.cpp
     saobject.hpp
+    screen_win_loose.cpp
+    screen_win_loose.hpp
     shield.cpp
     shield.hpp
     targeting.cpp
