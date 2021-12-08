@@ -18,42 +18,50 @@ Hud::Hud( const HudData* displayData, Font* font ) noexcept
 , m_calc{ U"Calculated: ", font, {}, color::winScreen }
 , m_calcValue{ U"", font, {}, color::winScreen }
 {
-    m_layout.setPosition( { 4.0f, 4.0f } );
+    Widget* arr[] = {
+        &m_score,
+        &m_shots,
+        &m_pool,
+        &m_fps,
+        &m_calc,
+    };
+    Layout{ { 4.0f, 4.0f }, Layout::eVertical }( std::begin( arr ), std::end( arr ) );
 
-    m_line1.add( &m_score );
-    m_line1.add( &m_scoreValue );
+    const auto rightOf = []( const Label& w ) {
+        return w.position() + glm::vec2{ w.size().x, 0.0f };
+    };
 
-    m_line2.add( &m_shots );
-    m_line2.add( &m_shotsValue );
-
-    m_line3.add( &m_pool );
-    m_line3.add( &m_poolValue );
-
-    m_line4.add( &m_fps );
-    m_line4.add( &m_fpsValue );
-
-    m_line5.add( &m_calc );
-    m_line5.add( &m_calcValue );
-
-    m_layout.add( &m_line1 );
-    m_layout.add( &m_line2 );
-    m_layout.add( &m_line3 );
-    m_layout.add( &m_line4 );
-    m_layout.add( &m_line5 );
+    m_scoreValue.setPosition( rightOf( m_score ) );
+    m_shotsValue.setPosition( rightOf( m_shots ) );
+    m_poolValue.setPosition( rightOf( m_pool ) );
+    m_fpsValue.setPosition( rightOf( m_fps ) );
+    m_calcValue.setPosition( rightOf( m_calc ) );
 }
 
 void Hud::render( RenderContext rctx ) const
 {
-    m_layout.render( rctx );
+    const std::array arr = {
+        &m_score,
+        &m_scoreValue,
+        &m_shots,
+        &m_shotsValue,
+        &m_pool,
+        &m_poolValue,
+        &m_fps,
+        &m_fpsValue,
+        &m_calc,
+        &m_calcValue,
+    };
+    for ( const auto* it : arr ) {
+        it->render( rctx );
+    }
 }
 
-void Hud::update( const UpdateContext& uctx )
+void Hud::update( const UpdateContext& )
 {
     m_scoreValue.setText( intToUTF32( m_displayData->score ) );
     m_shotsValue.setText( intToUTF32( m_displayData->shots ) );
     m_poolValue.setText( intToUTF32( m_displayData->pool ) );
     m_fpsValue.setText( intToUTF32( m_displayData->fps ) );
     m_calcValue.setText( intToUTF32( m_displayData->calc ) );
-    m_layout.update( uctx );
 }
-

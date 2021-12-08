@@ -49,7 +49,7 @@ public:
 };
 
 
-class Layout : public Widget {
+class Layout {
 public:
     enum Flow {
         eHorizontal,
@@ -57,28 +57,16 @@ public:
     };
 
 private:
-    std::array<Widget*, 8> m_widgets{};
-    using size_type = decltype( m_widgets )::size_type;
-    size_type m_count = 0;
+    glm::vec2 m_position{};
     Flow m_flow = Flow::eHorizontal;
 
 public:
-
     ~Layout() noexcept = default;
     Layout() noexcept = default;
-    inline explicit Layout( Flow a )
-    : m_flow{ a }
+    inline Layout( glm::vec2 pos, Flow a ) noexcept
+    : m_position{ pos }
+    , m_flow{ a }
     {}
 
-    Layout( const Layout& ) = delete;
-    Layout& operator = ( const Layout& ) = delete;
-
-    // TODO: maybe do someting about moving
-    Layout( Layout&& ) = delete;
-    Layout& operator = ( Layout&& ) = delete;
-
-    virtual void render( RenderContext ) const override;
-    virtual void update( const UpdateContext& ) override;
-
-    void add( Widget* );
+    void operator () ( Widget** begin, Widget** end ) const;
 };

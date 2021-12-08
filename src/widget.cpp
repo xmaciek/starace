@@ -41,45 +41,27 @@ bool Widget::testRect( glm::vec2 p ) const
         && ( p.y < br.y );
 }
 
-void Layout::render( RenderContext rctx ) const
+
+void Layout::operator()( Widget** begin, Widget** end ) const
 {
-    rctx.model = glm::translate( rctx.model, glm::vec3{ m_position, 0.0f } );
-    for ( size_type i = 0; i < m_count; ++i ) {
-        m_widgets[ i ]->render( rctx );
-    }
-}
-
-void Layout::update( const UpdateContext& uctx )
-{
-    if ( m_count == 0 ) { return; }
-
-    for ( size_type i = 0; i < m_count; ++i ) {
-        m_widgets[ i ]->update( uctx );
-    }
-
-    glm::vec2 pos{};
-    for ( size_type i = 0; i < m_count - 1; ++i ) {
-        const glm::vec2 wpos = m_widgets[ i ]->size();
-        pos += wpos;
-        Widget* w = m_widgets[ i + 1 ];
-        switch ( m_flow ) {
-        case eHorizontal:
-            pos.y = w->position().y;
-            w->setPosition( pos );
-            break;
-        case eVertical:
-            pos.x = w->position().x;
-            w->setPosition( pos );
-            break;
+    glm::vec2 position = m_position;
+    switch ( m_flow ) {
+    case eHorizontal:
+        for ( ; begin != end; ++begin ) {
+            const glm::vec2 size = (*begin)->size();
+            (*begin)->setPosition( position );
+            position.x += size.x;
         }
+        break;
+    case eVertical:
+        for ( ; begin != end; ++begin ) {
+            const glm::vec2 size = (*begin)->size();
+            (*begin)->setPosition( position );
+            position.y += size.y;
+        }
+        break;
+    default:
+        assert( !"unhandled enum" );
+        break;
     }
-    const Widget* w = m_widgets[ m_count - 1 ];
-    setSize( w->position() + w->size() );
-}
-
-void Layout::add( Widget* w )
-{
-    assert( m_count < m_widgets.size() );
-    m_widgets[ m_count ] = w;
-    m_count++;
 }

@@ -16,14 +16,6 @@ struct HudData {
 
 class Hud {
     const HudData* m_displayData = nullptr;
-    Layout m_layout{ Layout::eVertical };
-
-    Layout m_line1{ Layout::eHorizontal };
-    Layout m_line2{ Layout::eHorizontal };
-    Layout m_line3{ Layout::eHorizontal };
-    Layout m_line4{ Layout::eHorizontal };
-    Layout m_line5{ Layout::eHorizontal };
-
     // TODO snprintf these
     Label m_score{};
     Label m_scoreValue{};
