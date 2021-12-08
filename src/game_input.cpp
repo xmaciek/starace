@@ -79,7 +79,6 @@ void Game::gameKeyboardPausedUnpressed( SDL_Scancode sc )
 
 void Game::onMouseClickLeft( int32_t x, int32_t y )
 {
-    assert( m_audio );
     const MouseEvent mouseEvent = MouseClick{ glm::vec2{ x, y } };
 
     switch ( m_currentScreen ) {
