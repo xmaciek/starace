@@ -131,7 +131,7 @@ private:
     uint32_t viewportWidth() const;
     float viewportAspect() const;
     void addBullet( uint32_t wID );
-    void changeScreen( Screen );
+    void changeScreen( Screen, audio::Chunk sound = {} );
     void clearMapData();
     void createMapData( const MapCreateInfo&, const ModelProto& );
     void gameKeyboardBriefingPressed( SDL_Scancode );

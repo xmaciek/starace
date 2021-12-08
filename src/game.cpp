@@ -180,13 +180,12 @@ void Game::setup()
 
     m_buttonTexture = loadTexture( m_io->getWait( "textures/button1.tga" ) );
 
-    auto chgScr = [this]( Screen scr ) { m_audio->play( m_click ); changeScreen( scr ); };
-    m_btnExit = Button( U"Exit Game", m_fontGuiTxt, m_buttonTexture, [this](){ m_audio->play( m_click ); quit(); } );
-    m_btnSelectMission = Button( U"Select Mission", m_fontGuiTxt, m_buttonTexture, [chgScr](){ chgScr( Screen::eMissionSelection ); } );
-    m_btnQuitMission = Button( U"Quit Mission", m_fontGuiTxt, m_buttonTexture, [chgScr](){ chgScr( Screen::eDead ); } );
-    m_btnStartMission = Button( U"Start Mission", m_fontGuiTxt, m_buttonTexture, [chgScr](){ chgScr( Screen::eGameBriefing ); } );
-    m_btnReturnToMainMenu = Button( U"Return", m_fontGuiTxt, m_buttonTexture, [chgScr](){ chgScr( Screen::eMainMenu ); } );
-    m_btnGO = Button( U"GO!", m_fontGuiTxt, m_buttonTexture, [chgScr](){ chgScr( Screen::eGame ); } );
+    m_btnExit = Button( U"Exit Game", m_fontGuiTxt, m_buttonTexture, [this](){ quit(); } );
+    m_btnSelectMission = Button( U"Select Mission", m_fontGuiTxt, m_buttonTexture, [this](){ changeScreen( Screen::eMissionSelection, m_click ); } );
+    m_btnQuitMission = Button( U"Quit Mission", m_fontGuiTxt, m_buttonTexture, [this](){ changeScreen( Screen::eDead, m_click ); } );
+    m_btnStartMission = Button( U"Start Mission", m_fontGuiTxt, m_buttonTexture, [this](){ changeScreen( Screen::eGameBriefing, m_click ); } );
+    m_btnReturnToMainMenu = Button( U"Return", m_fontGuiTxt, m_buttonTexture, [this](){ changeScreen( Screen::eMainMenu, m_click ); } );
+    m_btnGO = Button( U"GO!", m_fontGuiTxt, m_buttonTexture, [this](){ changeScreen( Screen::eGame, m_click ); } );
 
     auto nextMap = [this]()
     {
@@ -227,8 +226,8 @@ void Game::setup()
     m_btnPrevJet = Button( U"Previous Jet", m_fontGuiTxt, m_buttonTexture, std::move( prevJet ) );
     m_btnNextJet.setEnabled( m_currentJet < m_jetsContainer.size() - 1 );
     m_btnPrevJet.setEnabled( m_currentJet > 0 );
-    m_btnCustomizeReturn = Button( U"Done", m_fontGuiTxt, m_buttonTexture, [chgScr](){ chgScr( Screen::eMainMenu ); } );
-    m_btnCustomize = Button( U"Customize", m_fontGuiTxt, m_buttonTexture, [chgScr](){ chgScr( Screen::eCustomize ); } );
+    m_btnCustomizeReturn = Button( U"Done", m_fontGuiTxt, m_buttonTexture, [this](){ changeScreen( Screen::eMainMenu, m_click ); } );
+    m_btnCustomize = Button( U"Customize", m_fontGuiTxt, m_buttonTexture, [this](){ changeScreen( Screen::eCustomize, m_click ); } );
 
     constexpr auto weaponToString = []( int i ) -> std::u32string_view
     {
@@ -645,8 +644,11 @@ void Game::updateMissionSelection( const UpdateContext& updateContext )
     updateCyberRings( updateContext );
 }
 
-void Game::changeScreen( Screen scr )
+void Game::changeScreen( Screen scr, audio::Chunk sound )
 {
+    if ( sound.data ) {
+        m_audio->play( sound );
+    }
     SDL_ShowCursor( scr != Screen::eGame );
 
     switch ( scr ) {
