@@ -77,10 +77,8 @@ void Game::gameKeyboardPausedUnpressed( SDL_Scancode sc )
     gameKeyboardUnpressed( sc );
 }
 
-void Game::onMouseClickLeft( int32_t x, int32_t y )
+void Game::onMouseEvent( const MouseEvent& mouseEvent )
 {
-    const MouseEvent mouseEvent = MouseClick{ glm::vec2{ x, y } };
-
     switch ( m_currentScreen ) {
     case Screen::eGamePaused:
         m_btnQuitMission.onMouseEvent( mouseEvent );
@@ -126,28 +124,4 @@ void Game::onMouseClickLeft( int32_t x, int32_t y )
     default:
         break;
     }
-}
-
-void Game::onMouseMove( const SDL_MouseMotionEvent& event )
-{
-    const MouseEvent mouseEvent = MouseMove{ glm::vec2{ event.x, event.y } };
-    m_btnCustomizeReturn.onMouseEvent( mouseEvent );
-    m_btnCustomize.onMouseEvent( mouseEvent );
-    m_btnExit.onMouseEvent( mouseEvent );
-    m_btnGO.onMouseEvent( mouseEvent );
-    m_btnNextJet.onMouseEvent( mouseEvent );
-    m_btnNextMap.onMouseEvent( mouseEvent );
-    m_btnPrevJet.onMouseEvent( mouseEvent );
-    m_btnPrevMap.onMouseEvent( mouseEvent );
-    m_btnQuitMission.onMouseEvent( mouseEvent );
-    m_btnReturnToMainMenu.onMouseEvent( mouseEvent );
-    m_btnSelectMissionCancel.onMouseEvent( mouseEvent );
-    m_btnSelectMission.onMouseEvent( mouseEvent );
-    m_btnStartMission.onMouseEvent( mouseEvent );
-    m_btnWeap1.onMouseEvent( mouseEvent );
-    m_btnWeap2.onMouseEvent( mouseEvent );
-    m_btnWeap3.onMouseEvent( mouseEvent );
-
-    m_screenWin.onMouseEvent( mouseEvent );
-    m_screenLoose.onMouseEvent( mouseEvent );
 }

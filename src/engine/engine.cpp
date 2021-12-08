@@ -106,20 +106,13 @@ void Engine::gameThread()
         const std::chrono::time_point tp = std::chrono::steady_clock::now();
 
         m_fpsMeter.frameBegin();
+        processEvents();
         onUpdate( updateContext );
         m_renderer->beginFrame();
         onRender( renderContext );
         m_renderer->endFrame();
-
-        std::pmr::vector<SDL_Event> events{};
-        {
-            std::scoped_lock lock{ m_eventsBottleneck };
-            std::swap( events, m_events );
-        }
-        for ( SDL_Event& it : events ) {
-            onEvent( it );
-        }
         m_fpsMeter.frameEnd();
+
         m_renderer->present();
 
         const std::chrono::time_point now = std::chrono::steady_clock::now();
@@ -127,6 +120,33 @@ void Engine::gameThread()
         updateContext.deltaTime = (float)dt.count();
         // TODO: fix game speed later
         updateContext.deltaTime /= 500'000;
+    }
+}
+
+void Engine::processEvents()
+{
+    std::pmr::vector<SDL_Event> events{};
+    {
+        std::scoped_lock lock{ m_eventsBottleneck };
+        std::swap( events, m_events );
+    }
+    for ( SDL_Event& it : events ) {
+        switch ( it.type ) {
+        case SDL_QUIT:
+            quit();
+            return;
+        case SDL_MOUSEBUTTONDOWN:
+            if ( it.button.button == SDL_BUTTON_LEFT ) {
+                onMouseEvent( MouseClick{ glm::vec2{ it.button.x, it.button.y } } );
+            }
+            break;
+        case SDL_MOUSEMOTION:
+            onMouseEvent( MouseMove{ glm::vec2{ it.motion.x, it.motion.y } } );
+            break;
+        default:
+            onEvent( it );
+            break;
+        }
     }
 }
 

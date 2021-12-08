@@ -1,8 +1,6 @@
 #include "button.hpp"
 
 #include "colors.hpp"
-#include <renderer/pipeline.hpp>
-#include <renderer/renderer.hpp>
 
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
@@ -76,6 +74,8 @@ bool Button::onMouseEvent( const MouseEvent& event )
         if ( !testRect( std::get<MouseClick>( event ) ) ) { return false; }
         assert( m_onClick );
         m_onClick();
+        m_mouseHover = false;
+        updateColor();
         return true;
     default:
         return false;

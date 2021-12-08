@@ -144,8 +144,6 @@ private:
     void loadMapProto();
     void onKeyDown( const SDL_Keysym& );
     void onKeyUp( const SDL_Keysym& );
-    void onMouseClickLeft( int32_t x, int32_t y );
-    void onMouseMove( const SDL_MouseMotionEvent& );
     void onResize( uint32_t w, uint32_t h );
     void pause();
     void reloadPreviewModel();
@@ -192,4 +190,5 @@ private:
     virtual void onRender( RenderContext ) override;
     virtual void onUpdate( const UpdateContext& ) override;
     virtual void onEvent( const SDL_Event& ) override;
+    virtual void onMouseEvent( const MouseEvent& ) override;
 };

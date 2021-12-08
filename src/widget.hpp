@@ -4,15 +4,11 @@
 
 #include <engine/render_context.hpp>
 #include <engine/update_context.hpp>
+#include <engine/mouse_event.hpp>
 
 #include <glm/vec2.hpp>
 
 #include <array>
-#include <variant>
-
-struct MouseMove : glm::vec2 {};
-struct MouseClick : glm::vec2 {};
-using MouseEvent = std::variant<std::monostate, MouseMove, MouseClick>;
 
 class Widget {
 protected:

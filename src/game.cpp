@@ -74,10 +74,6 @@ void Game::preloadData()
 void Game::onEvent( const SDL_Event& event )
 {
     switch ( event.type ) {
-    case SDL_QUIT:
-        quit();
-        break;
-
     case SDL_KEYDOWN:
         onKeyDown( event.key.keysym );
         break;
@@ -94,15 +90,6 @@ void Game::onEvent( const SDL_Event& event )
         default:
             break;
         }
-        break;
-
-    case SDL_MOUSEBUTTONDOWN:
-        if ( event.button.button == SDL_BUTTON_LEFT ) {
-            onMouseClickLeft( event.button.x, event.button.y );
-        }
-        break;
-    case SDL_MOUSEMOTION:
-        onMouseMove( event.motion );
         break;
     }
 }

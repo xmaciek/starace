@@ -4,6 +4,7 @@
 #include <engine/fps_meter.hpp>
 #include <engine/update_context.hpp>
 #include <engine/render_context.hpp>
+#include <engine/mouse_event.hpp>
 #include <audio/audio.hpp>
 #include <renderer/renderer.hpp>
 
@@ -29,8 +30,6 @@ private:
     std::mutex m_eventsBottleneck{};
     std::pmr::vector<SDL_Event> m_events{};
 
-    void gameThread();
-
 protected:
     std::unique_ptr<AsyncIO> m_io{};
     Renderer* m_renderer = nullptr;
@@ -49,6 +48,11 @@ protected:
     virtual void onRender( RenderContext ) = 0;
     virtual void onUpdate( const UpdateContext& ) = 0;
     virtual void onEvent( const SDL_Event& ) = 0;
+    virtual void onMouseEvent( const MouseEvent& ) = 0;
+
+private:
+    void gameThread();
+    void processEvents();
 
 public:
     int run();
