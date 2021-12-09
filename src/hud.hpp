@@ -5,6 +5,7 @@
 #include <engine/render_context.hpp>
 #include <engine/update_context.hpp>
 #include "label.hpp"
+#include "speed_meter.hpp"
 
 struct HudData {
     uint32_t score = 0;
@@ -12,11 +13,13 @@ struct HudData {
     uint32_t pool = 0;
     uint32_t fps = 0;
     uint32_t calc = 0;
+    float speed = 0;
 };
 
 class Hud {
     const HudData* m_displayData = nullptr;
-    // TODO snprintf these
+    HudData m_lastData{};
+
     Label m_score{};
     Label m_scoreValue{};
     Label m_shots{};
@@ -27,6 +30,7 @@ class Hud {
     Label m_fpsValue{};
     Label m_calc{};
     Label m_calcValue{};
+    SpeedMeter m_speedMeter{};
 
 public:
     Hud() noexcept = default;
@@ -34,5 +38,7 @@ public:
 
     void render( RenderContext ) const;
     void update( const UpdateContext& );
+
+    void resize( glm::vec2 );
 };
 

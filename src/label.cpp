@@ -21,7 +21,7 @@ static glm::vec2 positionAnchor( glm::vec2 sizeExtent, Anchor a )
     if ( a && Anchor::fMiddle ) {
         ret.y = sizeExtent.y *  0.5f;
     }
-    else if ( a && Anchor::fBottom ) {
+    else if ( a && Anchor::fTop ) {
         ret.y = sizeExtent.y;
     }
     // else ret.x = 0.0f;

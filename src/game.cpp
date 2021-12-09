@@ -141,6 +141,7 @@ void Game::onResize( uint32_t w, uint32_t h )
 
     m_screenWin.resize( { w, h } );
     m_screenLoose.resize( { w, h } );
+    m_hud.resize( { w, h } );
 }
 
 void Game::setup()
@@ -163,7 +164,7 @@ void Game::setup()
         m_fontGuiTxt = new Font( createInfo, 12 );
         m_fontBig = new Font( createInfo, 32 );
     }
-    m_hud.emplace( &m_hudData, m_fontGuiTxt );
+    m_hud = Hud{ &m_hudData, m_fontGuiTxt };
 
     m_buttonTexture = loadTexture( m_io->getWait( "textures/button1.tga" ) );
 
@@ -398,10 +399,6 @@ void Game::onUpdate( const UpdateContext& updateContext )
         updateCustomize( updateContext );
         break;
     }
-    m_hudData.calc = (uint32_t)m_fpsMeter.calculated();
-    m_hudData.fps = (uint32_t)m_fpsMeter.fps();
-    m_hudData.pool = m_poolBullets.allocCount();
-    m_hud->update( updateContext );
 }
 
 void Game::pause()
@@ -425,6 +422,12 @@ void Game::updateGame( const UpdateContext& updateContext )
 
     m_hudData.score = m_jet->score();
     m_hudData.shots = m_shotsDone;
+    m_hudData.calc = (uint32_t)m_fpsMeter.calculated();
+    m_hudData.fps = (uint32_t)m_fpsMeter.fps();
+    m_hudData.pool = m_poolBullets.allocCount();
+    m_hudData.speed = m_jet->speed();
+    m_hud.update( updateContext );
+
     Jet::Input jetInput{};
     const Uint8* kbd = SDL_GetKeyboardState( nullptr );
     jetInput.pitch += kbd[ SDL_SCANCODE_W ] ? 1.0f : 0.0f;
@@ -462,10 +465,6 @@ void Game::updateGame( const UpdateContext& updateContext )
         m_jet->update( updateContext );
         const glm::vec3 jetPosition = m_jet->position();
         const glm::vec3 jetVelocity = m_jet->velocity();
-        m_speedAnim += m_jet->speed() * 270.0f * updateContext.deltaTime;
-        if ( m_speedAnim >= 360 ) {
-            m_speedAnim -= 360;
-        }
         assert( m_map );
         m_map->setJetData( jetPosition, jetVelocity );
         m_map->update( updateContext );
@@ -831,9 +830,6 @@ void Game::loadConfig()
                 m_weap3 = 2;
             }
         }
-        if ( strcmp( value_1, "sound" ) == 0 ) {
-            m_isSoundEnabled = atoi( value_2 ) != 0;
-        }
     }
     ConfigFile.close();
 }
@@ -843,7 +839,6 @@ void Game::saveConfig()
     std::ofstream ConfigFile( "config.cfg" );
     ConfigFile << "width " << viewportWidth() << "\n";
     ConfigFile << "height " << viewportHeight() << "\n";
-    ConfigFile << "sound " << m_isSoundEnabled << "\n";
     ConfigFile << "jet " << m_jetsContainer.at( m_currentJet ).name << "\n";
     constexpr std::array weapName = { "laser\n", "blaster\n", "torpedo\n" };
     ConfigFile << "weap1 " << weapName[ *m_weap1 ];

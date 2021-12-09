@@ -125,48 +125,7 @@ void Game::renderHudTex( RenderContext rctx, const glm::vec4& color )
 void Game::renderHUD( RenderContext rctx )
 {
     const glm::vec4 color = m_currentHudColor;
-    m_hud->render( rctx );
-    {
-        RenderContext rctx2 = rctx;
-        rctx2.model = glm::translate( rctx.model, glm::vec3{ 32, viewportHeight() / 2, 0  } );
-
-        // TODO: hud labels
-        const std::pmr::u32string str = U"SPEED: " + intToUTF32( static_cast<int>( m_jet->speed() * 270 ) );
-        m_fontGuiTxt->renderText( rctx2, color, 38, 0, str );
-
-        {
-            PushConstant<Pipeline::eTriangleFan3dColor> pushConstant{};
-            pushConstant.m_model = glm::rotate( rctx2.model, (float)glm::radians( m_speedAnim ), glm::vec3{ 0.0f, 0.0f, 1.0f } );
-            pushConstant.m_view = rctx2.view;
-            pushConstant.m_projection = rctx2.projection;
-            std::fill_n( pushConstant.m_colors.begin(), 5, color );
-            pushConstant.m_vertices[ 0 ] = { -12.0f, 24.0f, 0.0f, 0.0f };
-            pushConstant.m_vertices[ 1 ] = { 0.0f, 26.5f, 0.0f, 0.0f };
-            pushConstant.m_vertices[ 2 ] = { 12.0f, 24.0f, 0.0f, 0.0f };
-            pushConstant.m_vertices[ 3 ] = { 3.0f, 0.0f, 0.0f, 0.0f };
-            pushConstant.m_vertices[ 4 ] = { -3.0f, 0.0f, 0.0f, 0.0f };
-
-            PushBuffer<Pipeline::eTriangleFan3dColor> pushBuffer{};
-            pushBuffer.m_verticeCount = 5;
-            rctx2.renderer->push( &pushBuffer, &pushConstant );
-            pushConstant.m_model = glm::rotate( pushConstant.m_model, glm::radians( 180.0f ), glm::vec3{ 0.0f, 0.0f, 1.0f } );
-            rctx2.renderer->push( &pushBuffer, &pushConstant );
-        }
-
-        static const std::array ringVertices = CircleGen<glm::vec4>::getCircle<32>( 26.0f );
-
-        PushConstant<Pipeline::eLine3dStripColor> pushConstant{};
-        pushConstant.m_model = rctx2.model;
-        pushConstant.m_view = rctx2.view;
-        pushConstant.m_projection = rctx2.projection;
-        std::copy_n( ringVertices.begin(), ringVertices.size(), pushConstant.m_vertices.begin() );
-        std::fill_n( pushConstant.m_colors.begin(), ringVertices.size(), color );
-
-        PushBuffer<Pipeline::eLine3dStripColor> pushBuffer{};
-        pushBuffer.m_lineWidth = 1.0f;
-        pushBuffer.m_verticeCount = ringVertices.size();
-        rctx2.renderer->push( &pushBuffer, &pushConstant );
-    }
+    m_hud.render( rctx );
 
     assert( m_jet );
     const float power = (float)m_jet->energy();

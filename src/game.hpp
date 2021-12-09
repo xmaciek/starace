@@ -25,7 +25,6 @@
 #include <mutex>
 #include <thread>
 #include <tuple>
-#include <optional>
 #include <map>
 
 class Game : public Engine {
@@ -70,7 +69,7 @@ private:
     std::mutex m_mutexJet{};
 
     HudData m_hudData{};
-    std::optional<Hud> m_hud{};
+    Hud m_hud{};
 
     BulletProto m_weapons[ 4 ]{};
     Button m_btnCustomizeReturn{};
@@ -107,17 +106,14 @@ private:
 
     glm::vec4 m_currentHudColor = color::winScreen;
     double m_modelRotation = 0.0;
-    double m_speedAnim = 0.0;
     float m_alphaValue = 1.0f;
     float m_alphaN = 0.0f;
     float m_angle = 55.0f;
     float m_cyberRingRotation[ 3 ]{};
-    int32_t m_currentResolution = 0;
     uint32_t m_maxDimention = 0;
     uint32_t m_minDimention = 0;
     uint32_t m_currentJet = 0;
     uint32_t m_currentMap = 0;
-    uint32_t m_resolutions[ 4 ][ 2 ]{};
     uint32_t m_shotsDone = 0;
 
     Screen m_currentScreen = Screen::eGame;
@@ -125,7 +121,6 @@ private:
     RotaryIndex<> m_weap2{};
     RotaryIndex<> m_weap3{};
     bool m_cyberRingRotationDirection[ 3 ]{};
-    bool m_isSoundEnabled = false;
 
     uint32_t viewportHeight() const;
     uint32_t viewportWidth() const;

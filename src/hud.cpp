@@ -17,6 +17,7 @@ Hud::Hud( const HudData* displayData, Font* font ) noexcept
 , m_fpsValue{ U"", font, {}, color::winScreen }
 , m_calc{ U"Calculated: ", font, {}, color::winScreen }
 , m_calcValue{ U"", font, {}, color::winScreen }
+, m_speedMeter{ font }
 {
     Widget* arr[] = {
         &m_score,
@@ -55,13 +56,28 @@ void Hud::render( RenderContext rctx ) const
     for ( const auto* it : arr ) {
         it->render( rctx );
     }
+    m_speedMeter.render( rctx );
 }
 
-void Hud::update( const UpdateContext& )
+void Hud::update( const UpdateContext& uctx )
 {
-    m_scoreValue.setText( intToUTF32( m_displayData->score ) );
-    m_shotsValue.setText( intToUTF32( m_displayData->shots ) );
-    m_poolValue.setText( intToUTF32( m_displayData->pool ) );
-    m_fpsValue.setText( intToUTF32( m_displayData->fps ) );
-    m_calcValue.setText( intToUTF32( m_displayData->calc ) );
+    constexpr auto setIf = []( uint32_t a, uint32_t b, Label* lbl )
+    {
+        if ( a != b ) {
+            lbl->setText( intToUTF32( a ) );
+        }
+    };
+    setIf( m_displayData->score, m_lastData.score, &m_scoreValue );
+    setIf( m_displayData->shots, m_lastData.shots, &m_shotsValue );
+    setIf( m_displayData->pool, m_lastData.pool, &m_poolValue );
+    setIf( m_displayData->fps, m_lastData.fps, &m_fpsValue );
+    setIf( m_displayData->calc, m_lastData.calc, &m_calcValue );
+    m_lastData = *m_displayData;
+    m_speedMeter.setSpeed( m_displayData->speed );
+    m_speedMeter.update( uctx );
+}
+
+void Hud::resize( glm::vec2 s )
+{
+    m_speedMeter.setPosition( glm::vec2{ 32.0f, 0.0f } + s * glm::vec2{ 0.0f, 0.5f } );
 }

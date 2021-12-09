@@ -39,3 +39,9 @@ std::pmr::u32string intToUTF32( T t )
     std::copy( str.begin(), str.end(), ret.begin() );
     return ret;
 }
+
+namespace axis {
+static constexpr glm::vec3 x{ 1.0f, 0.0f, 0.0f };
+static constexpr glm::vec3 y{ 0.0f, 1.0f, 0.0f };
+static constexpr glm::vec3 z{ 0.0f, 0.0f, 1.0f };
+}
