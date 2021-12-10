@@ -14,9 +14,10 @@ class Widget {
 protected:
     glm::vec2 m_position{};
     glm::vec2 m_size{};
-    Anchor m_anchor = Anchor::fBottom | Anchor::fLeft;
+    Anchor m_anchor = Anchor::fTop | Anchor::fLeft;
 
     bool testRect( glm::vec2 ) const;
+    glm::vec2 offsetByAnchor() const;
 
 public:
     virtual ~Widget() noexcept = default;

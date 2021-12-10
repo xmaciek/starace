@@ -1,11 +1,12 @@
 #pragma once
 
 #include "widget.hpp"
+#include "label.hpp"
+#include "hudbar.hpp"
+#include "speed_meter.hpp"
 
 #include <engine/render_context.hpp>
 #include <engine/update_context.hpp>
-#include "label.hpp"
-#include "speed_meter.hpp"
 
 struct HudData {
     uint32_t score = 0;
@@ -14,6 +15,8 @@ struct HudData {
     uint32_t fps = 0;
     uint32_t calc = 0;
     float speed = 0;
+    float hp = 0.0f;
+    float pwr = 0.0f;
 };
 
 class Hud {
@@ -31,6 +34,8 @@ class Hud {
     Label m_calc{};
     Label m_calcValue{};
     SpeedMeter m_speedMeter{};
+    HudBar m_hp{};
+    HudBar m_pwr{};
 
 public:
     Hud() noexcept = default;

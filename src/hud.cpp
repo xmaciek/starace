@@ -3,8 +3,6 @@
 #include "colors.hpp"
 #include "utils.hpp"
 
-#include <iostream>
-
 Hud::Hud( const HudData* displayData, Font* font ) noexcept
 : m_displayData{ displayData }
 , m_score{ U"Score: ", font, {}, color::winScreen }
@@ -18,6 +16,8 @@ Hud::Hud( const HudData* displayData, Font* font ) noexcept
 , m_calc{ U"Calculated: ", font, {}, color::winScreen }
 , m_calcValue{ U"", font, {}, color::winScreen }
 , m_speedMeter{ font }
+, m_hp{ U"HP", font }
+, m_pwr{ U"PWR", font }
 {
     Widget* arr[] = {
         &m_score,
@@ -57,6 +57,8 @@ void Hud::render( RenderContext rctx ) const
         it->render( rctx );
     }
     m_speedMeter.render( rctx );
+    m_hp.render( rctx );
+    m_pwr.render( rctx );
 }
 
 void Hud::update( const UpdateContext& uctx )
@@ -72,12 +74,21 @@ void Hud::update( const UpdateContext& uctx )
     setIf( m_displayData->pool, m_lastData.pool, &m_poolValue );
     setIf( m_displayData->fps, m_lastData.fps, &m_fpsValue );
     setIf( m_displayData->calc, m_lastData.calc, &m_calcValue );
-    m_lastData = *m_displayData;
     m_speedMeter.setSpeed( m_displayData->speed );
     m_speedMeter.update( uctx );
+    m_hp.setValue( m_displayData->hp );
+    m_pwr.setValue( m_displayData->pwr );
+
+    m_lastData = *m_displayData;
 }
 
 void Hud::resize( glm::vec2 s )
 {
     m_speedMeter.setPosition( glm::vec2{ 32.0f, 0.0f } + s * glm::vec2{ 0.0f, 0.5f } );
+
+    Widget* bars[] = {
+        &m_hp,
+        &m_pwr,
+    };
+    Layout{ { 4.0f, s.y - 4.0f }, Layout::eHorizontal }( std::begin( bars ), std::end( bars ) );
 }

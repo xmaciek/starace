@@ -41,6 +41,30 @@ bool Widget::testRect( glm::vec2 p ) const
         && ( p.y < br.y );
 }
 
+glm::vec2 Widget::offsetByAnchor() const
+{
+    glm::vec2 ret{};
+
+    if ( m_anchor && Anchor::fCenter ) {
+        ret.x = m_size.x * -0.5f;
+    }
+    else if ( m_anchor && Anchor::fRight ) {
+        ret.x = -m_size.x;
+    }
+    // else ret.x = 0.0f;
+
+    if ( m_anchor && Anchor::fMiddle ) {
+        ret.y = m_size.y * -0.5f;
+    }
+    else if ( m_anchor && Anchor::fBottom ) {
+        ret.y = -m_size.y;
+    }
+    // else ret.x = 0.0f;
+
+    return ret;
+}
+
+
 
 void Layout::operator()( Widget** begin, Widget** end ) const
 {

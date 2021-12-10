@@ -26,6 +26,8 @@ set( STARACE_SOURCES
     game_rendering.cpp
     hud.cpp
     hud.hpp
+    hudbar.cpp
+    hudbar.hpp
     jet.cpp
     jet.hpp
     label.cpp

@@ -60,50 +60,6 @@ void Game::renderCyberRings( RenderContext rctx )
     }
 }
 
-void Game::renderHUDBar( RenderContext rctx, const glm::vec4& xywh, float ratio )
-{
-    rctx.model = glm::translate( rctx.model, glm::vec3{ xywh.x, (float)viewportHeight() - xywh.w - xywh.y, 0.0f } );
-    {
-        PushBuffer<Pipeline::eLine3dStripColor> pushBuffer{};
-        pushBuffer.m_lineWidth = 2.0f;
-        pushBuffer.m_verticeCount = 4;
-
-        PushConstant<Pipeline::eLine3dStripColor> pushConstant{};
-        pushConstant.m_model = rctx.model;
-        pushConstant.m_view = rctx.view;
-        pushConstant.m_projection = rctx.projection;
-        pushConstant.m_vertices[ 0 ] = { -4.0f, xywh.w + 4.0f, 0.0f, 0.0f };
-        pushConstant.m_vertices[ 1 ] = { xywh.z + 4.0f, xywh.w + 4.0f, 0.0f, 0.0f };
-        pushConstant.m_vertices[ 2 ] = { xywh.z + 4.0f, -4.0f, 0.0f, 0.0f };
-        pushConstant.m_vertices[ 3 ] = { -4.0f, -4.0f, 0.0f, 0.0f };
-        std::fill_n( pushConstant.m_colors.begin(), 4, m_currentHudColor );
-        rctx.renderer->push( &pushBuffer, &pushConstant );
-    }
-
-    {
-        PushBuffer<Pipeline::eTriangleFan3dColor> pushBuffer{};
-        pushBuffer.m_verticeCount = 4;
-        PushConstant<Pipeline::eTriangleFan3dColor> pushConstant{};
-        pushConstant.m_model = rctx.model;
-        pushConstant.m_view = rctx.view;
-        pushConstant.m_projection = rctx.projection;
-        const glm::vec4 color{
-            1.0f - ratio + colorHalf( ratio )
-            , ratio + colorHalf( ratio )
-            , 0.0f
-            , 1.0f
-        };
-        std::fill_n( pushConstant.m_colors.begin(), 4, color );
-
-        pushConstant.m_vertices[ 0 ] = glm::vec4{ 0.0f, xywh.w, 0.0f, 0.0f };
-        pushConstant.m_vertices[ 1 ] = glm::vec4{ xywh.z, xywh.w, 0.0f, 0.0f };
-        pushConstant.m_vertices[ 2 ] = glm::vec4{ xywh.z, xywh.w - ratio * xywh.w, 0.0f, 0.0f };
-        pushConstant.m_vertices[ 3 ] = glm::vec4{ 0.0f, xywh.w - ratio * xywh.w, 0.0f, 0.0f };
-        rctx.renderer->push( &pushBuffer, &pushConstant );
-    }
-
-}
-
 void Game::renderPauseText( RenderContext rctx )
 {
     renderCyberRings( rctx );
@@ -124,18 +80,7 @@ void Game::renderHudTex( RenderContext rctx, const glm::vec4& color )
 
 void Game::renderHUD( RenderContext rctx )
 {
-    const glm::vec4 color = m_currentHudColor;
     m_hud.render( rctx );
-
-    assert( m_jet );
-    const float power = (float)m_jet->energy();
-    const float health = (float)m_jet->health();
-
-    renderHUDBar( rctx, glm::vec4{ 12, 12, 36, 96 }, power / 100 );
-    renderHUDBar( rctx, glm::vec4{ 64, 12, 36, 96 }, health / 100 );
-    m_fontPauseTxt->renderText( rctx, color, 10, viewportHeight() - 120, U"PWR" );
-    m_fontPauseTxt->renderText( rctx, color, 66, viewportHeight() - 120, U"HP" );
-
     m_targeting.render( rctx );
 }
 

@@ -157,7 +157,6 @@ private:
     void renderGameScreenPaused( RenderContext );
     void renderHUD( RenderContext );
     void renderHudTex( RenderContext, const glm::vec4& );
-    void renderHUDBar( RenderContext, const glm::vec4& xywh, float ratio );
     void renderMainMenu( RenderContext );
     void renderMissionSelectionScreen( RenderContext );
     void renderPauseText( RenderContext );

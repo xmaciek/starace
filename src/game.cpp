@@ -420,14 +420,6 @@ void Game::updateGame( const UpdateContext& updateContext )
 {
     assert( m_jet );
 
-    m_hudData.score = m_jet->score();
-    m_hudData.shots = m_shotsDone;
-    m_hudData.calc = (uint32_t)m_fpsMeter.calculated();
-    m_hudData.fps = (uint32_t)m_fpsMeter.fps();
-    m_hudData.pool = m_poolBullets.allocCount();
-    m_hudData.speed = m_jet->speed();
-    m_hud.update( updateContext );
-
     Jet::Input jetInput{};
     const Uint8* kbd = SDL_GetKeyboardState( nullptr );
     jetInput.pitch += kbd[ SDL_SCANCODE_W ] ? 1.0f : 0.0f;
@@ -533,6 +525,16 @@ void Game::updateGame( const UpdateContext& updateContext )
     } else {
         m_targeting.hide();
     }
+
+    m_hudData.score = m_jet->score();
+    m_hudData.shots = m_shotsDone;
+    m_hudData.calc = (uint32_t)m_fpsMeter.calculated();
+    m_hudData.fps = (uint32_t)m_fpsMeter.fps();
+    m_hudData.pool = m_poolBullets.allocCount();
+    m_hudData.speed = m_jet->speed();
+    m_hudData.hp = static_cast<float>( m_jet->health() ) / 100.0f;
+    m_hudData.pwr = static_cast<float>( m_jet->energy() ) / 100.0f;
+    m_hud.update( updateContext );
 }
 
 void Game::addBullet( uint32_t wID )

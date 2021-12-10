@@ -21,26 +21,37 @@ constexpr static uint32_t TILE_PADDING = 2;
 
 static std::array<glm::vec4, 6> composeUV( glm::vec4 vec )
 {
+    const glm::vec2 topLeft{ vec.x, vec.y };
+    const glm::vec2 botLeft{ vec.x, vec.w };
+    const glm::vec2 topRight{ vec.z, vec.y };
+    const glm::vec2 botRight{ vec.z, vec.w };
+
     return {
-        glm::vec4{ vec.x, vec.y, 0.0f, 0.0f },
-        glm::vec4{ vec.x, vec.w, 0.0f, 0.0f },
-        glm::vec4{ vec.z, vec.w, 0.0f, 0.0f },
-        glm::vec4{ vec.z, vec.w, 0.0f, 0.0f },
-        glm::vec4{ vec.z, vec.y, 0.0f, 0.0f },
-        glm::vec4{ vec.x, vec.y, 0.0f, 0.0f },
+        glm::vec4{ topLeft, 0.0f, 0.0f },
+        glm::vec4{ botLeft, 0.0f, 0.0f },
+        glm::vec4{ botRight, 0.0f, 0.0f },
+        glm::vec4{ botRight, 0.0f, 0.0f },
+        glm::vec4{ topRight, 0.0f, 0.0f },
+        glm::vec4{ topLeft, 0.0f, 0.0f },
     };
 }
 
-static std::array<glm::vec4, 6> composeVertice( glm::vec2 advance, glm::vec2 size, glm::vec2 padding )
+static std::array<glm::vec4, 6> composeVertice( glm::vec2 advance, glm::vec2 size, glm::vec2 padding, glm::vec2 originPointHack )
 {
+    padding *= glm::vec2{ 1.0f, -1.0f };
+    padding += originPointHack; // top vs bottom
+    const glm::vec2 topLeft = advance + padding;
+    const glm::vec2 botLeft = advance + padding + glm::vec2{ 0.0f, size.y };
+    const glm::vec2 topRight = advance + padding + glm::vec2{ size.x, 0.0f };
+    const glm::vec2 botRight = advance + padding + size;
     return {
-        glm::vec4{ advance.x + padding.x, -padding.y, 0.0f, 0.0f },
-        glm::vec4{ advance.x + padding.x, size.y - padding.y, 0.0f, 0.0f },
-        glm::vec4{ advance.x + padding.x + size.x, size.y - padding.y, 0.0f, 0.0f },
+        glm::vec4{ topLeft, 0.0f, 0.0f },
+        glm::vec4{ botLeft, 0.0f, 0.0f },
+        glm::vec4{ botRight, 0.0f, 0.0f },
 
-        glm::vec4{ advance.x + padding.x + size.x, size.y - padding.y, 0.0f, 0.0f },
-        glm::vec4{ advance.x + padding.x + size.x, -padding.y, 0.0f, 0.0f },
-        glm::vec4{ advance.x + padding.x, -padding.y, 0.0f, 0.0f },
+        glm::vec4{ botRight, 0.0f, 0.0f },
+        glm::vec4{ topRight, 0.0f, 0.0f },
+        glm::vec4{ topLeft, 0.0f, 0.0f },
     };
 }
 
@@ -262,13 +273,13 @@ Font::RenderText Font::composeText( const glm::vec4& color, std::u32string_view 
     for ( auto ch : text ) {
         const Glyph* glyph = m_glyphs[ ch ];
         assert( glyph );
-        const auto vertice = composeVertice( advance, glyph->size, glyph->padding );
+        const auto vertice = composeVertice( advance, glyph->size, glyph->padding, { 0.0f, m_height } );
         const auto uv = composeUV( glyph->uv );
         std::copy_n( vertice.begin(), vertice.size(), verticeIt );
         std::copy_n( uv.begin(), uv.size(), uvIt );
         std::advance( verticeIt, vertice.size() );
         std::advance( uvIt, uv.size() );
-        advance += glyph->advance;
+        advance.x += glyph->advance.x;
     }
     return { pushBuffer, pushConstant };
 }
