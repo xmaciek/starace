@@ -38,8 +38,9 @@ void UIImage::render( RenderContext rctx ) const
     pushConstant.m_view = rctx.view;
     pushConstant.m_color = m_color;
 
-    const float x = m_position.x;
-    const float y = m_position.y;
+    const glm::vec2 pos = position() + offsetByAnchor();
+    const float x = pos.x;
+    const float y = pos.y;
     const float xw = x + m_size.x;
     const float yh = y + m_size.y;
     pushConstant.m_vertices[ 0 ] = glm::vec4{ x, y, 0.0f, 0.0f };
