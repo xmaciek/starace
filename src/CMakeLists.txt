@@ -59,6 +59,8 @@ set( STARACE_SOURCES
     thruster.hpp
     ui_image.cpp
     ui_image.hpp
+    ui_rings.cpp
+    ui_rings.hpp
     utils.cpp
     utils.hpp
     widget.cpp

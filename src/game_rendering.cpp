@@ -25,44 +25,9 @@ void Game::renderGameScreenPaused( RenderContext rctx )
     renderPauseText( rctx );
 }
 
-void Game::renderCyberRings( RenderContext rctx )
-{
-    static constexpr std::array color = {
-        glm::vec4{ 1.0f, 1.0f, 1.0f, 0.8f },
-        glm::vec4{ 1.0f, 1.0f, 1.0f, 0.7f },
-        glm::vec4{ 1.0f, 1.0f, 1.0f, 0.6f },
-    };
-    const double sw = (double)viewportWidth() / 2.0;
-    const double sh = (double)viewportHeight() / 2.0;
-    rctx.model = glm::translate( rctx.model, glm::vec3{ sw, sh, 0.0f } );
-    for ( size_t i = 0; i < 3; i++ ) {
-        PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{};
-        pushBuffer.m_texture = m_cyberRingTexture[ i ];
-
-        PushConstant<Pipeline::eGuiTextureColor1> pushConstant{};
-        pushConstant.m_model = glm::rotate( rctx.model, m_cyberRingRotation[ i ], glm::vec3{ 0.0f, 0.0f, 1.0f } );
-        pushConstant.m_model = glm::translate( pushConstant.m_model, glm::vec3{ m_maxDimention * -0.5, m_maxDimention * -0.5, 0.0 } );
-        pushConstant.m_projection = rctx.projection;
-        pushConstant.m_view = rctx.view;
-        pushConstant.m_color = color[ i ];
-
-        pushConstant.m_vertices[ 0 ] = glm::vec4{ 0, 0, 0.0f, 0.0f };
-        pushConstant.m_vertices[ 1 ] = glm::vec4{ 0, m_maxDimention, 0.0f, 0.0f };
-        pushConstant.m_vertices[ 2 ] = glm::vec4{ m_maxDimention, m_maxDimention, 0.0f, 0.0f };
-        pushConstant.m_vertices[ 3 ] = glm::vec4{ m_maxDimention, 0, 0.0f, 0.0f };
-
-        pushConstant.m_uv[ 0 ] = glm::vec4{ 0, 0, 0.0f, 0.0f };
-        pushConstant.m_uv[ 1 ] = glm::vec4{ 0, 1, 0.0f, 0.0f };
-        pushConstant.m_uv[ 2 ] = glm::vec4{ 1, 1, 0.0f, 0.0f };
-        pushConstant.m_uv[ 3 ] = glm::vec4{ 1, 0, 0.0f, 0.0f };
-
-        rctx.renderer->push( &pushBuffer, &pushConstant );
-    }
-}
-
 void Game::renderPauseText( RenderContext rctx )
 {
-    renderCyberRings( rctx );
+    m_uiRings.render( rctx );
     renderHudTex( rctx, color::pause );
 
     m_btnQuitMission.render( rctx );
@@ -126,7 +91,7 @@ void Game::render3D( RenderContext rctx )
 void Game::renderMainMenu( RenderContext rctx )
 {
     renderClouds( rctx );
-    renderCyberRings( rctx );
+    m_uiRings.render( rctx );
     renderHudTex( rctx, color::dodgerBlue );
     m_btnSelectMission.render( rctx );
     m_btnExit.render( rctx );
@@ -155,14 +120,14 @@ void Game::renderClouds( RenderContext rctx ) const
 void Game::renderWinScreen( RenderContext rctx )
 {
     renderGameScreen( rctx );
-    renderCyberRings( rctx );
+    m_uiRings.render( rctx );
     m_screenWin.render( rctx );
 }
 
 void Game::renderDeadScreen( RenderContext rctx )
 {
     renderGameScreen( rctx );
-    renderCyberRings( rctx );
+    m_uiRings.render( rctx );
     m_screenLoose.render( rctx );
 }
 
@@ -186,7 +151,7 @@ void Game::renderMissionSelectionScreen( RenderContext rctx )
         m_fontPauseTxt->renderText( rctx, color::white, posx, 148, str );
     }
 
-    renderCyberRings( rctx );
+    m_uiRings.render( rctx );
     renderHudTex( rctx, color::dodgerBlue );
     m_btnStartMission.render( rctx );
     m_btnReturnToMainMenu.render( rctx );
@@ -197,7 +162,7 @@ void Game::renderMissionSelectionScreen( RenderContext rctx )
 void Game::renderGameScreenBriefing( RenderContext rctx )
 {
     renderGameScreen( rctx );
-    renderCyberRings( rctx );
+    m_uiRings.render( rctx );
 
     // TODO: hud labels
     m_fontPauseTxt->renderText( rctx, color::white, 192, 292, U"Movement: AWSD QE" );
@@ -212,7 +177,7 @@ void Game::renderGameScreenBriefing( RenderContext rctx )
 void Game::renderScreenCustomize( RenderContext rctx )
 {
     renderClouds( rctx );
-    renderCyberRings( rctx );
+    m_uiRings.render( rctx );
     renderHudTex( rctx, color::dodgerBlue );
 
     {

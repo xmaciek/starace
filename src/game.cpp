@@ -117,7 +117,6 @@ void Game::onInit()
 void Game::onResize( uint32_t w, uint32_t h )
 {
     m_maxDimention = std::max( w, h );
-    m_minDimention = std::min( w, h );
 
     const uint32_t halfW = viewportWidth() >> 1;
     const uint32_t halfH = viewportHeight() >> 1;
@@ -142,6 +141,7 @@ void Game::onResize( uint32_t w, uint32_t h )
     m_screenWin.resize( { w, h } );
     m_screenLoose.resize( { w, h } );
     m_hud.resize( { w, h } );
+    m_uiRings.resize( { w, h } );
 }
 
 void Game::setup()
@@ -239,9 +239,12 @@ void Game::setup()
     m_menuBackground = loadTexture( m_io->getWait( "textures/background.tga" ) );
     m_menuBackgroundOverlay = loadTexture( m_io->getWait( "textures/background-overlay.tga" ) );
     m_starfieldTexture = loadTexture( m_io->getWait( "textures/star_field_transparent.tga" ) );
-    m_cyberRingTexture[ 0 ] = loadTexture( m_io->getWait( "textures/cyber_ring1.tga" ) );
-    m_cyberRingTexture[ 1 ] = loadTexture( m_io->getWait( "textures/cyber_ring2.tga" ) );
-    m_cyberRingTexture[ 2 ] = loadTexture( m_io->getWait( "textures/cyber_ring3.tga" ) );
+    const std::array rings = {
+        loadTexture( m_io->getWait( "textures/cyber_ring1.tga" ) ),
+        loadTexture( m_io->getWait( "textures/cyber_ring2.tga" ) ),
+        loadTexture( m_io->getWait( "textures/cyber_ring3.tga" ) ),
+    };
+    m_uiRings = UIRings{ rings };
 
     m_lblPaused = Label{ U"PAUSED", m_fontPauseTxt, Anchor::fCenter | Anchor::fMiddle, {}, color::yellow };
 
@@ -309,26 +312,6 @@ void Game::setup()
     loadMapProto();
     loadJetProto();
     m_enemyModel = new Model{ "models/a2.objc", m_textures[ "textures/a2.tga" ], m_renderer, 0.45f };
-}
-
-void Game::updateCyberRings( const UpdateContext& updateContext )
-{
-    static constexpr auto warp = []( float f )
-    {
-        if ( f > constants::pi ) { return f - constants::pi * 2.0f; }
-        if ( f < -constants::pi ) { return f + constants::pi * 2.0f; }
-        return f;
-    };
-    m_cyberRingRotation[ 0 ] = warp( m_cyberRingRotation[ 0 ] + 25.0_deg * updateContext.deltaTime );
-    m_cyberRingRotation[ 1 ] = warp( m_cyberRingRotation[ 1 ] - 15.0_deg * updateContext.deltaTime );
-
-    static float speed = 35.0_deg;
-    if ( m_cyberRingRotation[ 2 ] <= 0.0_deg ) {
-        speed = 35.0_deg;
-    } else if ( m_cyberRingRotation[ 2 ] > 90.0_deg ) {
-        speed = -20.0_deg;
-    }
-    m_cyberRingRotation[ 2 ] += speed * updateContext.deltaTime;
 }
 
 void Game::onRender( RenderContext rctx )
@@ -413,7 +396,7 @@ void Game::unpause()
 
 void Game::updateGamePaused( const UpdateContext& updateContext )
 {
-    updateCyberRings( updateContext );
+    m_uiRings.update( updateContext );
 }
 
 void Game::updateGame( const UpdateContext& updateContext )
@@ -518,7 +501,7 @@ void Game::updateGame( const UpdateContext& updateContext )
         }
         m_enemies.erase( std::remove( m_enemies.begin(), m_enemies.end(), nullptr ), m_enemies.end() );
     }
-    updateCyberRings( updateContext );
+    m_uiRings.update( updateContext );
     const SAObject* tgt = m_jet->target();
     if ( tgt ) {
         m_targeting.setPos( tgt->position() );
@@ -574,7 +557,7 @@ void Game::retarget()
 void Game::updateMainMenu( const UpdateContext& updateContext )
 {
     updateClouds( updateContext );
-    updateCyberRings( updateContext );
+    m_uiRings.update( updateContext );
 }
 
 void Game::updateGameScreenBriefing( const UpdateContext& updateContext )
@@ -629,7 +612,7 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
 
 void Game::updateMissionSelection( const UpdateContext& updateContext )
 {
-    updateCyberRings( updateContext );
+    m_uiRings.update( updateContext );
 }
 
 void Game::changeScreen( Screen scr, audio::Chunk sound )
@@ -858,7 +841,7 @@ void Game::updateClouds( const UpdateContext& updateContext )
 void Game::updateCustomize( const UpdateContext& updateContext )
 {
     updateClouds( updateContext );
-    updateCyberRings( updateContext );
+    m_uiRings.update( updateContext );
     m_modelRotation += 30.0 * updateContext.deltaTime;
     if ( m_modelRotation >= 360.0 ) {
         m_modelRotation -= 360.0;
@@ -867,12 +850,12 @@ void Game::updateCustomize( const UpdateContext& updateContext )
 
 void Game::updateWin( const UpdateContext& updateContext )
 {
-    updateCyberRings( updateContext );
+    m_uiRings.update( updateContext );
 }
 
 void Game::updateDeadScreen( const UpdateContext& updateContext )
 {
-    updateCyberRings( updateContext );
+    m_uiRings.update( updateContext );
 }
 
 uint32_t Game::viewportWidth() const

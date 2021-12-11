@@ -11,6 +11,7 @@
 #include "texture.hpp"
 #include "targeting.hpp"
 #include "screen_win_loose.hpp"
+#include "ui_rings.hpp"
 
 #include <engine/engine.hpp>
 #include <engine/render_context.hpp>
@@ -70,6 +71,7 @@ private:
 
     HudData m_hudData{};
     Hud m_hud{};
+    UIRings m_uiRings{};
 
     BulletProto m_weapons[ 4 ]{};
     Button m_btnCustomizeReturn{};
@@ -106,12 +108,10 @@ private:
 
     glm::vec4 m_currentHudColor = color::winScreen;
     double m_modelRotation = 0.0;
+    float m_maxDimention = 0.0f;
     float m_alphaValue = 1.0f;
     float m_alphaN = 0.0f;
     float m_angle = 55.0f;
-    float m_cyberRingRotation[ 3 ]{};
-    uint32_t m_maxDimention = 0;
-    uint32_t m_minDimention = 0;
     uint32_t m_currentJet = 0;
     uint32_t m_currentMap = 0;
     uint32_t m_shotsDone = 0;
@@ -120,7 +120,6 @@ private:
     RotaryIndex<> m_weap1{};
     RotaryIndex<> m_weap2{};
     RotaryIndex<> m_weap3{};
-    bool m_cyberRingRotationDirection[ 3 ]{};
 
     uint32_t viewportHeight() const;
     uint32_t viewportWidth() const;
@@ -150,7 +149,6 @@ private:
     void render3D( RenderContext );
     void renderClouds( RenderContext ) const;
     void renderCrosshair( RenderContext );
-    void renderCyberRings( RenderContext );
     void renderDeadScreen( RenderContext );
     void renderGameScreen( RenderContext );
     void renderGameScreenBriefing( RenderContext );
@@ -170,7 +168,6 @@ private:
     void unpause();
     void updateClouds( const UpdateContext& );
     void updateCustomize( const UpdateContext& );
-    void updateCyberRings( const UpdateContext& );
     void updateDeadScreen( const UpdateContext& );
     void updateGame( const UpdateContext& );
     void updateGamePaused( const UpdateContext& );
