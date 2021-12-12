@@ -99,21 +99,6 @@ void Game::onExit()
     saveConfig();
 }
 
-void Game::onInit()
-{
-    ZoneScoped;
-    loadConfig();
-
-    m_laser = m_audio->load( "sounds/laser.wav" );
-    m_blaster = m_audio->load( "sounds/blaster.wav" );
-    m_torpedo = m_audio->load( "sounds/torpedo.wav" );
-    m_click = m_audio->load( "sounds/click.wav" );
-
-    setup();
-    onResize( viewportWidth(), viewportHeight() );
-
-}
-
 void Game::onResize( uint32_t w, uint32_t h )
 {
     m_maxDimention = std::max( w, h );
@@ -144,9 +129,16 @@ void Game::onResize( uint32_t w, uint32_t h )
     m_uiRings.resize( { w, h } );
 }
 
-void Game::setup()
+void Game::onInit()
 {
     ZoneScoped;
+    loadConfig();
+
+    m_laser = m_audio->load( "sounds/laser.wav" );
+    m_blaster = m_audio->load( "sounds/blaster.wav" );
+    m_torpedo = m_audio->load( "sounds/torpedo.wav" );
+    m_click = m_audio->load( "sounds/click.wav" );
+
     {
         std::pmr::u32string charset = U"0123456789"
         U"abcdefghijklmnopqrstuvwxyz"
@@ -312,6 +304,8 @@ void Game::setup()
     loadMapProto();
     loadJetProto();
     m_enemyModel = new Model{ "models/a2.objc", m_textures[ "textures/a2.tga" ], m_renderer, 0.45f };
+
+    onResize( viewportWidth(), viewportHeight() );
 }
 
 void Game::onRender( RenderContext rctx )

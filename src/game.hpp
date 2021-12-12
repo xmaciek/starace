@@ -141,7 +141,6 @@ private:
     void onResize( uint32_t w, uint32_t h );
     void pause();
     void reloadPreviewModel();
-    void setup();
 
     std::tuple<glm::mat4, glm::mat4> getCameraMatrix() const;
 
