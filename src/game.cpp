@@ -34,6 +34,25 @@ static constexpr const char* chunk1[] = {
     "textures/a5.tga",
 };
 
+enum class Input : Action::Enum {
+    eMenuUp,
+    eMenuDown,
+    eMenuLeft,
+    eMenuRight,
+};
+
+constexpr std::tuple<Input, Actuator> inputActions[] = {
+    { Input::eMenuUp, SDL_SCANCODE_W },
+    { Input::eMenuUp, SDL_SCANCODE_UP },
+    { Input::eMenuDown, SDL_SCANCODE_S },
+    { Input::eMenuDown, SDL_SCANCODE_DOWN },
+    { Input::eMenuLeft, SDL_SCANCODE_A },
+    { Input::eMenuLeft, SDL_SCANCODE_LEFT },
+    { Input::eMenuRight, SDL_SCANCODE_D },
+    { Input::eMenuRight, SDL_SCANCODE_RIGHT },
+};
+
+
 Game::Game( int argc, char** argv )
 : Engine{ argc, argv }
 {
@@ -133,6 +152,10 @@ void Game::onInit()
 {
     ZoneScoped;
     loadConfig();
+
+    for ( const auto& it : inputActions ) {
+        registerAction( static_cast<Action::Enum>( std::get<0>( it ) ), std::get<1>( it ) );
+    }
 
     m_laser = m_audio->load( "sounds/laser.wav" );
     m_blaster = m_audio->load( "sounds/blaster.wav" );
@@ -876,4 +899,11 @@ void Game::reloadPreviewModel()
     );
     std::swap( model, m_previewModel );
     delete model;
+}
+
+#include <cstdio>
+
+void Game::onAction( Action a )
+{
+    std::cout << "User enum: " << a.userEnum << std::endl;
 }

@@ -34,7 +34,7 @@ public:
     ~Game();
 
 private:
-    enum struct Screen {
+    enum class Screen {
         eGame,
         eGameBriefing,
         eGamePaused,
@@ -175,6 +175,7 @@ private:
     void updateMissionSelection( const UpdateContext& );
     void updateWin( const UpdateContext& );
 
+    virtual void onAction( Action ) override;
     virtual void onInit() override;
     virtual void onExit() override;
     virtual void onRender( RenderContext ) override;
