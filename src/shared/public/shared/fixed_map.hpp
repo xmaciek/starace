@@ -47,7 +47,6 @@ public:
         assert( std::is_sorted( keyBegin(), keyEnd() ) );
         auto it = std::lower_bound( keyBegin(), keyEnd(), k );
         if ( it == keyEnd() ) { return nullptr; }
-        if ( *it != k ) { return nullptr; }
         const size_type dist = it - keyBegin();
         return valueBegin() + dist;
     }
@@ -57,7 +56,6 @@ public:
         assert( std::is_sorted( keyBegin(), keyEnd() ) );
         auto it = std::lower_bound( keyBegin(), keyEnd(), k );
         if ( it == keyEnd() ) { return nullptr; }
-        if ( *it != k ) { return nullptr; }
         const size_type dist = it - keyBegin();
         return valueBegin() + dist;
     }
@@ -67,7 +65,16 @@ public:
         assert( std::is_sorted( keyBegin(), keyEnd() ) );
         auto [ begin, end ] = std::equal_range( keyBegin(), keyEnd(), k );
         if ( begin == end || begin == keyEnd() ) { return {}; }
-        if ( *begin != k ) { return {}; }
+        const size_type diffBegin = begin - keyBegin();
+        const size_type diffEnd = end - keyBegin();
+        return { valueBegin() + diffBegin, valueBegin() + diffEnd };
+    }
+
+    std::tuple<const TValue*, const TValue*> equalRange( const TKey& k ) const noexcept
+    {
+        assert( std::is_sorted( keyBegin(), keyEnd() ) );
+        auto [ begin, end ] = std::equal_range( keyBegin(), keyEnd(), k );
+        if ( begin == end || begin == keyEnd() ) { return {}; }
         const size_type diffBegin = begin - keyBegin();
         const size_type diffEnd = end - keyBegin();
         return { valueBegin() + diffBegin, valueBegin() + diffEnd };
@@ -92,6 +99,24 @@ public:
     }
 
     void insert( TKey&& k, TValue&& v ) noexcept
+    {
+        assert( m_currentSize < TCapacity );
+        const auto oldEnd = keyEnd();
+        auto it = std::lower_bound( keyBegin(), oldEnd, k );
+        new ( &m_keyList[ m_currentSize ] ) TKey( k );
+        new ( &m_valueList[ m_currentSize ] ) TValue( v );
+        m_currentSize += 1;
+        if ( it == oldEnd ) {
+            return;
+        }
+
+        const size_type dist = it - keyBegin();
+        std::rotate( keyBegin() + dist, keyEnd() - 1, keyEnd() );
+        std::rotate( valueBegin() + dist, valueEnd() - 1, valueEnd() );
+        assert( std::is_sorted( keyBegin(), keyEnd() ) );
+    }
+
+    void insert( const TKey& k, const TValue& v ) noexcept
     {
         assert( m_currentSize < TCapacity );
         const auto oldEnd = keyEnd();

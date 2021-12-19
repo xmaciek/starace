@@ -1,5 +1,7 @@
 #pragma once
 
+#include <engine/action.hpp>
+#include <engine/action_mapping.hpp>
 #include <engine/async_io.hpp>
 #include <engine/fps_meter.hpp>
 #include <engine/update_context.hpp>
@@ -12,6 +14,7 @@
 
 #include <atomic>
 #include <cstdint>
+#include <map>
 #include <memory>
 #include <memory_resource>
 #include <tuple>
@@ -30,6 +33,8 @@ private:
     std::mutex m_eventsBottleneck{};
     std::pmr::vector<SDL_Event> m_events{};
 
+    ActionMapping m_actionMapping{};
+
 protected:
     std::unique_ptr<AsyncIO> m_io{};
     Renderer* m_renderer = nullptr;
@@ -43,6 +48,10 @@ protected:
     void setViewport( uint32_t w, uint32_t h );
 
     void quit();
+
+    void registerAction( UserEnumUType, Actuator );
+
+    virtual void onAction( Action ) = 0;
     virtual void onInit() = 0;
     virtual void onExit() = 0;
     virtual void onRender( RenderContext ) = 0;

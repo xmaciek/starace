@@ -1,4 +1,4 @@
-find_package( GTest REQUIRED )
+find_package( GTest )
 if ( NOT GTest_FOUND )
     return()
 endif()

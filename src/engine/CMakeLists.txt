@@ -4,11 +4,15 @@ find_package( glm REQUIRED )
 add_library( engine STATIC )
 target_sources( engine
     PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/engine/action_mapping.hpp
+    action_mapping.cpp
+    async_io.cpp
     async_io.cpp
     engine.cpp
     fps_meter.cpp
 
     PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/engine/action.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/engine/async_io.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/engine/engine.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/engine/fps_meter.hpp

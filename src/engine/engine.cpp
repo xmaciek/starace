@@ -7,6 +7,7 @@
 #include <cstring>
 #include <fstream>
 #include <utility>
+#include <iostream>
 
 Engine::~Engine() noexcept
 {
@@ -130,21 +131,72 @@ void Engine::processEvents()
         std::scoped_lock lock{ m_eventsBottleneck };
         std::swap( events, m_events );
     }
-    for ( SDL_Event& it : events ) {
-        switch ( it.type ) {
+
+    for ( SDL_Event& event : events ) {
+        switch ( event.type ) {
         case SDL_QUIT:
             quit();
             return;
         case SDL_MOUSEBUTTONDOWN:
-            if ( it.button.button == SDL_BUTTON_LEFT ) {
-                onMouseEvent( MouseClick{ glm::vec2{ it.button.x, it.button.y } } );
+            if ( event.button.button == SDL_BUTTON_LEFT ) {
+                onMouseEvent( MouseClick{ glm::vec2{ event.button.x, event.button.y } } );
             }
             break;
         case SDL_MOUSEMOTION:
-            onMouseEvent( MouseMove{ glm::vec2{ it.motion.x, it.motion.y } } );
+            onMouseEvent( MouseMove{ glm::vec2{ event.motion.x, event.motion.y } } );
             break;
+
+        case SDL_CONTROLLERBUTTONDOWN:
+        case SDL_CONTROLLERBUTTONUP:
+        {
+            Actuator a{ static_cast<Actuator::Buttoncode>( event.caxis.axis ) };
+            auto [ it, end ] = m_actionMapping.resolve( a );
+            for ( ; it != end; ++it ) {
+                onAction( Action{
+                    .digital = event.cbutton.state == SDL_PRESSED,
+                    .userEnum = *it,
+                } );
+            }
+        } break;
+
+        case SDL_CONTROLLERAXISMOTION:
+        {
+            Actuator a{ static_cast<Actuator::Axiscode>( event.caxis.axis ) };
+            auto [ it, end ] = m_actionMapping.resolve( a );
+            for ( ; it != end; ++it ) {
+                onAction( Action{
+                    .analog = std::clamp<float>( static_cast<float>( event.caxis.value ) / 32768.0f, -1.0f, 1.0f ),
+                    .userEnum = *it,
+                } );
+            }
+        } break;
+
+        case SDL_KEYDOWN:
+        case SDL_KEYUP:
+        {
+            [[maybe_unused]]
+            static auto tid = std::this_thread::get_id();
+            assert( tid == std::this_thread::get_id() );
+            thread_local std::array<bool, SDL_NUM_SCANCODES> keyboardState{};
+            const bool newState = event.key.state == SDL_PRESSED;
+            const bool oldState = std::exchange( keyboardState[ event.key.keysym.scancode ], newState );
+            if ( oldState == newState ) {
+                break;
+            }
+
+            Actuator a{ static_cast<Actuator::Scancode>( event.key.keysym.scancode ) };
+            auto [ it, end ] = m_actionMapping.resolve( a );
+            for ( ; it != end; ++it ) {
+                assert( it );
+                onAction( Action{
+                    .digital = event.key.state == SDL_PRESSED,
+                    .userEnum = *it,
+                } );
+            }
+        } break;
+
         default:
-            onEvent( it );
+            onEvent( event );
             break;
         }
     }
@@ -165,3 +217,12 @@ std::tuple<uint32_t, uint32_t, float> Engine::viewport() const
 {
     return m_viewport;
 }
+
+void Engine::registerAction( UserEnumUType eid, Actuator a )
+{
+    m_actionMapping.registerAction( eid, a );
+}
+
+
+
+
