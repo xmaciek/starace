@@ -6,8 +6,6 @@
 #include <compare>
 #include <cstdint>
 
-using UserEnumUType = uint16_t;
-
 struct Actuator {
     // TODO: use custom unified enum, while for now i'll keep these
     static_assert( sizeof( SDL_Scancode ) == 4 );
@@ -50,11 +48,12 @@ static_assert( sizeof( Actuator ) == 8 );
 static_assert( alignof( Actuator ) == 4 );
 
 struct Action {
+    using Enum = uint16_t;
     union {
         float analog = 0.0f;
         bool digital;
     };
-    UserEnumUType userEnum{};
+    Enum userEnum{};
     template  <typename T>
     T toA() const noexcept
     {

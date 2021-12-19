@@ -49,7 +49,7 @@ protected:
 
     void quit();
 
-    void registerAction( UserEnumUType, Actuator );
+    void registerAction( Action::Enum, Actuator );
 
     virtual void onAction( Action ) = 0;
     virtual void onInit() = 0;

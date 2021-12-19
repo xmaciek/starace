@@ -218,7 +218,7 @@ std::tuple<uint32_t, uint32_t, float> Engine::viewport() const
     return m_viewport;
 }
 
-void Engine::registerAction( UserEnumUType eid, Actuator a )
+void Engine::registerAction( Action::Enum eid, Actuator a )
 {
     m_actionMapping.registerAction( eid, a );
 }

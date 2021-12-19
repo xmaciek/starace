@@ -7,13 +7,13 @@
 #include <tuple>
 
 class ActionMapping {
-    FixedMap<Actuator, UserEnumUType, 32> m_actionMap{};
+    FixedMap<Actuator, Action::Enum, 32> m_actionMap{};
 
 public:
-    using Range = std::tuple<const UserEnumUType*, const UserEnumUType*>;
+    using Range = std::tuple<const Action::Enum*, const Action::Enum*>;
     ActionMapping() noexcept = default;
 
-    void registerAction( uint16_t uid, Actuator );
+    void registerAction( Action::Enum, Actuator );
 
     Range resolve( Actuator ) const;
 };

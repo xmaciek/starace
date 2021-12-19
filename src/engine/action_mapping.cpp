@@ -1,6 +1,6 @@
 #include <engine/action_mapping.hpp>
 
-void ActionMapping::registerAction( UserEnumUType eid, Actuator a )
+void ActionMapping::registerAction( Action::Enum eid, Actuator a )
 {
     m_actionMap.insert( a, eid );
 }
