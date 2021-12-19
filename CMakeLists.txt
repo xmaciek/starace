@@ -33,6 +33,7 @@ add_subdirectory( shaders )
 add_subdirectory( sounds )
 add_subdirectory( src )
 add_subdirectory( textures )
+add_subdirectory( tests )
 
 configure_file( README.md README.md COPYONLY )
 configure_file( LICENSE LICENSE COPYONLY )
