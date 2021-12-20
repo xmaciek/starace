@@ -23,6 +23,16 @@ glm::vec2 Widget::size() const
     return m_size;
 }
 
+uint16_t Widget::tabOrder() const
+{
+    return m_tabOrder;
+}
+
+void Widget::setTabOrder( uint16_t v )
+{
+    m_tabOrder = v;
+}
+
 bool Widget::onMouseEvent( const MouseEvent& )
 {
     return false;
@@ -63,8 +73,6 @@ glm::vec2 Widget::offsetByAnchor() const
 
     return ret;
 }
-
-
 
 void Layout::operator()( Widget** begin, Widget** end ) const
 {

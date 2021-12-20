@@ -15,6 +15,7 @@ protected:
     glm::vec2 m_position{};
     glm::vec2 m_size{};
     Anchor m_anchor = Anchor::fTop | Anchor::fLeft;
+    uint16_t m_tabOrder = 0xFFFF;
 
     bool testRect( glm::vec2 ) const;
     glm::vec2 offsetByAnchor() const;
@@ -47,6 +48,8 @@ public:
     glm::vec2 size() const;
     glm::vec2 position() const;
 
+    uint16_t tabOrder() const;
+    void setTabOrder( uint16_t );
 };
 
 

@@ -3,12 +3,12 @@
 #include <cstdint>
 #include <type_traits>
 
-constexpr uint32_t operator ""_bit( unsigned long long n ) noexcept
+constexpr uint16_t operator ""_bit( unsigned long long n ) noexcept
 {
     return 1ull << n;
 }
 
-enum class Anchor : uint32_t {
+enum class Anchor : uint16_t {
     fLeft = 0_bit,
     fCenter = 1_bit,
     fRight = 2_bit,
