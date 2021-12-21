@@ -7,7 +7,7 @@ set( STARACE_PATCH_VERSION 0 )
 
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
-include( glm.cmake )
+include( compiler.cmake )
 
 add_custom_target( cook ALL )
 add_executable( cooker_obj )
@@ -17,13 +17,6 @@ function( set_cppver tgt cppver )
         CXX_STANDARD ${cppver}
         CXX_STANDARD_REQUIRED ${cppver}
     )
-endfunction()
-
-function( set_error_checks tgt )
-    if ( NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC" )
-        message( NOTICE "${tgt} extra options " ${ARGN} )
-        target_compile_options( ${tgt} PRIVATE -Werror -Wall -Wextra ${ARGN} )
-    endif()
 endfunction()
 
 add_subdirectory( sdk )

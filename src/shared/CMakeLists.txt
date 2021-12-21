@@ -1,4 +1,6 @@
 add_library( shared INTERFACE )
+set_cppver( shared 20 )
+
 target_sources( shared
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/public/shared/fixed_map.hpp
@@ -12,4 +14,7 @@ set_target_properties( shared PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/public/
 )
 
-set_cppver( shared 20 )
+target_link_libraries( shared
+    INTERFACE
+    cxx::flags
+)

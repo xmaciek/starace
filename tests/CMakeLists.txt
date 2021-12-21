@@ -4,11 +4,15 @@ if ( NOT GTest_FOUND )
 endif()
 
 add_executable( tests )
+set_cppver( tests 20 )
+
 target_link_libraries( tests
+    cxx::flags
     GTest::GTest
     GTest::Main
     shared
 )
+
 target_sources( tests
     PRIVATE
     test_fixed_map.cpp

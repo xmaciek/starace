@@ -2,6 +2,8 @@ find_package( SDL2 REQUIRED )
 find_package( glm REQUIRED )
 
 add_library( engine STATIC )
+set_cppver( engine 20 )
+
 target_sources( engine
     PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/public/engine/action_mapping.hpp
@@ -25,10 +27,8 @@ set_target_properties( engine PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/public/
 )
 
-set_error_checks( engine -Wno-missing-field-initializers )
-set_cppver( engine 20 )
-
 target_link_libraries( engine
+    cxx::flags
     audio
     renderer_vk
     shared
@@ -36,5 +36,3 @@ target_link_libraries( engine
     SDL2::SDL2
     Tracy::Client
 )
-
-

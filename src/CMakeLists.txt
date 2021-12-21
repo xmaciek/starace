@@ -1,5 +1,4 @@
 find_package( Threads REQUIRED )
-find_package( Freetype 2 REQUIRED )
 find_package( SDL2 REQUIRED )
 
 add_subdirectory( audio )
@@ -74,10 +73,10 @@ set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
 
 set( bin_name "starace" )
 add_executable( ${bin_name} ${STARACE_SOURCES} )
-set_error_checks( ${bin_name} -Wno-missing-field-initializers )
 set_cppver( ${bin_name} 20 )
 
 target_link_libraries( ${bin_name}
+    cxx::flags
     engine
     Freetype::Freetype
     SDL2::SDL2
@@ -90,6 +89,5 @@ target_sources( cooker_obj
     cooker_obj.cpp
     obj.hpp
 )
-set_error_checks( cooker_obj )
+target_link_libraries( cooker_obj cxx::flags )
 set_cppver( cooker_obj 20 )
-

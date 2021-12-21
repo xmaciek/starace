@@ -1,6 +1,8 @@
 find_package( Vulkan REQUIRED )
 
 add_library( renderer_vk STATIC )
+set_cppver( renderer_vk 20 )
+
 target_sources( renderer_vk
     PRIVATE
     buffer_vk.cpp
@@ -31,10 +33,8 @@ target_sources( renderer_vk
     utils_vk.hpp
 )
 
-set_error_checks( renderer_vk -Wno-missing-field-initializers )
-set_cppver( renderer_vk 20 )
-
 target_link_libraries( renderer_vk
+    cxx::flags
     renderer
     shared
     Vulkan::Vulkan
