@@ -22,6 +22,7 @@ set( STARACE_SOURCES
     font.hpp
     game.cpp
     game.hpp
+    game_action.hpp
     game_input.cpp
     game_rendering.cpp
     hud.cpp
@@ -44,6 +45,8 @@ set( STARACE_SOURCES
     reactor.hpp
     saobject.cpp
     saobject.hpp
+    screen_title.cpp
+    screen_title.hpp
     screen_win_loose.cpp
     screen_win_loose.hpp
     shield.cpp

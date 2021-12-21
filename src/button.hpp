@@ -26,7 +26,7 @@ public:
     ~Button() = default;
     Button() = default;
     Button( std::u32string_view, Font*, Texture texture, std::function<void()>&& onTrigger );
-    Button( Font*, Texture texture, std::function<void()>&& onClick );
+    Button( Font*, Texture texture, std::function<void()>&& onTrigger );
 
     virtual bool onMouseEvent( const MouseEvent& ) override;
     virtual void render( RenderContext ) const override;

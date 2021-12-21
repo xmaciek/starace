@@ -93,9 +93,7 @@ void Game::renderMainMenu( RenderContext rctx )
     renderClouds( rctx );
     m_uiRings.render( rctx );
     renderHudTex( rctx, color::dodgerBlue );
-    m_btnSelectMission.render( rctx );
-    m_btnExit.render( rctx );
-    m_btnCustomize.render( rctx );
+    m_screenTitle.render( rctx );
 }
 
 void Game::renderClouds( RenderContext rctx ) const

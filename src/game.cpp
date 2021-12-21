@@ -1,8 +1,9 @@
 #include "game.hpp"
 
 #include "colors.hpp"
-#include "utils.hpp"
 #include "constants.hpp"
+#include "game_action.hpp"
+#include "utils.hpp"
 
 #include <Tracy.hpp>
 
@@ -34,22 +35,16 @@ static constexpr const char* chunk1[] = {
     "textures/a5.tga",
 };
 
-enum class Input : Action::Enum {
-    eMenuUp,
-    eMenuDown,
-    eMenuLeft,
-    eMenuRight,
-};
-
-constexpr std::tuple<Input, Actuator> inputActions[] = {
-    { Input::eMenuUp, SDL_SCANCODE_W },
-    { Input::eMenuUp, SDL_SCANCODE_UP },
-    { Input::eMenuDown, SDL_SCANCODE_S },
-    { Input::eMenuDown, SDL_SCANCODE_DOWN },
-    { Input::eMenuLeft, SDL_SCANCODE_A },
-    { Input::eMenuLeft, SDL_SCANCODE_LEFT },
-    { Input::eMenuRight, SDL_SCANCODE_D },
-    { Input::eMenuRight, SDL_SCANCODE_RIGHT },
+constexpr std::tuple<GameAction, Actuator> inputActions[] = {
+    { GameAction::eMenuUp, SDL_SCANCODE_W },
+    { GameAction::eMenuUp, SDL_SCANCODE_UP },
+    { GameAction::eMenuDown, SDL_SCANCODE_S },
+    { GameAction::eMenuDown, SDL_SCANCODE_DOWN },
+    { GameAction::eMenuLeft, SDL_SCANCODE_A },
+    { GameAction::eMenuLeft, SDL_SCANCODE_LEFT },
+    { GameAction::eMenuRight, SDL_SCANCODE_D },
+    { GameAction::eMenuRight, SDL_SCANCODE_RIGHT },
+    { GameAction::eMenuConfirm, SDL_SCANCODE_RETURN },
 };
 
 
@@ -125,15 +120,12 @@ void Game::onResize( uint32_t w, uint32_t h )
     const uint32_t halfW = viewportWidth() >> 1;
     const uint32_t halfH = viewportHeight() >> 1;
     const uint32_t h015 = viewportHeight() - (uint32_t)( (float)viewportHeight() * 0.15f );
-    m_btnExit.setPosition( { halfW + 4, h015 } );
     m_btnQuitMission.setPosition( { halfW - 196, h015 } );
-    m_btnSelectMission.setPosition( { halfW - 96, h015 - 52 } );
     m_btnGO.setPosition( { halfW - 96, h015 } );
     m_btnStartMission.setPosition( { halfW + 4, h015 } );
     m_btnReturnToMainMenu.setPosition( { halfW - 196, h015 } );
     m_btnNextMap.setPosition( { viewportWidth() - 240, halfH - 24 } );
     m_btnPrevMap.setPosition( { 48, halfH - 24 } );
-    m_btnCustomize.setPosition( { halfW - 196, h015 } );
     m_btnCustomizeReturn.setPosition( { halfW - 96, h015 + 52 } );
     m_btnNextJet.setPosition( { viewportWidth() - 240, halfH - 24 } );
     m_btnPrevJet.setPosition( { 48, halfH - 24 } );
@@ -142,6 +134,7 @@ void Game::onResize( uint32_t w, uint32_t h )
     m_btnWeap2.setPosition( { halfW - 96, h015 + 52 - 76 } );
     m_btnWeap3.setPosition( { halfW + 100, h015 + 52 - 76 } );
 
+    m_screenTitle.resize( { w, h } );
     m_screenWin.resize( { w, h } );
     m_screenLoose.resize( { w, h } );
     m_hud.resize( { w, h } );
@@ -183,8 +176,6 @@ void Game::onInit()
 
     m_buttonTexture = loadTexture( m_io->getWait( "textures/button1.tga" ) );
 
-    m_btnExit = Button( U"Exit Game", m_fontGuiTxt, m_buttonTexture, [this](){ quit(); } );
-    m_btnSelectMission = Button( U"Select Mission", m_fontGuiTxt, m_buttonTexture, [this](){ changeScreen( Screen::eMissionSelection, m_click ); } );
     m_btnQuitMission = Button( U"Quit Mission", m_fontGuiTxt, m_buttonTexture, [this](){ changeScreen( Screen::eDead, m_click ); } );
     m_btnStartMission = Button( U"Start Mission", m_fontGuiTxt, m_buttonTexture, [this](){ changeScreen( Screen::eGameBriefing, m_click ); } );
     m_btnReturnToMainMenu = Button( U"Return", m_fontGuiTxt, m_buttonTexture, [this](){ changeScreen( Screen::eMainMenu, m_click ); } );
@@ -230,7 +221,6 @@ void Game::onInit()
     m_btnNextJet.setEnabled( m_currentJet < m_jetsContainer.size() - 1 );
     m_btnPrevJet.setEnabled( m_currentJet > 0 );
     m_btnCustomizeReturn = Button( U"Done", m_fontGuiTxt, m_buttonTexture, [this](){ changeScreen( Screen::eMainMenu, m_click ); } );
-    m_btnCustomize = Button( U"Customize", m_fontGuiTxt, m_buttonTexture, [this](){ changeScreen( Screen::eCustomize, m_click ); } );
 
     constexpr auto weaponToString = []( int i ) -> std::u32string_view
     {
@@ -263,6 +253,13 @@ void Game::onInit()
 
     m_lblPaused = Label{ U"PAUSED", m_fontPauseTxt, Anchor::fCenter | Anchor::fMiddle, {}, color::yellow };
 
+    m_screenTitle = ScreenTitle{
+        m_fontGuiTxt,
+        m_buttonTexture,
+        U"Select Mission", [this](){ changeScreen( Screen::eMissionSelection, m_click ); },
+        U"Customize", [this](){ changeScreen( Screen::eCustomize, m_click ); },
+        U"Exit Game", [this](){ quit(); }
+    };
     auto onWinLoose = [this]()
     {
         m_audio->play( m_click );
@@ -901,9 +898,13 @@ void Game::reloadPreviewModel()
     delete model;
 }
 
-#include <cstdio>
-
 void Game::onAction( Action a )
 {
-    std::cout << "User enum: " << a.userEnum << std::endl;
+    switch ( m_currentScreen ) {
+    case Screen::eMainMenu:
+        m_screenTitle.onAction( a );
+        return;
+    default:
+        return;
+    }
 }

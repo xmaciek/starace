@@ -23,6 +23,11 @@ glm::vec2 Widget::size() const
     return m_size;
 }
 
+void Widget::setAnchor( Anchor a )
+{
+    m_anchor = a;
+}
+
 uint16_t Widget::tabOrder() const
 {
     return m_tabOrder;
@@ -44,9 +49,10 @@ void Widget::update( const UpdateContext& )
 
 bool Widget::testRect( glm::vec2 p ) const
 {
-    const glm::vec2 br = m_position + m_size;
-    return ( p.x >= m_position.x )
-        && ( p.y >= m_position.y )
+    const glm::vec2 pos = position() + offsetByAnchor();
+    const glm::vec2 br = pos + size();
+    return ( p.x >= pos.x )
+        && ( p.y >= pos.y )
         && ( p.x < br.x )
         && ( p.y < br.y );
 }

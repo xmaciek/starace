@@ -50,6 +50,8 @@ public:
 
     uint16_t tabOrder() const;
     void setTabOrder( uint16_t );
+
+    void setAnchor( Anchor );
 };
 
 

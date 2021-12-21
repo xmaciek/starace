@@ -85,10 +85,7 @@ void Game::onMouseEvent( const MouseEvent& mouseEvent )
         break;
 
     case Screen::eMainMenu:
-        m_btnSelectMission.onMouseEvent( mouseEvent )
-        || m_btnCustomize.onMouseEvent( mouseEvent )
-        || m_btnExit.onMouseEvent( mouseEvent )
-        ;
+        m_screenTitle.onMouseEvent( mouseEvent );
         break;
 
     case Screen::eMissionSelection:

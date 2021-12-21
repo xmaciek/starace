@@ -17,7 +17,7 @@ Button::Button( std::u32string_view txt, Font* f, Texture texture, std::function
     txt
     , f
     , Anchor::fCenter | Anchor::fMiddle
-    , size() * 0.5f
+    , {}
     , color::white )
 , m_onTrigger{ onTrigger }
 {
@@ -28,7 +28,7 @@ Button::Button( Font* f, Texture texture, std::function<void()>&& onTrigger )
 , m_label(
     f
     , Anchor::fCenter | Anchor::fMiddle
-    , size() * 0.5f
+    , {}
     , color::white )
 , m_onTrigger{ onTrigger }
 {
@@ -37,7 +37,8 @@ Button::Button( Font* f, Texture texture, std::function<void()>&& onTrigger )
 void Button::render( RenderContext rctx ) const
 {
     UIImage::render( rctx );
-    rctx.model = glm::translate( rctx.model, glm::vec3{ m_position.x, m_position.y, 0.0f } );
+    const glm::vec2 pos = position() + offsetByAnchor() + size() * 0.5f;
+    rctx.model = glm::translate( rctx.model, glm::vec3{ pos.x, pos.y, 0.0f } );
     m_label.render( rctx );
 }
 
@@ -89,7 +90,6 @@ bool Button::onMouseEvent( const MouseEvent& event )
         if ( !m_enabled ) { return false; }
         if ( !testRect( std::get<MouseClick>( event ) ) ) { return false; }
         trigger();
-        setFocused( false );
         return true;
     default:
         return false;

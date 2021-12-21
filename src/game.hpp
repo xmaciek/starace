@@ -10,6 +10,7 @@
 #include "model_proto.hpp"
 #include "texture.hpp"
 #include "targeting.hpp"
+#include "screen_title.hpp"
 #include "screen_win_loose.hpp"
 #include "ui_rings.hpp"
 
@@ -75,8 +76,6 @@ private:
 
     BulletProto m_weapons[ 4 ]{};
     Button m_btnCustomizeReturn{};
-    Button m_btnCustomize{};
-    Button m_btnExit{};
     Button m_btnGO{};
     Button m_btnNextJet{};
     Button m_btnNextMap{};
@@ -85,7 +84,6 @@ private:
     Button m_btnQuitMission{};
     Button m_btnReturnToMainMenu{};
     Button m_btnSelectMissionCancel{};
-    Button m_btnSelectMission{};
     Button m_btnStartMission{};
     Button m_btnWeap1{};
     Button m_btnWeap2{};
@@ -101,6 +99,7 @@ private:
     Texture m_starfieldTexture{};
     std::pmr::map<std::filesystem::path, Texture> m_textures{};
 
+    ScreenTitle m_screenTitle{};
     ScreenWinLoose m_screenWin{};
     ScreenWinLoose m_screenLoose{};
 
