@@ -77,6 +77,8 @@ static std::tuple<T, T> pickDifferentValues( const std::pmr::vector<T>& a, const
 struct QueueCount {
     uint32_t queue = 0;
     uint32_t count = 0;
+    constexpr QueueCount() noexcept = default;
+    constexpr QueueCount( uint32_t q, uint32_t c ) noexcept : queue{ q }, count{ c } {}
     constexpr bool operator == ( const QueueCount& rhs ) const
     {
         return queue == rhs.queue;

@@ -18,7 +18,6 @@ private:
     std::pmr::u32string m_text{};
     glm::vec4 m_color{};
     glm::vec2 m_textExtent{};
-    bool m_isAutoSize = false;
     mutable Font::RenderText m_renderText{};
 
 public:
