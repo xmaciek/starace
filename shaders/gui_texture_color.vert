@@ -6,9 +6,8 @@ layout( binding = 0 ) uniform ubo {
     mat4 modelMatrix;
     mat4 viewMatrix;
     mat4 projectionMatrix;
-    vec2 vertexPosition[ 4 ];
-    vec2 vertexUV[ 4 ];
     vec4 colorValue;
+    vec4 vertice[ 4 ];
 };
 
 layout( location = 0 ) out vec4 fragmentColor;
@@ -19,8 +18,8 @@ void main()
     gl_Position = projectionMatrix
         * viewMatrix
         * modelMatrix
-        * vec4( vertexPosition[ gl_VertexIndex ].x, vertexPosition[ gl_VertexIndex ].y, 0.0, 1.0 );
+        * vec4( vertice[ gl_VertexIndex ].xy, 0.0, 1.0 );
 
     fragmentColor = colorValue;
-    fragmentUV = vertexUV[ gl_VertexIndex ].xy;
+    fragmentUV = vertice[ gl_VertexIndex ].zw;
 }

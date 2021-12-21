@@ -44,14 +44,9 @@ void UIImage::render( RenderContext rctx ) const
     const float xw = x + m_size.x;
     const float yh = y + m_size.y;
     pushConstant.m_vertices[ 0 ] = glm::vec4{ x, y, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 1 ] = glm::vec4{ x, yh, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 2 ] = glm::vec4{ xw, yh, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 3 ] = glm::vec4{ xw, y, 0.0f, 0.0f };
-
-    pushConstant.m_uv[ 0 ] = glm::vec4{ 0, 0, 0.0f, 0.0f };
-    pushConstant.m_uv[ 1 ] = glm::vec4{ 0, 1, 0.0f, 0.0f };
-    pushConstant.m_uv[ 2 ] = glm::vec4{ 1, 1, 0.0f, 0.0f };
-    pushConstant.m_uv[ 3 ] = glm::vec4{ 1, 0, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 1 ] = glm::vec4{ x, yh, 0.0f, 1.0f };
+    pushConstant.m_vertices[ 2 ] = glm::vec4{ xw, yh, 1.0f, 1.0f };
+    pushConstant.m_vertices[ 3 ] = glm::vec4{ xw, y, 1.0f, 0.0f };
 
     rctx.renderer->push( &pushBuffer, &pushConstant );
 }

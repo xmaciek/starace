@@ -29,14 +29,10 @@ void UIRings::render( RenderContext rctx ) const
     PushConstant<Pipeline::eGuiTextureColor1> pushConstant{};
     pushConstant.m_projection = rctx.projection;
     pushConstant.m_view = rctx.view;
-    pushConstant.m_uv[ 0 ] = glm::vec4{ 0, 0, 0.0f, 0.0f };
-    pushConstant.m_uv[ 1 ] = glm::vec4{ 0, 1, 0.0f, 0.0f };
-    pushConstant.m_uv[ 2 ] = glm::vec4{ 1, 1, 0.0f, 0.0f };
-    pushConstant.m_uv[ 3 ] = glm::vec4{ 1, 0, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 0 ] = glm::vec4{ 0, 0, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 1 ] = glm::vec4{ 0, mx, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 2 ] = glm::vec4{ mx, mx, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 3 ] = glm::vec4{ mx, 0, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 0 ] = glm::vec4{ 0.0f, 0.0f, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 1 ] = glm::vec4{ 0.0f, mx, 0.0f, 1.0f };
+    pushConstant.m_vertices[ 2 ] = glm::vec4{ mx, mx, 1.0f, 1.0f };
+    pushConstant.m_vertices[ 3 ] = glm::vec4{ mx, 0.0f, 1.0f, 0.0f };
 
     for ( size_t i = 0; i < 3; i++ ) {
         assert( m_texture[ i ] );
