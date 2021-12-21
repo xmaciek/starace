@@ -49,7 +49,7 @@ Engine::Engine( int, char** ) noexcept
 {
     ZoneScoped;
     [[maybe_unused]]
-    const int initOK = SDL_Init( SDL_INIT_VIDEO | SDL_INIT_TIMER );
+    const int initOK = SDL_Init( SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER );
     assert( initOK >= 0 );
 
     const BinaryConfigBlob blob = loadConfig();
@@ -146,6 +146,13 @@ void Engine::processEvents()
             onMouseEvent( MouseMove{ glm::vec2{ event.motion.x, event.motion.y } } );
             break;
 
+        case SDL_CONTROLLERDEVICEADDED:
+            controllerAdd( event.cdevice.which );
+            break;
+        case SDL_CONTROLLERDEVICEREMOVED:
+            controllerRemove( event.cdevice.which );
+            break;
+
         case SDL_CONTROLLERBUTTONDOWN:
         case SDL_CONTROLLERBUTTONUP:
         {
@@ -223,6 +230,23 @@ void Engine::registerAction( Action::Enum eid, Actuator a )
     m_actionMapping.registerAction( eid, a );
 }
 
+void Engine::controllerAdd( int idx )
+{
+    if ( SDL_FALSE == SDL_GetHintBoolean( "SDL_GAMECONTROLLER_ALLOW_STEAM_VIRTUAL_GAMEPAD", SDL_FALSE ) ) {
+        const char* name = SDL_GameControllerNameForIndex( idx );
+        const std::string_view namesv = name ? name : "";
+        if ( namesv == "Steam Virtual Gamepad" ) {
+            return;
+        }
+    }
+    SDL_GameController* controller = SDL_GameControllerOpen( idx );
+    assert( controller );
+    m_controllers.emplace_back( controller );
+}
 
-
-
+void Engine::controllerRemove( int id )
+{
+    SDL_GameController* controller = SDL_GameControllerFromInstanceID( id );
+    std::erase( m_controllers, controller );
+    SDL_GameControllerClose( controller );
+}

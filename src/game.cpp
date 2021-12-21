@@ -38,13 +38,18 @@ static constexpr const char* chunk1[] = {
 constexpr std::tuple<GameAction, Actuator> inputActions[] = {
     { GameAction::eMenuUp, SDL_SCANCODE_W },
     { GameAction::eMenuUp, SDL_SCANCODE_UP },
+    { GameAction::eMenuUp, SDL_CONTROLLER_BUTTON_DPAD_UP },
     { GameAction::eMenuDown, SDL_SCANCODE_S },
     { GameAction::eMenuDown, SDL_SCANCODE_DOWN },
+    { GameAction::eMenuDown, SDL_CONTROLLER_BUTTON_DPAD_DOWN },
     { GameAction::eMenuLeft, SDL_SCANCODE_A },
     { GameAction::eMenuLeft, SDL_SCANCODE_LEFT },
+    { GameAction::eMenuLeft, SDL_CONTROLLER_BUTTON_DPAD_LEFT },
     { GameAction::eMenuRight, SDL_SCANCODE_D },
     { GameAction::eMenuRight, SDL_SCANCODE_RIGHT },
+    { GameAction::eMenuRight, SDL_CONTROLLER_BUTTON_DPAD_RIGHT },
     { GameAction::eMenuConfirm, SDL_SCANCODE_RETURN },
+    { GameAction::eMenuConfirm, SDL_CONTROLLER_BUTTON_A },
 };
 
 

@@ -34,6 +34,7 @@ private:
     std::pmr::vector<SDL_Event> m_events{};
 
     ActionMapping m_actionMapping{};
+    std::pmr::vector<SDL_GameController*> m_controllers{};
 
 protected:
     std::unique_ptr<AsyncIO> m_io{};
@@ -62,6 +63,9 @@ protected:
 private:
     void gameThread();
     void processEvents();
+
+    void controllerAdd( int );
+    void controllerRemove( int );
 
 public:
     int run();
