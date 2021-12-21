@@ -10,8 +10,7 @@ layout( binding = 0 ) uniform ubo {
     mat4 viewMatrix;
     mat4 projectionMatrix;
     vec4 color;
-    vec4 vertVert[ c_verticeCount ];
-    vec4 vertUV[ c_verticeCount ];
+    vec4 vertice[ c_verticeCount ];
 };
 
 layout( location = 0 ) out vec4 fragColor;
@@ -22,8 +21,8 @@ void main()
     gl_Position = projectionMatrix
         * viewMatrix
         * modelMatrix
-        * vec4( vertVert[ gl_VertexIndex ].xy, 0.0, 1.0 );
+        * vec4( vertice[ gl_VertexIndex ].xy, 0.0, 1.0 );
 
     fragColor = color;
-    fragUV = vertUV[ gl_VertexIndex ].xy;
+    fragUV = vertice[ gl_VertexIndex ].zw;
 }

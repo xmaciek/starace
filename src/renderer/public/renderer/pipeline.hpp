@@ -164,7 +164,6 @@ struct PushConstant<Pipeline::eShortString> {
 
     static constexpr size_t charCount = 48;
     std::array<glm::vec4, charCount * 6> m_vertices{};
-    std::array<glm::vec4, charCount * 6> m_uv{};
 
     PushConstant() = default;
 };
