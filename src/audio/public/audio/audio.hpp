@@ -2,20 +2,16 @@
 
 #include <string_view>
 
-namespace audio {
-
-struct Chunk {
-    void* data = nullptr;
-};
-
-class Engine {
+class Audio {
 public:
-    virtual ~Engine() = default;
-    Engine() = default;
+    struct Chunk {
+        void* data = nullptr;
+    };
 
-    static Engine* create();
+    virtual ~Audio() = default;
+    Audio() = default;
+
+    static Audio* create();
     virtual void play( const Chunk& ) = 0;
     virtual Chunk load( std::string_view ) = 0;
 };
-
-} // namespace audio

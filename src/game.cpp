@@ -634,7 +634,7 @@ void Game::updateMissionSelection( const UpdateContext& updateContext )
     m_uiRings.update( updateContext );
 }
 
-void Game::changeScreen( Screen scr, audio::Chunk sound )
+void Game::changeScreen( Screen scr, Audio::Chunk sound )
 {
     if ( sound.data ) {
         m_audio->play( sound );

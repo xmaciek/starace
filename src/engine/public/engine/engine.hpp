@@ -29,6 +29,7 @@ private:
     SDL_Window* m_window = nullptr;
     std::tuple<uint32_t, uint32_t, float> m_viewport{};
     std::unique_ptr<Renderer> m_rendererPtr{};
+    std::unique_ptr<Audio> m_audioPtr{};
 
     std::mutex m_eventsBottleneck{};
     std::pmr::vector<SDL_Event> m_events{};
@@ -39,7 +40,7 @@ private:
 protected:
     std::unique_ptr<AsyncIO> m_io{};
     Renderer* m_renderer = nullptr;
-    std::unique_ptr<audio::Engine> m_audio{};
+    Audio* m_audio = nullptr;
     FPSMeter m_fpsMeter{};
 
     ~Engine() noexcept;

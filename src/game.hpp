@@ -54,10 +54,10 @@ private:
     Model* m_previewModel = nullptr;
     Model* m_enemyModel = nullptr;
 
-    audio::Chunk m_blaster{};
-    audio::Chunk m_click{};
-    audio::Chunk m_laser{};
-    audio::Chunk m_torpedo{};
+    Audio::Chunk m_blaster{};
+    Audio::Chunk m_click{};
+    Audio::Chunk m_laser{};
+    Audio::Chunk m_torpedo{};
 
     std::string m_lastSelectedJetName{};
     Pool<Bullet, 1024> m_poolBullets{};
@@ -124,7 +124,7 @@ private:
     uint32_t viewportWidth() const;
     float viewportAspect() const;
     void addBullet( uint32_t wID );
-    void changeScreen( Screen, audio::Chunk sound = {} );
+    void changeScreen( Screen, Audio::Chunk sound = {} );
     void clearMapData();
     void createMapData( const MapCreateInfo&, const ModelProto& );
     void gameKeyboardBriefingPressed( SDL_Scancode );

@@ -12,6 +12,7 @@
 Engine::~Engine() noexcept
 {
     ZoneScoped;
+    m_audioPtr.reset();
     m_rendererPtr.reset();
     SDL_DestroyWindow( m_window );
     SDL_Quit();
@@ -69,7 +70,8 @@ Engine::Engine( int, char** ) noexcept
     m_rendererPtr = std::unique_ptr<Renderer>( m_renderer );
     assert( m_renderer );
 
-    m_audio = std::unique_ptr<audio::Engine>( audio::Engine::create() );
+    m_audio = Audio::create();
+    m_audioPtr = std::unique_ptr<Audio>( m_audio );
     assert( m_audio );
 
 }

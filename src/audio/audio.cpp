@@ -18,8 +18,6 @@ constexpr unsigned long long operator""_Hz( unsigned long long hz ) noexcept
     return hz;
 }
 
-namespace audio {
-
 struct Buffer {
     std::vector<Uint8> data{};
     SDL_AudioSpec spec{};
@@ -37,7 +35,7 @@ struct BufferPlayed {
     Uint32 position = 0;
 };
 
-class SDLAudioEngine : public Engine {
+class SDLAudioEngine : public Audio {
     SDL_AudioSpec m_spec{};
     SDL_AudioDeviceID m_device{};
     std::map<void*, Buffer> m_loadedBuffers{};
@@ -54,7 +52,7 @@ public:
     virtual Chunk load( std::string_view ) override;
 };
 
-Engine* Engine::create()
+Audio* Audio::create()
 {
     return new SDLAudioEngine();
 }
@@ -76,25 +74,32 @@ SDLAudioEngine::SDLAudioEngine()
         audioDrivers[ i ] = SDL_GetAudioDriver( (int)i );
     }
 
-    for ( const std::string& it : audioDrivers ) {
-        if ( SDL_AudioInit( it.c_str() ) == 0 ) {
-            std::cout << "Initializing audio: " << it << std::endl;
-            break;
+    [[maybe_unused]]
+    const bool initOK = []( auto& drivers )
+    {
+        for ( const std::string& it : drivers ) {
+            if ( SDL_AudioInit( it.c_str() ) == 0 ) {
+                return true;
+            }
         }
-    }
+        return false;
+    }( audioDrivers );
+    assert( initOK );
 
     std::vector<std::string> audioDevices( SDL_GetNumAudioDevices( false ) );
     for ( size_t i = 0; i < audioDevices.size(); ++i ) {
         audioDevices[ i ] = SDL_GetAudioDeviceName( (int)i, false );
     }
+    assert( !audioDevices.empty() );
 
-    SDL_AudioSpec want{};
-    want.freq = 48000_Hz;
-    want.format = AUDIO_S16LSB;
-    want.channels = 2;
-    want.samples = 4096;
-    want.callback = &SDLAudioEngine::callback;
-    want.userdata = this;
+    const SDL_AudioSpec want{
+        .freq = 48000_Hz,
+        .format = AUDIO_S16LSB,
+        .channels = 2,
+        .samples = 4096,
+        .callback = &SDLAudioEngine::callback,
+        .userdata = this,
+    };
 
     m_device = SDL_OpenAudioDevice( audioDevices.front().c_str(), 0, &want, &m_spec, SDL_AUDIO_ALLOW_FORMAT_CHANGE );
     if ( m_device == 0 ) {
@@ -139,7 +144,7 @@ void SDLAudioEngine::callback( void* userData, Uint8* stream, int len )
     instance->m_nowPlaying.erase( it, instance->m_nowPlaying.end() );
 }
 
-Chunk SDLAudioEngine::load( std::string_view file )
+Audio::Chunk SDLAudioEngine::load( std::string_view file )
 {
     ZoneScoped;
     Buffer buffer{};
@@ -188,4 +193,3 @@ void SDLAudioEngine::play( const Chunk& c )
     m_nowPlaying.emplace_back( buf );
 }
 
-} // namespace audio
