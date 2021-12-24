@@ -12,9 +12,18 @@
 
 template <typename TKey, typename TValue, size_t TCapacity>
 class FixedMap {
+    template <typename T>
+    static constexpr bool isTrivial() noexcept {
+        return sizeof( T ) <= 8
+        && std::is_trivially_constructible_v<T>
+        && std::is_trivially_copyable_v<T>
+        && std::is_trivially_destructible_v<T>
+        ;
+    }
+
     using size_type = std::size_t;
-    using TKeyStorage = std::aligned_storage_t<sizeof(TKey), alignof(TKey)>;
-    using TValueStorage = std::aligned_storage_t<sizeof(TValue), alignof(TValue)>;
+    using TKeyStorage = std::conditional_t<isTrivial<TKey>(), TKey, std::aligned_storage_t<sizeof(TKey), alignof(TKey)>>;
+    using TValueStorage = std::conditional_t<isTrivial<TValue>(), TValue, std::aligned_storage_t<sizeof(TValue), alignof(TValue)>>;
     std::array<TKeyStorage, TCapacity> m_keyList{};
     std::array<TValueStorage, TCapacity> m_valueList{};
     size_type m_currentSize = 0;
@@ -31,8 +40,8 @@ class FixedMap {
 public:
     ~FixedMap() noexcept
     {
-        std::destroy( valueBegin(), valueEnd() );
-        std::destroy( keyBegin(), keyEnd() );
+        if constexpr ( !isTrivial<TValue>() ) { std::destroy( valueBegin(), valueEnd() ); }
+        if constexpr ( !isTrivial<TKey>() ) { std::destroy( keyBegin(), keyEnd() ); }
     }
 
     FixedMap() noexcept = default;
