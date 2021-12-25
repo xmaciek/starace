@@ -44,10 +44,14 @@ void SpeedMeter::render( RenderContext rctx ) const
         std::copy( c_circle.begin(), c_circle.end(), pushConstant.m_vertices.begin() );
         std::fill_n( pushConstant.m_colors.begin(), c_circle.size(), color::winScreen );
 
-        PushBuffer<Pipeline::eLine3dStripColor> pushBuffer{};
-        pushBuffer.m_lineWidth = 1.0f;
-        pushBuffer.m_verticeCount = c_circle.size();
-        rctx.renderer->push( &pushBuffer, &pushConstant );
+        PushBuffer pushBuffer{
+            .m_pipeline = static_cast<PipelineSlot>( Pipeline::eLine3dStripColor ),
+            .m_useLineWidth = true,
+            .m_pushConstantSize = sizeof( PushConstant<Pipeline::eLine3dStripColor> ),
+            .m_verticeCount = c_circle.size(),
+            .m_lineWidth = 1.0f,
+        };
+        rctx.renderer->push( pushBuffer, &pushConstant );
     }
 
     {
@@ -57,11 +61,15 @@ void SpeedMeter::render( RenderContext rctx ) const
         pushConstant.m_projection = rctx.projection;
         std::copy( c_fan.begin(), c_fan.end(), pushConstant.m_vertices.begin() );
         std::fill_n( pushConstant.m_colors.begin(), 5, color::winScreen );
-        PushBuffer<Pipeline::eTriangleFan3dColor> pushBuffer{};
-        pushBuffer.m_verticeCount = c_fan.size();
-        rctx.renderer->push( &pushBuffer, &pushConstant );
+
+        PushBuffer pushBuffer{
+            .m_pipeline = static_cast<PipelineSlot>( Pipeline::eTriangleFan3dColor ),
+            .m_pushConstantSize = sizeof( PushConstant<Pipeline::eTriangleFan3dColor> ),
+            .m_verticeCount = c_fan.size(),
+        };
+        rctx.renderer->push( pushBuffer, &pushConstant );
         pushConstant.m_model = glm::rotate( pushConstant.m_model, 180.0_deg, axis::z );
-        rctx.renderer->push( &pushBuffer, &pushConstant );
+        rctx.renderer->push( pushBuffer, &pushConstant );
     }
 }
 

@@ -89,5 +89,5 @@ public:
     virtual void deleteBuffer( Buffer ) override;
     virtual void deleteTexture( Texture ) override;
     virtual void present() override;
-    virtual void push( const void* buffer, const void* constant ) override;
+    virtual void push( const PushBuffer& buffer, const void* constant ) override;
 };

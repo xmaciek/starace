@@ -12,8 +12,19 @@
 #include <memory_resource>
 #include <vector>
 
+using PipelineSlot = uint16_t;
 
-enum struct Pipeline {
+struct PushBuffer {
+    PipelineSlot m_pipeline{};
+    uint16_t m_useLineWidth : 1 = false;
+    uint32_t m_pushConstantSize = 0;
+    uint32_t m_verticeCount = 0;
+    float m_lineWidth = 1.0f;
+    Buffer m_vertice{};
+    Texture m_texture{};
+};
+
+enum class Pipeline : PipelineSlot {
     eGuiTextureColor1,
     eLine3dColor1,
     eLine3dStripColor,
@@ -32,22 +43,6 @@ struct PushConstant {
     PushConstant() = default;
 };
 
-template <Pipeline TP>
-struct PushBuffer {
-    Pipeline m_pipeline = TP;
-
-    PushBuffer() = default;
-};
-
-template <>
-struct PushBuffer<Pipeline::eLine3dStripColor> {
-    Pipeline m_pipeline = Pipeline::eLine3dStripColor;
-    uint32_t m_verticeCount = 0;
-    float m_lineWidth = 1.0f;
-
-    PushBuffer() = default;
-};
-
 template <>
 struct PushConstant<Pipeline::eLine3dStripColor> {
     glm::mat4 m_model{};
@@ -60,14 +55,6 @@ struct PushConstant<Pipeline::eLine3dStripColor> {
 };
 
 template <>
-struct PushBuffer<Pipeline::eTriangleFan3dTexture> {
-    Pipeline m_pipeline = Pipeline::eTriangleFan3dTexture;
-    Texture m_texture{};
-
-    PushBuffer() = default;
-};
-
-template <>
 struct PushConstant<Pipeline::eTriangleFan3dTexture> {
     glm::mat4 m_model{};
     glm::mat4 m_view{};
@@ -76,14 +63,6 @@ struct PushConstant<Pipeline::eTriangleFan3dTexture> {
     std::array<glm::vec4, 4> m_uv{};
 
     PushConstant() = default;
-};
-
-template <>
-struct PushBuffer<Pipeline::eGuiTextureColor1> {
-    Pipeline m_pipeline = Pipeline::eGuiTextureColor1;
-    Texture m_texture{};
-
-    PushBuffer() = default;
 };
 
 template <>
@@ -109,32 +88,6 @@ struct PushConstant<Pipeline::eLine3dColor1> {
 };
 
 template <>
-struct PushBuffer<Pipeline::eLine3dColor1> {
-    Pipeline m_pipeline = Pipeline::eLine3dColor1;
-    uint32_t m_verticeCount = 0;
-    float m_lineWidth = 1.0f;
-
-    PushBuffer() = default;
-};
-
-template <>
-struct PushBuffer<Pipeline::eTriangle3dTextureNormal> {
-    Pipeline m_pipeline = Pipeline::eTriangle3dTextureNormal;
-    Buffer m_vertices{};
-    Texture m_texture{};
-
-    PushBuffer() = default;
-};
-
-template <>
-struct PushBuffer<Pipeline::eTriangleFan3dColor> {
-    Pipeline m_pipeline = Pipeline::eTriangleFan3dColor;
-    uint32_t m_verticeCount = 0;
-
-    PushBuffer() = default;
-};
-
-template <>
 struct PushConstant<Pipeline::eTriangleFan3dColor> {
     glm::mat4 m_model{};
     glm::mat4 m_view{};
@@ -143,15 +96,6 @@ struct PushConstant<Pipeline::eTriangleFan3dColor> {
     std::array<glm::vec4, 48> m_colors{};
 
     PushConstant() = default;
-};
-
-template <>
-struct PushBuffer<Pipeline::eShortString> {
-    Pipeline m_pipeline = Pipeline::eShortString;
-    Texture m_texture{};
-    uint32_t m_verticeCount = 0;
-
-    PushBuffer() = default;
 };
 
 template <>

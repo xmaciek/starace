@@ -25,7 +25,6 @@ void UIRings::render( RenderContext rctx ) const
     const float mx = std::max( m_size.x, m_size.y );
 
     rctx.model = glm::translate( rctx.model, glm::vec3{ center, 0.0f } );
-    PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{};
     PushConstant<Pipeline::eGuiTextureColor1> pushConstant{};
     pushConstant.m_projection = rctx.projection;
     pushConstant.m_view = rctx.view;
@@ -34,13 +33,18 @@ void UIRings::render( RenderContext rctx ) const
     pushConstant.m_vertices[ 2 ] = glm::vec4{ mx, mx, 1.0f, 1.0f };
     pushConstant.m_vertices[ 3 ] = glm::vec4{ mx, 0.0f, 1.0f, 0.0f };
 
+    PushBuffer pushBuffer{
+        .m_pipeline = static_cast<PipelineSlot>( Pipeline::eGuiTextureColor1 ),
+        .m_pushConstantSize = sizeof( PushConstant<Pipeline::eGuiTextureColor1> ),
+        .m_verticeCount = 4,
+    };
     for ( size_t i = 0; i < 3; i++ ) {
         assert( m_texture[ i ] );
         pushBuffer.m_texture = m_texture[ i ];
         pushConstant.m_model = glm::rotate( rctx.model, m_angle[ i ], axis::z );
         pushConstant.m_model = glm::translate( pushConstant.m_model, glm::vec3{ mx * -0.5, mx * -0.5, 0.0 } );
         pushConstant.m_color = color[ i ];
-        rctx.renderer->push( &pushBuffer, &pushConstant );
+        rctx.renderer->push( pushBuffer, &pushConstant );
     }
 }
 

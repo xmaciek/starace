@@ -92,7 +92,11 @@ void Map::render( RenderContext rctx )
     // NOTE: this is so bad, should ba model rendering
     {
         using Wall = MapCreateInfo::Wall;
-        PushBuffer<Pipeline::eTriangleFan3dTexture> pushBuffer{};
+        PushBuffer pushBuffer{
+            .m_pipeline = static_cast<PipelineSlot>( Pipeline::eTriangleFan3dTexture ),
+            .m_pushConstantSize = sizeof( PushConstant<Pipeline::eTriangleFan3dTexture> ),
+            .m_verticeCount = 4,
+        };
         PushConstant<Pipeline::eTriangleFan3dTexture> pushConstant{};
         pushConstant.m_model = rctx.model;
         pushConstant.m_view = rctx.view;
@@ -101,32 +105,32 @@ void Map::render( RenderContext rctx )
         pushBuffer.m_texture = m_texture[ Wall::eBack ];
         std::copy_n( wall1.begin(), 4, pushConstant.m_vertices.begin() );
         std::copy_n( uv1.begin(), 4, pushConstant.m_uv.begin() );
-        rctx.renderer->push( &pushBuffer, &pushConstant );
+        rctx.renderer->push( pushBuffer, &pushConstant );
 
         pushBuffer.m_texture = m_texture[ Wall::eFront ];
         std::copy_n( wall2.begin(), 4, pushConstant.m_vertices.begin() );
         std::copy_n( uv2.begin(), 4, pushConstant.m_uv.begin() );
-        rctx.renderer->push( &pushBuffer, &pushConstant );
+        rctx.renderer->push( pushBuffer, &pushConstant );
 
         pushBuffer.m_texture = m_texture[ Wall::eLeft ];
         std::copy_n( wall3.begin(), 4, pushConstant.m_vertices.begin() );
         std::copy_n( uv3.begin(), 4, pushConstant.m_uv.begin() );
-        rctx.renderer->push( &pushBuffer, &pushConstant );
+        rctx.renderer->push( pushBuffer, &pushConstant );
 
         pushBuffer.m_texture = m_texture[ Wall::eRight ];
         std::copy_n( wall4.begin(), 4, pushConstant.m_vertices.begin() );
         std::copy_n( uv4.begin(), 4, pushConstant.m_uv.begin() );
-        rctx.renderer->push( &pushBuffer, &pushConstant );
+        rctx.renderer->push( pushBuffer, &pushConstant );
 
         pushBuffer.m_texture = m_texture[ Wall::eTop ];
         std::copy_n( wall5.begin(), 4, pushConstant.m_vertices.begin() );
         std::copy_n( uv5.begin(), 4, pushConstant.m_uv.begin() );
-        rctx.renderer->push( &pushBuffer, &pushConstant );
+        rctx.renderer->push( pushBuffer, &pushConstant );
 
         pushBuffer.m_texture = m_texture[ Wall::eBottom ];
         std::copy_n( wall6.begin(), 4, pushConstant.m_vertices.begin() );
         std::copy_n( uv6.begin(), 4, pushConstant.m_uv.begin() );
-        rctx.renderer->push( &pushBuffer, &pushConstant );
+        rctx.renderer->push( pushBuffer, &pushConstant );
     }
 
     {
@@ -136,9 +140,13 @@ void Map::render( RenderContext rctx )
         pushConstant.m_projection = rctx.projection;
         pushConstant.m_color = glm::vec4{ 1.0f, 1.0f, 1.0f, 0.4f };
 
-        PushBuffer<Pipeline::eLine3dColor1> pushBuffer{};
-        pushBuffer.m_lineWidth = 1.0f;
-        pushBuffer.m_verticeCount = m_particleList.size() * 2;
+        PushBuffer pushBuffer{
+            .m_pipeline = static_cast<PipelineSlot>( Pipeline::eLine3dColor1 ),
+            .m_useLineWidth = true,
+            .m_pushConstantSize = sizeof( PushConstant<Pipeline::eLine3dColor1> ),
+            .m_verticeCount = static_cast<uint32_t>( m_particleList.size() * 2 ),
+            .m_lineWidth = 1.0f,
+        };
         assert( pushBuffer.m_verticeCount <= pushConstant.m_vertices.size() );
 
         size_t i = 0;
@@ -146,7 +154,7 @@ void Map::render( RenderContext rctx )
             pushConstant.m_vertices[ i++ ] = it;
             pushConstant.m_vertices[ i++ ] = it + m_particleLength;
         }
-        rctx.renderer->push( &pushBuffer, &pushConstant );
+        rctx.renderer->push( pushBuffer, &pushConstant );
     }
 }
 

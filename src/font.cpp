@@ -248,9 +248,12 @@ Font::RenderText Font::composeText( const glm::vec4& color, std::u32string_view 
 {
     ZoneScoped;
     assert( text.size() < PushConstant<Pipeline::eShortString>::charCount );
-    PushBuffer<Pipeline::eShortString> pushBuffer{};
-    pushBuffer.m_texture = m_texture;
-    pushBuffer.m_verticeCount = text.size() * 6;
+    PushBuffer pushBuffer{
+        .m_pipeline = static_cast<PipelineSlot>( Pipeline::eShortString ),
+        .m_pushConstantSize = sizeof( PushConstant<Pipeline::eShortString> ),
+        .m_verticeCount = static_cast<uint32_t>( text.size() * 6 ),
+        .m_texture = m_texture,
+    };
 
     PushConstant<Pipeline::eShortString> pushConstant{};
     pushConstant.m_color = color;
@@ -277,5 +280,5 @@ void Font::renderText( RenderContext rctx, const glm::vec4& color, double x, dou
     pushConstant.m_model = rctx.model;
     pushConstant.m_view = rctx.view;
     pushConstant.m_projection = rctx.projection;
-    rctx.renderer->push( &pushBuffer, &pushConstant );
+    rctx.renderer->push( pushBuffer, &pushConstant );
 }

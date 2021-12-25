@@ -787,134 +787,56 @@ static void updateDescriptor( VkDevice device
     vkUpdateDescriptorSets( device, writeCount, descriptorWrites, 0, nullptr );
 }
 
-void RendererVK::push( const void* buffer, const void* constant )
+void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
 {
-#define CASE( TYPE ) \
-    case Pipeline::TYPE: { \
-        [[maybe_unused]] auto* pushBuffer = reinterpret_cast<const PushBuffer<Pipeline::TYPE>*>( buffer ); \
-        [[maybe_unused]] auto* pushConstant = reinterpret_cast<const PushConstant<Pipeline::TYPE>*>( constant ); \
-        static constexpr std::size_t constantSize = sizeof( PushConstant<Pipeline::TYPE> ); \
-        PipelineVK& currentPipeline = m_pipelines[ (size_t)p ]; \
-        if ( m_lastPipeline != &currentPipeline ) { \
-            if ( m_lastPipeline ) { m_lastPipeline->end(); } \
-            m_lastPipeline = &currentPipeline; \
-        }
+    auto& descriptorPool = pushBuffer.m_texture
+        ? m_descriptorSetBufferSampler
+        : m_descriptorSetBuffer;
 
-    Pipeline p = *reinterpret_cast<const Pipeline*>( buffer );
-    switch ( p ) {
-    CASE( eGuiTextureColor1 )
-        const TextureVK* texture = m_textureSlots[ pushBuffer->m_texture ];
+    const VkDescriptorSet descriptorSet = descriptorPool[ m_currentFrame ].next();
+    assert( descriptorSet != VK_NULL_HANDLE );
+
+    assert( pushBuffer.m_pushConstantSize != 0 );
+    const VkDescriptorBufferInfo bufferInfo = m_uniform[ m_currentFrame ].copy( constant, pushBuffer.m_pushConstantSize );
+
+
+    VkCommandBuffer cmd = m_graphicsCmd.buffer();
+
+    assert( pushBuffer.m_pipeline < m_pipelines.size() );
+    PipelineVK& currentPipeline = m_pipelines[ pushBuffer.m_pipeline ];
+    if ( m_lastPipeline != &currentPipeline ) {
+        if ( m_lastPipeline ) { m_lastPipeline->end(); }
+            m_lastPipeline = &currentPipeline;
+    }
+
+    if ( pushBuffer.m_texture ) {
+        const TextureVK* texture = m_textureSlots[ pushBuffer.m_texture ];
         if ( !texture ) {
             return;
         }
-
-        const VkDescriptorBufferInfo bufferInfo = m_uniform[ m_currentFrame ].copy( constant, constantSize );
         const VkDescriptorImageInfo imageInfo = texture->imageInfo();
-        const VkDescriptorSet descriptorSet = m_descriptorSetBufferSampler[ m_currentFrame ].next();
-        assert( descriptorSet != VK_NULL_HANDLE );
         updateDescriptor( m_device, descriptorSet, bufferInfo, imageInfo );
-
-        VkCommandBuffer cmd = m_graphicsCmd.buffer();
-        currentPipeline.begin( cmd, descriptorSet );
-        vkCmdDraw( cmd, 4, 1, 0, 0 );
-    } break;
-
-    CASE( eShortString )
-        const TextureVK* texture = m_textureSlots[ pushBuffer->m_texture ];
-        if ( !texture ) {
-            return;
-        }
-
-        const VkDescriptorBufferInfo bufferInfo = m_uniform[ m_currentFrame ].copy( constant, constantSize );
-        const VkDescriptorImageInfo imageInfo = texture->imageInfo();
-        const VkDescriptorSet descriptorSet = m_descriptorSetBufferSampler[ m_currentFrame ].next();
-        assert( descriptorSet != VK_NULL_HANDLE );
-        updateDescriptor( m_device, descriptorSet, bufferInfo, imageInfo );
-
-        VkCommandBuffer cmd = m_graphicsCmd.buffer();
-        currentPipeline.begin( cmd, descriptorSet );
-        vkCmdDraw( cmd, pushBuffer->m_verticeCount, 1, 0, 0 );
-    } break;
-
-    CASE( eLine3dStripColor )
-        const VkDescriptorBufferInfo bufferInfo = m_uniform[ m_currentFrame ].copy( constant, constantSize );
-        const VkDescriptorSet descriptorSet = m_descriptorSetBuffer[ m_currentFrame ].next();
-        assert( descriptorSet != VK_NULL_HANDLE );
+    }
+    else {
         updateDescriptor( m_device, descriptorSet, bufferInfo );
+    }
 
-        VkCommandBuffer cmd = m_graphicsCmd.buffer();
-        currentPipeline.begin( cmd, descriptorSet );
-        vkCmdSetLineWidth( cmd, pushBuffer->m_lineWidth );
-        vkCmdDraw( cmd, pushBuffer->m_verticeCount, 1, 0, 0 );
-    } break;
-
-    CASE( eLine3dColor1 )
-        const VkDescriptorBufferInfo bufferInfo = m_uniform[ m_currentFrame ].copy( constant, constantSize );
-        const VkDescriptorSet descriptorSet = m_descriptorSetBuffer[ m_currentFrame ].next();
-        assert( descriptorSet != VK_NULL_HANDLE );
-        updateDescriptor( m_device, descriptorSet, bufferInfo );
-
-        VkCommandBuffer cmd = m_graphicsCmd.buffer();
-        currentPipeline.begin( cmd, descriptorSet );
-        vkCmdSetLineWidth( cmd, pushBuffer->m_lineWidth );
-        assert( pushBuffer->m_verticeCount <= pushConstant->m_vertices.size() );
-        vkCmdDraw( cmd, pushBuffer->m_verticeCount, 1, 0, 0 );
-    } break;
-
-    CASE( eTriangleFan3dColor )
-        const VkDescriptorBufferInfo bufferInfo = m_uniform[ m_currentFrame ].copy( constant, constantSize );
-        const VkDescriptorSet descriptorSet = m_descriptorSetBuffer[ m_currentFrame ].next();
-        assert( descriptorSet != VK_NULL_HANDLE );
-        updateDescriptor( m_device, descriptorSet, bufferInfo );
-
-        VkCommandBuffer cmd = m_graphicsCmd.buffer();
-        currentPipeline.begin( cmd, descriptorSet );
-        vkCmdDraw( cmd, pushBuffer->m_verticeCount, 1, 0, 0 );
-    } break;
-
-    CASE( eTriangleFan3dTexture )
-        const TextureVK* texture = m_textureSlots[ pushBuffer->m_texture ];
-        if ( !texture ) {
+    currentPipeline.begin( cmd, descriptorSet );
+    if ( pushBuffer.m_useLineWidth ) {
+        vkCmdSetLineWidth( cmd, pushBuffer.m_lineWidth );
+    }
+    if ( pushBuffer.m_vertice ) {
+        const BufferVK* b = m_bufferSlots[ pushBuffer.m_vertice ];
+        if ( !b ) {
             return;
         }
-
-        const VkDescriptorBufferInfo bufferInfo = m_uniform[ m_currentFrame ].copy( constant, constantSize );
-        const VkDescriptorImageInfo imageInfo = texture->imageInfo();
-        const VkDescriptorSet descriptorSet = m_descriptorSetBufferSampler[ m_currentFrame ].next();
-        assert( descriptorSet != VK_NULL_HANDLE );
-        updateDescriptor( m_device, descriptorSet, bufferInfo, imageInfo );
-
-        VkCommandBuffer cmd = m_graphicsCmd.buffer();
-        currentPipeline.begin( cmd, descriptorSet );
-        vkCmdDraw( cmd, pushConstant->m_vertices.size(), 1, 0, 0 );
-    } break;
-
-    CASE( eTriangle3dTextureNormal )
-        const TextureVK* texture = m_textureSlots[ pushBuffer->m_texture ];
-        if ( !texture ) {
-            return;
-        }
-
-        const BufferVK* buffer = m_bufferSlots[ pushBuffer->m_vertices ];
-        if ( !buffer ) {
-            return;
-        }
-
-        const VkDescriptorBufferInfo bufferInfo = m_uniform[ m_currentFrame ].copy( constant, constantSize );
-        const VkDescriptorImageInfo imageInfo = texture->imageInfo();
-        const VkDescriptorSet descriptorSet = m_descriptorSetBufferSampler[ m_currentFrame ].next();
-        assert( descriptorSet != VK_NULL_HANDLE );
-        updateDescriptor( m_device, descriptorSet, bufferInfo, imageInfo );
-
-        VkCommandBuffer cmd = m_graphicsCmd.buffer();
-        currentPipeline.begin( cmd, descriptorSet );
-        std::array<VkBuffer, 1> buffers{ *buffer };
+        std::array<VkBuffer, 1> buffers{ *b };
         const std::array<VkDeviceSize, 1> offsets{ 0 };
-        const uint32_t verticeCount = buffer->sizeInBytes() / ( 8 * sizeof( float ) );
+        const uint32_t verticeCount = b->sizeInBytes() / ( 8 * sizeof( float ) );
         vkCmdBindVertexBuffers( cmd, 0, 1, buffers.data(), offsets.data() );
         vkCmdDraw( cmd, verticeCount, 1, 0, 0 );
-    } break;
-    default:
-        break;
+    }
+    else {
+        vkCmdDraw( cmd, pushBuffer.m_verticeCount, 1, 0, 0 );
     }
 }

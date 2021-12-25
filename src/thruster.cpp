@@ -41,9 +41,12 @@ void Thruster::update( const UpdateContext& updateContext )
 
 void Thruster::renderAt( RenderContext rctx, const glm::vec3& pos ) const
 {
+    PushBuffer pushBuffer{
+        .m_pipeline = static_cast<PipelineSlot>( Pipeline::eTriangleFan3dColor ),
+        .m_pushConstantSize = sizeof( PushConstant<Pipeline::eTriangleFan3dColor> ),
+        .m_verticeCount = 33,
+    };
 
-    PushBuffer<Pipeline::eTriangleFan3dColor> pushBuffer{};
-    pushBuffer.m_verticeCount = 33;
     PushConstant<Pipeline::eTriangleFan3dColor> pushConstant{};
     pushConstant.m_model = glm::translate( rctx.model, pos );
     pushConstant.m_model = glm::scale( pushConstant.m_model, glm::vec3{ 1.0f, 1.0f, m_length } );
@@ -53,10 +56,10 @@ void Thruster::renderAt( RenderContext rctx, const glm::vec3& pos ) const
     std::copy( s_inner.begin(), s_inner.end(), pushConstant.m_vertices.begin() + 1 );
     pushConstant.m_colors[ 0 ] = m_colorScheme[ 1 ];
     std::fill_n( pushConstant.m_colors.begin() + 1, 32, m_colorScheme[ 0 ] );
-    rctx.renderer->push( &pushBuffer, &pushConstant );
+    rctx.renderer->push( pushBuffer, &pushConstant );
 
     std::copy( s_outter.begin(), s_outter.end(), pushConstant.m_vertices.begin() + 1 );
     pushConstant.m_colors[ 0 ] = m_colorScheme[ 3 ];
     std::fill_n( pushConstant.m_colors.begin() + 1, 32, m_colorScheme[ 2 ] );
-    rctx.renderer->push( &pushBuffer, &pushConstant );
+    rctx.renderer->push( pushBuffer, &pushConstant );
 }

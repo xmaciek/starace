@@ -32,9 +32,13 @@ void HudBar::render( RenderContext rctx ) const
     m_label.render( rctx );
     // outline
     {
-        PushBuffer<Pipeline::eLine3dStripColor> pushBuffer{};
-        pushBuffer.m_lineWidth = 2.0f;
-        pushBuffer.m_verticeCount = 4;
+        PushBuffer pushBuffer{
+            .m_pipeline = static_cast<PipelineSlot>( Pipeline::eLine3dStripColor ),
+            .m_useLineWidth = true,
+            .m_pushConstantSize = sizeof( PushConstant<Pipeline::eLine3dStripColor> ),
+            .m_verticeCount = 4,
+            .m_lineWidth = 2.0f,
+        };
 
         PushConstant<Pipeline::eLine3dStripColor> pushConstant{};
         pushConstant.m_model = rctx.model;
@@ -43,13 +47,16 @@ void HudBar::render( RenderContext rctx ) const
         const auto outline = composeRect( { sideoff, topoff }, { xywh.z - sideoff * 2.0f, xywh.w - topoff - 2.0f } );
         std::copy( outline.begin(), outline.end(), pushConstant.m_vertices.begin() );
         std::fill_n( pushConstant.m_colors.begin(), 4, color::winScreen );
-        rctx.renderer->push( &pushBuffer, &pushConstant );
+        rctx.renderer->push( pushBuffer, &pushConstant );
     }
 
     // colorbar
     {
-        PushBuffer<Pipeline::eTriangleFan3dColor> pushBuffer{};
-        pushBuffer.m_verticeCount = 4;
+        PushBuffer pushBuffer{
+            .m_pipeline = static_cast<PipelineSlot>( Pipeline::eTriangleFan3dColor ),
+            .m_pushConstantSize = sizeof( PushConstant<Pipeline::eTriangleFan3dColor> ),
+            .m_verticeCount = 4,
+        };
 
         PushConstant<Pipeline::eTriangleFan3dColor> pushConstant{};
         pushConstant.m_model = rctx.model;
@@ -66,7 +73,7 @@ void HudBar::render( RenderContext rctx ) const
             , 1.0f
         };
         std::fill_n( pushConstant.m_colors.begin(), 4, color );
-        rctx.renderer->push( &pushBuffer, &pushConstant );
+        rctx.renderer->push( pushBuffer, &pushConstant );
     }
 }
 

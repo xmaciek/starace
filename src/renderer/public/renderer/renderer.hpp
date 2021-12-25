@@ -2,6 +2,7 @@
 
 #include <renderer/buffer.hpp>
 #include <renderer/texture.hpp>
+#include <renderer/pipeline.hpp>
 
 #include <SDL2/SDL.h>
 
@@ -26,5 +27,5 @@ public:
     virtual void deleteBuffer( Buffer ) = 0;
     virtual void deleteTexture( Texture ) = 0;
     virtual void present() = 0;
-    virtual void push( const void* buffer, const void* constant ) = 0;
+    virtual void push( const PushBuffer&, const void* constant ) = 0;
 };

@@ -68,8 +68,13 @@ void Bullet::render( RenderContext rctx ) const
 
     assert( m_tail.size() == typeToSegments( m_type ) );
 
-    PushBuffer<Pipeline::eLine3dStripColor> pushBuffer{};
-    pushBuffer.m_lineWidth = 2.0f;
+    PushBuffer pushBuffer{
+        .m_pipeline = static_cast<PipelineSlot>( Pipeline::eLine3dStripColor ),
+        .m_useLineWidth = true,
+        .m_pushConstantSize = sizeof( PushConstant<Pipeline::eLine3dStripColor> ),
+        .m_lineWidth = 2.0f,
+    };
+
     PushConstant<Pipeline::eLine3dStripColor> pushConstant{};
     pushConstant.m_model = rctx.model;
     pushConstant.m_view = rctx.view;
@@ -120,7 +125,7 @@ void Bullet::render( RenderContext rctx ) const
     } break;
     }
 
-    rctx.renderer->push( &pushBuffer, &pushConstant );
+    rctx.renderer->push( pushBuffer, &pushConstant );
 }
 
 void Bullet::update( const UpdateContext& updateContext )

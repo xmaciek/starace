@@ -40,7 +40,7 @@ void Label::render( RenderContext rctx ) const
     m_renderText.second.m_model = glm::translate( rctx.model, pos );
     m_renderText.second.m_view = rctx.view;
     m_renderText.second.m_projection = rctx.projection;
-    rctx.renderer->push( &m_renderText.first, &m_renderText.second );
+    rctx.renderer->push( m_renderText.first, &m_renderText.second );
 }
 
 void Label::setText( std::u32string_view str )

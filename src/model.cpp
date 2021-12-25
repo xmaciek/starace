@@ -57,11 +57,14 @@ void Model::render( RenderContext rctx ) const
     pushConstant.m_view = rctx.view;
     pushConstant.m_projection = rctx.projection;
 
-    PushBuffer<Pipeline::eTriangle3dTextureNormal> pushBuffer{};
-    pushBuffer.m_vertices = m_vertices;
-    pushBuffer.m_texture = m_texture;
+    PushBuffer pushBuffer{
+        .m_pipeline = static_cast<PipelineSlot>( Pipeline::eTriangle3dTextureNormal ),
+        .m_pushConstantSize = sizeof( PushConstant<Pipeline::eTriangle3dTextureNormal> ),
+        .m_vertice = m_vertices,
+        .m_texture = m_texture,
+    };
 
-    rctx.renderer->push( &pushBuffer, &pushConstant );
+    rctx.renderer->push( pushBuffer, &pushConstant );
 }
 
 void Model::loadOBJ( const std::filesystem::path& filename, Renderer* renderer )

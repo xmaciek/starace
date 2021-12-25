@@ -29,8 +29,12 @@ UIImage::UIImage( glm::vec2 position, glm::vec2 extent, glm::vec4 color, Texture
 void UIImage::render( RenderContext rctx ) const
 {
     assert( m_texture );
-    PushBuffer<Pipeline::eGuiTextureColor1> pushBuffer{};
-    pushBuffer.m_texture = m_texture;
+    const PushBuffer pushBuffer{
+        .m_pipeline = static_cast<PipelineSlot>( Pipeline::eGuiTextureColor1 ),
+        .m_pushConstantSize = sizeof( PushConstant<Pipeline::eGuiTextureColor1> ),
+        .m_verticeCount = 4,
+        .m_texture = m_texture,
+    };
 
     PushConstant<Pipeline::eGuiTextureColor1> pushConstant{};
     pushConstant.m_model = rctx.model;
@@ -48,7 +52,7 @@ void UIImage::render( RenderContext rctx ) const
     pushConstant.m_vertices[ 2 ] = glm::vec4{ xw, yh, 1.0f, 1.0f };
     pushConstant.m_vertices[ 3 ] = glm::vec4{ xw, y, 1.0f, 0.0f };
 
-    rctx.renderer->push( &pushBuffer, &pushConstant );
+    rctx.renderer->push( pushBuffer, &pushConstant );
 }
 
 void UIImage::setColor( glm::vec4 c )
