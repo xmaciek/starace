@@ -35,3 +35,19 @@ ActionMapping::Range2 ActionMapping::resolve2( Actuator a, bool state )
     } );
     return ret;
 }
+
+ActionMapping::Range2 ActionMapping::resolve2( Actuator a, int16_t state )
+{
+    auto [ begin, end ] = m_analogActions.equalRange( a );
+    if ( begin == end ) {
+        return {};
+    }
+
+    const size_t size = static_cast<size_t>( end - begin );
+    Range2 ret{ size };
+    std::transform( begin, end, ret.begin(), [a, state](DigitalToAnalog* ptr) -> Range2::value_type
+    {
+        return { ptr->m_eid, ptr->value( a, state ) };
+    } );
+    return ret;
+}

@@ -128,6 +128,16 @@ void Engine::gameThread()
 
 void Engine::processEvents()
 {
+
+    static constexpr auto clampDeadZone = [] ( int16_t value ) -> std::tuple<int16_t,float>
+    {
+        static constexpr int16_t dzone = 8000;
+        const int16_t sub = std::clamp<short>( value, -dzone, dzone );
+        const int16_t div = SDL_JOYSTICK_AXIS_MAX - dzone;
+        const float norm = static_cast<float>( value - sub ) / static_cast<float>( div );
+        return { static_cast<int16_t>( norm * SDL_JOYSTICK_AXIS_MAX ), norm };
+    };
+
     std::pmr::vector<SDL_Event> events{};
     {
         std::scoped_lock lock{ m_eventsBottleneck };
@@ -158,25 +168,27 @@ void Engine::processEvents()
         case SDL_CONTROLLERBUTTONDOWN:
         case SDL_CONTROLLERBUTTONUP:
         {
-            Actuator a{ static_cast<Actuator::Buttoncode>( event.caxis.axis ) };
+            const bool state = event.cbutton.state == SDL_PRESSED;
+            const Actuator a{ static_cast<Actuator::Buttoncode>( event.cbutton.button ) };
             auto [ it, end ] = m_actionMapping.resolve1( a );
             for ( ; it != end; ++it ) {
-                onAction( Action{
-                    .digital = event.cbutton.state == SDL_PRESSED,
-                    .userEnum = *it,
-                } );
+                assert( it );
+                onAction( Action{ .digital = state, .userEnum = *it } );
             }
         } break;
 
         case SDL_CONTROLLERAXISMOTION:
         {
-            Actuator a{ static_cast<Actuator::Axiscode>( event.caxis.axis ) };
+            const auto [ axis, axisf ] = clampDeadZone( event.caxis.value );
+            const Actuator a{ static_cast<Actuator::Axiscode>( event.caxis.axis ) };
             auto [ it, end ] = m_actionMapping.resolve1( a );
             for ( ; it != end; ++it ) {
-                onAction( Action{
-                    .analog = std::clamp<float>( static_cast<float>( event.caxis.value ) / 32768.0f, -1.0f, 1.0f ),
-                    .userEnum = *it,
-                } );
+                assert( it );
+                onAction( Action{ .analog = axisf, .userEnum = *it } );
+            }
+            auto actions = m_actionMapping.resolve2( a, axis );
+            for ( auto [ eid, value ] : actions ) {
+                onAction( Action{ .analog = value, .userEnum = eid } );
             }
         } break;
 
@@ -193,14 +205,11 @@ void Engine::processEvents()
                 break;
             }
 
-            Actuator a{ static_cast<Actuator::Scancode>( event.key.keysym.scancode ) };
+            const Actuator a{ static_cast<Actuator::Scancode>( event.key.keysym.scancode ) };
             auto [ it, end ] = m_actionMapping.resolve1( a );
             for ( ; it != end; ++it ) {
                 assert( it );
-                onAction( Action{
-                    .digital = newState,
-                    .userEnum = *it,
-                } );
+                onAction( Action{ .digital = newState, .userEnum = *it } );
             }
             auto actions = m_actionMapping.resolve2( a, newState );
             for ( auto [ eid, value ] : actions ) {
