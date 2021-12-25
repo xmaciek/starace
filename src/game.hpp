@@ -105,6 +105,7 @@ private:
 
     Targeting m_targeting{};
 
+    Jet::Input m_jetInput{};
     glm::vec4 m_currentHudColor = color::winScreen;
     double m_modelRotation = 0.0;
     float m_maxDimention = 0.0f;

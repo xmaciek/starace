@@ -50,8 +50,24 @@ constexpr std::tuple<GameAction, Actuator> inputActions[] = {
     { GameAction::eMenuRight, SDL_CONTROLLER_BUTTON_DPAD_RIGHT },
     { GameAction::eMenuConfirm, SDL_SCANCODE_RETURN },
     { GameAction::eMenuConfirm, SDL_CONTROLLER_BUTTON_A },
+    { GameAction::eJetPitch, SDL_CONTROLLER_AXIS_LEFTY },
+    { GameAction::eJetYaw, SDL_CONTROLLER_AXIS_RIGHTX },
+    { GameAction::eJetRoll, SDL_CONTROLLER_AXIS_LEFTX },
+    { GameAction::eJetTarget, SDL_CONTROLLER_BUTTON_Y },
+    { GameAction::eJetTarget, SDL_SCANCODE_I },
+    { GameAction::eJetShoot1, SDL_SCANCODE_J },
+    { GameAction::eJetShoot2, SDL_SCANCODE_K },
+    { GameAction::eJetShoot3, SDL_SCANCODE_L },
+    { GameAction::eJetShoot1, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER },
+    { GameAction::eJetShoot3, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER },
+    { GameAction::eJetShoot2, SDL_CONTROLLER_BUTTON_LEFTSHOULDER },
 };
 
+constexpr std::tuple<GameAction, Actuator, Actuator> inputActions2[] = {
+    { GameAction::eJetPitch, SDL_SCANCODE_W, SDL_SCANCODE_S },
+    { GameAction::eJetYaw, SDL_SCANCODE_Q, SDL_SCANCODE_E },
+    { GameAction::eJetRoll, SDL_SCANCODE_A, SDL_SCANCODE_D },
+};
 
 Game::Game( int argc, char** argv )
 : Engine{ argc, argv }
@@ -151,8 +167,11 @@ void Game::onInit()
     ZoneScoped;
     loadConfig();
 
-    for ( const auto& it : inputActions ) {
-        registerAction( static_cast<Action::Enum>( std::get<0>( it ) ), std::get<1>( it ) );
+    for ( auto [ eid, act ] : inputActions ) {
+        registerAction( static_cast<Action::Enum>( eid ), act );
+    }
+    for ( auto [ eid, min, max ] : inputActions2 ) {
+        registerAction( static_cast<Action::Enum>( eid ), min, max );
     }
 
     m_laser = m_audio->load( "sounds/laser.wav" );
@@ -422,20 +441,7 @@ void Game::updateGame( const UpdateContext& updateContext )
 {
     assert( m_jet );
 
-    Jet::Input jetInput{};
-    const Uint8* kbd = SDL_GetKeyboardState( nullptr );
-    jetInput.pitch += kbd[ SDL_SCANCODE_W ] ? 1.0f : 0.0f;
-    jetInput.pitch += kbd[ SDL_SCANCODE_S ] ? -1.0f : 0.0f;
-    jetInput.yaw += kbd[ SDL_SCANCODE_Q ] ?  1.0f : 0.0f;
-    jetInput.yaw += kbd[ SDL_SCANCODE_E ] ? -1.0f : 0.0f;
-    jetInput.roll += kbd[ SDL_SCANCODE_A ] ? -1.0f : 0.0f;
-    jetInput.roll += kbd[ SDL_SCANCODE_D ] ?  1.0f : 0.0f;
-    jetInput.speed += kbd[ SDL_SCANCODE_U ] ? -1.0f : 0.0f;
-    jetInput.speed += kbd[ SDL_SCANCODE_O ] ?  1.0f : 0.0f;
-    jetInput.shoot1 = !!kbd[ SDL_SCANCODE_J ];
-    jetInput.shoot2 = !!kbd[ SDL_SCANCODE_K ];
-    jetInput.shoot3 = !!kbd[ SDL_SCANCODE_L ];
-    m_jet->setInput( jetInput );
+    m_jet->setInput( m_jetInput );
 
     if ( m_jet->status() == Jet::Status::eDead ) {
         changeScreen( Screen::eDead );
@@ -905,10 +911,29 @@ void Game::reloadPreviewModel()
 
 void Game::onAction( Action a )
 {
+    const GameAction action = a.toA<GameAction>();
+    switch ( action ) {
+    case GameAction::eJetPitch: m_jetInput.pitch = -a.analog; break;
+    case GameAction::eJetYaw: m_jetInput.yaw = -a.analog; break;
+    case GameAction::eJetRoll: m_jetInput.roll = a.analog; break;
+    case GameAction::eJetShoot1: m_jetInput.shoot1 = a.digital; break;
+    case GameAction::eJetShoot2: m_jetInput.shoot2 = a.digital; break;
+    case GameAction::eJetShoot3: m_jetInput.shoot3 = a.digital; break;
+    default: break;
+    }
     switch ( m_currentScreen ) {
     case Screen::eMainMenu:
         m_screenTitle.onAction( a );
         return;
+    case Screen::eGame:
+        switch ( action ) {
+        case GameAction::eJetTarget:
+            if ( a.digital ) { retarget(); }
+            return;
+        default:
+            break;
+        }
+        break;
     default:
         return;
     }
