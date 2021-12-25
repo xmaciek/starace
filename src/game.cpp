@@ -50,9 +50,11 @@ constexpr std::tuple<GameAction, Actuator> inputActions[] = {
     { GameAction::eMenuRight, SDL_CONTROLLER_BUTTON_DPAD_RIGHT },
     { GameAction::eMenuConfirm, SDL_SCANCODE_RETURN },
     { GameAction::eMenuConfirm, SDL_CONTROLLER_BUTTON_A },
+    { GameAction::eGamePause, SDL_SCANCODE_ESCAPE },
+    { GameAction::eGamePause, SDL_CONTROLLER_BUTTON_START },
     { GameAction::eJetPitch, SDL_CONTROLLER_AXIS_LEFTY },
-    { GameAction::eJetYaw, SDL_CONTROLLER_AXIS_RIGHTX },
-    { GameAction::eJetRoll, SDL_CONTROLLER_AXIS_LEFTX },
+    { GameAction::eJetYaw, SDL_CONTROLLER_AXIS_LEFTX },
+    { GameAction::eJetRoll, SDL_CONTROLLER_AXIS_RIGHTX },
     { GameAction::eJetTarget, SDL_CONTROLLER_BUTTON_Y },
     { GameAction::eJetTarget, SDL_SCANCODE_I },
     { GameAction::eJetShoot1, SDL_SCANCODE_J },
@@ -67,6 +69,8 @@ constexpr std::tuple<GameAction, Actuator, Actuator> inputActions2[] = {
     { GameAction::eJetPitch, SDL_SCANCODE_W, SDL_SCANCODE_S },
     { GameAction::eJetYaw, SDL_SCANCODE_Q, SDL_SCANCODE_E },
     { GameAction::eJetRoll, SDL_SCANCODE_A, SDL_SCANCODE_D },
+    { GameAction::eJetSpeed, SDL_SCANCODE_U, SDL_SCANCODE_O },
+    { GameAction::eJetSpeed, SDL_CONTROLLER_AXIS_TRIGGERLEFT, SDL_CONTROLLER_AXIS_TRIGGERRIGHT },
 };
 
 Game::Game( int argc, char** argv )
@@ -919,21 +923,37 @@ void Game::onAction( Action a )
     case GameAction::eJetShoot1: m_jetInput.shoot1 = a.digital; break;
     case GameAction::eJetShoot2: m_jetInput.shoot2 = a.digital; break;
     case GameAction::eJetShoot3: m_jetInput.shoot3 = a.digital; break;
+    case GameAction::eJetSpeed: m_jetInput.speed = a.analog; break;
     default: break;
     }
+
     switch ( m_currentScreen ) {
     case Screen::eMainMenu:
         m_screenTitle.onAction( a );
         return;
+
+    case Screen::eGamePaused:
+        switch ( action ) {
+        case GameAction::eGamePause:
+            if ( a.digital ) { unpause(); }
+            return;
+        default:
+            return;
+        }
+        return;
+
     case Screen::eGame:
         switch ( action ) {
         case GameAction::eJetTarget:
             if ( a.digital ) { retarget(); }
             return;
+        case GameAction::eGamePause:
+            if ( a.digital ) { pause(); }
+            return;
         default:
-            break;
+            return;
         }
-        break;
+
     default:
         return;
     }

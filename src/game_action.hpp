@@ -10,6 +10,8 @@ enum class GameAction : Action::Enum {
     eMenuLeft,
     eMenuRight,
 
+    eGamePause,
+
     eJetPitch,
     eJetYaw,
     eJetRoll,
@@ -17,4 +19,5 @@ enum class GameAction : Action::Enum {
     eJetShoot2,
     eJetShoot3,
     eJetTarget,
+    eJetSpeed,
 };
