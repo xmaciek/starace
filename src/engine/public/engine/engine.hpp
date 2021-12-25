@@ -52,6 +52,7 @@ protected:
     void quit();
 
     void registerAction( Action::Enum, Actuator );
+    void registerAction( Action::Enum, Actuator, Actuator );
 
     virtual void onAction( Action ) = 0;
     virtual void onInit() = 0;

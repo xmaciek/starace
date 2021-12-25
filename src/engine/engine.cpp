@@ -159,7 +159,7 @@ void Engine::processEvents()
         case SDL_CONTROLLERBUTTONUP:
         {
             Actuator a{ static_cast<Actuator::Buttoncode>( event.caxis.axis ) };
-            auto [ it, end ] = m_actionMapping.resolve( a );
+            auto [ it, end ] = m_actionMapping.resolve1( a );
             for ( ; it != end; ++it ) {
                 onAction( Action{
                     .digital = event.cbutton.state == SDL_PRESSED,
@@ -171,7 +171,7 @@ void Engine::processEvents()
         case SDL_CONTROLLERAXISMOTION:
         {
             Actuator a{ static_cast<Actuator::Axiscode>( event.caxis.axis ) };
-            auto [ it, end ] = m_actionMapping.resolve( a );
+            auto [ it, end ] = m_actionMapping.resolve1( a );
             for ( ; it != end; ++it ) {
                 onAction( Action{
                     .analog = std::clamp<float>( static_cast<float>( event.caxis.value ) / 32768.0f, -1.0f, 1.0f ),
@@ -194,13 +194,17 @@ void Engine::processEvents()
             }
 
             Actuator a{ static_cast<Actuator::Scancode>( event.key.keysym.scancode ) };
-            auto [ it, end ] = m_actionMapping.resolve( a );
+            auto [ it, end ] = m_actionMapping.resolve1( a );
             for ( ; it != end; ++it ) {
                 assert( it );
                 onAction( Action{
-                    .digital = event.key.state == SDL_PRESSED,
+                    .digital = newState,
                     .userEnum = *it,
                 } );
+            }
+            auto actions = m_actionMapping.resolve2( a, newState );
+            for ( auto [ eid, value ] : actions ) {
+                onAction( Action{ .analog = value, .userEnum = eid } );
             }
         } break;
 
@@ -230,6 +234,11 @@ std::tuple<uint32_t, uint32_t, float> Engine::viewport() const
 void Engine::registerAction( Action::Enum eid, Actuator a )
 {
     m_actionMapping.registerAction( eid, a );
+}
+
+void Engine::registerAction( Action::Enum eid, Actuator a, Actuator b )
+{
+    m_actionMapping.registerAction( eid, a, b );
 }
 
 void Engine::controllerAdd( int idx )
