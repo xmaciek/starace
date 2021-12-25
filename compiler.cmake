@@ -6,6 +6,8 @@ target_compile_options( cxx::flags INTERFACE
     -Wall
     -Wextra
     -Wno-missing-field-initializers
+    -fno-rtti
+    -fno-exceptions
 )
 elseif ( ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" )
 target_compile_options( cxx::flags INTERFACE
@@ -13,6 +15,8 @@ target_compile_options( cxx::flags INTERFACE
     -Wall
     -Wextra
     -Wno-missing-field-initializers
+    -fno-rtti
+    -fno-exceptions
 )
 elseif ( ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC" )
 else ()
