@@ -1,8 +1,9 @@
 #include "thruster.hpp"
 
-#include <renderer/pipeline.hpp>
-#include <renderer/renderer.hpp>
 #include "circle.hpp"
+#include "game_pipeline.hpp"
+
+#include <renderer/renderer.hpp>
 
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>

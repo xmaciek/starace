@@ -1,9 +1,9 @@
 #include "ui_rings.hpp"
 
 #include "constants.hpp"
+#include "game_pipeline.hpp"
 #include "utils.hpp"
 
-#include <renderer/pipeline.hpp>
 #include <renderer/renderer.hpp>
 
 #include <glm/vec4.hpp>

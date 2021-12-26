@@ -2,11 +2,10 @@
 
 #include "circle.hpp"
 #include "colors.hpp"
+#include "game_pipeline.hpp"
 #include "utils.hpp"
 
-#include <renderer/pipeline.hpp>
 #include <renderer/renderer.hpp>
-
 
 #include <glm/gtc/matrix_transform.hpp>
 

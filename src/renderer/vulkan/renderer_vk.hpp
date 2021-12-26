@@ -57,7 +57,7 @@ class RendererVK : public Renderer {
     std::pmr::vector<DescriptorSet> m_descriptorSetBuffer{};
 
     RenderPass m_mainPass{};
-    std::array<PipelineVK, (size_t)Pipeline::count> m_pipelines{};
+    std::array<PipelineVK, 16> m_pipelines{};
     PipelineVK* m_lastPipeline = nullptr;
 
     Indexer<64> m_textureIndexer{};

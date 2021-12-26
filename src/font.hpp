@@ -1,5 +1,7 @@
 #pragma once
 
+#include "game_pipeline.hpp"
+
 #include <shared/fixed_map.hpp>
 #include <engine/render_context.hpp>
 #include <renderer/texture.hpp>

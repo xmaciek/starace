@@ -1,7 +1,8 @@
 #include "ui_image.hpp"
 
+#include "game_pipeline.hpp"
+
 #include <renderer/renderer.hpp>
-#include <renderer/pipeline.hpp>
 
 #include <cassert>
 

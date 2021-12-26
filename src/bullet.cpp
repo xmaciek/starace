@@ -1,8 +1,8 @@
 #include "bullet.hpp"
 
-#include <renderer/pipeline.hpp>
 #include <renderer/renderer.hpp>
 
+#include "game_pipeline.hpp"
 #include "utils.hpp"
 
 #include <glm/vec4.hpp>

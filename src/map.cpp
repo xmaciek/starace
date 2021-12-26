@@ -1,13 +1,14 @@
 #include "map.hpp"
 
-#include <algorithm>
-
+#include "game_pipeline.hpp"
 #include "utils.hpp"
-#include <renderer/pipeline.hpp>
+
 #include <renderer/renderer.hpp>
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+#include <algorithm>
 
 static constexpr float uvmin = 0.00125f;
 static constexpr float uvmax = 0.99875f;

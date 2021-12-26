@@ -298,6 +298,7 @@ void RendererVK::createPipeline( const PipelineCreateInfo& pci )
 {
     ZoneScoped;
 
+    assert( pci.m_slot < m_pipelines.size() );
     assert( pci.m_constantBindBits != 0 );
     assert( std::popcount( pci.m_constantBindBits ) == 1 );
     assert( ( pci.m_constantBindBits & pci.m_textureBindBits ) == 0 ); // mutually exclusive bits

@@ -1,13 +1,14 @@
 #include "model.hpp"
 
+#include "game_pipeline.hpp"
 #include "obj.hpp"
 #include "texture.hpp"
-#include <renderer/pipeline.hpp>
+
 #include <renderer/renderer.hpp>
 
-#include <algorithm>
-
 #include <glm/gtc/matrix_transform.hpp>
+
+#include <algorithm>
 
 Model::~Model()
 {

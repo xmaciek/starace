@@ -1,7 +1,7 @@
 #include "font.hpp"
 
 #include "texture.hpp"
-#include <renderer/pipeline.hpp>
+
 #include <renderer/renderer.hpp>
 
 #include <ft2build.h>
