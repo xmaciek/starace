@@ -85,6 +85,7 @@ Game::Game( int argc, char** argv )
     m_renderer->createPipeline( g_pipelineLine3DColor );
     m_renderer->createPipeline( g_pipelineShortString );
     m_renderer->createPipeline( g_pipelineTriangle3DTextureNormal );
+    m_renderer->createPipeline( g_pipelineProgressBar );
 
     preloadData();
     changeScreen( Screen::eMainMenu );

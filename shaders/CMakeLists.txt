@@ -31,3 +31,6 @@ compileShader( lines_color1.frag )
 
 compileShader( short_string.vert )
 compileShader( short_string.frag )
+
+compileShader( progressbar.vert )
+compileShader( progressbar.frag )

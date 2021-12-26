@@ -14,6 +14,7 @@ enum class Pipeline : PipelineSlot {
     eTriangleFan3dColor,
     eTriangleFan3dTexture,
     eShortString,
+    eProgressBar,
     count,
 };
 
@@ -89,6 +90,18 @@ struct PushConstant<Pipeline::eShortString> {
 
     static constexpr size_t charCount = 48;
     std::array<glm::vec4, charCount * 6> m_vertices{};
+
+    PushConstant() = default;
+};
+
+template <>
+struct PushConstant<Pipeline::eProgressBar> {
+    glm::mat4 m_model{};
+    glm::mat4 m_view{};
+    glm::mat4 m_projection{};
+    glm::vec4 m_vertices[ 4 ]{};
+    glm::vec4 m_color[ 2 ]{};
+    glm::vec4 m_axis{};
 
     PushConstant() = default;
 };
@@ -184,4 +197,15 @@ static constexpr PipelineCreateInfo g_pipelineTriangle3DTextureNormal{
     },
     .m_constantBindBits = 0b1,
     .m_textureBindBits = 0b10,
+};
+
+static constexpr PipelineCreateInfo g_pipelineProgressBar{
+    .m_vertexShader = "shaders/progressbar.vert.spv",
+    .m_fragmentShader = "shaders/progressbar.frag.spv",
+    .m_slot = static_cast<PipelineSlot>( Pipeline::eProgressBar ),
+    .m_enableBlend = true,
+    .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
+    .m_cullMode = PipelineCreateInfo::CullMode::eBack,
+    .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
+    .m_constantBindBits = 0b1,
 };

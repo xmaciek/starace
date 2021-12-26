@@ -53,26 +53,25 @@ void HudBar::render( RenderContext rctx ) const
     // colorbar
     {
         PushBuffer pushBuffer{
-            .m_pipeline = static_cast<PipelineSlot>( Pipeline::eTriangleFan3dColor ),
-            .m_pushConstantSize = sizeof( PushConstant<Pipeline::eTriangleFan3dColor> ),
+            .m_pipeline = static_cast<PipelineSlot>( Pipeline::eProgressBar ),
+            .m_pushConstantSize = sizeof( PushConstant<Pipeline::eProgressBar> ),
             .m_verticeCount = 4,
         };
-
-        PushConstant<Pipeline::eTriangleFan3dColor> pushConstant{};
+        PushConstant<Pipeline::eProgressBar> pushConstant{};
         pushConstant.m_model = rctx.model;
         pushConstant.m_view = rctx.view;
         pushConstant.m_projection = rctx.projection;
         const glm::vec2 wh{ xywh.z - sideoff * 2.0f - 6.0f, ( xywh.w - topoff - 10.0f ) };
-        const glm::vec2 xy{ sideoff + 2.0f, topoff + 4.0f + wh.y * ( 1.0f - m_value ) };
-        const auto bar = composeRect( xy, wh * glm::vec2{ 1.0f, m_value } );
-        std::copy( bar.begin(), bar.end(), pushConstant.m_vertices.begin() );
-        const glm::vec4 color{
+        const glm::vec2 xy{ sideoff + 2.0f, topoff + 4.0f };
+        const auto bar = composeRect( xy, wh );
+        std::copy( bar.begin(), bar.end(), std::begin( pushConstant.m_vertices ) );
+        pushConstant.m_color[ 1 ] = glm::vec4{
             1.0f - m_value + colorHalf( m_value )
             , m_value + colorHalf( m_value )
             , 0.0f
             , 1.0f
         };
-        std::fill_n( pushConstant.m_colors.begin(), 4, color );
+        pushConstant.m_axis = glm::vec4{ axis::y, m_value };
         rctx.renderer->push( pushBuffer, &pushConstant );
     }
 }
