@@ -23,7 +23,8 @@ public:
     ~PipelineVK();
     PipelineVK() = default;
 
-    PipelineVK( Pipeline, VkDevice, VkRenderPass, VkDescriptorSetLayout, bool depthTest, std::string_view vertex, std::string_view fragment );
+    PipelineVK( const PipelineCreateInfo&, VkDevice, VkRenderPass, VkDescriptorSetLayout );
+
     PipelineVK( PipelineVK&& ) noexcept;
     PipelineVK& operator = ( PipelineVK&& ) noexcept;
 

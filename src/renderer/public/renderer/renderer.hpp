@@ -19,6 +19,7 @@ public:
     static Renderer* instance();
     static SDL_WindowFlags windowFlag();
 
+    virtual void createPipeline( const PipelineCreateInfo& ) = 0;
     virtual Buffer createBuffer( std::pmr::vector<float>&& ) = 0;
     virtual std::pmr::memory_resource* allocator() = 0;
     virtual Texture createTexture( uint32_t w, uint32_t h, TextureFormat, bool genMips, std::pmr::vector<uint8_t>&& ) = 0;

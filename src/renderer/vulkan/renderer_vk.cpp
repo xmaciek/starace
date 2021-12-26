@@ -6,6 +6,7 @@
 #include <Tracy.hpp>
 
 #include <algorithm>
+#include <bit>
 #include <cassert>
 #include <iostream>
 #include <optional>
@@ -291,65 +292,36 @@ RendererVK::RendererVK( SDL_Window* window )
         assert( renderOK == VK_SUCCESS );
     }
 
-
-    m_pipelines[ (size_t)Pipeline::eGuiTextureColor1 ] = PipelineVK{ Pipeline::eGuiTextureColor1
-        , m_device
-        , m_mainPass
-        , m_descriptorSetBufferSampler[ 0 ].layout()
-        , false
-        , "shaders/gui_texture_color.vert.spv"
-        , "shaders/gui_texture_color.frag.spv"
-    };
-    m_pipelines[ (size_t)Pipeline::eLine3dStripColor ] = PipelineVK{ Pipeline::eLine3dStripColor
-        , m_device
-        , m_mainPass
-        , m_descriptorSetBuffer[ 0 ].layout()
-        , true
-        , "shaders/line3_strip_color.vert.spv"
-        , "shaders/line3_strip_color.frag.spv"
-    };
-    m_pipelines[ (size_t)Pipeline::eTriangleFan3dTexture ] = PipelineVK{ Pipeline::eTriangleFan3dTexture
-        , m_device
-        , m_mainPass
-        , m_descriptorSetBufferSampler[ 0 ].layout()
-        , true
-        , "shaders/trianglefan_texture.vert.spv"
-        , "shaders/trianglefan_texture.frag.spv"
-    };
-    m_pipelines[ (size_t)Pipeline::eTriangleFan3dColor ] = PipelineVK{ Pipeline::eTriangleFan3dColor
-        , m_device
-        , m_mainPass
-        , m_descriptorSetBuffer[ 0 ].layout()
-        , true
-        , "shaders/trianglefan_color.vert.spv"
-        , "shaders/trianglefan_color.frag.spv"
-    };
-    m_pipelines[ (size_t)Pipeline::eTriangle3dTextureNormal ] = PipelineVK{ Pipeline::eTriangle3dTextureNormal
-        , m_device
-        , m_mainPass
-        , m_descriptorSetBufferSampler[ 0 ].layout()
-        , true
-        , "shaders/vert3_texture_normal3.vert.spv"
-        , "shaders/vert3_texture_normal3.frag.spv"
-    };
-    m_pipelines[ (size_t)Pipeline::eLine3dColor1 ] = PipelineVK{ Pipeline::eLine3dColor1
-        , m_device
-        , m_mainPass
-        , m_descriptorSetBuffer[ 0 ].layout()
-        , true
-        , "shaders/lines_color1.vert.spv"
-        , "shaders/lines_color1.frag.spv"
-    };
-    m_pipelines[ (size_t)Pipeline::eShortString ] = PipelineVK{ Pipeline::eShortString
-        , m_device
-        , m_mainPass
-        , m_descriptorSetBufferSampler[ 0 ].layout()
-        , false
-        , "shaders/short_string.vert.spv"
-        , "shaders/short_string.frag.spv"
-    };
 }
 
+void RendererVK::createPipeline( const PipelineCreateInfo& pci )
+{
+    ZoneScoped;
+
+    assert( pci.m_constantBindBits != 0 );
+    assert( std::popcount( pci.m_constantBindBits ) == 1 );
+    assert( ( pci.m_constantBindBits & pci.m_textureBindBits ) == 0 ); // mutually exclusive bits
+
+    uint32_t descriptorSetType = pci.m_constantBindBits;
+    descriptorSetType <<= 16;
+    descriptorSetType |= pci.m_textureBindBits;
+
+    DescriptorSet* descriptorSet = nullptr;
+    switch ( descriptorSetType ) {
+    case 0x1'0000: descriptorSet = &m_descriptorSetBuffer[ 0 ];  break;
+    case 0x1'0002: descriptorSet = &m_descriptorSetBufferSampler[ 0 ]; break;
+    default:
+        assert( !"unsupported descriptor set type" );
+        return;
+    }
+
+    m_pipelines[ static_cast<PipelineSlot>( pci.m_slot ) ] = PipelineVK{
+        pci
+        , m_device
+        , m_mainPass
+        , descriptorSet->layout()
+    };
+}
 
 RendererVK::~RendererVK()
 {

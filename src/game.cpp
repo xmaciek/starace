@@ -3,6 +3,7 @@
 #include "colors.hpp"
 #include "constants.hpp"
 #include "game_action.hpp"
+#include "game_pipeline.hpp"
 #include "utils.hpp"
 
 #include <Tracy.hpp>
@@ -77,6 +78,14 @@ Game::Game( int argc, char** argv )
 : Engine{ argc, argv }
 {
     ZoneScoped;
+    m_renderer->createPipeline( g_pipelineGui );
+    m_renderer->createPipeline( g_pipelineLineStripColor );
+    m_renderer->createPipeline( g_pipelineTriangleFan3DTexture );
+    m_renderer->createPipeline( g_pipelineTriangleFan3DColor );
+    m_renderer->createPipeline( g_pipelineLine3DColor );
+    m_renderer->createPipeline( g_pipelineShortString );
+    m_renderer->createPipeline( g_pipelineTriangle3DTextureNormal );
+
     preloadData();
     changeScreen( Screen::eMainMenu );
 
