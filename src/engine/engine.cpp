@@ -177,14 +177,24 @@ void Engine::processEvents()
 
         case SDL_CONTROLLERAXISMOTION:
         {
-            const auto [ axis, axisf ] = clampDeadZone( event.caxis.value );
+            [[maybe_unused]]
+            static auto tid = std::this_thread::get_id();
+            assert( tid == std::this_thread::get_id() );
+            thread_local std::array<int16_t, SDL_CONTROLLER_AXIS_MAX> axisState{};
+
+            const auto [ newState, newStateF ] = clampDeadZone( event.caxis.value );
+            const int16_t oldState = std::exchange( axisState[ event.caxis.axis ], newState );
+            if ( oldState == newState ) {
+                break;
+            }
+
             const Actuator a{ static_cast<Actuator::Axiscode>( event.caxis.axis ) };
             auto [ it, end ] = m_actionMapping.resolve1( a );
             for ( ; it != end; ++it ) {
                 assert( it );
-                onAction( Action{ .analog = axisf, .userEnum = *it } );
+                onAction( Action{ .analog = newStateF, .userEnum = *it } );
             }
-            auto actions = m_actionMapping.resolve2( a, axis );
+            auto actions = m_actionMapping.resolve2( a, newState );
             for ( auto [ eid, value ] : actions ) {
                 onAction( Action{ .analog = value, .userEnum = eid } );
             }
