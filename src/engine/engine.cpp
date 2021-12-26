@@ -120,9 +120,7 @@ void Engine::gameThread()
 
         const std::chrono::time_point now = std::chrono::steady_clock::now();
         const auto dt = std::chrono::duration_cast<std::chrono::microseconds>( now - tp );
-        updateContext.deltaTime = (float)dt.count();
-        // TODO: fix game speed later
-        updateContext.deltaTime /= 500'000;
+        updateContext.deltaTime = (float)dt.count() / 1'000'000;
     }
 }
 

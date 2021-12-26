@@ -61,7 +61,7 @@ std::tuple<glm::mat4, glm::mat4> Game::getCameraMatrix() const
     view = glm::translate( view, -m_jet->position() );
     return {
         view,
-        glm::perspective( glm::radians( m_angle + m_jet->speed() * 6 ), viewportAspect(), 0.001f, 2000.0f )
+        glm::perspective( glm::radians( m_angle + m_jet->speed() * 3 ), viewportAspect(), 0.001f, 2000.0f )
     };
 }
 

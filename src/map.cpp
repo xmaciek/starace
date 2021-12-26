@@ -161,7 +161,7 @@ void Map::render( RenderContext rctx )
 
 void Map::update( const UpdateContext& updateContext )
 {
-    const glm::vec4 tmpVelocity{ m_jetVelocity * -0.1f * updateContext.deltaTime, 0.0f };
+    const glm::vec4 tmpVelocity{ m_jetVelocity * -0.05f * updateContext.deltaTime, 0.0f };
     for ( auto& it : m_particleList ) {
         it += tmpVelocity;
         if ( glm::distance( glm::vec3{ it }, m_jetPosition ) >= 1.5 ) {

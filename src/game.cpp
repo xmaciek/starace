@@ -324,7 +324,7 @@ void Game::onInit()
 
     BulletProto tmpWeapon{};
     tmpWeapon.type = Bullet::Type::eSlug;
-    tmpWeapon.delay = 0.1;
+    tmpWeapon.delay = 0.05;
     tmpWeapon.energy = 15;
     tmpWeapon.damage = 1;
     tmpWeapon.score_per_hit = 1;
@@ -333,10 +333,10 @@ void Game::onInit()
     m_weapons[ 0 ] = tmpWeapon;
 
     tmpWeapon.type = Bullet::Type::eBlaster;
-    tmpWeapon.speed = 16;
+    tmpWeapon.speed = 32;
     tmpWeapon.damage = 10;
     tmpWeapon.energy = 10;
-    tmpWeapon.delay = 0.2;
+    tmpWeapon.delay = 0.1;
     tmpWeapon.color1 = color::blaster;
     tmpWeapon.score_per_hit = 30;
     m_weapons[ 1 ] = tmpWeapon;
@@ -347,9 +347,9 @@ void Game::onInit()
 
     tmpWeapon.type = Bullet::Type::eTorpedo;
     tmpWeapon.damage = 1;
-    tmpWeapon.delay = 0.4;
+    tmpWeapon.delay = 0.2;
     tmpWeapon.energy = 1;
-    tmpWeapon.speed = 8;
+    tmpWeapon.speed = 16;
     tmpWeapon.score_per_hit = 2;
     tmpWeapon.color1 = color::orchid;
     m_weapons[ 2 ] = tmpWeapon;

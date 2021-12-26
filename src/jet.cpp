@@ -12,8 +12,8 @@
 #include <cassert>
 #include <cmath>
 
-constexpr static glm::vec3 defaultPyrAcceleration{ 15.0_deg, 10.0_deg, 50.0_deg };
-constexpr static glm::vec3 defaultPyrLimits{ 40.0_deg, 20.0_deg, 60.0_deg };
+constexpr static glm::vec3 defaultPyrAcceleration{ 30.0_deg, 20.0_deg, 100.0_deg };
+constexpr static glm::vec3 defaultPyrLimits{ 80.0_deg, 40.0_deg, 120.0_deg };
 constexpr static glm::vec3 defaultPyrAnimLimits{ 5.0_deg, 5.0_deg, 15.0_deg };
 
 Jet::Jet( const ModelProto& modelData, Renderer* renderer )
@@ -27,7 +27,7 @@ Jet::Jet( const ModelProto& modelData, Renderer* renderer )
     m_collisionFlag = true;
     m_direction.z = -1;
     m_health = 100;
-    m_speed = 2;
+    m_speed = 4;
     setStatus( Status::eAlive );
 
     m_model = Model(  modelData.model_file
@@ -113,8 +113,8 @@ void Jet::update( const UpdateContext& updateContext )
     m_direction = glm::normalize( glm::rotate( m_quaternion, glm::vec3{ 0.0f, 0.0f, -1.0f } ) );
     m_velocity = direction() * speed();
 
-    if ( speed() < 3.0f ) {
-        m_thruster.setLength( speed() / 8.0f );
+    if ( speed() < 6.0f ) {
+        m_thruster.setLength( speed() / 16.0f );
     }
 
     if ( m_shotFactor[ 0 ] < m_weapon[ 0 ].delay ) {

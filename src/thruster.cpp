@@ -33,9 +33,9 @@ void Thruster::setColorScheme( const ColorScheme& col )
 
 void Thruster::update( const UpdateContext& updateContext )
 {
-    constexpr static float wiggleDuration = 0.25f;
+    constexpr static float wiggleDuration = 0.125f;
     m_wiggle = std::fmod( m_wiggle + updateContext.deltaTime, wiggleDuration );
-    const float f = std::cos( (float)M_PI * ( m_wiggle / wiggleDuration - 0.5f ) );
+    const float f = std::cos( (float)M_PI * ( m_wiggle / wiggleDuration - 0.25f ) );
     const float diff = m_lengthRange.y - m_lengthRange.x;
     m_length = m_lengthRange.x + f * diff;
 }

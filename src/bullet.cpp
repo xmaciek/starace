@@ -49,7 +49,7 @@ Bullet::Bullet( const BulletProto& bp )
     m_speed = bp.speed;
     m_damage = bp.damage;
     m_score = bp.score_per_hit;
-    m_tailChunkLength = m_speed / 30.0f;
+    m_tailChunkLength = m_speed / 60.0f;
 
     if ( m_type == Type::eSlug ) {
         m_color1 = m_color2;

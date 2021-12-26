@@ -56,14 +56,14 @@ void UIRings::update( const UpdateContext& uctx )
         if ( f < -constants::pi ) { return f + constants::pi * 2.0f; }
         return f;
     };
-    m_angle[ 0 ] = warp( m_angle[ 0 ] + 25.0_deg * uctx.deltaTime );
-    m_angle[ 1 ] = warp( m_angle[ 1 ] - 15.0_deg * uctx.deltaTime );
+    m_angle[ 0 ] = warp( m_angle[ 0 ] + 50.0_deg * uctx.deltaTime );
+    m_angle[ 1 ] = warp( m_angle[ 1 ] - 30.0_deg * uctx.deltaTime );
 
-    static float speed = 35.0_deg;
+    static float speed = 70.0_deg;
     if ( m_angle[ 2 ] <= 0.0_deg ) {
-        speed = 35.0_deg;
+        speed = 70.0_deg;
     } else if ( m_angle[ 2 ] > 90.0_deg ) {
-        speed = -20.0_deg;
+        speed = -40.0_deg;
     }
     m_angle[ 2 ] += speed * uctx.deltaTime;
 }
