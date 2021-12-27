@@ -1,5 +1,7 @@
 #include <engine/engine.hpp>
 
+#include "action_mapping.hpp"
+
 #include <SDL2/SDL.h>
 #include <Tracy.hpp>
 
@@ -46,7 +48,6 @@ static BinaryConfigBlob loadConfig()
 
 
 Engine::Engine( int, char** ) noexcept
-: m_io{ std::make_unique<AsyncIO>() }
 {
     ZoneScoped;
     [[maybe_unused]]
@@ -66,13 +67,15 @@ Engine::Engine( int, char** ) noexcept
     );
     assert( m_window );
 
+    m_actionMapping = std::make_unique<ActionMapping>();
+    m_ioPtr = std::make_unique<AsyncIO>();
+    m_io = m_ioPtr.get();
+
     m_renderer = Renderer::create( m_window );
     m_rendererPtr = std::unique_ptr<Renderer>( m_renderer );
-    assert( m_renderer );
 
     m_audio = Audio::create();
     m_audioPtr = std::unique_ptr<Audio>( m_audio );
-    assert( m_audio );
 
 }
 
@@ -168,7 +171,7 @@ void Engine::processEvents()
         {
             const bool state = event.cbutton.state == SDL_PRESSED;
             const Actuator a{ static_cast<Actuator::Buttoncode>( event.cbutton.button ) };
-            auto [ it, end ] = m_actionMapping.resolve1( a );
+            auto [ it, end ] = m_actionMapping->resolve1( a );
             for ( ; it != end; ++it ) {
                 assert( it );
                 onAction( Action{ .digital = state, .userEnum = *it } );
@@ -189,12 +192,12 @@ void Engine::processEvents()
             }
 
             const Actuator a{ static_cast<Actuator::Axiscode>( event.caxis.axis ) };
-            auto [ it, end ] = m_actionMapping.resolve1( a );
+            auto [ it, end ] = m_actionMapping->resolve1( a );
             for ( ; it != end; ++it ) {
                 assert( it );
                 onAction( Action{ .analog = newStateF, .userEnum = *it } );
             }
-            auto actions = m_actionMapping.resolve2( a, newState );
+            auto actions = m_actionMapping->resolve2( a, newState );
             for ( auto [ eid, value ] : actions ) {
                 onAction( Action{ .analog = value, .userEnum = eid } );
             }
@@ -214,12 +217,12 @@ void Engine::processEvents()
             }
 
             const Actuator a{ static_cast<Actuator::Scancode>( event.key.keysym.scancode ) };
-            auto [ it, end ] = m_actionMapping.resolve1( a );
+            auto [ it, end ] = m_actionMapping->resolve1( a );
             for ( ; it != end; ++it ) {
                 assert( it );
                 onAction( Action{ .digital = newState, .userEnum = *it } );
             }
-            auto actions = m_actionMapping.resolve2( a, newState );
+            auto actions = m_actionMapping->resolve2( a, newState );
             for ( auto [ eid, value ] : actions ) {
                 onAction( Action{ .analog = value, .userEnum = eid } );
             }
@@ -250,12 +253,12 @@ std::tuple<uint32_t, uint32_t, float> Engine::viewport() const
 
 void Engine::registerAction( Action::Enum eid, Actuator a )
 {
-    m_actionMapping.registerAction( eid, a );
+    m_actionMapping->registerAction( eid, a );
 }
 
 void Engine::registerAction( Action::Enum eid, Actuator a, Actuator b )
 {
-    m_actionMapping.registerAction( eid, a, b );
+    m_actionMapping->registerAction( eid, a, b );
 }
 
 void Engine::controllerAdd( int idx )

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <engine/action.hpp>
-#include <engine/action_mapping.hpp>
 #include <engine/async_io.hpp>
 #include <engine/fps_meter.hpp>
 #include <engine/update_context.hpp>
@@ -21,6 +20,7 @@
 #include <vector>
 
 struct SDL_Window;
+class ActionMapping;
 
 class Engine {
 private:
@@ -28,19 +28,20 @@ private:
 
     SDL_Window* m_window = nullptr;
     std::tuple<uint32_t, uint32_t, float> m_viewport{};
-    std::unique_ptr<Renderer> m_rendererPtr{};
+    std::unique_ptr<ActionMapping> m_actionMapping{};
+    std::unique_ptr<AsyncIO> m_ioPtr{};
     std::unique_ptr<Audio> m_audioPtr{};
+    std::unique_ptr<Renderer> m_rendererPtr{};
 
     std::mutex m_eventsBottleneck{};
     std::pmr::vector<SDL_Event> m_events{};
 
-    ActionMapping m_actionMapping{};
     std::pmr::vector<SDL_GameController*> m_controllers{};
 
 protected:
-    std::unique_ptr<AsyncIO> m_io{};
-    Renderer* m_renderer = nullptr;
+    AsyncIO* m_io = nullptr;
     Audio* m_audio = nullptr;
+    Renderer* m_renderer = nullptr;
     FPSMeter m_fpsMeter{};
 
     ~Engine() noexcept;

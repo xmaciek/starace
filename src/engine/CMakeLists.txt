@@ -6,7 +6,7 @@ set_cppver( engine 20 )
 
 target_sources( engine
     PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/public/engine/action_mapping.hpp
+    action_mapping.hpp
     action_mapping.cpp
     async_io.cpp
     async_io.cpp
