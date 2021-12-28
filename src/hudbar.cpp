@@ -3,6 +3,7 @@
 #include "colors.hpp"
 #include "game_pipeline.hpp"
 #include "utils.hpp"
+#include "progressbar.hpp"
 
 #include <renderer/renderer.hpp>
 
@@ -19,15 +20,6 @@ void HudBar::render( RenderContext rctx ) const
     const float topoff = m_label.size().y + 4.0f;
     const float sideoff = 8.0f;
 
-    constexpr auto composeRect = []( glm::vec2 xy, glm::vec2 wh )
-    {
-        return std::array<glm::vec4, 4>{
-            glm::vec4{ xy.x, xy.y + wh.y, 0.0f, 0.0f },
-            glm::vec4{ xy.x + wh.x, xy.y + wh.y, 0.0f, 0.0f },
-            glm::vec4{ xy.x + wh.x, xy.y, 0.0f, 0.0f },
-            glm::vec4{ xy.x, xy.y, 0.0f, 0.0f }
-        };
-    };
     rctx.model = glm::translate( rctx.model, glm::vec3{ xywh.x, xywh.y, 0.0f } );
     m_label.render( rctx );
     // outline
@@ -40,39 +32,30 @@ void HudBar::render( RenderContext rctx ) const
             .m_lineWidth = 2.0f,
         };
 
+        const glm::vec2 xy{ sideoff, topoff };
+        const glm::vec2 wh{ xywh.z - sideoff * 2.0f, xywh.w - topoff - 2.0f };
         PushConstant<Pipeline::eLine3dStripColor> pushConstant{};
+        pushConstant.m_vertices[ 0 ] = glm::vec4{ xy.x, xy.y + wh.y, 0.0f, 0.0f };
+        pushConstant.m_vertices[ 1 ] = glm::vec4{ xy.x + wh.x, xy.y + wh.y, 0.0f, 0.0f };
+        pushConstant.m_vertices[ 2 ] = glm::vec4{ xy.x + wh.x, xy.y, 0.0f, 0.0f };
+        pushConstant.m_vertices[ 3 ] = glm::vec4{ xy.x, xy.y, 0.0f, 0.0f };
         pushConstant.m_model = rctx.model;
         pushConstant.m_view = rctx.view;
         pushConstant.m_projection = rctx.projection;
-        const auto outline = composeRect( { sideoff, topoff }, { xywh.z - sideoff * 2.0f, xywh.w - topoff - 2.0f } );
-        std::copy( outline.begin(), outline.end(), pushConstant.m_vertices.begin() );
         std::fill_n( pushConstant.m_colors.begin(), 4, color::winScreen );
         rctx.renderer->push( pushBuffer, &pushConstant );
     }
 
     // colorbar
     {
-        PushBuffer pushBuffer{
-            .m_pipeline = static_cast<PipelineSlot>( Pipeline::eProgressBar ),
-            .m_pushConstantSize = sizeof( PushConstant<Pipeline::eProgressBar> ),
-            .m_verticeCount = 4,
-        };
-        PushConstant<Pipeline::eProgressBar> pushConstant{};
-        pushConstant.m_model = rctx.model;
-        pushConstant.m_view = rctx.view;
-        pushConstant.m_projection = rctx.projection;
-        const glm::vec2 wh{ xywh.z - sideoff * 2.0f - 6.0f, ( xywh.w - topoff - 10.0f ) };
         const glm::vec2 xy{ sideoff + 2.0f, topoff + 4.0f };
-        const auto bar = composeRect( xy, wh );
-        std::copy( bar.begin(), bar.end(), std::begin( pushConstant.m_vertices ) );
-        pushConstant.m_color[ 1 ] = glm::vec4{
-            1.0f - m_value + colorHalf( m_value )
-            , m_value + colorHalf( m_value )
-            , 0.0f
-            , 1.0f
-        };
-        pushConstant.m_axis = glm::vec4{ axis::y, m_value };
-        rctx.renderer->push( pushBuffer, &pushConstant );
+        const glm::vec2 wh{ xywh.z - sideoff * 2.0f - 6.0f, ( xywh.w - topoff - 10.0f ) };
+        const float red =   m_value < 0.5f ? 1.0f : 1.0f - ( m_value - 0.5f ) * 2.0f;
+        const float green = m_value > 0.5f ? 1.0f : m_value * 2.0f;
+        const glm::vec4 color{ red, green, 0.0f, 1.0f };
+        ProgressBar progress{ xy, wh, axis::y, {}, color };
+        progress.setValue( 1.0f - m_value );
+        progress.render( rctx );
     }
 }
 

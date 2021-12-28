@@ -13,5 +13,5 @@ void main()
     vec4 color[ 2 ];
     color[ 0 ] = colorA;
     color[ 1 ] = colorB;
-    outColor = color[ int( xthreshold.x <= xthreshold.y ) ];
+    outColor = color[ int( xthreshold.x > xthreshold.y ) ];
 }

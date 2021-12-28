@@ -41,6 +41,8 @@ set( STARACE_SOURCES
     model_proto.hpp
     obj.cpp
     obj.hpp
+    progressbar.cpp
+    progressbar.hpp
     reactor.cpp
     reactor.hpp
     saobject.cpp
