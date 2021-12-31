@@ -11,6 +11,7 @@
 #include "debug_messanger.hpp"
 #include "render_target.hpp"
 #include "uniform.hpp"
+#include "frame.hpp"
 
 #include <shared/indexer.hpp>
 
@@ -46,20 +47,15 @@ class RendererVK : public Renderer {
 
     Swapchain m_swapchain{};
 
-    std::pmr::vector<RenderTarget> m_mainTargets;
-
     VkSemaphore m_semaphoreAvailableImage = VK_NULL_HANDLE;
     VkSemaphore m_semaphoreRender = VK_NULL_HANDLE;
 
     uint32_t m_currentFrame = 0;
     uint32_t currentFrame();
 
-    Uniform m_uniform[ 3 ];
-
-    std::pmr::vector<DescriptorSet> m_descriptorSetBufferSampler{};
-    std::pmr::vector<DescriptorSet> m_descriptorSetBuffer{};
-
     RenderPass m_mainPass{};
+    std::array<Frame, 3> m_frames{};
+
     std::array<PipelineVK, 16> m_pipelines{};
     PipelineVK* m_lastPipeline = nullptr;
 

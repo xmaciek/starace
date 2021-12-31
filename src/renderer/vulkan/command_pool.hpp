@@ -10,7 +10,6 @@ class CommandPool {
     VkDevice m_device = VK_NULL_HANDLE;
     VkCommandPool m_pool = VK_NULL_HANDLE;
     std::pmr::vector<VkCommandBuffer> m_buffers;
-    uint32_t m_currentFrame = 0;
 
     void destroyResources() noexcept;
 
@@ -25,10 +24,5 @@ public:
     CommandPool( CommandPool&& ) noexcept;
     CommandPool& operator = ( CommandPool&& ) noexcept;
 
-    VkCommandPool pool() const noexcept;
-    VkCommandBuffer buffer() const noexcept;
-
-    void transferBufferAndWait( VkQueue q, VkBuffer src, VkBuffer dst, size_t size ) const;
-
-    void setFrame( uint32_t ) noexcept;
+    VkCommandBuffer operator [] ( uint32_t );
 };

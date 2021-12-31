@@ -13,6 +13,7 @@ target_sources( renderer_vk
     debug_messanger.hpp
     descriptor_set.cpp
     descriptor_set.hpp
+    frame.hpp
     pipeline_vk.cpp
     pipeline_vk.hpp
     render_target.cpp

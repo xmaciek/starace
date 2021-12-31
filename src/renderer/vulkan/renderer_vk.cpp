@@ -144,7 +144,7 @@ RendererVK::RendererVK( SDL_Window* window )
             .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
             .pApplicationName = "Starace",
             .applicationVersion = VK_MAKE_VERSION( 1, 0, 0 ),
-            .pEngineName = "No Engine",
+            .pEngineName = "Starace",
             .engineVersion = VK_MAKE_VERSION( 1, 0, 0 ),
             .apiVersion = VK_API_VERSION_1_1,
         };
@@ -230,10 +230,6 @@ RendererVK::RendererVK( SDL_Window* window )
         assert( deviceOK == VK_SUCCESS );
     }
 
-    for ( auto& it : m_uniform ) {
-        it = Uniform{ m_physicalDevice, m_device, 2_MiB, 256 };
-    }
-
     m_swapchain = Swapchain( m_physicalDevice
         , m_device
         , m_surface
@@ -243,7 +239,7 @@ RendererVK::RendererVK( SDL_Window* window )
     vkGetDeviceQueue( m_device, m_queueFamilyPresent, 0, &m_queuePresent );
 
     m_graphicsCmd = CommandPool{ m_device, m_swapchain.imageCount(), m_queueFamilyGraphics };
-    m_transferDataCmd = CommandPool{ m_device, m_swapchain.imageCount(), m_queueFamilyGraphics };
+    m_transferDataCmd = CommandPool{ m_device, m_swapchain.imageCount() + 1, m_queueFamilyGraphics };
 
     {
         vkGetDeviceQueue( m_device, m_queueFamilyGraphics, 0u, &std::get<VkQueue>( m_queueGraphics ) );
@@ -256,38 +252,7 @@ RendererVK::RendererVK( SDL_Window* window )
         std::get<std::mutex*>( m_queueTransfer ) = &m_cmdBottleneck[ idx ];
     }
 
-    for ( size_t i = 0; i < m_swapchain.imageCount(); ++i ) {
-        m_descriptorSetBufferSampler.emplace_back(
-            m_device
-            , 100
-            , std::pmr::vector<DescriptorSet::UniformObject>{
-                DescriptorSet::uniformBuffer,
-                DescriptorSet::imageSampler
-            }
-        );
-        m_descriptorSetBuffer.emplace_back(
-            m_device
-            , 800
-            , std::pmr::vector<DescriptorSet::UniformObject>{
-                DescriptorSet::uniformBuffer
-            }
-        );
-    }
-
     m_mainPass = RenderPass{ m_device, VK_FORMAT_B8G8R8A8_UNORM, m_depthFormat };
-    {
-        const uint32_t imageCount = m_swapchain.imageCount();
-        for ( uint32_t i = 0; i < imageCount; ++i ) {
-            m_mainTargets.emplace_back(
-                m_physicalDevice
-                , m_device
-                , m_mainPass
-                , m_swapchain.extent()
-                , VK_FORMAT_B8G8R8A8_UNORM
-                , m_depthFormat
-            );
-        }
-    }
 
     {
         static constexpr VkSemaphoreCreateInfo semaphoreInfo{
@@ -301,6 +266,18 @@ RendererVK::RendererVK( SDL_Window* window )
         const VkResult renderOK = vkCreateSemaphore( m_device, &semaphoreInfo, nullptr, &m_semaphoreRender );
         assert( renderOK == VK_SUCCESS );
     }
+
+    int i = 0;
+    for ( auto& it : m_frames ) {
+        it.m_renderTarget = RenderTarget{ m_physicalDevice, m_device, m_mainPass, m_swapchain.extent(), VK_FORMAT_B8G8R8A8_UNORM, m_depthFormat };
+        it.m_descSetUniform = DescriptorSet{ m_device, 800, { DescriptorSet::uniformBuffer } };
+        it.m_descSetUniformSampler = DescriptorSet{ m_device, 100, { DescriptorSet::uniformBuffer, DescriptorSet::imageSampler } };
+        it.m_uniformBuffer = Uniform{ m_physicalDevice, m_device, 2_MiB, 256 };
+        it.m_cmdRender = m_graphicsCmd[ i ];
+        // transfer cmd 0 is reserved for other gpu uploads
+        it.m_cmdTransfer = m_transferDataCmd[ ++i ];
+    }
+
 
 }
 
@@ -319,8 +296,8 @@ void RendererVK::createPipeline( const PipelineCreateInfo& pci )
 
     DescriptorSet* descriptorSet = nullptr;
     switch ( descriptorSetType ) {
-    case 0x1'0000: descriptorSet = &m_descriptorSetBuffer[ 0 ];  break;
-    case 0x1'0002: descriptorSet = &m_descriptorSetBufferSampler[ 0 ]; break;
+    case 0x1'0000: descriptorSet = &m_frames[ 0 ].m_descSetUniform;  break;
+    case 0x1'0002: descriptorSet = &m_frames[ 0 ].m_descSetUniformSampler; break;
     default:
         assert( !"unsupported descriptor set type" );
         return;
@@ -337,9 +314,11 @@ void RendererVK::createPipeline( const PipelineCreateInfo& pci )
 RendererVK::~RendererVK()
 {
     ZoneScoped;
+    for ( auto& it : m_frames ) {
+        it = {};
+    }
     m_graphicsCmd = {};
     m_transferDataCmd = {};
-    m_mainTargets.clear();
     for ( const auto& it : m_textureSlots ) {
         delete it.load();
     }
@@ -354,17 +333,11 @@ RendererVK::~RendererVK()
         delete it;
     }
 
-    for ( Uniform& it : m_uniform ) {
-        it = {};
-    }
-    m_descriptorSetBuffer.clear();
-    m_descriptorSetBufferSampler.clear();
     for ( auto& it : m_pipelines ) { it = {}; }
     destroy<vkDestroySemaphore, VkSemaphore>( m_device, m_semaphoreRender );
     destroy<vkDestroySemaphore, VkSemaphore>( m_device, m_semaphoreAvailableImage );
     m_mainPass = {};
-    m_swapchain = Swapchain();
-
+    m_swapchain = {};
     if ( m_surface ) {
         vkDestroySurfaceKHR( m_instance, m_surface, nullptr );
     }
@@ -385,9 +358,10 @@ void RendererVK::flushUniforms()
         .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
     };
 
-    VkCommandBuffer cmd = m_transferDataCmd.buffer();
+    Frame& fr = m_frames[ m_currentFrame ];
+    VkCommandBuffer cmd = fr.m_cmdTransfer;
     vkBeginCommandBuffer( cmd, &beginInfo );
-    m_uniform[ m_currentFrame ].transfer( cmd );
+    fr.m_uniformBuffer.transfer( cmd );
     vkEndCommandBuffer( cmd );
 
     const VkSubmitInfo submitInfo{
@@ -413,12 +387,33 @@ Buffer RendererVK::createBuffer( std::pmr::vector<float>&& vec )
     staging.copyData( reinterpret_cast<const uint8_t*>( vec.data() ) );
 
     BufferVK* buff = new BufferVK{ m_physicalDevice, m_device, BufferVK::Purpose::eVertex, staging.sizeInBytes() };
+
+    static constexpr VkCommandBufferBeginInfo beginInfo{
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+        .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
+    };
+    const VkBufferCopy copyRegion{
+        .size = staging.sizeInBytes(),
+    };
+
+    VkCommandBuffer cmd = m_transferDataCmd[ 0 ];
+    vkBeginCommandBuffer( cmd, &beginInfo );
+    vkCmdCopyBuffer( cmd, staging, *buff, 1, &copyRegion );
+    vkEndCommandBuffer( cmd );
+
+    const VkSubmitInfo submitInfo{
+        .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+        .commandBufferCount = 1,
+        .pCommandBuffers = &cmd,
+    };
+
+    auto [ queue, bottleneck ] = m_queueTransfer;
+    assert( queue );
+    assert( bottleneck );
     {
-        auto [ queue, bottleneck ] = m_queueTransfer;
-        assert( queue );
-        assert( bottleneck );
         Bottleneck lock{ *bottleneck };
-        m_transferDataCmd.transferBufferAndWait( queue, staging, *buff, staging.sizeInBytes() );
+        vkQueueSubmit( queue, 1, &submitInfo, VK_NULL_HANDLE );
+        vkQueueWaitIdle( queue );
     }
 
     const uint32_t idx = m_bufferIndexer.next();
@@ -506,7 +501,7 @@ Texture RendererVK::createTexture( uint32_t width, uint32_t height, TextureForma
         .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
     };
 
-    VkCommandBuffer cmd = m_transferDataCmd.buffer();
+    VkCommandBuffer cmd = m_transferDataCmd[ 0 ];
     vkBeginCommandBuffer( cmd, &beginInfo );
     tex->transferFrom( cmd, staging );
     vkEndCommandBuffer( cmd );
@@ -546,11 +541,10 @@ void RendererVK::beginFrame()
     assert( acquireOK == VK_SUCCESS );
 
     m_currentFrame = imageIndex;
-    m_graphicsCmd.setFrame( m_currentFrame );
-    m_transferDataCmd.setFrame( m_currentFrame );
-    m_descriptorSetBuffer[ m_currentFrame ].reset();
-    m_descriptorSetBufferSampler[ m_currentFrame ].reset();
-    m_uniform[ m_currentFrame ].reset();
+    Frame& fr = m_frames[ imageIndex ];
+    fr.m_descSetUniform.reset();
+    fr.m_descSetUniformSampler.reset();
+    fr.m_uniformBuffer.reset();
 
     const VkExtent2D extent = m_swapchain.extent();
     const VkRect2D rect{ .extent = extent };
@@ -567,7 +561,7 @@ void RendererVK::beginFrame()
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
     };
 
-    VkCommandBuffer cmd = m_graphicsCmd.buffer();
+    VkCommandBuffer cmd = fr.m_cmdRender;
     vkResetCommandBuffer( cmd, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT );
     [[maybe_unused]]
     const VkResult cmdOK = vkBeginCommandBuffer( cmd, &beginInfo );
@@ -575,7 +569,7 @@ void RendererVK::beginFrame()
 
     vkCmdSetViewport( cmd, 0, 1, &viewport );
     vkCmdSetScissor( cmd, 0, 1, &rect );
-    m_mainPass.begin( cmd, m_mainTargets[ m_currentFrame ].framebuffer(), rect );
+    m_mainPass.begin( cmd, fr.m_renderTarget.framebuffer(), rect );
 }
 
 void RendererVK::deleteBuffer( Buffer b )
@@ -610,17 +604,15 @@ void RendererVK::recreateSwapchain()
         , m_swapchain.steal()
     );
 
-    const uint32_t imageCount = m_swapchain.imageCount();
-    m_mainTargets.clear();
-    for ( uint32_t i = 0; i < imageCount; ++i ) {
-        m_mainTargets.emplace_back(
+    for ( auto& it : m_frames ) {
+        it.m_renderTarget = RenderTarget{
             m_physicalDevice
             , m_device
             , m_mainPass
             , m_swapchain.extent()
             , VK_FORMAT_B8G8R8A8_UNORM
             , m_depthFormat
-        );
+        };
     }
     vkDeviceWaitIdle( m_device );
 }
@@ -628,14 +620,14 @@ void RendererVK::recreateSwapchain()
 void RendererVK::endFrame()
 {
     ZoneScoped;
-    VkCommandBuffer cmd = m_graphicsCmd.buffer();
+    VkCommandBuffer cmd = m_frames[ m_currentFrame ].m_cmdRender;
     m_mainPass.end( cmd );
     if ( m_lastPipeline ) {
         m_lastPipeline->end();
         m_lastPipeline = nullptr;
     }
 
-    RenderTarget& mainTgt = m_mainTargets[ m_currentFrame ];
+    RenderTarget& mainTgt = m_frames[ m_currentFrame ].m_renderTarget;
     transferImage( cmd, mainTgt.image().first, constants::fragmentOut, constants::copyFrom );
     transferImage( cmd, m_swapchain.image( m_currentFrame ), constants::undefined, constants::copyTo );
 
@@ -713,13 +705,14 @@ void RendererVK::present()
     ZoneScoped;
     VkSemaphore renderSemaphores[]{ m_semaphoreRender };
     VkSwapchainKHR swapchain[] = { m_swapchain };
-    VkPresentInfoKHR presentInfo{};
-    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores = renderSemaphores;
-    presentInfo.swapchainCount = 1;
-    presentInfo.pSwapchains = swapchain;
-    presentInfo.pImageIndices = &m_currentFrame;
+    const VkPresentInfoKHR presentInfo{
+        .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+        .waitSemaphoreCount = 1,
+        .pWaitSemaphores = renderSemaphores,
+        .swapchainCount = 1,
+        .pSwapchains = swapchain,
+        .pImageIndices = &m_currentFrame,
+    };
 
     switch ( vkQueuePresentKHR( m_queuePresent, &presentInfo ) ) {
     case VK_SUCCESS: break;
@@ -780,18 +773,19 @@ static void updateDescriptor( VkDevice device
 
 void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
 {
+    Frame& fr = m_frames[ m_currentFrame ];
     auto& descriptorPool = pushBuffer.m_texture
-        ? m_descriptorSetBufferSampler
-        : m_descriptorSetBuffer;
+        ? fr.m_descSetUniformSampler
+        : fr.m_descSetUniform;
 
-    const VkDescriptorSet descriptorSet = descriptorPool[ m_currentFrame ].next();
+    const VkDescriptorSet descriptorSet = descriptorPool.next();
     assert( descriptorSet != VK_NULL_HANDLE );
 
     assert( pushBuffer.m_pushConstantSize != 0 );
-    const VkDescriptorBufferInfo bufferInfo = m_uniform[ m_currentFrame ].copy( constant, pushBuffer.m_pushConstantSize );
+    const VkDescriptorBufferInfo bufferInfo = fr.m_uniformBuffer.copy( constant, pushBuffer.m_pushConstantSize );
 
 
-    VkCommandBuffer cmd = m_graphicsCmd.buffer();
+    VkCommandBuffer cmd = fr.m_cmdRender;
 
     assert( pushBuffer.m_pipeline < m_pipelines.size() );
     PipelineVK& currentPipeline = m_pipelines[ pushBuffer.m_pipeline ];
