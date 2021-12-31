@@ -129,9 +129,6 @@ RendererVK::RendererVK( SDL_Window* window )
 : m_window( window )
 {
     ZoneScoped;
-    // TODO: slot index offset
-    { [[maybe_unused]] const auto _ = m_textureIndexer.next(); }
-    { [[maybe_unused]] const auto _ = m_bufferIndexer.next(); }
 
     assert( !g_instance );
     g_instance = this;
@@ -417,11 +414,10 @@ Buffer RendererVK::createBuffer( std::pmr::vector<float>&& vec )
     }
 
     const uint32_t idx = m_bufferIndexer.next();
-    assert( idx != 0 );
     [[maybe_unused]]
     BufferVK* oldBuff = m_bufferSlots[ idx ].exchange( buff );
     assert( !oldBuff );
-    return idx;
+    return idx + 1;
 }
 
 std::pmr::memory_resource* RendererVK::allocator()
@@ -524,11 +520,10 @@ Texture RendererVK::createTexture( uint32_t width, uint32_t height, TextureForma
     }
 
     const uint32_t idx = m_textureIndexer.next();
-    assert( idx != 0 );
     [[maybe_unused]]
     TextureVK* oldTex = m_textureSlots[ idx ].exchange( tex );
     assert( !oldTex );
-    return idx;
+    return idx + 1;
 }
 
 void RendererVK::beginFrame()
@@ -575,6 +570,8 @@ void RendererVK::beginFrame()
 void RendererVK::deleteBuffer( Buffer b )
 {
     ZoneScoped;
+    assert( b != 0 );
+    b--;
     BufferVK* buff = m_bufferSlots[ b ].exchange( nullptr );
     assert( buff );
     m_bufferIndexer.release( b );
@@ -585,6 +582,8 @@ void RendererVK::deleteBuffer( Buffer b )
 void RendererVK::deleteTexture( Texture t )
 {
     ZoneScoped;
+    assert( t != 0 );
+    t--;
     TextureVK* tex = m_textureSlots[ t ].exchange( nullptr );
     assert( tex );
     m_textureIndexer.release( t );
@@ -795,7 +794,7 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
     }
 
     if ( pushBuffer.m_texture ) {
-        const TextureVK* texture = m_textureSlots[ pushBuffer.m_texture ];
+        const TextureVK* texture = m_textureSlots[ pushBuffer.m_texture - 1 ];
         if ( !texture ) {
             return;
         }
@@ -811,7 +810,7 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
         vkCmdSetLineWidth( cmd, pushBuffer.m_lineWidth );
     }
     if ( pushBuffer.m_vertice ) {
-        const BufferVK* b = m_bufferSlots[ pushBuffer.m_vertice ];
+        const BufferVK* b = m_bufferSlots[ pushBuffer.m_vertice - 1 ];
         if ( !b ) {
             return;
         }
