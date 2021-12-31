@@ -24,22 +24,25 @@
 class RendererVK : public Renderer {
     SDL_Window* m_window = nullptr;
 
-    DebugMsg m_debugMsg{};
     VkInstance m_instance = VK_NULL_HANDLE;
+    [[no_unique_address]]
+    DebugMsg m_debugMsg{};
+
     VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
+    VkDevice m_device = VK_NULL_HANDLE;
+    VkSurfaceKHR m_surface = VK_NULL_HANDLE;
 
     uint32_t m_queueFamilyGraphics = 0;
     uint32_t m_queueFamilyPresent = 0;
     VkQueue m_queuePresent{};
 
+    using Bottleneck = std::scoped_lock<std::mutex>;
+    std::array<std::mutex, 2> m_cmdBottleneck{};
+    std::tuple<VkQueue, std::mutex*> m_queueGraphics{};
+    std::tuple<VkQueue, std::mutex*> m_queueTransfer{};
+
     CommandPool m_graphicsCmd{};
     CommandPool m_transferDataCmd{};
-    std::array<std::mutex, 2> m_cmdBottleneck{};
-    using Bottleneck = std::scoped_lock<std::mutex>;
-
-    VkDevice m_device = VK_NULL_HANDLE;
-
-    VkSurfaceKHR m_surface = VK_NULL_HANDLE;
 
     Swapchain m_swapchain{};
 

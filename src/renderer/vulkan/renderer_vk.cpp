@@ -195,7 +195,6 @@ RendererVK::RendererVK( SDL_Window* window )
     const auto [ queueGraphics, queuePresent ] = queueFamilies( m_physicalDevice, m_surface );
     m_queueFamilyGraphics = queueGraphics.queue;
     m_queueFamilyPresent = queuePresent.queue;
-
     {
         static constexpr std::array queuePriority{ 1.0f, 1.0f };
         const VkDeviceQueueCreateInfo queueCreateInfo[] {
@@ -243,8 +242,19 @@ RendererVK::RendererVK( SDL_Window* window )
 
     vkGetDeviceQueue( m_device, m_queueFamilyPresent, 0, &m_queuePresent );
 
-    m_graphicsCmd = CommandPool{ m_device, m_swapchain.imageCount(), m_queueFamilyGraphics, 0u };
-    m_transferDataCmd = CommandPool{ m_device, m_swapchain.imageCount(), m_queueFamilyGraphics, std::min( queueGraphics.count, 2u ) - 1u };
+    m_graphicsCmd = CommandPool{ m_device, m_swapchain.imageCount(), m_queueFamilyGraphics };
+    m_transferDataCmd = CommandPool{ m_device, m_swapchain.imageCount(), m_queueFamilyGraphics };
+
+    {
+        vkGetDeviceQueue( m_device, m_queueFamilyGraphics, 0u, &std::get<VkQueue>( m_queueGraphics ) );
+        std::get<std::mutex*>( m_queueGraphics ) = &m_cmdBottleneck[ 0 ];
+    }
+    {
+        const uint32_t idx = std::min( queueGraphics.count, 2u ) - 1u;
+        assert( idx < m_cmdBottleneck.size() );
+        vkGetDeviceQueue( m_device, m_queueFamilyGraphics, idx, &std::get<VkQueue>( m_queueTransfer ) );
+        std::get<std::mutex*>( m_queueTransfer ) = &m_cmdBottleneck[ idx ];
+    }
 
     for ( size_t i = 0; i < m_swapchain.imageCount(); ++i ) {
         m_descriptorSetBufferSampler.emplace_back(
@@ -386,13 +396,14 @@ void RendererVK::flushUniforms()
         .pCommandBuffers = &cmd,
     };
 
-    assert( m_transferDataCmd.queueIndex() < m_cmdBottleneck.size() );
-    Bottleneck lock{ m_cmdBottleneck[ m_transferDataCmd.queueIndex() ] };
-    VkQueue q = m_transferDataCmd.queue();
+    auto [ queue, bottleneck ] = m_queueTransfer;
+    assert( queue );
+    assert( bottleneck );
+    Bottleneck lock{ *bottleneck };
     [[maybe_unused]]
-    const VkResult submitOK = vkQueueSubmit( q, 1, &submitInfo, VK_NULL_HANDLE );
+    const VkResult submitOK = vkQueueSubmit( queue, 1, &submitInfo, VK_NULL_HANDLE );
     assert( submitOK == VK_SUCCESS );
-    vkQueueWaitIdle( q );
+    vkQueueWaitIdle( queue );
 }
 
 Buffer RendererVK::createBuffer( std::pmr::vector<float>&& vec )
@@ -403,9 +414,11 @@ Buffer RendererVK::createBuffer( std::pmr::vector<float>&& vec )
 
     BufferVK* buff = new BufferVK{ m_physicalDevice, m_device, BufferVK::Purpose::eVertex, staging.sizeInBytes() };
     {
-        assert( m_transferDataCmd.queueIndex() < m_cmdBottleneck.size() );
-        Bottleneck lock{ m_cmdBottleneck[ m_transferDataCmd.queueIndex() ] };
-        m_transferDataCmd.transferBufferAndWait( staging, *buff, staging.sizeInBytes() );
+        auto [ queue, bottleneck ] = m_queueTransfer;
+        assert( queue );
+        assert( bottleneck );
+        Bottleneck lock{ *bottleneck };
+        m_transferDataCmd.transferBufferAndWait( queue, staging, *buff, staging.sizeInBytes() );
     }
 
     const uint32_t idx = m_bufferIndexer.next();
@@ -504,13 +517,16 @@ Texture RendererVK::createTexture( uint32_t width, uint32_t height, TextureForma
         .pCommandBuffers = &cmd,
     };
 
-    VkQueue queue = m_transferDataCmd.queue();
-    assert( m_transferDataCmd.queueIndex() < m_cmdBottleneck.size() );
-    Bottleneck lock{ m_cmdBottleneck[ m_transferDataCmd.queueIndex() ] };
-    [[maybe_unused]]
-    const VkResult submitOK = vkQueueSubmit( queue, 1, &submitInfo, VK_NULL_HANDLE );
-    assert( submitOK == VK_SUCCESS );
-    vkQueueWaitIdle( queue );
+    {
+        auto [ queue, bottleneck ] = m_queueTransfer;
+        assert( queue );
+        assert( bottleneck );
+        Bottleneck lock{ *bottleneck };
+        [[maybe_unused]]
+        const VkResult submitOK = vkQueueSubmit( queue, 1, &submitInfo, VK_NULL_HANDLE );
+        assert( submitOK == VK_SUCCESS );
+        vkQueueWaitIdle( queue );
+    }
 
     const uint32_t idx = m_textureIndexer.next();
     assert( idx != 0 );
@@ -662,12 +678,14 @@ void RendererVK::endFrame()
     flushUniforms();
 
     {
-        assert( m_graphicsCmd.queueIndex() < m_cmdBottleneck.size() );
-        Bottleneck lock{ m_cmdBottleneck[ m_graphicsCmd.queueIndex() ] };
+        auto [ queue, bottleneck ] = m_queueGraphics;
+        assert( queue );
+        assert( bottleneck );
+        Bottleneck lock{ *bottleneck };
         [[maybe_unused]]
-        const VkResult submitOK = vkQueueSubmit( m_graphicsCmd.queue(), 1, &submitInfo, VK_NULL_HANDLE );
+        const VkResult submitOK = vkQueueSubmit( queue, 1, &submitInfo, VK_NULL_HANDLE );
         assert( submitOK == VK_SUCCESS );
-        vkQueueWaitIdle( m_graphicsCmd.queue() );
+        vkQueueWaitIdle( queue );
     }
 
     decltype( m_bufferPendingDelete ) bufDel;

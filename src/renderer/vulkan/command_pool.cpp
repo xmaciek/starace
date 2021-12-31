@@ -11,18 +11,13 @@ CommandPool::~CommandPool() noexcept
 
 void CommandPool::destroyResources() noexcept
 {
-    destroy<vkDestroyCommandPool>( m_device, m_pool );
     m_buffers.clear();
+    destroy<vkDestroyCommandPool>( m_device, m_pool );
 }
 
 VkCommandPool CommandPool::pool() const noexcept
 {
     return m_pool;
-}
-
-VkQueue CommandPool::queue() const noexcept
-{
-    return m_queue;
 }
 
 VkCommandBuffer CommandPool::buffer() const noexcept
@@ -35,19 +30,12 @@ void CommandPool::setFrame( uint32_t frame ) noexcept
     m_currentFrame = frame;
 }
 
-uint32_t CommandPool::queueIndex() const noexcept
-{
-    return m_queueIndex;
-}
-
-CommandPool::CommandPool( VkDevice device, uint32_t commandBuffersCount, uint32_t queueFamily, uint32_t queueIdx ) noexcept
+CommandPool::CommandPool( VkDevice device, uint32_t count, uint32_t queueFamily ) noexcept
 : m_device{ device }
-, m_queueIndex{ queueIdx }
 {
     assert( device );
-    assert( commandBuffersCount > 0 );
+    assert( count > 0 );
 
-    vkGetDeviceQueue( m_device, queueFamily, queueIdx, &m_queue );
 
     const VkCommandPoolCreateInfo poolInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
@@ -59,12 +47,12 @@ CommandPool::CommandPool( VkDevice device, uint32_t commandBuffersCount, uint32_
     const VkResult poolOK = vkCreateCommandPool( m_device, &poolInfo, nullptr, &m_pool );
     assert( poolOK == VK_SUCCESS );
 
-    m_buffers.resize( commandBuffersCount );
+    m_buffers.resize( count );
     const VkCommandBufferAllocateInfo allocInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
         .commandPool = m_pool,
         .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-        .commandBufferCount = commandBuffersCount,
+        .commandBufferCount = count,
     };
 
     [[maybe_unused]]
@@ -73,18 +61,11 @@ CommandPool::CommandPool( VkDevice device, uint32_t commandBuffersCount, uint32_
 }
 
 CommandPool::CommandPool( CommandPool&& rhs ) noexcept
-: m_device{ rhs.m_device }
-, m_pool{ rhs.m_pool }
-, m_queue{ rhs.m_queue }
-, m_buffers{ std::move( rhs.m_buffers ) }
-, m_queueIndex{ rhs.m_queueIndex }
-, m_currentFrame{ rhs.m_currentFrame }
 {
-    rhs.m_device = VK_NULL_HANDLE;
-    rhs.m_pool = VK_NULL_HANDLE;
-    rhs.m_queue = VK_NULL_HANDLE;
-    rhs.m_queueIndex = 0;
-    rhs.m_currentFrame = 0;
+    std::swap( m_device, rhs.m_device );
+    std::swap( m_pool, rhs.m_pool );
+    std::swap( m_buffers, rhs.m_buffers );
+    std::swap( m_currentFrame, rhs.m_currentFrame );
 }
 
 CommandPool& CommandPool::operator = ( CommandPool&& rhs ) noexcept
@@ -92,15 +73,13 @@ CommandPool& CommandPool::operator = ( CommandPool&& rhs ) noexcept
     destroyResources();
     m_device = std::exchange( rhs.m_device, {} );
     m_pool = std::exchange( rhs.m_pool, {} );
-    m_queue = std::exchange( rhs.m_queue, {} );
     m_buffers = std::move( rhs.m_buffers );
-    m_queueIndex = std::exchange( rhs.m_queueIndex, {} );
     m_currentFrame = std::exchange( rhs.m_currentFrame, {} );
     return *this;
 }
 
 
-void CommandPool::transferBufferAndWait( VkBuffer src, VkBuffer dst, size_t size ) const
+void CommandPool::transferBufferAndWait( VkQueue q, VkBuffer src, VkBuffer dst, size_t size ) const
 {
     static constexpr VkCommandBufferBeginInfo beginInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -120,7 +99,6 @@ void CommandPool::transferBufferAndWait( VkBuffer src, VkBuffer dst, size_t size
         .pCommandBuffers = &cmd,
     };
 
-    VkQueue q = queue();
     vkQueueSubmit( q, 1, &submitInfo, VK_NULL_HANDLE );
     vkQueueWaitIdle( q );
 }
