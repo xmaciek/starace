@@ -71,7 +71,8 @@ class RendererVK : public Renderer {
 
     VkFormat m_depthFormat = {};
 
-    void flushUniforms();
+    [[nodiscard]]
+    VkCommandBuffer flushUniforms();
     void recreateSwapchain();
 
 public:

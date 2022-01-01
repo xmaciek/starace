@@ -347,7 +347,7 @@ RendererVK::~RendererVK()
     }
 }
 
-void RendererVK::flushUniforms()
+VkCommandBuffer RendererVK::flushUniforms()
 {
     ZoneScoped;
     static constexpr VkCommandBufferBeginInfo beginInfo{
@@ -357,24 +357,18 @@ void RendererVK::flushUniforms()
 
     Frame& fr = m_frames[ m_currentFrame ];
     VkCommandBuffer cmd = fr.m_cmdTransfer;
-    vkBeginCommandBuffer( cmd, &beginInfo );
-    fr.m_uniformBuffer.transfer( cmd );
-    vkEndCommandBuffer( cmd );
 
-    const VkSubmitInfo submitInfo{
-        .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-        .commandBufferCount = 1,
-        .pCommandBuffers = &cmd,
-    };
-
-    auto [ queue, bottleneck ] = m_queueTransfer;
-    assert( queue );
-    assert( bottleneck );
-    Bottleneck lock{ *bottleneck };
     [[maybe_unused]]
-    const VkResult submitOK = vkQueueSubmit( queue, 1, &submitInfo, VK_NULL_HANDLE );
-    assert( submitOK == VK_SUCCESS );
-    vkQueueWaitIdle( queue );
+    const VkResult beginOK = vkBeginCommandBuffer( cmd, &beginInfo );
+    assert( beginOK == VK_SUCCESS );
+
+    fr.m_uniformBuffer.transfer( cmd );
+
+    [[maybe_unused]]
+    const VkResult endOK = vkEndCommandBuffer( cmd );
+    assert( endOK == VK_SUCCESS );
+    return cmd;
+
 }
 
 Buffer RendererVK::createBuffer( std::pmr::vector<float>&& vec )
@@ -655,18 +649,19 @@ void RendererVK::endFrame()
     VkSemaphore renderSemaphores[]{ m_semaphoreRender };
     VkPipelineStageFlags waitStages[]{ VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 
+    std::array<VkCommandBuffer, 2> cmds{ flushUniforms(), cmd };
+
     const VkSubmitInfo submitInfo{
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
         .waitSemaphoreCount = 1,
         .pWaitSemaphores = waitSemaphores,
         .pWaitDstStageMask = waitStages,
-        .commandBufferCount = 1,
-        .pCommandBuffers = &cmd,
+        .commandBufferCount = cmds.size(),
+        .pCommandBuffers = cmds.data(),
         .signalSemaphoreCount = 1,
         .pSignalSemaphores = renderSemaphores,
     };
 
-    flushUniforms();
 
     {
         auto [ queue, bottleneck ] = m_queueGraphics;
