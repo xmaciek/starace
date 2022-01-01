@@ -799,7 +799,8 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
     }
 
     currentPipeline.begin( cmd, descriptorSet );
-    if ( pushBuffer.m_useLineWidth ) {
+    if ( pushBuffer.m_useLineWidth && pushBuffer.m_lineWidth != m_lastLineWidth ) {
+        m_lastLineWidth = pushBuffer.m_lineWidth;
         vkCmdSetLineWidth( cmd, pushBuffer.m_lineWidth );
     }
     if ( pushBuffer.m_vertice ) {

@@ -48,6 +48,7 @@ class RendererVK : public Renderer {
     VkSemaphore m_semaphoreAvailableImage = VK_NULL_HANDLE;
     VkSemaphore m_semaphoreRender = VK_NULL_HANDLE;
 
+    float m_lastLineWidth = 0.0f;
     uint32_t m_currentFrame = 0;
     uint32_t currentFrame();
 
