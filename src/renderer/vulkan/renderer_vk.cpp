@@ -235,8 +235,7 @@ RendererVK::RendererVK( SDL_Window* window )
 
     vkGetDeviceQueue( m_device, m_queueFamilyPresent, 0, &m_queuePresent );
 
-    m_graphicsCmd = CommandPool{ m_device, m_swapchain.imageCount(), m_queueFamilyGraphics };
-    m_transferDataCmd = CommandPool{ m_device, m_swapchain.imageCount() + 1, m_queueFamilyGraphics };
+    m_commandPool = CommandPool{ m_device, 1 + m_swapchain.imageCount() * 2, m_queueFamilyGraphics };
 
     {
         vkGetDeviceQueue( m_device, m_queueFamilyGraphics, 0u, &std::get<VkQueue>( m_queueGraphics ) );
@@ -264,15 +263,14 @@ RendererVK::RendererVK( SDL_Window* window )
         assert( renderOK == VK_SUCCESS );
     }
 
-    int i = 0;
+    int i = 1;
     for ( auto& it : m_frames ) {
         it.m_renderTarget = RenderTarget{ m_physicalDevice, m_device, m_mainPass, m_swapchain.extent(), VK_FORMAT_B8G8R8A8_UNORM, m_depthFormat };
         it.m_descSetUniform = DescriptorSet{ m_device, 800, { DescriptorSet::uniformBuffer } };
         it.m_descSetUniformSampler = DescriptorSet{ m_device, 100, { DescriptorSet::uniformBuffer, DescriptorSet::imageSampler } };
         it.m_uniformBuffer = Uniform{ m_physicalDevice, m_device, 2_MiB, 256 };
-        it.m_cmdRender = m_graphicsCmd[ i ];
-        // transfer cmd 0 is reserved for other gpu uploads
-        it.m_cmdTransfer = m_transferDataCmd[ ++i ];
+        it.m_cmdRender = m_commandPool[ i++ ];
+        it.m_cmdTransfer = m_commandPool[ i++ ];
     }
 
 
@@ -314,8 +312,8 @@ RendererVK::~RendererVK()
     for ( auto& it : m_frames ) {
         it = {};
     }
-    m_graphicsCmd = {};
-    m_transferDataCmd = {};
+    m_commandPool = {};
+
     for ( const auto& it : m_textureSlots ) {
         delete it.load();
     }
@@ -387,7 +385,7 @@ Buffer RendererVK::createBuffer( std::pmr::vector<float>&& vec )
         .size = staging.sizeInBytes(),
     };
 
-    VkCommandBuffer cmd = m_transferDataCmd[ 0 ];
+    VkCommandBuffer cmd = m_commandPool[ 0 ];
     vkBeginCommandBuffer( cmd, &beginInfo );
     vkCmdCopyBuffer( cmd, staging, *buff, 1, &copyRegion );
     vkEndCommandBuffer( cmd );
@@ -491,7 +489,7 @@ Texture RendererVK::createTexture( uint32_t width, uint32_t height, TextureForma
         .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
     };
 
-    VkCommandBuffer cmd = m_transferDataCmd[ 0 ];
+    VkCommandBuffer cmd = m_commandPool[ 0 ];
     vkBeginCommandBuffer( cmd, &beginInfo );
     tex->transferFrom( cmd, staging );
     vkEndCommandBuffer( cmd );
