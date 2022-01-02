@@ -47,6 +47,8 @@ set( STARACE_SOURCES
     reactor.hpp
     saobject.cpp
     saobject.hpp
+    screen_mission_select.cpp
+    screen_mission_select.hpp
     screen_title.cpp
     screen_title.hpp
     screen_win_loose.cpp

@@ -67,8 +67,3 @@ void UIRings::update( const UpdateContext& uctx )
     }
     m_angle[ 2 ] += speed * uctx.deltaTime;
 }
-
-void UIRings::resize( glm::vec2 s )
-{
-    m_size = s;
-}

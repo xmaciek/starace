@@ -129,34 +129,6 @@ void Game::renderDeadScreen( RenderContext rctx )
     m_screenLoose.render( rctx );
 }
 
-void Game::renderMissionSelectionScreen( RenderContext rctx )
-{
-    UIImage preview{ m_mapsContainer[ m_currentMap ].texture[ Map::Wall::ePreview ] };
-    preview.setSize( { m_maxDimention, m_maxDimention } );
-    preview.render( rctx );
-    {
-        // TODO: hud labels
-        std::pmr::u32string str{ U"Map: " };
-        const std::string& name = m_mapsContainer[ m_currentMap ].name;
-        std::copy( name.begin(), name.end(), std::back_inserter( str ) );
-        const double posx = (double)viewportWidth() / 2.0 - static_cast<double>( m_fontPauseTxt->textLength( str.c_str() ) ) / 2;
-        m_fontPauseTxt->renderText( rctx, color::white, posx, 128, str );
-    }
-    {
-        // TODO: hud labels
-        const std::pmr::u32string str = U"Enemies: " + intToUTF32( m_mapsContainer[ m_currentMap ].enemies );
-        const double posx = (double)viewportWidth() / 2 - static_cast<double>( m_fontPauseTxt->textLength( str ) ) / 2;
-        m_fontPauseTxt->renderText( rctx, color::white, posx, 148, str );
-    }
-
-    m_uiRings.render( rctx );
-    renderHudTex( rctx, color::dodgerBlue );
-    m_btnStartMission.render( rctx );
-    m_btnReturnToMainMenu.render( rctx );
-    m_btnNextMap.render( rctx );
-    m_btnPrevMap.render( rctx );
-}
-
 void Game::renderGameScreenBriefing( RenderContext rctx )
 {
     renderGameScreen( rctx );

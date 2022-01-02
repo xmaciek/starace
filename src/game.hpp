@@ -10,6 +10,7 @@
 #include "model_proto.hpp"
 #include "texture.hpp"
 #include "targeting.hpp"
+#include "screen_mission_select.hpp"
 #include "screen_title.hpp"
 #include "screen_win_loose.hpp"
 #include "ui_rings.hpp"
@@ -78,13 +79,8 @@ private:
     Button m_btnCustomizeReturn{};
     Button m_btnGO{};
     Button m_btnNextJet{};
-    Button m_btnNextMap{};
     Button m_btnPrevJet{};
-    Button m_btnPrevMap{};
     Button m_btnQuitMission{};
-    Button m_btnReturnToMainMenu{};
-    Button m_btnSelectMissionCancel{};
-    Button m_btnStartMission{};
     Button m_btnWeap1{};
     Button m_btnWeap2{};
     Button m_btnWeap3{};
@@ -100,6 +96,7 @@ private:
     std::pmr::map<std::filesystem::path, Texture> m_textures{};
 
     ScreenTitle m_screenTitle{};
+    ScreenMissionSelect m_screenMissionSelect{};
     ScreenWinLoose m_screenWin{};
     ScreenWinLoose m_screenLoose{};
 
@@ -155,7 +152,6 @@ private:
     void renderHUD( RenderContext );
     void renderHudTex( RenderContext, const glm::vec4& );
     void renderMainMenu( RenderContext );
-    void renderMissionSelectionScreen( RenderContext );
     void renderPauseText( RenderContext );
     void renderScreenCustomize( RenderContext );
     void renderWinScreen( RenderContext );

@@ -89,11 +89,7 @@ void Game::onMouseEvent( const MouseEvent& mouseEvent )
         break;
 
     case Screen::eMissionSelection:
-        m_btnStartMission.onMouseEvent( mouseEvent )
-        || m_btnReturnToMainMenu.onMouseEvent( mouseEvent )
-        || m_btnNextMap.onMouseEvent( mouseEvent )
-        || m_btnPrevMap.onMouseEvent( mouseEvent )
-        ;
+        m_screenMissionSelect.onMouseEvent( mouseEvent );
         break;
 
     case Screen::eDead:

@@ -16,7 +16,9 @@ public:
     UIImage( Texture t );
     UIImage( Texture t, glm::vec4 color );
     UIImage( glm::vec2 position, glm::vec2 extent, glm::vec4 color, Texture );
+    UIImage( Anchor );
 
     virtual void render( RenderContext ) const override;
     void setColor( glm::vec4 );
+    void setTexture( Texture );
 };

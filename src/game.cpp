@@ -37,33 +37,35 @@ static constexpr const char* chunk1[] = {
 };
 
 constexpr std::tuple<GameAction, Actuator> inputActions[] = {
-    { GameAction::eMenuUp, SDL_SCANCODE_W },
-    { GameAction::eMenuUp, SDL_SCANCODE_UP },
-    { GameAction::eMenuUp, SDL_CONTROLLER_BUTTON_DPAD_UP },
-    { GameAction::eMenuDown, SDL_SCANCODE_S },
-    { GameAction::eMenuDown, SDL_SCANCODE_DOWN },
-    { GameAction::eMenuDown, SDL_CONTROLLER_BUTTON_DPAD_DOWN },
-    { GameAction::eMenuLeft, SDL_SCANCODE_A },
-    { GameAction::eMenuLeft, SDL_SCANCODE_LEFT },
-    { GameAction::eMenuLeft, SDL_CONTROLLER_BUTTON_DPAD_LEFT },
-    { GameAction::eMenuRight, SDL_SCANCODE_D },
-    { GameAction::eMenuRight, SDL_SCANCODE_RIGHT },
-    { GameAction::eMenuRight, SDL_CONTROLLER_BUTTON_DPAD_RIGHT },
-    { GameAction::eMenuConfirm, SDL_SCANCODE_RETURN },
-    { GameAction::eMenuConfirm, SDL_CONTROLLER_BUTTON_A },
-    { GameAction::eGamePause, SDL_SCANCODE_ESCAPE },
     { GameAction::eGamePause, SDL_CONTROLLER_BUTTON_START },
+    { GameAction::eGamePause, SDL_SCANCODE_ESCAPE },
     { GameAction::eJetPitch, SDL_CONTROLLER_AXIS_LEFTY },
-    { GameAction::eJetYaw, SDL_CONTROLLER_AXIS_LEFTX },
     { GameAction::eJetRoll, SDL_CONTROLLER_AXIS_RIGHTX },
+    { GameAction::eJetShoot1, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER },
+    { GameAction::eJetShoot1, SDL_SCANCODE_J },
+    { GameAction::eJetShoot2, SDL_CONTROLLER_BUTTON_LEFTSHOULDER },
+    { GameAction::eJetShoot2, SDL_SCANCODE_K },
+    { GameAction::eJetShoot3, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER },
+    { GameAction::eJetShoot3, SDL_SCANCODE_L },
     { GameAction::eJetTarget, SDL_CONTROLLER_BUTTON_Y },
     { GameAction::eJetTarget, SDL_SCANCODE_I },
-    { GameAction::eJetShoot1, SDL_SCANCODE_J },
-    { GameAction::eJetShoot2, SDL_SCANCODE_K },
-    { GameAction::eJetShoot3, SDL_SCANCODE_L },
-    { GameAction::eJetShoot1, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER },
-    { GameAction::eJetShoot3, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER },
-    { GameAction::eJetShoot2, SDL_CONTROLLER_BUTTON_LEFTSHOULDER },
+    { GameAction::eJetYaw, SDL_CONTROLLER_AXIS_LEFTX },
+    { GameAction::eMenuCancel, SDL_CONTROLLER_BUTTON_B },
+    { GameAction::eMenuCancel, SDL_SCANCODE_ESCAPE },
+    { GameAction::eMenuConfirm, SDL_CONTROLLER_BUTTON_A },
+    { GameAction::eMenuConfirm, SDL_SCANCODE_RETURN },
+    { GameAction::eMenuDown, SDL_CONTROLLER_BUTTON_DPAD_DOWN },
+    { GameAction::eMenuDown, SDL_SCANCODE_DOWN },
+    { GameAction::eMenuDown, SDL_SCANCODE_S },
+    { GameAction::eMenuLeft, SDL_CONTROLLER_BUTTON_DPAD_LEFT },
+    { GameAction::eMenuLeft, SDL_SCANCODE_A },
+    { GameAction::eMenuLeft, SDL_SCANCODE_LEFT },
+    { GameAction::eMenuRight, SDL_CONTROLLER_BUTTON_DPAD_RIGHT },
+    { GameAction::eMenuRight, SDL_SCANCODE_D },
+    { GameAction::eMenuRight, SDL_SCANCODE_RIGHT },
+    { GameAction::eMenuUp, SDL_CONTROLLER_BUTTON_DPAD_UP },
+    { GameAction::eMenuUp, SDL_SCANCODE_UP },
+    { GameAction::eMenuUp, SDL_SCANCODE_W },
 };
 
 constexpr std::tuple<GameAction, Actuator, Actuator> inputActions2[] = {
@@ -157,10 +159,6 @@ void Game::onResize( uint32_t w, uint32_t h )
     const uint32_t h015 = viewportHeight() - (uint32_t)( (float)viewportHeight() * 0.15f );
     m_btnQuitMission.setPosition( { halfW - 196, h015 } );
     m_btnGO.setPosition( { halfW - 96, h015 } );
-    m_btnStartMission.setPosition( { halfW + 4, h015 } );
-    m_btnReturnToMainMenu.setPosition( { halfW - 196, h015 } );
-    m_btnNextMap.setPosition( { viewportWidth() - 240, halfH - 24 } );
-    m_btnPrevMap.setPosition( { 48, halfH - 24 } );
     m_btnCustomizeReturn.setPosition( { halfW - 96, h015 + 52 } );
     m_btnNextJet.setPosition( { viewportWidth() - 240, halfH - 24 } );
     m_btnPrevJet.setPosition( { 48, halfH - 24 } );
@@ -170,10 +168,11 @@ void Game::onResize( uint32_t w, uint32_t h )
     m_btnWeap3.setPosition( { halfW + 100, h015 + 52 - 76 } );
 
     m_screenTitle.resize( { w, h } );
+    m_screenMissionSelect.resize( { w, h } );
     m_screenWin.resize( { w, h } );
     m_screenLoose.resize( { w, h } );
     m_hud.resize( { w, h } );
-    m_uiRings.resize( { w, h } );
+    m_uiRings.setSize( { w, h } );
 }
 
 void Game::onInit()
@@ -215,27 +214,7 @@ void Game::onInit()
     m_buttonTexture = loadTexture( m_io->getWait( "textures/button1.tga" ) );
 
     m_btnQuitMission = Button( U"Quit Mission", m_fontGuiTxt, m_buttonTexture, [this](){ changeScreen( Screen::eDead, m_click ); } );
-    m_btnStartMission = Button( U"Start Mission", m_fontGuiTxt, m_buttonTexture, [this](){ changeScreen( Screen::eGameBriefing, m_click ); } );
-    m_btnReturnToMainMenu = Button( U"Return", m_fontGuiTxt, m_buttonTexture, [this](){ changeScreen( Screen::eMainMenu, m_click ); } );
     m_btnGO = Button( U"GO!", m_fontGuiTxt, m_buttonTexture, [this](){ changeScreen( Screen::eGame, m_click ); } );
-
-    auto nextMap = [this]()
-    {
-        m_audio->play( m_click );
-        m_currentMap++;
-        m_btnNextMap.setEnabled( m_currentMap < m_mapsContainer.size() - 1 );
-        m_btnPrevMap.setEnabled( m_currentMap > 0 );
-    };
-    auto prevMap = [this]()
-    {
-        m_audio->play( m_click );
-        m_currentMap--;
-        m_btnNextMap.setEnabled( m_currentMap < m_mapsContainer.size() - 1 );
-        m_btnPrevMap.setEnabled( m_currentMap > 0 );
-    };
-
-    m_btnNextMap = Button( U"Next Map", m_fontGuiTxt, m_buttonTexture, std::move( nextMap ) );
-    m_btnPrevMap = Button( U"Previous Map", m_fontGuiTxt, m_buttonTexture, std::move( prevMap ) );
 
     auto nextJet = [this]()
     {
@@ -298,6 +277,7 @@ void Game::onInit()
         U"Customize", [this](){ changeScreen( Screen::eCustomize, m_click ); },
         U"Exit Game", [this](){ quit(); }
     };
+
     auto onWinLoose = [this]()
     {
         m_audio->play( m_click );
@@ -360,6 +340,31 @@ void Game::onInit()
     }
 
     loadMapProto();
+    std::pmr::vector<MissionInfo> mapInfo{};
+    mapInfo.reserve( m_mapsContainer.size() );
+    std::transform( m_mapsContainer.begin(), m_mapsContainer.end(), std::back_inserter( mapInfo ),
+    []( const MapCreateInfo& mci ) -> MissionInfo {
+        return MissionInfo{
+            .m_title = std::pmr::u32string{ mci.name.cbegin(), mci.name.cend() }, // TODO utf32 map names
+            .m_preview = mci.texture[ MapCreateInfo::ePreview ],
+            .m_enemyCount = mci.enemies,
+        };
+    } );
+    m_screenMissionSelect = ScreenMissionSelect{
+        std::move( mapInfo )
+        , m_fontGuiTxt
+        , m_fontPauseTxt
+        , m_fontBig
+        , &m_uiRings
+        , m_hudTex
+        , m_buttonTexture
+        , U"Enemies:"
+        , U"Previous Map", [this](){ if ( m_screenMissionSelect.prev() ) { m_audio->play( m_click ); } }
+        , U"Next Map", [this](){ if ( m_screenMissionSelect.next() ) { m_audio->play( m_click ); } }
+        , U"Return", [this](){ changeScreen( Screen::eMainMenu, m_click ); }
+        , U"Start Mission", [this](){ changeScreen( Screen::eGameBriefing, m_click ); }
+    };
+
     loadJetProto();
     m_enemyModel = new Model{ "models/a2.objc", m_textures[ "textures/a2.tga" ], m_renderer, 0.45f };
 
@@ -392,7 +397,7 @@ void Game::onRender( RenderContext rctx )
         renderWinScreen( rctx );
         break;
     case Screen::eMissionSelection:
-        renderMissionSelectionScreen( rctx );
+        m_screenMissionSelect.render( rctx );
         break;
     case Screen::eMainMenu:
         renderMainMenu( rctx );
@@ -412,6 +417,9 @@ void Game::onUpdate( const UpdateContext& updateContext )
     case Screen::eGame:
         updateGame( updateContext );
         break;
+    case Screen::eMissionSelection:
+        m_screenMissionSelect.update( updateContext );
+        break;
     case Screen::eGamePaused:
         updateGamePaused( updateContext );
         break;
@@ -424,14 +432,13 @@ void Game::onUpdate( const UpdateContext& updateContext )
     case Screen::eWin:
         updateWin( updateContext );
         break;
-    case Screen::eMissionSelection:
-        updateMissionSelection( updateContext );
-        break;
     case Screen::eMainMenu:
         updateMainMenu( updateContext );
         break;
     case Screen::eCustomize:
         updateCustomize( updateContext );
+        break;
+    default:
         break;
     }
 }
@@ -676,9 +683,6 @@ void Game::changeScreen( Screen scr, Audio::Chunk sound )
         break;
 
     case Screen::eMissionSelection:
-        assert( !m_mapsContainer.empty() );
-        m_btnNextMap.setEnabled( m_currentMap < m_mapsContainer.size() - 1 );
-        m_btnPrevMap.setEnabled( m_currentMap > 0 );
         clearMapData();
         m_currentScreen = scr;
         break;
@@ -760,12 +764,8 @@ void Game::loadMapProto()
         }
     }
 
-    if ( m_mapsContainer.empty() ) {
-        m_mapsContainer.push_back( map );
-        m_btnNextMap.setEnabled( false );
-    }
     m_currentMap = 0;
-    m_btnPrevMap.setEnabled( false );
+
 }
 
 void Game::loadJetProto()
@@ -940,6 +940,10 @@ void Game::onAction( Action a )
     switch ( m_currentScreen ) {
     case Screen::eMainMenu:
         m_screenTitle.onAction( a );
+        return;
+
+    case Screen::eMissionSelection:
+        m_screenMissionSelect.onAction( a );
         return;
 
     case Screen::eGamePaused:

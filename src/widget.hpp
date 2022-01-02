@@ -12,10 +12,12 @@
 
 class Widget {
 protected:
+    static constexpr uint16_t c_invalidTabOrder = 0xFFFF;
+
     glm::vec2 m_position{};
     glm::vec2 m_size{};
     Anchor m_anchor = Anchor::fTop | Anchor::fLeft;
-    uint16_t m_tabOrder = 0xFFFF;
+    uint16_t m_tabOrder = c_invalidTabOrder;
 
     bool testRect( glm::vec2 ) const;
     glm::vec2 offsetByAnchor() const;
