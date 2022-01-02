@@ -81,7 +81,7 @@ void Game::onMouseEvent( const MouseEvent& mouseEvent )
 {
     switch ( m_currentScreen ) {
     case Screen::eGamePaused:
-        m_btnQuitMission.onMouseEvent( mouseEvent );
+        m_screenPause.onMouseEvent( mouseEvent );
         break;
 
     case Screen::eMainMenu:

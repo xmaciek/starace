@@ -168,6 +168,7 @@ void Game::onResize( uint32_t w, uint32_t h )
     m_btnWeap3.setPosition( { halfW + 100, h015 + 52 - 76 } );
 
     m_screenTitle.resize( { w, h } );
+    m_screenPause.resize( { w, h } );
     m_screenMissionSelect.resize( { w, h } );
     m_screenWin.resize( { w, h } );
     m_screenLoose.resize( { w, h } );
@@ -269,6 +270,17 @@ void Game::onInit()
     m_uiRings = UIRings{ rings };
 
     m_lblPaused = Label{ U"PAUSED", m_fontPauseTxt, Anchor::fCenter | Anchor::fMiddle, {}, color::yellow };
+
+    m_screenPause = ScreenPause{
+        m_fontGuiTxt,
+        m_fontPauseTxt,
+        &m_uiRings,
+        m_hudTex,
+        m_buttonTexture,
+        U"PAUSED", [this](){ changeScreen( Screen::eGame ); },
+        U"Resume", [this](){ changeScreen( Screen::eGame, m_click ); },
+        U"Quit Mission", [this](){ changeScreen( Screen::eMissionSelection, m_click ); }
+    };
 
     m_screenTitle = ScreenTitle{
         m_fontGuiTxt,
@@ -385,7 +397,9 @@ void Game::onRender( RenderContext rctx )
         renderGameScreen( rctx );
         break;
     case Screen::eGamePaused:
-        renderGameScreenPaused( rctx );
+        renderGameScreen( rctx );
+        m_screenPause.render( rctx );
+        //renderGameScreenPaused( rctx );
         break;
     case Screen::eGameBriefing:
         renderGameScreenBriefing( rctx );
@@ -421,7 +435,8 @@ void Game::onUpdate( const UpdateContext& updateContext )
         m_screenMissionSelect.update( updateContext );
         break;
     case Screen::eGamePaused:
-        updateGamePaused( updateContext );
+        m_screenPause.update( updateContext );
+        //updateGamePaused( updateContext );
         break;
     case Screen::eGameBriefing:
         updateGameScreenBriefing( updateContext );
@@ -947,13 +962,7 @@ void Game::onAction( Action a )
         return;
 
     case Screen::eGamePaused:
-        switch ( action ) {
-        case GameAction::eGamePause:
-            if ( a.digital ) { unpause(); }
-            return;
-        default:
-            return;
-        }
+        m_screenPause.onAction( a );
         return;
 
     case Screen::eGame:

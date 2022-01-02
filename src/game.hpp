@@ -11,6 +11,7 @@
 #include "texture.hpp"
 #include "targeting.hpp"
 #include "screen_mission_select.hpp"
+#include "screen_pause.hpp"
 #include "screen_title.hpp"
 #include "screen_win_loose.hpp"
 #include "ui_rings.hpp"
@@ -97,6 +98,7 @@ private:
 
     ScreenTitle m_screenTitle{};
     ScreenMissionSelect m_screenMissionSelect{};
+    ScreenPause m_screenPause{};
     ScreenWinLoose m_screenWin{};
     ScreenWinLoose m_screenLoose{};
 
