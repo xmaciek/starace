@@ -157,7 +157,6 @@ void Game::onResize( uint32_t w, uint32_t h )
     const uint32_t halfW = viewportWidth() >> 1;
     const uint32_t halfH = viewportHeight() >> 1;
     const uint32_t h015 = viewportHeight() - (uint32_t)( (float)viewportHeight() * 0.15f );
-    m_btnGO.setPosition( { halfW - 96, h015 } );
     m_btnCustomizeReturn.setPosition( { halfW - 96, h015 + 52 } );
     m_btnNextJet.setPosition( { viewportWidth() - 240, halfH - 24 } );
     m_btnPrevJet.setPosition( { 48, halfH - 24 } );
@@ -212,8 +211,6 @@ void Game::onInit()
     m_hud = Hud{ &m_hudData, m_fontGuiTxt };
 
     m_buttonTexture = loadTexture( m_io->getWait( "textures/button1.tga" ) );
-
-    m_btnGO = Button( U"GO!", m_fontGuiTxt, m_buttonTexture, [this](){ changeScreen( Screen::eGame, m_click ); } );
 
     auto nextJet = [this]()
     {
@@ -396,8 +393,6 @@ void Game::onRender( RenderContext rctx )
         renderGameScreen( rctx );
         m_screenPause.render( rctx );
         break;
-    case Screen::eGameBriefing:
-        renderGameScreenBriefing( rctx );
         break;
     case Screen::eDead:
         renderDeadScreen( rctx );
@@ -431,9 +426,6 @@ void Game::onUpdate( const UpdateContext& updateContext )
         break;
     case Screen::eGamePaused:
         m_screenPause.update( updateContext );
-        break;
-    case Screen::eGameBriefing:
-        updateGameScreenBriefing( updateContext );
         break;
     case Screen::eDead:
         updateDeadScreen( updateContext );
@@ -688,7 +680,7 @@ void Game::changeScreen( Screen scr, Audio::Chunk sound )
 
     case Screen::eGameBriefing:
         createMapData( m_mapsContainer.at( m_currentMap ), m_jetsContainer.at( m_currentJet ) );
-        m_currentScreen = scr;
+        m_currentScreen = Screen::eGamePaused;
         break;
 
     case Screen::eMissionSelection:

@@ -100,10 +100,6 @@ void Game::onMouseEvent( const MouseEvent& mouseEvent )
         m_screenWin.onMouseEvent( mouseEvent );
         break;
 
-    case Screen::eGameBriefing:
-        m_btnGO.onMouseEvent( mouseEvent );
-        break;
-
     case Screen::eCustomize:
         m_btnPrevJet.onMouseEvent( mouseEvent )
         || m_btnNextJet.onMouseEvent( mouseEvent )

@@ -78,7 +78,6 @@ private:
 
     BulletProto m_weapons[ 4 ]{};
     Button m_btnCustomizeReturn{};
-    Button m_btnGO{};
     Button m_btnNextJet{};
     Button m_btnPrevJet{};
     Button m_btnWeap1{};
@@ -146,7 +145,6 @@ private:
     void renderCrosshair( RenderContext );
     void renderDeadScreen( RenderContext );
     void renderGameScreen( RenderContext );
-    void renderGameScreenBriefing( RenderContext );
     void renderHUD( RenderContext );
     void renderHudTex( RenderContext, const glm::vec4& );
     void renderMainMenu( RenderContext );

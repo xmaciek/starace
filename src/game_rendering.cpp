@@ -114,21 +114,6 @@ void Game::renderDeadScreen( RenderContext rctx )
     m_screenLoose.render( rctx );
 }
 
-void Game::renderGameScreenBriefing( RenderContext rctx )
-{
-    renderGameScreen( rctx );
-    m_uiRings.render( rctx );
-
-    // TODO: hud labels
-    m_fontPauseTxt->renderText( rctx, color::white, 192, 292, U"Movement: AWSD QE" );
-    m_fontPauseTxt->renderText( rctx, color::white, 192, 310, U"Speed: UO" );
-    m_fontPauseTxt->renderText( rctx, color::white, 192, 328, U"Weapons: JKL" );
-    m_fontPauseTxt->renderText( rctx, color::white, 192, 346, U"Targeting: I" );
-    m_fontPauseTxt->renderText( rctx, color::white, 192, 380, U"Press space to launch..." );
-    renderHudTex( rctx, color::dodgerBlue );
-    m_btnGO.render( rctx );
-}
-
 void Game::renderScreenCustomize( RenderContext rctx )
 {
     renderClouds( rctx );
