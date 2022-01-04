@@ -125,14 +125,6 @@ void Game::preloadData()
 void Game::onEvent( const SDL_Event& event )
 {
     switch ( event.type ) {
-    case SDL_KEYDOWN:
-        onKeyDown( event.key.keysym );
-        break;
-
-    case SDL_KEYUP:
-        onKeyUp( event.key.keysym );
-        break;
-
     case SDL_WINDOWEVENT:
         switch ( event.window.event ) {
         case SDL_WINDOWEVENT_RESIZED:
@@ -965,5 +957,43 @@ void Game::onAction( Action a )
 
     default:
         return;
+    }
+}
+
+void Game::onMouseEvent( const MouseEvent& mouseEvent )
+{
+    switch ( m_currentScreen ) {
+    case Screen::eGamePaused:
+        m_screenPause.onMouseEvent( mouseEvent );
+        break;
+
+    case Screen::eMainMenu:
+        m_screenTitle.onMouseEvent( mouseEvent );
+        break;
+
+    case Screen::eMissionSelection:
+        m_screenMissionSelect.onMouseEvent( mouseEvent );
+        break;
+
+    case Screen::eDead:
+        m_screenLoose.onMouseEvent( mouseEvent );
+        break;
+
+    case Screen::eWin:
+        m_screenWin.onMouseEvent( mouseEvent );
+        break;
+
+    case Screen::eCustomize:
+        m_btnPrevJet.onMouseEvent( mouseEvent )
+        || m_btnNextJet.onMouseEvent( mouseEvent )
+        || m_btnCustomizeReturn.onMouseEvent( mouseEvent )
+        || m_btnWeap1.onMouseEvent( mouseEvent )
+        || m_btnWeap2.onMouseEvent( mouseEvent )
+        || m_btnWeap3.onMouseEvent( mouseEvent )
+        ;
+        break;
+
+    default:
+        break;
     }
 }

@@ -123,11 +123,6 @@ private:
     void changeScreen( Screen, Audio::Chunk sound = {} );
     void clearMapData();
     void createMapData( const MapCreateInfo&, const ModelProto& );
-    void gameKeyboardBriefingPressed( SDL_Scancode );
-    void gameKeyboardPausedPressed( SDL_Scancode );
-    void gameKeyboardPausedUnpressed( SDL_Scancode );
-    void gameKeyboardPressed( SDL_Scancode );
-    void gameKeyboardUnpressed( SDL_Scancode );
     void loadConfig();
     void loadJetProto();
     void loadMapProto();
