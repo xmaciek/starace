@@ -2,6 +2,7 @@
 
 #include "widget.hpp"
 #include "button.hpp"
+#include "game_action.hpp"
 #include "label.hpp"
 #include "ui_image.hpp"
 
@@ -32,6 +33,7 @@ public:
         , std::function<void()>&& onContinue
     );
 
+    bool onAction( Action );
     virtual void render( RenderContext ) const override;
     virtual bool onMouseEvent( const MouseEvent& ) override;
 

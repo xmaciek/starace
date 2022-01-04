@@ -940,6 +940,14 @@ void Game::onAction( Action a )
         m_screenPause.onAction( a );
         return;
 
+    case Screen::eWin:
+        m_screenWin.onAction( a );
+        return;
+
+    case Screen::eDead:
+        m_screenLoose.onAction( a );
+        return;
+
     case Screen::eGame:
         switch ( action ) {
         case GameAction::eJetTarget:

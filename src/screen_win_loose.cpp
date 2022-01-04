@@ -43,3 +43,25 @@ void ScreenWinLoose::resize( glm::vec2 s )
     m_scoreValue.setPosition( { m_score.size().x + s.x * 0.5f, 128.0f } );
     m_continue.setPosition( { s.x * 0.5f - 96.0f, s.y * 0.85f } );
 }
+
+bool ScreenWinLoose::onAction( Action a )
+{
+    if ( !a.digital ) { return false; }
+    switch ( a.toA<GameAction>() ) {
+    case GameAction::eMenuLeft:
+    case GameAction::eMenuRight:
+    case GameAction::eMenuUp:
+    case GameAction::eMenuDown:
+        m_continue.setFocused( true );
+        return true;
+
+    case GameAction::eMenuConfirm:
+        if ( m_continue.isFocused() ) {
+            m_continue.trigger();
+            return true;
+        }
+    default:
+        break;
+    }
+    return false;
+}
