@@ -671,7 +671,7 @@ void Game::changeScreen( Screen scr, Audio::Chunk sound )
         break;
 
     case Screen::eGameBriefing:
-        createMapData( m_mapsContainer.at( m_currentMap ), m_jetsContainer.at( m_currentJet ) );
+        createMapData( m_mapsContainer.at( m_screenMissionSelect.selectedMission() ), m_jetsContainer.at( m_currentJet ) );
         m_currentScreen = Screen::eGamePaused;
         break;
 
@@ -756,9 +756,6 @@ void Game::loadMapProto()
             assert( it.texture[ i ] );
         }
     }
-
-    m_currentMap = 0;
-
 }
 
 void Game::loadJetProto()

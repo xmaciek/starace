@@ -108,7 +108,6 @@ private:
     float m_alphaN = 0.0f;
     float m_angle = 55.0f;
     uint32_t m_currentJet = 0;
-    uint32_t m_currentMap = 0;
     uint32_t m_shotsDone = 0;
 
     Screen m_currentScreen = Screen::eGame;
