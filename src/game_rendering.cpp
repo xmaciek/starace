@@ -19,21 +19,6 @@ void Game::renderGameScreen( RenderContext rctx )
     renderHUD( rctx );
 }
 
-void Game::renderGameScreenPaused( RenderContext rctx )
-{
-    renderGameScreen( rctx );
-    renderPauseText( rctx );
-}
-
-void Game::renderPauseText( RenderContext rctx )
-{
-    m_uiRings.render( rctx );
-    renderHudTex( rctx, color::pause );
-
-    m_btnQuitMission.render( rctx );
-    m_lblPaused.setPosition( { viewportWidth() / 2, 128 } );
-    m_lblPaused.render( rctx );
-}
 
 void Game::renderHudTex( RenderContext rctx, const glm::vec4& color )
 {

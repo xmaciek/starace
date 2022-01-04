@@ -81,12 +81,9 @@ private:
     Button m_btnGO{};
     Button m_btnNextJet{};
     Button m_btnPrevJet{};
-    Button m_btnQuitMission{};
     Button m_btnWeap1{};
     Button m_btnWeap2{};
     Button m_btnWeap3{};
-
-    Label m_lblPaused{};
 
     Texture m_buttonTexture{};
     Texture m_cyberRingTexture[ 3 ]{};
@@ -150,7 +147,6 @@ private:
     void renderDeadScreen( RenderContext );
     void renderGameScreen( RenderContext );
     void renderGameScreenBriefing( RenderContext );
-    void renderGameScreenPaused( RenderContext );
     void renderHUD( RenderContext );
     void renderHudTex( RenderContext, const glm::vec4& );
     void renderMainMenu( RenderContext );

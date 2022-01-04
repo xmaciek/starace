@@ -157,7 +157,6 @@ void Game::onResize( uint32_t w, uint32_t h )
     const uint32_t halfW = viewportWidth() >> 1;
     const uint32_t halfH = viewportHeight() >> 1;
     const uint32_t h015 = viewportHeight() - (uint32_t)( (float)viewportHeight() * 0.15f );
-    m_btnQuitMission.setPosition( { halfW - 196, h015 } );
     m_btnGO.setPosition( { halfW - 96, h015 } );
     m_btnCustomizeReturn.setPosition( { halfW - 96, h015 + 52 } );
     m_btnNextJet.setPosition( { viewportWidth() - 240, halfH - 24 } );
@@ -214,7 +213,6 @@ void Game::onInit()
 
     m_buttonTexture = loadTexture( m_io->getWait( "textures/button1.tga" ) );
 
-    m_btnQuitMission = Button( U"Quit Mission", m_fontGuiTxt, m_buttonTexture, [this](){ changeScreen( Screen::eDead, m_click ); } );
     m_btnGO = Button( U"GO!", m_fontGuiTxt, m_buttonTexture, [this](){ changeScreen( Screen::eGame, m_click ); } );
 
     auto nextJet = [this]()
@@ -268,8 +266,6 @@ void Game::onInit()
         loadTexture( m_io->getWait( "textures/cyber_ring3.tga" ) ),
     };
     m_uiRings = UIRings{ rings };
-
-    m_lblPaused = Label{ U"PAUSED", m_fontPauseTxt, Anchor::fCenter | Anchor::fMiddle, {}, color::yellow };
 
     m_screenPause = ScreenPause{
         m_fontGuiTxt,
@@ -399,7 +395,6 @@ void Game::onRender( RenderContext rctx )
     case Screen::eGamePaused:
         renderGameScreen( rctx );
         m_screenPause.render( rctx );
-        //renderGameScreenPaused( rctx );
         break;
     case Screen::eGameBriefing:
         renderGameScreenBriefing( rctx );
@@ -436,7 +431,6 @@ void Game::onUpdate( const UpdateContext& updateContext )
         break;
     case Screen::eGamePaused:
         m_screenPause.update( updateContext );
-        //updateGamePaused( updateContext );
         break;
     case Screen::eGameBriefing:
         updateGameScreenBriefing( updateContext );
