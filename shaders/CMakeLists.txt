@@ -34,3 +34,6 @@ compileShader( short_string.frag )
 
 compileShader( progressbar.vert )
 compileShader( progressbar.frag )
+
+compileShader( glow.vert )
+compileShader( glow.frag )

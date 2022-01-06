@@ -15,6 +15,7 @@ enum class Pipeline : PipelineSlot {
     eTriangleFan3dTexture,
     eShortString,
     eProgressBar,
+    eGlow,
     count,
 };
 
@@ -102,6 +103,17 @@ struct PushConstant<Pipeline::eProgressBar> {
     glm::vec4 m_vertices[ 4 ]{};
     glm::vec4 m_color[ 2 ]{};
     glm::vec4 m_axis{};
+
+    PushConstant() = default;
+};
+
+template <>
+struct PushConstant<Pipeline::eGlow> {
+    glm::mat4 m_model{};
+    glm::mat4 m_view{};
+    glm::mat4 m_projection{};
+    glm::vec4 m_color{};
+    std::array<glm::vec4, 4> m_xyuv{};
 
     PushConstant() = default;
 };
@@ -203,6 +215,17 @@ static constexpr PipelineCreateInfo g_pipelineProgressBar{
     .m_vertexShader = "shaders/progressbar.vert.spv",
     .m_fragmentShader = "shaders/progressbar.frag.spv",
     .m_slot = static_cast<PipelineSlot>( Pipeline::eProgressBar ),
+    .m_enableBlend = true,
+    .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
+    .m_cullMode = PipelineCreateInfo::CullMode::eBack,
+    .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
+    .m_constantBindBits = 0b1,
+};
+
+static constexpr PipelineCreateInfo g_pipelineGlow{
+    .m_vertexShader = "shaders/glow.vert.spv",
+    .m_fragmentShader = "shaders/glow.frag.spv",
+    .m_slot = static_cast<PipelineSlot>( Pipeline::eGlow ),
     .m_enableBlend = true,
     .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
