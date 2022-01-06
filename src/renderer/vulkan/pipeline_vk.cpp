@@ -25,7 +25,6 @@ PipelineVK::PipelineVK( PipelineVK&& rhs ) noexcept
     std::swap( m_pipeline, rhs.m_pipeline );
     std::swap( m_pushConstantSize, rhs.m_pushConstantSize );
     std::swap( m_vertexStride, rhs.m_vertexStride );
-    std::swap( m_isActive, rhs.m_isActive );
 }
 
 PipelineVK& PipelineVK::operator = ( PipelineVK&& rhs ) noexcept
@@ -36,7 +35,6 @@ PipelineVK& PipelineVK::operator = ( PipelineVK&& rhs ) noexcept
     m_pipeline = std::exchange( rhs.m_pipeline, {} );
     m_pushConstantSize = std::exchange( rhs.m_pushConstantSize, {} );
     m_vertexStride = std::exchange( rhs.m_vertexStride, {} );
-    m_isActive = std::exchange( rhs.m_isActive, {} );
     return *this;
 }
 
@@ -230,20 +228,9 @@ PipelineVK::PipelineVK( const PipelineCreateInfo& pci, VkDevice device, VkRender
     assert( pipelineOK == VK_SUCCESS );
 }
 
-void PipelineVK::begin( VkCommandBuffer cmdBuff, VkDescriptorSet descriptorSet )
+PipelineVK::operator VkPipeline () const
 {
-    assert( m_device );
-    if ( !m_isActive ) {
-        m_isActive = true;
-        vkCmdBindPipeline( cmdBuff, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline );
-    }
-    vkCmdBindDescriptorSets( cmdBuff, VK_PIPELINE_BIND_POINT_GRAPHICS, m_layout, 0, 1, &descriptorSet, 0, nullptr );
-}
-
-void PipelineVK::end()
-{
-    assert( m_device );
-    m_isActive = false;
+    return m_pipeline;
 }
 
 VkPipelineLayout PipelineVK::layout() const

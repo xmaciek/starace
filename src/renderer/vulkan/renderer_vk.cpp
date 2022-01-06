@@ -613,10 +613,7 @@ void RendererVK::endFrame()
     ZoneScoped;
     VkCommandBuffer cmd = m_frames[ m_currentFrame ].m_cmdRender;
     m_mainPass.end( cmd );
-    if ( m_lastPipeline ) {
-        m_lastPipeline->end();
-        m_lastPipeline = nullptr;
-    }
+    m_lastPipeline = nullptr;
 
     RenderTarget& mainTgt = m_frames[ m_currentFrame ].m_renderTarget;
     transferImage( cmd, mainTgt.image().first, constants::fragmentOut, constants::copyFrom );
@@ -772,10 +769,8 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
 
     assert( pushBuffer.m_pipeline < m_pipelines.size() );
     PipelineVK& currentPipeline = m_pipelines[ pushBuffer.m_pipeline ];
-    if ( m_lastPipeline != &currentPipeline ) {
-        if ( m_lastPipeline ) { m_lastPipeline->end(); }
-            m_lastPipeline = &currentPipeline;
-    }
+    const bool rebindPipeline = m_lastPipeline != &currentPipeline;
+    m_lastPipeline = &currentPipeline;
 
     const VkDescriptorBufferInfo bufferInfo = fr.m_uniformBuffer.copy( constant, currentPipeline.pushConstantSize() );
     const VkDescriptorSet descriptorSet = descriptorPool.next();
@@ -794,7 +789,12 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
         updateDescriptor( m_device, descriptorSet, bufferInfo );
     }
 
-    currentPipeline.begin( cmd, descriptorSet );
+    if ( rebindPipeline ) {
+        vkCmdBindPipeline( cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline );
+    }
+
+    vkCmdBindDescriptorSets( cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
+
     if ( pushBuffer.m_useLineWidth && pushBuffer.m_lineWidth != m_lastLineWidth ) {
         m_lastLineWidth = pushBuffer.m_lineWidth;
         vkCmdSetLineWidth( cmd, pushBuffer.m_lineWidth );

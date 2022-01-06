@@ -17,7 +17,6 @@ class PipelineVK {
     VkPipeline m_pipeline = VK_NULL_HANDLE;
     uint32_t m_pushConstantSize = 0;
     uint32_t m_vertexStride = 0;
-    bool m_isActive = false;
     void destroyResources();
 
 public:
@@ -29,8 +28,7 @@ public:
     PipelineVK( PipelineVK&& ) noexcept;
     PipelineVK& operator = ( PipelineVK&& ) noexcept;
 
-    void begin( VkCommandBuffer, VkDescriptorSet );
-    void end();
+    operator VkPipeline () const;
 
     VkPipelineLayout layout() const;
     uint32_t pushConstantSize() const;
