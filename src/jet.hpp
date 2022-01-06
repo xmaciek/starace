@@ -30,7 +30,7 @@ private:
     Thruster m_thruster;
     Shield m_shield;
 
-    Model m_model{};
+    Model* m_model = nullptr;
 
     BulletProto m_weapon[ 3 ]{};
 

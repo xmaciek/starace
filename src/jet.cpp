@@ -30,11 +30,7 @@ Jet::Jet( const ModelProto& modelData, Renderer* renderer )
     m_speed = 4;
     setStatus( Status::eAlive );
 
-    m_model = Model(  modelData.model_file
-        ,  loadTexture( modelData.model_texture.c_str() )
-        , renderer
-        , modelData.scale
-    );
+    m_model = modelData.model;
 };
 
 void Jet::render( RenderContext rctx ) const
@@ -43,8 +39,8 @@ void Jet::render( RenderContext rctx ) const
     rctx.model *= glm::toMat4( quat() );
     rctx.model *= glm::toMat4( animation() );
 
-    m_model.render( rctx );
-    for ( const glm::vec3& it : m_model.thrusters() ) {
+    m_model->render( rctx );
+    for ( const glm::vec3& it : m_model->thrusters() ) {
         m_thruster.renderAt( rctx, it );
     }
 }
@@ -151,7 +147,7 @@ bool Jet::isShooting( uint32_t weaponNum ) const
 
 glm::vec3 Jet::weaponPoint( uint32_t weaponNum )
 {
-    glm::vec3 w = glm::rotate( quat(), m_model.weapon( weaponNum ) );
+    glm::vec3 w = glm::rotate( quat(), m_model->weapon( weaponNum ) );
     w += position();
     return w;
 }
@@ -160,7 +156,7 @@ Bullet* Jet::weapon( uint32_t weaponNum, void* ptr )
 {
     assert( ptr );
     BulletProto tmp = m_weapon[ weaponNum ];
-    tmp.position = glm::rotate( quat(), m_model.weapon( weaponNum ) ) + position();
+    tmp.position = glm::rotate( quat(), m_model->weapon( weaponNum ) ) + position();
     Bullet* b = new ( ptr ) Bullet( tmp );
     b->setDirection( direction() );
 

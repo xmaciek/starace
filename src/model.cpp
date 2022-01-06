@@ -54,7 +54,8 @@ Model& Model::operator = ( Model&& rhs ) noexcept
 void Model::render( RenderContext rctx ) const
 {
     PushConstant<Pipeline::eTriangle3dTextureNormal> pushConstant{};
-    pushConstant.m_model = glm::scale( rctx.model, glm::vec3( m_scale ) );
+    const float s = m_scale;
+    pushConstant.m_model = glm::scale( rctx.model, glm::vec3{ s, s, s } );
     pushConstant.m_view = rctx.view;
     pushConstant.m_projection = rctx.projection;
 

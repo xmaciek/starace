@@ -66,7 +66,9 @@ void ScreenCustomize::render( RenderContext rctx ) const
             , 0.001f
             , 2000.0f
         );
+        const float s = m_jets[ m_currentJet ].m_jetUiScale;
         rctx2.model = glm::translate( rctx2.model, glm::vec3{ 0, 0.1, -1.25 } );
+        rctx2.model = glm::scale( rctx2.model, glm::vec3{ s, s, s } );
         rctx2.model = glm::rotate( rctx2.model, -15.0_deg, axis::x );
         rctx2.model = glm::rotate( rctx2.model, m_currentRotation, axis::y );
         assert( m_jets[ m_currentJet ].m_jetModel );

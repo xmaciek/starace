@@ -312,7 +312,7 @@ void Game::onInit()
     std::pmr::vector<CustomizeData> data{};
     data.reserve( m_jetsContainer.size() );
     std::transform( m_jetsContainer.begin(), m_jetsContainer.end(), std::back_inserter( data ),
-        []( ModelProto& it ) { return CustomizeData{ it.name, it.model, 1.0f }; }
+        []( ModelProto& it ) { return CustomizeData{ it.name, it.model, 1.0f / it.scale }; }
     );
 
     m_screenCustomize = ScreenCustomize{
@@ -728,7 +728,7 @@ void Game::loadJetProto()
     assert( !m_jetsContainer.empty() );
 
     for ( auto& it : m_jetsContainer ) {
-        it.model = new Model( it.model_file, m_textures[ it.model_texture ], m_renderer, 1.0f );
+        it.model = new Model( it.model_file, m_textures[ it.model_texture ], m_renderer, it.scale );
     }
 }
 
