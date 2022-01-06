@@ -94,16 +94,12 @@ private:
     Targeting m_targeting{};
 
     Jet::Input m_jetInput{};
-    glm::vec4 m_currentHudColor = color::winScreen;
     float m_maxDimention = 0.0f;
     float m_alphaValue = 1.0f;
     float m_alphaN = 0.0f;
     uint32_t m_shotsDone = 0;
 
     Screen m_currentScreen = Screen::eGame;
-    RotaryIndex<> m_weap1{};
-    RotaryIndex<> m_weap2{};
-    RotaryIndex<> m_weap3{};
 
     uint32_t viewportHeight() const;
     uint32_t viewportWidth() const;
@@ -114,8 +110,6 @@ private:
     void createMapData( const MapCreateInfo&, const ModelProto& );
     void loadJetProto();
     void loadMapProto();
-    void onKeyDown( const SDL_Keysym& );
-    void onKeyUp( const SDL_Keysym& );
     void onResize( uint32_t w, uint32_t h );
     void pause();
 

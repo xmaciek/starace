@@ -432,7 +432,6 @@ void Game::updateGame( const UpdateContext& updateContext )
     if ( m_enemies.empty() ) {
         changeScreen( Screen::eWin );
     }
-    m_currentHudColor = m_jet->health() <= 20 ? color::crimson : color::winScreen;
 
     if ( m_jet->isShooting( 0 ) ) {
         addBullet( 0 );
