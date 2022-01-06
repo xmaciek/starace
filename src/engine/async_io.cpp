@@ -5,7 +5,6 @@
 #include <cassert>
 #include <fstream>
 #include <chrono>
-#include <iostream>
 
 AsyncIO::Ticket::Ticket( std::filesystem::path&& path, std::pmr::memory_resource* upstream )
 : path{ std::move( path ) }
@@ -94,9 +93,7 @@ std::optional<std::pmr::vector<uint8_t>> AsyncIO::get( const std::filesystem::pa
     for ( auto it = m_ready.begin(); it != m_ready.end(); ++it ) {
         Ticket* ticket = *it;
         assert( ticket );
-        if ( ticket->path != path ) {
-            std::cout << path.native() << " != " << ticket->path.native() << std::endl;
-            continue; }
+        if ( ticket->path != path ) { continue; }
 
         m_ready.erase( it );
         std::pmr::vector<uint8_t> ret = std::move( ticket->data );
