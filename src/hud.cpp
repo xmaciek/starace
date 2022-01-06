@@ -6,15 +6,15 @@
 Hud::Hud( const HudData* displayData, Font* font ) noexcept
 : m_displayData{ displayData }
 , m_score{ U"Score: ", font, {}, color::winScreen }
-, m_scoreValue{ U"", font, {}, color::winScreen }
+, m_scoreValue{ U"0", font, {}, color::winScreen }
 , m_shots{ U"Shots: ", font, {}, color::winScreen }
-, m_shotsValue{ U"", font, {}, color::winScreen }
+, m_shotsValue{ U"0", font, {}, color::winScreen }
 , m_pool{ U"Pool: ", font, {}, color::winScreen }
-, m_poolValue{ U"", font, {}, color::winScreen }
+, m_poolValue{ U"0", font, {}, color::winScreen }
 , m_fps{ U"FPS: ", font, {}, color::winScreen }
-, m_fpsValue{ U"", font, {}, color::winScreen }
+, m_fpsValue{ U"0", font, {}, color::winScreen }
 , m_calc{ U"Calculated: ", font, {}, color::winScreen }
-, m_calcValue{ U"", font, {}, color::winScreen }
+, m_calcValue{ U"0", font, {}, color::winScreen }
 , m_speedMeter{ font }
 , m_hp{ U"HP", font }
 , m_pwr{ U"PWR", font }
