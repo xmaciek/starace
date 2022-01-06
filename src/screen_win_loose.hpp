@@ -4,7 +4,7 @@
 #include "button.hpp"
 #include "game_action.hpp"
 #include "label.hpp"
-#include "ui_image.hpp"
+#include "ui_glow.hpp"
 
 #include <renderer/texture.hpp>
 
@@ -14,7 +14,8 @@ class Font;
 
 class ScreenWinLoose : public Widget
 {
-    UIImage m_glow{};
+    Glow m_glow{};
+    Widget* m_rings = nullptr;
     Label m_title{};
     Label m_score{};
     Label m_scoreValue{};
@@ -24,17 +25,18 @@ public:
     ~ScreenWinLoose() noexcept = default;
     ScreenWinLoose() noexcept = default;
     ScreenWinLoose(
-        Texture glow
-        , Texture button
+        Texture button
         , glm::vec4 color
         , Font* fontSmall
         , Font* fontLarge
+        , Widget* rings
         , std::u32string_view title
         , std::function<void()>&& onContinue
     );
 
     bool onAction( Action );
     virtual void render( RenderContext ) const override;
+    virtual void update( const UpdateContext& ) override;
     virtual bool onMouseEvent( const MouseEvent& ) override;
 
     void resize( glm::vec2 );

@@ -19,7 +19,6 @@ ScreenCustomize::ScreenCustomize(
     , std::pmr::vector<CustomizeData>&& jets
     , Font* fontSmall
     , Font* fontMedium
-    , Texture glow
     , Texture btn
     , Widget* rings
     , std::u32string_view done, std::function<void()>&& onDone
@@ -35,7 +34,7 @@ ScreenCustomize::ScreenCustomize(
 , m_weap1{ equipment[ 0 ] }
 , m_weap2{ equipment[ 1 ] }
 , m_weap3{ equipment[ 2 ] }
-, m_glow{ glow, color::dodgerBlue }
+, m_glow{ color::dodgerBlue }
 , m_jetName{ fontMedium, Anchor::fCenter | Anchor::fMiddle, color::white }
 , m_jetPrev{ pJet, fontSmall, btn, Anchor::fLeft | Anchor::fMiddle, std::move( onPrev ) }
 , m_jetNext{ nJet, fontSmall, btn, Anchor::fRight | Anchor::fMiddle, std::move( onNext ) }

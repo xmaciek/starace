@@ -9,7 +9,6 @@ ScreenMissionSelect::ScreenMissionSelect(
     Font* fontMedium,
     Font* fontLarge,
     Widget* rings,
-    Texture glow,
     Texture button,
     std::u32string_view enemyTxt,
     std::u32string_view txtPrev, std::function<void()>&& cbPrev,
@@ -19,7 +18,7 @@ ScreenMissionSelect::ScreenMissionSelect(
 ) noexcept
 : m_info{ std::move( data ) }
 , m_preview{ Anchor::fCenter | Anchor::fMiddle }
-, m_glow{ glow, color::dodgerBlue }
+, m_glow{ color::dodgerBlue }
 , m_rings{ rings }
 , m_title{ fontLarge, Anchor::fCenter | Anchor::fMiddle, {}, color::white }
 , m_enemy{ enemyTxt, fontMedium, Anchor::fRight, {}, color::white }

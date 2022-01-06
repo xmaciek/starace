@@ -6,13 +6,12 @@ ScreenPause::ScreenPause(
     Font* fontSmall
     , Font* fontMedium
     , Widget* rings
-    , Texture glow
     , Texture button
     , std::u32string_view txtPause, std::function<void()>&& cbUnpause
     , std::u32string_view txtResume, std::function<void()>&& cbResume
     , std::u32string_view txtExit, std::function<void()>&& cbExit
 ) noexcept
-: m_glow{ glow, color::dodgerBlue }
+: m_glow{ color::dodgerBlue }
 , m_rings{ rings }
 , m_resume{ txtResume, fontSmall, button, std::move( cbResume ) }
 , m_exit{ txtExit, fontSmall, button, std::move( cbExit ) }

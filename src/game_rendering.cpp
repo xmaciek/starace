@@ -19,15 +19,6 @@ void Game::renderGameScreen( RenderContext rctx )
     renderHUD( rctx );
 }
 
-
-void Game::renderHudTex( RenderContext rctx, const glm::vec4& color )
-{
-    UIImage hudTex{ m_hudTex };
-    hudTex.setColor( color );
-    hudTex.setSize( { (float)viewportWidth(), (float)viewportHeight() } );
-    hudTex.render( rctx );
-}
-
 void Game::renderHUD( RenderContext rctx )
 {
     m_hud.render( rctx );
@@ -76,8 +67,6 @@ void Game::render3D( RenderContext rctx )
 void Game::renderMainMenu( RenderContext rctx )
 {
     renderClouds( rctx );
-    m_uiRings.render( rctx );
-    renderHudTex( rctx, color::dodgerBlue );
     m_screenTitle.render( rctx );
 }
 

@@ -2,15 +2,21 @@
 
 #include "game_action.hpp"
 
-ScreenTitle::ScreenTitle( Font* f, Texture t
+ScreenTitle::ScreenTitle(
+    Font* f
+    , Texture t
+    , Widget* rings
     , std::u32string_view mission, std::function<void()>&& mt
     , std::u32string_view customize, std::function<void()>&& ct
     , std::u32string_view quit, std::function<void()>&& qt
-)
-: m_newMission{ mission, f, t, std::move( mt ) }
+) noexcept
+: m_rings{ rings }
+, m_glow{ color::dodgerBlue }
+, m_newMission{ mission, f, t, std::move( mt ) }
 , m_customize{ customize, f, t, std::move( ct ) }
 , m_quit{ quit, f, t, std::move( qt ) }
 {
+    assert( rings );
     uint16_t tab = 0;
     Button* btns[] = {
         &m_newMission,
@@ -27,6 +33,10 @@ ScreenTitle::ScreenTitle( Font* f, Texture t
 
 void ScreenTitle::render( RenderContext rctx ) const
 {
+    assert( m_rings );
+    m_rings->render( rctx );
+    m_glow.render( rctx );
+
     const Button* btns[] = {
         &m_newMission,
         &m_customize,
@@ -35,6 +45,12 @@ void ScreenTitle::render( RenderContext rctx ) const
     for ( const auto* it : btns ) {
         it->render( rctx );
     }
+}
+
+void ScreenTitle::update( const UpdateContext& uctx )
+{
+    assert( m_rings );
+    m_rings->update( uctx );
 }
 
 bool ScreenTitle::onMouseEvent( const MouseEvent& event )
@@ -68,6 +84,7 @@ void ScreenTitle::resize( glm::vec2 s )
         &m_quit,
     };
     setSize( s );
+    m_glow.setSize( s );
     Layout{ glm::vec2{ s.x * 0.5f, s.y * 0.5f - 48 }, Layout::Flow::eVertical }( std::begin( btns ), std::end( btns ) );
 }
 

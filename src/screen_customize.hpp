@@ -3,7 +3,7 @@
 #include "button.hpp"
 #include "label.hpp"
 #include "widget.hpp"
-#include "ui_image.hpp"
+#include "ui_glow.hpp"
 #include "model.hpp"
 
 #include <engine/action.hpp>
@@ -38,7 +38,7 @@ class ScreenCustomize : public Widget
     RotaryIndex<uint32_t, 0, 3> m_weap3{};
     uint32_t m_currentTabOrder = 0;
 
-    UIImage m_glow{};
+    Glow m_glow{};
     Label m_jetName{};
     Button m_jetPrev{};
     Button m_jetNext{};
@@ -59,7 +59,6 @@ public:
         , std::pmr::vector<CustomizeData>&& jets
         , Font* fontSmall
         , Font* fontMedium
-        , Texture glow
         , Texture btn
         , Widget* rings
         , std::u32string_view done, std::function<void()>&&

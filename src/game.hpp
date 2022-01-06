@@ -78,7 +78,6 @@ private:
 
     Texture m_buttonTexture{};
     Texture m_cyberRingTexture[ 3 ]{};
-    Texture m_hudTex{};
     Texture m_menuBackgroundOverlay{};
     Texture m_menuBackground{};
     Texture m_starfieldTexture{};
@@ -122,7 +121,6 @@ private:
     void renderDeadScreen( RenderContext );
     void renderGameScreen( RenderContext );
     void renderHUD( RenderContext );
-    void renderHudTex( RenderContext, const glm::vec4& );
     void renderMainMenu( RenderContext );
     void renderPauseText( RenderContext );
     void renderScreenCustomize( RenderContext );
@@ -133,14 +131,7 @@ private:
     void setCamera();
     void unpause();
     void updateClouds( const UpdateContext& );
-    void updateCustomize( const UpdateContext& );
-    void updateDeadScreen( const UpdateContext& );
     void updateGame( const UpdateContext& );
-    void updateGamePaused( const UpdateContext& );
-    void updateGameScreenBriefing( const UpdateContext& );
-    void updateMainMenu( const UpdateContext& );
-    void updateMissionSelection( const UpdateContext& );
-    void updateWin( const UpdateContext& );
 
     virtual void onAction( Action ) override;
     virtual void onInit() override;

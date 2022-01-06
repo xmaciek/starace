@@ -88,6 +88,7 @@ Game::Game( int argc, char** argv )
     m_renderer->createPipeline( g_pipelineShortString );
     m_renderer->createPipeline( g_pipelineTriangle3DTextureNormal );
     m_renderer->createPipeline( g_pipelineProgressBar );
+    m_renderer->createPipeline( g_pipelineGlow );
 
     preloadData();
     changeScreen( Screen::eMainMenu );
@@ -192,7 +193,6 @@ void Game::onInit()
     m_hud = Hud{ &m_hudData, m_fontGuiTxt };
 
     m_buttonTexture = loadTexture( m_io->getWait( "textures/button1.tga" ) );
-    m_hudTex = loadTexture( m_io->getWait( "textures/HUDtex.tga" ) );
     m_menuBackground = loadTexture( m_io->getWait( "textures/background.tga" ) );
     m_menuBackgroundOverlay = loadTexture( m_io->getWait( "textures/background-overlay.tga" ) );
     m_starfieldTexture = loadTexture( m_io->getWait( "textures/star_field_transparent.tga" ) );
@@ -208,7 +208,6 @@ void Game::onInit()
         m_fontGuiTxt,
         m_fontPauseTxt,
         &m_uiRings,
-        m_hudTex,
         m_buttonTexture,
         U"PAUSED", [this](){ changeScreen( Screen::eGame ); },
         U"Resume", [this](){ changeScreen( Screen::eGame, m_click ); },
@@ -218,6 +217,7 @@ void Game::onInit()
     m_screenTitle = ScreenTitle{
         m_fontGuiTxt,
         m_buttonTexture,
+        &m_uiRings,
         U"Select Mission", [this](){ changeScreen( Screen::eMissionSelection, m_click ); },
         U"Customize", [this](){ changeScreen( Screen::eCustomize, m_click ); },
         U"Exit Game", [this](){ quit(); }
@@ -229,20 +229,20 @@ void Game::onInit()
         changeScreen( Screen::eMissionSelection );
     };
     m_screenWin = ScreenWinLoose{
-        m_hudTex
-        , m_buttonTexture
+        m_buttonTexture
         , color::winScreen
         , m_fontGuiTxt
         , m_fontBig
+        , &m_uiRings
         , U"MISSION SUCCESSFULL"
         , decltype( onWinLoose ){ onWinLoose }
     };
     m_screenLoose = ScreenWinLoose{
-        m_hudTex
-        , m_buttonTexture
+        m_buttonTexture
         , color::crimson
         , m_fontGuiTxt
         , m_fontBig
+        , &m_uiRings
         , U"MISSION FAILED"
         , decltype( onWinLoose ){ onWinLoose }
     };
@@ -301,7 +301,6 @@ void Game::onInit()
         , m_fontPauseTxt
         , m_fontBig
         , &m_uiRings
-        , m_hudTex
         , m_buttonTexture
         , U"Enemies:"
         , U"Previous Map", [this](){ if ( m_screenMissionSelect.prev() ) { m_audio->play( m_click ); } }
@@ -322,7 +321,6 @@ void Game::onInit()
         , std::move( data )
         , m_fontGuiTxt
         , m_fontPauseTxt
-        , m_hudTex
         , m_buttonTexture
         , &m_uiRings
         , U"Done", [this](){ changeScreen( Screen::eMainMenu, m_click ); }
@@ -389,15 +387,17 @@ void Game::onUpdate( const UpdateContext& updateContext )
         m_screenPause.update( updateContext );
         break;
     case Screen::eDead:
-        updateDeadScreen( updateContext );
+        m_screenLoose.update( updateContext );
         break;
     case Screen::eWin:
-        updateWin( updateContext );
+        m_screenWin.update( updateContext );
         break;
     case Screen::eMainMenu:
-        updateMainMenu( updateContext );
+        updateClouds( updateContext );
+        m_screenTitle.update( updateContext );
         break;
     case Screen::eCustomize:
+        updateClouds( updateContext );
         m_screenCustomize.update( updateContext );
         break;
     default:
@@ -413,11 +413,6 @@ void Game::pause()
 void Game::unpause()
 {
     changeScreen( Screen::eGame );
-}
-
-void Game::updateGamePaused( const UpdateContext& updateContext )
-{
-    m_uiRings.update( updateContext );
 }
 
 void Game::updateGame( const UpdateContext& updateContext )
@@ -508,7 +503,6 @@ void Game::updateGame( const UpdateContext& updateContext )
         }
         m_enemies.erase( std::remove( m_enemies.begin(), m_enemies.end(), nullptr ), m_enemies.end() );
     }
-    m_uiRings.update( updateContext );
     const SAObject* tgt = m_jet->target();
     if ( tgt ) {
         m_targeting.setPos( tgt->position() );
@@ -561,17 +555,6 @@ void Game::retarget()
     m_jet->lockTarget( m_enemies[ random() % m_enemies.size() ] );
 }
 
-void Game::updateMainMenu( const UpdateContext& updateContext )
-{
-    updateClouds( updateContext );
-    m_uiRings.update( updateContext );
-}
-
-void Game::updateGameScreenBriefing( const UpdateContext& updateContext )
-{
-    updateGamePaused( updateContext );
-}
-
 void Game::clearMapData()
 {
     for ( Enemy* e : m_enemies ) {
@@ -616,11 +599,6 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
         it->setWeapon( m_weapons[ 3 ] );
     }
 
-}
-
-void Game::updateMissionSelection( const UpdateContext& updateContext )
-{
-    m_uiRings.update( updateContext );
 }
 
 void Game::changeScreen( Screen scr, Audio::Chunk sound )
@@ -760,21 +738,6 @@ void Game::updateClouds( const UpdateContext& updateContext )
 {
     m_alphaN = fmodf( m_alphaN + updateContext.deltaTime * 0.1f, 1.0f );
     m_alphaValue = 0.65f + 0.35f * std::cos( std::lerp( -constants::pi, constants::pi, m_alphaN ) );
-}
-
-void Game::updateCustomize( const UpdateContext& updateContext )
-{
-    updateClouds( updateContext );
-}
-
-void Game::updateWin( const UpdateContext& updateContext )
-{
-    m_uiRings.update( updateContext );
-}
-
-void Game::updateDeadScreen( const UpdateContext& updateContext )
-{
-    m_uiRings.update( updateContext );
 }
 
 uint32_t Game::viewportWidth() const

@@ -4,6 +4,7 @@
 #include "widget.hpp"
 #include "label.hpp"
 #include "button.hpp"
+#include "ui_glow.hpp"
 
 #include <renderer/texture.hpp>
 
@@ -28,7 +29,7 @@ class ScreenMissionSelect : public Widget
 public:
     std::pmr::vector<MissionInfo> m_info;
     UIImage m_preview{};
-    UIImage m_glow{};
+    Glow m_glow{};
     Widget* m_rings = nullptr;
     Label m_title{};
     Label m_enemy{};
@@ -53,7 +54,6 @@ public:
         Font* fontMedium,
         Font* fontLarge,
         Widget* rings,
-        Texture glow,
         Texture button,
         std::u32string_view enemyTxt,
         std::u32string_view txtPrev, std::function<void()>&&,

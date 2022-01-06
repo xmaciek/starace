@@ -3,7 +3,7 @@
 #include "widget.hpp"
 #include "button.hpp"
 #include "label.hpp"
-#include "ui_image.hpp"
+#include "ui_glow.hpp"
 #include "game_action.hpp"
 
 #include <renderer/texture.hpp>
@@ -16,7 +16,7 @@ class Font;
 
 class ScreenPause : public Widget
 {
-    UIImage m_glow{};
+    Glow m_glow{};
     Widget* m_rings = nullptr;
     Button m_resume{};
     Button m_exit{};
@@ -31,7 +31,6 @@ public:
         Font* fontSmall
         , Font* fontMedium
         , Widget* rings
-        , Texture glow
         , Texture button
         , std::u32string_view txtPause, std::function<void()>&& cbUnpause
         , std::u32string_view txtResume, std::function<void()>&&
