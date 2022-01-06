@@ -44,7 +44,6 @@ void Thruster::renderAt( RenderContext rctx, const glm::vec3& pos ) const
 {
     PushBuffer pushBuffer{
         .m_pipeline = static_cast<PipelineSlot>( Pipeline::eTriangleFan3dColor ),
-        .m_pushConstantSize = sizeof( PushConstant<Pipeline::eTriangleFan3dColor> ),
         .m_verticeCount = 33,
     };
 

@@ -770,21 +770,17 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
         ? fr.m_descSetUniformSampler
         : fr.m_descSetUniform;
 
-    const VkDescriptorSet descriptorSet = descriptorPool.next();
-    assert( descriptorSet != VK_NULL_HANDLE );
-
-    assert( pushBuffer.m_pushConstantSize != 0 );
-    const VkDescriptorBufferInfo bufferInfo = fr.m_uniformBuffer.copy( constant, pushBuffer.m_pushConstantSize );
-
-
-    VkCommandBuffer cmd = fr.m_cmdRender;
-
     assert( pushBuffer.m_pipeline < m_pipelines.size() );
     PipelineVK& currentPipeline = m_pipelines[ pushBuffer.m_pipeline ];
     if ( m_lastPipeline != &currentPipeline ) {
         if ( m_lastPipeline ) { m_lastPipeline->end(); }
             m_lastPipeline = &currentPipeline;
     }
+
+    const VkDescriptorBufferInfo bufferInfo = fr.m_uniformBuffer.copy( constant, currentPipeline.pushConstantSize() );
+    const VkDescriptorSet descriptorSet = descriptorPool.next();
+    assert( descriptorSet != VK_NULL_HANDLE );
+    VkCommandBuffer cmd = fr.m_cmdRender;
 
     if ( pushBuffer.m_texture ) {
         const TextureVK* texture = m_textureSlots[ pushBuffer.m_texture - 1 ];
@@ -810,7 +806,7 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
         }
         std::array<VkBuffer, 1> buffers{ *b };
         const std::array<VkDeviceSize, 1> offsets{ 0 };
-        const uint32_t verticeCount = b->sizeInBytes() / ( 8 * sizeof( float ) );
+        const uint32_t verticeCount = b->sizeInBytes() / currentPipeline.vertexStride();
         vkCmdBindVertexBuffers( cmd, 0, 1, buffers.data(), offsets.data() );
         vkCmdDraw( cmd, verticeCount, 1, 0, 0 );
     }

@@ -16,7 +16,6 @@ void ProgressBar::render( RenderContext rctx ) const
 {
     PushBuffer pushBuffer{
         .m_pipeline = static_cast<PipelineSlot>( Pipeline::eProgressBar ),
-        .m_pushConstantSize = sizeof( PushConstant<Pipeline::eProgressBar> ),
         .m_verticeCount = 4,
     };
     PushConstant<Pipeline::eProgressBar> pushConstant{};

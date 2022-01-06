@@ -46,7 +46,6 @@ void SpeedMeter::render( RenderContext rctx ) const
         PushBuffer pushBuffer{
             .m_pipeline = static_cast<PipelineSlot>( Pipeline::eLine3dStripColor ),
             .m_useLineWidth = true,
-            .m_pushConstantSize = sizeof( PushConstant<Pipeline::eLine3dStripColor> ),
             .m_verticeCount = c_circle.size(),
             .m_lineWidth = 1.0f,
         };
@@ -63,7 +62,6 @@ void SpeedMeter::render( RenderContext rctx ) const
 
         PushBuffer pushBuffer{
             .m_pipeline = static_cast<PipelineSlot>( Pipeline::eTriangleFan3dColor ),
-            .m_pushConstantSize = sizeof( PushConstant<Pipeline::eTriangleFan3dColor> ),
             .m_verticeCount = c_fan.size(),
         };
         rctx.renderer->push( pushBuffer, &pushConstant );

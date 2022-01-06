@@ -61,7 +61,6 @@ void Model::render( RenderContext rctx ) const
 
     PushBuffer pushBuffer{
         .m_pipeline = static_cast<PipelineSlot>( Pipeline::eTriangle3dTextureNormal ),
-        .m_pushConstantSize = sizeof( PushConstant<Pipeline::eTriangle3dTextureNormal> ),
         .m_vertice = m_vertices,
         .m_texture = m_texture,
     };

@@ -35,7 +35,6 @@ void UIRings::render( RenderContext rctx ) const
 
     PushBuffer pushBuffer{
         .m_pipeline = static_cast<PipelineSlot>( Pipeline::eGuiTextureColor1 ),
-        .m_pushConstantSize = sizeof( PushConstant<Pipeline::eGuiTextureColor1> ),
         .m_verticeCount = 4,
     };
     for ( size_t i = 0; i < 3; i++ ) {

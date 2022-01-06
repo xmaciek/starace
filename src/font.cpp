@@ -250,7 +250,6 @@ Font::RenderText Font::composeText( const glm::vec4& color, std::u32string_view 
     assert( text.size() < PushConstant<Pipeline::eShortString>::charCount );
     PushBuffer pushBuffer{
         .m_pipeline = static_cast<PipelineSlot>( Pipeline::eShortString ),
-        .m_pushConstantSize = sizeof( PushConstant<Pipeline::eShortString> ),
         .m_verticeCount = static_cast<uint32_t>( text.size() * 6 ),
         .m_texture = m_texture,
     };

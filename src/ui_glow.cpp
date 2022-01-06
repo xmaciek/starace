@@ -8,7 +8,6 @@ void Glow::render( RenderContext rctx ) const
 {
     PushBuffer pushBuffer{
         .m_pipeline = static_cast<PipelineSlot>( Pipeline::eGlow ),
-        .m_pushConstantSize = sizeof( PushConstant<Pipeline::eGlow> ),
         .m_verticeCount = 4,
     };
     PushConstant<Pipeline::eGlow> pushConstant{};

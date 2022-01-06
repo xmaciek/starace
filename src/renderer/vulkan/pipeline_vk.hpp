@@ -15,7 +15,8 @@ class PipelineVK {
     VkDevice m_device = VK_NULL_HANDLE;
     VkPipelineLayout m_layout = VK_NULL_HANDLE;
     VkPipeline m_pipeline = VK_NULL_HANDLE;
-
+    uint32_t m_pushConstantSize = 0;
+    uint32_t m_vertexStride = 0;
     bool m_isActive = false;
     void destroyResources();
 
@@ -32,4 +33,6 @@ public:
     void end();
 
     VkPipelineLayout layout() const;
+    uint32_t pushConstantSize() const;
+    uint32_t vertexStride() const;
 };

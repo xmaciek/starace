@@ -45,7 +45,6 @@ void UIImage::render( RenderContext rctx ) const
     assert( m_texture );
     const PushBuffer pushBuffer{
         .m_pipeline = static_cast<PipelineSlot>( Pipeline::eGuiTextureColor1 ),
-        .m_pushConstantSize = sizeof( PushConstant<Pipeline::eGuiTextureColor1> ),
         .m_verticeCount = 4,
         .m_texture = m_texture,
     };

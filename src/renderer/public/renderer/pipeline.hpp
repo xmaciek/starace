@@ -22,6 +22,7 @@ struct PipelineCreateInfo {
     const char* m_vertexShader = nullptr;
     const char* m_fragmentShader = nullptr;
     PipelineSlot m_slot = 0;
+    uint32_t m_pushConstantSize = 0;
     bool m_enableBlend : 1 = false;
     bool m_enableDepthTest : 1 = false;
     bool m_enableDepthWrite : 1 = false;
@@ -37,7 +38,6 @@ struct PipelineCreateInfo {
 struct PushBuffer {
     PipelineSlot m_pipeline{};
     uint16_t m_useLineWidth : 1 = false;
-    uint32_t m_pushConstantSize = 0;
     uint32_t m_verticeCount = 0;
     float m_lineWidth = 1.0f;
     Buffer m_vertice{};

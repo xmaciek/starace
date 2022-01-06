@@ -95,7 +95,6 @@ void Map::render( RenderContext rctx )
         using Wall = MapCreateInfo::Wall;
         PushBuffer pushBuffer{
             .m_pipeline = static_cast<PipelineSlot>( Pipeline::eTriangleFan3dTexture ),
-            .m_pushConstantSize = sizeof( PushConstant<Pipeline::eTriangleFan3dTexture> ),
             .m_verticeCount = 4,
         };
         PushConstant<Pipeline::eTriangleFan3dTexture> pushConstant{};
@@ -144,7 +143,6 @@ void Map::render( RenderContext rctx )
         PushBuffer pushBuffer{
             .m_pipeline = static_cast<PipelineSlot>( Pipeline::eLine3dColor1 ),
             .m_useLineWidth = true,
-            .m_pushConstantSize = sizeof( PushConstant<Pipeline::eLine3dColor1> ),
             .m_verticeCount = static_cast<uint32_t>( m_particleList.size() * 2 ),
             .m_lineWidth = 1.0f,
         };

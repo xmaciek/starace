@@ -23,6 +23,8 @@ PipelineVK::PipelineVK( PipelineVK&& rhs ) noexcept
     std::swap( m_device, rhs.m_device );
     std::swap( m_layout, rhs.m_layout );
     std::swap( m_pipeline, rhs.m_pipeline );
+    std::swap( m_pushConstantSize, rhs.m_pushConstantSize );
+    std::swap( m_vertexStride, rhs.m_vertexStride );
     std::swap( m_isActive, rhs.m_isActive );
 }
 
@@ -32,6 +34,8 @@ PipelineVK& PipelineVK::operator = ( PipelineVK&& rhs ) noexcept
     m_device = std::exchange( rhs.m_device, {} );
     m_layout = std::exchange( rhs.m_layout, {} );
     m_pipeline = std::exchange( rhs.m_pipeline, {} );
+    m_pushConstantSize = std::exchange( rhs.m_pushConstantSize, {} );
+    m_vertexStride = std::exchange( rhs.m_vertexStride, {} );
     m_isActive = std::exchange( rhs.m_isActive, {} );
     return *this;
 }
@@ -99,6 +103,8 @@ static constexpr auto topology( PipelineCreateInfo::Topology tp )
 
 PipelineVK::PipelineVK( const PipelineCreateInfo& pci, VkDevice device, VkRenderPass renderPass, VkDescriptorSetLayout layout )
 : m_device{ device }
+, m_pushConstantSize{ pci.m_pushConstantSize }
+, m_vertexStride{ pci.m_vertexStride }
 {
     assert( device );
     assert( renderPass );
@@ -244,4 +250,14 @@ VkPipelineLayout PipelineVK::layout() const
 {
     assert( m_layout );
     return m_layout;
+}
+
+uint32_t PipelineVK::pushConstantSize() const
+{
+    return m_pushConstantSize;
+}
+
+uint32_t PipelineVK::vertexStride() const
+{
+    return m_vertexStride;
 }

@@ -39,7 +39,6 @@ void Targeting::render( RenderContext rctx ) const
     PushBuffer pushBuffer{
         .m_pipeline = static_cast<PipelineSlot>( Pipeline::eLine3dColor1 ),
         .m_useLineWidth = true,
-        .m_pushConstantSize = sizeof( PushConstant<Pipeline::eLine3dColor1> ),
         .m_verticeCount = target.size(),
         .m_lineWidth = 2.0f,
     };
