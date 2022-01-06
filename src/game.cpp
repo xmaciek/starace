@@ -20,7 +20,6 @@
 static constexpr const char* chunk0[] = {
     "misc/DejaVuSans-Bold.ttf",
     "textures/button1.tga",
-    "textures/HUDtex.tga",
     "textures/background.tga",
     "textures/background-overlay.tga",
     "textures/star_field_transparent.tga",
