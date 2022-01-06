@@ -24,8 +24,25 @@ Label::Label( std::u32string_view s, Font* f, Anchor a, const glm::vec2& positio
     setText( s );
 }
 
+Label::Label( std::u32string_view s, Font* f, Anchor a, const glm::vec4& color )
+: Widget{ a }
+, m_font{ f }
+, m_color{ color }
+{
+    assert( f );
+    setText( s );
+}
+
 Label::Label( Font* f, Anchor a, const glm::vec2& position, const glm::vec4& color )
 : Widget{ position, {}, a }
+, m_font{ f }
+, m_color{ color }
+{
+    assert( f );
+}
+
+Label::Label( Font* f, Anchor a, const glm::vec4& color )
+: Widget{ a }
 , m_font{ f }
 , m_color{ color }
 {
@@ -35,6 +52,7 @@ Label::Label( Font* f, Anchor a, const glm::vec2& position, const glm::vec4& col
 void Label::render( RenderContext rctx ) const
 {
     assert( m_font );
+    assert( !m_text.empty() );
     const glm::vec3 pos{ position() + offsetByAnchor(), 0.0f };
 
     m_renderText.second.m_model = glm::translate( rctx.model, pos );

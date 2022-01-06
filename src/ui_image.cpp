@@ -27,6 +27,14 @@ UIImage::UIImage( glm::vec2 position, glm::vec2 extent, glm::vec4 color, Texture
     assert( t );
 }
 
+UIImage::UIImage( Anchor a, glm::vec2 extent, glm::vec4 color, Texture t )
+: Widget{ {}, extent, a }
+, m_color{ color }
+, m_texture{ t }
+{
+    assert( t );
+}
+
 UIImage::UIImage( Anchor a )
 : Widget{ a }
 {

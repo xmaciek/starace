@@ -24,7 +24,9 @@ public:
     Label() = default;
     Label( std::u32string_view, Font*, const glm::vec2& position, const glm::vec4& color );
     Label( std::u32string_view, Font*, Anchor, const glm::vec2& position, const glm::vec4& color );
+    Label( std::u32string_view, Font*, Anchor, const glm::vec4& color );
     Label( Font*, Anchor, const glm::vec2& position, const glm::vec4& color );
+    Label( Font*, Anchor, const glm::vec4& color );
 
     virtual void render( RenderContext ) const override;
     void setText( std::u32string_view );

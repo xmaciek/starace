@@ -23,6 +23,18 @@ Button::Button( std::u32string_view txt, Font* f, Texture texture, std::function
 {
 }
 
+Button::Button( std::u32string_view txt, Font* f, Texture texture, Anchor a, std::function<void()>&& onTrigger )
+: UIImage{ a, { 192.0f, 48.0f }, colorNormal, texture }
+, m_label(
+    txt
+    , f
+    , Anchor::fCenter | Anchor::fMiddle
+    , {}
+    , color::white )
+, m_onTrigger{ onTrigger }
+{
+}
+
 Button::Button( Font* f, Texture texture, std::function<void()>&& onTrigger )
 : UIImage{ {}, { 192.0f, 48.0f }, colorNormal, texture }
 , m_label(
