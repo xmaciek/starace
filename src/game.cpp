@@ -106,7 +106,6 @@ Game::~Game()
     delete m_fontGuiTxt;
     delete m_fontBig;
 
-    delete m_previewModel;
     delete m_enemyModel;
 }
 
@@ -139,25 +138,17 @@ void Game::onEvent( const SDL_Event& event )
 
 void Game::onExit()
 {
-    saveConfig();
+    for ( auto& it : m_jetsContainer ) {
+        delete it.model;
+    }
 }
 
 void Game::onResize( uint32_t w, uint32_t h )
 {
     m_maxDimention = std::max( w, h );
 
-    const uint32_t halfW = viewportWidth() >> 1;
-    const uint32_t halfH = viewportHeight() >> 1;
-    const uint32_t h015 = viewportHeight() - (uint32_t)( (float)viewportHeight() * 0.15f );
-    m_btnCustomizeReturn.setPosition( { halfW - 96, h015 + 52 } );
-    m_btnNextJet.setPosition( { viewportWidth() - 240, halfH - 24 } );
-    m_btnPrevJet.setPosition( { 48, halfH - 24 } );
-
-    m_btnWeap1.setPosition( { halfW - 196 - 96, h015 + 52 - 76 } );
-    m_btnWeap2.setPosition( { halfW - 96, h015 + 52 - 76 } );
-    m_btnWeap3.setPosition( { halfW + 100, h015 + 52 - 76 } );
-
     m_screenTitle.resize( { w, h } );
+    m_screenCustomize.resize( { w, h } );
     m_screenPause.resize( { w, h } );
     m_screenMissionSelect.resize( { w, h } );
     m_screenWin.resize( { w, h } );
@@ -169,8 +160,6 @@ void Game::onResize( uint32_t w, uint32_t h )
 void Game::onInit()
 {
     ZoneScoped;
-    loadConfig();
-
     for ( auto [ eid, act ] : inputActions ) {
         registerAction( static_cast<Action::Enum>( eid ), act );
     }
@@ -203,52 +192,11 @@ void Game::onInit()
     m_hud = Hud{ &m_hudData, m_fontGuiTxt };
 
     m_buttonTexture = loadTexture( m_io->getWait( "textures/button1.tga" ) );
-
-    auto nextJet = [this]()
-    {
-        m_audio->play( m_click );
-        m_currentJet++;
-        m_btnPrevJet.setEnabled( m_currentJet > 0 );
-        m_btnNextJet.setEnabled( m_currentJet < m_jetsContainer.size() - 1 );
-        reloadPreviewModel();
-    };
-    auto prevJet = [this]()
-    {
-        m_audio->play( m_click );
-        m_currentJet--;
-        m_btnPrevJet.setEnabled( m_currentJet > 0 );
-        m_btnNextJet.setEnabled( m_currentJet < m_jetsContainer.size() - 1 );
-        reloadPreviewModel();
-    };
-
-    m_btnNextJet = Button( U"Next Jet", m_fontGuiTxt, m_buttonTexture, std::move( nextJet ) );
-    m_btnPrevJet = Button( U"Previous Jet", m_fontGuiTxt, m_buttonTexture, std::move( prevJet ) );
-    m_btnNextJet.setEnabled( m_currentJet < m_jetsContainer.size() - 1 );
-    m_btnPrevJet.setEnabled( m_currentJet > 0 );
-    m_btnCustomizeReturn = Button( U"Done", m_fontGuiTxt, m_buttonTexture, [this](){ changeScreen( Screen::eMainMenu, m_click ); } );
-
-    constexpr auto weaponToString = []( int i ) -> std::u32string_view
-    {
-        using namespace std::string_view_literals;
-        switch ( i ) {
-        case 0:
-            return U"Laser"sv;
-        case 1:
-            return U"Blaster"sv;
-        case 2:
-            return U"Torpedo"sv;
-        }
-        assert( !"invalid weapon id" );
-        return U"invalid id"sv;
-    };
-    m_btnWeap1 = Button( weaponToString( *m_weap1 ), m_fontGuiTxt, m_buttonTexture, [this, weaponToString](){ m_audio->play( m_click ); m_btnWeap1.setText( weaponToString( *++m_weap1 ) ); } );
-    m_btnWeap2 = Button( weaponToString( *m_weap2 ), m_fontGuiTxt, m_buttonTexture, [this, weaponToString](){ m_audio->play( m_click ); m_btnWeap2.setText( weaponToString( *++m_weap2 ) ); } );
-    m_btnWeap3 = Button( weaponToString( *m_weap3 ), m_fontGuiTxt, m_buttonTexture, [this, weaponToString](){ m_audio->play( m_click ); m_btnWeap3.setText( weaponToString( *++m_weap3 ) ); } );
-
     m_hudTex = loadTexture( m_io->getWait( "textures/HUDtex.tga" ) );
     m_menuBackground = loadTexture( m_io->getWait( "textures/background.tga" ) );
     m_menuBackgroundOverlay = loadTexture( m_io->getWait( "textures/background-overlay.tga" ) );
     m_starfieldTexture = loadTexture( m_io->getWait( "textures/star_field_transparent.tga" ) );
+
     const std::array rings = {
         loadTexture( m_io->getWait( "textures/cyber_ring1.tga" ) ),
         loadTexture( m_io->getWait( "textures/cyber_ring2.tga" ) ),
@@ -363,6 +311,27 @@ void Game::onInit()
     };
 
     loadJetProto();
+    std::pmr::vector<CustomizeData> data{};
+    data.reserve( m_jetsContainer.size() );
+    std::transform( m_jetsContainer.begin(), m_jetsContainer.end(), std::back_inserter( data ),
+        []( ModelProto& it ) { return CustomizeData{ it.name, it.model, 1.0f }; }
+    );
+
+    m_screenCustomize = ScreenCustomize{
+        { 1, 2, 1 }
+        , std::move( data )
+        , m_fontGuiTxt
+        , m_fontPauseTxt
+        , m_hudTex
+        , m_buttonTexture
+        , &m_uiRings
+        , U"Done", [this](){ changeScreen( Screen::eMainMenu, m_click ); }
+        , U"Previous Jet", [this](){ if ( m_screenCustomize.prevJet() ) { m_audio->play( m_click ); } }
+        , U"Next Jet",  [this](){ if ( m_screenCustomize.nextJet() ) { m_audio->play( m_click ); } }
+        , [this](){ m_screenCustomize.nextWeap( 0 ); m_audio->play( m_click ); }
+        , [this](){ m_screenCustomize.nextWeap( 1 ); m_audio->play( m_click ); }
+        , [this](){ m_screenCustomize.nextWeap( 2 ); m_audio->play( m_click ); }
+    };
     m_enemyModel = new Model{ "models/a2.objc", m_textures[ "textures/a2.tga" ], m_renderer, 0.45f };
 
     onResize( viewportWidth(), viewportHeight() );
@@ -429,7 +398,7 @@ void Game::onUpdate( const UpdateContext& updateContext )
         updateMainMenu( updateContext );
         break;
     case Screen::eCustomize:
-        updateCustomize( updateContext );
+        m_screenCustomize.update( updateContext );
         break;
     default:
         break;
@@ -635,9 +604,10 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
     m_shotsDone = 0;
     m_jet = new Jet( modelData, m_renderer );
     m_map = new Map( mapInfo );
-    m_jet->setWeapon( m_weapons[ *m_weap1 ], 0 );
-    m_jet->setWeapon( m_weapons[ *m_weap2 ], 1 );
-    m_jet->setWeapon( m_weapons[ *m_weap3 ], 2 );
+    auto weap = m_screenCustomize.weapons();
+    m_jet->setWeapon( m_weapons[ weap[ 0 ] ], 0 );
+    m_jet->setWeapon( m_weapons[ weap[ 1 ] ], 1 );
+    m_jet->setWeapon( m_weapons[ weap[ 2 ] ], 2 );
 
     assert( m_enemies.empty() );
     m_enemies.resize( mapInfo.enemies );
@@ -667,25 +637,18 @@ void Game::changeScreen( Screen scr, Audio::Chunk sound )
     case Screen::eDead:
     case Screen::eMainMenu:
     case Screen::eWin:
+    case Screen::eCustomize:
         m_currentScreen = scr;
         break;
 
-    case Screen::eGameBriefing:
-        createMapData( m_mapsContainer.at( m_screenMissionSelect.selectedMission() ), m_jetsContainer.at( m_currentJet ) );
+    case Screen::eGameBriefing: {
+        const uint32_t currentJet = m_screenCustomize.jet();
+        createMapData( m_mapsContainer.at( m_screenMissionSelect.selectedMission() ), m_jetsContainer.at( currentJet ) );
         m_currentScreen = Screen::eGamePaused;
-        break;
+    } break;
 
     case Screen::eMissionSelection:
         clearMapData();
-        m_currentScreen = scr;
-        break;
-
-    case Screen::eCustomize:
-        assert( !m_jetsContainer.empty() );
-        m_btnNextJet.setEnabled( m_currentJet < m_jetsContainer.size() - 1 );
-        m_btnPrevJet.setEnabled( m_currentJet > 0 );
-        m_modelRotation = 135.0;
-        reloadPreviewModel();
         m_currentScreen = scr;
         break;
 
@@ -760,7 +723,7 @@ void Game::loadMapProto()
 
 void Game::loadJetProto()
 {
-    m_jetsContainer.clear();
+    assert( m_jetsContainer.empty() );
     ModelProto mod;
     std::ifstream JetFile( "jets.cfg" );
     char value_1[ 48 ]{};
@@ -772,7 +735,8 @@ void Game::loadJetProto()
             m_jetsContainer.push_back( mod );
         }
         if ( strcmp( value_1, "name" ) == 0 ) {
-            m_jetsContainer.back().name = value_2;
+            std::string_view v = value_2;
+            m_jetsContainer.back().name = std::u32string{ v.begin(), v.end() };
         }
         if ( strcmp( value_1, "texture" ) == 0 ) {
             m_jetsContainer.back().model_texture = value_2;
@@ -785,81 +749,13 @@ void Game::loadJetProto()
         }
     }
     JetFile.close();
-    if ( m_jetsContainer.empty() ) {
-        std::cout << "no jets\n";
-        m_jetsContainer.push_back( mod );
-    }
+    assert( !m_jetsContainer.empty() );
 
-    m_currentJet = 0;
-    for ( uint32_t i = 0; i < m_jetsContainer.size(); i++ ) {
-        if ( m_lastSelectedJetName == m_jetsContainer.at( i ).name ) {
-            m_currentJet = i;
-        }
+    for ( auto& it : m_jetsContainer ) {
+        it.model = new Model( it.model_file, m_textures[ it.model_texture ], m_renderer, 1.0f );
     }
-    m_btnPrevJet.setEnabled( m_currentJet > 0 );
-    m_btnNextJet.setEnabled( m_currentJet < m_jetsContainer.size() - 1 );
 }
 
-void Game::loadConfig()
-{
-    std::ifstream ConfigFile( "config.cfg" );
-    char value_1[ 48 ]{};
-    char value_2[ 48 ]{};
-    std::string line;
-    while ( getline( ConfigFile, line ) ) {
-        std::sscanf( line.c_str(), "%s %s", value_1, value_2 );
-        if ( strcmp( value_1, "jet" ) == 0 ) {
-            m_lastSelectedJetName = value_2;
-        }
-        if ( strcmp( value_1, "weap1" ) == 0 ) {
-            if ( strcmp( value_2, "laser" ) == 0 ) {
-                m_weap1 = 0;
-            }
-            if ( strcmp( value_2, "blaster" ) == 0 ) {
-                m_weap1 = 1;
-            }
-            if ( strcmp( value_2, "torpedo" ) == 0 ) {
-                m_weap1 = 2;
-            }
-        }
-        if ( strcmp( value_1, "weap2" ) == 0 ) {
-            if ( strcmp( value_2, "laser" ) == 0 ) {
-                m_weap2 = 0;
-            }
-            if ( strcmp( value_2, "blaster" ) == 0 ) {
-                m_weap2 = 1;
-            }
-            if ( strcmp( value_2, "torpedo" ) == 0 ) {
-                m_weap2 = 2;
-            }
-        }
-        if ( strcmp( value_1, "weap3" ) == 0 ) {
-            if ( strcmp( value_2, "laser" ) == 0 ) {
-                m_weap3 = 0;
-            }
-            if ( strcmp( value_2, "blaster" ) == 0 ) {
-                m_weap3 = 1;
-            }
-            if ( strcmp( value_2, "torpedo" ) == 0 ) {
-                m_weap3 = 2;
-            }
-        }
-    }
-    ConfigFile.close();
-}
-
-void Game::saveConfig()
-{
-    std::ofstream ConfigFile( "config.cfg" );
-    ConfigFile << "width " << viewportWidth() << "\n";
-    ConfigFile << "height " << viewportHeight() << "\n";
-    ConfigFile << "jet " << m_jetsContainer.at( m_currentJet ).name << "\n";
-    constexpr std::array weapName = { "laser\n", "blaster\n", "torpedo\n" };
-    ConfigFile << "weap1 " << weapName[ *m_weap1 ];
-    ConfigFile << "weap2 " << weapName[ *m_weap2 ];
-    ConfigFile << "weap3 " << weapName[ *m_weap3 ];
-    ConfigFile.close();
-}
 
 void Game::updateClouds( const UpdateContext& updateContext )
 {
@@ -870,11 +766,6 @@ void Game::updateClouds( const UpdateContext& updateContext )
 void Game::updateCustomize( const UpdateContext& updateContext )
 {
     updateClouds( updateContext );
-    m_uiRings.update( updateContext );
-    m_modelRotation += 30.0 * updateContext.deltaTime;
-    if ( m_modelRotation >= 360.0 ) {
-        m_modelRotation -= 360.0;
-    }
 }
 
 void Game::updateWin( const UpdateContext& updateContext )
@@ -902,17 +793,6 @@ float Game::viewportAspect() const
     return std::get<2>( viewport() );
 }
 
-void Game::reloadPreviewModel()
-{
-    Model* model = new Model(
-        m_jetsContainer.at( m_currentJet ).model_file
-        , m_textures[ m_jetsContainer.at( m_currentJet ).model_texture ]
-        , m_renderer
-    );
-    std::swap( model, m_previewModel );
-    delete model;
-}
-
 void Game::onAction( Action a )
 {
     const GameAction action = a.toA<GameAction>();
@@ -931,6 +811,10 @@ void Game::onAction( Action a )
     case Screen::eMainMenu:
         m_screenTitle.onAction( a );
         return;
+
+    case Screen::eCustomize:
+        m_screenCustomize.onAction( a );
+        break;
 
     case Screen::eMissionSelection:
         m_screenMissionSelect.onAction( a );
@@ -989,13 +873,7 @@ void Game::onMouseEvent( const MouseEvent& mouseEvent )
         break;
 
     case Screen::eCustomize:
-        m_btnPrevJet.onMouseEvent( mouseEvent )
-        || m_btnNextJet.onMouseEvent( mouseEvent )
-        || m_btnCustomizeReturn.onMouseEvent( mouseEvent )
-        || m_btnWeap1.onMouseEvent( mouseEvent )
-        || m_btnWeap2.onMouseEvent( mouseEvent )
-        || m_btnWeap3.onMouseEvent( mouseEvent )
-        ;
+        m_screenCustomize.onMouseEvent( mouseEvent );
         break;
 
     default:

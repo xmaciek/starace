@@ -46,7 +46,7 @@ std::tuple<glm::mat4, glm::mat4> Game::getCameraMatrix() const
     view = glm::translate( view, -m_jet->position() );
     return {
         view,
-        glm::perspective( glm::radians( m_angle + m_jet->speed() * 3 ), viewportAspect(), 0.001f, 2000.0f )
+        glm::perspective( glm::radians( 55.0f + m_jet->speed() * 3 ), viewportAspect(), 0.001f, 2000.0f )
     };
 }
 
@@ -117,36 +117,5 @@ void Game::renderDeadScreen( RenderContext rctx )
 void Game::renderScreenCustomize( RenderContext rctx )
 {
     renderClouds( rctx );
-    m_uiRings.render( rctx );
-    renderHudTex( rctx, color::dodgerBlue );
-
-    {
-        // TODO: hud labels
-        std::pmr::u32string jetName{};
-        const std::string& name = m_jetsContainer[ m_currentJet ].name;
-        std::copy( name.begin(), name.end(), std::back_inserter( jetName ) );
-        const double posx = (double)viewportWidth() / 2 - static_cast<double>( m_fontBig->textLength( jetName ) ) / 2;
-        m_fontBig->renderText( rctx,  color::white, posx, 64, jetName );
-    }
-    {
-        RenderContext rctx2 = rctx;
-        rctx2.projection = glm::perspective(
-            glm::radians( m_angle )
-            , viewportAspect()
-            , 0.001f
-            , 2000.0f
-        );
-        rctx2.model = glm::translate( rctx2.model, glm::vec3{ 0, 0.1, -1.25 } );
-        rctx2.model = glm::rotate( rctx2.model, glm::radians( -15.0f ), glm::vec3{ 1, 0, 0 } );
-        rctx2.model = glm::rotate( rctx2.model, glm::radians( (float)m_modelRotation ), glm::vec3{ 0, 1, 0 } );
-        assert( m_previewModel );
-        m_previewModel->render( rctx2 );
-    }
-
-    m_btnNextJet.render( rctx );
-    m_btnPrevJet.render( rctx );
-    m_btnCustomizeReturn.render( rctx );
-    m_btnWeap1.render( rctx );
-    m_btnWeap2.render( rctx );
-    m_btnWeap3.render( rctx );
+    m_screenCustomize.render( rctx );
 }

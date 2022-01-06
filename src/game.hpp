@@ -10,6 +10,7 @@
 #include "model_proto.hpp"
 #include "texture.hpp"
 #include "targeting.hpp"
+#include "screen_customize.hpp"
 #include "screen_mission_select.hpp"
 #include "screen_pause.hpp"
 #include "screen_title.hpp"
@@ -53,7 +54,6 @@ private:
     Font* m_fontPauseTxt = nullptr;
     Jet* m_jet = nullptr;
     Map* m_map = nullptr;
-    Model* m_previewModel = nullptr;
     Model* m_enemyModel = nullptr;
 
     Audio::Chunk m_blaster{};
@@ -70,19 +70,11 @@ private:
     std::vector<MapCreateInfo> m_mapsContainer{};
     std::vector<ModelProto> m_jetsContainer{};
 
-    std::mutex m_mutexJet{};
-
     HudData m_hudData{};
     Hud m_hud{};
     UIRings m_uiRings{};
 
     BulletProto m_weapons[ 4 ]{};
-    Button m_btnCustomizeReturn{};
-    Button m_btnNextJet{};
-    Button m_btnPrevJet{};
-    Button m_btnWeap1{};
-    Button m_btnWeap2{};
-    Button m_btnWeap3{};
 
     Texture m_buttonTexture{};
     Texture m_cyberRingTexture[ 3 ]{};
@@ -93,6 +85,7 @@ private:
     std::pmr::map<std::filesystem::path, Texture> m_textures{};
 
     ScreenTitle m_screenTitle{};
+    ScreenCustomize m_screenCustomize{};
     ScreenMissionSelect m_screenMissionSelect{};
     ScreenPause m_screenPause{};
     ScreenWinLoose m_screenWin{};
@@ -102,12 +95,9 @@ private:
 
     Jet::Input m_jetInput{};
     glm::vec4 m_currentHudColor = color::winScreen;
-    double m_modelRotation = 0.0;
     float m_maxDimention = 0.0f;
     float m_alphaValue = 1.0f;
     float m_alphaN = 0.0f;
-    float m_angle = 55.0f;
-    uint32_t m_currentJet = 0;
     uint32_t m_shotsDone = 0;
 
     Screen m_currentScreen = Screen::eGame;
@@ -122,14 +112,12 @@ private:
     void changeScreen( Screen, Audio::Chunk sound = {} );
     void clearMapData();
     void createMapData( const MapCreateInfo&, const ModelProto& );
-    void loadConfig();
     void loadJetProto();
     void loadMapProto();
     void onKeyDown( const SDL_Keysym& );
     void onKeyUp( const SDL_Keysym& );
     void onResize( uint32_t w, uint32_t h );
     void pause();
-    void reloadPreviewModel();
 
     std::tuple<glm::mat4, glm::mat4> getCameraMatrix() const;
 
@@ -148,7 +136,6 @@ private:
 
     void preloadData();
     void retarget();
-    void saveConfig();
     void setCamera();
     void unpause();
     void updateClouds( const UpdateContext& );
