@@ -16,6 +16,7 @@ enum class Pipeline : PipelineSlot {
     eShortString,
     eProgressBar,
     eGlow,
+    eBackground,
     count,
 };
 
@@ -51,6 +52,17 @@ struct PushConstant<Pipeline::eTriangleFan3dTexture> {
 
 template <>
 struct PushConstant<Pipeline::eGuiTextureColor1> {
+    glm::mat4 m_model{};
+    glm::mat4 m_view{};
+    glm::mat4 m_projection{};
+    glm::vec4 m_color{};
+    std::array<glm::vec4, 4> m_vertices{};
+
+    PushConstant() = default;
+};
+
+template <>
+struct PushConstant<Pipeline::eBackground> {
     glm::mat4 m_model{};
     glm::mat4 m_view{};
     glm::mat4 m_projection{};
@@ -123,6 +135,19 @@ static constexpr PipelineCreateInfo g_pipelineGui{
     .m_fragmentShader = "shaders/gui_texture_color.frag.spv",
     .m_slot = static_cast<PipelineSlot>( Pipeline::eGuiTextureColor1 ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eGuiTextureColor1> ),
+    .m_enableBlend = true,
+    .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
+    .m_cullMode = PipelineCreateInfo::CullMode::eBack,
+    .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
+    .m_constantBindBits = 0b1,
+    .m_textureBindBits = 0b10,
+};
+
+static constexpr PipelineCreateInfo g_pipelineBackground{
+    .m_vertexShader = "shaders/background.vert.spv",
+    .m_fragmentShader = "shaders/background.frag.spv",
+    .m_slot = static_cast<PipelineSlot>( Pipeline::eBackground ),
+    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eBackground> ),
     .m_enableBlend = true,
     .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,

@@ -37,3 +37,6 @@ compileShader( progressbar.frag )
 
 compileShader( glow.vert )
 compileShader( glow.frag )
+
+compileShader( background.vert )
+compileShader( background.frag )
