@@ -2,6 +2,8 @@
 
 #include "buffer_vk.hpp"
 
+#include <renderer/texture.hpp>
+
 #include <vulkan/vulkan.h>
 
 class TextureVK {
@@ -18,6 +20,7 @@ public:
     ~TextureVK();
     TextureVK() = default;
     TextureVK( VkPhysicalDevice, VkDevice, VkExtent2D, VkFormat );
+    TextureVK( const TextureCreateInfo&, VkPhysicalDevice, VkDevice );
 
     TextureVK( TextureVK&& ) noexcept;
     TextureVK& operator = ( TextureVK&& ) noexcept;

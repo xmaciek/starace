@@ -6,6 +6,8 @@
 
 #include "utils_vk.hpp"
 
+#include <Tracy.hpp>
+
 void BufferVK::destroyResources()
 {
     destroy<vkDestroyBuffer>( m_device, m_buffer );
@@ -42,6 +44,7 @@ BufferVK::BufferVK( VkPhysicalDevice physicalDevice, VkDevice device, Purpose pu
 , m_size( size )
 , m_purpose( purpose )
 {
+    ZoneScoped;
     VkBufferUsageFlags usage{};
     VkMemoryPropertyFlags flags{};
     switch ( m_purpose ) {
@@ -87,6 +90,7 @@ BufferVK::BufferVK( VkPhysicalDevice physicalDevice, VkDevice device, Purpose pu
 
 void BufferVK::transferFrom( const BufferVK& from, VkCommandBuffer cmd )
 {
+    ZoneScoped;
     assert( from.m_size == m_size );
     const VkBufferCopy copyRegion{
         .size = m_size,
@@ -96,6 +100,7 @@ void BufferVK::transferFrom( const BufferVK& from, VkCommandBuffer cmd )
 
 void BufferVK::copyData( const uint8_t* data )
 {
+    ZoneScoped;
     assert( data );
     void* ptr = nullptr;
     [[maybe_unused]]

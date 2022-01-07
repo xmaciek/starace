@@ -461,6 +461,7 @@ Texture RendererVK::createTexture( uint32_t width, uint32_t height, TextureForma
     case TextureFormat::eRGB:
     case TextureFormat::eBGR:
     {
+        ZoneScopedN( "convert data rgb->rgba bgr->bgra" );
         std::pmr::vector<uint8_t> tmp{ width * height * 4, allocator() };
         using RGB = uint8_t[3];
         const RGB* rgb = reinterpret_cast<const RGB*>( data.data() );
@@ -483,6 +484,63 @@ Texture RendererVK::createTexture( uint32_t width, uint32_t height, TextureForma
     staging.copyData( data.data() );
 
     TextureVK* tex = new TextureVK{ m_physicalDevice, m_device, VkExtent2D{ width, height }, convertFormat( fmt ) };
+
+    static constexpr VkCommandBufferBeginInfo beginInfo{
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+        .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
+    };
+
+    VkCommandBuffer cmd = m_commandPool[ 0 ];
+    vkBeginCommandBuffer( cmd, &beginInfo );
+    tex->transferFrom( cmd, staging );
+    vkEndCommandBuffer( cmd );
+
+    const VkSubmitInfo submitInfo{
+        .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+        .commandBufferCount = 1,
+        .pCommandBuffers = &cmd,
+    };
+
+    {
+        auto [ queue, bottleneck ] = m_queueTransfer;
+        assert( queue );
+        assert( bottleneck );
+        Bottleneck lock{ *bottleneck };
+        [[maybe_unused]]
+        const VkResult submitOK = vkQueueSubmit( queue, 1, &submitInfo, VK_NULL_HANDLE );
+        assert( submitOK == VK_SUCCESS );
+        vkQueueWaitIdle( queue );
+    }
+
+    const uint32_t idx = m_textureIndexer.next();
+    [[maybe_unused]]
+    TextureVK* oldTex = m_textureSlots[ idx ].exchange( tex );
+    assert( !oldTex );
+    return idx + 1;
+}
+
+Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::pmr::vector<uint8_t>&& data )
+{
+    ZoneScoped;
+    assert( tci.width > 0 );
+    assert( tci.height > 0 );
+    assert( !data.empty() );
+
+    switch ( tci.format ) {
+    case TextureFormat::eR:
+    case TextureFormat::eRGBA:
+    case TextureFormat::eBGRA:
+        break;
+    default:
+        assert( !"unsuported format" );
+        return 0;
+    }
+    const std::size_t size = tci.width * tci.height * formatToSize( tci.format );
+    assert( size <= data.size() );
+    BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, size };
+    staging.copyData( data.data() );
+
+    TextureVK* tex = new TextureVK{ tci, m_physicalDevice, m_device };
 
     static constexpr VkCommandBufferBeginInfo beginInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,

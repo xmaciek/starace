@@ -2,8 +2,34 @@
 
 #include "utils_vk.hpp"
 
+#include <Tracy.hpp>
+
 #include <cassert>
 #include <utility>
+
+static auto format( const TextureCreateInfo& tci )
+{
+    switch ( tci.format ) {
+    case TextureFormat::eR: return VK_FORMAT_R8_UNORM;
+    case TextureFormat::eRGBA: return VK_FORMAT_R8G8B8A8_UNORM;
+    case TextureFormat::eBGRA: return VK_FORMAT_B8G8R8A8_UNORM;
+    default:
+        assert( !"unsuported format" );
+        return VK_FORMAT_UNDEFINED;
+    };
+}
+
+static auto addressMode( TextureAddressMode a )
+{
+    switch ( a ) {
+    case TextureAddressMode::eClamp: return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    case TextureAddressMode::eRepeat: return VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    case TextureAddressMode::eMirror: return VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
+    default:
+        assert( !"unsuported address mode" );
+        return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    };
+}
 
 void TextureVK::destroyResources()
 {
@@ -22,6 +48,7 @@ TextureVK::TextureVK( VkPhysicalDevice physDevice, VkDevice device, VkExtent2D e
 : m_device{ device }
 , m_extent{ extent }
 {
+    ZoneScoped;
     assert( extent.width > 0 );
     assert( extent.height > 0 );
     std::tie( m_image, m_view, m_memory ) = createImage(
@@ -44,6 +71,45 @@ TextureVK::TextureVK( VkPhysicalDevice physDevice, VkDevice device, VkExtent2D e
         .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
         .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
         .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+        .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+        .mipLodBias = 0.0f,
+        .minLod = 0.0f,
+        .maxLod = 0.0f,
+        .unnormalizedCoordinates = VK_FALSE,
+    };
+
+    [[maybe_unused]]
+    const VkResult samplerOK = vkCreateSampler( m_device, &samplerInfo, nullptr, &m_sampler );
+    assert( samplerOK == VK_SUCCESS );
+}
+
+TextureVK::TextureVK( const TextureCreateInfo& tci, VkPhysicalDevice physDevice, VkDevice device )
+: m_device{ device }
+, m_extent{ tci.width, tci.height }
+{
+    ZoneScoped;
+    assert( tci.width > 0 );
+    assert( tci.height > 0 );
+    std::tie( m_image, m_view, m_memory ) = createImage(
+        physDevice
+        , device
+        , m_extent
+        , format( tci )
+        , VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT
+        , VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+        , VK_IMAGE_ASPECT_COLOR_BIT
+    );
+    assert( m_image );
+    assert( m_view );
+    assert( m_memory );
+
+    const VkSamplerCreateInfo samplerInfo{
+        .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+        .magFilter = VK_FILTER_LINEAR,
+        .minFilter = VK_FILTER_LINEAR,
+        .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
+        .addressModeU = addressMode( tci.u ),
+        .addressModeV = addressMode( tci.v ),
         .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
         .mipLodBias = 0.0f,
         .minLod = 0.0f,
@@ -80,6 +146,7 @@ TextureVK& TextureVK::operator = ( TextureVK&& rhs ) noexcept
 
 void TextureVK::transferFrom( VkCommandBuffer cmd, const BufferVK& buffer )
 {
+    ZoneScoped;
     transferImage( cmd, m_image, constants::undefined, constants::copyTo );
     const VkBufferImageCopy region{
         .imageSubresource = VkImageSubresourceLayers{
