@@ -4,6 +4,8 @@
 
 #include "tga.hpp"
 
+#include <Tracy.hpp>
+
 #include <algorithm>
 #include <cassert>
 #include <cstring>
@@ -12,6 +14,7 @@
 
 Texture loadTexture( std::pmr::vector<uint8_t>&& data )
 {
+    ZoneScoped;
     assert( !data.empty() );
     assert( data.size() >= sizeof( tga::Header ) );
     tga::Header header{};
@@ -26,8 +29,12 @@ Texture loadTexture( std::pmr::vector<uint8_t>&& data )
 
     Renderer* renderer = Renderer::instance();
     assert( renderer );
-    std::pmr::vector<uint8_t> texture( textureSize, renderer->allocator() );
-    std::copy_n( it, texture.size(), texture.begin() );
+    std::pmr::vector<uint8_t> texture( renderer->allocator() );
+    {
+        ZoneScopedN( "copy data" );
+        texture.resize( textureSize );
+        std::copy_n( it, texture.size(), texture.begin() );
+    }
 
     TextureFormat fmt = {};
     switch ( bytesPerPixel ) {
@@ -43,6 +50,7 @@ Texture loadTexture( std::pmr::vector<uint8_t>&& data )
 
 Texture loadTexture( std::string_view filename )
 {
+    ZoneScoped;
     std::ifstream ifs( std::string( filename ), std::ios::binary | std::ios::ate );
     assert( ifs.is_open() );
 

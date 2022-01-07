@@ -20,9 +20,6 @@
 static constexpr const char* chunk0[] = {
     "misc/DejaVuSans-Bold.ttf",
     "textures/button1.tga",
-    "textures/background.tga",
-    "textures/background-overlay.tga",
-    "textures/star_field_transparent.tga",
     "textures/cyber_ring1.tga",
     "textures/cyber_ring2.tga",
     "textures/cyber_ring3.tga",
@@ -33,6 +30,17 @@ static constexpr const char* chunk1[] = {
     "textures/a3.tga",
     "textures/a4.tga",
     "textures/a5.tga",
+};
+
+static constexpr std::array<uint8_t, 64> c_backgroundPattern{
+    128, 128, 128, 100, 100, 128, 128, 128,
+    128, 100, 100, 100, 100, 100, 100, 128,
+    100, 100, 100, 128, 128, 100, 100, 100,
+    100, 128, 128, 128, 128, 128, 128, 100,
+    100, 128, 128, 128, 128, 128, 128, 100,
+    100, 100, 100, 128, 128, 100, 100, 100,
+    128, 100, 100, 100, 100, 100, 100, 128,
+    128, 128, 128, 100, 100, 128, 128, 128
 };
 
 constexpr std::tuple<GameAction, Actuator> inputActions[] = {
@@ -79,6 +87,7 @@ Game::Game( int argc, char** argv )
 : Engine{ argc, argv }
 {
     ZoneScoped;
+    preloadData();
     m_renderer->createPipeline( g_pipelineGui );
     m_renderer->createPipeline( g_pipelineLineStripColor );
     m_renderer->createPipeline( g_pipelineTriangleFan3DTexture );
@@ -88,13 +97,15 @@ Game::Game( int argc, char** argv )
     m_renderer->createPipeline( g_pipelineTriangle3DTextureNormal );
     m_renderer->createPipeline( g_pipelineProgressBar );
     m_renderer->createPipeline( g_pipelineGlow );
+    m_renderer->createPipeline( g_pipelineBackground );
 
-    preloadData();
     changeScreen( Screen::eMainMenu );
 
     m_enemies.reserve( 100 );
     m_bullets.reserve( 500 );
     m_enemyBullets.reserve( 1000 );
+    m_jetsContainer.reserve( 5 );
+    m_mapsContainer.reserve( 5 );
 }
 
 Game::~Game()
@@ -145,6 +156,7 @@ void Game::onExit()
 
 void Game::onResize( uint32_t w, uint32_t h )
 {
+    ZoneScoped;
     m_maxDimention = std::max( w, h );
 
     m_screenTitle.resize( { w, h } );
@@ -167,11 +179,51 @@ void Game::onInit()
         registerAction( static_cast<Action::Enum>( eid ), min, max );
     }
 
-    m_laser = m_audio->load( "sounds/laser.wav" );
-    m_blaster = m_audio->load( "sounds/blaster.wav" );
-    m_torpedo = m_audio->load( "sounds/torpedo.wav" );
-    m_click = m_audio->load( "sounds/click.wav" );
+    BulletProto tmpWeapon{};
+    tmpWeapon.type = Bullet::Type::eSlug;
+    tmpWeapon.delay = 0.05;
+    tmpWeapon.energy = 15;
+    tmpWeapon.damage = 1;
+    tmpWeapon.score_per_hit = 1;
+    tmpWeapon.color1 = color::yellow;
+    tmpWeapon.color2 = color::yellow;
+    m_weapons[ 0 ] = tmpWeapon;
 
+    tmpWeapon.type = Bullet::Type::eBlaster;
+    tmpWeapon.speed = 32;
+    tmpWeapon.damage = 10;
+    tmpWeapon.energy = 10;
+    tmpWeapon.delay = 0.1;
+    tmpWeapon.color1 = color::blaster;
+    tmpWeapon.score_per_hit = 30;
+    m_weapons[ 1 ] = tmpWeapon;
+
+    tmpWeapon.color1 = color::yellowBlaster;
+    tmpWeapon.delay = 0.4;
+    m_weapons[ 3 ] = tmpWeapon;
+
+    tmpWeapon.type = Bullet::Type::eTorpedo;
+    tmpWeapon.damage = 1;
+    tmpWeapon.delay = 0.2;
+    tmpWeapon.energy = 1;
+    tmpWeapon.speed = 16;
+    tmpWeapon.score_per_hit = 2;
+    tmpWeapon.color1 = color::orchid;
+    m_weapons[ 2 ] = tmpWeapon;
+
+    {
+        const TextureCreateInfo tci{
+            .width = 8,
+            .height = 8,
+            .mips = 1,
+            .format = TextureFormat::eR,
+            .u = TextureAddressMode::eRepeat,
+            .v = TextureAddressMode::eRepeat,
+        };
+        std::pmr::vector<uint8_t> data( c_backgroundPattern.size(), m_renderer->allocator() );
+        std::copy( c_backgroundPattern.begin(), c_backgroundPattern.end(), data.begin() );
+        m_bg = m_renderer->createTexture( tci, std::move( data ) );
+    }
     {
         std::pmr::u32string charset = U"0123456789"
         U"abcdefghijklmnopqrstuvwxyz"
@@ -191,10 +243,12 @@ void Game::onInit()
     }
     m_hud = Hud{ &m_hudData, m_fontGuiTxt };
 
+    m_laser = m_audio->load( "sounds/laser.wav" );
+    m_blaster = m_audio->load( "sounds/blaster.wav" );
+    m_torpedo = m_audio->load( "sounds/torpedo.wav" );
+    m_click = m_audio->load( "sounds/click.wav" );
+
     m_buttonTexture = loadTexture( m_io->getWait( "textures/button1.tga" ) );
-    m_menuBackground = loadTexture( m_io->getWait( "textures/background.tga" ) );
-    m_menuBackgroundOverlay = loadTexture( m_io->getWait( "textures/background-overlay.tga" ) );
-    m_starfieldTexture = loadTexture( m_io->getWait( "textures/star_field_transparent.tga" ) );
 
     const std::array rings = {
         loadTexture( m_io->getWait( "textures/cyber_ring1.tga" ) ),
@@ -246,46 +300,12 @@ void Game::onInit()
         , decltype( onWinLoose ){ onWinLoose }
     };
 
-
-    BulletProto tmpWeapon{};
-    tmpWeapon.type = Bullet::Type::eSlug;
-    tmpWeapon.delay = 0.05;
-    tmpWeapon.energy = 15;
-    tmpWeapon.damage = 1;
-    tmpWeapon.score_per_hit = 1;
-    tmpWeapon.color1 = color::yellow;
-    tmpWeapon.color2 = color::yellow;
-    m_weapons[ 0 ] = tmpWeapon;
-
-    tmpWeapon.type = Bullet::Type::eBlaster;
-    tmpWeapon.speed = 32;
-    tmpWeapon.damage = 10;
-    tmpWeapon.energy = 10;
-    tmpWeapon.delay = 0.1;
-    tmpWeapon.color1 = color::blaster;
-    tmpWeapon.score_per_hit = 30;
-    m_weapons[ 1 ] = tmpWeapon;
-
-    tmpWeapon.color1 = color::yellowBlaster;
-    tmpWeapon.delay = 0.4;
-    m_weapons[ 3 ] = tmpWeapon;
-
-    tmpWeapon.type = Bullet::Type::eTorpedo;
-    tmpWeapon.damage = 1;
-    tmpWeapon.delay = 0.2;
-    tmpWeapon.energy = 1;
-    tmpWeapon.speed = 16;
-    tmpWeapon.score_per_hit = 2;
-    tmpWeapon.color1 = color::orchid;
-    m_weapons[ 2 ] = tmpWeapon;
-
     for ( const char* it : chunk1 ) {
         m_textures[ it ] = loadTexture( m_io->getWait( it ) );
     }
 
     loadMapProto();
     std::pmr::vector<MissionInfo> mapInfo{};
-    mapInfo.reserve( m_mapsContainer.size() );
     std::transform( m_mapsContainer.begin(), m_mapsContainer.end(), std::back_inserter( mapInfo ),
     []( const MapCreateInfo& mci ) -> MissionInfo {
         return MissionInfo{
@@ -416,6 +436,7 @@ void Game::unpause()
 
 void Game::updateGame( const UpdateContext& updateContext )
 {
+    ZoneScoped;
     assert( m_jet );
 
     m_jet->setInput( m_jetInput );
@@ -522,6 +543,7 @@ void Game::updateGame( const UpdateContext& updateContext )
 
 void Game::addBullet( uint32_t wID )
 {
+    ZoneScoped;
     assert( m_audio );
     assert( m_jet );
     if ( !m_jet->isWeaponReady( wID ) ) {
@@ -556,6 +578,7 @@ void Game::retarget()
 
 void Game::clearMapData()
 {
+    ZoneScoped;
     for ( Enemy* e : m_enemies ) {
         std::destroy_at( e );
     }
@@ -582,6 +605,7 @@ void Game::clearMapData()
 
 void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelData )
 {
+    ZoneScoped;
     m_shotsDone = 0;
     m_jet = new Jet( modelData, m_renderer );
     m_map = new Map( mapInfo );
@@ -602,6 +626,7 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
 
 void Game::changeScreen( Screen scr, Audio::Chunk sound )
 {
+    ZoneScoped;
     if ( sound.data ) {
         m_audio->play( sound );
     }
@@ -635,13 +660,16 @@ void Game::changeScreen( Screen scr, Audio::Chunk sound )
 
 void Game::loadMapProto()
 {
-    m_mapsContainer.clear();
+    ZoneScoped;
+    assert( m_mapsContainer.empty() );
+
     MapCreateInfo map;
     std::ifstream MapFile( "maps.cfg" );
     char value_1[ 48 ]{};
     char value_2[ 48 ]{};
     std::pmr::string line;
     std::pmr::set<std::pmr::string> uniqueTextures{};
+
     while ( getline( MapFile, line ) ) {
         std::sscanf( line.c_str(), "%s %s", value_1, value_2 );
         if ( strcmp( value_1, "[MAP]" ) == 0 ) {
@@ -695,11 +723,15 @@ void Game::loadMapProto()
             assert( it.texture[ i ] );
         }
     }
+
+    assert( !m_mapsContainer.empty() );
 }
 
 void Game::loadJetProto()
 {
+    ZoneScoped;
     assert( m_jetsContainer.empty() );
+
     ModelProto mod;
     std::ifstream JetFile( "jets.cfg" );
     char value_1[ 48 ]{};
@@ -756,6 +788,7 @@ float Game::viewportAspect() const
 
 void Game::onAction( Action a )
 {
+    ZoneScoped;
     const GameAction action = a.toA<GameAction>();
     switch ( action ) {
     case GameAction::eJetPitch: m_jetInput.pitch = -a.analog; break;
@@ -812,6 +845,7 @@ void Game::onAction( Action a )
 
 void Game::onMouseEvent( const MouseEvent& mouseEvent )
 {
+    ZoneScoped;
     switch ( m_currentScreen ) {
     case Screen::eGamePaused:
         m_screenPause.onMouseEvent( mouseEvent );

@@ -76,11 +76,9 @@ private:
 
     BulletProto m_weapons[ 4 ]{};
 
+    Texture m_bg{};
     Texture m_buttonTexture{};
     Texture m_cyberRingTexture[ 3 ]{};
-    Texture m_menuBackgroundOverlay{};
-    Texture m_menuBackground{};
-    Texture m_starfieldTexture{};
     std::pmr::map<std::filesystem::path, Texture> m_textures{};
 
     ScreenTitle m_screenTitle{};

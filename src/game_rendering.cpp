@@ -72,21 +72,34 @@ void Game::renderMainMenu( RenderContext rctx )
 
 void Game::renderClouds( RenderContext rctx ) const
 {
-    const glm::vec2 size = { (float)viewportWidth(), (float)viewportHeight() };
-    UIImage cloud1{ m_menuBackground };
-    cloud1.setSize( size );
-    cloud1.setColor( color::lightSkyBlue );
-    cloud1.render( rctx );
+    [[maybe_unused]]
+    const auto [ w, h, a ] = viewport();
+    const float u = w / 8;
+    const float v = h / 8;
 
-    UIImage cloud2{ m_menuBackgroundOverlay };
-    cloud2.setSize( size );
-    cloud2.setColor( { 1, 1, 1, m_alphaValue } );
-    cloud2.render( rctx );
+    const PushBuffer pushBuffer{
+        .m_pipeline = static_cast<PipelineSlot>( Pipeline::eBackground ),
+        .m_verticeCount = 4,
+        .m_texture = m_bg,
+    };
 
-    UIImage cloud3{ m_starfieldTexture };
-    cloud3.setSize( { m_maxDimention, m_maxDimention } );
-    cloud3.setColor( { 1, 1, 1, m_alphaValue } );
-    cloud3.render( rctx );
+    PushConstant<Pipeline::eBackground> pushConstant{};
+    pushConstant.m_model = rctx.model;
+    pushConstant.m_projection = rctx.projection;
+    pushConstant.m_view = rctx.view;
+    pushConstant.m_color = color::dodgerBlue;
+
+    const float x = 0;
+    const float y = 0;
+    const float xw = x + w;
+    const float yh = y + h;
+    pushConstant.m_vertices[ 0 ] = glm::vec4{ x, y, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 1 ] = glm::vec4{ x, yh, 0.0f, v };
+    pushConstant.m_vertices[ 2 ] = glm::vec4{ xw, yh, u, v };
+    pushConstant.m_vertices[ 3 ] = glm::vec4{ xw, y, u, 0.0f };
+
+    rctx.renderer->push( pushBuffer, &pushConstant );
+
 }
 
 void Game::renderWinScreen( RenderContext rctx )
