@@ -157,8 +157,6 @@ void Game::onExit()
 void Game::onResize( uint32_t w, uint32_t h )
 {
     ZoneScoped;
-    m_maxDimention = std::max( w, h );
-
     m_screenTitle.resize( { w, h } );
     m_screenCustomize.resize( { w, h } );
     m_screenPause.resize( { w, h } );
@@ -539,7 +537,6 @@ void Game::updateGame( const UpdateContext& updateContext )
     }
 
     m_hudData.score = m_jet->score();
-    m_hudData.shots = m_shotsDone;
     m_hudData.calc = (uint32_t)m_fpsMeter.calculated();
     m_hudData.fps = (uint32_t)m_fpsMeter.fps();
     m_hudData.pool = m_poolBullets.allocCount();
@@ -560,7 +557,7 @@ void Game::addBullet( uint32_t wID )
     m_jet->takeEnergy( wID );
     Bullet* bullet = m_jet->weapon( wID, m_poolBullets.alloc() );
     m_bullets.push_back( bullet );
-    m_shotsDone++;
+    m_hudData.shots++;
     switch ( bullet->type() ) {
     case Bullet::Type::eBlaster:
         m_audio->play( m_blaster );
@@ -614,7 +611,10 @@ void Game::clearMapData()
 void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelData )
 {
     ZoneScoped;
-    m_shotsDone = 0;
+    m_hudData = HudData{
+        .hp = 1.0f,
+        .pwr = 1.0f,
+    };
     m_jet = new Jet( modelData, m_renderer );
     m_map = new Map( mapInfo );
     auto weap = m_screenCustomize.weapons();

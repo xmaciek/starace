@@ -61,7 +61,6 @@ private:
     Audio::Chunk m_laser{};
     Audio::Chunk m_torpedo{};
 
-    std::string m_lastSelectedJetName{};
     Pool<Bullet, 1024> m_poolBullets{};
     Pool<Enemy, 100> m_poolEnemies{};
     std::vector<Bullet*> m_bullets{};
@@ -91,9 +90,6 @@ private:
     Targeting m_targeting{};
 
     Jet::Input m_jetInput{};
-    float m_maxDimention = 0.0f;
-    uint32_t m_shotsDone = 0;
-
     Screen m_currentScreen = Screen::eGame;
 
     uint32_t viewportHeight() const;
