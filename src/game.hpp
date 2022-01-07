@@ -92,8 +92,6 @@ private:
 
     Jet::Input m_jetInput{};
     float m_maxDimention = 0.0f;
-    float m_alphaValue = 1.0f;
-    float m_alphaN = 0.0f;
     uint32_t m_shotsDone = 0;
 
     Screen m_currentScreen = Screen::eGame;
@@ -114,21 +112,14 @@ private:
 
     // purposefully copy argument
     void render3D( RenderContext );
-    void renderClouds( RenderContext ) const;
-    void renderCrosshair( RenderContext );
-    void renderDeadScreen( RenderContext );
+    void renderBackground( RenderContext ) const;
     void renderGameScreen( RenderContext );
     void renderHUD( RenderContext );
-    void renderMainMenu( RenderContext );
-    void renderPauseText( RenderContext );
-    void renderScreenCustomize( RenderContext );
-    void renderWinScreen( RenderContext );
 
     void preloadData();
     void retarget();
     void setCamera();
     void unpause();
-    void updateClouds( const UpdateContext& );
     void updateGame( const UpdateContext& );
 
     virtual void onAction( Action ) override;

@@ -64,13 +64,7 @@ void Game::render3D( RenderContext rctx )
     m_jet->render( rctx );
 }
 
-void Game::renderMainMenu( RenderContext rctx )
-{
-    renderClouds( rctx );
-    m_screenTitle.render( rctx );
-}
-
-void Game::renderClouds( RenderContext rctx ) const
+void Game::renderBackground( RenderContext rctx ) const
 {
     [[maybe_unused]]
     const auto [ w, h, a ] = viewport();
@@ -100,24 +94,4 @@ void Game::renderClouds( RenderContext rctx ) const
 
     rctx.renderer->push( pushBuffer, &pushConstant );
 
-}
-
-void Game::renderWinScreen( RenderContext rctx )
-{
-    renderGameScreen( rctx );
-    m_uiRings.render( rctx );
-    m_screenWin.render( rctx );
-}
-
-void Game::renderDeadScreen( RenderContext rctx )
-{
-    renderGameScreen( rctx );
-    m_uiRings.render( rctx );
-    m_screenLoose.render( rctx );
-}
-
-void Game::renderScreenCustomize( RenderContext rctx )
-{
-    renderClouds( rctx );
-    m_screenCustomize.render( rctx );
 }

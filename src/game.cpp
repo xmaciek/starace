@@ -367,26 +367,36 @@ void Game::onRender( RenderContext rctx )
     case Screen::eGame:
         renderGameScreen( rctx );
         break;
+
     case Screen::eGamePaused:
         renderGameScreen( rctx );
         m_screenPause.render( rctx );
         break;
-        break;
+
     case Screen::eDead:
-        renderDeadScreen( rctx );
+        renderGameScreen( rctx );
+        m_screenLoose.render( rctx );
         break;
+
     case Screen::eWin:
-        renderWinScreen( rctx );
+        renderGameScreen( rctx );
+        m_screenWin.render( rctx );
         break;
+
     case Screen::eMissionSelection:
         m_screenMissionSelect.render( rctx );
         break;
+
     case Screen::eMainMenu:
-        renderMainMenu( rctx );
+        renderBackground( rctx );
+        m_screenTitle.render( rctx );
         break;
+
     case Screen::eCustomize:
-        renderScreenCustomize( rctx );
+        renderBackground( rctx );
+        m_screenCustomize.render( rctx );
         break;
+
     default:
         break;
     }
@@ -412,11 +422,9 @@ void Game::onUpdate( const UpdateContext& updateContext )
         m_screenWin.update( updateContext );
         break;
     case Screen::eMainMenu:
-        updateClouds( updateContext );
         m_screenTitle.update( updateContext );
         break;
     case Screen::eCustomize:
-        updateClouds( updateContext );
         m_screenCustomize.update( updateContext );
         break;
     default:
@@ -762,13 +770,6 @@ void Game::loadJetProto()
     for ( auto& it : m_jetsContainer ) {
         it.model = new Model( it.model_file, m_textures[ it.model_texture ], m_renderer, it.scale );
     }
-}
-
-
-void Game::updateClouds( const UpdateContext& updateContext )
-{
-    m_alphaN = fmodf( m_alphaN + updateContext.deltaTime * 0.1f, 1.0f );
-    m_alphaValue = 0.65f + 0.35f * std::cos( std::lerp( -constants::pi, constants::pi, m_alphaN ) );
 }
 
 uint32_t Game::viewportWidth() const
