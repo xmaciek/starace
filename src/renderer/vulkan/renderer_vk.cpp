@@ -12,47 +12,46 @@
 
 static Renderer* g_instance = nullptr;
 
+static constexpr std::array c_enabledLayers = {
+    "VK_LAYER_KHRONOS_validation",
+};
+
+static constexpr std::array c_enabledDeviceExtensions = {
+    VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+};
+
 constexpr std::size_t operator ""_MiB( unsigned long long v ) noexcept
 {
     return v << 20;
 }
 
-static std::pmr::vector<const char*> extensions( SDL_Window* window )
+static std::pmr::vector<const char*> windowExtensions( SDL_Window* window )
 {
     uint32_t count = 0;
     SDL_Vulkan_GetInstanceExtensions( window, &count, nullptr );
-    std::pmr::vector<const char*> ext( count );
+    std::pmr::vector<const char*> ext{};
+    ext.reserve( count + 1 );
+    ext.resize( count );
     SDL_Vulkan_GetInstanceExtensions( window, &count, ext.data() );
     ext.emplace_back( VK_EXT_DEBUG_UTILS_EXTENSION_NAME );
     return ext;
 }
 
-static std::pmr::vector<const char*> deviceExtensions()
-{
-    return {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME
-    };
-}
-
-static std::pmr::vector<const char*> layers()
-{
-    return {
-        "VK_LAYER_KHRONOS_validation"
-    };
-}
-
-static std::pmr::vector<VkPhysicalDevice> devices( VkInstance instance )
+static VkPhysicalDevice selectPhysicalDevice( VkInstance instance )
 {
     uint32_t count = 0;
     vkEnumeratePhysicalDevices( instance, &count, nullptr );
-    std::pmr::vector<VkPhysicalDevice> dev( count );
-    vkEnumeratePhysicalDevices( instance, &count, dev.data() );
-    return dev;
-}
+    std::pmr::vector<VkPhysicalDevice> devices( count );
+    vkEnumeratePhysicalDevices( instance, &count, devices.data() );
 
-static bool testBit( uint32_t a, uint32_t bit, uint32_t bitnot )
-{
-    return ( a & bit ) == bit && ( a & bitnot ) == 0;
+    VkPhysicalDeviceProperties deviceProperties{};
+    for ( VkPhysicalDevice it : devices ) {
+        vkGetPhysicalDeviceProperties( it, &deviceProperties );
+        if ( deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU ) {
+            return it;
+        }
+    }
+    return VK_NULL_HANDLE;
 }
 
 template <typename T>
@@ -94,8 +93,9 @@ static std::tuple<QueueCount, QueueCount> queueFamilies( VkPhysicalDevice device
     std::pmr::vector<QueueCount> graphicsCandidate;
     std::pmr::vector<QueueCount> presentCandidate;
     vkGetPhysicalDeviceQueueFamilyProperties( device, &count, vec.data() );
+
     for ( uint32_t i = 0; i < vec.size(); ++i ) {
-        if ( testBit( vec[ i ].queueFlags, VK_QUEUE_GRAPHICS_BIT, 0 ) ) {
+        if ( vec[ i ].queueFlags & VK_QUEUE_GRAPHICS_BIT ) {
             graphicsCandidate.emplace_back( i, vec[ i ].queueCount );
         }
 
@@ -132,9 +132,6 @@ RendererVK::RendererVK( SDL_Window* window )
     assert( !g_instance );
     g_instance = this;
 
-    const std::pmr::vector<const char*> lay = layers();
-    const std::pmr::vector<const char*> dextension = deviceExtensions();
-
     {
         const VkApplicationInfo appInfo{
             .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -145,14 +142,13 @@ RendererVK::RendererVK( SDL_Window* window )
             .apiVersion = VK_API_VERSION_1_1,
         };
 
-        const std::pmr::vector<const char*> ext = extensions( m_window );
-        const std::pmr::vector<const char*> lay = layers();
+        const std::pmr::vector<const char*> ext = windowExtensions( m_window );
 
         const VkInstanceCreateInfo instanceCreateInfo{
             .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
             .pApplicationInfo = &appInfo,
-            .enabledLayerCount = static_cast<uint32_t>( lay.size() ),
-            .ppEnabledLayerNames = lay.data(),
+            .enabledLayerCount = static_cast<uint32_t>( c_enabledLayers.size() ),
+            .ppEnabledLayerNames = c_enabledLayers.data(),
             .enabledExtensionCount = static_cast<uint32_t>( ext.size() ),
             .ppEnabledExtensionNames = ext.data(),
         };
@@ -161,18 +157,15 @@ RendererVK::RendererVK( SDL_Window* window )
         const VkResult instanceOK = vkCreateInstance( &instanceCreateInfo, nullptr, &m_instance );
         assert( instanceOK == VK_SUCCESS );
     }
-    m_debugMsg = DebugMsg{ m_instance };
 
-    for ( VkPhysicalDevice it : devices( m_instance ) ) {
-        VkPhysicalDeviceProperties deviceProperties{};
-        vkGetPhysicalDeviceProperties( it, &deviceProperties );
-        if ( deviceProperties.deviceType != VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU ) {
-            continue;
-        }
-        m_physicalDevice = it;
-        break;
+    if ( !SDL_Vulkan_CreateSurface( m_window, m_instance, &m_surface ) ) {
+        assert( !"Failed to create sdl vulkan surface" );
+        std::cout << "Failed to create sdl vulkan surface" << std::endl;
+        std::abort();
     }
 
+    m_debugMsg = DebugMsg{ m_instance };
+    m_physicalDevice = selectPhysicalDevice( m_instance );
     assert( m_physicalDevice );
 
     m_depthFormat = pickSupportedFormat(
@@ -182,17 +175,13 @@ RendererVK::RendererVK( SDL_Window* window )
         VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
     );
 
-    if ( !SDL_Vulkan_CreateSurface( m_window, m_instance, &m_surface ) ) {
-        assert( !"Failed to create sdl vulkan surface" );
-        std::cout << "Failed to create sdl vulkan surface" << std::endl;
-        return;
-    }
+
 
     const auto [ queueGraphics, queuePresent ] = queueFamilies( m_physicalDevice, m_surface );
     m_queueFamilyGraphics = queueGraphics.queue;
     m_queueFamilyPresent = queuePresent.queue;
     {
-        static constexpr std::array queuePriority{ 1.0f, 1.0f };
+        const std::array queuePriority{ 1.0f, 1.0f };
         const VkDeviceQueueCreateInfo queueCreateInfo[] {
             {
                 .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
@@ -208,17 +197,17 @@ RendererVK::RendererVK( SDL_Window* window )
             },
         };
 
-        static constexpr VkPhysicalDeviceFeatures deviceFeatures{
+        VkPhysicalDeviceFeatures deviceFeatures{
             .wideLines = VK_TRUE,
         };
         const VkDeviceCreateInfo createInfo{
             .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
             .queueCreateInfoCount = std::size( queueCreateInfo ),
             .pQueueCreateInfos = queueCreateInfo,
-            .enabledLayerCount = (uint32_t)lay.size(),
-            .ppEnabledLayerNames = lay.data(),
-            .enabledExtensionCount = (uint32_t)dextension.size(),
-            .ppEnabledExtensionNames = dextension.data(),
+            .enabledLayerCount = static_cast<uint32_t>( c_enabledLayers.size() ),
+            .ppEnabledLayerNames = c_enabledLayers.data(),
+            .enabledExtensionCount = static_cast<uint32_t>( c_enabledDeviceExtensions.size() ),
+            .ppEnabledExtensionNames = c_enabledDeviceExtensions.data(),
             .pEnabledFeatures = &deviceFeatures,
         };
         [[maybe_unused]]
