@@ -16,4 +16,5 @@ target_link_libraries( tests
 target_sources( tests
     PRIVATE
     test_fixed_map.cpp
+    test_bit_index_iterator.cpp
 )

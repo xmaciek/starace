@@ -7,6 +7,7 @@ target_sources( shared
     ${CMAKE_CURRENT_SOURCE_DIR}/public/shared/indexer.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/shared/pool.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/shared/rotary_index.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/shared/bit_index_iterator.hpp
 )
 
 set_target_properties( shared PROPERTIES
