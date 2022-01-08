@@ -266,14 +266,12 @@ RendererVK::RendererVK( SDL_Window* window )
     int i = 1;
     for ( auto& it : m_frames ) {
         it.m_renderTarget = RenderTarget{ m_physicalDevice, m_device, m_mainPass, m_swapchain.extent(), VK_FORMAT_B8G8R8A8_UNORM, m_depthFormat };
-        it.m_descSetUniform = DescriptorSet{ m_device, 800, { DescriptorSet::uniformBuffer } };
-        it.m_descSetUniformSampler = DescriptorSet{ m_device, 100, { DescriptorSet::uniformBuffer, DescriptorSet::imageSampler } };
+        it.m_descSetUniform = DescriptorSet{ m_device, 800, 0b1, 0 };
+        it.m_descSetUniformSampler = DescriptorSet{ m_device, 100, 0b1, 0b10 };
         it.m_uniformBuffer = Uniform{ m_physicalDevice, m_device, 2_MiB, 256 };
         it.m_cmdRender = m_commandPool[ i++ ];
         it.m_cmdTransfer = m_commandPool[ i++ ];
     }
-
-
 }
 
 void RendererVK::createPipeline( const PipelineCreateInfo& pci )
