@@ -577,6 +577,7 @@ Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::pmr::vecto
 void RendererVK::beginFrame()
 {
     ZoneScoped;
+    m_lastLineWidth = 0.0f;
     uint32_t imageIndex = 0;
     static constexpr uint64_t timeout = 8'000'000; // 8ms
     [[maybe_unused]]
