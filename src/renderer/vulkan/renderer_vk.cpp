@@ -9,7 +9,6 @@
 #include <bit>
 #include <cassert>
 #include <iostream>
-#include <optional>
 
 static Renderer* g_instance = nullptr;
 
