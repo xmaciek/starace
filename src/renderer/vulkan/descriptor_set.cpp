@@ -4,6 +4,8 @@
 
 #include <shared/bit_index_iterator.hpp>
 
+#include <Tracy.hpp>
+
 #include <array>
 #include <bit>
 #include <cassert>
@@ -85,6 +87,7 @@ DescriptorSet::DescriptorSet(
 ) noexcept
 : m_device{ device }
 {
+    ZoneScoped;
     assert( device );
     assert( std::popcount( constantBindBits ) == 1 );
     assert( ( constantBindBits & samplerBindBits ) == 0 ); // mutually exclusive bits

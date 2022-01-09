@@ -2,6 +2,8 @@
 
 #include "utils_vk.hpp"
 
+#include <Tracy.hpp>
+
 #include <cassert>
 
 CommandPool::~CommandPool() noexcept
@@ -19,6 +21,7 @@ void CommandPool::destroyResources() noexcept
 CommandPool::CommandPool( VkDevice device, uint32_t count, uint32_t queueFamily ) noexcept
 : m_device{ device }
 {
+    ZoneScoped;
     assert( device );
     assert( count > 0 );
 

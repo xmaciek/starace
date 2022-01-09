@@ -2,6 +2,8 @@
 
 #include "utils_vk.hpp"
 
+#include <Tracy.hpp>
+
 #include <cassert>
 #include <utility>
 
@@ -35,6 +37,7 @@ RenderTarget::RenderTarget(
 , m_imageFormat{ imageFormat }
 , m_depthFormat{ depthFormat }
 {
+    ZoneScoped;
     assert( pdevice );
     assert( device );
     assert( extent2d.width > 0 );

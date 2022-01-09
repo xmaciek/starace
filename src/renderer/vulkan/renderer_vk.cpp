@@ -133,6 +133,7 @@ RendererVK::RendererVK( SDL_Window* window )
     g_instance = this;
 
     {
+        ZoneScopedN( "create instance" );
         const VkApplicationInfo appInfo{
             .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
             .pApplicationName = "Starace",
@@ -181,6 +182,7 @@ RendererVK::RendererVK( SDL_Window* window )
     m_queueFamilyGraphics = queueGraphics.queue;
     m_queueFamilyPresent = queuePresent.queue;
     {
+        ZoneScopedN( "create device" );
         const std::array queuePriority{ 1.0f, 1.0f };
         const VkDeviceQueueCreateInfo queueCreateInfo[] {
             {

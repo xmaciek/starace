@@ -2,6 +2,8 @@
 
 #include "utils_vk.hpp"
 
+#include <Tracy.hpp>
+
 #include <cassert>
 #include <iostream>
 #include <memory_resource>
@@ -100,6 +102,7 @@ static std::optional<VkPresentModeKHR> findBestPresentMode( VkPhysicalDevice phy
 Swapchain::Swapchain( VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, std::array<uint32_t,2> familyAccess, VkSwapchainKHR oldSwapchain )
 : m_device{ device }
 {
+    ZoneScoped;
     assert( physicalDevice );
     assert( device );
 

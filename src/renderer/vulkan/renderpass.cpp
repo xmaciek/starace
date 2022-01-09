@@ -6,9 +6,12 @@
 
 #include "utils_vk.hpp"
 
+#include <Tracy.hpp>
+
 RenderPass::RenderPass( VkDevice device, VkFormat format, VkFormat depthFormat ) noexcept
 : m_device{ device }
 {
+    ZoneScoped;
     static constexpr VkAttachmentReference colorAttachmentRef{
         .attachment = 0,
         .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,

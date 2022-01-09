@@ -2,6 +2,8 @@
 
 #include "utils_vk.hpp"
 
+#include <Tracy.hpp>
+
 #include <cassert>
 #include <cstring>
 
@@ -90,6 +92,7 @@ Uniform::Uniform( VkPhysicalDevice physDevice, VkDevice device, std::size_t size
 , m_minAlign{ minAlign }
 , m_size{ size }
 {
+    ZoneScoped;
     m_staging = createBuffer( device, m_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT );
     m_buffer = createBuffer( device, m_size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT );
 

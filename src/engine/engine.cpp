@@ -50,23 +50,28 @@ static BinaryConfigBlob loadConfig()
 Engine::Engine( int, char** ) noexcept
 {
     ZoneScoped;
-    [[maybe_unused]]
-    const int initOK = SDL_Init( SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER );
-    assert( initOK >= 0 );
+    {
+        ZoneScopedN( "SDL init" );
+        [[maybe_unused]]
+        const int initOK = SDL_Init( SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER );
+        assert( initOK >= 0 );
+    }
 
     const BinaryConfigBlob blob = loadConfig();
     setViewport( blob.windowExtent.first, blob.windowExtent.second );
 
-    m_window = SDL_CreateWindow( "Starace"
-        , SDL_WINDOWPOS_CENTERED
-        , SDL_WINDOWPOS_CENTERED
-        , static_cast<int>( blob.windowExtent.first )
-        , static_cast<int>( blob.windowExtent.second )
-        , Renderer::windowFlag()
-            | SDL_WINDOW_RESIZABLE
-    );
-    assert( m_window );
-
+    {
+        ZoneScopedN( "create window" );
+        m_window = SDL_CreateWindow( "Starace"
+            , SDL_WINDOWPOS_CENTERED
+            , SDL_WINDOWPOS_CENTERED
+            , static_cast<int>( blob.windowExtent.first )
+            , static_cast<int>( blob.windowExtent.second )
+            , Renderer::windowFlag()
+                | SDL_WINDOW_RESIZABLE
+        );
+        assert( m_window );
+    }
     m_actionMapping = std::make_unique<ActionMapping>();
     m_ioPtr = std::make_unique<AsyncIO>();
     m_io = m_ioPtr.get();

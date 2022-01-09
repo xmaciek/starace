@@ -4,6 +4,8 @@
 #include "shader.hpp"
 #include "utils_vk.hpp"
 
+#include <Tracy.hpp>
+
 #include <array>
 #include <cassert>
 
@@ -104,6 +106,7 @@ PipelineVK::PipelineVK( const PipelineCreateInfo& pci, VkDevice device, VkRender
 , m_pushConstantSize{ pci.m_pushConstantSize }
 , m_vertexStride{ pci.m_vertexStride }
 {
+    ZoneScoped;
     assert( device );
     assert( renderPass );
     assert( layout );
