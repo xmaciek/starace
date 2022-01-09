@@ -212,13 +212,13 @@ Font::Font( const CreateInfo& fontInfo, uint32_t height )
 
     FT_Done_FreeType( library );
 
-    m_texture = fontInfo.renderer->createTexture(
-        dstPitch
-        , dstPitch
-        , TextureFormat::eR
-        , false
-        , std::move( texture )
-    );
+    const TextureCreateInfo tci{
+        .width = static_cast<uint16_t>( dstPitch ),
+        .height = static_cast<uint16_t>( dstPitch ),
+        .mips = 1,
+        .format = TextureFormat::eR,
+    };
+    m_texture = fontInfo.renderer->createTexture( tci, std::move( texture ) );
 }
 
 Font::~Font()

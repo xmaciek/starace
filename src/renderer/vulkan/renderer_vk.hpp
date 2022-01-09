@@ -81,7 +81,6 @@ public:
     virtual void createPipeline( const PipelineCreateInfo& ) override;
     virtual Buffer createBuffer( std::pmr::vector<float>&& ) override;
     virtual std::pmr::memory_resource* allocator() override;
-    virtual Texture createTexture( uint32_t w, uint32_t h, TextureFormat, bool, std::pmr::vector<uint8_t>&& ) override;
     virtual Texture createTexture( const TextureCreateInfo&, std::pmr::vector<uint8_t>&& ) override;
     virtual void beginFrame() override;
     virtual void endFrame() override;

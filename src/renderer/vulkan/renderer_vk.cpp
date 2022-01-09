@@ -403,106 +403,18 @@ std::pmr::memory_resource* RendererVK::allocator()
     return std::pmr::get_default_resource();
 }
 
-static VkFormat convertFormat( TextureFormat fmt )
-{
-    switch ( fmt ) {
-    case TextureFormat::eR:
-        return VK_FORMAT_R8_UNORM;
-    case TextureFormat::eRGB:
-    case TextureFormat::eRGBA:
-        return VK_FORMAT_R8G8B8A8_UNORM;
-    case TextureFormat::eBGR:
-    case TextureFormat::eBGRA:
-        return VK_FORMAT_B8G8R8A8_UNORM;
-    default:
-        assert( !"unhandled format" );
-        return VK_FORMAT_UNDEFINED;
-    }
-}
-
 static size_t formatToSize( TextureFormat fmt )
 {
     switch ( fmt ) {
     case TextureFormat::eR:
         return 1;
-    case TextureFormat::eRGB:
     case TextureFormat::eRGBA:
-    case TextureFormat::eBGR:
     case TextureFormat::eBGRA:
         return 4;
     default:
         assert( !"unhandled format" );
         return 0;
     }
-}
-
-Texture RendererVK::createTexture( uint32_t width, uint32_t height, TextureFormat fmt, bool, std::pmr::vector<uint8_t>&& data )
-{
-    ZoneScoped;
-    assert( width > 0 );
-    assert( height > 0 );
-    assert( !data.empty() );
-
-    switch ( fmt ) {
-    case TextureFormat::eRGB:
-    case TextureFormat::eBGR:
-    {
-        ZoneScopedN( "convert data rgb->rgba bgr->bgra" );
-        std::pmr::vector<uint8_t> tmp{ width * height * 4, allocator() };
-        using RGB = uint8_t[3];
-        const RGB* rgb = reinterpret_cast<const RGB*>( data.data() );
-        const RGB* rgbend = rgb;
-        uint32_t* dst = reinterpret_cast<uint32_t*>( tmp.data() );
-        std::advance( rgbend, width * height );
-        std::transform( rgb, rgbend, dst, []( const RGB& rgb ) {
-            return ( (uint32_t)rgb[0] << 0 )
-                | ( (uint32_t)rgb[1] << 8 )
-                | ( (uint32_t)rgb[2] << 16 )
-                | 0xff000000;
-        } );
-        data = std::move( tmp );
-    } break;
-    default: break;
-    }
-    const std::size_t size = width * height * formatToSize( fmt );
-    assert( size <= data.size() );
-    BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, size };
-    staging.copyData( data.data() );
-
-    TextureVK* tex = new TextureVK{ m_physicalDevice, m_device, VkExtent2D{ width, height }, convertFormat( fmt ) };
-
-    static constexpr VkCommandBufferBeginInfo beginInfo{
-        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-        .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
-    };
-
-    VkCommandBuffer cmd = m_commandPool[ 0 ];
-    vkBeginCommandBuffer( cmd, &beginInfo );
-    tex->transferFrom( cmd, staging );
-    vkEndCommandBuffer( cmd );
-
-    const VkSubmitInfo submitInfo{
-        .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-        .commandBufferCount = 1,
-        .pCommandBuffers = &cmd,
-    };
-
-    {
-        auto [ queue, bottleneck ] = m_queueTransfer;
-        assert( queue );
-        assert( bottleneck );
-        Bottleneck lock{ *bottleneck };
-        [[maybe_unused]]
-        const VkResult submitOK = vkQueueSubmit( queue, 1, &submitInfo, VK_NULL_HANDLE );
-        assert( submitOK == VK_SUCCESS );
-        vkQueueWaitIdle( queue );
-    }
-
-    const uint32_t idx = m_textureIndexer.next();
-    [[maybe_unused]]
-    TextureVK* oldTex = m_textureSlots[ idx ].exchange( tex );
-    assert( !oldTex );
-    return idx + 1;
 }
 
 Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::pmr::vector<uint8_t>&& data )

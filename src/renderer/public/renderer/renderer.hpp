@@ -26,7 +26,6 @@ public:
     virtual Buffer createBuffer( std::pmr::vector<float>&& ) = 0;
     virtual void deleteBuffer( Buffer ) = 0;
 
-    virtual Texture createTexture( uint32_t w, uint32_t h, TextureFormat, bool genMips, std::pmr::vector<uint8_t>&& ) = 0;
     virtual Texture createTexture( const TextureCreateInfo&, std::pmr::vector<uint8_t>&& ) = 0;
     virtual void deleteTexture( Texture ) = 0;
 

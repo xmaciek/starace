@@ -6,10 +6,8 @@ using Texture = uint32_t;
 
 enum class TextureFormat : uint8_t {
     eR,
-    eRGB,
     eRGBA,
     eBGRA,
-    eBGR,
 };
 
 enum class TextureAddressMode : uint8_t {
