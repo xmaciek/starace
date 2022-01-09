@@ -23,7 +23,6 @@ set( STARACE_SOURCES
     game.hpp
     game_action.hpp
     game_pipeline.hpp
-    game_rendering.cpp
     hud.cpp
     hud.hpp
     hudbar.cpp
