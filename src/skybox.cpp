@@ -1,4 +1,4 @@
-#include "map.hpp"
+#include "skybox.hpp"
 
 #include "game_pipeline.hpp"
 #include "utils.hpp"
@@ -88,53 +88,45 @@ static constexpr std::array<glm::vec4,4> uv6 {
     glm::vec4{ uvmin, uvmax, 0.0f, 0.0f }
 };
 
-void Map::render( RenderContext rctx )
+void Skybox::render( const RenderContext& rctx ) const
 {
-    // NOTE: this is so bad, should ba model rendering
-    {
-        using Wall = MapCreateInfo::Wall;
-        PushBuffer pushBuffer{
-            .m_pipeline = static_cast<PipelineSlot>( Pipeline::eTriangleFan3dTexture ),
-            .m_verticeCount = 4,
-        };
-        PushConstant<Pipeline::eTriangleFan3dTexture> pushConstant{};
-        pushConstant.m_model = rctx.model;
-        pushConstant.m_view = rctx.view;
-        pushConstant.m_projection = rctx.projection;
+    using Wall = MapCreateInfo::Wall;
+    PushBuffer pushBuffer{
+        .m_pipeline = static_cast<PipelineSlot>( Pipeline::eTriangleFan3dTexture ),
+        .m_verticeCount = 4,
+    };
+    PushConstant<Pipeline::eTriangleFan3dTexture> pushConstant{};
+    pushConstant.m_model = rctx.model;
+    pushConstant.m_view = rctx.view;
+    pushConstant.m_projection = rctx.projection;
 
-        pushBuffer.m_texture = m_texture[ Wall::eBack ];
-        std::copy_n( wall1.begin(), 4, pushConstant.m_vertices.begin() );
-        std::copy_n( uv1.begin(), 4, pushConstant.m_uv.begin() );
-        rctx.renderer->push( pushBuffer, &pushConstant );
+    pushBuffer.m_texture = m_texture[ Wall::eBack ];
+    std::copy_n( wall1.begin(), 4, pushConstant.m_vertices.begin() );
+    std::copy_n( uv1.begin(), 4, pushConstant.m_uv.begin() );
+    rctx.renderer->push( pushBuffer, &pushConstant );
 
-        pushBuffer.m_texture = m_texture[ Wall::eFront ];
-        std::copy_n( wall2.begin(), 4, pushConstant.m_vertices.begin() );
-        std::copy_n( uv2.begin(), 4, pushConstant.m_uv.begin() );
-        rctx.renderer->push( pushBuffer, &pushConstant );
+    pushBuffer.m_texture = m_texture[ Wall::eFront ];
+    std::copy_n( wall2.begin(), 4, pushConstant.m_vertices.begin() );
+    std::copy_n( uv2.begin(), 4, pushConstant.m_uv.begin() );
+    rctx.renderer->push( pushBuffer, &pushConstant );
 
-        pushBuffer.m_texture = m_texture[ Wall::eLeft ];
-        std::copy_n( wall3.begin(), 4, pushConstant.m_vertices.begin() );
-        std::copy_n( uv3.begin(), 4, pushConstant.m_uv.begin() );
-        rctx.renderer->push( pushBuffer, &pushConstant );
+    pushBuffer.m_texture = m_texture[ Wall::eLeft ];
+    std::copy_n( wall3.begin(), 4, pushConstant.m_vertices.begin() );
+    std::copy_n( uv3.begin(), 4, pushConstant.m_uv.begin() );
+    rctx.renderer->push( pushBuffer, &pushConstant );
 
-        pushBuffer.m_texture = m_texture[ Wall::eRight ];
-        std::copy_n( wall4.begin(), 4, pushConstant.m_vertices.begin() );
-        std::copy_n( uv4.begin(), 4, pushConstant.m_uv.begin() );
-        rctx.renderer->push( pushBuffer, &pushConstant );
+    pushBuffer.m_texture = m_texture[ Wall::eRight ];
+    std::copy_n( wall4.begin(), 4, pushConstant.m_vertices.begin() );
+    std::copy_n( uv4.begin(), 4, pushConstant.m_uv.begin() );
+    rctx.renderer->push( pushBuffer, &pushConstant );
 
-        pushBuffer.m_texture = m_texture[ Wall::eTop ];
-        std::copy_n( wall5.begin(), 4, pushConstant.m_vertices.begin() );
-        std::copy_n( uv5.begin(), 4, pushConstant.m_uv.begin() );
-        rctx.renderer->push( pushBuffer, &pushConstant );
+    pushBuffer.m_texture = m_texture[ Wall::eTop ];
+    std::copy_n( wall5.begin(), 4, pushConstant.m_vertices.begin() );
+    std::copy_n( uv5.begin(), 4, pushConstant.m_uv.begin() );
+    rctx.renderer->push( pushBuffer, &pushConstant );
 
-        pushBuffer.m_texture = m_texture[ Wall::eBottom ];
-        std::copy_n( wall6.begin(), 4, pushConstant.m_vertices.begin() );
-        std::copy_n( uv6.begin(), 4, pushConstant.m_uv.begin() );
-        rctx.renderer->push( pushBuffer, &pushConstant );
-    }
-}
-
-Map::Map( const MapCreateInfo& data )
-: m_texture{ data.texture }
-{
+    pushBuffer.m_texture = m_texture[ Wall::eBottom ];
+    std::copy_n( wall6.begin(), 4, pushConstant.m_vertices.begin() );
+    std::copy_n( uv6.begin(), 4, pushConstant.m_uv.begin() );
+    rctx.renderer->push( pushBuffer, &pushConstant );
 }

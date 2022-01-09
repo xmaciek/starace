@@ -1,7 +1,5 @@
 #pragma once
 
-#include "texture.hpp"
-
 #include <engine/render_context.hpp>
 #include <renderer/texture.hpp>
 
@@ -21,22 +19,26 @@ struct MapCreateInfo {
         eRight,
         eFront,
         eBack,
-        ePreview,
         max,
     };
+    std::filesystem::path previewPath{};
     std::array<std::filesystem::path,Wall::max> filePath{};
-    std::array<Texture, Wall::max> texture{};
+    std::array<Texture, 6> texture{};
+    Texture preview{};
     uint32_t enemies = 0;
 };
 
-class Map {
-private:
-    decltype( MapCreateInfo::texture ) m_texture{};
+class Skybox
+{
+    std::array<Texture, 6> m_texture{};
 
 public:
-    using Wall = MapCreateInfo::Wall;
-    ~Map() = default;
-    explicit Map( const MapCreateInfo& data );
+    ~Skybox() noexcept = default;
+    Skybox() noexcept = default;
 
-    void render( RenderContext );
+    inline Skybox( const std::array<Texture, 6>& t ) noexcept
+    : m_texture{ t }
+    {}
+
+    void render( const RenderContext& ) const;
 };

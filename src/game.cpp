@@ -308,7 +308,7 @@ void Game::onInit()
     []( const MapCreateInfo& mci ) -> MissionInfo {
         return MissionInfo{
             .m_title = std::pmr::u32string{ mci.name.cbegin(), mci.name.cend() }, // TODO utf32 map names
-            .m_preview = mci.texture[ MapCreateInfo::ePreview ],
+            .m_preview = mci.preview,
             .m_enemyCount = mci.enemies,
         };
     } );
@@ -605,9 +605,6 @@ void Game::clearMapData()
     m_poolBullets.discardAll();
     m_poolEnemies.discardAll();
 
-    delete m_map;
-    m_map = nullptr;
-
     delete m_jet;
     m_jet = nullptr;
 }
@@ -619,8 +616,8 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
         .hp = 1.0f,
         .pwr = 1.0f,
     };
+    m_skybox = Skybox{ mapInfo.texture };
     m_jet = new Jet( modelData, m_renderer );
-    m_map = new Map( mapInfo );
     auto weap = m_screenCustomize.weapons();
     m_jet->setWeapon( m_weapons[ weap[ 0 ] ], 0 );
     m_jet->setWeapon( m_weapons[ weap[ 1 ] ], 1 );
@@ -707,31 +704,31 @@ void Game::loadMapProto()
             m_mapsContainer.back().enemies = atoi( value_2 );
         }
         else if ( strcmp( value_1, "top" ) == 0 ) {
-            m_mapsContainer.back().filePath[ Map::Wall::eTop ] = value_2;
+            m_mapsContainer.back().filePath[ MapCreateInfo::Wall::eTop ] = value_2;
             uniqueTextures.insert( value_2 );
         }
         else if ( strcmp( value_1, "bottom" ) == 0 ) {
-            m_mapsContainer.back().filePath[ Map::Wall::eBottom ] = value_2;
+            m_mapsContainer.back().filePath[ MapCreateInfo::Wall::eBottom ] = value_2;
             uniqueTextures.insert( value_2 );
         }
         else if ( strcmp( value_1, "left" ) == 0 ) {
-            m_mapsContainer.back().filePath[ Map::Wall::eLeft ] = value_2;
+            m_mapsContainer.back().filePath[ MapCreateInfo::Wall::eLeft ] = value_2;
             uniqueTextures.insert( value_2 );
         }
         else if ( strcmp( value_1, "right" ) == 0 ) {
-            m_mapsContainer.back().filePath[ Map::Wall::eRight ] = value_2;
+            m_mapsContainer.back().filePath[ MapCreateInfo::Wall::eRight ] = value_2;
             uniqueTextures.insert( value_2 );
         }
         else if ( strcmp( value_1, "front" ) == 0 ) {
-            m_mapsContainer.back().filePath[ Map::Wall::eFront ] = value_2;
+            m_mapsContainer.back().filePath[ MapCreateInfo::Wall::eFront ] = value_2;
             uniqueTextures.insert( value_2 );
         }
         else if ( strcmp( value_1, "back" ) == 0 ) {
-            m_mapsContainer.back().filePath[ Map::Wall::eBack ] = value_2;
+            m_mapsContainer.back().filePath[ MapCreateInfo::Wall::eBack ] = value_2;
             uniqueTextures.insert( value_2 );
         }
         else if ( strcmp( value_1, "preview" ) == 0 ) {
-            m_mapsContainer.back().filePath[ Map::Wall::ePreview ] = value_2;
+            m_mapsContainer.back().previewPath = value_2;
             uniqueTextures.insert( value_2 );
         }
     }
@@ -747,6 +744,8 @@ void Game::loadMapProto()
             it.texture[ i ] = m_textures[ it.filePath[ i ] ];
             assert( it.texture[ i ] );
         }
+        it.preview = m_textures[ it.previewPath ];
+        assert( it.preview );
     }
 
     assert( !m_mapsContainer.empty() );

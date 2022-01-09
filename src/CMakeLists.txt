@@ -33,8 +33,6 @@ set( STARACE_SOURCES
     label.cpp
     label.hpp
     main.cpp
-    map.cpp
-    map.hpp
     model.cpp
     model.hpp
     model_proto.hpp
@@ -46,18 +44,20 @@ set( STARACE_SOURCES
     reactor.hpp
     saobject.cpp
     saobject.hpp
-    screen_customize.hpp
     screen_customize.cpp
+    screen_customize.hpp
     screen_mission_select.cpp
     screen_mission_select.hpp
-    screen_title.cpp
-    screen_title.hpp
     screen_pause.cpp
     screen_pause.hpp
+    screen_title.cpp
+    screen_title.hpp
     screen_win_loose.cpp
     screen_win_loose.hpp
     shield.cpp
     shield.hpp
+    skybox.cpp
+    skybox.hpp
     space_dust.cpp
     space_dust.hpp
     speed_meter.cpp

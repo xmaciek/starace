@@ -6,17 +6,17 @@
 #include "font.hpp"
 #include "hud.hpp"
 #include "jet.hpp"
-#include "map.hpp"
 #include "model_proto.hpp"
-#include "texture.hpp"
-#include "targeting.hpp"
 #include "screen_customize.hpp"
 #include "screen_mission_select.hpp"
 #include "screen_pause.hpp"
 #include "screen_title.hpp"
 #include "screen_win_loose.hpp"
-#include "ui_rings.hpp"
+#include "skybox.hpp"
 #include "space_dust.hpp"
+#include "targeting.hpp"
+#include "texture.hpp"
+#include "ui_rings.hpp"
 
 #include <engine/engine.hpp>
 #include <engine/render_context.hpp>
@@ -54,8 +54,8 @@ private:
     Font* m_fontGuiTxt = nullptr;
     Font* m_fontPauseTxt = nullptr;
     Jet* m_jet = nullptr;
-    Map* m_map = nullptr;
     Model* m_enemyModel = nullptr;
+    Skybox m_skybox{};
 
     Audio::Chunk m_blaster{};
     Audio::Chunk m_click{};
