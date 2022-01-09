@@ -449,33 +449,26 @@ void Game::unpause()
 void Game::updateGame( const UpdateContext& updateContext )
 {
     ZoneScoped;
-    assert( m_jet );
 
-    m_jet->setInput( m_jetInput );
+    m_jet.setInput( m_jetInput );
 
-    if ( m_jet->status() == Jet::Status::eDead ) {
+    if ( m_jet.status() == Jet::Status::eDead ) {
         changeScreen( Screen::eDead );
     }
     if ( m_enemies.empty() ) {
         changeScreen( Screen::eWin );
     }
 
-    if ( m_jet->isShooting( 0 ) ) {
-        addBullet( 0 );
-    }
-    if ( m_jet->isShooting( 1 ) ) {
-        addBullet( 1 );
-    }
-    if ( m_jet->isShooting( 2 ) ) {
-        addBullet( 2 );
+    for ( auto i : { 0, 1, 2 } ) {
+        if ( m_jet.isShooting( i ) ) {
+            addBullet( i );
+        }
     }
 
-    {
-        m_jet->update( updateContext );
-        m_spaceDust.setCenter( m_jet->position() );
-        m_spaceDust.setVelocity( m_jet->velocity() * -0.5f );
-        m_spaceDust.update( updateContext );
-    }
+    m_jet.update( updateContext );
+    m_spaceDust.setCenter( m_jet.position() );
+    m_spaceDust.setVelocity( m_jet.velocity() * -0.5f );
+    m_spaceDust.update( updateContext );
 
     {
         for ( Bullet*& b : m_bullets ) {
@@ -498,7 +491,7 @@ void Game::updateGame( const UpdateContext& updateContext )
     {
         for ( Bullet*& b : m_enemyBullets ) {
             b->update( updateContext );
-            b->processCollision( m_jet );
+            b->processCollision( &m_jet );
             if ( b->status() == Bullet::Status::eDead ) {
                 std::destroy_at( b );
                 m_poolBullets.dealloc( b );
@@ -520,8 +513,8 @@ void Game::updateGame( const UpdateContext& updateContext )
         for ( auto& e : m_enemies ) {
             e->update( next );
             if ( e->status() == Enemy::Status::eDead ) {
-                m_jet->addScore( e->score(), true );
-                m_jet->untarget( e );
+                m_jet.addScore( e->score(), true );
+                m_jet.untarget( e );
                 std::destroy_at( e );
                 m_poolEnemies.dealloc( e );
                 e = nullptr;
@@ -533,20 +526,20 @@ void Game::updateGame( const UpdateContext& updateContext )
         }
         m_enemies.erase( std::remove( m_enemies.begin(), m_enemies.end(), nullptr ), m_enemies.end() );
     }
-    const SAObject* tgt = m_jet->target();
+    const SAObject* tgt = m_jet.target();
     if ( tgt ) {
         m_targeting.setPos( tgt->position() );
     } else {
         m_targeting.hide();
     }
 
-    m_hudData.score = m_jet->score();
+    m_hudData.score = m_jet.score();
     m_hudData.calc = (uint32_t)m_fpsMeter.calculated();
     m_hudData.fps = (uint32_t)m_fpsMeter.fps();
     m_hudData.pool = m_poolBullets.allocCount();
-    m_hudData.speed = m_jet->speed();
-    m_hudData.hp = static_cast<float>( m_jet->health() ) / 100.0f;
-    m_hudData.pwr = static_cast<float>( m_jet->energy() ) / 100.0f;
+    m_hudData.speed = m_jet.speed();
+    m_hudData.hp = static_cast<float>( m_jet.health() ) / 100.0f;
+    m_hudData.pwr = static_cast<float>( m_jet.energy() ) / 100.0f;
     m_hud.update( updateContext );
 }
 
@@ -554,12 +547,11 @@ void Game::addBullet( uint32_t wID )
 {
     ZoneScoped;
     assert( m_audio );
-    assert( m_jet );
-    if ( !m_jet->isWeaponReady( wID ) ) {
+    if ( !m_jet.isWeaponReady( wID ) ) {
         return;
     }
-    m_jet->takeEnergy( wID );
-    Bullet* bullet = m_jet->weapon( wID, m_poolBullets.alloc() );
+    m_jet.takeEnergy( wID );
+    Bullet* bullet = m_jet.weapon( wID, m_poolBullets.alloc() );
     m_bullets.push_back( bullet );
     m_hudData.shots++;
     switch ( bullet->type() ) {
@@ -581,8 +573,7 @@ void Game::retarget()
         return;
     }
     static Random random{ std::random_device()() };
-    assert( m_jet );
-    m_jet->lockTarget( m_enemies[ random() % m_enemies.size() ] );
+    m_jet.lockTarget( m_enemies[ random() % m_enemies.size() ] );
 }
 
 void Game::clearMapData()
@@ -604,9 +595,6 @@ void Game::clearMapData()
     m_enemies.clear();
     m_poolBullets.discardAll();
     m_poolEnemies.discardAll();
-
-    delete m_jet;
-    m_jet = nullptr;
 }
 
 void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelData )
@@ -617,17 +605,17 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
         .pwr = 1.0f,
     };
     m_skybox = Skybox{ mapInfo.texture };
-    m_jet = new Jet( modelData, m_renderer );
+    m_jet = Jet( modelData );
     auto weap = m_screenCustomize.weapons();
-    m_jet->setWeapon( m_weapons[ weap[ 0 ] ], 0 );
-    m_jet->setWeapon( m_weapons[ weap[ 1 ] ], 1 );
-    m_jet->setWeapon( m_weapons[ weap[ 2 ] ], 2 );
+    m_jet.setWeapon( m_weapons[ weap[ 0 ] ], 0 );
+    m_jet.setWeapon( m_weapons[ weap[ 1 ] ], 1 );
+    m_jet.setWeapon( m_weapons[ weap[ 2 ] ], 2 );
 
     assert( m_enemies.empty() );
     m_enemies.resize( mapInfo.enemies );
     for ( Enemy*& it : m_enemies ) {
         it = new ( m_poolEnemies.alloc() ) Enemy( m_enemyModel );
-        it->setTarget( m_jet );
+        it->setTarget( &m_jet );
         it->setWeapon( m_weapons[ 3 ] );
     }
 
@@ -651,9 +639,8 @@ void Game::changeScreen( Screen scr, Audio::Chunk sound )
 
     case Screen::eGame:
     case Screen::eGamePaused:
-        assert( m_jet );
-        m_spaceDust.setVelocity( m_jet->velocity() * -0.5f );
-        m_spaceDust.setCenter( m_jet->position() );
+        m_spaceDust.setVelocity( m_jet.velocity() * -0.5f );
+        m_spaceDust.setCenter( m_jet.position() );
         m_spaceDust.setLineWidth( 1.618f );
         m_currentScreen = scr;
         break;

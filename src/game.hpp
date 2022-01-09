@@ -53,8 +53,8 @@ private:
     Font* m_fontBig = nullptr;
     Font* m_fontGuiTxt = nullptr;
     Font* m_fontPauseTxt = nullptr;
-    Jet* m_jet = nullptr;
     Model* m_enemyModel = nullptr;
+    Jet m_jet{};
     Skybox m_skybox{};
 
     Audio::Chunk m_blaster{};

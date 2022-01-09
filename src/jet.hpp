@@ -60,8 +60,9 @@ private:
     Input m_input{};
 
 public:
-    virtual ~Jet() override = default;
-    explicit Jet( const ModelProto&, Renderer* );
+    virtual ~Jet() noexcept override = default;
+    Jet() noexcept = default;
+    explicit Jet( const ModelProto& ) noexcept;
 
     Bullet* weapon( uint32_t weaponNum, void* ptr );
     bool isShooting( uint32_t weaponNum ) const;

@@ -16,13 +16,12 @@ constexpr static glm::vec3 defaultPyrAcceleration{ 30.0_deg, 20.0_deg, 100.0_deg
 constexpr static glm::vec3 defaultPyrLimits{ 80.0_deg, 40.0_deg, 120.0_deg };
 constexpr static glm::vec3 defaultPyrAnimLimits{ 5.0_deg, 5.0_deg, 15.0_deg };
 
-Jet::Jet( const ModelProto& modelData, Renderer* renderer )
+Jet::Jet( const ModelProto& modelData ) noexcept
 : m_thruster( modelData.scale, (float)modelData.scale * 0.04285f )
 , m_shield( 0.15, 0.03 )
 , m_pyrAccelleration{ defaultPyrAcceleration }
 , m_pyrLimits{ defaultPyrLimits }
 {
-    assert( renderer );
     m_collisionDistance = 0.08;
     m_collisionFlag = true;
     m_direction.z = -1;

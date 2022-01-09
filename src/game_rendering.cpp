@@ -28,16 +28,12 @@ void Game::renderHUD( RenderContext rctx )
 
 std::tuple<glm::mat4, glm::mat4> Game::getCameraMatrix() const
 {
-    if ( !m_jet ) {
-        return {};
-    }
-
     glm::mat4 view = glm::translate( glm::mat4( 1.0f ), glm::vec3{ 0, 0.255, -1 } );
-    view *= glm::toMat4( m_jet->rotation() );
-    view = glm::translate( view, -m_jet->position() );
+    view *= glm::toMat4( m_jet.rotation() );
+    view = glm::translate( view, -m_jet.position() );
     return {
         view,
-        glm::perspective( glm::radians( 55.0f + m_jet->speed() * 3 ), viewportAspect(), 0.001f, 2000.0f )
+        glm::perspective( glm::radians( 55.0f + m_jet.speed() * 3 ), viewportAspect(), 0.001f, 2000.0f )
     };
 }
 
@@ -60,8 +56,7 @@ void Game::render3D( RenderContext rctx )
         assert( it );
         it->render( rctx );
     }
-    assert( m_jet );
-    m_jet->render( rctx );
+    m_jet.render( rctx );
 }
 
 void Game::renderBackground( RenderContext rctx ) const
