@@ -16,6 +16,7 @@
 #include "screen_title.hpp"
 #include "screen_win_loose.hpp"
 #include "ui_rings.hpp"
+#include "space_dust.hpp"
 
 #include <engine/engine.hpp>
 #include <engine/render_context.hpp>
@@ -80,6 +81,7 @@ private:
     Texture m_cyberRingTexture[ 3 ]{};
     std::pmr::map<std::filesystem::path, Texture> m_textures{};
 
+    SpaceDust m_spaceDust{};
     ScreenTitle m_screenTitle{};
     ScreenCustomize m_screenCustomize{};
     ScreenMissionSelect m_screenMissionSelect{};

@@ -58,6 +58,8 @@ set( STARACE_SOURCES
     screen_win_loose.hpp
     shield.cpp
     shield.hpp
+    space_dust.cpp
+    space_dust.hpp
     speed_meter.cpp
     speed_meter.hpp
     targeting.cpp

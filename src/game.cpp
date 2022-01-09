@@ -387,6 +387,11 @@ void Game::onRender( RenderContext rctx )
 
     case Screen::eMainMenu:
         renderBackground( rctx );
+        {
+            auto rctx2 = rctx;
+            rctx2.projection = glm::perspective( 55.0_deg, 1280.0f / 720.0f, 0.001f, 2000.0f );
+            m_spaceDust.render( rctx2 );
+        }
         m_screenTitle.render( rctx );
         break;
 
@@ -420,6 +425,7 @@ void Game::onUpdate( const UpdateContext& updateContext )
         m_screenWin.update( updateContext );
         break;
     case Screen::eMainMenu:
+        m_spaceDust.update( updateContext );
         m_screenTitle.update( updateContext );
         break;
     case Screen::eCustomize:
@@ -466,11 +472,9 @@ void Game::updateGame( const UpdateContext& updateContext )
 
     {
         m_jet->update( updateContext );
-        const glm::vec3 jetPosition = m_jet->position();
-        const glm::vec3 jetVelocity = m_jet->velocity();
-        assert( m_map );
-        m_map->setJetData( jetPosition, jetVelocity );
-        m_map->update( updateContext );
+        m_spaceDust.setCenter( m_jet->position() );
+        m_spaceDust.setVelocity( m_jet->velocity() * -0.5f );
+        m_spaceDust.update( updateContext );
     }
 
     {
@@ -641,10 +645,23 @@ void Game::changeScreen( Screen scr, Audio::Chunk sound )
     SDL_ShowCursor( scr != Screen::eGame );
 
     switch ( scr ) {
+    case Screen::eMainMenu:
+        m_spaceDust.setVelocity(  glm::vec3{ 1.0f, -0.1f, -0.4f }  );
+        m_spaceDust.setCenter( {} );
+        m_spaceDust.setLineWidth( 2.0f );
+        m_currentScreen = scr;
+        break;
+
     case Screen::eGame:
     case Screen::eGamePaused:
+        assert( m_jet );
+        m_spaceDust.setVelocity( m_jet->velocity() * -0.5f );
+        m_spaceDust.setCenter( m_jet->position() );
+        m_spaceDust.setLineWidth( 1.618f );
+        m_currentScreen = scr;
+        break;
+
     case Screen::eDead:
-    case Screen::eMainMenu:
     case Screen::eWin:
     case Screen::eCustomize:
         m_currentScreen = scr;
@@ -653,7 +670,7 @@ void Game::changeScreen( Screen scr, Audio::Chunk sound )
     case Screen::eGameBriefing: {
         const uint32_t currentJet = m_screenCustomize.jet();
         createMapData( m_mapsContainer.at( m_screenMissionSelect.selectedMission() ), m_jetsContainer.at( currentJet ) );
-        m_currentScreen = Screen::eGamePaused;
+        changeScreen( Screen::eGamePaused );
     } break;
 
     case Screen::eMissionSelection:

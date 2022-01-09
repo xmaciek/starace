@@ -47,6 +47,7 @@ void Game::render3D( RenderContext rctx )
 
     assert( m_map );
     m_map->render( rctx );
+    m_spaceDust.render( rctx );
     for ( const Enemy* it : m_enemies ) {
         assert( it );
         it->render( rctx );
