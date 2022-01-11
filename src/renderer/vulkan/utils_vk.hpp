@@ -7,9 +7,6 @@
 #include <utility>
 #include <type_traits>
 
-std::tuple<VkImage, VkImageView, VkDeviceMemory> createImage( VkPhysicalDevice, VkDevice, VkExtent2D, VkFormat, VkImageUsageFlags, VkMemoryPropertyFlags, VkImageAspectFlagBits );
-VkImageView createImageView( VkDevice, VkImage, VkFormat, VkImageAspectFlagBits );
-
 VkFormat pickSupportedFormat( VkPhysicalDevice, const std::pmr::vector<VkFormat>&, VkImageTiling, VkFormatFeatureFlags );
 
 uint32_t memoryType( VkPhysicalDevice, uint32_t typeBits, VkMemoryPropertyFlags );
