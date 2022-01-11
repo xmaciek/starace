@@ -72,9 +72,14 @@ RenderTarget& RenderTarget::operator = ( RenderTarget&& rhs ) noexcept
     return *this;
 }
 
-std::pair<VkImage, VkImageView> RenderTarget::image() const
+VkImage RenderTarget::imageColor() const
 {
-    return { m_color.image(), m_color.view() };
+    return m_color.image();
+}
+
+VkImage RenderTarget::imageDepth() const
+{
+    return m_depth.image();
 }
 
 VkFramebuffer RenderTarget::framebuffer() const

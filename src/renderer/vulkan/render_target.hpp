@@ -26,8 +26,10 @@ public:
     RenderTarget( RenderTarget&& ) noexcept;
     RenderTarget& operator = ( RenderTarget&& ) noexcept;
 
-    std::pair<VkImage, VkImageView> image() const;
     VkFramebuffer framebuffer() const;
+
+    VkImage imageColor() const;
+    VkImage imageDepth() const;
 
     VkRect2D rect() const;
     VkExtent2D extent() const;

@@ -575,7 +575,7 @@ void RendererVK::endFrame()
     m_lastPipeline = nullptr;
 
     RenderTarget& mainTgt = m_frames[ m_currentFrame ].m_renderTarget;
-    transferImage( cmd, mainTgt.image().first, constants::fragmentOut, constants::copyFrom );
+    transferImage( cmd, mainTgt.imageColor(), constants::fragmentOut, constants::copyFrom );
     transferImage( cmd, m_swapchain.image( m_currentFrame ), constants::undefined, constants::copyTo );
 
     const VkImageCopy region{
@@ -585,7 +585,7 @@ void RendererVK::endFrame()
     };
 
     vkCmdCopyImage( cmd
-        , mainTgt.image().first
+        , mainTgt.imageColor()
         , constants::copyFrom.m_layout
         , m_swapchain.image( m_currentFrame )
         , constants::copyTo.m_layout
