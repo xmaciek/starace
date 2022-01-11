@@ -1,20 +1,14 @@
 #pragma once
 
 #include "buffer_vk.hpp"
+#include "image.hpp"
 
 #include <renderer/texture.hpp>
 
 #include <vulkan/vulkan.h>
 
-class TextureVK {
-    VkDevice m_device = VK_NULL_HANDLE;
-    VkDeviceMemory m_memory = VK_NULL_HANDLE;
-    VkExtent2D m_extent{};
-    VkImage m_image = VK_NULL_HANDLE;
-    VkImageView m_view = VK_NULL_HANDLE;
+class TextureVK : public Image {
     VkSampler m_sampler = VK_NULL_HANDLE;
-
-    void destroyResources();
 
 public:
     ~TextureVK();
@@ -27,7 +21,6 @@ public:
 
     void transferFrom( VkCommandBuffer, const BufferVK& );
 
-    VkImageView view() const;
     VkSampler sampler() const;
     VkDescriptorImageInfo imageInfo() const;
 
