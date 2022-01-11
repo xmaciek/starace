@@ -34,4 +34,5 @@ public:
 
     VkImage image() const;
     VkImageView view() const;
+    VkExtent2D extent() const;
 };

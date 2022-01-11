@@ -2,6 +2,8 @@
 
 #include "utils_vk.hpp"
 
+#include <Tracy.hpp>
+
 #include <cassert>
 
 Image::~Image() noexcept
@@ -44,6 +46,11 @@ VkImageView Image::view() const
     return m_imageView;
 }
 
+VkExtent2D Image::extent() const
+{
+    return m_extent;
+}
+
 Image::Image( VkPhysicalDevice physDevice
     , VkDevice device
     , VkExtent2D extent
@@ -57,6 +64,8 @@ Image::Image( VkPhysicalDevice physDevice
 , m_extent{ extent }
 , m_format{ format }
 {
+    ZoneScoped;
+
     assert( mipCount > 0 );
     const VkImageCreateInfo imageInfo{
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,

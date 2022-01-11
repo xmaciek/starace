@@ -1,5 +1,7 @@
 #pragma once
 
+#include "image.hpp"
+
 #include <vulkan/vulkan.h>
 
 #include <utility>
@@ -8,19 +10,10 @@ class RenderTarget {
 private:
     VkDevice m_device = VK_NULL_HANDLE;
     VkFramebuffer m_framebuffer = VK_NULL_HANDLE;
-    VkExtent2D m_extent = {};
+    VkExtent2D m_extent{};
 
-    VkImage m_image = VK_NULL_HANDLE;
-    VkImageView m_imageView = VK_NULL_HANDLE;
-    VkDeviceMemory m_imageMemory = VK_NULL_HANDLE;
-    VkFormat m_imageFormat = VK_FORMAT_UNDEFINED;
-
-    VkImage m_depth = VK_NULL_HANDLE;
-    VkImageView m_depthView = VK_NULL_HANDLE;
-    VkDeviceMemory m_depthMemory = VK_NULL_HANDLE;
-    VkFormat m_depthFormat = VK_FORMAT_UNDEFINED;
-
-    void destroyResources() noexcept;
+    Image m_color{};
+    Image m_depth{};
 
 public:
     ~RenderTarget() noexcept;
