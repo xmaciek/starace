@@ -10,23 +10,18 @@ enum class Pipeline : PipelineSlot {
     eGuiTextureColor1,
     eLine3dColor1,
     eLine3dStripColor,
-    eTriangle3dTextureNormal,
     eTriangleFan3dColor,
     eTriangleFan3dTexture,
     eShortString,
     eProgressBar,
     eGlow,
     eBackground,
+    eAlbedo,
     count,
 };
 
 template <Pipeline P>
-struct PushConstant {
-    glm::mat4 m_model{};
-    glm::mat4 m_view{};
-    glm::mat4 m_projection{};
-    PushConstant() = default;
-};
+struct PushConstant;
 
 template <>
 struct PushConstant<Pipeline::eLine3dStripColor> {
@@ -130,6 +125,15 @@ struct PushConstant<Pipeline::eGlow> {
     PushConstant() = default;
 };
 
+template <>
+struct PushConstant<Pipeline::eAlbedo> {
+    glm::mat4 m_model{};
+    glm::mat4 m_view{};
+    glm::mat4 m_projection{};
+    PushConstant() = default;
+};
+
+
 static constexpr PipelineCreateInfo g_pipelineGui{
     .m_vertexShader = "shaders/gui_texture_color.vert.spv",
     .m_fragmentShader = "shaders/gui_texture_color.frag.spv",
@@ -222,11 +226,11 @@ static constexpr PipelineCreateInfo g_pipelineShortString{
     .m_textureBindBits = 0b10,
 };
 
-static constexpr PipelineCreateInfo g_pipelineTriangle3DTextureNormal{
-    .m_vertexShader = "shaders/vert3_texture_normal3.vert.spv",
-    .m_fragmentShader = "shaders/vert3_texture_normal3.frag.spv",
-    .m_slot = static_cast<PipelineSlot>( Pipeline::eTriangle3dTextureNormal ),
-    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eTriangle3dTextureNormal> ),
+static constexpr PipelineCreateInfo g_pipelineAlbedo{
+    .m_vertexShader = "shaders/albedo.vert.spv",
+    .m_fragmentShader = "shaders/albedo.frag.spv",
+    .m_slot = static_cast<PipelineSlot>( Pipeline::eAlbedo ),
+    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eAlbedo> ),
     .m_enableBlend = false,
     .m_enableDepthTest = true,
     .m_enableDepthWrite = true,

@@ -96,10 +96,10 @@ Game::Game( int argc, char** argv )
     m_renderer->createPipeline( g_pipelineTriangleFan3DColor );
     m_renderer->createPipeline( g_pipelineLine3DColor );
     m_renderer->createPipeline( g_pipelineShortString );
-    m_renderer->createPipeline( g_pipelineTriangle3DTextureNormal );
     m_renderer->createPipeline( g_pipelineProgressBar );
     m_renderer->createPipeline( g_pipelineGlow );
     m_renderer->createPipeline( g_pipelineBackground );
+    m_renderer->createPipeline( g_pipelineAlbedo );
 
     changeScreen( Screen::eMainMenu );
 

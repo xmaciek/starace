@@ -53,14 +53,14 @@ Model& Model::operator = ( Model&& rhs ) noexcept
 
 void Model::render( RenderContext rctx ) const
 {
-    PushConstant<Pipeline::eTriangle3dTextureNormal> pushConstant{};
+    PushConstant<Pipeline::eAlbedo> pushConstant{};
     const float s = m_scale;
     pushConstant.m_model = glm::scale( rctx.model, glm::vec3{ s, s, s } );
     pushConstant.m_view = rctx.view;
     pushConstant.m_projection = rctx.projection;
 
     PushBuffer pushBuffer{
-        .m_pipeline = static_cast<PipelineSlot>( Pipeline::eTriangle3dTextureNormal ),
+        .m_pipeline = static_cast<PipelineSlot>( Pipeline::eAlbedo ),
         .m_vertice = m_vertices,
         .m_texture = m_texture,
     };
