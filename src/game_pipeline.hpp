@@ -167,7 +167,7 @@ static constexpr PipelineCreateInfo g_pipelineLineStripColor{
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eLine3dStripColor> ),
     .m_enableBlend = true,
     .m_enableDepthTest = true,
-    .m_enableDepthWrite = true,
+    .m_enableDepthWrite = false,
     .m_topology = PipelineCreateInfo::Topology::eLineStrip,
     .m_constantBindBits = 0b1,
 };
@@ -194,7 +194,7 @@ static constexpr PipelineCreateInfo g_pipelineTriangleFan3DColor{
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eTriangleFan3dColor> ),
     .m_enableBlend = true,
     .m_enableDepthTest = true,
-    .m_enableDepthWrite = true,
+    .m_enableDepthWrite = false,
     .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
@@ -208,7 +208,7 @@ static constexpr PipelineCreateInfo g_pipelineLine3DColor{
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eLine3dColor1> ),
     .m_enableBlend = true,
     .m_enableDepthTest = true,
-    .m_enableDepthWrite = true,
+    .m_enableDepthWrite = false,
     .m_topology = PipelineCreateInfo::Topology::eLineList,
     .m_constantBindBits = 0b1,
 };
