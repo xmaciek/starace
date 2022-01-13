@@ -225,7 +225,7 @@ RendererVK::RendererVK( SDL_Window* window )
 
     vkGetDeviceQueue( m_device, m_queueFamilyPresent, 0, &m_queuePresent );
 
-    m_commandPool = CommandPool{ m_device, 1 + m_swapchain.imageCount() * 2, m_queueFamilyGraphics };
+    m_commandPool = CommandPool{ m_device, 1 + m_swapchain.imageCount() * 3, m_queueFamilyGraphics };
 
     {
         vkGetDeviceQueue( m_device, m_queueFamilyGraphics, 0u, &std::get<VkQueue>( m_queueGraphics ) );
@@ -239,6 +239,7 @@ RendererVK::RendererVK( SDL_Window* window )
     }
 
     m_mainPass = RenderPass{ m_device, VK_FORMAT_B8G8R8A8_UNORM, m_depthFormat };
+    m_depthPrepass = RenderPass{ m_device, m_depthFormat };
 
     {
         static constexpr VkSemaphoreCreateInfo semaphoreInfo{
@@ -255,12 +256,28 @@ RendererVK::RendererVK( SDL_Window* window )
 
     int i = 1;
     for ( auto& it : m_frames ) {
-        it.m_renderTarget = RenderTarget{ m_physicalDevice, m_device, m_mainPass, m_swapchain.extent(), VK_FORMAT_B8G8R8A8_UNORM, m_depthFormat };
+        it.m_renderDepthTarget = RenderTarget{ RenderTarget::c_depth
+            , m_physicalDevice
+            , m_device
+            , m_depthPrepass
+            , m_swapchain.extent()
+            , m_depthFormat
+            , nullptr
+        };
+        it.m_renderTarget = RenderTarget{ RenderTarget::c_color
+            , m_physicalDevice
+            , m_device
+            , m_mainPass
+            , m_swapchain.extent()
+            , VK_FORMAT_B8G8R8A8_UNORM
+            , it.m_renderDepthTarget.view()
+        };
         it.m_descSetUniform = DescriptorSet{ m_device, 800, 0b1, 0 };
         it.m_descSetUniformSampler = DescriptorSet{ m_device, 100, 0b1, 0b10 };
         it.m_uniformBuffer = Uniform{ m_physicalDevice, m_device, 2_MiB, 256 };
-        it.m_cmdRender = m_commandPool[ i++ ];
         it.m_cmdTransfer = m_commandPool[ i++ ];
+        it.m_cmdDepthPrepass = m_commandPool[ i++ ];
+        it.m_cmdRender = m_commandPool[ i++ ];
     }
 }
 
@@ -292,6 +309,13 @@ void RendererVK::createPipeline( const PipelineCreateInfo& pci )
         , m_mainPass
         , descriptorSet->layout()
     };
+    m_pipelines2[ static_cast<PipelineSlot>( pci.m_slot ) ] = PipelineVK{
+        pci
+        , m_device
+        , m_depthPrepass
+        , descriptorSet->layout()
+        , true
+    };
 }
 
 RendererVK::~RendererVK()
@@ -317,8 +341,10 @@ RendererVK::~RendererVK()
     }
 
     for ( auto& it : m_pipelines ) { it = {}; }
+    for ( auto& it : m_pipelines2 ) { it = {}; }
     destroy<vkDestroySemaphore, VkSemaphore>( m_device, m_semaphoreRender );
     destroy<vkDestroySemaphore, VkSemaphore>( m_device, m_semaphoreAvailableImage );
+    m_depthPrepass = {};
     m_mainPass = {};
     m_swapchain = {};
     if ( m_surface ) {
@@ -507,15 +533,29 @@ void RendererVK::beginFrame()
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
     };
 
-    VkCommandBuffer cmd = fr.m_cmdRender;
-    vkResetCommandBuffer( cmd, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT );
-    [[maybe_unused]]
-    const VkResult cmdOK = vkBeginCommandBuffer( cmd, &beginInfo );
-    assert( cmdOK == VK_SUCCESS );
+    {
+        VkCommandBuffer cmd = fr.m_cmdRender;
+        vkResetCommandBuffer( cmd, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT );
+        [[maybe_unused]]
+        const VkResult cmdOK = vkBeginCommandBuffer( cmd, &beginInfo );
+        assert( cmdOK == VK_SUCCESS );
 
-    vkCmdSetViewport( cmd, 0, 1, &viewport );
-    vkCmdSetScissor( cmd, 0, 1, &rect );
-    m_mainPass.begin( cmd, fr.m_renderTarget.framebuffer(), rect );
+        vkCmdSetViewport( cmd, 0, 1, &viewport );
+        vkCmdSetScissor( cmd, 0, 1, &rect );
+        m_mainPass.begin( cmd, fr.m_renderTarget.framebuffer(), rect );
+    }
+
+    {
+        VkCommandBuffer cmd = fr.m_cmdDepthPrepass;
+        vkResetCommandBuffer( cmd, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT );
+        [[maybe_unused]]
+        const VkResult cmdOK = vkBeginCommandBuffer( cmd, &beginInfo );
+        assert( cmdOK == VK_SUCCESS );
+
+        vkCmdSetViewport( cmd, 0, 1, &viewport );
+        vkCmdSetScissor( cmd, 0, 1, &rect );
+        m_depthPrepass.begin( cmd, fr.m_renderDepthTarget.framebuffer(), rect );
+    }
 }
 
 void RendererVK::deleteBuffer( Buffer b )
@@ -555,13 +595,23 @@ void RendererVK::recreateSwapchain()
     );
 
     for ( auto& it : m_frames ) {
+        it.m_renderDepthTarget = RenderTarget{
+            RenderTarget::c_depth
+            , m_physicalDevice
+            , m_device
+            , m_depthPrepass
+            , m_swapchain.extent()
+            , m_depthFormat
+            , nullptr
+        };
         it.m_renderTarget = RenderTarget{
-            m_physicalDevice
+            RenderTarget::c_color
+            , m_physicalDevice
             , m_device
             , m_mainPass
             , m_swapchain.extent()
             , VK_FORMAT_B8G8R8A8_UNORM
-            , m_depthFormat
+            , it.m_renderDepthTarget.view()
         };
     }
     vkDeviceWaitIdle( m_device );
@@ -570,12 +620,22 @@ void RendererVK::recreateSwapchain()
 void RendererVK::endFrame()
 {
     ZoneScoped;
-    VkCommandBuffer cmd = m_frames[ m_currentFrame ].m_cmdRender;
-    m_mainPass.end( cmd );
     m_lastPipeline = nullptr;
 
+    {
+        VkCommandBuffer cmd = m_frames[ m_currentFrame ].m_cmdDepthPrepass;
+        m_depthPrepass.end( cmd );
+
+        [[maybe_unused]]
+        const VkResult cmdEnd = vkEndCommandBuffer( cmd );
+        assert( cmdEnd == VK_SUCCESS );
+    }
+
+    VkCommandBuffer cmd = m_frames[ m_currentFrame ].m_cmdRender;
+    m_mainPass.end( cmd );
+
     RenderTarget& mainTgt = m_frames[ m_currentFrame ].m_renderTarget;
-    transferImage( cmd, mainTgt.imageColor(), constants::fragmentOut, constants::copyFrom );
+    transferImage( cmd, mainTgt.image(), constants::fragmentOut, constants::copyFrom );
     transferImage( cmd, m_swapchain.image( m_currentFrame ), constants::undefined, constants::copyTo );
 
     const VkImageCopy region{
@@ -585,7 +645,7 @@ void RendererVK::endFrame()
     };
 
     vkCmdCopyImage( cmd
-        , mainTgt.imageColor()
+        , mainTgt.image()
         , constants::copyFrom.m_layout
         , m_swapchain.image( m_currentFrame )
         , constants::copyTo.m_layout
@@ -603,7 +663,10 @@ void RendererVK::endFrame()
     VkSemaphore renderSemaphores[]{ m_semaphoreRender };
     VkPipelineStageFlags waitStages[]{ VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 
-    std::array<VkCommandBuffer, 2> cmds{ flushUniforms(), cmd };
+    std::array cmds{
+        flushUniforms()
+        , m_frames[ m_currentFrame ].m_cmdDepthPrepass
+        , cmd };
 
     const VkSubmitInfo submitInfo{
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -719,6 +782,7 @@ static void updateDescriptor( VkDevice device
     vkUpdateDescriptorSets( device, writeCount, descriptorWrites, 0, nullptr );
 }
 
+// TODO: optimize depth prepass for disabled depth-write
 void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
 {
     Frame& fr = m_frames[ m_currentFrame ];
@@ -728,7 +792,13 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
 
     assert( pushBuffer.m_pipeline < m_pipelines.size() );
     PipelineVK& currentPipeline = m_pipelines[ pushBuffer.m_pipeline ];
+
     const bool rebindPipeline = m_lastPipeline != &currentPipeline;
+    const bool updateLineWidth = pushBuffer.m_useLineWidth && pushBuffer.m_lineWidth != m_lastLineWidth;
+    const bool bindBuffer = pushBuffer.m_vertice;
+    const bool bindTexture = pushBuffer.m_texture;
+    uint32_t verticeCount = pushBuffer.m_verticeCount;
+
     m_lastPipeline = &currentPipeline;
 
     const VkDescriptorBufferInfo bufferInfo = fr.m_uniformBuffer.copy( constant, currentPipeline.pushConstantSize() );
@@ -736,40 +806,40 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
     assert( descriptorSet != VK_NULL_HANDLE );
     VkCommandBuffer cmd = fr.m_cmdRender;
 
-    if ( pushBuffer.m_texture ) {
+
+    if ( rebindPipeline ) {
+        vkCmdBindPipeline( cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline );
+        vkCmdBindPipeline( fr.m_cmdDepthPrepass, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelines2[ pushBuffer.m_pipeline ] );
+    }
+
+    if ( bindTexture ) {
         const TextureVK* texture = m_textureSlots[ pushBuffer.m_texture - 1 ];
-        if ( !texture ) {
-            return;
-        }
-        const VkDescriptorImageInfo imageInfo = texture->imageInfo();
-        updateDescriptor( m_device, descriptorSet, bufferInfo, imageInfo );
+        assert( texture );
+        updateDescriptor( m_device, descriptorSet, bufferInfo, texture->imageInfo() );
     }
     else {
         updateDescriptor( m_device, descriptorSet, bufferInfo );
     }
 
-    if ( rebindPipeline ) {
-        vkCmdBindPipeline( cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline );
-    }
-
+    vkCmdBindDescriptorSets( fr.m_cmdDepthPrepass, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelines2[ pushBuffer.m_pipeline ].layout(), 0, 1, &descriptorSet, 0, nullptr );
     vkCmdBindDescriptorSets( cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
 
-    if ( pushBuffer.m_useLineWidth && pushBuffer.m_lineWidth != m_lastLineWidth ) {
+    if ( updateLineWidth ) {
         m_lastLineWidth = pushBuffer.m_lineWidth;
         vkCmdSetLineWidth( cmd, pushBuffer.m_lineWidth );
+        vkCmdSetLineWidth( fr.m_cmdDepthPrepass, pushBuffer.m_lineWidth );
     }
-    if ( pushBuffer.m_vertice ) {
+
+    if ( bindBuffer ) {
         const BufferVK* b = m_bufferSlots[ pushBuffer.m_vertice - 1 ];
-        if ( !b ) {
-            return;
-        }
+        assert( b );
         std::array<VkBuffer, 1> buffers{ *b };
         const std::array<VkDeviceSize, 1> offsets{ 0 };
-        const uint32_t verticeCount = b->sizeInBytes() / currentPipeline.vertexStride();
+        verticeCount = b->sizeInBytes() / currentPipeline.vertexStride();
         vkCmdBindVertexBuffers( cmd, 0, 1, buffers.data(), offsets.data() );
-        vkCmdDraw( cmd, verticeCount, 1, 0, 0 );
+        vkCmdBindVertexBuffers( fr.m_cmdDepthPrepass, 0, 1, buffers.data(), offsets.data() );
     }
-    else {
-        vkCmdDraw( cmd, pushBuffer.m_verticeCount, 1, 0, 0 );
-    }
+
+    vkCmdDraw( cmd, verticeCount, 1, 0, 0 );
+    vkCmdDraw( fr.m_cmdDepthPrepass, verticeCount, 1, 0, 0 );
 }

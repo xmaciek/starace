@@ -9,15 +9,10 @@
 #include <array>
 #include <cassert>
 
-void PipelineVK::destroyResources()
+PipelineVK::~PipelineVK()
 {
     destroy<vkDestroyPipeline>( m_device, m_pipeline );
     destroy<vkDestroyPipelineLayout>( m_device, m_layout );
-}
-
-PipelineVK::~PipelineVK()
-{
-    destroyResources();
 }
 
 PipelineVK::PipelineVK( PipelineVK&& rhs ) noexcept
@@ -27,16 +22,17 @@ PipelineVK::PipelineVK( PipelineVK&& rhs ) noexcept
     std::swap( m_pipeline, rhs.m_pipeline );
     std::swap( m_pushConstantSize, rhs.m_pushConstantSize );
     std::swap( m_vertexStride, rhs.m_vertexStride );
+    std::swap( m_depthWrite, rhs.m_depthWrite );
 }
 
 PipelineVK& PipelineVK::operator = ( PipelineVK&& rhs ) noexcept
 {
-    destroyResources();
-    m_device = std::exchange( rhs.m_device, {} );
-    m_layout = std::exchange( rhs.m_layout, {} );
-    m_pipeline = std::exchange( rhs.m_pipeline, {} );
-    m_pushConstantSize = std::exchange( rhs.m_pushConstantSize, {} );
-    m_vertexStride = std::exchange( rhs.m_vertexStride, {} );
+    std::swap( m_device, rhs.m_device );
+    std::swap( m_layout, rhs.m_layout );
+    std::swap( m_pipeline, rhs.m_pipeline );
+    std::swap( m_pushConstantSize, rhs.m_pushConstantSize );
+    std::swap( m_vertexStride, rhs.m_vertexStride );
+    std::swap( m_depthWrite, rhs.m_depthWrite );
     return *this;
 }
 
@@ -101,10 +97,11 @@ static constexpr auto topology( PipelineCreateInfo::Topology tp )
     }
 }
 
-PipelineVK::PipelineVK( const PipelineCreateInfo& pci, VkDevice device, VkRenderPass renderPass, VkDescriptorSetLayout layout )
+PipelineVK::PipelineVK( const PipelineCreateInfo& pci, VkDevice device, VkRenderPass renderPass, VkDescriptorSetLayout layout, bool vertexOnly )
 : m_device{ device }
 , m_pushConstantSize{ pci.m_pushConstantSize }
 , m_vertexStride{ pci.m_vertexStride }
+, m_depthWrite{ pci.m_enableDepthWrite }
 {
     ZoneScoped;
     assert( device );
@@ -147,7 +144,7 @@ PipelineVK::PipelineVK( const PipelineCreateInfo& pci, VkDevice device, VkRender
         .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
         .depthTestEnable = pci.m_enableDepthTest ? VK_TRUE : VK_FALSE,
         .depthWriteEnable = pci.m_enableDepthWrite ? VK_TRUE : VK_FALSE,
-        .depthCompareOp = VK_COMPARE_OP_LESS,
+        .depthCompareOp = vertexOnly ? VK_COMPARE_OP_LESS : VK_COMPARE_OP_LESS_OR_EQUAL,
         .depthBoundsTestEnable = VK_FALSE,
         .stencilTestEnable = VK_FALSE,
     };
@@ -212,7 +209,7 @@ PipelineVK::PipelineVK( const PipelineCreateInfo& pci, VkDevice device, VkRender
 
     const VkGraphicsPipelineCreateInfo pipelineInfo{
         .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-        .stageCount = stages.size(),
+        .stageCount = vertexOnly ? 1u : 2u, //stages.size(),
         .pStages = stages.data(),
         .pVertexInputState = &vertexInputInfo,
         .pInputAssemblyState = &inputAssembly,
@@ -250,4 +247,9 @@ uint32_t PipelineVK::pushConstantSize() const
 uint32_t PipelineVK::vertexStride() const
 {
     return m_vertexStride;
+}
+
+bool PipelineVK::depthWrite() const
+{
+    return m_depthWrite;
 }

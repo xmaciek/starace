@@ -4,21 +4,28 @@
 
 #include <vulkan/vulkan.h>
 
-#include <utility>
+#include <tuple>
 
-class RenderTarget {
+class RenderTarget : public Image {
 private:
-    VkDevice m_device = VK_NULL_HANDLE;
     VkFramebuffer m_framebuffer = VK_NULL_HANDLE;
-    VkExtent2D m_extent{};
-
-    Image m_color{};
-    Image m_depth{};
 
 public:
+    using Purpose = std::tuple<uint32_t, VkMemoryPropertyFlagBits, VkImageAspectFlagBits>;
+    static constexpr Purpose c_color{
+        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        VK_IMAGE_ASPECT_COLOR_BIT,
+    };
+    static constexpr Purpose c_depth{
+        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        VK_IMAGE_ASPECT_DEPTH_BIT,
+    };
+
     ~RenderTarget() noexcept;
     RenderTarget() noexcept = default;
-    RenderTarget( VkPhysicalDevice, VkDevice, VkRenderPass, VkExtent2D, VkFormat imageFormat, VkFormat depthFormat ) noexcept;
+    RenderTarget( Purpose, VkPhysicalDevice, VkDevice, VkRenderPass, VkExtent2D, VkFormat, VkImageView extraView ) noexcept;
 
     RenderTarget( const RenderTarget& ) = delete;
     RenderTarget& operator = ( const RenderTarget& ) = delete;
@@ -28,10 +35,6 @@ public:
 
     VkFramebuffer framebuffer() const;
 
-    VkImage imageColor() const;
-    VkImage imageDepth() const;
-
     VkRect2D rect() const;
-    VkExtent2D extent() const;
     VkExtent3D extent3D() const;
 };

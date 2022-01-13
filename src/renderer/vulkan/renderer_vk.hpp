@@ -52,10 +52,12 @@ class RendererVK : public Renderer {
     uint32_t m_currentFrame = 0;
     uint32_t currentFrame();
 
+    RenderPass m_depthPrepass{};
     RenderPass m_mainPass{};
     std::array<Frame, 3> m_frames{};
 
     std::array<PipelineVK, 16> m_pipelines{};
+    std::array<PipelineVK, 16> m_pipelines2{};
     PipelineVK* m_lastPipeline = nullptr;
 
     Indexer<64> m_textureIndexer{};

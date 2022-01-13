@@ -7,7 +7,9 @@
 struct Frame
 {
     VkCommandBuffer m_cmdTransfer{};
+    VkCommandBuffer m_cmdDepthPrepass{};
     VkCommandBuffer m_cmdRender{};
+    RenderTarget m_renderDepthTarget{};
     RenderTarget m_renderTarget{};
     DescriptorSet m_descSetUniform{};
     DescriptorSet m_descSetUniformSampler{};

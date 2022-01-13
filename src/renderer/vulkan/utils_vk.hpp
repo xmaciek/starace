@@ -65,4 +65,16 @@ static constexpr TransferInfo fragmentRead{
     .m_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
 };
 
+static constexpr TransferInfo depthWrite{
+    .m_layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+    .m_access = 0,
+    .m_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+};
+
+static constexpr TransferInfo depthRead{
+    .m_layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,
+    .m_access = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT,
+    .m_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+};
+
 } // namespace constants

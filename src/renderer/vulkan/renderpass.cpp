@@ -19,7 +19,7 @@ RenderPass::RenderPass( VkDevice device, VkFormat format, VkFormat depthFormat )
 
     static constexpr VkAttachmentReference depthAttachmentRef{
         .attachment = 1,
-        .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+        .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,
     };
 
     static constexpr VkSubpassDescription subpass{
@@ -27,15 +27,6 @@ RenderPass::RenderPass( VkDevice device, VkFormat format, VkFormat depthFormat )
         .colorAttachmentCount = 1,
         .pColorAttachments = &colorAttachmentRef,
         .pDepthStencilAttachment = &depthAttachmentRef,
-    };
-
-    static constexpr VkSubpassDependency dependency{
-        .srcSubpass = VK_SUBPASS_EXTERNAL,
-        .dstSubpass = 0,
-        .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
-        .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
-        .srcAccessMask = 0,
-        .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
     };
 
     const VkAttachmentDescription colorAttachment{
@@ -52,12 +43,12 @@ RenderPass::RenderPass( VkDevice device, VkFormat format, VkFormat depthFormat )
     const VkAttachmentDescription depthAttachment{
         .format = depthFormat,
         .samples = VK_SAMPLE_COUNT_1_BIT,
-        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+        .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+        .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
         .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
         .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-        .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+        .initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,
+        .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,
     };
 
     const std::array attachments = { colorAttachment, depthAttachment };
@@ -67,8 +58,47 @@ RenderPass::RenderPass( VkDevice device, VkFormat format, VkFormat depthFormat )
         .pAttachments = attachments.data(),
         .subpassCount = 1,
         .pSubpasses = &subpass,
-        .dependencyCount = 1,
-        .pDependencies = &dependency,
+    };
+
+    [[maybe_unused]]
+    const VkResult res = vkCreateRenderPass( m_device, &renderPassInfo, nullptr, &m_renderPass );
+    assert( res == VK_SUCCESS );
+}
+
+RenderPass::RenderPass( VkDevice device, VkFormat depthFormat ) noexcept
+: m_device{ device }
+, m_depthOnly{ true }
+{
+    ZoneScoped;
+    static constexpr VkAttachmentReference depthAttachmentRef{
+        .attachment = 0,
+        .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+    };
+
+    static constexpr VkSubpassDescription subpass{
+        .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+        .pDepthStencilAttachment = &depthAttachmentRef,
+    };
+
+
+    const VkAttachmentDescription depthAttachment{
+        .format = depthFormat,
+        .samples = VK_SAMPLE_COUNT_1_BIT,
+        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+        .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+        .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,
+    };
+
+    const std::array attachments = { depthAttachment };
+    const VkRenderPassCreateInfo renderPassInfo{
+        .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+        .attachmentCount = attachments.size(),
+        .pAttachments = attachments.data(),
+        .subpassCount = 1,
+        .pSubpasses = &subpass,
     };
 
     [[maybe_unused]]
@@ -85,6 +115,7 @@ RenderPass::RenderPass( RenderPass&& rhs ) noexcept
 {
     std::swap( m_device, rhs.m_device );
     std::swap( m_renderPass, rhs.m_renderPass );
+    std::swap( m_depthOnly, rhs.m_depthOnly );
 }
 
 RenderPass& RenderPass::operator = ( RenderPass&& rhs ) noexcept
@@ -92,6 +123,7 @@ RenderPass& RenderPass::operator = ( RenderPass&& rhs ) noexcept
     destroy<vkDestroyRenderPass, VkRenderPass>( m_device, m_renderPass );
     m_renderPass = std::exchange( rhs.m_renderPass, {} );
     m_device = std::exchange( rhs.m_device, {} );
+    m_depthOnly = std::exchange( rhs.m_depthOnly, {} );
     return *this;
 }
 
@@ -115,8 +147,8 @@ void RenderPass::begin( VkCommandBuffer cmd, VkFramebuffer framebuffer, const Vk
         .renderPass = m_renderPass,
         .framebuffer = framebuffer,
         .renderArea = renderArea,
-        .clearValueCount = clearColor.size(),
-        .pClearValues = clearColor.data(),
+        .clearValueCount = m_depthOnly ? 1u : 2u,
+        .pClearValues = m_depthOnly ? clearColor.data() + 1: clearColor.data(),
     };
     vkCmdBeginRenderPass( cmd, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE );
 }

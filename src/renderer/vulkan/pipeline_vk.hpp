@@ -17,13 +17,13 @@ class PipelineVK {
     VkPipeline m_pipeline = VK_NULL_HANDLE;
     uint32_t m_pushConstantSize = 0;
     uint32_t m_vertexStride = 0;
-    void destroyResources();
+    bool m_depthWrite = false;
 
 public:
     ~PipelineVK();
     PipelineVK() = default;
 
-    PipelineVK( const PipelineCreateInfo&, VkDevice, VkRenderPass, VkDescriptorSetLayout );
+    PipelineVK( const PipelineCreateInfo&, VkDevice, VkRenderPass, VkDescriptorSetLayout, bool vertexOnly = false );
 
     PipelineVK( PipelineVK&& ) noexcept;
     PipelineVK& operator = ( PipelineVK&& ) noexcept;
@@ -33,4 +33,5 @@ public:
     VkPipelineLayout layout() const;
     uint32_t pushConstantSize() const;
     uint32_t vertexStride() const;
+    bool depthWrite() const;
 };

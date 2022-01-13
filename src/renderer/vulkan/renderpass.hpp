@@ -6,10 +6,12 @@
 class RenderPass {
     VkDevice m_device = VK_NULL_HANDLE;
     VkRenderPass m_renderPass = VK_NULL_HANDLE;
+    bool m_depthOnly = false;
 
 public:
     RenderPass() noexcept = default;
     RenderPass( VkDevice, VkFormat, VkFormat ) noexcept;
+    RenderPass( VkDevice, VkFormat ) noexcept;
     ~RenderPass() noexcept;
 
     RenderPass( const RenderPass& ) = delete;
