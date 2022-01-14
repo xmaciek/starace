@@ -17,6 +17,7 @@ enum class TextureAddressMode : uint8_t {
 };
 
 struct TextureCreateInfo {
+    uint64_t dataBeginOffset = 0;
     uint16_t width = 0;
     uint16_t height = 0;
     uint8_t mips = 0;

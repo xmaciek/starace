@@ -455,9 +455,9 @@ Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::pmr::vecto
         return 0;
     }
     const std::size_t size = tci.width * tci.height * formatToSize( tci.format );
-    assert( size <= data.size() );
+    assert( ( size + tci.dataBeginOffset ) <= data.size() );
     BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, size };
-    staging.copyData( data.data() );
+    staging.copyData( data.data() + tci.dataBeginOffset );
 
     TextureVK* tex = new TextureVK{ tci, m_physicalDevice, m_device };
 

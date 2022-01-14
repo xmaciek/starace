@@ -43,11 +43,9 @@ Texture loadTexture( std::pmr::vector<uint8_t>&& data )
     case 1:
     case 4:
     {
-        ZoneScopedN( "copy texture data" );
+        tci.dataBeginOffset = sizeof( tga::Header );
         tci.format = bytesPerPixel == 1 ? TextureFormat::eR : TextureFormat::eBGRA;
-        const size_t textureSize = header.width * header.height * bytesPerPixel;
-        texture.resize( textureSize );
-        std::copy_n( it, textureSize, texture.begin() );
+        texture = std::move( data );
     } break;
 
     case 3:
@@ -81,9 +79,12 @@ Texture loadTexture( std::string_view filename )
     std::ifstream ifs( std::string( filename ), std::ios::binary | std::ios::ate );
     assert( ifs.is_open() );
 
+    Renderer* renderer = Renderer::instance();
+    assert( renderer );
+
     const size_t size = ifs.tellg();
     ifs.seekg( 0 );
-    std::pmr::vector<uint8_t> data( size );
+    std::pmr::vector<uint8_t> data( size, renderer->allocator() );
     ifs.read( reinterpret_cast<char*>( data.data() ), (uint32_t)data.size() );
     ifs.close();
     return loadTexture( std::move( data ) );
