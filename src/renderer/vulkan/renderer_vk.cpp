@@ -307,14 +307,8 @@ void RendererVK::createPipeline( const PipelineCreateInfo& pci )
         pci
         , m_device
         , m_mainPass
-        , descriptorSet->layout()
-    };
-    m_pipelines2[ static_cast<PipelineSlot>( pci.m_slot ) ] = PipelineVK{
-        pci
-        , m_device
         , m_depthPrepass
         , descriptorSet->layout()
-        , true
     };
 }
 
@@ -341,7 +335,6 @@ RendererVK::~RendererVK()
     }
 
     for ( auto& it : m_pipelines ) { it = {}; }
-    for ( auto& it : m_pipelines2 ) { it = {}; }
     destroy<vkDestroySemaphore, VkSemaphore>( m_device, m_semaphoreRender );
     destroy<vkDestroySemaphore, VkSemaphore>( m_device, m_semaphoreAvailableImage );
     m_depthPrepass = {};
@@ -782,7 +775,6 @@ static void updateDescriptor( VkDevice device
     vkUpdateDescriptorSets( device, writeCount, descriptorWrites, 0, nullptr );
 }
 
-// TODO: optimize depth prepass for disabled depth-write
 void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
 {
     Frame& fr = m_frames[ m_currentFrame ];
@@ -794,7 +786,8 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
     PipelineVK& currentPipeline = m_pipelines[ pushBuffer.m_pipeline ];
 
     const bool rebindPipeline = m_lastPipeline != &currentPipeline;
-    const bool updateLineWidth = pushBuffer.m_useLineWidth && pushBuffer.m_lineWidth != m_lastLineWidth;
+    const bool depthWrite = currentPipeline.depthWrite();
+    const bool updateLineWidth = currentPipeline.useLines() && pushBuffer.m_lineWidth != m_lastLineWidth;
     const bool bindBuffer = pushBuffer.m_vertice;
     const bool bindTexture = pushBuffer.m_texture;
     uint32_t verticeCount = pushBuffer.m_verticeCount;
@@ -808,8 +801,8 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
 
 
     if ( rebindPipeline ) {
+        if ( depthWrite ) vkCmdBindPipeline( fr.m_cmdDepthPrepass, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline.depthPrepass() );
         vkCmdBindPipeline( cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline );
-        vkCmdBindPipeline( fr.m_cmdDepthPrepass, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelines2[ pushBuffer.m_pipeline ] );
     }
 
     if ( bindTexture ) {
@@ -821,13 +814,13 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
         updateDescriptor( m_device, descriptorSet, bufferInfo );
     }
 
-    vkCmdBindDescriptorSets( fr.m_cmdDepthPrepass, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelines2[ pushBuffer.m_pipeline ].layout(), 0, 1, &descriptorSet, 0, nullptr );
+    if ( depthWrite ) vkCmdBindDescriptorSets( fr.m_cmdDepthPrepass, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
     vkCmdBindDescriptorSets( cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
 
     if ( updateLineWidth ) {
         m_lastLineWidth = pushBuffer.m_lineWidth;
+        if ( depthWrite ) vkCmdSetLineWidth( fr.m_cmdDepthPrepass, pushBuffer.m_lineWidth );
         vkCmdSetLineWidth( cmd, pushBuffer.m_lineWidth );
-        vkCmdSetLineWidth( fr.m_cmdDepthPrepass, pushBuffer.m_lineWidth );
     }
 
     if ( bindBuffer ) {
@@ -836,10 +829,10 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
         std::array<VkBuffer, 1> buffers{ *b };
         const std::array<VkDeviceSize, 1> offsets{ 0 };
         verticeCount = b->sizeInBytes() / currentPipeline.vertexStride();
+        if ( depthWrite ) vkCmdBindVertexBuffers( fr.m_cmdDepthPrepass, 0, 1, buffers.data(), offsets.data() );
         vkCmdBindVertexBuffers( cmd, 0, 1, buffers.data(), offsets.data() );
-        vkCmdBindVertexBuffers( fr.m_cmdDepthPrepass, 0, 1, buffers.data(), offsets.data() );
     }
 
+    if ( depthWrite ) vkCmdDraw( fr.m_cmdDepthPrepass, verticeCount, 1, 0, 0 );
     vkCmdDraw( cmd, verticeCount, 1, 0, 0 );
-    vkCmdDraw( fr.m_cmdDepthPrepass, verticeCount, 1, 0, 0 );
 }

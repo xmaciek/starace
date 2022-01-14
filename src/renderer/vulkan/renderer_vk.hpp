@@ -57,7 +57,6 @@ class RendererVK : public Renderer {
     std::array<Frame, 3> m_frames{};
 
     std::array<PipelineVK, 16> m_pipelines{};
-    std::array<PipelineVK, 16> m_pipelines2{};
     PipelineVK* m_lastPipeline = nullptr;
 
     Indexer<64> m_textureIndexer{};

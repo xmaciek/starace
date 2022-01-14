@@ -12,6 +12,7 @@
 PipelineVK::~PipelineVK()
 {
     destroy<vkDestroyPipeline>( m_device, m_pipeline );
+    destroy<vkDestroyPipeline>( m_device, m_pipelineDepthPrepass );
     destroy<vkDestroyPipelineLayout>( m_device, m_layout );
 }
 
@@ -20,9 +21,11 @@ PipelineVK::PipelineVK( PipelineVK&& rhs ) noexcept
     std::swap( m_device, rhs.m_device );
     std::swap( m_layout, rhs.m_layout );
     std::swap( m_pipeline, rhs.m_pipeline );
+    std::swap( m_pipelineDepthPrepass, rhs.m_pipelineDepthPrepass );
     std::swap( m_pushConstantSize, rhs.m_pushConstantSize );
     std::swap( m_vertexStride, rhs.m_vertexStride );
     std::swap( m_depthWrite, rhs.m_depthWrite );
+    std::swap( m_useLines, rhs.m_useLines );
 }
 
 PipelineVK& PipelineVK::operator = ( PipelineVK&& rhs ) noexcept
@@ -30,9 +33,11 @@ PipelineVK& PipelineVK::operator = ( PipelineVK&& rhs ) noexcept
     std::swap( m_device, rhs.m_device );
     std::swap( m_layout, rhs.m_layout );
     std::swap( m_pipeline, rhs.m_pipeline );
+    std::swap( m_pipelineDepthPrepass, rhs.m_pipelineDepthPrepass );
     std::swap( m_pushConstantSize, rhs.m_pushConstantSize );
     std::swap( m_vertexStride, rhs.m_vertexStride );
     std::swap( m_depthWrite, rhs.m_depthWrite );
+    std::swap( m_useLines, rhs.m_useLines );
     return *this;
 }
 
@@ -97,15 +102,41 @@ static constexpr auto topology( PipelineCreateInfo::Topology tp )
     }
 }
 
-PipelineVK::PipelineVK( const PipelineCreateInfo& pci, VkDevice device, VkRenderPass renderPass, VkDescriptorSetLayout layout, bool vertexOnly )
+static constexpr bool usesLines( PipelineCreateInfo::Topology tp )
+{
+    using enum PipelineCreateInfo::Topology;
+    switch ( tp ) {
+    case eLineStrip:
+    case eLineList:
+        return true;
+    default:
+        return false;
+    }
+}
+
+static VkPipelineDepthStencilStateCreateInfo depthStencilInfo( bool depthTest, bool depthWrite, bool vertexOnly )
+{
+    return {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
+        .depthTestEnable = depthTest ? VK_TRUE : VK_FALSE,
+        .depthWriteEnable = depthWrite ? VK_TRUE : VK_FALSE,
+        .depthCompareOp = vertexOnly ? VK_COMPARE_OP_LESS : VK_COMPARE_OP_LESS_OR_EQUAL,
+        .depthBoundsTestEnable = VK_FALSE,
+        .stencilTestEnable = VK_FALSE,
+    };
+}
+
+PipelineVK::PipelineVK( const PipelineCreateInfo& pci, VkDevice device, VkRenderPass colorPass, VkRenderPass depthPrepass, VkDescriptorSetLayout layout )
 : m_device{ device }
 , m_pushConstantSize{ pci.m_pushConstantSize }
 , m_vertexStride{ pci.m_vertexStride }
 , m_depthWrite{ pci.m_enableDepthWrite }
+, m_useLines{ usesLines( pci.m_topology ) }
 {
     ZoneScoped;
     assert( device );
-    assert( renderPass );
+    assert( colorPass );
+    assert( depthPrepass );
     assert( layout );
 
     const VkPipelineLayoutCreateInfo pipelineLayoutInfo{
@@ -140,14 +171,8 @@ PipelineVK::PipelineVK( const PipelineCreateInfo& pci, VkDevice device, VkRender
         .lineWidth = 1.0f,
     };
 
-    const VkPipelineDepthStencilStateCreateInfo depthStencil{
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
-        .depthTestEnable = pci.m_enableDepthTest ? VK_TRUE : VK_FALSE,
-        .depthWriteEnable = pci.m_enableDepthWrite ? VK_TRUE : VK_FALSE,
-        .depthCompareOp = vertexOnly ? VK_COMPARE_OP_LESS : VK_COMPARE_OP_LESS_OR_EQUAL,
-        .depthBoundsTestEnable = VK_FALSE,
-        .stencilTestEnable = VK_FALSE,
-    };
+    const auto depthStencilColor = depthStencilInfo( pci.m_enableDepthTest, pci.m_enableDepthWrite, false );
+    const auto depthStencilPrepass = depthStencilInfo( pci.m_enableDepthTest, pci.m_enableDepthWrite, true );
 
     static VkPipelineColorBlendAttachmentState colorBlendAttachment{
         .blendEnable = pci.m_enableBlend ? VK_TRUE : VK_FALSE,
@@ -168,12 +193,11 @@ PipelineVK::PipelineVK( const PipelineCreateInfo& pci, VkDevice device, VkRender
         .pAttachments = &colorBlendAttachment,
     };
 
-    static constexpr std::array dynamicStates = {
+    static constexpr std::array dynamicStates{
         VK_DYNAMIC_STATE_VIEWPORT,
         VK_DYNAMIC_STATE_SCISSOR,
         VK_DYNAMIC_STATE_LINE_WIDTH,
     };
-
     const VkPipelineDynamicStateCreateInfo dynamicState{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
         .dynamicStateCount = dynamicStates.size(),
@@ -207,25 +231,46 @@ PipelineVK::PipelineVK( const PipelineCreateInfo& pci, VkDevice device, VkRender
         fragmentShader.fragment()
     };
 
-    const VkGraphicsPipelineCreateInfo pipelineInfo{
-        .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-        .stageCount = vertexOnly ? 1u : 2u, //stages.size(),
-        .pStages = stages.data(),
-        .pVertexInputState = &vertexInputInfo,
-        .pInputAssemblyState = &inputAssembly,
-        .pViewportState = &viewportState,
-        .pRasterizationState = &rasterizer,
-        .pMultisampleState = &multisampling,
-        .pDepthStencilState = &depthStencil,
-        .pColorBlendState = &colorBlending,
-        .pDynamicState = &dynamicState,
-        .layout = m_layout,
-        .renderPass = renderPass,
+    const std::array pipelineInfo{
+        VkGraphicsPipelineCreateInfo{
+            .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+            .stageCount = stages.size(),
+            .pStages = stages.data(),
+            .pVertexInputState = &vertexInputInfo,
+            .pInputAssemblyState = &inputAssembly,
+            .pViewportState = &viewportState,
+            .pRasterizationState = &rasterizer,
+            .pMultisampleState = &multisampling,
+            .pDepthStencilState = &depthStencilColor,
+            .pColorBlendState = &colorBlending,
+            .pDynamicState = &dynamicState,
+            .layout = m_layout,
+            .renderPass = colorPass,
+        },
+        // depth prepass
+        VkGraphicsPipelineCreateInfo{
+            .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+            .stageCount = 1u,
+            .pStages = stages.data(),
+            .pVertexInputState = &vertexInputInfo,
+            .pInputAssemblyState = &inputAssembly,
+            .pViewportState = &viewportState,
+            .pRasterizationState = &rasterizer,
+            .pMultisampleState = &multisampling,
+            .pDepthStencilState = &depthStencilPrepass,
+            .pDynamicState = &dynamicState,
+            .layout = m_layout,
+            .renderPass = depthPrepass,
+        }
     };
 
+    const uint32_t pipelineCount = pci.m_enableDepthWrite ? 2 : 1;
+    std::array<VkPipeline, 2> pipelines{};
     [[maybe_unused]]
-    const VkResult pipelineOK = vkCreateGraphicsPipelines( device, nullptr, 1, &pipelineInfo, nullptr, &m_pipeline );
+    const VkResult pipelineOK = vkCreateGraphicsPipelines( device, nullptr, pipelineCount, pipelineInfo.data(), nullptr, pipelines.data() );
     assert( pipelineOK == VK_SUCCESS );
+    m_pipeline = pipelines[ 0 ];
+    m_pipelineDepthPrepass = pipelines[ 1 ];
 }
 
 PipelineVK::operator VkPipeline () const
@@ -252,4 +297,15 @@ uint32_t PipelineVK::vertexStride() const
 bool PipelineVK::depthWrite() const
 {
     return m_depthWrite;
+}
+
+bool PipelineVK::useLines() const
+{
+    return m_useLines;
+}
+
+VkPipeline PipelineVK::depthPrepass() const
+{
+    assert( m_pipelineDepthPrepass );
+    return m_pipelineDepthPrepass;
 }

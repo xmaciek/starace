@@ -26,7 +26,6 @@ void HudBar::render( RenderContext rctx ) const
     {
         PushBuffer pushBuffer{
             .m_pipeline = static_cast<PipelineSlot>( Pipeline::eLine3dStripColor ),
-            .m_useLineWidth = true,
             .m_verticeCount = 4,
             .m_lineWidth = 2.0f,
         };

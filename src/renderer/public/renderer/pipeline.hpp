@@ -37,7 +37,6 @@ struct PipelineCreateInfo {
 
 struct PushBuffer {
     PipelineSlot m_pipeline{};
-    uint16_t m_useLineWidth : 1 = false;
     uint32_t m_verticeCount = 0;
     float m_lineWidth = 1.0f;
     Buffer m_vertice{};
