@@ -7,16 +7,19 @@
 #include <renderer/renderer.hpp>
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <Tracy.hpp>
 
 #include <algorithm>
 
 Model::~Model()
 {
+    ZoneScoped;
     destroy();
 }
 
 void Model::destroy()
 {
+    ZoneScoped;
     if ( m_vertices ) {
         Renderer::instance()->deleteBuffer( m_vertices );
         m_vertices = 0;
@@ -27,6 +30,7 @@ Model::Model( const std::filesystem::path& path, Texture t, Renderer* renderer, 
 : m_texture{ t }
 , m_scale{ scale }
 {
+    ZoneScoped;
     assert( renderer );
     loadOBJ( path.c_str(), renderer );
 }
@@ -53,6 +57,7 @@ Model& Model::operator = ( Model&& rhs ) noexcept
 
 void Model::render( RenderContext rctx ) const
 {
+    ZoneScoped;
     PushConstant<Pipeline::eAlbedo> pushConstant{};
     const float s = m_scale;
     pushConstant.m_model = glm::scale( rctx.model, glm::vec3{ s, s, s } );
@@ -70,6 +75,7 @@ void Model::render( RenderContext rctx ) const
 
 void Model::loadOBJ( const std::filesystem::path& filename, Renderer* renderer )
 {
+    ZoneScoped;
     using namespace std::literals::string_view_literals;
     auto data = obj::load( filename );
 
@@ -108,6 +114,7 @@ void Model::scale( float scale )
 
 std::vector<glm::vec3> Model::thrusters() const
 {
+    ZoneScoped;
     std::vector<glm::vec3> vec = m_thrusters;
     for ( auto& it : vec ) {
         it *= m_scale;

@@ -1,5 +1,7 @@
 #include "obj.hpp"
 
+#include <Tracy.hpp>
+
 #include <cassert>
 #include <fstream>
 
@@ -7,7 +9,7 @@ namespace obj {
 
 std::pmr::vector<std::pair<Chunk, std::pmr::vector<float>>> load( const std::filesystem::path& path )
 {
-
+    ZoneScoped;
     std::ifstream ifs( path, std::ios::binary | std::ios::ate );
     assert( ifs.is_open() );
 
