@@ -652,7 +652,6 @@ void RendererVK::endFrame()
     const VkResult cmdEnd = vkEndCommandBuffer( cmd );
     assert( cmdEnd == VK_SUCCESS );
 
-    VkSemaphore waitSemaphores[]{ m_semaphoreAvailableImage };
     VkSemaphore renderSemaphores[]{ m_semaphoreRender };
     VkPipelineStageFlags waitStages[]{ VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 
@@ -663,8 +662,7 @@ void RendererVK::endFrame()
 
     const VkSubmitInfo submitInfo{
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-        .waitSemaphoreCount = 1,
-        .pWaitSemaphores = waitSemaphores,
+        .waitSemaphoreCount = 0,
         .pWaitDstStageMask = waitStages,
         .commandBufferCount = cmds.size(),
         .pCommandBuffers = cmds.data(),
@@ -707,12 +705,12 @@ void RendererVK::endFrame()
 void RendererVK::present()
 {
     ZoneScoped;
-    VkSemaphore renderSemaphores[]{ m_semaphoreRender };
+    std::array waitSemaphores{ m_semaphoreRender, m_semaphoreAvailableImage };
     VkSwapchainKHR swapchain[] = { m_swapchain };
     const VkPresentInfoKHR presentInfo{
         .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-        .waitSemaphoreCount = 1,
-        .pWaitSemaphores = renderSemaphores,
+        .waitSemaphoreCount = waitSemaphores.size(),
+        .pWaitSemaphores = waitSemaphores.data(),
         .swapchainCount = 1,
         .pSwapchains = swapchain,
         .pImageIndices = &m_currentFrame,
