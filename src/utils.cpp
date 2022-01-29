@@ -1,7 +1,5 @@
 #include "utils.hpp"
 
-#include <glm/vec4.hpp>
-
 #include <random>
 
 float randomRange( float a, float b )
@@ -12,9 +10,9 @@ float randomRange( float a, float b )
     return ( b - a ) * static_cast<float>( r ) / max + a;
 }
 
-glm::vec3 project3dTo2d( const glm::mat4& mvp, const glm::vec3& point, const glm::vec2& viewport )
+math::vec3 project3dTo2d( const math::mat4& mvp, const math::vec3& point, const math::vec2& viewport )
 {
-    const glm::vec4 vec = mvp * glm::vec4{ point, 1.0f };
+    const math::vec4 vec = mvp * math::vec4{ point, 1.0f };
     return {
         ( vec.x / vec.w + 1 ) * viewport.x * 0.5f,
         ( 1.0f - vec.y / vec.w ) * viewport.y * 0.5f,
@@ -22,7 +20,7 @@ glm::vec3 project3dTo2d( const glm::mat4& mvp, const glm::vec3& point, const glm
     };
 }
 
-bool isOnScreen( const glm::vec3& point, const glm::vec2& viewport )
+bool isOnScreen( const math::vec3& point, const math::vec2& viewport )
 {
     return point.z > 0.0f
         && point.x >= 0.0f
@@ -32,8 +30,8 @@ bool isOnScreen( const glm::vec3& point, const glm::vec2& viewport )
     ;
 }
 
-bool isOnScreen( const glm::mat4& mvp, const glm::vec3& point, const glm::vec2& viewport )
+bool isOnScreen( const math::mat4& mvp, const math::vec3& point, const math::vec2& viewport )
 {
-    const glm::vec3 vec = project3dTo2d( mvp, point, viewport );
+    const math::vec3 vec = project3dTo2d( mvp, point, viewport );
     return isOnScreen( vec, viewport );
 }

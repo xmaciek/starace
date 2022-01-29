@@ -2,11 +2,11 @@
 
 #include "anchor.hpp"
 
+#include <engine/math.hpp>
 #include <engine/render_context.hpp>
 #include <engine/update_context.hpp>
 #include <engine/mouse_event.hpp>
 
-#include <glm/vec2.hpp>
 
 #include <array>
 
@@ -14,13 +14,13 @@ class Widget {
 protected:
     static constexpr uint16_t c_invalidTabOrder = 0xFFFF;
 
-    glm::vec2 m_position{};
-    glm::vec2 m_size{};
+    math::vec2 m_position{};
+    math::vec2 m_size{};
     Anchor m_anchor = Anchor::fTop | Anchor::fLeft;
     uint16_t m_tabOrder = c_invalidTabOrder;
 
-    bool testRect( glm::vec2 ) const;
-    glm::vec2 offsetByAnchor() const;
+    bool testRect( math::vec2 ) const;
+    math::vec2 offsetByAnchor() const;
 
 public:
     virtual ~Widget() noexcept = default;
@@ -29,12 +29,12 @@ public:
     : m_anchor{ a }
     {}
 
-    inline Widget( glm::vec2 pos, glm::vec2 size ) noexcept
+    inline Widget( math::vec2 pos, math::vec2 size ) noexcept
     : m_position{ pos }
     , m_size{ size }
     {}
 
-    inline Widget( glm::vec2 pos, glm::vec2 size, Anchor a ) noexcept
+    inline Widget( math::vec2 pos, math::vec2 size, Anchor a ) noexcept
     : m_position{ pos }
     , m_size{ size }
     , m_anchor{ a }
@@ -44,11 +44,11 @@ public:
     virtual void render( RenderContext ) const = 0;
     virtual bool onMouseEvent( const MouseEvent& );
 
-    void setPosition( glm::vec2 );
-    void setSize( glm::vec2 );
+    void setPosition( math::vec2 );
+    void setSize( math::vec2 );
 
-    glm::vec2 size() const;
-    glm::vec2 position() const;
+    math::vec2 size() const;
+    math::vec2 position() const;
 
     uint16_t tabOrder() const;
     void setTabOrder( uint16_t );
@@ -65,13 +65,13 @@ public:
     };
 
 private:
-    glm::vec2 m_position{};
+    math::vec2 m_position{};
     Flow m_flow = Flow::eHorizontal;
 
 public:
     ~Layout() noexcept = default;
     Layout() noexcept = default;
-    inline Layout( glm::vec2 pos, Flow a ) noexcept
+    inline Layout( math::vec2 pos, Flow a ) noexcept
     : m_position{ pos }
     , m_flow{ a }
     {}

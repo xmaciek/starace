@@ -6,7 +6,6 @@
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
-#include <glm/gtc/matrix_transform.hpp>
 #include <Tracy.hpp>
 
 #include <algorithm>
@@ -19,27 +18,27 @@ constexpr static float FONT_RESOLUTION_SCALE = 64.0f * FONT_SIZE_SCALE;
 constexpr static uint32_t TILE_COUNT = 10;
 constexpr static uint32_t TILE_PADDING = 2;
 
-static std::array<glm::vec4, 6> composeVertice( glm::vec4 uv, glm::vec2 advance, glm::vec2 size, glm::vec2 padding, glm::vec2 originPointHack )
+static std::array<math::vec4, 6> composeVertice( math::vec4 uv, math::vec2 advance, math::vec2 size, math::vec2 padding, math::vec2 originPointHack )
 {
-    padding *= glm::vec2{ 1.0f, -1.0f };
+    padding *= math::vec2{ 1.0f, -1.0f };
     padding += originPointHack; // top vs bottom
-    const glm::vec2 topLeft = advance + padding;
-    const glm::vec2 botLeft = advance + padding + glm::vec2{ 0.0f, size.y };
-    const glm::vec2 topRight = advance + padding + glm::vec2{ size.x, 0.0f };
-    const glm::vec2 botRight = advance + padding + size;
+    const math::vec2 topLeft = advance + padding;
+    const math::vec2 botLeft = advance + padding + math::vec2{ 0.0f, size.y };
+    const math::vec2 topRight = advance + padding + math::vec2{ size.x, 0.0f };
+    const math::vec2 botRight = advance + padding + size;
 
-    const glm::vec2 uvTopLeft{ uv.x, uv.y };
-    const glm::vec2 uvBotLeft{ uv.x, uv.w };
-    const glm::vec2 uvTopRight{ uv.z, uv.y };
-    const glm::vec2 uvBotRight{ uv.z, uv.w };
+    const math::vec2 uvTopLeft{ uv.x, uv.y };
+    const math::vec2 uvBotLeft{ uv.x, uv.w };
+    const math::vec2 uvTopRight{ uv.z, uv.y };
+    const math::vec2 uvBotRight{ uv.z, uv.w };
     return {
-        glm::vec4{ topLeft, uvTopLeft },
-        glm::vec4{ botLeft, uvBotLeft },
-        glm::vec4{ botRight, uvBotRight },
+        math::vec4{ topLeft, uvTopLeft },
+        math::vec4{ botLeft, uvBotLeft },
+        math::vec4{ botRight, uvBotRight },
 
-        glm::vec4{ botRight, uvBotRight },
-        glm::vec4{ topRight, uvTopRight},
-        glm::vec4{ topLeft, uvTopLeft },
+        math::vec4{ botRight, uvBotRight },
+        math::vec4{ topRight, uvTopRight},
+        math::vec4{ topLeft, uvTopLeft },
     };
 }
 
@@ -53,7 +52,7 @@ constexpr std::pair<size_t, size_t> indexToXY( size_t i ) noexcept
 }
 
 template <size_t TPitch>
-glm::vec4 makeSlotUV( size_t i, glm::vec2 renornalizedUV ) noexcept
+math::vec4 makeSlotUV( size_t i, math::vec2 renornalizedUV ) noexcept
 {
     constexpr float advance = 1.0f / TPitch;
     const auto [ x, y ] = indexToXY<TPitch>( i );
@@ -148,10 +147,10 @@ static std::tuple<Font::Glyph, uint32_t, std::pmr::vector<uint8_t>> makeGlyph( c
     data.resize( slot->bitmap.pitch * slot->bitmap.rows );
     std::copy_n( slot->bitmap.buffer, data.size(), data.begin() );
 
-    glyph.advance = glm::vec2{ slot->metrics.horiAdvance, slot->metrics.vertAdvance } / FONT_RESOLUTION_SCALE;
-    glyph.padding = glm::vec2{ slot->metrics.horiBearingX, slot->metrics.horiBearingY } / FONT_RESOLUTION_SCALE;
-    glyph.size = glm::vec2{ slot->metrics.width, slot->metrics.height } / FONT_RESOLUTION_SCALE;
-    const glm::vec2 renormalizedUV = glyph.size / (float)dstPitch * FONT_SIZE_SCALE;
+    glyph.advance = math::vec2{ slot->metrics.horiAdvance, slot->metrics.vertAdvance } / FONT_RESOLUTION_SCALE;
+    glyph.padding = math::vec2{ slot->metrics.horiBearingX, slot->metrics.horiBearingY } / FONT_RESOLUTION_SCALE;
+    glyph.size = math::vec2{ slot->metrics.width, slot->metrics.height } / FONT_RESOLUTION_SCALE;
+    const math::vec2 renormalizedUV = glyph.size / (float)dstPitch * FONT_SIZE_SCALE;
     glyph.uv = makeSlotUV<TILE_COUNT>( index, renormalizedUV );
     assert( glyph.uv.x >= 0.0f );
     assert( glyph.uv.x <= 1.0f );
@@ -244,7 +243,7 @@ float Font::textLength( std::u32string_view text ) const
     return ret;
 }
 
-Font::RenderText Font::composeText( const glm::vec4& color, std::u32string_view text ) const
+Font::RenderText Font::composeText( const math::vec4& color, std::u32string_view text ) const
 {
     ZoneScoped;
     assert( text.size() < PushConstant<Pipeline::eShortString>::charCount );
@@ -257,7 +256,7 @@ Font::RenderText Font::composeText( const glm::vec4& color, std::u32string_view 
     PushConstant<Pipeline::eShortString> pushConstant{};
     pushConstant.m_color = color;
     auto verticeIt = pushConstant.m_vertices.begin();
-    glm::vec2 advance{};
+    math::vec2 advance{};
 
     for ( auto ch : text ) {
         const Glyph* glyph = m_glyphs[ ch ];
@@ -270,10 +269,10 @@ Font::RenderText Font::composeText( const glm::vec4& color, std::u32string_view 
     return { pushBuffer, pushConstant };
 }
 
-void Font::renderText( RenderContext rctx, const glm::vec4& color, double x, double y, std::u32string_view text ) const
+void Font::renderText( RenderContext rctx, const math::vec4& color, double x, double y, std::u32string_view text ) const
 {
     assert( !text.empty() );
-    rctx.model = glm::translate( rctx.model, glm::vec3{ x, y, 0.0 } );
+    rctx.model = math::translate( rctx.model, math::vec3{ x, y, 0.0 } );
 
     auto [ pushBuffer, pushConstant ] = composeText( color, text );
     pushConstant.m_model = rctx.model;

@@ -1,9 +1,8 @@
 #pragma once
 
+#include <engine/math.hpp>
 #include <engine/render_context.hpp>
 #include <engine/update_context.hpp>
-
-#include <glm/vec3.hpp>
 
 #include <cstdint>
 
@@ -29,9 +28,9 @@ public:
     float x() const;
     float y() const;
     float z() const;
-    glm::vec3 direction() const;
-    glm::vec3 position() const;
-    glm::vec3 velocity() const;
+    math::vec3 direction() const;
+    math::vec3 position() const;
+    math::vec3 velocity() const;
     uint32_t score() const;
     virtual void addScore( uint32_t s, bool b );
     virtual void processCollision( SAObject* );
@@ -46,9 +45,9 @@ public:
 
 protected:
     SAObject* m_target = nullptr;
-    glm::vec3 m_direction{};
-    glm::vec3 m_position{};
-    glm::vec3 m_velocity{};
+    math::vec3 m_direction{};
+    math::vec3 m_position{};
+    math::vec3 m_velocity{};
     float m_collisionDistance = 0.0f;
     float m_turnrate = 0.0f;
     float m_speed = 0.0f;

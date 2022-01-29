@@ -1,9 +1,6 @@
 #pragma once
 
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
-#include <glm/mat4x4.hpp>
-#include <glm/trigonometric.hpp>
+#include <engine/math.hpp>
 
 #include <algorithm>
 #include <memory_resource>
@@ -13,9 +10,9 @@
 
 using Random = std::minstd_rand;
 
-glm::vec3 project3dTo2d( const glm::mat4& mvp, const glm::vec3& point, const glm::vec2& viewport );
-bool isOnScreen( const glm::vec3& point, const glm::vec2& viewport );
-bool isOnScreen( const glm::mat4& mvp, const glm::vec3& point, const glm::vec2& viewport );
+math::vec3 project3dTo2d( const math::mat4& mvp, const math::vec3& point, const math::vec2& viewport );
+bool isOnScreen( const math::vec3& point, const math::vec2& viewport );
+bool isOnScreen( const math::mat4& mvp, const math::vec3& point, const math::vec2& viewport );
 float randomRange( float a, float b );
 
 constexpr double colorHalf( double col ) noexcept
@@ -25,7 +22,7 @@ constexpr double colorHalf( double col ) noexcept
 
 constexpr static float operator ""_deg ( long double f ) noexcept
 {
-    return glm::radians( static_cast<float>( f ) );
+    return static_cast<float>( f * 0.01745329251994329576923690768489 );
 }
 
 // TODO: copy-less conversion
@@ -41,7 +38,7 @@ std::pmr::u32string intToUTF32( T t )
 }
 
 namespace axis {
-static constexpr glm::vec3 x{ 1.0f, 0.0f, 0.0f };
-static constexpr glm::vec3 y{ 0.0f, 1.0f, 0.0f };
-static constexpr glm::vec3 z{ 0.0f, 0.0f, 1.0f };
+static constexpr math::vec3 x{ 1.0f, 0.0f, 0.0f };
+static constexpr math::vec3 y{ 0.0f, 1.0f, 0.0f };
+static constexpr math::vec3 z{ 0.0f, 0.0f, 1.0f };
 }

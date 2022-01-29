@@ -8,8 +8,6 @@
 
 #include <renderer/texture.hpp>
 
-#include <glm/vec4.hpp>
-
 #include <cstdint>
 #include <functional>
 #include <string>
@@ -63,7 +61,7 @@ public:
     ) noexcept;
 
     uint32_t selectedMission() const;
-    void resize( glm::vec2 );
+    void resize( math::vec2 );
     bool next();
     bool prev();
 

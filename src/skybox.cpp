@@ -3,10 +3,8 @@
 #include "game_pipeline.hpp"
 #include "utils.hpp"
 
+#include <engine/math.hpp>
 #include <renderer/renderer.hpp>
-
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 #include <algorithm>
 
@@ -14,78 +12,78 @@ static constexpr float uvmin = 0.00125f;
 static constexpr float uvmax = 0.99875f;
 static constexpr float size = 1000.0f;
 
-static constexpr std::array<glm::vec4, 4> wall1{
-    glm::vec4{ -size, -size, size, 0.0f },
-    glm::vec4{  size, -size, size, 0.0f },
-    glm::vec4{  size,  size, size, 0.0f },
-    glm::vec4{ -size,  size, size, 0.0f }
+static constexpr std::array<math::vec4, 4> wall1{
+    math::vec4{ -size, -size, size, 0.0f },
+    math::vec4{  size, -size, size, 0.0f },
+    math::vec4{  size,  size, size, 0.0f },
+    math::vec4{ -size,  size, size, 0.0f }
 };
-static constexpr std::array<glm::vec4, 4> wall2{
-    glm::vec4{ -size,  size, -size, 0.0f },
-    glm::vec4{  size,  size, -size, 0.0f },
-    glm::vec4{  size, -size, -size, 0.0f },
-    glm::vec4{ -size, -size, -size, 0.0f }
+static constexpr std::array<math::vec4, 4> wall2{
+    math::vec4{ -size,  size, -size, 0.0f },
+    math::vec4{  size,  size, -size, 0.0f },
+    math::vec4{  size, -size, -size, 0.0f },
+    math::vec4{ -size, -size, -size, 0.0f }
 };
-static constexpr std::array<glm::vec4, 4> wall3{
-    glm::vec4{ -size, -size, -size, 0.0f },
-    glm::vec4{ -size, -size, size, 0.0f },
-    glm::vec4{ -size,  size, size, 0.0f },
-    glm::vec4{ -size,  size, -size, 0.0f }
+static constexpr std::array<math::vec4, 4> wall3{
+    math::vec4{ -size, -size, -size, 0.0f },
+    math::vec4{ -size, -size, size, 0.0f },
+    math::vec4{ -size,  size, size, 0.0f },
+    math::vec4{ -size,  size, -size, 0.0f }
 };
-static constexpr std::array<glm::vec4, 4> wall4{
-    glm::vec4{  size,  size, -size, 0.0f },
-    glm::vec4{  size,  size, size, 0.0f },
-    glm::vec4{  size, -size, size, 0.0f },
-    glm::vec4{  size, -size, -size, 0.0f }
+static constexpr std::array<math::vec4, 4> wall4{
+    math::vec4{  size,  size, -size, 0.0f },
+    math::vec4{  size,  size, size, 0.0f },
+    math::vec4{  size, -size, size, 0.0f },
+    math::vec4{  size, -size, -size, 0.0f }
 };
-static constexpr std::array<glm::vec4, 4> wall5{
-    glm::vec4{ -size,  size, -size, 0.0f },
-    glm::vec4{ -size,  size, size, 0.0f },
-    glm::vec4{  size,  size, size, 0.0f },
-    glm::vec4{  size,  size, -size, 0.0f }
+static constexpr std::array<math::vec4, 4> wall5{
+    math::vec4{ -size,  size, -size, 0.0f },
+    math::vec4{ -size,  size, size, 0.0f },
+    math::vec4{  size,  size, size, 0.0f },
+    math::vec4{  size,  size, -size, 0.0f }
 };
-static constexpr std::array<glm::vec4, 4> wall6{
-    glm::vec4{ -size, -size, -size, 0.0f },
-    glm::vec4{  size, -size, -size, 0.0f },
-    glm::vec4{  size, -size, size, 0.0f },
-    glm::vec4{ -size, -size, size, 0.0f }
+static constexpr std::array<math::vec4, 4> wall6{
+    math::vec4{ -size, -size, -size, 0.0f },
+    math::vec4{  size, -size, -size, 0.0f },
+    math::vec4{  size, -size, size, 0.0f },
+    math::vec4{ -size, -size, size, 0.0f }
 };
 
-static constexpr std::array<glm::vec4,4> uv1 {
-    glm::vec4{ uvmin, uvmin, 0.0f, 0.0f },
-    glm::vec4{ uvmax, uvmin, 0.0f, 0.0f },
-    glm::vec4{ uvmax, uvmax, 0.0f, 0.0f },
-    glm::vec4{ uvmin, uvmax, 0.0f, 0.0f }
+static constexpr std::array<math::vec4,4> uv1 {
+    math::vec4{ uvmin, uvmin, 0.0f, 0.0f },
+    math::vec4{ uvmax, uvmin, 0.0f, 0.0f },
+    math::vec4{ uvmax, uvmax, 0.0f, 0.0f },
+    math::vec4{ uvmin, uvmax, 0.0f, 0.0f }
 };
-static constexpr std::array<glm::vec4,4> uv2 {
-    glm::vec4{ uvmin, uvmax, 0.0f, 0.0f },
-    glm::vec4{ uvmax, uvmax, 0.0f, 0.0f },
-    glm::vec4{ uvmax, uvmin, 0.0f, 0.0f },
-    glm::vec4{ uvmin, uvmin, 0.0f, 0.0f }
+static constexpr std::array<math::vec4,4> uv2 {
+    math::vec4{ uvmin, uvmax, 0.0f, 0.0f },
+    math::vec4{ uvmax, uvmax, 0.0f, 0.0f },
+    math::vec4{ uvmax, uvmin, 0.0f, 0.0f },
+    math::vec4{ uvmin, uvmin, 0.0f, 0.0f }
 };
-static constexpr std::array<glm::vec4,4> uv3 {
-    glm::vec4{ uvmin, uvmin, 0.0f, 0.0f },
-    glm::vec4{ uvmax, uvmin, 0.0f, 0.0f },
-    glm::vec4{ uvmax, uvmax, 0.0f, 0.0f },
-    glm::vec4{ uvmin, uvmax, 0.0f, 0.0f }
+static constexpr std::array<math::vec4,4> uv3 {
+    math::vec4{ uvmin, uvmin, 0.0f, 0.0f },
+    math::vec4{ uvmax, uvmin, 0.0f, 0.0f },
+    math::vec4{ uvmax, uvmax, 0.0f, 0.0f },
+    math::vec4{ uvmin, uvmax, 0.0f, 0.0f }
 };
-static constexpr std::array<glm::vec4,4> uv4 {
-    glm::vec4{ uvmin, uvmax, 0.0f, 0.0f },
-    glm::vec4{ uvmax, uvmax, 0.0f, 0.0f },
-    glm::vec4{ uvmax, uvmin, 0.0f, 0.0f },
-    glm::vec4{ uvmin, uvmin, 0.0f, 0.0f }
+static constexpr std::array<math::vec4,4> uv4 {
+    math::vec4{ uvmin, uvmax, 0.0f, 0.0f },
+    math::vec4{ uvmax, uvmax, 0.0f, 0.0f },
+    math::vec4{ uvmax, uvmin, 0.0f, 0.0f },
+    math::vec4{ uvmin, uvmin, 0.0f, 0.0f }
 };
-static constexpr std::array<glm::vec4,4> uv5 {
-    glm::vec4{ uvmin, uvmin, 0.0f, 0.0f },
-    glm::vec4{ uvmax, uvmin, 0.0f, 0.0f },
-    glm::vec4{ uvmax, uvmax, 0.0f, 0.0f },
-    glm::vec4{ uvmin, uvmax, 0.0f, 0.0f }
+static constexpr std::array<math::vec4,4> uv5 {
+    math::vec4{ uvmin, uvmin, 0.0f, 0.0f },
+    math::vec4{ uvmax, uvmin, 0.0f, 0.0f },
+    math::vec4{ uvmax, uvmax, 0.0f, 0.0f },
+    math::vec4{ uvmin, uvmax, 0.0f, 0.0f }
 };
-static constexpr std::array<glm::vec4,4> uv6 {
-    glm::vec4{ uvmin, uvmin, 0.0f, 0.0f },
-    glm::vec4{ uvmax, uvmin, 0.0f, 0.0f },
-    glm::vec4{ uvmax, uvmax, 0.0f, 0.0f },
-    glm::vec4{ uvmin, uvmax, 0.0f, 0.0f }
+static constexpr std::array<math::vec4,4> uv6 {
+    math::vec4{ uvmin, uvmin, 0.0f, 0.0f },
+    math::vec4{ uvmax, uvmin, 0.0f, 0.0f },
+    math::vec4{ uvmax, uvmax, 0.0f, 0.0f },
+    math::vec4{ uvmin, uvmax, 0.0f, 0.0f }
 };
 
 void Skybox::render( const RenderContext& rctx ) const

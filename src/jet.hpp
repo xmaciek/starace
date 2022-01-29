@@ -8,8 +8,7 @@
 #include "shield.hpp"
 #include "thruster.hpp"
 
-#include <glm/vec3.hpp>
-#include <glm/gtc/quaternion.hpp>
+#include <engine/math.hpp>
 
 #include <vector>
 
@@ -34,15 +33,15 @@ private:
 
     BulletProto m_weapon[ 3 ]{};
 
-    glm::quat m_animation{ glm::vec3{} };
-    glm::quat m_quaternion{ glm::vec3{} };
+    math::quat m_animation{ math::vec3{} };
+    math::quat m_quaternion{ math::vec3{} };
 
     // pitch yaw roll controlls
-    glm::vec3 m_pyrAccelleration{};
-    glm::vec3 m_pyrCurrent{};
-    glm::vec3 m_pyrLimits{};
-    glm::vec3 m_pyrTarget{};
-    glm::vec3 m_pyrAnimCurrent{};
+    math::vec3 m_pyrAccelleration{};
+    math::vec3 m_pyrCurrent{};
+    math::vec3 m_pyrLimits{};
+    math::vec3 m_pyrTarget{};
+    math::vec3 m_pyrAnimCurrent{};
 
     Reactor m_reactor{};
 
@@ -68,10 +67,10 @@ public:
     bool isShooting( uint32_t weaponNum ) const;
     bool isWeaponReady( uint32_t weaponNum ) const;
     double energy() const;
-    glm::quat animation() const;
-    glm::quat quat() const;
-    glm::quat rotation() const;
-    glm::vec3 weaponPoint( uint32_t weaponNum );
+    math::quat animation() const;
+    math::quat quat() const;
+    math::quat rotation() const;
+    math::vec3 weaponPoint( uint32_t weaponNum );
     virtual void addScore( uint32_t s, bool b ) override;
     virtual void processCollision( SAObject* ) override;
     virtual void render( RenderContext ) const override;

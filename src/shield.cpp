@@ -18,7 +18,7 @@ void Shield::render( RenderContext ) const
 
 }
 
-void Shield::setColor( const glm::vec4& c )
+void Shield::setColor( const math::vec4& c )
 {
     m_color = c;
 }

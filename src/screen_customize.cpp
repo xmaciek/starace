@@ -3,11 +3,6 @@
 #include "utils.hpp"
 #include "game_action.hpp"
 
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/quaternion.hpp>
-#include <glm/mat4x4.hpp>
-
 #include <cassert>
 
 using std::literals::string_view_literals::operator""sv;
@@ -60,17 +55,17 @@ void ScreenCustomize::render( RenderContext rctx ) const
     m_glow.render( rctx );
     {
         RenderContext rctx2 = rctx;
-        rctx2.projection = glm::perspective(
+        rctx2.projection = math::perspective(
             55.0_deg
             , m_size.x / m_size.y
             , 0.001f
             , 2000.0f
         );
         const float s = m_jets[ m_currentJet ].m_jetUiScale;
-        rctx2.model = glm::translate( rctx2.model, glm::vec3{ 0, 0.1, -1.25 } );
-        rctx2.model = glm::scale( rctx2.model, glm::vec3{ s, s, s } );
-        rctx2.model = glm::rotate( rctx2.model, -15.0_deg, axis::x );
-        rctx2.model = glm::rotate( rctx2.model, m_currentRotation, axis::y );
+        rctx2.model = math::translate( rctx2.model, math::vec3{ 0, 0.1, -1.25 } );
+        rctx2.model = math::scale( rctx2.model, math::vec3{ s, s, s } );
+        rctx2.model = math::rotate( rctx2.model, -15.0_deg, axis::x );
+        rctx2.model = math::rotate( rctx2.model, m_currentRotation, axis::y );
         assert( m_jets[ m_currentJet ].m_jetModel );
         m_jets[ m_currentJet ].m_jetModel->render( rctx2 );
     }
@@ -203,18 +198,18 @@ void ScreenCustomize::onAction( Action a )
     }
 }
 
-void ScreenCustomize::resize( glm::vec2 wh )
+void ScreenCustomize::resize( math::vec2 wh )
 {
     setSize( wh );
     m_rings->setSize( wh );
     m_glow.setSize( wh );
-    m_jetName.setPosition( wh * glm::vec2{ 0.5f, 0.1f } );
-    m_jetPrev.setPosition( wh * glm::vec2{ 0.1f, 0.5f } );
-    m_jetNext.setPosition( wh * glm::vec2{ 0.9f, 0.5f } );
-    m_done.setPosition( wh * glm::vec2{ 0.5f, 0.9f } );
-    m_btnWeap1.setPosition( wh * glm::vec2{ 0.4f, 0.8f } );
-    m_btnWeap2.setPosition( wh * glm::vec2{ 0.5f, 0.8f } );
-    m_btnWeap3.setPosition( wh * glm::vec2{ 0.6f, 0.8f } );
+    m_jetName.setPosition( wh * math::vec2{ 0.5f, 0.1f } );
+    m_jetPrev.setPosition( wh * math::vec2{ 0.1f, 0.5f } );
+    m_jetNext.setPosition( wh * math::vec2{ 0.9f, 0.5f } );
+    m_done.setPosition( wh * math::vec2{ 0.5f, 0.9f } );
+    m_btnWeap1.setPosition( wh * math::vec2{ 0.4f, 0.8f } );
+    m_btnWeap2.setPosition( wh * math::vec2{ 0.5f, 0.8f } );
+    m_btnWeap3.setPosition( wh * math::vec2{ 0.6f, 0.8f } );
 }
 
 bool ScreenCustomize::nextJet()

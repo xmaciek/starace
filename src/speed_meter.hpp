@@ -2,10 +2,6 @@
 
 #include "label.hpp"
 
-#include <glm/vec4.hpp>
-
-#include <array>
-
 class Font;
 
 class SpeedMeter : public Widget {

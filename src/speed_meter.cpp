@@ -5,22 +5,21 @@
 #include "game_pipeline.hpp"
 #include "utils.hpp"
 
+#include <engine/math.hpp>
 #include <renderer/renderer.hpp>
 
-#include <glm/gtc/matrix_transform.hpp>
-
-static const auto c_circle = CircleGen<glm::vec4>::getCircle<32>( 26.0f );
-static const std::array<glm::vec4, 5> c_fan{
-    glm::vec4{ -12.0f, 24.0f, 0.0f, 0.0f },
-    glm::vec4{ 0.0f, 26.5f, 0.0f, 0.0f },
-    glm::vec4{ 12.0f, 24.0f, 0.0f, 0.0f },
-    glm::vec4{ 3.0f, 0.0f, 0.0f, 0.0f },
-    glm::vec4{ -3.0f, 0.0f, 0.0f, 0.0f }
+static const auto c_circle = CircleGen<math::vec4>::getCircle<32>( 26.0f );
+static const std::array<math::vec4, 5> c_fan{
+    math::vec4{ -12.0f, 24.0f, 0.0f, 0.0f },
+    math::vec4{ 0.0f, 26.5f, 0.0f, 0.0f },
+    math::vec4{ 12.0f, 24.0f, 0.0f, 0.0f },
+    math::vec4{ 3.0f, 0.0f, 0.0f, 0.0f },
+    math::vec4{ -3.0f, 0.0f, 0.0f, 0.0f }
 };
 
-static glm::vec2 rightOf( const Label& w )
+static math::vec2 rightOf( const Label& w )
 {
-    return w.position() + glm::vec2{ w.size().x, 0.0f };
+    return w.position() + math::vec2{ w.size().x, 0.0f };
 };
 
 SpeedMeter::SpeedMeter( Font* font ) noexcept
@@ -31,7 +30,7 @@ SpeedMeter::SpeedMeter( Font* font ) noexcept
 
 void SpeedMeter::render( RenderContext rctx ) const
 {
-    rctx.model = glm::translate( rctx.model, glm::vec3{ position(), 0.0f } );
+    rctx.model = math::translate( rctx.model, math::vec3{ position(), 0.0f } );
     m_speed.render( rctx );
     m_speedValue.render( rctx );
 
@@ -53,7 +52,7 @@ void SpeedMeter::render( RenderContext rctx ) const
 
     {
         PushConstant<Pipeline::eTriangleFan3dColor> pushConstant{};
-        pushConstant.m_model = glm::rotate( rctx.model, m_speedFanAngle, axis::z );
+        pushConstant.m_model = math::rotate( rctx.model, m_speedFanAngle, axis::z );
         pushConstant.m_view = rctx.view;
         pushConstant.m_projection = rctx.projection;
         std::copy( c_fan.begin(), c_fan.end(), pushConstant.m_vertices.begin() );
@@ -64,14 +63,14 @@ void SpeedMeter::render( RenderContext rctx ) const
             .m_verticeCount = c_fan.size(),
         };
         rctx.renderer->push( pushBuffer, &pushConstant );
-        pushConstant.m_model = glm::rotate( pushConstant.m_model, 180.0_deg, axis::z );
+        pushConstant.m_model = math::rotate( pushConstant.m_model, 180.0_deg, axis::z );
         rctx.renderer->push( pushBuffer, &pushConstant );
     }
 }
 
 void SpeedMeter::update( const UpdateContext& uctx )
 {
-    m_speedFanAngle += glm::radians( m_speedFan ) * uctx.deltaTime;
+    m_speedFanAngle += math::radians( m_speedFan ) * uctx.deltaTime;
 }
 
 void SpeedMeter::setSpeed( float f )

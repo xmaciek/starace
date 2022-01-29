@@ -6,11 +6,10 @@
 #include <renderer/renderer.hpp>
 
 #include <Tracy.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
 #include <algorithm>
 
-static glm::vec4 randomPosition()
+static math::vec4 randomPosition()
 {
     return {
         randomRange( -1.0f, 1.0f ),
@@ -27,12 +26,12 @@ SpaceDust::SpaceDust() noexcept
     std::generate( m_particles.begin(), m_particles.end(), &randomPosition );
 }
 
-void SpaceDust::setVelocity( const glm::vec3& v )
+void SpaceDust::setVelocity( const math::vec3& v )
 {
     m_velocity = v;
 }
 
-void SpaceDust::setCenter( const glm::vec3& v )
+void SpaceDust::setCenter( const math::vec3& v )
 {
     m_center = v;
 }
@@ -52,12 +51,12 @@ void SpaceDust::update( const UpdateContext& uctx )
     ZoneScoped;
     assert( ( m_particles.size() % 2 ) == 0 );
     const float range = m_range;
-    const glm::vec4 velocity{ m_velocity * uctx.deltaTime, 0.0f };
-    const glm::vec4 center{ m_center, 0.0f };
+    const math::vec4 velocity{ m_velocity * uctx.deltaTime, 0.0f };
+    const math::vec4 center{ m_center, 0.0f };
 
     for ( auto& it : m_particles ) {
         it += velocity;
-        if ( glm::distance( it, center ) >= range ) {
+        if ( math::distance( it, center ) >= range ) {
             it = randomPosition() + center;
         }
     }
@@ -70,7 +69,7 @@ void SpaceDust::render( RenderContext rctx ) const
     pushConstant.m_model = rctx.model;
     pushConstant.m_view = rctx.view;
     pushConstant.m_projection = rctx.projection;
-    pushConstant.m_color = glm::vec4{ 1.0f, 1.0f, 1.0f, 0.4f };
+    pushConstant.m_color = math::vec4{ 1.0f, 1.0f, 1.0f, 0.4f };
 
     PushBuffer pushBuffer{
         .m_pipeline = static_cast<PipelineSlot>( Pipeline::eLine3dColor1 ),
@@ -79,9 +78,9 @@ void SpaceDust::render( RenderContext rctx ) const
     };
     assert( pushBuffer.m_verticeCount <= pushConstant.m_vertices.size() );
 
-    const glm::vec4 particleLength = glm::vec4{ m_velocity * 0.05f, 0.0f };
+    const math::vec4 particleLength = math::vec4{ m_velocity * 0.05f, 0.0f };
     size_t i = 0;
-    for ( const glm::vec4& it : m_particles ) {
+    for ( const math::vec4& it : m_particles ) {
         pushConstant.m_vertices[ i++ ] = it;
         pushConstant.m_vertices[ i++ ] = it + particleLength;
     }

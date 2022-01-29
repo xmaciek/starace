@@ -6,8 +6,6 @@
 #include <engine/render_context.hpp>
 #include <engine/update_context.hpp>
 
-#include <glm/vec2.hpp>
-
 #include <array>
 
 class UIRings : public Widget {

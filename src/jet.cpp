@@ -3,18 +3,12 @@
 #include "texture.hpp"
 #include "utils.hpp"
 
-#include <glm/mat4x4.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/quaternion.hpp>
-
 #include <algorithm>
 #include <cassert>
-#include <cmath>
 
-constexpr static glm::vec3 defaultPyrAcceleration{ 30.0_deg, 20.0_deg, 100.0_deg };
-constexpr static glm::vec3 defaultPyrLimits{ 80.0_deg, 40.0_deg, 120.0_deg };
-constexpr static glm::vec3 defaultPyrAnimLimits{ 5.0_deg, 5.0_deg, 15.0_deg };
+constexpr static math::vec3 defaultPyrAcceleration{ 30.0_deg, 20.0_deg, 100.0_deg };
+constexpr static math::vec3 defaultPyrLimits{ 80.0_deg, 40.0_deg, 120.0_deg };
+constexpr static math::vec3 defaultPyrAnimLimits{ 5.0_deg, 5.0_deg, 15.0_deg };
 
 Jet::Jet( const ModelProto& modelData ) noexcept
 : m_thruster( modelData.scale, (float)modelData.scale * 0.04285f )
@@ -34,12 +28,12 @@ Jet::Jet( const ModelProto& modelData ) noexcept
 
 void Jet::render( RenderContext rctx ) const
 {
-    rctx.model = glm::translate( rctx.model, position() );
-    rctx.model *= glm::toMat4( quat() );
-    rctx.model *= glm::toMat4( animation() );
+    rctx.model = math::translate( rctx.model, position() );
+    rctx.model *= math::toMat4( quat() );
+    rctx.model *= math::toMat4( animation() );
 
     m_model->render( rctx );
-    for ( const glm::vec3& it : m_model->thrusters() ) {
+    for ( const math::vec3& it : m_model->thrusters() ) {
         m_thruster.renderAt( rctx, it );
     }
 }
@@ -62,13 +56,13 @@ void Jet::update( const UpdateContext& updateContext )
     }
     m_reactor.update( updateContext );
 
-    const glm::vec3 pyrControl{ m_input.pitch, m_input.yaw, m_input.roll };
+    const math::vec3 pyrControl{ m_input.pitch, m_input.yaw, m_input.roll };
     m_pyrTarget = pyrControl * m_pyrLimits;
-    const glm::vec3 dir = m_pyrTarget - m_pyrCurrent;
-    if ( const float length = glm::length( dir ); length > 0.0f ) {
-        const glm::vec3 pyrAdd = glm::normalize( dir ) * m_pyrAccelleration * updateContext.deltaTime;
-        if ( length >= glm::length( pyrAdd ) ) {
-            m_pyrCurrent = glm::clamp( m_pyrCurrent + pyrAdd, -m_pyrLimits, m_pyrLimits );
+    const math::vec3 dir = m_pyrTarget - m_pyrCurrent;
+    if ( const float length = math::length( dir ); length > 0.0f ) {
+        const math::vec3 pyrAdd = math::normalize( dir ) * m_pyrAccelleration * updateContext.deltaTime;
+        if ( length >= math::length( pyrAdd ) ) {
+            m_pyrCurrent = math::clamp( m_pyrCurrent + pyrAdd, -m_pyrLimits, m_pyrLimits );
         }
         else {
             m_pyrCurrent = m_pyrTarget;
@@ -76,20 +70,20 @@ void Jet::update( const UpdateContext& updateContext )
     }
 
     {
-        const glm::vec3 aTarget = pyrControl * defaultPyrAnimLimits;
-        const glm::vec3 aDir = aTarget - m_pyrAnimCurrent;
-        if ( const float length = glm::length( aDir ); length > 0.0f ) {
-            const glm::vec3 animAdd = glm::normalize( aDir ) * m_pyrAccelleration * updateContext.deltaTime;
-            if ( length > glm::length( animAdd ) ) {
-                m_pyrAnimCurrent = glm::clamp( m_pyrAnimCurrent + animAdd, -defaultPyrAnimLimits, defaultPyrAnimLimits  );
+        const math::vec3 aTarget = pyrControl * defaultPyrAnimLimits;
+        const math::vec3 aDir = aTarget - m_pyrAnimCurrent;
+        if ( const float length = math::length( aDir ); length > 0.0f ) {
+            const math::vec3 animAdd = math::normalize( aDir ) * m_pyrAccelleration * updateContext.deltaTime;
+            if ( length > math::length( animAdd ) ) {
+                m_pyrAnimCurrent = math::clamp( m_pyrAnimCurrent + animAdd, -defaultPyrAnimLimits, defaultPyrAnimLimits  );
             }
             else {
                 m_pyrAnimCurrent = aTarget;
             }
-            const glm::quat qx{ m_pyrAnimCurrent * glm::vec3{ 1.0f, 0.0f, 0.0f } };
-            const glm::quat qy{ m_pyrAnimCurrent * glm::vec3{ 0.0f, 1.0f, 0.0f } };
-            const glm::quat qz{ m_pyrAnimCurrent * glm::vec3{ 0.0f, 0.0f, 1.0f } };
-            m_animation = qz * ( qy * ( glm::quat{ glm::vec3{} } * qx ) );
+            const math::quat qx{ m_pyrAnimCurrent * math::vec3{ 1.0f, 0.0f, 0.0f } };
+            const math::quat qy{ m_pyrAnimCurrent * math::vec3{ 0.0f, 1.0f, 0.0f } };
+            const math::quat qz{ m_pyrAnimCurrent * math::vec3{ 0.0f, 0.0f, 1.0f } };
+            m_animation = qz * ( qy * ( math::quat{ math::vec3{} } * qx ) );
         }
     }
 
@@ -101,11 +95,11 @@ void Jet::update( const UpdateContext& updateContext )
         m_reactor.consume( afterburnerCost );
     }
 
-    m_speed += glm::clamp( m_speedTarget - m_speed, -m_speedAcceleration, m_speedAcceleration )
+    m_speed += math::clamp( m_speedTarget - m_speed, -m_speedAcceleration, m_speedAcceleration )
         * updateContext.deltaTime;
 
-    m_quaternion *= glm::quat{ m_pyrCurrent * updateContext.deltaTime };
-    m_direction = glm::normalize( glm::rotate( m_quaternion, glm::vec3{ 0.0f, 0.0f, -1.0f } ) );
+    m_quaternion *= math::quat{ m_pyrCurrent * updateContext.deltaTime };
+    m_direction = math::normalize( math::rotate( m_quaternion, math::vec3{ 0.0f, 0.0f, -1.0f } ) );
     m_velocity = direction() * speed();
 
     if ( speed() < 6.0f ) {
@@ -113,13 +107,13 @@ void Jet::update( const UpdateContext& updateContext )
     }
 
     if ( m_shotFactor[ 0 ] < m_weapon[ 0 ].delay ) {
-        m_shotFactor[ 0 ] += 1.0f * updateContext.deltaTime;
+        m_shotFactor[ 0 ] += updateContext.deltaTime;
     }
     if ( m_shotFactor[ 1 ] < m_weapon[ 1 ].delay ) {
-        m_shotFactor[ 1 ] += 1.0f * updateContext.deltaTime;
+        m_shotFactor[ 1 ] += updateContext.deltaTime;
     }
     if ( m_shotFactor[ 2 ] < m_weapon[ 2 ].delay ) {
-        m_shotFactor[ 2 ] += 1.0f * updateContext.deltaTime;
+        m_shotFactor[ 2 ] += updateContext.deltaTime;
     }
 
 
@@ -144,9 +138,9 @@ bool Jet::isShooting( uint32_t weaponNum ) const
     }
 }
 
-glm::vec3 Jet::weaponPoint( uint32_t weaponNum )
+math::vec3 Jet::weaponPoint( uint32_t weaponNum )
 {
-    glm::vec3 w = glm::rotate( quat(), m_model->weapon( weaponNum ) );
+    math::vec3 w = math::rotate( quat(), m_model->weapon( weaponNum ) );
     w += position();
     return w;
 }
@@ -155,7 +149,7 @@ Bullet* Jet::weapon( uint32_t weaponNum, void* ptr )
 {
     assert( ptr );
     BulletProto tmp = m_weapon[ weaponNum ];
-    tmp.position = glm::rotate( quat(), m_model->weapon( weaponNum ) ) + position();
+    tmp.position = math::rotate( quat(), m_model->weapon( weaponNum ) ) + position();
     Bullet* b = new ( ptr ) Bullet( tmp );
     b->setDirection( direction() );
 
@@ -170,30 +164,29 @@ Bullet* Jet::weapon( uint32_t weaponNum, void* ptr )
         if ( !m_target || m_target->status() != Status::eAlive ) {
             break;
         }
-        const glm::vec3 tgtPos = m_target->position();
+        const math::vec3 tgtPos = m_target->position();
         {
-            const glm::vec3 dir = direction();
-            const glm::vec3 dirToTgt = glm::normalize( tgtPos - position() );
-            const float angleToTarget = glm::abs( glm::acos(
-                glm::dot( dir, dirToTgt )
-                / ( glm::length( dir ) * glm::length( dirToTgt ) )
+            const math::vec3 dir = direction();
+            const math::vec3 dirToTgt = math::normalize( tgtPos - position() );
+            const float angleToTarget = math::abs( math::acos(
+                math::dot( dir, dirToTgt )
+                / ( math::length( dir ) * math::length( dirToTgt ) )
             ) );
-            constexpr float a = glm::radians( 15.0f );
-            if ( angleToTarget > a ) {
+            if ( angleToTarget > 15.0_deg ) {
                 break;
             }
         }
-        const glm::vec3 tgtVelocity = m_target->velocity();
-        const glm::vec3 bPos = b->position();
+        const math::vec3 tgtVelocity = m_target->velocity();
+        const math::vec3 bPos = b->position();
         const float bSpeed = b->speed();
-        glm::vec3 tgtMaybePos = tgtPos;
+        math::vec3 tgtMaybePos = tgtPos;
         // 6 iterations is perfect enough
         for ( int i = 0; i < 10; ++i ) {
-            const glm::vec3 distance = tgtMaybePos - bPos;
-            const float time = glm::length( distance ) / bSpeed;
+            const math::vec3 distance = tgtMaybePos - bPos;
+            const float time = math::length( distance ) / bSpeed;
             tgtMaybePos = tgtPos + tgtVelocity * time;
         }
-        b->setDirection( glm::normalize( tgtMaybePos - bPos ) );
+        b->setDirection( math::normalize( tgtMaybePos - bPos ) );
     } break;
     default:
         break;
@@ -227,7 +220,7 @@ void Jet::processCollision( std::vector<Bullet*>& bullets )
         if ( it->status() != Status::eAlive ) {
             continue;
         }
-        if ( glm::distance( position(), it->position() ) > 0.1f ) {
+        if ( math::distance( position(), it->position() ) > 0.1f ) {
             continue;
         }
         setDamage( it->damage() );
@@ -255,19 +248,19 @@ double Jet::energy() const
     return m_reactor.power();
 }
 
-glm::quat Jet::animation() const
+math::quat Jet::animation() const
 {
     return m_animation;
 }
 
-glm::quat Jet::quat() const
+math::quat Jet::quat() const
 {
     return m_quaternion;
 }
 
-glm::quat Jet::rotation() const
+math::quat Jet::rotation() const
 {
-    return glm::inverse( m_quaternion );
+    return math::inverse( m_quaternion );
 }
 
 void Jet::untarget( const SAObject* tgt )

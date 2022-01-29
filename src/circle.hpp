@@ -1,5 +1,7 @@
 #pragma once
 
+#include "constants.hpp"
+
 #include <array>
 #include <algorithm>
 #include <cassert>
@@ -19,7 +21,7 @@ public:
     : m_max{ segments }
     , m_size{ size }
     {
-        m_angle = 2.0f * (float)M_PI / (float)( segments - 1 );
+        m_angle = 2.0f * constants::pi / (float)( segments - 1 );
     }
 
     TScalar operator ()() noexcept

@@ -167,11 +167,11 @@ void Engine::processEvents()
 
         case SDL_MOUSEBUTTONDOWN:
             if ( event.button.button == SDL_BUTTON_LEFT ) {
-                onMouseEvent( MouseClick{ glm::vec2{ event.button.x, event.button.y } } );
+                onMouseEvent( MouseClick{ math::vec2{ event.button.x, event.button.y } } );
             }
             break;
         case SDL_MOUSEMOTION:
-            onMouseEvent( MouseMove{ glm::vec2{ event.motion.x, event.motion.y } } );
+            onMouseEvent( MouseMove{ math::vec2{ event.motion.x, event.motion.y } } );
             break;
 
         case SDL_CONTROLLERDEVICEADDED:

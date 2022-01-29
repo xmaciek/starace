@@ -5,12 +5,14 @@
 #include "model.hpp"
 #include "thruster.hpp"
 
+#include <engine/math.hpp>
+
 class Enemy : public SAObject {
 private:
     BulletProto m_weapon{};
     Thruster m_thruster{};
     Model* m_model = nullptr;
-    glm::vec3 m_screenPos{};
+    math::vec3 m_screenPos{};
     float m_shotFactor = 0.0f;
     float m_healthPerc = 1.0f;
     bool m_isOnScreen = false;

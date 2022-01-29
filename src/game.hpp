@@ -19,13 +19,13 @@
 #include "ui_rings.hpp"
 
 #include <engine/engine.hpp>
+#include <engine/math.hpp>
 #include <engine/render_context.hpp>
 #include <engine/update_context.hpp>
 #include <renderer/texture.hpp>
 #include <shared/pool.hpp>
 #include <shared/rotary_index.hpp>
 
-#include <glm/vec4.hpp>
 #include <SDL2/SDL.h>
 
 #include <mutex>
@@ -105,7 +105,7 @@ private:
     void loadMapProto();
     void pause();
 
-    std::tuple<glm::mat4, glm::mat4> getCameraMatrix() const;
+    std::tuple<math::mat4, math::mat4> getCameraMatrix() const;
 
     // purposefully copy argument
     void render3D( RenderContext );

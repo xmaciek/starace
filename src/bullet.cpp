@@ -1,12 +1,11 @@
 #include "bullet.hpp"
 
-#include <renderer/renderer.hpp>
-
+#include "constants.hpp"
 #include "game_pipeline.hpp"
 #include "utils.hpp"
 
-#include <glm/vec4.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include <engine/math.hpp>
+#include <renderer/renderer.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -25,16 +24,16 @@ static constexpr uint16_t typeToSegments( Bullet::Type e ) noexcept
         return 0;
     }
 }
-static std::array<glm::vec4, 23> getTailColors() noexcept
+static std::array<math::vec4, 23> getTailColors() noexcept
 {
-    std::array<glm::vec4, 23> ret{};
-    const glm::vec4 a{ 1.0f, 1.0f, 1.0f, 1.0f };
-    const glm::vec4 diff{ 0.0f, 0.0f, 0.0f, -1.0f };
+    std::array<math::vec4, 23> ret{};
+    const math::vec4 a{ 1.0f, 1.0f, 1.0f, 1.0f };
+    const math::vec4 diff{ 0.0f, 0.0f, 0.0f, -1.0f };
     size_t i = 0;
     const float f = 1.0f / ret.size();
     for ( auto& it : ret ) {
         const float n = f * (float)i++;
-        it = a + diff * ( 0.5f - std::cos( n * (float)M_PI ) * 0.5f );
+        it = a + diff * ( 0.5f - std::cos( n * constants::pi ) * 0.5f );
     }
     return ret;
 }
@@ -82,9 +81,9 @@ void Bullet::render( RenderContext rctx ) const
     {
         const auto begin = m_tail.begin();
         const auto end = begin + typeToSegments( m_type );
-        const glm::mat4 mvp = rctx.projection * rctx.view * rctx.model;
-        const glm::vec2 viewport = rctx.viewport;
-        const auto onScreen = [ mvp, viewport ] ( const::glm::vec3& v ) {
+        const math::mat4 mvp = rctx.projection * rctx.view * rctx.model;
+        const math::vec2 viewport = rctx.viewport;
+        const auto onScreen = [ mvp, viewport ] ( const math::vec3& v ) {
             return isOnScreen( mvp, v, viewport );
         };
         if ( std::none_of( begin, end, onScreen ) ) {
@@ -115,10 +114,10 @@ void Bullet::render( RenderContext rctx ) const
     case Type::eTorpedo: {
         pushBuffer.m_verticeCount = std::min( pushConstant.m_vertices.size(), m_tail.size() );
         std::transform( m_tail.cbegin(), m_tail.cend(), pushConstant.m_vertices.begin(),
-            []( glm::vec3 v ) { return glm::vec4{ v, 0.0f }; }
+            []( math::vec3 v ) { return math::vec4{ v, 0.0f }; }
         );
         pushConstant.m_colors[ 0 ] = m_color1;
-        static const std::array<glm::vec4,23> tail = getTailColors();
+        static const std::array<math::vec4, 23> tail = getTailColors();
         std::copy( tail.begin(), tail.end(), pushConstant.m_colors.begin() + 1 );
     } break;
     }
@@ -145,13 +144,13 @@ void Bullet::update( const UpdateContext& updateContext )
         break;
 
     case Type::eTorpedo:
-        m_turnrate = glm::radians( speed() * 10.0f * updateContext.deltaTime );
+        m_turnrate = math::radians( speed() * 10.0f * updateContext.deltaTime );
         interceptTarget();
         [[fallthrough]];
 
     case Type::eBlaster:
         m_position += m_velocity * updateContext.deltaTime;
-        if ( glm::length( m_tail[ 1 ] - m_position ) > m_tailChunkLength ) {
+        if ( math::length( m_tail[ 1 ] - m_position ) > m_tailChunkLength ) {
             std::rotate( m_tail.begin(), m_tail.end() - 1, m_tail.end() );
         }
         m_tail.front() = position();
@@ -167,22 +166,22 @@ bool Bullet::collisionTest( const SAObject* object ) const
         return false;
     }
 
-    const glm::vec3 collRay = collisionRay();
-    const glm::vec3 dir = object->position() - position();
-    const float tmp = glm::dot( dir, collRay );
+    const math::vec3 collRay = collisionRay();
+    const math::vec3 dir = object->position() - position();
+    const float tmp = math::dot( dir, collRay );
     float dist = 0.0;
 
     if ( tmp <= 0 ) {
-        dist = glm::length( dir );
+        dist = math::length( dir );
     }
     else {
-        const float tmp2 = glm::dot( collRay, collRay );
+        const float tmp2 = math::dot( collRay, collRay );
         if ( tmp2 <= tmp ) {
-            dist = glm::length( dir );
+            dist = math::length( dir );
         }
         else {
-            const glm::vec3 Pb = position() + ( collRay * ( tmp / tmp2 ) );
-            dist = glm::length( object->position() - Pb );
+            const math::vec3 Pb = position() + ( collRay * ( tmp / tmp2 ) );
+            dist = math::length( object->position() - Pb );
         }
     }
 
@@ -206,7 +205,7 @@ void Bullet::processCollision( SAObject* object )
     }
 }
 
-glm::vec3 Bullet::collisionRay() const
+math::vec3 Bullet::collisionRay() const
 {
     switch ( m_type ) {
     case Type::eBlaster:
@@ -220,13 +219,13 @@ glm::vec3 Bullet::collisionRay() const
 
     default:
         assert( !"unreachable" );
-        return glm::vec3{};
+        return math::vec3{};
     }
 }
 
-void Bullet::setDirection( const glm::vec3& v )
+void Bullet::setDirection( const math::vec3& v )
 {
-    m_direction = glm::normalize( v );
+    m_direction = math::normalize( v );
     m_velocity = direction() * speed();
     if ( m_type == Type::eSlug ) {
         std::rotate( m_tail.begin(), m_tail.end() - 1, m_tail.end() );

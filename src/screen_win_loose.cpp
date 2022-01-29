@@ -6,7 +6,7 @@ static constexpr Anchor c_textAnchor = Anchor::fCenter | Anchor::fMiddle;
 
 ScreenWinLoose::ScreenWinLoose(
     Texture button
-    , glm::vec4 color
+    , math::vec4 color
     , Font* fontSmall
     , Font* fontLarge
     , Widget* rings
@@ -45,7 +45,7 @@ bool ScreenWinLoose::onMouseEvent( const MouseEvent& event )
     return m_continue.onMouseEvent( event );
 }
 
-void ScreenWinLoose::resize( glm::vec2 s )
+void ScreenWinLoose::resize( math::vec2 s )
 {
     setSize( s );
     m_glow.setSize( s );

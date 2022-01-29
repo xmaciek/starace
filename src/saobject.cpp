@@ -1,7 +1,6 @@
 #include "saobject.hpp"
 
 #include <cmath>
-#include <glm/gtc/matrix_transform.hpp>
 
 float SAObject::x() const
 {
@@ -23,17 +22,17 @@ SAObject::Status SAObject::status() const
     return m_status;
 }
 
-glm::vec3 SAObject::position() const
+math::vec3 SAObject::position() const
 {
     return m_position;
 }
 
-glm::vec3 SAObject::direction() const
+math::vec3 SAObject::direction() const
 {
     return m_direction;
 }
 
-glm::vec3 SAObject::velocity() const
+math::vec3 SAObject::velocity() const
 {
     return m_velocity;
 }
@@ -85,18 +84,18 @@ void SAObject::interceptTarget()
         return;
     }
 
-    glm::vec3 dir = m_direction;
-    glm::vec3 tgt = m_target->position();
+    math::vec3 dir = m_direction;
+    math::vec3 tgt = m_target->position();
     tgt = m_position - tgt;
-    tgt = glm::normalize( tgt );
+    tgt = math::normalize( tgt );
 
-    const float tmp = (float)std::tan( std::atan( glm::dot( dir, tgt ) - m_turnrate ) );
-    dir = glm::cross( tgt, glm::cross( dir, tgt ) );
-    dir += tgt * glm::vec3( tmp );
+    const float tmp = (float)std::tan( std::atan( math::dot( dir, tgt ) - m_turnrate ) );
+    dir = math::cross( tgt, math::cross( dir, tgt ) );
+    dir += tgt * math::vec3( tmp );
 
-    dir = glm::normalize( dir );
+    dir = math::normalize( dir );
     m_direction = dir;
-    m_velocity = m_direction * glm::vec3( m_speed );
+    m_velocity = m_direction * math::vec3( m_speed );
 }
 
 bool SAObject::canCollide() const

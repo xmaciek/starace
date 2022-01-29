@@ -5,6 +5,7 @@
 #include "hudbar.hpp"
 #include "speed_meter.hpp"
 
+#include <engine/math.hpp>
 #include <engine/render_context.hpp>
 #include <engine/update_context.hpp>
 
@@ -44,6 +45,6 @@ public:
     void render( RenderContext ) const;
     void update( const UpdateContext& );
 
-    void resize( glm::vec2 );
+    void resize( math::vec2 );
 };
 

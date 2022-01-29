@@ -120,21 +120,21 @@ void ScreenMissionSelect::onAction( Action a )
     }
 }
 
-void ScreenMissionSelect::resize( glm::vec2 wh )
+void ScreenMissionSelect::resize( math::vec2 wh )
 {
     const float max = std::max( wh.x, wh.y );
-    m_preview.setSize( glm::vec2{ max, max } );
-    m_preview.setPosition( wh * glm::vec2{ 0.5f, 0.5f } );
+    m_preview.setSize( math::vec2{ max, max } );
+    m_preview.setPosition( wh * math::vec2{ 0.5f, 0.5f } );
     m_glow.setSize( wh );
     assert( m_rings );
     m_rings->setSize( wh );
-    m_title.setPosition( wh * glm::vec2{ 0.5f, 0.1f } );
-    m_enemy.setPosition( wh * glm::vec2{ 0.495f, 0.2f } );
-    m_enemyCount.setPosition( wh * glm::vec2{ 0.505f, 0.2f } );
-    m_prev.setPosition( wh * glm::vec2{ 0.05f, 0.5f } );
-    m_next.setPosition( wh * glm::vec2{ 0.95f, 0.5f } );
-    m_cancel.setPosition( wh * glm::vec2{ 0.45f, 0.7f } );
-    m_select.setPosition( wh * glm::vec2{ 0.55f, 0.7f } );
+    m_title.setPosition( wh * math::vec2{ 0.5f, 0.1f } );
+    m_enemy.setPosition( wh * math::vec2{ 0.495f, 0.2f } );
+    m_enemyCount.setPosition( wh * math::vec2{ 0.505f, 0.2f } );
+    m_prev.setPosition( wh * math::vec2{ 0.05f, 0.5f } );
+    m_next.setPosition( wh * math::vec2{ 0.95f, 0.5f } );
+    m_cancel.setPosition( wh * math::vec2{ 0.45f, 0.7f } );
+    m_select.setPosition( wh * math::vec2{ 0.55f, 0.7f } );
 }
 
 uint32_t ScreenMissionSelect::selectedMission() const

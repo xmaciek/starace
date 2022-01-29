@@ -1,10 +1,7 @@
 #pragma once
 
 #include <renderer/pipeline.hpp>
-
-#include <glm/mat4x4.hpp>
-#include <glm/vec3.hpp>
-#include <glm/vec4.hpp>
+#include <engine/math.hpp>
 
 enum class Pipeline : PipelineSlot {
     eGuiTextureColor1,
@@ -25,111 +22,111 @@ struct PushConstant;
 
 template <>
 struct PushConstant<Pipeline::eLine3dStripColor> {
-    glm::mat4 m_model{};
-    glm::mat4 m_view{};
-    glm::mat4 m_projection{};
-    std::array<glm::vec4, 32> m_vertices{};
-    std::array<glm::vec4, 32> m_colors{};
+    math::mat4 m_model{};
+    math::mat4 m_view{};
+    math::mat4 m_projection{};
+    std::array<math::vec4, 32> m_vertices{};
+    std::array<math::vec4, 32> m_colors{};
 
     PushConstant() = default;
 };
 
 template <>
 struct PushConstant<Pipeline::eTriangleFan3dTexture> {
-    glm::mat4 m_model{};
-    glm::mat4 m_view{};
-    glm::mat4 m_projection{};
-    std::array<glm::vec4, 4> m_vertices{};
-    std::array<glm::vec4, 4> m_uv{};
+    math::mat4 m_model{};
+    math::mat4 m_view{};
+    math::mat4 m_projection{};
+    std::array<math::vec4, 4> m_vertices{};
+    std::array<math::vec4, 4> m_uv{};
 
     PushConstant() = default;
 };
 
 template <>
 struct PushConstant<Pipeline::eGuiTextureColor1> {
-    glm::mat4 m_model{};
-    glm::mat4 m_view{};
-    glm::mat4 m_projection{};
-    glm::vec4 m_color{};
-    std::array<glm::vec4, 4> m_vertices{};
+    math::mat4 m_model{};
+    math::mat4 m_view{};
+    math::mat4 m_projection{};
+    math::vec4 m_color{};
+    std::array<math::vec4, 4> m_vertices{};
 
     PushConstant() = default;
 };
 
 template <>
 struct PushConstant<Pipeline::eBackground> {
-    glm::mat4 m_model{};
-    glm::mat4 m_view{};
-    glm::mat4 m_projection{};
-    glm::vec4 m_color{};
-    std::array<glm::vec4, 4> m_vertices{};
+    math::mat4 m_model{};
+    math::mat4 m_view{};
+    math::mat4 m_projection{};
+    math::vec4 m_color{};
+    std::array<math::vec4, 4> m_vertices{};
 
     PushConstant() = default;
 };
 
 template <>
 struct PushConstant<Pipeline::eLine3dColor1> {
-    glm::mat4 m_model{};
-    glm::mat4 m_view{};
-    glm::mat4 m_projection{};
-    glm::vec4 m_color{};
-    std::array<glm::vec4, 200> m_vertices{};
+    math::mat4 m_model{};
+    math::mat4 m_view{};
+    math::mat4 m_projection{};
+    math::vec4 m_color{};
+    std::array<math::vec4, 200> m_vertices{};
 
     PushConstant() = default;
 };
 
 template <>
 struct PushConstant<Pipeline::eTriangleFan3dColor> {
-    glm::mat4 m_model{};
-    glm::mat4 m_view{};
-    glm::mat4 m_projection{};
-    std::array<glm::vec4, 48> m_vertices{};
-    std::array<glm::vec4, 48> m_colors{};
+    math::mat4 m_model{};
+    math::mat4 m_view{};
+    math::mat4 m_projection{};
+    std::array<math::vec4, 48> m_vertices{};
+    std::array<math::vec4, 48> m_colors{};
 
     PushConstant() = default;
 };
 
 template <>
 struct PushConstant<Pipeline::eShortString> {
-    glm::mat4 m_model{};
-    glm::mat4 m_view{};
-    glm::mat4 m_projection{};
-    glm::vec4 m_color{};
+    math::mat4 m_model{};
+    math::mat4 m_view{};
+    math::mat4 m_projection{};
+    math::vec4 m_color{};
 
     static constexpr size_t charCount = 48;
-    std::array<glm::vec4, charCount * 6> m_vertices{};
+    std::array<math::vec4, charCount * 6> m_vertices{};
 
     PushConstant() = default;
 };
 
 template <>
 struct PushConstant<Pipeline::eProgressBar> {
-    glm::mat4 m_model{};
-    glm::mat4 m_view{};
-    glm::mat4 m_projection{};
-    glm::vec4 m_vertices[ 4 ]{};
-    glm::vec4 m_color[ 2 ]{};
-    glm::vec4 m_axis{};
+    math::mat4 m_model{};
+    math::mat4 m_view{};
+    math::mat4 m_projection{};
+    math::vec4 m_vertices[ 4 ]{};
+    math::vec4 m_color[ 2 ]{};
+    math::vec4 m_axis{};
 
     PushConstant() = default;
 };
 
 template <>
 struct PushConstant<Pipeline::eGlow> {
-    glm::mat4 m_model{};
-    glm::mat4 m_view{};
-    glm::mat4 m_projection{};
-    glm::vec4 m_color{};
-    std::array<glm::vec4, 4> m_xyuv{};
+    math::mat4 m_model{};
+    math::mat4 m_view{};
+    math::mat4 m_projection{};
+    math::vec4 m_color{};
+    std::array<math::vec4, 4> m_xyuv{};
 
     PushConstant() = default;
 };
 
 template <>
 struct PushConstant<Pipeline::eAlbedo> {
-    glm::mat4 m_model{};
-    glm::mat4 m_view{};
-    glm::mat4 m_projection{};
+    math::mat4 m_model{};
+    math::mat4 m_view{};
+    math::mat4 m_projection{};
     PushConstant() = default;
 };
 

@@ -4,12 +4,12 @@
 
 class Glow : public Widget
 {
-    glm::vec4 m_color{};
+    math::vec4 m_color{};
 
 public:
     ~Glow() noexcept = default;
     Glow() noexcept = default;
-    inline Glow( glm::vec4 color ) noexcept
+    inline Glow( math::vec4 color ) noexcept
     : m_color{ color }
     {}
 

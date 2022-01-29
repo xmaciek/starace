@@ -3,12 +3,10 @@
 #include "game_pipeline.hpp"
 
 #include <shared/fixed_map.hpp>
+#include <engine/math.hpp>
 #include <engine/render_context.hpp>
 #include <renderer/texture.hpp>
 #include <renderer/pipeline.hpp>
-
-#include <glm/vec3.hpp>
-#include <glm/vec4.hpp>
 
 #include <memory_resource>
 #include <cstdint>
@@ -21,10 +19,10 @@ class Renderer;
 class Font {
 public:
     struct Glyph {
-        glm::vec4 uv{};
-        glm::vec2 size{};
-        glm::vec2 advance{};
-        glm::vec2 padding{};
+        math::vec4 uv{};
+        math::vec2 size{};
+        math::vec2 advance{};
+        math::vec2 padding{};
     };
 
 private:
@@ -44,7 +42,7 @@ public:
 
     uint32_t height() const;
     float textLength( std::u32string_view ) const;
-    void renderText( RenderContext, const glm::vec4& color, double x, double y, std::u32string_view ) const;
+    void renderText( RenderContext, const math::vec4& color, double x, double y, std::u32string_view ) const;
     using RenderText = std::pair<PushBuffer, PushConstant<Pipeline::eShortString>>;
-    RenderText composeText( const glm::vec4& color, std::u32string_view ) const;
+    RenderText composeText( const math::vec4& color, std::u32string_view ) const;
 };

@@ -1,5 +1,4 @@
 find_package( SDL2 REQUIRED )
-find_package( glm REQUIRED )
 
 add_library( renderer INTERFACE )
 set_cppver( renderer 20 )
@@ -19,7 +18,6 @@ set_target_properties( renderer PROPERTIES
 target_link_libraries( renderer
     INTERFACE
     cxx::flags
-    glm::glm
     SDL2::SDL2
 )
 

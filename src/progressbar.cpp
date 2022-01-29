@@ -4,7 +4,7 @@
 
 #include <renderer/renderer.hpp>
 
-ProgressBar::ProgressBar( glm::vec2 pos, glm::vec2 size, glm::vec2 axis, const glm::vec4 colorA, const glm::vec4 colorB ) noexcept
+ProgressBar::ProgressBar( math::vec2 pos, math::vec2 size, math::vec2 axis, const math::vec4 colorA, const math::vec4 colorB ) noexcept
 : Widget{ pos, size }
 , m_colorA{ colorA }
 , m_colorB{ colorB }
@@ -23,19 +23,19 @@ void ProgressBar::render( RenderContext rctx ) const
     pushConstant.m_view = rctx.view;
     pushConstant.m_projection = rctx.projection;
 
-    const glm::vec2 pos = position() + offsetByAnchor();
+    const math::vec2 pos = position() + offsetByAnchor();
     const float x = pos.x;
     const float y = pos.y;
     const float xw = x + m_size.x;
     const float yh = y + m_size.y;
-    pushConstant.m_vertices[ 0 ] = glm::vec4{ x, y, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 1 ] = glm::vec4{ x, yh, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 2 ] = glm::vec4{ xw, yh, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 3 ] = glm::vec4{ xw, y, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 0 ] = math::vec4{ x, y, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 1 ] = math::vec4{ x, yh, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 2 ] = math::vec4{ xw, yh, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 3 ] = math::vec4{ xw, y, 0.0f, 0.0f };
 
     pushConstant.m_color[ 0 ] = m_colorA;
     pushConstant.m_color[ 1 ] = m_colorB;
-    pushConstant.m_axis = glm::vec4{ m_axis, 0.0f, m_value };
+    pushConstant.m_axis = math::vec4{ m_axis, 0.0f, m_value };
     rctx.renderer->push( pushBuffer, &pushConstant );
 }
 

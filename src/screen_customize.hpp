@@ -73,7 +73,7 @@ public:
     virtual void update( const UpdateContext& ) override;
     virtual bool onMouseEvent( const MouseEvent& ) override;
 
-    void resize( glm::vec2 );
+    void resize( math::vec2 );
     void onAction( Action );
 
     bool nextJet();

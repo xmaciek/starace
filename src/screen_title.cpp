@@ -76,7 +76,7 @@ bool ScreenTitle::onMouseEvent( const MouseEvent& event )
     return ret;
 }
 
-void ScreenTitle::resize( glm::vec2 s )
+void ScreenTitle::resize( math::vec2 s )
 {
     Widget* btns[] = {
         &m_newMission,
@@ -85,7 +85,7 @@ void ScreenTitle::resize( glm::vec2 s )
     };
     setSize( s );
     m_glow.setSize( s );
-    Layout{ glm::vec2{ s.x * 0.5f, s.y * 0.5f - 48 }, Layout::Flow::eVertical }( std::begin( btns ), std::end( btns ) );
+    Layout{ math::vec2{ s.x * 0.5f, s.y * 0.5f - 48 }, Layout::Flow::eVertical }( std::begin( btns ), std::end( btns ) );
 }
 
 void ScreenTitle::onAction( Action a )

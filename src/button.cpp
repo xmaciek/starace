@@ -2,13 +2,11 @@
 
 #include "colors.hpp"
 
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include <engine/math.hpp>
 
-static constexpr glm::vec4 colorNormal = color::dodgerBlue;
-static constexpr glm::vec4 colorHover = color::lightSkyBlue;
-static constexpr glm::vec4 colorDisabled = color::lightSteelBlue;
+static constexpr math::vec4 colorNormal = color::dodgerBlue;
+static constexpr math::vec4 colorHover = color::lightSkyBlue;
+static constexpr math::vec4 colorDisabled = color::lightSteelBlue;
 
 
 Button::Button( std::u32string_view txt, Font* f, Texture texture, std::function<void()>&& onTrigger )
@@ -49,8 +47,8 @@ Button::Button( Font* f, Texture texture, std::function<void()>&& onTrigger )
 void Button::render( RenderContext rctx ) const
 {
     UIImage::render( rctx );
-    const glm::vec2 pos = position() + offsetByAnchor() + size() * 0.5f;
-    rctx.model = glm::translate( rctx.model, glm::vec3{ pos.x, pos.y, 0.0f } );
+    const math::vec2 pos = position() + offsetByAnchor() + size() * 0.5f;
+    rctx.model = math::translate( rctx.model, math::vec3{ pos.x, pos.y, 0.0f } );
     m_label.render( rctx );
 }
 

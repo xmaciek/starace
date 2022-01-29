@@ -7,8 +7,6 @@
 #include "utils.hpp"
 
 #include <Tracy.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/quaternion.hpp>
 
 #include <algorithm>
 #include <chrono>
@@ -344,7 +342,7 @@ void Game::onRender( RenderContext rctx )
     ZoneScoped;
     const auto [ width, height, aspect ] = viewport();
     const auto [ view, projection ] = getCameraMatrix();
-    rctx.projection = glm::ortho<float>( 0.0f, (float)width, 0.0f, (float)height, -100.0f, 100.0f );
+    rctx.projection = math::ortho( 0.0f, width, 0.0f, height, -100.0f, 100.0f );
     rctx.camera3d = projection * view;
     rctx.viewport = { width, height };
 
@@ -376,7 +374,7 @@ void Game::onRender( RenderContext rctx )
         renderBackground( rctx );
         {
             auto rctx2 = rctx;
-            rctx2.projection = glm::perspective( 55.0_deg, 1280.0f / 720.0f, 0.001f, 2000.0f );
+            rctx2.projection = math::perspective( 55.0_deg, 1280.0f / 720.0f, 0.001f, 2000.0f );
             m_spaceDust.render( rctx2 );
         }
         m_screenTitle.render( rctx );
@@ -618,7 +616,7 @@ void Game::changeScreen( Screen scr, Audio::Chunk sound )
 
     switch ( scr ) {
     case Screen::eMainMenu:
-        m_spaceDust.setVelocity(  glm::vec3{ 1.0f, -0.1f, -0.4f }  );
+        m_spaceDust.setVelocity(  math::vec3{ 1.0f, -0.1f, -0.4f }  );
         m_spaceDust.setCenter( {} );
         m_spaceDust.setLineWidth( 2.0f );
         m_currentScreen = scr;
@@ -880,14 +878,14 @@ void Game::renderHUD( RenderContext rctx )
 }
 
 
-std::tuple<glm::mat4, glm::mat4> Game::getCameraMatrix() const
+std::tuple<math::mat4, math::mat4> Game::getCameraMatrix() const
 {
-    glm::mat4 view = glm::translate( glm::mat4( 1.0f ), glm::vec3{ 0, 0.255, -1 } );
-    view *= glm::toMat4( m_jet.rotation() );
-    view = glm::translate( view, -m_jet.position() );
+    math::mat4 view = math::translate( math::mat4( 1.0f ), math::vec3{ 0, 0.255, -1 } );
+    view *= math::toMat4( m_jet.rotation() );
+    view = math::translate( view, -m_jet.position() );
     return {
         view,
-        glm::perspective( glm::radians( 55.0f + m_jet.speed() * 3 ), viewportAspect(), 0.001f, 2000.0f )
+        math::perspective( math::radians( 55.0f + m_jet.speed() * 3 ), viewportAspect(), 0.001f, 2000.0f )
     };
 }
 
@@ -936,10 +934,10 @@ void Game::renderBackground( RenderContext rctx ) const
     const float y = 0;
     const float xw = x + w;
     const float yh = y + h;
-    pushConstant.m_vertices[ 0 ] = glm::vec4{ x, y, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 1 ] = glm::vec4{ x, yh, 0.0f, v };
-    pushConstant.m_vertices[ 2 ] = glm::vec4{ xw, yh, u, v };
-    pushConstant.m_vertices[ 3 ] = glm::vec4{ xw, y, u, 0.0f };
+    pushConstant.m_vertices[ 0 ] = math::vec4{ x, y, 0.0f, 0.0f };
+    pushConstant.m_vertices[ 1 ] = math::vec4{ x, yh, 0.0f, v };
+    pushConstant.m_vertices[ 2 ] = math::vec4{ xw, yh, u, v };
+    pushConstant.m_vertices[ 3 ] = math::vec4{ xw, y, u, 0.0f };
 
     rctx.renderer->push( pushBuffer, &pushConstant );
 

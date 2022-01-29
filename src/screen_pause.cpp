@@ -40,14 +40,14 @@ void ScreenPause::update( const UpdateContext& uctx )
     m_rings->update( uctx );
 }
 
-void ScreenPause::resize( glm::vec2 wh )
+void ScreenPause::resize( math::vec2 wh )
 {
     m_glow.setSize( wh );
     assert( m_rings );
     m_rings->setSize( wh );
-    m_pause.setPosition( wh * glm::vec2{ 0.5f, 0.1f } );
-    m_exit.setPosition( wh * glm::vec2{ 0.45f, 0.7f } );
-    m_resume.setPosition( wh * glm::vec2{ 0.55f, 0.7f } );
+    m_pause.setPosition( wh * math::vec2{ 0.5f, 0.1f } );
+    m_exit.setPosition( wh * math::vec2{ 0.45f, 0.7f } );
+    m_resume.setPosition( wh * math::vec2{ 0.55f, 0.7f } );
 }
 
 void ScreenPause::onAction( Action a )

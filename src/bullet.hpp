@@ -2,10 +2,11 @@
 
 #include "saobject.hpp"
 
-#include <glm/vec4.hpp>
+#include <engine/math.hpp>
 
 #include <cstdint>
 #include <vector>
+#include <memory_resource>
 
 struct BulletProto;
 
@@ -18,9 +19,9 @@ public:
     };
 
 private:
-    std::vector<glm::vec3> m_tail{};
-    glm::vec4 m_color1{};
-    glm::vec4 m_color2{};
+    std::pmr::vector<math::vec3> m_tail{};
+    math::vec4 m_color1{};
+    math::vec4 m_color2{};
     float m_tailChunkLength = 0.0f;
     float m_seankyDeltaTime = 0.0f;
     float m_maxRange = 150.0;
@@ -28,7 +29,7 @@ private:
     uint8_t m_damage = 0;
     Type m_type = Type::eSlug;
 
-    virtual glm::vec3 collisionRay() const;
+    virtual math::vec3 collisionRay() const;
     virtual bool collisionTest( const SAObject* object ) const;
 
 public:
@@ -40,13 +41,13 @@ public:
     virtual void processCollision( SAObject* object ) override;
     virtual void render( RenderContext ) const override;
     virtual void update( const UpdateContext& ) override;
-    void setDirection( const glm::vec3& );
+    void setDirection( const math::vec3& );
 };
 
 struct BulletProto {
-    glm::vec4 color1{};
-    glm::vec4 color2{};
-    glm::vec3 position{};
+    math::vec4 color1{};
+    math::vec4 color2{};
+    math::vec3 position{};
     float delay = 0.0f;
     float speed = 0.0f;
     uint32_t energy = 0;

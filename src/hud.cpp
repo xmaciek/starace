@@ -29,7 +29,7 @@ Hud::Hud( const HudData* displayData, Font* font ) noexcept
     Layout{ { 4.0f, 4.0f }, Layout::eVertical }( std::begin( arr ), std::end( arr ) );
 
     const auto rightOf = []( const Label& w ) {
-        return w.position() + glm::vec2{ w.size().x, 0.0f };
+        return w.position() + math::vec2{ w.size().x, 0.0f };
     };
 
     m_scoreValue.setPosition( rightOf( m_score ) );
@@ -82,9 +82,9 @@ void Hud::update( const UpdateContext& uctx )
     m_lastData = *m_displayData;
 }
 
-void Hud::resize( glm::vec2 s )
+void Hud::resize( math::vec2 s )
 {
-    m_speedMeter.setPosition( glm::vec2{ 32.0f, 0.0f } + s * glm::vec2{ 0.0f, 0.5f } );
+    m_speedMeter.setPosition( math::vec2{ 32.0f, 0.0f } + s * math::vec2{ 0.0f, 0.5f } );
 
     Widget* bars[] = {
         &m_hp,

@@ -37,7 +37,7 @@ public:
         , std::u32string_view txtExit, std::function<void()>&&
     ) noexcept;
 
-    void resize( glm::vec2 );
+    void resize( math::vec2 );
     void onAction( Action );
     virtual void render( RenderContext ) const override;
     virtual void update( const UpdateContext& ) override;

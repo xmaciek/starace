@@ -26,7 +26,7 @@ public:
     ScreenWinLoose() noexcept = default;
     ScreenWinLoose(
         Texture button
-        , glm::vec4 color
+        , math::vec4 color
         , Font* fontSmall
         , Font* fontLarge
         , Widget* rings
@@ -39,6 +39,6 @@ public:
     virtual void update( const UpdateContext& ) override;
     virtual bool onMouseEvent( const MouseEvent& ) override;
 
-    void resize( glm::vec2 );
+    void resize( math::vec2 );
 
 };

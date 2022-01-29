@@ -1,5 +1,4 @@
 find_package( SDL2 REQUIRED )
-find_package( glm REQUIRED )
 
 add_library( engine STATIC )
 set_cppver( engine 20 )
@@ -18,6 +17,7 @@ target_sources( engine
     ${CMAKE_CURRENT_SOURCE_DIR}/public/engine/async_io.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/engine/engine.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/engine/fps_meter.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/engine/math.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/engine/render_context.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/engine/update_context.hpp
 )

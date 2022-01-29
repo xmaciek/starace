@@ -1,9 +1,9 @@
 #pragma once
 
-#include <glm/vec2.hpp>
+#include <engine/math.hpp>
 
 #include <variant>
 
-struct MouseMove : glm::vec2 {};
-struct MouseClick : glm::vec2 {};
+struct MouseMove : math::vec2 {};
+struct MouseClick : math::vec2 {};
 using MouseEvent = std::variant<std::monostate, MouseMove, MouseClick>;

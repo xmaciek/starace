@@ -3,8 +3,6 @@
 #include <engine/render_context.hpp>
 #include <renderer/texture.hpp>
 
-#include <glm/vec3.hpp>
-
 #include <array>
 #include <cstdint>
 #include <string>
