@@ -134,21 +134,6 @@ void Game::preloadData()
     }
 }
 
-void Game::onEvent( const SDL_Event& event )
-{
-    switch ( event.type ) {
-    case SDL_WINDOWEVENT:
-        switch ( event.window.event ) {
-        case SDL_WINDOWEVENT_RESIZED:
-            setViewport( event.window.data1, event.window.data2 );
-            onResize( viewportWidth(), viewportHeight() );
-        default:
-            break;
-        }
-        break;
-    }
-}
-
 void Game::onExit()
 {
     for ( auto& it : m_jetsContainer ) {

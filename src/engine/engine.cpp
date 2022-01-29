@@ -155,6 +155,16 @@ void Engine::processEvents()
         case SDL_QUIT:
             quit();
             return;
+
+        case SDL_WINDOWEVENT:
+            switch ( event.window.event ) {
+            case SDL_WINDOWEVENT_RESIZED:
+                setViewport( event.window.data1, event.window.data2 );
+                onResize( event.window.data1, event.window.data2 );
+                break;
+            }
+            break;
+
         case SDL_MOUSEBUTTONDOWN:
             if ( event.button.button == SDL_BUTTON_LEFT ) {
                 onMouseEvent( MouseClick{ glm::vec2{ event.button.x, event.button.y } } );
@@ -234,7 +244,6 @@ void Engine::processEvents()
         } break;
 
         default:
-            onEvent( event );
             break;
         }
     }

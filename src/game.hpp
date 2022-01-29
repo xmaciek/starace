@@ -103,7 +103,6 @@ private:
     void createMapData( const MapCreateInfo&, const ModelProto& );
     void loadJetProto();
     void loadMapProto();
-    void onResize( uint32_t w, uint32_t h );
     void pause();
 
     std::tuple<glm::mat4, glm::mat4> getCameraMatrix() const;
@@ -125,6 +124,6 @@ private:
     virtual void onExit() override;
     virtual void onRender( RenderContext ) override;
     virtual void onUpdate( const UpdateContext& ) override;
-    virtual void onEvent( const SDL_Event& ) override;
+    virtual void onResize( uint32_t, uint32_t ) override;
     virtual void onMouseEvent( const MouseEvent& ) override;
 };

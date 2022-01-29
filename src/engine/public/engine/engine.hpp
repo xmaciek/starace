@@ -60,8 +60,8 @@ protected:
     virtual void onExit() = 0;
     virtual void onRender( RenderContext ) = 0;
     virtual void onUpdate( const UpdateContext& ) = 0;
-    virtual void onEvent( const SDL_Event& ) = 0;
     virtual void onMouseEvent( const MouseEvent& ) = 0;
+    virtual void onResize( uint32_t, uint32_t ) = 0;
 
 private:
     void gameThread();
