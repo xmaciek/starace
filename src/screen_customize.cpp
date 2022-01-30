@@ -1,6 +1,7 @@
 #include "screen_customize.hpp"
 #include "colors.hpp"
 #include "utils.hpp"
+#include "units.hpp"
 #include "game_action.hpp"
 
 #include <cassert>

@@ -20,11 +20,6 @@ constexpr double colorHalf( double col ) noexcept
     return ( col >= 0.5 ) ? 1.0 - col : col;
 }
 
-constexpr static float operator ""_deg ( long double f ) noexcept
-{
-    return static_cast<float>( f * 0.01745329251994329576923690768489 );
-}
-
 // TODO: copy-less conversion
 template <typename T>
 std::pmr::u32string intToUTF32( T t )

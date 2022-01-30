@@ -3,6 +3,7 @@
 #include "constants.hpp"
 #include "game_pipeline.hpp"
 #include "utils.hpp"
+#include "units.hpp"
 
 #include <renderer/renderer.hpp>
 #include <engine/math.hpp>
