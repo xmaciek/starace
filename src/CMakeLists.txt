@@ -74,6 +74,7 @@ set( STARACE_SOURCES
     ui_image.hpp
     ui_rings.cpp
     ui_rings.hpp
+    units.hpp
     utils.cpp
     utils.hpp
     widget.cpp

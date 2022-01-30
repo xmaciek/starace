@@ -7,6 +7,7 @@
 #include "saobject.hpp"
 #include "shield.hpp"
 #include "thruster.hpp"
+#include "units.hpp"
 
 #include <engine/math.hpp>
 
@@ -46,15 +47,11 @@ private:
     Reactor m_reactor{};
 
     float m_shotFactor[ 3 ]{};
-    float m_speedMax = 10.0f;
-    float m_speedMin = 1.0f;
-    float m_speedNorm = 4.0f;
+    float m_speedMax = 3000_kmps;
+    float m_speedMin = 320_kmps;
+    float m_speedNorm = 1080_kmps;
     float m_speedTarget = 0.0f;
-    float m_speedAcceleration = 1.6f;
-
-    int32_t m_maxAngleX = 5;
-    int32_t m_maxAngleY = 5;
-    int32_t m_maxAngleZ = 15;
+    float m_speedAcceleration = 430_kmps;
 
     Input m_input{};
 

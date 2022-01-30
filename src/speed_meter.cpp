@@ -4,6 +4,7 @@
 #include "colors.hpp"
 #include "game_pipeline.hpp"
 #include "utils.hpp"
+#include "units.hpp"
 
 #include <engine/math.hpp>
 #include <renderer/renderer.hpp>
@@ -75,7 +76,7 @@ void SpeedMeter::update( const UpdateContext& uctx )
 
 void SpeedMeter::setSpeed( float f )
 {
-    f *= 270.0f;
+    f = value2kmps( f );
     const uint32_t s = static_cast<uint32_t>( f );
     if ( s != static_cast<uint32_t>( m_speedFan ) ) {
         m_speedValue.setText( intToUTF32( s ) );
