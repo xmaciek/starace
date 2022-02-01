@@ -26,6 +26,19 @@ static constexpr auto acos = []( const auto& t )
     return glm::acos( t );
 };
 
+static constexpr auto billboard = []( const vec3& position, const vec3& cameraPosition, const vec3& cameraUp )
+{
+    const vec3 direction = glm::normalize( cameraPosition - position );
+    const vec3 right = glm::cross( cameraUp, direction );
+    const vec3 up = glm::cross( direction, right );
+    return mat4{
+        vec4{ right, 0 },
+        vec4{ up, 0 },
+        vec4{ direction, 0 },
+        vec4{ position, 1 },
+    };
+};
+
 static constexpr auto clamp = []( const auto& Tv, const auto& TMin, const auto& TMax )
 {
     return glm::clamp( Tv, TMin, TMax );
