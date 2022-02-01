@@ -174,7 +174,7 @@ void Game::onInit()
     m_weapons[ 0 ] = tmpWeapon;
 
     tmpWeapon.type = Bullet::Type::eBlaster;
-    tmpWeapon.speed = 32;
+    tmpWeapon.speed = 8500_kmps;
     tmpWeapon.damage = 10;
     tmpWeapon.energy = 10;
     tmpWeapon.delay = 0.1;
@@ -190,7 +190,7 @@ void Game::onInit()
     tmpWeapon.damage = 1;
     tmpWeapon.delay = 0.2;
     tmpWeapon.energy = 1;
-    tmpWeapon.speed = 16;
+    tmpWeapon.speed = 4000_kmps;
     tmpWeapon.score_per_hit = 2;
     tmpWeapon.color1 = color::orchid;
     m_weapons[ 2 ] = tmpWeapon;
