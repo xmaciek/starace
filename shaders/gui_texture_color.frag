@@ -11,5 +11,7 @@ layout( location = 0 ) out vec4 outColor;
 
 void main()
 {
-    outColor = texture( textureSampler, fragmentUV ).rgba * fragmentColor;
+    vec4 color = texture( textureSampler, fragmentUV ).rgba * fragmentColor;
+    if ( color.a == 0 ) discard;
+    outColor = color;
 }
