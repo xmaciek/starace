@@ -14,6 +14,7 @@ enum class Pipeline : PipelineSlot {
     eGlow,
     eBackground,
     eAlbedo,
+    eSprite3D,
     count,
 };
 
@@ -130,6 +131,18 @@ struct PushConstant<Pipeline::eAlbedo> {
     PushConstant() = default;
 };
 
+
+template <>
+struct PushConstant<Pipeline::eSprite3D> {
+    math::mat4 m_model{};
+    math::mat4 m_view{};
+    math::mat4 m_projection{};
+    math::vec4 m_color{};
+    std::array<math::vec4, 4> m_vertices{};
+    std::array<math::vec4, 4> m_uv{};
+
+    PushConstant() = default;
+};
 
 static constexpr PipelineCreateInfo g_pipelineGui{
     .m_vertexShader = "shaders/gui_texture_color.vert.spv",
@@ -266,4 +279,19 @@ static constexpr PipelineCreateInfo g_pipelineGlow{
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
     .m_constantBindBits = 0b1,
+};
+
+static constexpr PipelineCreateInfo g_pipelineSprite3D{
+    .m_vertexShader = "shaders/sprite3d.vert.spv",
+    .m_fragmentShader = "shaders/sprite3d.frag.spv",
+    .m_slot = static_cast<PipelineSlot>( Pipeline::eSprite3D ),
+    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eSprite3D> ),
+    .m_enableBlend = true,
+    .m_enableDepthTest = true,
+    .m_enableDepthWrite = false,
+    .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
+    .m_cullMode = PipelineCreateInfo::CullMode::eBack,
+    .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
+    .m_constantBindBits = 0b1,
+    .m_textureBindBits = 0b10,
 };
