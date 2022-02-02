@@ -86,22 +86,28 @@ void AsyncIO::run()
 
 std::optional<std::pmr::vector<uint8_t>> AsyncIO::get( const std::filesystem::path& path )
 {
-    std::scoped_lock<std::mutex> sl( m_bottleneckReady );
-    if ( m_ready.empty() ) { return {}; }
+    Ticket* ticket = nullptr;
+    {
+        std::scoped_lock<std::mutex> sl( m_bottleneckReady );
+        if ( m_ready.empty() ) { return {}; }
 
-    ZoneScoped;
-    for ( auto it = m_ready.begin(); it != m_ready.end(); ++it ) {
-        Ticket* ticket = *it;
-        assert( ticket );
-        if ( ticket->path != path ) { continue; }
-
+        ZoneScoped;
+        auto it = std::find_if( m_ready.begin(), m_ready.end(), [&path]( Ticket* t )
+        {
+            return t->path == path;
+        } );
+        if ( it == m_ready.end() ) {
+            return {};
+        }
+        ticket = *it;
         m_ready.erase( it );
-        std::pmr::vector<uint8_t> ret = std::move( ticket->data );
-        std::destroy_at<Ticket>( ticket );
-        m_pool.dealloc( ticket );
-        return ret;
     }
-    return {};
+    assert( ticket );
+    assert( ticket->path == path );
+    std::pmr::vector<uint8_t> ret = std::move( ticket->data );
+    std::destroy_at<Ticket>( ticket );
+    m_pool.dealloc( ticket );
+    return ret;
 }
 
 std::pmr::vector<uint8_t> AsyncIO::getWait( const std::filesystem::path& path )
