@@ -273,7 +273,7 @@ RendererVK::RendererVK( SDL_Window* window )
             , it.m_renderDepthTarget.view()
         };
         it.m_descSetUniform = DescriptorSet{ m_device, 800, 0b1, 0 };
-        it.m_descSetUniformSampler = DescriptorSet{ m_device, 100, 0b1, 0b10 };
+        it.m_descSetUniformSampler = DescriptorSet{ m_device, 400, 0b1, 0b10 };
         it.m_uniformBuffer = Uniform{ m_physicalDevice, m_device, 2_MiB, 256 };
         it.m_cmdTransfer = m_commandPool[ i++ ];
         it.m_cmdDepthPrepass = m_commandPool[ i++ ];
