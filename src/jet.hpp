@@ -47,11 +47,11 @@ private:
     Reactor m_reactor{};
 
     float m_shotFactor[ 3 ]{};
-    float m_speedMax = 3000_kmps;
-    float m_speedMin = 320_kmps;
-    float m_speedNorm = 1080_kmps;
+    float m_speedMax = 1800_kmph;
+    float m_speedMin = 192_kmph;
+    float m_speedNorm = 600_kmph;
     float m_speedTarget = 0.0f;
-    float m_speedAcceleration = 430_kmps;
+    float m_speedAcceleration = 256_kmph;
 
     Input m_input{};
 

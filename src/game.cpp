@@ -174,7 +174,7 @@ void Game::onInit()
     m_weapons[ 0 ] = tmpWeapon;
 
     tmpWeapon.type = Bullet::Type::eBlaster;
-    tmpWeapon.speed = 8500_kmps;
+    tmpWeapon.speed = 5100_kmph;
     tmpWeapon.damage = 10;
     tmpWeapon.energy = 10;
     tmpWeapon.delay = 0.1;
@@ -190,7 +190,7 @@ void Game::onInit()
     tmpWeapon.damage = 1;
     tmpWeapon.delay = 0.2;
     tmpWeapon.energy = 1;
-    tmpWeapon.speed = 4000_kmps;
+    tmpWeapon.speed = 2400_kmph;
     tmpWeapon.score_per_hit = 2;
     tmpWeapon.color1 = color::orchid;
     m_weapons[ 2 ] = tmpWeapon;
@@ -881,7 +881,7 @@ void Game::renderHUD( RenderContext rctx )
 
 std::tuple<math::mat4, math::mat4> Game::getCameraMatrix() const
 {
-    math::mat4 view = math::translate( math::mat4( 1.0f ), math::vec3{ 0, 0.255, -1 } );
+    math::mat4 view = math::translate( math::mat4( 1.0f ), math::vec3{ 0, 10.5_m, -41.5_m } );
     view *= math::toMat4( m_jet.rotation() );
     view = math::translate( view, -m_jet.position() );
     return {

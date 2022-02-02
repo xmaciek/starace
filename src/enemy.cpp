@@ -1,6 +1,7 @@
 #include "enemy.hpp"
 
 #include "utils.hpp"
+#include "units.hpp"
 
 #include <cassert>
 
@@ -13,7 +14,7 @@ Enemy::Enemy( Model* m )
         randomRange( -10.0f, 10.0f )
     };
 
-    m_speed = 4.2f;
+    m_speed = 1130_kmph;
     setStatus( Status::eAlive );
     m_health = 100;
     m_direction = math::vec3( 0.0f, 0.0f, 1.0f );

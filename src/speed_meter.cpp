@@ -76,10 +76,10 @@ void SpeedMeter::update( const UpdateContext& uctx )
 
 void SpeedMeter::setSpeed( float f )
 {
-    f = value2kmps( f );
+    f = value2kmph( f );
     const uint32_t s = static_cast<uint32_t>( f );
     if ( s != static_cast<uint32_t>( m_speedFan ) ) {
-        m_speedValue.setText( intToUTF32( s ) );
+        m_speedValue.setText( intToUTF32( s ) + U" km/h" );
     }
     m_speedFan = f;
 }

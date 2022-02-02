@@ -1,18 +1,26 @@
 #pragma once
 
-constexpr float operator ""_kmps( long double v ) noexcept
+static constexpr long double meter = 0.02415;
+static constexpr long double kmph = ( 1.0 / 3600.0 ) * 1000.0 * meter;
+
+constexpr float operator ""_kmph( long double v ) noexcept
 {
-    return static_cast<float>( v / 270.0 );
+    return v * kmph;
 }
 
-constexpr float operator ""_kmps( unsigned long long v ) noexcept
+constexpr float operator ""_kmph( unsigned long long v ) noexcept
 {
-    return static_cast<long double>( v ) / 270.0;
+    return static_cast<long double>( v ) * kmph;
 }
 
-constexpr float value2kmps( float v ) noexcept
+constexpr float value2kmph( float v ) noexcept
 {
-    return v * 270.0f;
+    return v / kmph;
+}
+
+constexpr float operator ""_m( long double v ) noexcept
+{
+    return v * meter;
 }
 
 constexpr static float operator ""_deg ( long double f ) noexcept
