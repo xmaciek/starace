@@ -40,3 +40,6 @@ compileShader( glow.frag )
 
 compileShader( background.vert )
 compileShader( background.frag )
+
+compileShader( sprite3d.vert )
+compileShader( sprite3d.frag )
