@@ -3,6 +3,7 @@
 #include "saobject.hpp"
 
 #include <engine/math.hpp>
+#include <renderer/texture.hpp>
 
 #include <cstdint>
 #include <vector>
@@ -22,6 +23,7 @@ private:
     std::pmr::vector<math::vec3> m_tail{};
     math::vec4 m_color1{};
     math::vec4 m_color2{};
+    Texture m_texture{};
     float m_tailChunkLength = 0.0f;
     float m_seankyDeltaTime = 0.0f;
     float m_maxRange = 150.0;
@@ -48,6 +50,7 @@ struct BulletProto {
     math::vec4 color1{};
     math::vec4 color2{};
     math::vec3 position{};
+    Texture texture{};
     float delay = 0.0f;
     float speed = 0.0f;
     uint32_t energy = 0;

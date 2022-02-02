@@ -10,5 +10,7 @@ struct RenderContext {
     math::mat4 projection = math::mat4( 1.0f );
 
     math::mat4 camera3d = math::mat4( 1.0f );
+    math::vec3 cameraUp{};
+    math::vec3 cameraPosition{};
     math::vec2 viewport{};
 };

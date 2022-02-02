@@ -31,6 +31,7 @@ static constexpr const char* chunk1[] = {
     "textures/a3.tga",
     "textures/a4.tga",
     "textures/a5.tga",
+    "textures/plasma.tga",
 };
 
 static constexpr std::array<uint8_t, 64> c_backgroundPattern{
@@ -99,6 +100,7 @@ Game::Game( int argc, char** argv )
     m_renderer->createPipeline( g_pipelineGlow );
     m_renderer->createPipeline( g_pipelineBackground );
     m_renderer->createPipeline( g_pipelineAlbedo );
+    m_renderer->createPipeline( g_pipelineSprite3D );
 
     changeScreen( Screen::eMainMenu );
 
@@ -162,38 +164,6 @@ void Game::onInit()
     for ( auto [ eid, min, max ] : inputActions2 ) {
         registerAction( static_cast<Action::Enum>( eid ), min, max );
     }
-
-    BulletProto tmpWeapon{};
-    tmpWeapon.type = Bullet::Type::eSlug;
-    tmpWeapon.delay = 0.05;
-    tmpWeapon.energy = 15;
-    tmpWeapon.damage = 1;
-    tmpWeapon.score_per_hit = 1;
-    tmpWeapon.color1 = color::yellow;
-    tmpWeapon.color2 = color::yellow;
-    m_weapons[ 0 ] = tmpWeapon;
-
-    tmpWeapon.type = Bullet::Type::eBlaster;
-    tmpWeapon.speed = 5100_kmph;
-    tmpWeapon.damage = 10;
-    tmpWeapon.energy = 10;
-    tmpWeapon.delay = 0.1;
-    tmpWeapon.color1 = color::blaster;
-    tmpWeapon.score_per_hit = 30;
-    m_weapons[ 1 ] = tmpWeapon;
-
-    tmpWeapon.color1 = color::yellowBlaster;
-    tmpWeapon.delay = 0.4;
-    m_weapons[ 3 ] = tmpWeapon;
-
-    tmpWeapon.type = Bullet::Type::eTorpedo;
-    tmpWeapon.damage = 1;
-    tmpWeapon.delay = 0.2;
-    tmpWeapon.energy = 1;
-    tmpWeapon.speed = 2400_kmph;
-    tmpWeapon.score_per_hit = 2;
-    tmpWeapon.color1 = color::orchid;
-    m_weapons[ 2 ] = tmpWeapon;
 
     {
         const TextureCreateInfo tci{
@@ -287,6 +257,39 @@ void Game::onInit()
     for ( const char* it : chunk1 ) {
         m_textures[ it ] = loadTexture( m_io->getWait( it ) );
     }
+
+    BulletProto tmpWeapon{};
+    tmpWeapon.texture = m_textures[ "textures/plasma.tga" ];
+    tmpWeapon.type = Bullet::Type::eSlug;
+    tmpWeapon.delay = 0.05;
+    tmpWeapon.energy = 15;
+    tmpWeapon.damage = 1;
+    tmpWeapon.score_per_hit = 1;
+    tmpWeapon.color1 = color::yellow;
+    tmpWeapon.color2 = color::yellow;
+    m_weapons[ 0 ] = tmpWeapon;
+
+    tmpWeapon.type = Bullet::Type::eBlaster;
+    tmpWeapon.speed = 5100_kmph;
+    tmpWeapon.damage = 10;
+    tmpWeapon.energy = 10;
+    tmpWeapon.delay = 0.1;
+    tmpWeapon.color1 = color::blaster;
+    tmpWeapon.score_per_hit = 30;
+    m_weapons[ 1 ] = tmpWeapon;
+
+    tmpWeapon.color1 = color::yellowBlaster;
+    tmpWeapon.delay = 0.4;
+    m_weapons[ 3 ] = tmpWeapon;
+
+    tmpWeapon.type = Bullet::Type::eTorpedo;
+    tmpWeapon.damage = 1;
+    tmpWeapon.delay = 0.2;
+    tmpWeapon.energy = 1;
+    tmpWeapon.speed = 2400_kmph;
+    tmpWeapon.score_per_hit = 2;
+    tmpWeapon.color1 = color::orchid;
+    m_weapons[ 2 ] = tmpWeapon;
 
     loadMapProto();
     std::pmr::vector<MissionInfo> mapInfo{};
@@ -893,6 +896,9 @@ std::tuple<math::mat4, math::mat4> Game::getCameraMatrix() const
 void Game::render3D( RenderContext rctx )
 {
     std::tie( rctx.view, rctx.projection ) = getCameraMatrix();
+
+    rctx.cameraPosition = m_jet.position();
+    rctx.cameraUp = math::vec3{ 0, 1, 0 } * m_jet.rotation();
 
     m_skybox.render( rctx );
     m_spaceDust.render( rctx );

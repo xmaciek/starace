@@ -3,6 +3,7 @@
 #include "constants.hpp"
 #include "game_pipeline.hpp"
 #include "utils.hpp"
+#include "units.hpp"
 
 #include <engine/math.hpp>
 #include <renderer/renderer.hpp>
@@ -42,6 +43,7 @@ Bullet::Bullet( const BulletProto& bp )
 : m_tail( typeToSegments( bp.type ), bp.position )
 , m_color1{ bp.color1 }
 , m_color2{ bp.color2 }
+, m_texture{ bp.texture }
 {
     m_collisionFlag = true;
     m_type = bp.type;
@@ -123,6 +125,26 @@ void Bullet::render( RenderContext rctx ) const
     }
 
     rctx.renderer->push( pushBuffer, &pushConstant );
+
+    pushBuffer.m_verticeCount = 4;
+    pushBuffer.m_pipeline = static_cast<PipelineSlot>( Pipeline::eSprite3D );
+    pushBuffer.m_texture = m_texture;
+    PushConstant<Pipeline::eSprite3D> pushConstant2{};
+
+    pushConstant2.m_model = math::billboard( m_position, rctx.cameraPosition, rctx.cameraUp );
+    pushConstant2.m_view = rctx.view;
+    pushConstant2.m_projection = rctx.projection;
+    pushConstant2.m_color = m_color1;
+    const float size = 2.6_m;
+    pushConstant2.m_vertices[ 0 ] = { -size, -size, 0, 0 };
+    pushConstant2.m_vertices[ 1 ] = { -size, size, 0, 0 };
+    pushConstant2.m_vertices[ 2 ] = { size, size, 0, 0 };
+    pushConstant2.m_vertices[ 3 ] = { size, -size, 0, 0 };
+    pushConstant2.m_uv[ 0 ] = { 0.0f, 0.0f, 0.0f, 0.0f };
+    pushConstant2.m_uv[ 1 ] = { 0.0f, 1.0f, 0.0f, 0.0f };
+    pushConstant2.m_uv[ 2 ] = { 1.0f, 1.0f, 0.0f, 0.0f };
+    pushConstant2.m_uv[ 3 ] = { 1.0f, 0.0f, 0.0f, 0.0f };
+    rctx.renderer->push( pushBuffer, &pushConstant2 );
 }
 
 void Bullet::update( const UpdateContext& updateContext )
