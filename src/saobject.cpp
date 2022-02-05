@@ -47,16 +47,9 @@ void SAObject::setStatus( SAObject::Status s )
     m_status = s;
 }
 
-void SAObject::processCollision( SAObject* ) { }
-
 void SAObject::setTarget( SAObject* t )
 {
     m_target = t;
-}
-
-void SAObject::targetMe( bool b )
-{
-    m_isTargeted = b;
 }
 
 void SAObject::kill()
@@ -96,21 +89,6 @@ void SAObject::interceptTarget()
     dir = math::normalize( dir );
     m_direction = dir;
     m_velocity = m_direction * math::vec3( m_speed );
-}
-
-bool SAObject::canCollide() const
-{
-    return m_collisionFlag;
-}
-
-double SAObject::collisionDistance() const
-{
-    return m_collisionDistance;
-}
-
-uint8_t SAObject::collisionDamage() const
-{
-    return m_collisionDamage;
 }
 
 uint32_t SAObject::score() const

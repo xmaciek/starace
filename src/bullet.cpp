@@ -44,7 +44,6 @@ Bullet::Bullet( const BulletProto& bp )
 , m_color2{ bp.color2 }
 , m_texture{ bp.texture }
 {
-    m_collisionFlag = true;
     m_type = bp.type;
     m_speed = bp.speed;
     m_damage = bp.damage;
@@ -157,7 +156,6 @@ void Bullet::update( const UpdateContext& updateContext )
         return;
     }
 
-    m_seankyDeltaTime = updateContext.deltaTime;
     switch ( m_type ) {
     case Type::eSlug:
         m_color1[ 3 ] -= 2.0f * updateContext.deltaTime;
@@ -170,6 +168,7 @@ void Bullet::update( const UpdateContext& updateContext )
         [[fallthrough]];
 
     case Type::eBlaster:
+        m_prevPosition = m_position;
         m_position += m_velocity * updateContext.deltaTime;
         if ( math::length( m_tail[ 1 ] - m_position ) > m_tailChunkLength ) {
             std::rotate( m_tail.begin(), m_tail.end() - 1, m_tail.end() );
@@ -179,70 +178,6 @@ void Bullet::update( const UpdateContext& updateContext )
         break;
     }
 };
-
-bool Bullet::collisionTest( const SAObject* object ) const
-{
-    assert( object );
-    if ( !object->canCollide() || status() == Status::eDead || object->status() != Status::eAlive ) {
-        return false;
-    }
-
-    const math::vec3 collRay = collisionRay();
-    const math::vec3 dir = object->position() - position();
-    const float tmp = math::dot( dir, collRay );
-    float dist = 0.0;
-
-    if ( tmp <= 0 ) {
-        dist = math::length( dir );
-    }
-    else {
-        const float tmp2 = math::dot( collRay, collRay );
-        if ( tmp2 <= tmp ) {
-            dist = math::length( dir );
-        }
-        else {
-            const math::vec3 Pb = position() + ( collRay * ( tmp / tmp2 ) );
-            dist = math::length( object->position() - Pb );
-        }
-    }
-
-    return dist < ( m_collisionDistance + object->collisionDistance() );
-}
-
-void Bullet::processCollision( SAObject* object )
-{
-    assert( object );
-    if ( !collisionTest( object ) ) {
-        return;
-    }
-    object->addScore( score(), false );
-    switch ( m_type ) {
-    case Type::eSlug:
-        break;
-    default:
-        object->setDamage( m_damage );
-        setStatus( Status::eDead );
-        break;
-    }
-}
-
-math::vec3 Bullet::collisionRay() const
-{
-    switch ( m_type ) {
-    case Type::eBlaster:
-        return direction() * speed() * m_seankyDeltaTime * 3.0f;
-
-    case Type::eTorpedo:
-        return direction() * speed() * m_seankyDeltaTime;
-
-    case Type::eSlug:
-        return direction() * 1000.0f;
-
-    default:
-        assert( !"unreachable" );
-        return math::vec3{};
-    }
-}
 
 void Bullet::setDirection( const math::vec3& v )
 {
@@ -262,4 +197,9 @@ uint8_t Bullet::damage() const
 Bullet::Type Bullet::type() const
 {
     return m_type;
+}
+
+math::vec3 Bullet::prevPosition() const
+{
+    return m_prevPosition;
 }

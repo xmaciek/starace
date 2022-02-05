@@ -35,3 +35,22 @@ bool isOnScreen( const math::mat4& mvp, const math::vec3& point, const math::vec
     const math::vec3 vec = project3dTo2d( mvp, point, viewport );
     return isOnScreen( vec, viewport );
 }
+
+bool intersectLineSphere( const math::vec3& p1, const math::vec3& p2, const math::vec3& ps, float radius ) noexcept
+{
+    const math::vec3 dir = ps - p1;
+    const math::vec3 ray = p2 - p1;
+    const float tmp = math::dot( dir, ray );
+
+    if ( tmp <= 0 ) {
+        return math::length( dir ) < radius;
+    }
+
+    const float tmp2 = math::dot( ray, ray );
+    if ( tmp2 <= tmp ) {
+        return math::length( dir ) < radius;
+    }
+
+    const math::vec3 pb = p1 + ( ray * ( tmp / tmp2 ) );
+    return math::length( ps - pb ) < radius;
+}

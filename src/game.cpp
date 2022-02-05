@@ -465,23 +465,33 @@ void Game::updateGame( const UpdateContext& updateContext )
             b->update( updateContext );
             for ( Enemy* e : m_enemies ) {
                 assert( e );
-                b->processCollision( e );
+                if ( !intersectLineSphere( b->position(), b->prevPosition(), e->position(), 15.0_m ) ) {
+                    continue;
+                }
+                e->setDamage( b->damage() );
+                b->kill();
             }
 
-            if ( b->status() == Bullet::Status::eDead ) {
+            if ( b->status() == SAObject::Status::eDead ) {
                 std::destroy_at( b );
                 m_poolBullets.dealloc( b );
                 b = nullptr;
             }
+
         }
+
         m_bullets.erase( std::remove( m_bullets.begin(), m_bullets.end(), nullptr ), m_bullets.end() );
     }
 
     {
+        const math::vec3 jetPos = m_jet.position();
         for ( Bullet*& b : m_enemyBullets ) {
             b->update( updateContext );
-            b->processCollision( &m_jet );
-            if ( b->status() == Bullet::Status::eDead ) {
+            if ( intersectLineSphere( b->position(), b->prevPosition(), jetPos, 15.0_m ) ) {
+                m_jet.setDamage( b->damage() );
+                b->kill();
+            }
+            if ( b->status() == SAObject::Status::eDead ) {
                 std::destroy_at( b );
                 m_poolBullets.dealloc( b );
                 b = nullptr;
@@ -562,7 +572,7 @@ void Game::retarget()
         return;
     }
     static Random random{ std::random_device()() };
-    m_jet.lockTarget( m_enemies[ random() % m_enemies.size() ] );
+    m_jet.setTarget( m_enemies[ random() % m_enemies.size() ] );
 }
 
 void Game::clearMapData()

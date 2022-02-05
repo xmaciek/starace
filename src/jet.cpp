@@ -16,8 +16,6 @@ Jet::Jet( const ModelProto& modelData ) noexcept
 , m_pyrAccelleration{ defaultPyrAcceleration }
 , m_pyrLimits{ defaultPyrLimits }
 {
-    m_collisionDistance = 0.08;
-    m_collisionFlag = true;
     m_direction.z = -1;
     m_health = 100;
     m_speed = 4;
@@ -36,16 +34,6 @@ void Jet::render( RenderContext rctx ) const
     for ( const math::vec3& it : m_model->thrusters() ) {
         m_thruster.renderAt( rctx, it );
     }
-}
-
-void Jet::lockTarget( SAObject* t )
-{
-    if ( m_target ) {
-        m_target->targetMe( false );
-    }
-
-    m_target = t;
-    m_target->targetMe( true );
 }
 
 void Jet::update( const UpdateContext& updateContext )
@@ -122,7 +110,6 @@ void Jet::update( const UpdateContext& updateContext )
     m_shield.update( updateContext );
     if ( m_target ) {
         if ( m_target->status() != Status::eAlive ) {
-            m_target->targetMe( false );
             m_target = nullptr;
         }
     }
@@ -210,31 +197,6 @@ void Jet::takeEnergy( uint32_t weaponNum )
     m_reactor.consume( (float)m_weapon[ weaponNum ].energy );
     m_shotFactor[ weaponNum ] = 0;
 }
-
-void Jet::processCollision( std::vector<Bullet*>& bullets )
-{
-    if ( status() == Status::eDead ) {
-        return;
-    }
-    for ( Bullet* it : bullets ) {
-        if ( it->status() != Status::eAlive ) {
-            continue;
-        }
-        if ( math::distance( position(), it->position() ) > 0.1f ) {
-            continue;
-        }
-        setDamage( it->damage() );
-        it->kill();
-        if ( health() <= 0 ) {
-            return;
-        }
-    }
-}
-
-void Jet::processCollision( SAObject* )
-{
-    assert( !"shall not be called" );
-};
 
 void Jet::addScore( uint32_t s, bool b )
 {

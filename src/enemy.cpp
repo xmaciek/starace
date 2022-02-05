@@ -19,9 +19,6 @@ Enemy::Enemy( Model* m )
     m_health = 100;
     m_direction = math::vec3( 0.0f, 0.0f, 1.0f );
 
-    m_collisionDistance = 0.1;
-    m_collisionFlag = true;
-
     m_velocity = m_direction * speed();
 }
 

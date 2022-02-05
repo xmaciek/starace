@@ -69,7 +69,6 @@ public:
     math::quat rotation() const;
     math::vec3 weaponPoint( uint32_t weaponNum );
     virtual void addScore( uint32_t s, bool b ) override;
-    virtual void processCollision( SAObject* ) override;
     virtual void render( RenderContext ) const override;
     virtual void update( const UpdateContext& ) override;
     void lockTarget( SAObject* );
