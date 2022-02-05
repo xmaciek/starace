@@ -38,7 +38,6 @@ protected:
     SAObject* m_target = nullptr;
     math::vec3 m_direction{};
     math::vec3 m_position{};
-    math::vec3 m_velocity{};
     float m_speed = 0.0f;
     uint32_t m_score = 0;
     uint16_t m_pendingDamage = 0;

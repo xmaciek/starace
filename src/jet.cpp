@@ -88,7 +88,6 @@ void Jet::update( const UpdateContext& updateContext )
 
     m_quaternion *= math::quat{ m_pyrCurrent * updateContext.deltaTime };
     m_direction = math::normalize( math::rotate( m_quaternion, math::vec3{ 0.0f, 0.0f, -1.0f } ) );
-    m_velocity = direction() * speed();
 
     if ( speed() < 6.0f ) {
         m_thruster.setLength( speed() / 16.0f );

@@ -166,12 +166,11 @@ void Bullet::update( const UpdateContext& updateContext )
         if ( m_target && m_target->status() != Status::eDead ) {
             m_direction = interceptTarget( m_direction, m_position, m_target->position(), 160.0_deg * updateContext.deltaTime );
         }
-        m_velocity = m_direction * m_speed;
         [[fallthrough]];
 
     case Type::eBlaster:
         m_prevPosition = m_position;
-        m_position += m_velocity * updateContext.deltaTime;
+        m_position += velocity() * updateContext.deltaTime;
         if ( math::length( m_tail[ 1 ] - m_position ) > m_tailChunkLength ) {
             std::rotate( m_tail.begin(), m_tail.end() - 1, m_tail.end() );
         }
@@ -184,7 +183,6 @@ void Bullet::update( const UpdateContext& updateContext )
 void Bullet::setDirection( const math::vec3& v )
 {
     m_direction = math::normalize( v );
-    m_velocity = direction() * speed();
     if ( m_type == Type::eSlug ) {
         std::rotate( m_tail.begin(), m_tail.end() - 1, m_tail.end() );
         m_tail.front() = position() + direction() * 1000.0f;

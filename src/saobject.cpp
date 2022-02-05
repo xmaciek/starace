@@ -19,7 +19,7 @@ math::vec3 SAObject::direction() const
 
 math::vec3 SAObject::velocity() const
 {
-    return m_velocity;
+    return m_direction * m_speed;
 }
 
 float SAObject::speed() const
