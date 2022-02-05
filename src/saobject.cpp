@@ -52,16 +52,6 @@ uint8_t SAObject::health() const
     return m_health;
 }
 
-uint32_t SAObject::score() const
-{
-    return m_score;
-}
-
-void SAObject::addScore( uint32_t s, bool )
-{
-    m_score += s;
-}
-
 void SAObject::update( const UpdateContext& )
 {
     m_health -= std::min<uint16_t>( m_health, m_pendingDamage );

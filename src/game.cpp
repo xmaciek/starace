@@ -470,6 +470,8 @@ void Game::updateGame( const UpdateContext& updateContext )
                 }
                 e->setDamage( b->damage() );
                 b->kill();
+                m_hudData.score += b->score();
+                break;
             }
 
             if ( b->status() == SAObject::Status::eDead ) {
@@ -512,7 +514,6 @@ void Game::updateGame( const UpdateContext& updateContext )
         for ( auto& e : m_enemies ) {
             e->update( next );
             if ( e->status() == Enemy::Status::eDead ) {
-                m_jet.addScore( e->score(), true );
                 m_jet.untarget( e );
                 std::destroy_at( e );
                 m_poolEnemies.dealloc( e );
@@ -532,7 +533,6 @@ void Game::updateGame( const UpdateContext& updateContext )
         m_targeting.hide();
     }
 
-    m_hudData.score = m_jet.score();
     m_hudData.calc = (uint32_t)m_fpsMeter.calculated();
     m_hudData.fps = (uint32_t)m_fpsMeter.fps();
     m_hudData.pool = m_poolBullets.allocCount();
@@ -646,6 +646,10 @@ void Game::changeScreen( Screen scr, Audio::Chunk sound )
 
     case Screen::eDead:
     case Screen::eWin:
+        m_screenLoose.setScore( m_hudData.score );
+        m_screenWin.setScore( m_hudData.score );
+        [[fallthrough]];
+
     case Screen::eCustomize:
         m_currentScreen = scr;
         break;

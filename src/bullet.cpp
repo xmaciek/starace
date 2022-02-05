@@ -43,11 +43,11 @@ Bullet::Bullet( const BulletProto& bp )
 , m_color1{ bp.color1 }
 , m_color2{ bp.color2 }
 , m_texture{ bp.texture }
+, m_score{ bp.score_per_hit }
 {
     m_type = bp.type;
     m_speed = bp.speed;
     m_damage = bp.damage;
-    m_score = bp.score_per_hit;
     m_tailChunkLength = m_speed / 60.0f;
 
     if ( m_type == Type::eSlug ) {
@@ -187,6 +187,11 @@ void Bullet::setDirection( const math::vec3& v )
         std::rotate( m_tail.begin(), m_tail.end() - 1, m_tail.end() );
         m_tail.front() = position() + direction() * 1000.0f;
     }
+}
+
+uint16_t Bullet::score() const
+{
+    return m_score;
 }
 
 uint8_t Bullet::damage() const

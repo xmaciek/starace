@@ -197,13 +197,6 @@ void Jet::takeEnergy( uint32_t weaponNum )
     m_shotFactor[ weaponNum ] = 0;
 }
 
-void Jet::addScore( uint32_t s, bool b )
-{
-    if ( b ) {
-        m_score += s;
-    }
-}
-
 double Jet::energy() const
 {
     return m_reactor.power();

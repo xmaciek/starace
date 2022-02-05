@@ -29,6 +29,7 @@ private:
     float m_tailChunkLength = 0.0f;
     float m_maxRange = 6000.0_m;
     float m_range = 0.0;
+    uint16_t m_score = 0;
     uint8_t m_damage = 0;
     Type m_type = Type::eSlug;
 
@@ -43,6 +44,7 @@ public:
     void setDirection( const math::vec3& );
 
     math::vec3 prevPosition() const;
+    uint16_t score() const;
 };
 
 struct BulletProto {
@@ -53,7 +55,7 @@ struct BulletProto {
     float delay = 0.0f;
     float speed = 0.0f;
     uint32_t energy = 0;
-    uint32_t score_per_hit = 0;
+    uint16_t score_per_hit = 0;
     uint8_t damage = 0;
     Bullet::Type type = Bullet::Type::eBlaster;
 };

@@ -24,8 +24,6 @@ public:
     math::vec3 direction() const;
     math::vec3 position() const;
     math::vec3 velocity() const;
-    uint32_t score() const;
-    virtual void addScore( uint32_t s, bool b );
     virtual void render( RenderContext ) const = 0;
     virtual void update( const UpdateContext& );
     void kill();

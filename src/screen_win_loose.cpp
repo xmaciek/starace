@@ -1,6 +1,7 @@
 #include "screen_win_loose.hpp"
 
 #include "colors.hpp"
+#include "utils.hpp"
 
 static constexpr Anchor c_textAnchor = Anchor::fCenter | Anchor::fMiddle;
 
@@ -75,4 +76,9 @@ bool ScreenWinLoose::onAction( Action a )
         break;
     }
     return false;
+}
+
+void ScreenWinLoose::setScore( uint16_t v )
+{
+    m_scoreValue.setText( intToUTF32( v ) );
 }
