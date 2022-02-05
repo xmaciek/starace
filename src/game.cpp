@@ -202,12 +202,12 @@ void Game::onInit()
     m_torpedo = m_audio->load( "sounds/torpedo.wav" );
     m_click = m_audio->load( "sounds/click.wav" );
 
-    m_buttonTexture = loadTexture( m_io->getWait( "textures/button1.tga" ) );
+    m_buttonTexture = parseTexture( m_io->getWait( "textures/button1.tga" ) );
 
     const std::array rings = {
-        loadTexture( m_io->getWait( "textures/cyber_ring1.tga" ) ),
-        loadTexture( m_io->getWait( "textures/cyber_ring2.tga" ) ),
-        loadTexture( m_io->getWait( "textures/cyber_ring3.tga" ) ),
+        parseTexture( m_io->getWait( "textures/cyber_ring1.tga" ) ),
+        parseTexture( m_io->getWait( "textures/cyber_ring2.tga" ) ),
+        parseTexture( m_io->getWait( "textures/cyber_ring3.tga" ) ),
     };
     m_uiRings = UIRings{ rings };
 
@@ -255,7 +255,7 @@ void Game::onInit()
     };
 
     for ( const char* it : chunk1 ) {
-        m_textures[ it ] = loadTexture( m_io->getWait( it ) );
+        m_textures[ it ] = parseTexture( m_io->getWait( it ) );
     }
 
     BulletProto tmpWeapon{};
@@ -727,7 +727,7 @@ void Game::loadMapProto()
         m_io->enqueue( it );
     }
     for ( const auto& it : uniqueTextures ) {
-        m_textures[ it ] = loadTexture( m_io->getWait( it ) );
+        m_textures[ it ] = parseTexture( m_io->getWait( it ) );
     }
     for ( auto& it : m_mapsContainer ) {
         for ( size_t i = 0; i < it.texture.size(); ++i ) {

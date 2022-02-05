@@ -6,6 +6,6 @@
 #include <vector>
 #include <memory_resource>
 
-Texture loadTexture( std::pmr::vector<uint8_t>&& );
+Texture parseTexture( std::pmr::vector<uint8_t>&& );
 
 void destroyTexture( Texture );

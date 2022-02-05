@@ -11,7 +11,7 @@
 #include <cstring>
 #include <vector>
 
-Texture loadTexture( std::pmr::vector<uint8_t>&& data )
+Texture parseTexture( std::pmr::vector<uint8_t>&& data )
 {
     ZoneScoped;
     assert( !data.empty() );
