@@ -2,21 +2,6 @@
 
 #include <cmath>
 
-float SAObject::x() const
-{
-    return m_position.x;
-}
-
-float SAObject::y() const
-{
-    return m_position.y;
-}
-
-float SAObject::z() const
-{
-    return m_position.z;
-}
-
 SAObject::Status SAObject::status() const
 {
     return m_status;

@@ -21,9 +21,6 @@ public:
     Status status() const;
     uint8_t health() const;
     float speed() const;
-    float x() const;
-    float y() const;
-    float z() const;
     math::vec3 direction() const;
     math::vec3 position() const;
     math::vec3 velocity() const;
