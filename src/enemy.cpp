@@ -14,11 +14,10 @@ Enemy::Enemy( Model* m )
         randomRange( -10.0f, 10.0f )
     };
 
-    m_speed = 1130_kmph;
+    m_speed = 700_kmph;
     setStatus( Status::eAlive );
     m_health = 100;
     m_direction = math::vec3( 0.0f, 0.0f, 1.0f );
-
     m_velocity = m_direction * speed();
 }
 
@@ -70,8 +69,8 @@ void Enemy::update( const UpdateContext& updateContext )
 
     m_shotFactor = std::min( m_weapon.delay, m_shotFactor + updateContext.deltaTime );
     m_healthPerc = (float)m_health / 100;
-    m_turnrate = math::radians( speed() * 5 * updateContext.deltaTime );
-    interceptTarget();
+    m_direction = interceptTarget( m_direction, m_position, m_target->position(), 30.0_deg * updateContext.deltaTime );
+    m_velocity = m_direction * m_speed;
     m_position += velocity() * updateContext.deltaTime;
     m_screenPos = project3dTo2d( updateContext.camera, m_position, updateContext.viewport );
     m_isOnScreen = isOnScreen( m_screenPos, updateContext.viewport );

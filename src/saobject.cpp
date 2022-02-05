@@ -67,30 +67,6 @@ uint8_t SAObject::health() const
     return m_health;
 }
 
-void SAObject::interceptTarget()
-{
-    if ( !m_target ) {
-        return;
-    }
-    if ( m_target->status() != Status::eAlive ) {
-        m_target = nullptr;
-        return;
-    }
-
-    math::vec3 dir = m_direction;
-    math::vec3 tgt = m_target->position();
-    tgt = m_position - tgt;
-    tgt = math::normalize( tgt );
-
-    const float tmp = (float)std::tan( std::atan( math::dot( dir, tgt ) - m_turnrate ) );
-    dir = math::cross( tgt, math::cross( dir, tgt ) );
-    dir += tgt * math::vec3( tmp );
-
-    dir = math::normalize( dir );
-    m_direction = dir;
-    m_velocity = m_direction * math::vec3( m_speed );
-}
-
 uint32_t SAObject::score() const
 {
     return m_score;

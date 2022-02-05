@@ -42,12 +42,10 @@ protected:
     math::vec3 m_direction{};
     math::vec3 m_position{};
     math::vec3 m_velocity{};
-    float m_turnrate = 0.0f;
     float m_speed = 0.0f;
     uint32_t m_score = 0;
     uint16_t m_pendingDamage = 0;
     uint8_t m_health = 0;
     Status m_status = Status::eDead;
 
-    void interceptTarget();
 };

@@ -163,8 +163,10 @@ void Bullet::update( const UpdateContext& updateContext )
         break;
 
     case Type::eTorpedo:
-        m_turnrate = math::radians( speed() * 10.0f * updateContext.deltaTime );
-        interceptTarget();
+        if ( m_target && m_target->status() != Status::eDead ) {
+            m_direction = interceptTarget( m_direction, m_position, m_target->position(), 160.0_deg * updateContext.deltaTime );
+        }
+        m_velocity = m_direction * m_speed;
         [[fallthrough]];
 
     case Type::eBlaster:

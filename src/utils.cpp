@@ -54,3 +54,12 @@ bool intersectLineSphere( const math::vec3& p1, const math::vec3& p2, const math
     const math::vec3 pb = p1 + ( ray * ( tmp / tmp2 ) );
     return math::length( ps - pb ) < radius;
 }
+
+math::vec3 interceptTarget( const math::vec3& dir, const math::vec3& pos, const math::vec3& tgtPos, float turnrate ) noexcept
+{
+    const math::vec3 tgtDir = math::normalize( pos - tgtPos );
+    const float tmp = (float)std::tan( std::atan( math::dot( dir, tgtDir ) - turnrate ) );
+    math::vec3 ret = math::cross( tgtDir, math::cross( dir, tgtDir ) );
+    ret += tgtDir * math::vec3( tmp );
+    return math::normalize( ret );
+}
