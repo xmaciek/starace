@@ -9,7 +9,6 @@
 #include <algorithm>
 #include <cassert>
 #include <cstring>
-#include <fstream>
 #include <vector>
 
 Texture loadTexture( std::pmr::vector<uint8_t>&& data )
@@ -71,23 +70,6 @@ Texture loadTexture( std::pmr::vector<uint8_t>&& data )
         break;
     }
     return renderer->createTexture( tci, std::move( texture ) );
-}
-
-Texture loadTexture( std::string_view filename )
-{
-    ZoneScoped;
-    std::ifstream ifs( std::string( filename ), std::ios::binary | std::ios::ate );
-    assert( ifs.is_open() );
-
-    Renderer* renderer = Renderer::instance();
-    assert( renderer );
-
-    const size_t size = ifs.tellg();
-    ifs.seekg( 0 );
-    std::pmr::vector<uint8_t> data( size, renderer->allocator() );
-    ifs.read( reinterpret_cast<char*>( data.data() ), (uint32_t)data.size() );
-    ifs.close();
-    return loadTexture( std::move( data ) );
 }
 
 void destroyTexture( Texture tex )
