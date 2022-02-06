@@ -3,6 +3,7 @@
 #include "bullet.hpp"
 #include "button.hpp"
 #include "enemy.hpp"
+#include "explosion.hpp"
 #include "font.hpp"
 #include "hud.hpp"
 #include "jet.hpp"
@@ -67,6 +68,7 @@ private:
     std::vector<Bullet*> m_bullets{};
     std::vector<Bullet*> m_enemyBullets{};
     std::vector<Enemy*> m_enemies{};
+    std::pmr::vector<Explosion> m_explosions{};
     std::vector<MapCreateInfo> m_mapsContainer{};
     std::vector<ModelProto> m_jetsContainer{};
 
@@ -79,6 +81,7 @@ private:
     Texture m_bg{};
     Texture m_buttonTexture{};
     Texture m_cyberRingTexture[ 3 ]{};
+    Texture m_plasma{};
     std::pmr::map<std::filesystem::path, Texture> m_textures{};
 
     SpaceDust m_spaceDust{};

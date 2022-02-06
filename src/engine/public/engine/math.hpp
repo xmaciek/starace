@@ -69,6 +69,16 @@ static constexpr auto length = []( const auto& t )
     return glm::length( t );
 };
 
+inline auto lerp( const math::vec4& a, const math::vec4& b, float n )
+{
+    return math::vec4{
+        std::lerp( a.x, b.x, n ),
+        std::lerp( a.y, b.y, n ),
+        std::lerp( a.z, b.z, n ),
+        std::lerp( a.w, b.w, n )
+    };
+}
+
 static constexpr auto normalize = []( const auto& t )
 {
     return glm::normalize( t );

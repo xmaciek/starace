@@ -17,6 +17,8 @@ set( STARACE_SOURCES
     constants.hpp
     enemy.cpp
     enemy.hpp
+    explosion.cpp
+    explosion.hpp
     font.cpp
     font.hpp
     game.cpp

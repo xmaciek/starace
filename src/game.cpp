@@ -105,6 +105,7 @@ Game::Game( int argc, char** argv )
     changeScreen( Screen::eMainMenu );
 
     m_enemies.reserve( 100 );
+    m_explosions.reserve( 100 );
     m_bullets.reserve( 500 );
     m_enemyBullets.reserve( 1000 );
     m_jetsContainer.reserve( 5 );
@@ -258,6 +259,7 @@ void Game::onInit()
         m_textures[ it ] = parseTexture( m_io->getWait( it ) );
     }
 
+    m_plasma = m_textures[ "textures/plasma.tga" ];
     BulletProto tmpWeapon{};
     tmpWeapon.texture = m_textures[ "textures/plasma.tga" ];
     tmpWeapon.type = Bullet::Type::eSlug;
@@ -459,6 +461,11 @@ void Game::updateGame( const UpdateContext& updateContext )
     m_spaceDust.setVelocity( m_jet.velocity() * -0.5f );
     m_spaceDust.update( updateContext );
 
+    for ( Explosion& it : m_explosions ) {
+        it.update( updateContext );
+    }
+    m_explosions.erase( std::remove_if( m_explosions.begin(), m_explosions.end(), &Explosion::isInvalid ), m_explosions.end() );
+
     {
         for ( Bullet*& b : m_bullets ) {
             assert( b );
@@ -515,6 +522,7 @@ void Game::updateGame( const UpdateContext& updateContext )
             e->update( next );
             if ( e->status() == Enemy::Status::eDead ) {
                 m_jet.untarget( e );
+                m_explosions.push_back( Explosion{ e->position(), e->velocity(), m_plasma, 0.0f } );
                 std::destroy_at( e );
                 m_poolEnemies.dealloc( e );
                 e = nullptr;
@@ -915,6 +923,9 @@ void Game::render3D( RenderContext rctx )
     rctx.cameraUp = math::vec3{ 0, 1, 0 } * m_jet.rotation();
 
     m_skybox.render( rctx );
+    for ( const Explosion& it : m_explosions ) {
+        it.render( rctx );
+    }
     m_spaceDust.render( rctx );
     for ( const Enemy* it : m_enemies ) {
         assert( it );
