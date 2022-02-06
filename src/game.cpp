@@ -911,7 +911,7 @@ void Game::render3D( RenderContext rctx )
 {
     std::tie( rctx.view, rctx.projection ) = getCameraMatrix();
 
-    rctx.cameraPosition = m_jet.position();
+    rctx.cameraPosition = m_jet.position() + math::vec3{ 0, 10.5_m, 41.5_m } * m_jet.rotation();
     rctx.cameraUp = math::vec3{ 0, 1, 0 } * m_jet.rotation();
 
     m_skybox.render( rctx );
