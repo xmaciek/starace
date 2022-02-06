@@ -47,10 +47,9 @@ void Thruster::renderAt( RenderContext rctx, const math::vec3& pos ) const
 
     PushConstant<Pipeline::eTriangleFan3dColor> pushConstant{};
     pushConstant.m_model = math::translate( rctx.model, pos );
-    pushConstant.m_model = math::scale( pushConstant.m_model, math::vec3{ 1.0f, 1.0f, m_length } );
     pushConstant.m_view = rctx.view;
     pushConstant.m_projection = rctx.projection;
-    pushConstant.m_vertices[ 0 ] = { 0.0f, 0.0f, 1.0f, 0.0f };
+    pushConstant.m_vertices[ 0 ] = { 0.0f, 0.0f, m_length, 0.0f };
     std::copy( s_inner.begin(), s_inner.end(), pushConstant.m_vertices.begin() + 1 );
     pushConstant.m_colors[ 0 ] = m_colorScheme[ 1 ];
     std::fill_n( pushConstant.m_colors.begin() + 1, 32, m_colorScheme[ 0 ] );
