@@ -3,6 +3,7 @@
 #include "circle.hpp"
 #include "game_pipeline.hpp"
 #include "constants.hpp"
+#include "units.hpp"
 
 #include <renderer/renderer.hpp>
 
@@ -59,4 +60,23 @@ void Thruster::renderAt( RenderContext rctx, const math::vec3& pos ) const
     pushConstant.m_colors[ 0 ] = m_colorScheme[ 3 ];
     std::fill_n( pushConstant.m_colors.begin() + 1, 32, m_colorScheme[ 2 ] );
     rctx.renderer->push( pushBuffer, &pushConstant );
+
+    pushBuffer.m_pipeline = static_cast<PipelineSlot>( Pipeline::eThruster );
+    pushBuffer.m_verticeCount = 4;
+    PushConstant<Pipeline::eThruster> pushConstant2{};
+    pushConstant2.m_view = rctx.view;
+    pushConstant2.m_projection = rctx.projection;
+    const float size = 3.0_m;
+    pushConstant2.m_xyuv = {
+        math::vec4{ -size, -size, 0, 0 },
+        math::vec4{ -size, size, 0, 1 },
+        math::vec4{ size, size, 1, 1 },
+        math::vec4{ size, -size, 1, 0 },
+    };
+    for ( float r : { 0.4f, 0.3f, 0.2f, 0.1f } ) {
+        pushConstant2.m_radius = r;
+        pushConstant2.m_model = math::translate( rctx.model, pos + math::vec3{ 0, 0, m_length * r } );
+        pushConstant2.m_color = math::lerp( m_colorScheme[ 0 ], m_colorScheme[ 1 ], r * 2.0f );
+        rctx.renderer->push( pushBuffer, &pushConstant2 );
+    }
 }

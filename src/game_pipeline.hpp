@@ -15,6 +15,7 @@ enum class Pipeline : PipelineSlot {
     eBackground,
     eAlbedo,
     eSprite3D,
+    eThruster,
     count,
 };
 
@@ -119,6 +120,18 @@ struct PushConstant<Pipeline::eGlow> {
     math::mat4 m_projection{};
     math::vec4 m_color{};
     std::array<math::vec4, 4> m_xyuv{};
+
+    PushConstant() = default;
+};
+
+template <>
+struct PushConstant<Pipeline::eThruster> {
+    math::mat4 m_model{};
+    math::mat4 m_view{};
+    math::mat4 m_projection{};
+    math::vec4 m_color{};
+    std::array<math::vec4, 4> m_xyuv{};
+    float m_radius = 0.0f;
 
     PushConstant() = default;
 };
@@ -274,6 +287,18 @@ static constexpr PipelineCreateInfo g_pipelineGlow{
     .m_fragmentShader = "shaders/glow.frag.spv",
     .m_slot = static_cast<PipelineSlot>( Pipeline::eGlow ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eGlow> ),
+    .m_enableBlend = true,
+    .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
+    .m_cullMode = PipelineCreateInfo::CullMode::eBack,
+    .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
+    .m_constantBindBits = 0b1,
+};
+
+static constexpr PipelineCreateInfo g_pipelineThruster{
+    .m_vertexShader = "shaders/thruster.vert.spv",
+    .m_fragmentShader = "shaders/thruster.frag.spv",
+    .m_slot = static_cast<PipelineSlot>( Pipeline::eThruster ),
+    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eThruster> ),
     .m_enableBlend = true,
     .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,

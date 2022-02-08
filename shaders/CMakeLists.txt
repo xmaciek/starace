@@ -43,3 +43,6 @@ compileShader( background.frag )
 
 compileShader( sprite3d.vert )
 compileShader( sprite3d.frag )
+
+compileShader( thruster.vert )
+compileShader( thruster.frag )

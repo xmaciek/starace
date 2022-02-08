@@ -101,6 +101,7 @@ Game::Game( int argc, char** argv )
     m_renderer->createPipeline( g_pipelineBackground );
     m_renderer->createPipeline( g_pipelineAlbedo );
     m_renderer->createPipeline( g_pipelineSprite3D );
+    m_renderer->createPipeline( g_pipelineThruster );
 
     changeScreen( Screen::eMainMenu );
 
