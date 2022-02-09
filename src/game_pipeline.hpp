@@ -29,8 +29,6 @@ struct PushConstant<Pipeline::eLine3dStripColor> {
     math::mat4 m_projection{};
     std::array<math::vec4, 32> m_vertices{};
     std::array<math::vec4, 32> m_colors{};
-
-    PushConstant() = default;
 };
 
 template <>
@@ -40,8 +38,6 @@ struct PushConstant<Pipeline::eTriangleFan3dTexture> {
     math::mat4 m_projection{};
     std::array<math::vec4, 4> m_vertices{};
     std::array<math::vec4, 4> m_uv{};
-
-    PushConstant() = default;
 };
 
 template <>
@@ -51,8 +47,6 @@ struct PushConstant<Pipeline::eGuiTextureColor1> {
     math::mat4 m_projection{};
     math::vec4 m_color{};
     std::array<math::vec4, 4> m_vertices{};
-
-    PushConstant() = default;
 };
 
 template <>
@@ -62,8 +56,6 @@ struct PushConstant<Pipeline::eBackground> {
     math::mat4 m_projection{};
     math::vec4 m_color{};
     std::array<math::vec4, 4> m_vertices{};
-
-    PushConstant() = default;
 };
 
 template <>
@@ -73,8 +65,6 @@ struct PushConstant<Pipeline::eLine3dColor1> {
     math::mat4 m_projection{};
     math::vec4 m_color{};
     std::array<math::vec4, 200> m_vertices{};
-
-    PushConstant() = default;
 };
 
 template <>
@@ -84,8 +74,6 @@ struct PushConstant<Pipeline::eTriangleFan3dColor> {
     math::mat4 m_projection{};
     std::array<math::vec4, 48> m_vertices{};
     std::array<math::vec4, 48> m_colors{};
-
-    PushConstant() = default;
 };
 
 template <>
@@ -97,8 +85,6 @@ struct PushConstant<Pipeline::eShortString> {
 
     static constexpr size_t charCount = 48;
     std::array<math::vec4, charCount * 6> m_vertices{};
-
-    PushConstant() = default;
 };
 
 template <>
@@ -109,8 +95,6 @@ struct PushConstant<Pipeline::eProgressBar> {
     math::vec4 m_vertices[ 4 ]{};
     math::vec4 m_color[ 2 ]{};
     math::vec4 m_axis{};
-
-    PushConstant() = default;
 };
 
 template <>
@@ -120,8 +104,6 @@ struct PushConstant<Pipeline::eGlow> {
     math::mat4 m_projection{};
     math::vec4 m_color{};
     std::array<math::vec4, 4> m_xyuv{};
-
-    PushConstant() = default;
 };
 
 template <>
@@ -132,8 +114,6 @@ struct PushConstant<Pipeline::eThruster> {
     math::vec4 m_color{};
     std::array<math::vec4, 4> m_xyuv{};
     float m_radius = 0.0f;
-
-    PushConstant() = default;
 };
 
 template <>
@@ -141,7 +121,6 @@ struct PushConstant<Pipeline::eAlbedo> {
     math::mat4 m_model{};
     math::mat4 m_view{};
     math::mat4 m_projection{};
-    PushConstant() = default;
 };
 
 
@@ -153,8 +132,6 @@ struct PushConstant<Pipeline::eSprite3D> {
     math::vec4 m_color{};
     std::array<math::vec4, 4> m_vertices{};
     std::array<math::vec4, 4> m_uv{};
-
-    PushConstant() = default;
 };
 
 static constexpr PipelineCreateInfo g_pipelineGui{
