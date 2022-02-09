@@ -22,12 +22,10 @@ public:
 
 private:
     math::vec3 m_prevPosition{};
-    std::pmr::vector<math::vec3> m_tail{};
+    std::array<math::vec3, 4> m_tail{};
     math::vec4 m_color1{};
     math::vec4 m_color2{};
     Texture m_texture{};
-    float m_tailChunkLength = 0.0f;
-    float m_maxRange = 6000.0_m;
     float m_range = 0.0;
     uint16_t m_score = 0;
     uint8_t m_damage = 0;

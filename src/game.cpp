@@ -278,10 +278,12 @@ void Game::onInit()
     tmpWeapon.energy = 10;
     tmpWeapon.delay = 0.1;
     tmpWeapon.color1 = color::blaster;
+    tmpWeapon.color2 = color::dodgerBlue;
     tmpWeapon.score_per_hit = 30;
     m_weapons[ 1 ] = tmpWeapon;
 
     tmpWeapon.color1 = color::yellowBlaster;
+    tmpWeapon.color2 = color::white;
     tmpWeapon.delay = 0.4;
     m_weapons[ 3 ] = tmpWeapon;
 
@@ -292,6 +294,7 @@ void Game::onInit()
     tmpWeapon.speed = 2400_kmph;
     tmpWeapon.score_per_hit = 2;
     tmpWeapon.color1 = color::orchid;
+    tmpWeapon.color2 = color::white;
     m_weapons[ 2 ] = tmpWeapon;
 
     loadMapProto();
