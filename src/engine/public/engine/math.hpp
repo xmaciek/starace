@@ -79,6 +79,11 @@ inline auto lerp( const math::vec4& a, const math::vec4& b, float n )
     };
 }
 
+inline auto lookAt( const auto& cameraPosition, const auto& target, const auto& cameraUp )
+{
+   return glm::lookAt( cameraPosition, target, cameraUp );
+}
+
 static constexpr auto normalize = []( const auto& t )
 {
     return glm::normalize( t );

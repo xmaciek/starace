@@ -910,11 +910,11 @@ void Game::renderHUD( RenderContext rctx )
 
 std::tuple<math::mat4, math::mat4> Game::getCameraMatrix() const
 {
-    math::mat4 view = math::translate( math::mat4( 1.0f ), math::vec3{ 0, 10.5_m, -41.5_m } );
-    view *= math::toMat4( m_jet.rotation() );
-    view = math::translate( view, -m_jet.position() );
+    const math::vec3 cameraPos = m_jet.position() + math::vec3{ 0, -10.5_m, 41.5_m } * m_jet.rotation();
+    const math::vec3 cameraUp = math::vec3{ 0, 1, 0 } * m_jet.rotation();
+    const math::vec3 cameraTgt = cameraPos + m_jet.direction();
     return {
-        view,
+        math::lookAt( cameraPos, cameraTgt, cameraUp ),
         math::perspective( math::radians( 55.0f + m_jet.speed() * 3 ), viewportAspect(), 0.001f, 2000.0f )
     };
 }
@@ -923,7 +923,7 @@ void Game::render3D( RenderContext rctx )
 {
     std::tie( rctx.view, rctx.projection ) = getCameraMatrix();
 
-    rctx.cameraPosition = m_jet.position() + math::vec3{ 0, 10.5_m, 41.5_m } * m_jet.rotation();
+    rctx.cameraPosition = m_jet.position() + math::vec3{ 0, -10.5_m, 41.5_m } * m_jet.rotation();
     rctx.cameraUp = math::vec3{ 0, 1, 0 } * m_jet.rotation();
 
     m_skybox.render( rctx );
