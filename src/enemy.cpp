@@ -45,11 +45,12 @@ bool Enemy::isWeaponReady() const
 void Enemy::render( RenderContext rctx ) const
 {
     assert( status() == Status::eAlive );
-    if ( !m_isOnScreen ) {
+    const math::vec3 screenPos = project3dTo2d( rctx.camera3d, m_position, rctx.viewport );
+    if ( !isOnScreen( screenPos, rctx.viewport ) ) {
         return;
     }
 
-    math::quat quat = math::quatLookAt( m_direction, { 0.0f, 1.0f, 0.0f } );
+    const math::quat quat = math::quatLookAt( m_direction, { 0.0f, 1.0f, 0.0f } );
     rctx.model = math::translate( rctx.model, position() );
     rctx.model = rctx.model * math::toMat4( quat );
     m_model->render( rctx );
@@ -67,10 +68,7 @@ void Enemy::update( const UpdateContext& updateContext )
     }
 
     m_shotFactor = std::min( m_weapon.delay, m_shotFactor + updateContext.deltaTime );
-    m_healthPerc = (float)m_health / 100;
     m_direction = interceptTarget( m_direction, m_position, m_target->position(), 30.0_deg * updateContext.deltaTime );
     m_position += velocity() * updateContext.deltaTime;
-    m_screenPos = project3dTo2d( updateContext.camera, m_position, updateContext.viewport );
-    m_isOnScreen = isOnScreen( m_screenPos, updateContext.viewport );
 }
 

@@ -513,17 +513,8 @@ void Game::updateGame( const UpdateContext& updateContext )
         m_enemyBullets.erase( std::remove( m_enemyBullets.begin(), m_enemyBullets.end(), nullptr ), m_enemyBullets.end() );
     }
     {
-        [[maybe_unused]]
-        const auto [ width, height, aspect ] = viewport();
-        const auto [ view, projection ] = getCameraMatrix();
-        const UpdateContext next{
-            .camera = projection * view,
-            .viewport = { width, height },
-            .deltaTime = updateContext.deltaTime,
-        };
-
         for ( auto& e : m_enemies ) {
-            e->update( next );
+            e->update( updateContext );
             if ( e->status() == Enemy::Status::eDead ) {
                 m_jet.untarget( e );
                 m_explosions.push_back( Explosion{ e->position(), e->velocity(), m_plasma, 0.0f } );
