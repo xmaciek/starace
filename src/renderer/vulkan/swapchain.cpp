@@ -127,7 +127,7 @@ Swapchain::Swapchain( VkPhysicalDevice physicalDevice, VkDevice device, VkSurfac
     m_presentMode = *presentMode;
 
     m_extent = surfaceCaps.currentExtent;
-    m_imageCount = std::clamp( surfaceCaps.minImageCount + 1, surfaceCaps.minImageCount, surfaceCaps.maxImageCount );
+    m_imageCount = std::clamp<uint32_t>( 3u, surfaceCaps.minImageCount, surfaceCaps.maxImageCount );
 
     const VkSwapchainCreateInfoKHR createInfo{
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
