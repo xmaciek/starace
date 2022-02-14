@@ -21,7 +21,6 @@ AsyncIO::~AsyncIO() noexcept
 }
 
 AsyncIO::AsyncIO() noexcept
-: m_uniqueLock{ m_mutex }
 {
     m_thread = std::thread{ &AsyncIO::run, this };
 }
@@ -41,21 +40,15 @@ void AsyncIO::enqueue( const std::filesystem::path& path, std::pmr::memory_resou
         std::scoped_lock<std::mutex> sl( m_bottleneck );
         m_pending.push_back( ticket );
     }
-    m_pendingCount.fetch_add( 1 );
-    m_notify.notify_all();
+    m_notify.release();
 }
 
 AsyncIO::Ticket* AsyncIO::next()
 {
-    if ( m_pendingCount.load() == 0 ) {
-        return nullptr;
-    }
     std::scoped_lock<std::mutex> sl( m_bottleneck );
     if ( m_pending.empty() ) {
         return nullptr;
     }
-    assert( m_pendingCount.load() != 0 );
-    m_pendingCount.fetch_sub( 1 );
     Ticket* t = m_pending.front();
     m_pending.pop_front();
     return t;
@@ -71,9 +64,10 @@ void AsyncIO::run()
 {
     using namespace std::chrono_literals;
     while ( m_isRunning.load() ) {
-        if ( m_pendingCount.load() == 0 ) {
-            m_notify.wait_for( m_uniqueLock, 5ms );
+        if ( !m_notify.try_acquire_for( 5ms ) ) {
+            continue;
         }
+
         Ticket* ticket = next();
         if ( !ticket ) { continue; }
 

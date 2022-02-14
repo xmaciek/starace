@@ -2,18 +2,17 @@
 
 #include <shared/pool.hpp>
 
-#include <array>
 #include <atomic>
-#include <condition_variable>
 #include <cstdint>
 #include <filesystem>
 #include <list>
+#include <map>
 #include <memory_resource>
 #include <mutex>
 #include <optional>
+#include <semaphore>
 #include <thread>
 #include <vector>
-#include <map>
 
 class AsyncIO {
 public:
@@ -34,12 +33,9 @@ private:
     std::thread m_thread;
     std::mutex m_bottleneck;
     std::pmr::list<Ticket*> m_pending{};
-    std::atomic<uint16_t> m_pendingCount = 0;
     std::atomic<bool> m_isRunning = true;
 
-    std::condition_variable m_notify;
-    std::mutex m_mutex;
-    std::unique_lock<std::mutex> m_uniqueLock;
+    std::counting_semaphore<0xFFFFu> m_notify{ 0 };
 
     void run();
     Ticket* next();
