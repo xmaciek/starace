@@ -74,6 +74,7 @@ Engine::Engine( int, char** ) noexcept
     }
     m_actionMapping = std::make_unique<ActionMapping>();
     m_ioPtr = std::make_unique<AsyncIO>();
+    m_ioPtr->mount( "." );
     m_io = m_ioPtr.get();
 
     m_renderer = Renderer::create( m_window );

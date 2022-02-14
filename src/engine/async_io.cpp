@@ -5,9 +5,10 @@
 #include <cassert>
 #include <fstream>
 #include <chrono>
+#include <iostream>
 
-AsyncIO::Ticket::Ticket( std::filesystem::path&& path, std::pmr::memory_resource* upstream )
-: path{ std::move( path ) }
+AsyncIO::Ticket::Ticket( std::filesystem::path p, std::pmr::memory_resource* upstream )
+: path{ std::move( p ) }
 , data{ upstream }
 {}
 
@@ -28,9 +29,14 @@ AsyncIO::AsyncIO() noexcept
 void AsyncIO::enqueue( const std::filesystem::path& path, std::pmr::memory_resource* upstream )
 {
     ZoneScoped;
+    auto it = m_localFiles.find( path );
+    assert( it != m_localFiles.end() );
+    assert( !it->second );
+
     void* ptr = m_pool.alloc();
     assert( ptr && "too many files in loading in queue" );
-    Ticket* ticket = new ( ptr ) Ticket( std::filesystem::path{ path }, upstream );
+    Ticket* ticket = new ( ptr ) Ticket( path, upstream );
+    it->second = ticket;
     {
         std::scoped_lock<std::mutex> sl( m_bottleneck );
         m_pending.push_back( ticket );
@@ -50,15 +56,15 @@ AsyncIO::Ticket* AsyncIO::next()
     }
     assert( m_pendingCount.load() != 0 );
     m_pendingCount.fetch_sub( 1 );
-    AsyncIO::Ticket* t = m_pending.front();
+    Ticket* t = m_pending.front();
     m_pending.pop_front();
     return t;
 }
 
 void AsyncIO::finish( AsyncIO::Ticket* ticket )
 {
-    std::scoped_lock<std::mutex> sl( m_bottleneckReady );
-    m_ready.push_back( ticket );
+    assert( ticket );
+    ticket->ready.store( true );
 }
 
 void AsyncIO::run()
@@ -70,12 +76,14 @@ void AsyncIO::run()
         }
         Ticket* ticket = next();
         if ( !ticket ) { continue; }
+
         ZoneScopedN( "AsyncIO load file" );
         std::ifstream ifs( ticket->path, std::ios::binary | std::ios::ate );
         if ( !ifs.is_open() ) {
             finish( ticket );
             continue;
         }
+
         const std::streamsize size = ifs.tellg();
         ticket->data.resize( size );
         ifs.seekg( 0 );
@@ -86,28 +94,17 @@ void AsyncIO::run()
 
 std::optional<std::pmr::vector<uint8_t>> AsyncIO::get( const std::filesystem::path& path )
 {
-    Ticket* ticket = nullptr;
-    {
-        std::scoped_lock<std::mutex> sl( m_bottleneckReady );
-        if ( m_ready.empty() ) { return {}; }
+    auto it = m_localFiles.find( path );
+    assert( it != m_localFiles.end() );
+    assert( it->second );
+    if ( !it->second->ready.load() ) { return {}; }
 
-        ZoneScoped;
-        auto it = std::find_if( m_ready.begin(), m_ready.end(), [&path]( Ticket* t )
-        {
-            return t->path == path;
-        } );
-        if ( it == m_ready.end() ) {
-            return {};
-        }
-        ticket = *it;
-        m_ready.erase( it );
-    }
-    assert( ticket );
-    assert( ticket->path == path );
+    Ticket* ticket = std::exchange( it->second, nullptr );
     std::pmr::vector<uint8_t> ret = std::move( ticket->data );
     std::destroy_at<Ticket>( ticket );
     m_pool.dealloc( ticket );
     return ret;
+
 }
 
 std::pmr::vector<uint8_t> AsyncIO::getWait( const std::filesystem::path& path )
@@ -120,4 +117,24 @@ std::pmr::vector<uint8_t> AsyncIO::getWait( const std::filesystem::path& path )
         }
     }
     return {};
+}
+
+void AsyncIO::mount( const std::filesystem::path& path )
+{
+    ZoneScoped;
+    assert( std::filesystem::is_directory( path ) ); // for now only directories
+    constexpr std::array extensionList = {
+        ".wav", ".spv", ".tga", ".objc", ".ttf",
+    };
+    std::pmr::vector<std::filesystem::path> files{};
+    files.reserve( 20 );
+    for ( auto it : std::filesystem::recursive_directory_iterator( path ) ) {
+        if ( it.is_directory() ) { continue; }
+        if ( std::none_of( extensionList.begin(), extensionList.end(), [&it]( const auto& e ) { return it.path().extension() == e; } ) ) { continue; }
+        files.push_back( it.path() );
+    }
+
+    for ( const auto& path : files ) {
+        m_localFiles.insert( std::make_pair( path.lexically_relative( "." ), nullptr ) );
+    }
 }

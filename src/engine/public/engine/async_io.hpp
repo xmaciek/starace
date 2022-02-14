@@ -13,27 +13,30 @@
 #include <optional>
 #include <thread>
 #include <vector>
+#include <map>
 
 class AsyncIO {
 public:
     struct Ticket {
         std::filesystem::path path{};
         std::pmr::vector<uint8_t> data{};
+        std::atomic<bool> ready = false;
 
-        Ticket( std::filesystem::path&&, std::pmr::memory_resource* );
+        Ticket( std::filesystem::path, std::pmr::memory_resource* );
     };
 
 private:
     static constexpr std::size_t c_maxFiles = 64;
     Pool<Ticket, c_maxFiles> m_pool{};
-    std::pmr::list<Ticket*> m_pending{};
-    std::pmr::list<Ticket*> m_ready{};
+
+    std::map<std::filesystem::path, Ticket*> m_localFiles{};
 
     std::thread m_thread;
     std::mutex m_bottleneck;
-    std::mutex m_bottleneckReady;
+    std::pmr::list<Ticket*> m_pending{};
     std::atomic<uint16_t> m_pendingCount = 0;
     std::atomic<bool> m_isRunning = true;
+
     std::condition_variable m_notify;
     std::mutex m_mutex;
     std::unique_lock<std::mutex> m_uniqueLock;
@@ -46,6 +49,7 @@ public:
     ~AsyncIO() noexcept;
     AsyncIO() noexcept;
 
+    void mount( const std::filesystem::path& );
     void enqueue( const std::filesystem::path&, std::pmr::memory_resource* upstream = std::pmr::get_default_resource() );
     std::optional<std::pmr::vector<uint8_t>> get( const std::filesystem::path& );
     std::pmr::vector<uint8_t> getWait( const std::filesystem::path& );
