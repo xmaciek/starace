@@ -73,14 +73,14 @@ struct BlitIterator {
     using iterator_category = std::bidirectional_iterator_tag;
 
     pointer m_data = nullptr;
-    const pointer m_end = nullptr;
+    pointer m_end = nullptr;
     size_type m_dstPitch = 0;
     size_type m_dstX = 0;
     size_type m_dstY = 0;
     size_type m_srcWidth = 0;
     size_type m_i = 0;
 
-    BlitIterator( pointer p, const pointer end, size_type dstPitch, size_type dstX, size_type dstY, size_type srcWidth ) noexcept
+    BlitIterator( pointer p, pointer end, size_type dstPitch, size_type dstX, size_type dstY, size_type srcWidth ) noexcept
     : m_data{ p }
     , m_end{ end }
     , m_dstPitch{ dstPitch }
