@@ -105,3 +105,11 @@ target_sources( cooker_obj
 )
 target_link_libraries( cooker_obj cxx::flags )
 set_cppver( cooker_obj 20 )
+
+target_sources( cooker_tga
+    PRIVATE
+    cooker_tga.cpp
+    tga.hpp
+)
+target_link_libraries( cooker_tga cxx::flags )
+set_cppver( cooker_tga 20 )
