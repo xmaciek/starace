@@ -500,10 +500,17 @@ void RendererVK::beginFrame()
     ZoneScoped;
     m_lastLineWidth = 0.0f;
     uint32_t imageIndex = 0;
-    static constexpr uint64_t timeout = 8'000'000; // 8ms
+    static constexpr uint64_t timeout = 8'000'000'000; // 8 seconds
     [[maybe_unused]]
     const VkResult acquireOK = vkAcquireNextImageKHR( m_device, m_swapchain, timeout, m_semaphoreAvailableImage, VK_NULL_HANDLE, &imageIndex );
-    assert( acquireOK == VK_SUCCESS );
+    switch ( acquireOK ) {
+    case VK_SUCCESS:
+    case VK_SUBOPTIMAL_KHR: // will recreate swapchain later
+        break;
+    default:
+        assert( !"unhandled error from vkAcquireNextImageKHR" );
+        break;
+    }
 
     m_currentFrame = imageIndex;
     Frame& fr = m_frames[ imageIndex ];
