@@ -28,12 +28,12 @@ class FixedMap {
     std::array<TValueStorage, TCapacity> m_valueList{};
     size_type m_currentSize = 0;
 
-    auto keyBegin() const noexcept { return reinterpret_cast<const TKey*>( m_keyList.begin() ); }
-    auto keyBegin() noexcept { return reinterpret_cast<TKey*>( m_keyList.begin() ); }
+    auto keyBegin() const noexcept { return reinterpret_cast<const TKey*>( &m_keyList[ 0 ] ); }
+    auto keyBegin() noexcept { return reinterpret_cast<TKey*>( &m_keyList[ 0 ] ); }
     auto keyEnd() const noexcept { return keyBegin() + m_currentSize; }
     auto keyEnd() noexcept { return keyBegin() + m_currentSize ; }
-    auto valueBegin() const noexcept { return reinterpret_cast<const TValue*>( m_valueList.begin() ); }
-    auto valueBegin() noexcept { return reinterpret_cast<TValue*>( m_valueList.begin() ); }
+    auto valueBegin() const noexcept { return reinterpret_cast<const TValue*>( &m_valueList[ 0 ] ); }
+    auto valueBegin() noexcept { return reinterpret_cast<TValue*>( &m_valueList[ 0 ] ); }
     auto valueEnd() const noexcept { return valueBegin() + m_currentSize; }
     auto valueEnd() noexcept { return valueBegin() + m_currentSize; }
 
