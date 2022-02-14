@@ -113,7 +113,7 @@ Image::Image( VkPhysicalDevice physDevice
         VK_COMPONENT_SWIZZLE_IDENTITY,
     };
     const VkImageSubresourceRange subresourceRange{
-        .aspectMask = aspectFlags,
+        .aspectMask = static_cast<VkImageAspectFlags>( aspectFlags ),
         .baseMipLevel = 0,
         .levelCount = mipCount,
         .baseArrayLayer = 0,

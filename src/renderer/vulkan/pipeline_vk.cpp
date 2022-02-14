@@ -69,7 +69,7 @@ static constexpr auto attributeAssembly( const PipelineCreateInfo& pci )
     return std::make_tuple( assembly, bindCount );
 }
 
-static constexpr auto cullMode( PipelineCreateInfo::CullMode cm )
+static constexpr VkCullModeFlags cullMode( PipelineCreateInfo::CullMode cm )
 {
     using enum PipelineCreateInfo::CullMode;
     switch ( cm ) {
