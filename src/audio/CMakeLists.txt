@@ -1,5 +1,3 @@
-find_package( SDL2 REQUIRED )
-
 add_library( audio STATIC )
 set_cppver( audio 20 )
 

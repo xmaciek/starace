@@ -1,5 +1,4 @@
 find_package( Threads REQUIRED )
-find_package( SDL2 REQUIRED )
 
 add_subdirectory( audio )
 add_subdirectory( renderer )

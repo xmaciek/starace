@@ -1,5 +1,3 @@
-find_package( Vulkan REQUIRED )
-
 add_library( renderer_vk STATIC )
 set_cppver( renderer_vk 20 )
 

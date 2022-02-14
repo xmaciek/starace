@@ -20,6 +20,7 @@ function( set_cppver tgt cppver )
     )
 endfunction()
 
+find_package( Vulkan REQUIRED )
 add_subdirectory( sdk )
 add_subdirectory( misc )
 add_subdirectory( models )

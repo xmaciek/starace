@@ -2,7 +2,7 @@
 
 #include "action_mapping.hpp"
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <Tracy.hpp>
 
 #include <chrono>

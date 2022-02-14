@@ -2,7 +2,7 @@
 
 #include "utils_vk.hpp"
 
-#include <SDL2/SDL_vulkan.h>
+#include <SDL_vulkan.h>
 #include <Tracy.hpp>
 
 #include <algorithm>

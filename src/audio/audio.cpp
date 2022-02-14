@@ -2,7 +2,7 @@
 
 #include <Tracy.hpp>
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #include <algorithm>
 #include <cassert>

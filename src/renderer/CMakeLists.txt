@@ -1,5 +1,3 @@
-find_package( SDL2 REQUIRED )
-
 add_library( renderer INTERFACE )
 set_cppver( renderer 20 )
 

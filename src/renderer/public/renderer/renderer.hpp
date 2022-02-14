@@ -4,7 +4,7 @@
 #include <renderer/texture.hpp>
 #include <renderer/pipeline.hpp>
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #include <cstdint>
 #include <memory_resource>

@@ -27,7 +27,7 @@
 #include <shared/pool.hpp>
 #include <shared/rotary_index.hpp>
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #include <mutex>
 #include <thread>

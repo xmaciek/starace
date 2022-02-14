@@ -1,5 +1,3 @@
-find_package( SDL2 REQUIRED )
-
 add_library( engine STATIC )
 set_cppver( engine 20 )
 

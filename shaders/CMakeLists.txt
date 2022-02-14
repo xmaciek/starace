@@ -6,7 +6,7 @@ function( compileShader file )
     add_custom_command(
         OUTPUT "${file}.spv"
         DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${file}"
-        COMMAND glslc "${CMAKE_CURRENT_SOURCE_DIR}/${file}" -o "${file}.spv"
+        COMMAND Vulkan::glslc "${CMAKE_CURRENT_SOURCE_DIR}/${file}" -o "${file}.spv"
     )
     add_dependencies( shader "shader.${file}" )
 endfunction()

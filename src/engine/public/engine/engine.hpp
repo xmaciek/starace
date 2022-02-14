@@ -9,7 +9,7 @@
 #include <audio/audio.hpp>
 #include <renderer/renderer.hpp>
 
-#include <SDL2/SDL_events.h>
+#include <SDL_events.h>
 
 #include <atomic>
 #include <cstdint>
