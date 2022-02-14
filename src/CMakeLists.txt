@@ -93,6 +93,7 @@ target_link_libraries( ${bin_name}
     engine
     Freetype::Freetype
     SDL2::SDL2
+    SDL2::main
     Threads::Threads
     glm::glm
 )

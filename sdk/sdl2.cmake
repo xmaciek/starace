@@ -40,6 +40,7 @@ if ( NOT TARGET SDL2::SDL2 AND UNIX )
     add_library( SDL2::main ALIAS sdl2main )
     set_target_properties( sdl2main PROPERTIES
         LINK_LIBRARIES "/usr/lib/libSDL2main.a"
+        IMPORTED_LOCATION "/usr/lib/libSDL2main.a"
     )
 endif()
 
