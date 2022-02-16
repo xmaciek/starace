@@ -37,10 +37,10 @@ static BinaryConfigBlob loadConfig()
     while ( getline( file, line ) ) {
         std::sscanf( line.c_str(), "%s %s", tmp1.data(), tmp2.data() );
         if ( std::strcmp( tmp1.data(), "windowWidth" ) == 0 ) {
-            ret.windowExtent.first = std::atoi( tmp2.data() );
+            ret.windowExtent.first = static_cast<uint32_t>( std::atoi( tmp2.data() ) );
         }
         else if ( std::strcmp( tmp1.data(), "windowHeight" ) == 0 ) {
-            ret.windowExtent.second = std::atoi( tmp2.data() );
+            ret.windowExtent.second = static_cast<uint32_t>( std::atoi( tmp2.data() ) );
         }
     }
     return ret;
@@ -160,8 +160,8 @@ void Engine::processEvents()
         case SDL_WINDOWEVENT:
             switch ( event.window.event ) {
             case SDL_WINDOWEVENT_RESIZED:
-                setViewport( event.window.data1, event.window.data2 );
-                onResize( event.window.data1, event.window.data2 );
+                setViewport( static_cast<uint32_t>( event.window.data1 ), static_cast<uint32_t>( event.window.data2 ) );
+                onResize( static_cast<uint32_t>( event.window.data1 ), static_cast<uint32_t>( event.window.data2 ) );
                 break;
             }
             break;

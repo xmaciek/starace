@@ -23,7 +23,7 @@ void FPSMeter::frameEnd()
     uint32_t framesDone = 0;
     std::swap( framesDone, m_framesDone );
     m_framesReallyDone = framesDone;
-    const uint64_t usec = std::chrono::duration_cast<std::chrono::microseconds>( m_accumulatedDuration ).count();
+    const auto usec = std::chrono::duration_cast<std::chrono::microseconds>( m_accumulatedDuration ).count();
     m_accumulatedDuration = std::chrono::seconds( 0 );
     const float averageFrameDuration = static_cast<float>( usec ) / static_cast<float>( framesDone );
     m_lastFpsValue = 1'000'000.0f / averageFrameDuration;

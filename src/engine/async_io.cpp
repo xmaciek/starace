@@ -79,7 +79,7 @@ void AsyncIO::run()
         }
 
         const std::streamsize size = ifs.tellg();
-        ticket->data.resize( size );
+        ticket->data.resize( static_cast<std::size_t>( size ) );
         ifs.seekg( 0 );
         ifs.read( reinterpret_cast<char*>( ticket->data.data() ), size );
         finish( ticket );
