@@ -144,11 +144,15 @@ int main( int argc, char** argv )
     ifs.close();
 
     for ( auto& it : dataOut ) {
-        it.first.floatCount = it.second.size();
+        if ( it.second.size() > std::numeric_limits<uint32_t>::max() ) {
+            std::cout << "[ FAIL ] float count too large, number exceeds max of uint32_t" << std::endl;
+            return 1;
+        }
+        it.first.floatCount = static_cast<uint32_t>( it.second.size() );
     }
 
     obj::Header header{};
-    header.chunkCount = dataOut.size();
+    header.chunkCount = static_cast<uint32_t>( dataOut.size() );
 
     std::ofstream ofs( dst, std::ios::binary );
     if ( !ofs.is_open() ) {
