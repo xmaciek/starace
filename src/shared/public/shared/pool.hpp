@@ -43,7 +43,9 @@ public:
     void dealloc( void* ptr ) noexcept
     {
         m_numAllocs.fetch_sub( 1 );
-        const size_t index = reinterpret_cast<const Storage*>( ptr ) - &m_data.front();
+        const std::uintptr_t index = static_cast<std::uintptr_t>(
+            reinterpret_cast<const Storage*>( ptr ) - &m_data.front()
+        );
         assert( index < m_data.size() );
         Super::release( index );
     }
