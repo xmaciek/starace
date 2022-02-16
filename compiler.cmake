@@ -2,21 +2,25 @@ add_library( cxx::flags INTERFACE IMPORTED )
 
 if ( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" )
 target_compile_options( cxx::flags INTERFACE
-    -Werror
     -Wall
+    -Wconversion
+    -Werror
     -Wextra
     -Wno-missing-field-initializers
-    -fno-rtti
+    -Wpedantic
     -fno-exceptions
+    -fno-rtti
 )
 elseif ( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" )
 target_compile_options( cxx::flags INTERFACE
-    -Werror
     -Wall
+    -Wconversion
+    -Werror
     -Wextra
     -Wno-missing-field-initializers
-    -fno-rtti
+    -Wpedantic
     -fno-exceptions
+    -fno-rtti
 )
 elseif ( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" )
 else ()
