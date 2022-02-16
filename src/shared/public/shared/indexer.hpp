@@ -30,7 +30,7 @@ protected:
             oldValue = atomic.load();
             const uint64_t neg = ~oldValue;
             if ( neg == 0 ) { return c_invalidIndex; }
-            index = std::countl_zero( neg );
+            index = static_cast<uint64_t>( std::countl_zero( neg ) );
             const uint64_t bitToSet = c_bitMax - index;
             const uint64_t bitMask = c_bit << bitToSet;
             assert( std::popcount( bitMask ) == 1 );
