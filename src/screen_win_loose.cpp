@@ -78,7 +78,7 @@ bool ScreenWinLoose::onAction( Action a )
     return false;
 }
 
-void ScreenWinLoose::setScore( uint16_t v )
+void ScreenWinLoose::setScore( uint32_t v )
 {
     m_scoreValue.setText( intToUTF32( v ) );
 }

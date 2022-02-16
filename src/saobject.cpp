@@ -54,7 +54,7 @@ uint8_t SAObject::health() const
 
 void SAObject::update( const UpdateContext& )
 {
-    m_health -= std::min<uint16_t>( m_health, m_pendingDamage );
+    m_health = static_cast<uint8_t>( std::max( m_health - m_pendingDamage, 0 ) );
     m_pendingDamage = 0;
     if ( m_health == 0 ) {
         setStatus( Status::eDead );

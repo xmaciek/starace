@@ -5,22 +5,22 @@ static constexpr long double kmph = ( 1.0 / 3600.0 ) * 1000.0 * meter;
 
 constexpr float operator ""_kmph( long double v ) noexcept
 {
-    return v * kmph;
+    return static_cast<float>( v * kmph );
 }
 
 constexpr float operator ""_kmph( unsigned long long v ) noexcept
 {
-    return static_cast<long double>( v ) * kmph;
+    return static_cast<float>( static_cast<long double>( v ) * kmph );
 }
 
 constexpr float value2kmph( float v ) noexcept
 {
-    return v / kmph;
+    return static_cast<float>( v / kmph );
 }
 
 constexpr float operator ""_m( long double v ) noexcept
 {
-    return v * meter;
+    return static_cast<float>( v * meter );
 }
 
 constexpr static float operator ""_deg ( long double f ) noexcept

@@ -26,7 +26,7 @@ public:
 
     TScalar operator ()() noexcept
     {
-        const float angle = m_angle * ( m_i++ % m_max );
+        const float angle = m_angle * static_cast<float>( m_i++ % m_max );
         const float x = -std::cos( angle ) * m_size;
         const float y = std::sin( angle ) * m_size;
         constexpr size_t nfloat = sizeof( TScalar ) / sizeof( float );

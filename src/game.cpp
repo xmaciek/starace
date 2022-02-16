@@ -264,7 +264,7 @@ void Game::onInit()
     BulletProto tmpWeapon{};
     tmpWeapon.texture = m_textures[ "textures/plasma.tga" ];
     tmpWeapon.type = Bullet::Type::eSlug;
-    tmpWeapon.delay = 0.05;
+    tmpWeapon.delay = 0.05f;
     tmpWeapon.energy = 15;
     tmpWeapon.damage = 1;
     tmpWeapon.score_per_hit = 1;
@@ -276,7 +276,7 @@ void Game::onInit()
     tmpWeapon.speed = 5100_kmph;
     tmpWeapon.damage = 10;
     tmpWeapon.energy = 10;
-    tmpWeapon.delay = 0.1;
+    tmpWeapon.delay = 0.1f;
     tmpWeapon.color1 = color::blaster;
     tmpWeapon.color2 = color::dodgerBlue;
     tmpWeapon.score_per_hit = 30;
@@ -284,12 +284,12 @@ void Game::onInit()
 
     tmpWeapon.color1 = color::yellowBlaster;
     tmpWeapon.color2 = color::white;
-    tmpWeapon.delay = 0.4;
+    tmpWeapon.delay = 0.4f;
     m_weapons[ 3 ] = tmpWeapon;
 
     tmpWeapon.type = Bullet::Type::eTorpedo;
     tmpWeapon.damage = 1;
-    tmpWeapon.delay = 0.2;
+    tmpWeapon.delay = 0.2f;
     tmpWeapon.energy = 1;
     tmpWeapon.speed = 2400_kmph;
     tmpWeapon.score_per_hit = 2;
@@ -352,7 +352,7 @@ void Game::onRender( RenderContext rctx )
     ZoneScoped;
     const auto [ width, height, aspect ] = viewport();
     const auto [ view, projection ] = getCameraMatrix();
-    rctx.projection = math::ortho( 0.0f, width, 0.0f, height, -100.0f, 100.0f );
+    rctx.projection = math::ortho( 0.0f, static_cast<float>( width ), 0.0f, static_cast<float>( height ), -100.0f, 100.0f );
     rctx.camera3d = projection * view;
     rctx.viewport = { width, height };
 
@@ -536,9 +536,9 @@ void Game::updateGame( const UpdateContext& updateContext )
         m_targeting.hide();
     }
 
-    m_hudData.calc = (uint32_t)m_fpsMeter.calculated();
-    m_hudData.fps = (uint32_t)m_fpsMeter.fps();
-    m_hudData.pool = m_poolBullets.allocCount();
+    m_hudData.calc = static_cast<uint32_t>( m_fpsMeter.calculated() );
+    m_hudData.fps = static_cast<uint32_t>( m_fpsMeter.fps() );
+    m_hudData.pool = static_cast<uint32_t>( m_poolBullets.allocCount() );
     m_hudData.speed = m_jet.speed();
     m_hudData.hp = static_cast<float>( m_jet.health() ) / 100.0f;
     m_hudData.pwr = static_cast<float>( m_jet.energy() ) / 100.0f;
@@ -942,8 +942,8 @@ void Game::renderBackground( RenderContext rctx ) const
 {
     [[maybe_unused]]
     const auto [ w, h, a ] = viewport();
-    const float u = w / 8;
-    const float v = h / 8;
+    const float u = static_cast<float>( w / 8 );
+    const float v = static_cast<float>( h / 8 );
 
     const PushBuffer pushBuffer{
         .m_pipeline = static_cast<PipelineSlot>( Pipeline::eBackground ),
@@ -959,8 +959,8 @@ void Game::renderBackground( RenderContext rctx ) const
 
     const float x = 0;
     const float y = 0;
-    const float xw = x + w;
-    const float yh = y + h;
+    const float xw = x + static_cast<float>( w );
+    const float yh = y + static_cast<float>( h );
     pushConstant.m_vertices[ 0 ] = math::vec4{ x, y, 0.0f, 0.0f };
     pushConstant.m_vertices[ 1 ] = math::vec4{ x, yh, 0.0f, v };
     pushConstant.m_vertices[ 2 ] = math::vec4{ xw, yh, u, v };
