@@ -19,6 +19,7 @@ constexpr unsigned long long operator""_Hz( unsigned long long hz ) noexcept
 }
 
 struct Buffer {
+    using size_type = std::vector<Uint8>::size_type;
     std::vector<Uint8> data{};
     SDL_AudioSpec spec{};
 
@@ -69,7 +70,8 @@ SDLAudioEngine::SDLAudioEngine()
 {
     ZoneScoped;
     SDL_InitSubSystem( SDL_INIT_AUDIO );
-    std::vector<std::string> audioDrivers( SDL_GetNumAudioDrivers() );
+    using size_type = std::vector<std::string>::size_type;
+    std::vector<std::string> audioDrivers( static_cast<size_type>( SDL_GetNumAudioDrivers() ) );
     for ( size_t i = 0; i < audioDrivers.size(); ++i ) {
         audioDrivers[ i ] = SDL_GetAudioDriver( (int)i );
     }
@@ -86,11 +88,14 @@ SDLAudioEngine::SDLAudioEngine()
     }( audioDrivers );
     assert( initOK );
 
-    std::vector<std::string> audioDevices( SDL_GetNumAudioDevices( false ) );
-    for ( size_t i = 0; i < audioDevices.size(); ++i ) {
-        audioDevices[ i ] = SDL_GetAudioDeviceName( (int)i, false );
-    }
+    std::vector<std::string> audioDevices( static_cast<size_type>( SDL_GetNumAudioDevices( false ) ) );
     assert( !audioDevices.empty() );
+    {
+        int idx = 0;
+        for ( auto& it : audioDevices ) {
+            it = SDL_GetAudioDeviceName( idx++, false );
+        }
+    }
 
     const SDL_AudioSpec want{
         .freq = 48000_Hz,
@@ -128,9 +133,8 @@ void SDLAudioEngine::callback( void* userData, Uint8* stream, int len )
         assert( it.buffer );
         assert( it.buffer->data.size() >= it.position );
         const Uint32 lengthRemaining = static_cast<Uint32>( it.buffer->data.size() ) - it.position;
-        const Uint32 playLength = std::min<Uint32>( len, lengthRemaining );
+        const Uint32 playLength = std::min( static_cast<Uint32>( len ), lengthRemaining );
         SDL_MixAudioFormat( stream, it.buffer->data.data() + it.position, instance->m_spec.format, playLength, SDL_MIX_MAXVOLUME );
-
         it.position += playLength;
     }
 
@@ -160,7 +164,7 @@ Audio::Chunk SDLAudioEngine::load( std::string_view file )
     SDL_BuildAudioCVT( &cvt, buffer.spec.format, buffer.spec.channels, buffer.spec.freq, m_spec.format, m_spec.channels, m_spec.freq );
     assert( cvt.needed );
 
-    buffer.data.resize( tmpLen * cvt.len_mult );
+    buffer.data.resize( static_cast<Buffer::size_type>( tmpLen ) * static_cast<Buffer::size_type>( cvt.len_mult ) );
     cvt.buf = buffer.data.data();
     cvt.len = (int)tmpLen;
     std::copy( tmpBuff, tmpBuff + tmpLen, buffer.data.begin() );
@@ -168,7 +172,7 @@ Audio::Chunk SDLAudioEngine::load( std::string_view file )
     [[maybe_unused]]
     const int convertErr = SDL_ConvertAudio( &cvt );
     assert( convertErr == 0 );
-    buffer.data.resize( cvt.len_cvt );
+    buffer.data.resize( static_cast<Buffer::size_type>( cvt.len_cvt ) );
 
     buffer.spec = m_spec;
     SDL_FreeWAV( tmpBuff );
