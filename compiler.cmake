@@ -18,6 +18,7 @@ target_compile_options( cxx::flags INTERFACE
     -Werror
     -Wextra
     -Wno-missing-field-initializers
+    -Wno-string-conversion
     -Wpedantic
     -fno-exceptions
     -fno-rtti
