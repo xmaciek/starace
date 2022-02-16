@@ -380,7 +380,7 @@ VkCommandBuffer RendererVK::flushUniforms()
 Buffer RendererVK::createBuffer( std::pmr::vector<float>&& vec )
 {
     ZoneScoped;
-    BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, vec.size() * sizeof( float ) };
+    BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, static_cast<uint32_t>( vec.size() * sizeof( float ) ) };
     staging.copyData( reinterpret_cast<const uint8_t*>( vec.data() ) );
 
     BufferVK* buff = new BufferVK{ m_physicalDevice, m_device, BufferVK::Purpose::eVertex, staging.sizeInBytes() };
@@ -413,7 +413,7 @@ Buffer RendererVK::createBuffer( std::pmr::vector<float>&& vec )
         vkQueueWaitIdle( queue );
     }
 
-    const uint32_t idx = m_bufferIndexer.next();
+    const uint32_t idx = static_cast<uint32_t>( m_bufferIndexer.next() );
     [[maybe_unused]]
     BufferVK* oldBuff = m_bufferSlots[ idx ].exchange( buff );
     assert( !oldBuff );
@@ -425,7 +425,7 @@ std::pmr::memory_resource* RendererVK::allocator()
     return std::pmr::get_default_resource();
 }
 
-static size_t formatToSize( TextureFormat fmt )
+static uint32_t formatToSize( TextureFormat fmt )
 {
     switch ( fmt ) {
     case TextureFormat::eR:
@@ -455,7 +455,7 @@ Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::pmr::vecto
         assert( !"unsuported format" );
         return 0;
     }
-    const std::size_t size = tci.width * tci.height * formatToSize( tci.format );
+    const uint32_t size = tci.width * tci.height * formatToSize( tci.format );
     assert( ( size + tci.dataBeginOffset ) <= data.size() );
     BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, size };
     staging.copyData( data.data() + tci.dataBeginOffset );
@@ -489,7 +489,7 @@ Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::pmr::vecto
         vkQueueWaitIdle( queue );
     }
 
-    const uint32_t idx = m_textureIndexer.next();
+    const uint32_t idx = static_cast<uint32_t>( m_textureIndexer.next() );
     [[maybe_unused]]
     TextureVK* oldTex = m_textureSlots[ idx ].exchange( tex );
     assert( !oldTex );

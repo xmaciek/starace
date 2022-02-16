@@ -39,7 +39,7 @@ BufferVK& BufferVK::operator = ( BufferVK&& rhs ) noexcept
     return *this;
 }
 
-BufferVK::BufferVK( VkPhysicalDevice physicalDevice, VkDevice device, Purpose purpose, std::size_t size ) noexcept
+BufferVK::BufferVK( VkPhysicalDevice physicalDevice, VkDevice device, Purpose purpose, uint32_t size ) noexcept
 : m_device( device )
 , m_size( size )
 , m_purpose( purpose )
@@ -115,7 +115,7 @@ BufferVK::operator VkBuffer () const
     return m_buffer;
 }
 
-std::size_t BufferVK::sizeInBytes() const
+uint32_t BufferVK::sizeInBytes() const
 {
     return m_size;
 }
