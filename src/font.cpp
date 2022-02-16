@@ -42,31 +42,9 @@ static std::array<math::vec4, 6> composeVertice( math::vec4 uv, math::vec2 advan
     };
 }
 
-template <size_t TPitch>
-constexpr std::pair<size_t, size_t> indexToXY( size_t i ) noexcept
-{
-    return {
-        i % TPitch,
-        i / TPitch,
-    };
-}
-
-template <size_t TPitch>
-math::vec4 makeSlotUV( size_t i, math::vec2 renornalizedUV ) noexcept
-{
-    constexpr float advance = 1.0f / TPitch;
-    const auto [ x, y ] = indexToXY<TPitch>( i );
-    return {
-        advance * x,
-        advance * y,
-        advance * x + renornalizedUV.x,
-        advance * y + renornalizedUV.y,
-    };
-}
-
 struct BlitIterator {
     using value_type = uint8_t;
-    using size_type = size_t;
+    using size_type = uint32_t;
     using reference = value_type&;
     using pointer = value_type*;
     using difference_type = std::ptrdiff_t;
@@ -80,6 +58,7 @@ struct BlitIterator {
     size_type m_srcWidth = 0;
     size_type m_i = 0;
 
+    BlitIterator() noexcept = default;
     BlitIterator( pointer p, pointer end, size_type dstPitch, size_type dstX, size_type dstY, size_type srcWidth ) noexcept
     : m_data{ p }
     , m_end{ end }
@@ -96,8 +75,8 @@ struct BlitIterator {
         assert( m_data );
         assert( m_dstPitch );
         assert( m_srcWidth );
-        const size_t begin = m_dstPitch * m_dstY + m_dstX;
-        const size_t offset = m_dstPitch * ( m_i / m_srcWidth ) + ( m_i % m_srcWidth );
+        const difference_type begin = m_dstPitch * m_dstY + m_dstX;
+        const difference_type offset = m_dstPitch * ( m_i / m_srcWidth ) + ( m_i % m_srcWidth );
         pointer address = m_data + begin + offset;
         assert( address < m_end );
         return *address;
@@ -127,7 +106,54 @@ struct BlitIterator {
     }
 };
 
-static std::tuple<Font::Glyph, uint32_t, std::pmr::vector<uint8_t>> makeGlyph( const FT_Face& face, char32_t ch, uint32_t index, uint32_t dstPitch )
+struct Atlas {
+    using value_type = uint8_t;
+    using pointer = value_type*;
+
+    pointer m_begin = nullptr;
+    pointer m_end = nullptr;
+    uint32_t m_width = 0u;
+    uint32_t m_height = 0u;
+    uint32_t m_currentX = 0u;
+    uint32_t m_currentY = 0u;
+    uint32_t m_nextY = 0;
+
+    std::tuple<uint32_t, uint32_t> coords( uint32_t width, uint32_t height, uint32_t padding )
+    {
+        assert( width <= m_width );
+        assert( height <= m_height );
+        assert( m_currentY + height < m_height );
+
+        if ( ( m_currentX + width ) > m_width ) {
+            m_currentX = 0u;
+            m_currentY = m_nextY;
+        }
+
+        uint32_t retX = m_currentX;
+        m_nextY = std::max( m_currentY + height + padding, m_nextY );
+        m_currentX += width + padding;
+        assert( m_currentY < m_height );
+        return { retX, m_currentY };
+    }
+
+    std::tuple<BlitIterator, math::vec4> findPlace( uint32_t width, uint32_t height, uint32_t padding )
+    {
+        const auto [ x, y ] = coords( width, height, padding );
+        const float fx = static_cast<float>( x ) / static_cast<float>( m_width );
+        const float fy = static_cast<float>( y ) / static_cast<float>( m_height );
+        math::vec4 xyxy{ fx, fy,
+            fx + static_cast<float>( width ) / static_cast<float>( m_width ),
+            fy + static_cast<float>( height ) / static_cast<float>( m_height ),
+        };
+        return {
+            BlitIterator{ m_begin, m_end, m_width, x, y, width },
+            xyxy,
+        };
+
+    }
+};
+
+static std::tuple<Font::Glyph, uint32_t, std::pmr::vector<uint8_t>> makeGlyph( const FT_Face& face, char32_t ch )
 {
     ZoneScoped;
     const FT_UInt glyphIndex = FT_Get_Char_Index( face, ch );
@@ -150,12 +176,6 @@ static std::tuple<Font::Glyph, uint32_t, std::pmr::vector<uint8_t>> makeGlyph( c
     glyph.advance = math::vec2{ slot->metrics.horiAdvance, slot->metrics.vertAdvance } / FONT_RESOLUTION_SCALE;
     glyph.padding = math::vec2{ slot->metrics.horiBearingX, slot->metrics.horiBearingY } / FONT_RESOLUTION_SCALE;
     glyph.size = math::vec2{ slot->metrics.width, slot->metrics.height } / FONT_RESOLUTION_SCALE;
-    const math::vec2 renormalizedUV = glyph.size / (float)dstPitch * FONT_SIZE_SCALE;
-    glyph.uv = makeSlotUV<TILE_COUNT>( index, renormalizedUV );
-    assert( glyph.uv.x >= 0.0f );
-    assert( glyph.uv.x <= 1.0f );
-    assert( glyph.uv.y >= 0.0f );
-    assert( glyph.uv.y <= 1.0f );
     return { glyph, slot->bitmap.pitch, data };
 }
 
@@ -167,7 +187,6 @@ Font::Font( const CreateInfo& fontInfo, uint32_t height )
     assert( !fontInfo.fontFileContent->empty() );
     assert( fontInfo.renderer );
     assert( !fontInfo.charset.empty() );
-    assert( fontInfo.charset.size() <= TILE_COUNT * TILE_COUNT );
     assert( std::is_sorted( fontInfo.charset.begin(), fontInfo.charset.end() ) );
     assert( height > 0 );
 
@@ -192,20 +211,25 @@ Font::Font( const CreateInfo& fontInfo, uint32_t height )
     const FT_Error pixelSizeErr = FT_Set_Pixel_Sizes( face, 0, pixelSize );
     assert( !pixelSizeErr );
 
-    const size_t textureSize = std::pow( FONT_SIZE_SCALE * ( height + TILE_PADDING ) * TILE_COUNT, 2.0f );
+    const uint32_t dstPitch = static_cast<uint32_t>( FONT_SIZE_SCALE * (float)( height + TILE_PADDING ) * TILE_COUNT );
+    const uint32_t textureSize = dstPitch * dstPitch;
     std::pmr::vector<uint8_t> texture( textureSize, fontInfo.renderer->allocator() );
-    const size_t dstPitch = static_cast<size_t>( FONT_SIZE_SCALE * (float)( height + TILE_PADDING ) * TILE_COUNT );
 
-    for ( size_t i = 0; i < fontInfo.charset.size(); i++ ) {
-        auto [ glyph, pitch, data ] = makeGlyph( face, fontInfo.charset[ i ], i, dstPitch );
+    Atlas atlas {
+        .m_begin = texture.data(),
+        .m_end = texture.data() + texture.size(),
+        .m_width = dstPitch,
+        .m_height = dstPitch,
+    };
+    for ( uint32_t i = 0; i < fontInfo.charset.size(); i++ ) {
+        auto [ glyph, pitch, data ] = makeGlyph( face, fontInfo.charset[ i ] );
+        BlitIterator dst;
+        const math::vec2 size = glyph.size * FONT_SIZE_SCALE;
+        std::tie( dst, glyph.uv ) = atlas.findPlace( static_cast<uint32_t>( size.x ), static_cast<uint32_t>( size.y ), TILE_PADDING );
         m_glyphs.pushBack( fontInfo.charset[ i ], glyph );
         if ( pitch == 0 ) {
             continue;
         }
-        auto [ x, y ] = indexToXY<TILE_COUNT>( i );
-        x *= dstPitch / TILE_COUNT;
-        y *= dstPitch / TILE_COUNT;
-        BlitIterator dst{ texture.data(), texture.data() + texture.size(), dstPitch, x, y, pitch };
         std::copy( data.begin(), data.end(), dst );
     }
 
