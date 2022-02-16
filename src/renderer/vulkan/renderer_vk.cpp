@@ -254,7 +254,7 @@ RendererVK::RendererVK( SDL_Window* window )
         assert( renderOK == VK_SUCCESS );
     }
 
-    int i = 1;
+    uint32_t i = 1;
     m_frames.resize( m_swapchain.imageCount() );
     for ( auto& it : m_frames ) {
         it.m_renderDepthTarget = RenderTarget{ RenderTarget::c_depth

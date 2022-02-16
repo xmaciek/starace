@@ -49,7 +49,8 @@ static VkDescriptorSetLayout createLayout( VkDevice device, uint16_t constantBin
     assert( ( constantBindBits & samplerBindBits ) == 0 ); // mutually exclusive bits
 
     std::pmr::vector<VkDescriptorSetLayoutBinding> layoutBinding{};
-    layoutBinding.reserve( std::popcount( samplerBindBits ) + 1 );
+    using size_type = decltype( layoutBinding )::size_type;
+    layoutBinding.reserve( static_cast<size_type>( std::popcount( samplerBindBits ) + 1 ) );
     layoutBinding.emplace_back( VkDescriptorSetLayoutBinding{
         .binding = *BitIndexIterator( constantBindBits ),
         .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
@@ -99,7 +100,7 @@ DescriptorSet::DescriptorSet(
         VkDescriptorPoolSize{ .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, .descriptorCount = setsPerFrame },
         VkDescriptorPoolSize{
             .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = setsPerFrame * std::popcount( samplerBindBits ),
+            .descriptorCount = setsPerFrame * static_cast<uint32_t>( std::popcount( samplerBindBits ) ),
         }
     };
 

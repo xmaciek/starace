@@ -12,10 +12,10 @@ static std::pmr::vector<char> getShaderContent( std::string_view filePath )
 {
     std::ifstream ifs( std::string{ filePath }, std::ios::binary | std::ios::ate );
     assert( ifs.is_open() );
-    const std::size_t size = ifs.tellg();
+    const std::streamsize size = ifs.tellg();
     assert( size > 0 );
     assert( size % 4 == 0 );
-    std::pmr::vector<char> vec( size );
+    std::pmr::vector<char> vec( static_cast<std::size_t>( size ) );
     ifs.seekg( 0 );
     ifs.read( vec.data(), (int)size );
     return vec;
