@@ -127,7 +127,7 @@ void SDLAudioEngine::callback( void* userData, Uint8* stream, int len )
     for ( BufferPlayed& it : instance->m_nowPlaying ) {
         assert( it.buffer );
         assert( it.buffer->data.size() >= it.position );
-        const Uint32 lengthRemaining = it.buffer->data.size() - it.position;
+        const Uint32 lengthRemaining = static_cast<Uint32>( it.buffer->data.size() ) - it.position;
         const Uint32 playLength = std::min<Uint32>( len, lengthRemaining );
         SDL_MixAudioFormat( stream, it.buffer->data.data() + it.position, instance->m_spec.format, playLength, SDL_MIX_MAXVOLUME );
 
