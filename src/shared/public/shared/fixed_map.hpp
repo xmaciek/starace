@@ -22,6 +22,7 @@ class FixedMap {
     }
 
     using size_type = std::size_t;
+    using difference_type = std::intptr_t;
     using TKeyStorage = std::conditional_t<isTrivial<TKey>(), TKey, std::aligned_storage_t<sizeof(TKey), alignof(TKey)>>;
     using TValueStorage = std::conditional_t<isTrivial<TValue>(), TValue, std::aligned_storage_t<sizeof(TValue), alignof(TValue)>>;
     std::array<TKeyStorage, TCapacity> m_keyList{};
@@ -56,7 +57,7 @@ public:
         assert( std::is_sorted( keyBegin(), keyEnd() ) );
         auto it = std::lower_bound( keyBegin(), keyEnd(), k );
         if ( it == keyEnd() ) { return nullptr; }
-        const size_type dist = it - keyBegin();
+        const difference_type dist = it - keyBegin();
         return valueBegin() + dist;
     }
 
@@ -65,7 +66,7 @@ public:
         assert( std::is_sorted( keyBegin(), keyEnd() ) );
         auto it = std::lower_bound( keyBegin(), keyEnd(), k );
         if ( it == keyEnd() ) { return nullptr; }
-        const size_type dist = it - keyBegin();
+        const difference_type dist = it - keyBegin();
         return valueBegin() + dist;
     }
 
@@ -74,8 +75,8 @@ public:
         assert( std::is_sorted( keyBegin(), keyEnd() ) );
         auto [ begin, end ] = std::equal_range( keyBegin(), keyEnd(), k );
         if ( begin == end || begin == keyEnd() ) { return {}; }
-        const size_type diffBegin = begin - keyBegin();
-        const size_type diffEnd = end - keyBegin();
+        const difference_type diffBegin = begin - keyBegin();
+        const difference_type diffEnd = end - keyBegin();
         return { valueBegin() + diffBegin, valueBegin() + diffEnd };
     }
 
@@ -84,8 +85,8 @@ public:
         assert( std::is_sorted( keyBegin(), keyEnd() ) );
         auto [ begin, end ] = std::equal_range( keyBegin(), keyEnd(), k );
         if ( begin == end || begin == keyEnd() ) { return {}; }
-        const size_type diffBegin = begin - keyBegin();
-        const size_type diffEnd = end - keyBegin();
+        const difference_type diffBegin = begin - keyBegin();
+        const difference_type diffEnd = end - keyBegin();
         return { valueBegin() + diffBegin, valueBegin() + diffEnd };
     }
 
@@ -119,7 +120,7 @@ public:
             return;
         }
 
-        const size_type dist = it - keyBegin();
+        const difference_type dist = it - keyBegin();
         std::rotate( keyBegin() + dist, keyEnd() - 1, keyEnd() );
         std::rotate( valueBegin() + dist, valueEnd() - 1, valueEnd() );
         assert( std::is_sorted( keyBegin(), keyEnd() ) );
@@ -137,7 +138,7 @@ public:
             return;
         }
 
-        const size_type dist = it - keyBegin();
+        const difference_type dist = it - keyBegin();
         std::rotate( keyBegin() + dist, keyEnd() - 1, keyEnd() );
         std::rotate( valueBegin() + dist, valueEnd() - 1, valueEnd() );
         assert( std::is_sorted( keyBegin(), keyEnd() ) );

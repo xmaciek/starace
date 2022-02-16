@@ -21,7 +21,7 @@ struct BitIndexIterator
 
     constexpr uint32_t operator * () const noexcept
     {
-        return std::countr_zero( m_integer );
+        return static_cast<uint32_t>( std::countr_zero( m_integer ) );
     }
 
     constexpr operator bool () const noexcept
@@ -31,7 +31,7 @@ struct BitIndexIterator
 
     constexpr BitIndexIterator& operator ++ () noexcept
     {
-        const int idx = **this;
+        const uint32_t idx = **this;
         const value_type tint = 1ull << idx;
         m_integer &= ~tint;
         return *this;
@@ -46,6 +46,6 @@ struct BitIndexIterator
 
     constexpr uint32_t count() const noexcept
     {
-        return std::popcount( m_integer );
+        return static_cast<uint32_t>( std::popcount( m_integer ) );
     }
 };
