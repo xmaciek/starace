@@ -32,7 +32,7 @@ int main( int argc, char** argv )
         return 1;
     }
 
-    const size_t size = ifs.tellg();
+    const size_t size = static_cast<size_t>( ifs.tellg() );
     if ( size < sizeof( tga::Header ) ) {
         std::cout << "[ FAIL ] invalid file " << src << std::endl;
         return 1;
@@ -63,7 +63,7 @@ int main( int argc, char** argv )
     header.bitsPerPixel = 32;
     std::vector<uint8_t> srcIn;
     srcIn.resize( 3u * header.width * header.height );
-    ifs.read( reinterpret_cast<char*>( srcIn.data() ), srcIn.size() );
+    ifs.read( reinterpret_cast<char*>( srcIn.data() ), static_cast<std::streamsize>( srcIn.size() ) );
     ifs.close();
     std::vector<uint32_t> dstOut;
     dstOut.resize( 1u * header.width * header.height );
@@ -90,6 +90,6 @@ int main( int argc, char** argv )
     }
 
     ofs.write( reinterpret_cast<const char*>( &header ), sizeof( header ) );
-    ofs.write( reinterpret_cast<const char*>( dstOut.data() ), dstOut.size() * sizeof( uint32_t ) );
+    ofs.write( reinterpret_cast<const char*>( dstOut.data() ), static_cast<std::streamsize>( dstOut.size() * sizeof( uint32_t ) ) );
     return 0;
 }

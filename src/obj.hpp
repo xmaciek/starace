@@ -14,16 +14,16 @@ constexpr uint32_t operator ""_magic( const char* str, size_t len ) noexcept
     switch ( len ) {
     default:
     case 4:
-        ret |= str[ 3 ];
+        ret |= static_cast<uint32_t>( str[ 3 ] );
     case 3:
         ret <<= 8;
-        ret |= str[ 2 ];
+        ret |= static_cast<uint32_t>( str[ 2 ] );
     case 2:
         ret <<= 8;
-        ret |= str[ 1 ];
+        ret |= static_cast<uint32_t>( str[ 1 ] );
     case 1:
         ret <<= 8;
-        ret |= str[ 0 ];
+        ret |= static_cast<uint32_t>( str[ 0 ] );
     case 0:
         break;
     }

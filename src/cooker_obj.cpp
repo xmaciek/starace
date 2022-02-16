@@ -163,7 +163,7 @@ int main( int argc, char** argv )
     ofs.write( reinterpret_cast<const char*>( &header ), sizeof( header ) );
     for ( const auto& it : dataOut ) {
         ofs.write( reinterpret_cast<const char*>( &it.first ), sizeof( obj::Chunk ) );
-        ofs.write( reinterpret_cast<const char*>( it.second.data() ), it.second.size() * sizeof( float ) );
+        ofs.write( reinterpret_cast<const char*>( it.second.data() ), static_cast<std::streamsize>( it.second.size() * sizeof( float ) ) );
     }
     return 0;
 }
