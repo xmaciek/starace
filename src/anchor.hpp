@@ -5,7 +5,7 @@
 
 constexpr uint16_t operator ""_bit( unsigned long long n ) noexcept
 {
-    return 1ull << n;
+    return static_cast<uint16_t>( 1ull << n );
 }
 
 enum class Anchor : uint16_t {

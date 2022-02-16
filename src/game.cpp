@@ -454,7 +454,7 @@ void Game::updateGame( const UpdateContext& updateContext )
         changeScreen( Screen::eWin );
     }
 
-    for ( auto i : { 0, 1, 2 } ) {
+    for ( auto i : { 0u, 1u, 2u } ) {
         if ( m_jet.isShooting( i ) ) {
             addBullet( i );
         }
@@ -694,7 +694,7 @@ void Game::loadMapProto()
             m_mapsContainer.back().name = value_2;
         }
         else if ( strcmp( value_1, "enemies" ) == 0 ) {
-            m_mapsContainer.back().enemies = atoi( value_2 );
+            m_mapsContainer.back().enemies = static_cast<uint32_t>( std::atoi( value_2 ) );
         }
         else if ( strcmp( value_1, "top" ) == 0 ) {
             m_mapsContainer.back().filePath[ MapCreateInfo::Wall::eTop ] = value_2;

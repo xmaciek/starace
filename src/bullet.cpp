@@ -84,7 +84,7 @@ void Bullet::render( RenderContext rctx ) const
     const float r[ 4 ] = { 0.15f, 0.2f, 0.25f, 0.3f };
     const float distance = math::distance( m_position, rctx.cameraPosition );
     const float lodRange[] = { 1000.0_m, 800.0_m, 600.0_m, 400.0_m };
-    for ( int i : { 0, 1, 2, 3 } ) {
+    for ( uint32_t i : { 0u, 1u, 2u, 3u } ) {
         if ( distance > lodRange[ i ] ) { continue; }
         afterGlow.m_radius = r[ i ];
         afterGlow.m_model = math::billboard( m_tail[ i ], rctx.cameraPosition, rctx.cameraUp );

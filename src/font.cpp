@@ -170,7 +170,8 @@ static std::tuple<Font::Glyph, uint32_t, std::pmr::vector<uint8_t>> makeGlyph( c
 
     Font::Glyph glyph{};
     std::pmr::vector<uint8_t> data{};
-    data.resize( slot->bitmap.pitch * slot->bitmap.rows );
+    using size_type = decltype( data )::size_type;
+    data.resize( static_cast<size_type>( slot->bitmap.pitch ) * static_cast<size_type>( slot->bitmap.rows ) );
     std::copy_n( slot->bitmap.buffer, data.size(), data.begin() );
 
     glyph.advance = math::vec2{ slot->metrics.horiAdvance, slot->metrics.vertAdvance } / FONT_RESOLUTION_SCALE;
