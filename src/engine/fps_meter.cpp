@@ -15,7 +15,7 @@ void FPSMeter::frameEnd()
     m_accumulatedDuration += tp - m_lastMeasure;
     m_framesDone++;
 
-    const uint32_t seconds = std::chrono::duration_cast<std::chrono::seconds>( tp - m_lastPoint ).count();
+    const auto seconds = std::chrono::duration_cast<std::chrono::seconds>( tp - m_lastPoint ).count();
     if ( seconds == 0 ) {
         return;
     }
