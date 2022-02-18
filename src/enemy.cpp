@@ -1,5 +1,6 @@
 #include "enemy.hpp"
 
+#include "autoaim.hpp"
 #include "utils.hpp"
 #include "units.hpp"
 
@@ -37,9 +38,13 @@ Bullet* Enemy::weapon( void* ptr )
     return bullet;
 }
 
+
 bool Enemy::isWeaponReady() const
 {
-    return m_shotFactor >= m_weapon.delay;
+    if ( m_shotFactor < m_weapon.delay ) {
+        return false;
+    }
+    return AutoAim{}.matches( position(), direction(), m_target->position() );
 }
 
 void Enemy::render( RenderContext rctx ) const
