@@ -12,6 +12,7 @@
 #include <cassert>
 #include <iostream>
 #include <numeric>
+#include <span>
 
 constexpr static float FONT_SIZE_SCALE = 2.0f;
 constexpr static float FONT_RESOLUTION_SCALE = 64.0f * FONT_SIZE_SCALE;
@@ -153,7 +154,7 @@ struct Atlas {
     }
 };
 
-static std::tuple<Font::Glyph, uint32_t, std::pmr::vector<uint8_t>> makeGlyph( const FT_Face& face, char32_t ch )
+static std::tuple<Font::Glyph, uint32_t, std::span<uint8_t>> makeGlyph( const FT_Face& face, char32_t ch )
 {
     ZoneScoped;
     const FT_UInt glyphIndex = FT_Get_Char_Index( face, ch );
@@ -169,15 +170,13 @@ static std::tuple<Font::Glyph, uint32_t, std::pmr::vector<uint8_t>> makeGlyph( c
     assert( slot->bitmap.pixel_mode == FT_PIXEL_MODE_GRAY );
 
     Font::Glyph glyph{};
-    std::pmr::vector<uint8_t> data{};
-    using size_type = decltype( data )::size_type;
-    data.resize( static_cast<size_type>( slot->bitmap.pitch ) * static_cast<size_type>( slot->bitmap.rows ) );
-    std::copy_n( slot->bitmap.buffer, data.size(), data.begin() );
+    uint8_t* data = reinterpret_cast<uint8_t*>( slot->bitmap.buffer );
+    std::uintptr_t dataSize = static_cast<std::uintptr_t>( slot->bitmap.pitch ) * static_cast<std::uintptr_t>( slot->bitmap.rows );
 
     glyph.advance = math::vec2{ slot->metrics.horiAdvance, slot->metrics.vertAdvance } / FONT_RESOLUTION_SCALE;
     glyph.padding = math::vec2{ slot->metrics.horiBearingX, slot->metrics.horiBearingY } / FONT_RESOLUTION_SCALE;
     glyph.size = math::vec2{ slot->metrics.width, slot->metrics.height } / FONT_RESOLUTION_SCALE;
-    return { glyph, slot->bitmap.pitch, data };
+    return { glyph, slot->bitmap.pitch, std::span<uint8_t>( data, data + dataSize ) };
 }
 
 Font::Font( const CreateInfo& fontInfo, uint32_t height )
@@ -222,12 +221,12 @@ Font::Font( const CreateInfo& fontInfo, uint32_t height )
         .m_width = dstPitch,
         .m_height = dstPitch,
     };
-    for ( uint32_t i = 0; i < fontInfo.charset.size(); i++ ) {
-        auto [ glyph, pitch, data ] = makeGlyph( face, fontInfo.charset[ i ] );
+    for ( char32_t ch : fontInfo.charset ) {
+        auto [ glyph, pitch, data ] = makeGlyph( face, ch );
         BlitIterator dst;
         const math::vec2 size = glyph.size * FONT_SIZE_SCALE;
         std::tie( dst, glyph.uv ) = atlas.findPlace( static_cast<uint32_t>( size.x ), static_cast<uint32_t>( size.y ), TILE_PADDING );
-        m_glyphs.pushBack( fontInfo.charset[ i ], glyph );
+        m_glyphs.pushBack( ch, glyph );
         if ( pitch == 0 ) {
             continue;
         }
