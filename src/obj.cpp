@@ -25,6 +25,7 @@ std::pmr::vector<std::pair<Chunk, std::pmr::vector<float>>> load( const std::fil
 
 std::pmr::vector<std::pair<Chunk, std::pmr::vector<float>>> parse( std::pmr::vector<uint8_t>&& data )
 {
+    ZoneScoped;
     assert( data.size() >= sizeof( Header ) );
     Header header{};
     uint8_t* ptr = data.data();
