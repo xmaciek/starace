@@ -7,6 +7,7 @@ add_subdirectory( engine )
 
 set( STARACE_SOURCES
     anchor.hpp
+    autoaim.hpp
     bullet.cpp
     bullet.hpp
     button.cpp

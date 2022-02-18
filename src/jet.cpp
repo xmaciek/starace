@@ -1,5 +1,6 @@
 #include "jet.hpp"
 
+#include "autoaim.hpp"
 #include "texture.hpp"
 #include "utils.hpp"
 
@@ -150,29 +151,11 @@ Bullet* Jet::weapon( uint32_t weaponNum, void* ptr )
         if ( !m_target || m_target->status() != Status::eAlive ) {
             break;
         }
-        const math::vec3 tgtPos = m_target->position();
-        {
-            const math::vec3 dir = direction();
-            const math::vec3 dirToTgt = math::normalize( tgtPos - position() );
-            const float angleToTarget = math::abs( math::acos(
-                math::dot( dir, dirToTgt )
-                / ( math::length( dir ) * math::length( dirToTgt ) )
-            ) );
-            if ( angleToTarget > 15.0_deg ) {
-                break;
-            }
+        AutoAim autoAim{};
+        if ( !autoAim.matches( position(), direction(), m_target->position() ) ) {
+            break;
         }
-        const math::vec3 tgtVelocity = m_target->velocity();
-        const math::vec3 bPos = b->position();
-        const float bSpeed = b->speed();
-        math::vec3 tgtMaybePos = tgtPos;
-        // 6 iterations is perfect enough
-        for ( int i = 0; i < 10; ++i ) {
-            const math::vec3 distance = tgtMaybePos - bPos;
-            const float time = math::length( distance ) / bSpeed;
-            tgtMaybePos = tgtPos + tgtVelocity * time;
-        }
-        b->setDirection( math::normalize( tgtMaybePos - bPos ) );
+        b->setDirection( autoAim( b->speed(), b->position(), m_target->position(), m_target->velocity() ) );
     } break;
     default:
         break;
