@@ -7,6 +7,8 @@
 #include "utils.hpp"
 #include "units.hpp"
 
+#include <shared/cfg.hpp>
+
 #include <Tracy.hpp>
 
 #include <algorithm>
@@ -24,6 +26,7 @@ static constexpr const char* chunk0[] = {
     "textures/cyber_ring1.tga",
     "textures/cyber_ring2.tga",
     "textures/cyber_ring3.tga",
+    "jets.cfg",
 };
 
 static constexpr const char* chunk1[] = {
@@ -84,6 +87,101 @@ constexpr std::tuple<GameAction, Actuator, Actuator> inputActions2[] = {
     { GameAction::eJetSpeed, SDL_SCANCODE_U, SDL_SCANCODE_O },
     { GameAction::eJetSpeed, SDL_CONTROLLER_AXIS_TRIGGERLEFT, SDL_CONTROLLER_AXIS_TRIGGERRIGHT },
 };
+
+
+static std::pmr::vector<ModelProto> loadJets( std::span<const char> str )
+{
+    ZoneScoped;
+    enum AST {
+        eName,
+        eIdentifier,
+        eIdentifierOrPop,
+        eValue,
+        eAssignValue,
+        eAssignPush,
+        ePush,
+    };
+    AST expectedTokens = eName;
+
+    enum AssignTo {
+        eNone,
+        eModel,
+        eTexture,
+        eScale,
+    };
+    AssignTo assignTo = eNone;
+
+    ModelProto mod;
+    std::pmr::vector<ModelProto> jets;
+    jets.reserve( 4 );
+
+    using std::literals::string_view_literals::operator""sv;
+    auto whitespace = U" \t\n\r"sv;
+
+    cfg::TokenIterator it{ cfg::c_separators, str };
+    for ( auto token = *it; ( token = *it ); ++it ) {
+        if ( whitespace.find( static_cast<char32_t>( token.userEnum ) ) != std::u32string_view::npos ) { continue; }
+        switch ( expectedTokens ) {
+        case eName:
+            assert( token.userEnum == cfg::TokenIterator::c_unknown );
+            mod.name = std::u32string{ token.data, token.data + token.length }; // TODO utf-32
+            expectedTokens = eAssignPush;
+            continue;
+
+        case eAssignPush:
+            assert( token.userEnum == '=' );
+            expectedTokens = ePush;
+            continue;
+
+        case ePush:
+            assert( token.userEnum == '{' );
+            expectedTokens = eIdentifier;
+            continue;
+
+        case eIdentifierOrPop:
+            if ( token.userEnum == '}' ) {
+                jets.push_back( mod );
+                mod = {};
+                expectedTokens = eName;
+                continue;
+            }
+            [[fallthrough]];
+        case eIdentifier: {
+            assert( token.userEnum == cfg::TokenIterator::c_unknown );
+            std::string_view v = *token;
+            expectedTokens = eAssignValue;
+            if ( v == "model"sv ) { assignTo = eModel; continue; }
+            if ( v == "texture"sv ) { assignTo = eTexture; continue; };
+            if ( v == "scale"sv ) { assignTo = eScale; continue; };
+            assert( !"unhandled identifier" );
+            continue;
+        }
+
+        case eAssignValue:
+            assert( token.userEnum == '=' );
+            expectedTokens = eValue;
+            continue;
+
+        case eValue:
+            assert( token.userEnum == cfg::TokenIterator::c_unknown );
+            switch ( assignTo ) {
+            case eModel: mod.model_file = *token; break;
+            case eTexture: mod.model_texture = *token; break;
+            case eScale: mod.scale = std::strtof( token.data, nullptr ); break;
+            default: assert( !"unhandled variable" );
+            }
+            assignTo = eNone;
+            expectedTokens = eIdentifierOrPop;
+            continue;
+        }
+
+    }
+    assert( expectedTokens == eName );
+    assert( assignTo == eNone );
+
+    return jets;
+}
+
 
 Game::Game( int argc, char** argv )
 : Engine{ argc, argv }
@@ -321,7 +419,17 @@ void Game::onInit()
         , U"Start Mission", [this](){ changeScreen( Screen::eGameBriefing, m_click ); }
     };
 
-    loadJetProto();
+    {
+        std::pmr::vector<uint8_t> jetscfg = m_io->getWait( "jets.cfg" );
+        const char* ptr = reinterpret_cast<const char*>( jetscfg.data() );
+        std::span<const char> str{ ptr, ptr + jetscfg.size() };
+        m_jetsContainer = loadJets( str );
+        assert( !m_jetsContainer.empty() );
+        for ( auto& it : m_jetsContainer ) {
+            it.model = new Model( it.model_file, m_textures[ it.model_texture ], m_renderer, it.scale );
+        }
+    }
+
     std::pmr::vector<CustomizeData> data{};
     data.reserve( m_jetsContainer.size() );
     std::transform( m_jetsContainer.begin(), m_jetsContainer.end(), std::back_inserter( data ),
@@ -742,43 +850,6 @@ void Game::loadMapProto()
     }
 
     assert( !m_mapsContainer.empty() );
-}
-
-void Game::loadJetProto()
-{
-    ZoneScoped;
-    assert( m_jetsContainer.empty() );
-
-    ModelProto mod;
-    std::ifstream JetFile( "jets.cfg" );
-    char value_1[ 48 ]{};
-    char value_2[ 48 ]{};
-    std::string line;
-    while ( getline( JetFile, line ) ) {
-        std::sscanf( line.c_str(), "%s %s", value_1, value_2 );
-        if ( strcmp( value_1, "[JET]" ) == 0 ) {
-            m_jetsContainer.push_back( mod );
-        }
-        if ( strcmp( value_1, "name" ) == 0 ) {
-            std::string_view v = value_2;
-            m_jetsContainer.back().name = std::u32string{ v.begin(), v.end() };
-        }
-        if ( strcmp( value_1, "texture" ) == 0 ) {
-            m_jetsContainer.back().model_texture = value_2;
-        }
-        if ( strcmp( value_1, "model" ) == 0 ) {
-            m_jetsContainer.back().model_file = value_2;
-        }
-        if ( strcmp( value_1, "scale" ) == 0 ) {
-            m_jetsContainer.back().scale = std::strtof( value_2, nullptr );
-        }
-    }
-    JetFile.close();
-    assert( !m_jetsContainer.empty() );
-
-    for ( auto& it : m_jetsContainer ) {
-        it.model = new Model( it.model_file, m_textures[ it.model_texture ], m_renderer, it.scale );
-    }
 }
 
 uint32_t Game::viewportWidth() const

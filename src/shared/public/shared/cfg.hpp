@@ -26,6 +26,10 @@ struct Token {
     {
         return length != 0;
     }
+    std::string_view operator * () const
+    {
+        return { data, data + length };
+    }
 };
 
 class TokenIterator {

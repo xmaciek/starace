@@ -70,7 +70,7 @@ private:
     std::vector<Enemy*> m_enemies{};
     std::pmr::vector<Explosion> m_explosions{};
     std::vector<MapCreateInfo> m_mapsContainer{};
-    std::vector<ModelProto> m_jetsContainer{};
+    std::pmr::vector<ModelProto> m_jetsContainer{};
 
     HudData m_hudData{};
     Hud m_hud{};
@@ -104,7 +104,6 @@ private:
     void changeScreen( Screen, Audio::Chunk sound = {} );
     void clearMapData();
     void createMapData( const MapCreateInfo&, const ModelProto& );
-    void loadJetProto();
     void loadMapProto();
     void pause();
 

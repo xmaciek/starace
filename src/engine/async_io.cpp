@@ -118,7 +118,7 @@ void AsyncIO::mount( const std::filesystem::path& path )
     ZoneScoped;
     assert( std::filesystem::is_directory( path ) ); // for now only directories
     constexpr std::array extensionList = {
-        ".wav", ".spv", ".tga", ".objc", ".ttf",
+        ".wav", ".spv", ".tga", ".objc", ".ttf", ".cfg",
     };
     std::pmr::vector<std::filesystem::path> files{};
     files.reserve( 20 );
