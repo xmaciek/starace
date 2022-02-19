@@ -37,6 +37,7 @@ std::pmr::vector<std::pair<Chunk, std::pmr::vector<float>>> parse( std::pmr::vec
 
     std::pmr::vector<std::pair<Chunk, std::pmr::vector<float>>> ret( header.chunkCount );
 
+    [[maybe_unused]]
     const uint8_t* end = data.data() + data.size();
     for ( auto& it : ret ) {
         assert( ptr + sizeof( Chunk ) <= end );
