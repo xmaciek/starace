@@ -7,9 +7,10 @@
 #include <cstdint>
 #include <string>
 #include <filesystem>
+#include <memory_resource>
 
 struct MapCreateInfo {
-    std::string name{ "unnamed map" };
+    std::pmr::u32string name{ U"unnamed map" };
     enum Wall {
         eTop,
         eBottom,

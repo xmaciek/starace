@@ -26,6 +26,7 @@ static constexpr const char* chunk0[] = {
     "textures/cyber_ring1.tga",
     "textures/cyber_ring2.tga",
     "textures/cyber_ring3.tga",
+    "maps.cfg",
     "jets.cfg",
 };
 
@@ -181,6 +182,115 @@ static std::pmr::vector<ModelProto> loadJets( std::span<const char> str )
 
     return jets;
 }
+
+static std::pmr::vector<MapCreateInfo> loadMaps( std::span<const char> str )
+{
+    ZoneScoped;
+    enum AST {
+        eName,
+        eIdentifier,
+        eIdentifierOrPop,
+        eValue,
+        eAssignValue,
+        eAssignPush,
+        ePush,
+    };
+    AST expectedTokens = eName;
+
+    enum AssignTo {
+        eNone,
+        eEnemies,
+        eTop,
+        eBottom,
+        eLeft,
+        eRight,
+        eFront,
+        eBack,
+        ePreview,
+    };
+    AssignTo assignTo = eNone;
+
+    MapCreateInfo mod;
+    std::pmr::vector<MapCreateInfo> levels;
+    levels.reserve( 5 );
+
+    using std::literals::string_view_literals::operator""sv;
+    auto whitespace = U" \t\n\r"sv;
+
+    cfg::TokenIterator it{ cfg::c_separators, str };
+    for ( auto token = *it; ( token = *it ); ++it ) {
+        if ( whitespace.find( static_cast<char32_t>( token.userEnum ) ) != std::u32string_view::npos ) { continue; }
+        switch ( expectedTokens ) {
+        case eName:
+            assert( token.userEnum == cfg::TokenIterator::c_unknown );
+            mod.name = std::u32string{ token.data, token.data + token.length }; // TODO utf-32
+            expectedTokens = eAssignPush;
+            continue;
+
+        case eAssignPush:
+            assert( token.userEnum == '=' );
+            expectedTokens = ePush;
+            continue;
+
+        case ePush:
+            assert( token.userEnum == '{' );
+            expectedTokens = eIdentifier;
+            continue;
+
+        case eIdentifierOrPop:
+            if ( token.userEnum == '}' ) {
+                levels.push_back( mod );
+                mod = {};
+                expectedTokens = eName;
+                continue;
+            }
+            [[fallthrough]];
+        case eIdentifier: {
+            assert( token.userEnum == cfg::TokenIterator::c_unknown );
+            std::string_view v = *token;
+            expectedTokens = eAssignValue;
+            if ( v == "enemies"sv ) { assignTo = eEnemies; continue; }
+            if ( v == "top"sv ) { assignTo = eTop; continue; }
+            if ( v == "bottom"sv ) { assignTo = eBottom; continue; }
+            if ( v == "left"sv ) { assignTo = eLeft; continue; }
+            if ( v == "right"sv ) { assignTo = eRight; continue; }
+            if ( v == "front"sv ) { assignTo = eFront; continue; }
+            if ( v == "back"sv ) { assignTo = eBack; continue; }
+            if ( v == "preview"sv ) { assignTo = ePreview; continue; }
+            assert( !"unhandled identifier" );
+            continue;
+        }
+
+        case eAssignValue:
+            assert( token.userEnum == '=' );
+            expectedTokens = eValue;
+            continue;
+
+        case eValue:
+            assert( token.userEnum == cfg::TokenIterator::c_unknown );
+            switch ( assignTo ) {
+            case eEnemies: mod.enemies = static_cast<uint32_t>( std::atoi( token.data ) ); break;
+            case eTop: mod.filePath[ MapCreateInfo::eTop ] = *token; break;
+            case eBottom: mod.filePath[ MapCreateInfo::eBottom] = *token; break;
+            case eLeft: mod.filePath[ MapCreateInfo::eLeft ] = *token; break;
+            case eRight: mod.filePath[ MapCreateInfo::eRight ] = *token; break;
+            case eFront: mod.filePath[ MapCreateInfo::eFront ] = *token; break;
+            case eBack: mod.filePath[ MapCreateInfo::eBack ] = *token; break;
+            case ePreview: mod.previewPath = *token; break;
+            default: assert( !"unhandled variable" );
+            }
+            assignTo = eNone;
+            expectedTokens = eIdentifierOrPop;
+            continue;
+        }
+
+    }
+    assert( expectedTokens == eName );
+    assert( assignTo == eNone );
+
+    return levels;
+}
+
 
 
 Game::Game( int argc, char** argv )
@@ -400,7 +510,7 @@ void Game::onInit()
     std::transform( m_mapsContainer.begin(), m_mapsContainer.end(), std::back_inserter( mapInfo ),
     []( const MapCreateInfo& mci ) -> MissionInfo {
         return MissionInfo{
-            .m_title = std::pmr::u32string{ mci.name.cbegin(), mci.name.cend() }, // TODO utf32 map names
+            .m_title = mci.name,
             .m_preview = mci.preview,
             .m_enemyCount = mci.enemies,
         };
@@ -786,54 +896,20 @@ void Game::loadMapProto()
     ZoneScoped;
     assert( m_mapsContainer.empty() );
 
-    MapCreateInfo map;
-    std::ifstream MapFile( "maps.cfg" );
-    char value_1[ 48 ]{};
-    char value_2[ 48 ]{};
-    std::pmr::string line;
-    std::pmr::set<std::pmr::string> uniqueTextures{};
+    std::pmr::vector<uint8_t> mapscfg = m_io->getWait( "maps.cfg" );
+    const char* ptr = reinterpret_cast<const char*>( mapscfg.data() );
+    std::span<const char> str{ ptr, ptr + mapscfg.size() };
+    m_mapsContainer = loadMaps( str );
+    assert( !m_mapsContainer.empty() );
 
-    while ( getline( MapFile, line ) ) {
-        std::sscanf( line.c_str(), "%s %s", value_1, value_2 );
-        if ( strcmp( value_1, "[MAP]" ) == 0 ) {
-            m_mapsContainer.push_back( map );
-        }
-        else if ( strcmp( value_1, "name" ) == 0 ) {
-            m_mapsContainer.back().name = value_2;
-        }
-        else if ( strcmp( value_1, "enemies" ) == 0 ) {
-            m_mapsContainer.back().enemies = static_cast<uint32_t>( std::atoi( value_2 ) );
-        }
-        else if ( strcmp( value_1, "top" ) == 0 ) {
-            m_mapsContainer.back().filePath[ MapCreateInfo::Wall::eTop ] = value_2;
-            uniqueTextures.insert( value_2 );
-        }
-        else if ( strcmp( value_1, "bottom" ) == 0 ) {
-            m_mapsContainer.back().filePath[ MapCreateInfo::Wall::eBottom ] = value_2;
-            uniqueTextures.insert( value_2 );
-        }
-        else if ( strcmp( value_1, "left" ) == 0 ) {
-            m_mapsContainer.back().filePath[ MapCreateInfo::Wall::eLeft ] = value_2;
-            uniqueTextures.insert( value_2 );
-        }
-        else if ( strcmp( value_1, "right" ) == 0 ) {
-            m_mapsContainer.back().filePath[ MapCreateInfo::Wall::eRight ] = value_2;
-            uniqueTextures.insert( value_2 );
-        }
-        else if ( strcmp( value_1, "front" ) == 0 ) {
-            m_mapsContainer.back().filePath[ MapCreateInfo::Wall::eFront ] = value_2;
-            uniqueTextures.insert( value_2 );
-        }
-        else if ( strcmp( value_1, "back" ) == 0 ) {
-            m_mapsContainer.back().filePath[ MapCreateInfo::Wall::eBack ] = value_2;
-            uniqueTextures.insert( value_2 );
-        }
-        else if ( strcmp( value_1, "preview" ) == 0 ) {
-            m_mapsContainer.back().previewPath = value_2;
-            uniqueTextures.insert( value_2 );
+    std::pmr::set<std::filesystem::path> uniqueTextures;
+    for ( auto it : m_mapsContainer ) {
+        uniqueTextures.insert( it.previewPath );
+        for ( auto p : it.filePath ) {
+            uniqueTextures.insert( p );
         }
     }
-    MapFile.close();
+
     for ( const auto& it : uniqueTextures ) {
         m_io->enqueue( it );
     }
@@ -849,7 +925,6 @@ void Game::loadMapProto()
         assert( it.preview );
     }
 
-    assert( !m_mapsContainer.empty() );
 }
 
 uint32_t Game::viewportWidth() const

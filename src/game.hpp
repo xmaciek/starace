@@ -69,7 +69,7 @@ private:
     std::vector<Bullet*> m_enemyBullets{};
     std::vector<Enemy*> m_enemies{};
     std::pmr::vector<Explosion> m_explosions{};
-    std::vector<MapCreateInfo> m_mapsContainer{};
+    std::pmr::vector<MapCreateInfo> m_mapsContainer{};
     std::pmr::vector<ModelProto> m_jetsContainer{};
 
     HudData m_hudData{};
