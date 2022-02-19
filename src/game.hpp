@@ -29,10 +29,10 @@
 
 #include <SDL.h>
 
-#include <mutex>
-#include <thread>
 #include <tuple>
 #include <map>
+#include <vector>
+#include <memory_resource>
 
 class Game : public Engine {
 public:
@@ -65,9 +65,9 @@ private:
 
     Pool<Bullet, 1024> m_poolBullets{};
     Pool<Enemy, 100> m_poolEnemies{};
-    std::vector<Bullet*> m_bullets{};
-    std::vector<Bullet*> m_enemyBullets{};
-    std::vector<Enemy*> m_enemies{};
+    std::pmr::vector<Bullet*> m_bullets{};
+    std::pmr::vector<Bullet*> m_enemyBullets{};
+    std::pmr::vector<Enemy*> m_enemies{};
     std::pmr::vector<Explosion> m_explosions{};
     std::pmr::vector<MapCreateInfo> m_mapsContainer{};
     std::pmr::vector<ModelProto> m_jetsContainer{};
