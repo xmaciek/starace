@@ -103,7 +103,7 @@ std::optional<std::pmr::vector<uint8_t>> AsyncIO::get( const std::filesystem::pa
 
 std::pmr::vector<uint8_t> AsyncIO::getWait( const std::filesystem::path& path )
 {
-    ZoneScoped;
+    ZoneScopedN( "AsyncIO wait" );
     while ( m_isRunning.load() ) {
         auto data = get( path );
         if ( data ) {
