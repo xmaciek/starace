@@ -16,7 +16,7 @@ enum ImageType : uint8_t {
 
 struct Header {
     uint8_t idLength = 0;
-    uint8_t mapType = 0;
+    bool hasColorMap = 0;
     ImageType imageType = ImageType::eNoImage;
     uint8_t colorMap[ 5 ]{};
     uint16_t xOrigin = 0;

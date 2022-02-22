@@ -20,7 +20,7 @@ Texture parseTexture( std::pmr::vector<uint8_t>&& data )
     auto it = data.begin();
     std::copy_n( it, sizeof( header ), reinterpret_cast<uint8_t*>( &header ) );
     std::advance( it, sizeof( header ) );
-    assert( header.imageType == tga::ImageType::eTrueColor );
+    assert( header.imageType == tga::ImageType::eTrueColor || header.imageType == tga::ImageType::eGrayscale );
     assert( header.width > 0 );
     assert( header.height > 0 );
     const size_t bytesPerPixel = header.bitsPerPixel / 8;
