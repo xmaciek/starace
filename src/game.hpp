@@ -7,6 +7,7 @@
 #include "font.hpp"
 #include "hud.hpp"
 #include "jet.hpp"
+#include "linear_atlas.hpp"
 #include "model_proto.hpp"
 #include "screen_customize.hpp"
 #include "screen_mission_select.hpp"
@@ -57,6 +58,7 @@ private:
     Model* m_enemyModel = nullptr;
     Jet m_jet{};
     Skybox m_skybox{};
+    LinearAtlas m_atlasUi{};
 
     Audio::Chunk m_blaster{};
     Audio::Chunk m_click{};
@@ -78,7 +80,7 @@ private:
 
     BulletProto m_weapons[ 4 ]{};
 
-    Texture m_bg{};
+    Texture m_atlasTexture{};
     Texture m_buttonTexture{};
     Texture m_cyberRingTexture[ 3 ]{};
     Texture m_plasma{};

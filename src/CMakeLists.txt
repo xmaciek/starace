@@ -33,6 +33,8 @@ set( STARACE_SOURCES
     jet.hpp
     label.cpp
     label.hpp
+    linear_atlas.hpp
+    linear_atlas.cpp
     main.cpp
     model.cpp
     model.hpp

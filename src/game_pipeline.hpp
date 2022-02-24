@@ -55,7 +55,8 @@ struct PushConstant<Pipeline::eBackground> {
     math::mat4 m_view{};
     math::mat4 m_projection{};
     math::vec4 m_color{};
-    std::array<math::vec4, 4> m_vertices{};
+    math::vec4 m_uvSlice{};
+    std::array<math::vec4, 4> m_xyuv{};
 };
 
 template <>

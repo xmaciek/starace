@@ -31,6 +31,7 @@ static constexpr const char* chunk0[] = {
 };
 
 static constexpr const char* chunk1[] = {
+    "textures/atlas_ui.tga",
     "textures/a2.tga",
     "textures/a3.tga",
     "textures/a4.tga",
@@ -38,16 +39,38 @@ static constexpr const char* chunk1[] = {
     "textures/plasma.tga",
 };
 
-static constexpr std::array<uint8_t, 64> c_backgroundPattern{
-    128, 128, 128, 100, 100, 128, 128, 128,
-    128, 100, 100, 100, 100, 100, 100, 128,
-    100, 100, 100, 128, 128, 100, 100, 100,
-    100, 128, 128, 128, 128, 128, 128, 100,
-    100, 128, 128, 128, 128, 128, 128, 100,
-    100, 100, 100, 128, 128, 100, 100, 100,
-    128, 100, 100, 100, 100, 100, 100, 128,
-    128, 128, 128, 100, 100, 128, 128, 128
+struct UISprites {
+    enum : uint32_t {
+        eBackground,
+        eArrowLeft,
+        eArrowRight,
+        eTopLeft,
+        eTop,
+        eTopRight,
+        eLeft,
+        eMid,
+        eRight,
+        eBotLeft,
+        eBot,
+        eBotRight,
+    };
 };
+
+Sprite c_spritesUi[]{
+    /*[ UISprites::eBackground ] =*/ { 84, 0, 8, 8 },
+    /*[ UISprites::eArrowLeft ]  =*/ { 0, 0, 24, 48 },
+    /*[ UISprites::eArrowRight ] =*/ { 24, 0, 24, 48 },
+    /*[ UISprites::eTopLeft ]    =*/ { 48, 0, 8, 8 },
+    /*[ UISprites::eTop ]        =*/ { 60, 0, 8, 8 },
+    /*[ UISprites::eTopRight ]   =*/ { 72, 0, 8, 8 },
+    /*[ UISprites::eLeft ]       =*/ { 48, 12, 8, 8 },
+    /*[ UISprites::eMid ]        =*/ { 60, 12, 8, 8 },
+    /*[ UISprites::eRight ]      =*/ { 72, 12, 8, 8 },
+    /*[ UISprites::eBotLeft ]    =*/ { 48, 24, 8, 8 },
+    /*[ UISprites::eBot ]        =*/ { 60, 24, 8, 8 },
+    /*[ UISprites::eBotRight ]   =*/ { 72, 24, 8, 8 },
+};
+
 
 constexpr std::tuple<GameAction, Actuator> inputActions[] = {
     { GameAction::eGamePause, SDL_CONTROLLER_BUTTON_START },
@@ -295,6 +318,7 @@ static std::pmr::vector<MapCreateInfo> loadMaps( std::span<const char> str )
 
 Game::Game( int argc, char** argv )
 : Engine{ argc, argv }
+, m_atlasUi{ c_spritesUi, 96, 48 }
 {
     ZoneScoped;
     preloadData();
@@ -376,19 +400,6 @@ void Game::onInit()
     }
 
     {
-        const TextureCreateInfo tci{
-            .width = 8,
-            .height = 8,
-            .mips = 1,
-            .format = TextureFormat::eR,
-            .u = TextureAddressMode::eRepeat,
-            .v = TextureAddressMode::eRepeat,
-        };
-        std::pmr::vector<uint8_t> data( c_backgroundPattern.size(), m_renderer->allocator() );
-        std::copy( c_backgroundPattern.begin(), c_backgroundPattern.end(), data.begin() );
-        m_bg = m_renderer->createTexture( tci, std::move( data ) );
-    }
-    {
         std::pmr::u32string charset = U"0123456789"
         U"abcdefghijklmnopqrstuvwxyz"
         U"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -468,6 +479,7 @@ void Game::onInit()
         m_textures[ it ] = parseTexture( m_io->getWait( it ) );
     }
 
+    m_atlasTexture = m_textures[ "textures/atlas_ui.tga" ];
     m_plasma = m_textures[ "textures/plasma.tga" ];
     BulletProto tmpWeapon{};
     tmpWeapon.texture = m_textures[ "textures/plasma.tga" ];
@@ -1088,30 +1100,26 @@ void Game::renderBackground( RenderContext rctx ) const
 {
     [[maybe_unused]]
     const auto [ w, h, a ] = viewport();
-    const float u = static_cast<float>( w / 8 );
-    const float v = static_cast<float>( h / 8 );
+    const math::vec2 uv = math::vec2{ w, h } / m_atlasUi.extent();
 
     const PushBuffer pushBuffer{
         .m_pipeline = static_cast<PipelineSlot>( Pipeline::eBackground ),
         .m_verticeCount = 4,
-        .m_texture = m_bg,
+        .m_texture = m_atlasTexture,
     };
-
-    PushConstant<Pipeline::eBackground> pushConstant{};
-    pushConstant.m_model = rctx.model;
-    pushConstant.m_projection = rctx.projection;
-    pushConstant.m_view = rctx.view;
-    pushConstant.m_color = color::dodgerBlue;
-
-    const float x = 0;
-    const float y = 0;
-    const float xw = x + static_cast<float>( w );
-    const float yh = y + static_cast<float>( h );
-    pushConstant.m_vertices[ 0 ] = math::vec4{ x, y, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 1 ] = math::vec4{ x, yh, 0.0f, v };
-    pushConstant.m_vertices[ 2 ] = math::vec4{ xw, yh, u, v };
-    pushConstant.m_vertices[ 3 ] = math::vec4{ xw, y, u, 0.0f };
-
+    PushConstant<Pipeline::eBackground> pushConstant{
+        .m_model = rctx.model,
+        .m_view = rctx.view,
+        .m_projection = rctx.projection,
+        .m_color = color::dodgerBlue,
+        .m_uvSlice = m_atlasUi.sliceUV( UISprites::eBackground ),
+        .m_xyuv{
+            math::vec4{ 0, 0, 0, 0 },
+            math::vec4{ 0, h, 0, uv.y },
+            math::vec4{ w, h, uv.x, uv.y },
+            math::vec4{ w, 0, uv.x, 0 }
+        },
+    };
     rctx.renderer->push( pushBuffer, &pushConstant );
 
 }
