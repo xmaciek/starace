@@ -4,7 +4,7 @@
 
 #include <cassert>
 
-Label::Label( std::u32string_view s, Font* f, const math::vec2& position, const math::vec4& color )
+Label::Label( std::u32string_view s, const Font* f, const math::vec2& position, const math::vec4& color )
 : Widget{ position, {} }
 , m_font{ f }
 , m_color{ color }
@@ -13,7 +13,7 @@ Label::Label( std::u32string_view s, Font* f, const math::vec2& position, const 
     setText( s );
 }
 
-Label::Label( std::u32string_view s, Font* f, Anchor a, const math::vec2& position, const math::vec4& color )
+Label::Label( std::u32string_view s, const Font* f, Anchor a, const math::vec2& position, const math::vec4& color )
 : Widget{ position, {}, a }
 , m_font{ f }
 , m_color{ color }
@@ -22,7 +22,7 @@ Label::Label( std::u32string_view s, Font* f, Anchor a, const math::vec2& positi
     setText( s );
 }
 
-Label::Label( std::u32string_view s, Font* f, Anchor a, const math::vec4& color )
+Label::Label( std::u32string_view s, const Font* f, Anchor a, const math::vec4& color )
 : Widget{ a }
 , m_font{ f }
 , m_color{ color }
@@ -31,7 +31,7 @@ Label::Label( std::u32string_view s, Font* f, Anchor a, const math::vec4& color 
     setText( s );
 }
 
-Label::Label( Font* f, Anchor a, const math::vec2& position, const math::vec4& color )
+Label::Label( const Font* f, Anchor a, const math::vec2& position, const math::vec4& color )
 : Widget{ position, {}, a }
 , m_font{ f }
 , m_color{ color }
@@ -39,7 +39,7 @@ Label::Label( Font* f, Anchor a, const math::vec2& position, const math::vec4& c
     assert( f );
 }
 
-Label::Label( Font* f, Anchor a, const math::vec4& color )
+Label::Label( const Font* f, Anchor a, const math::vec4& color )
 : Widget{ a }
 , m_font{ f }
 , m_color{ color }

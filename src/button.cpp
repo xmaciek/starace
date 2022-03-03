@@ -1,6 +1,7 @@
 #include "button.hpp"
 
 #include "colors.hpp"
+#include "ui_property.hpp"
 
 #include <engine/math.hpp>
 
@@ -9,11 +10,11 @@ static constexpr math::vec4 colorHover = color::lightSkyBlue;
 static constexpr math::vec4 colorDisabled = color::lightSteelBlue;
 
 
-Button::Button( std::u32string_view txt, Font* f, Texture texture, std::function<void()>&& onTrigger )
-: UIImage{ {}, { 192.0f, 48.0f }, colorNormal, texture }
+Button::Button( std::u32string_view txt, std::function<void()>&& onTrigger )
+: UIImage{ {}, { 192.0f, 48.0f }, colorNormal, g_uiProperty.buttonTexture() }
 , m_label(
     txt
-    , f
+    , g_uiProperty.fontSmall()
     , Anchor::fCenter | Anchor::fMiddle
     , {}
     , color::white )
@@ -21,11 +22,11 @@ Button::Button( std::u32string_view txt, Font* f, Texture texture, std::function
 {
 }
 
-Button::Button( std::u32string_view txt, Font* f, Texture texture, Anchor a, std::function<void()>&& onTrigger )
-: UIImage{ a, { 192.0f, 48.0f }, colorNormal, texture }
+Button::Button( std::u32string_view txt, Anchor a, std::function<void()>&& onTrigger )
+: UIImage{ a, { 192.0f, 48.0f }, colorNormal, g_uiProperty.buttonTexture() }
 , m_label(
     txt
-    , f
+    , g_uiProperty.fontSmall()
     , Anchor::fCenter | Anchor::fMiddle
     , {}
     , color::white )
@@ -33,10 +34,10 @@ Button::Button( std::u32string_view txt, Font* f, Texture texture, Anchor a, std
 {
 }
 
-Button::Button( Font* f, Texture texture, std::function<void()>&& onTrigger )
-: UIImage{ {}, { 192.0f, 48.0f }, colorNormal, texture }
+Button::Button( std::function<void()>&& onTrigger )
+: UIImage{ {}, { 192.0f, 48.0f }, colorNormal, g_uiProperty.buttonTexture() }
 , m_label(
-    f
+    g_uiProperty.fontSmall()
     , Anchor::fCenter | Anchor::fMiddle
     , {}
     , color::white )

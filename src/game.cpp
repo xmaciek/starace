@@ -6,6 +6,7 @@
 #include "game_pipeline.hpp"
 #include "utils.hpp"
 #include "units.hpp"
+#include "ui_property.hpp"
 
 #include <shared/cfg.hpp>
 
@@ -350,9 +351,9 @@ Game::~Game()
     ZoneScoped;
     clearMapData();
 
-    delete m_fontPauseTxt;
-    delete m_fontGuiTxt;
-    delete m_fontBig;
+    delete m_fontSmall;
+    delete m_fontMedium;
+    delete m_fontLarge;
 
     delete m_enemyModel;
 }
@@ -411,19 +412,22 @@ void Game::onInit()
             .renderer = m_renderer,
             .charset = charset,
         };
-
-        m_fontPauseTxt = new Font( createInfo, 18 );
-        m_fontGuiTxt = new Font( createInfo, 12 );
-        m_fontBig = new Font( createInfo, 32 );
+        m_fontSmall = new Font( createInfo, 12 );
+        m_fontMedium = new Font( createInfo, 18 );
+        m_fontLarge = new Font( createInfo, 32 );
+        g_uiProperty.m_fontSmall = m_fontSmall;
+        g_uiProperty.m_fontMedium = m_fontMedium;
+        g_uiProperty.m_fontLarge = m_fontLarge;
     }
-    m_hud = Hud{ &m_hudData, m_fontGuiTxt };
+    m_hud = Hud{ &m_hudData };
 
     m_laser = m_audio->load( "sounds/laser.wav" );
     m_blaster = m_audio->load( "sounds/blaster.wav" );
     m_torpedo = m_audio->load( "sounds/torpedo.wav" );
     m_click = m_audio->load( "sounds/click.wav" );
 
-    m_buttonTexture = parseTexture( m_io->getWait( "textures/button1.tga" ) );
+    g_uiProperty.m_buttonTexture = parseTexture( m_io->getWait( "textures/button1.tga" ) );
+
 
     const std::array rings = {
         parseTexture( m_io->getWait( "textures/cyber_ring1.tga" ) ),
@@ -433,18 +437,13 @@ void Game::onInit()
     m_uiRings = UIRings{ rings };
 
     m_screenPause = ScreenPause{
-        m_fontGuiTxt,
-        m_fontPauseTxt,
         &m_uiRings,
-        m_buttonTexture,
         U"PAUSED", [this](){ changeScreen( Screen::eGame ); },
         U"Resume", [this](){ changeScreen( Screen::eGame, m_click ); },
         U"Quit Mission", [this](){ changeScreen( Screen::eMissionSelection, m_click ); }
     };
 
     m_screenTitle = ScreenTitle{
-        m_fontGuiTxt,
-        m_buttonTexture,
         &m_uiRings,
         U"Select Mission", [this](){ changeScreen( Screen::eMissionSelection, m_click ); },
         U"Customize", [this](){ changeScreen( Screen::eCustomize, m_click ); },
@@ -457,19 +456,13 @@ void Game::onInit()
         changeScreen( Screen::eMissionSelection );
     };
     m_screenWin = ScreenWinLoose{
-        m_buttonTexture
-        , color::winScreen
-        , m_fontGuiTxt
-        , m_fontBig
+          color::winScreen
         , &m_uiRings
         , U"MISSION SUCCESSFULL"
         , decltype( onWinLoose ){ onWinLoose }
     };
     m_screenLoose = ScreenWinLoose{
-        m_buttonTexture
-        , color::crimson
-        , m_fontGuiTxt
-        , m_fontBig
+          color::crimson
         , &m_uiRings
         , U"MISSION FAILED"
         , decltype( onWinLoose ){ onWinLoose }
@@ -529,11 +522,7 @@ void Game::onInit()
     } );
     m_screenMissionSelect = ScreenMissionSelect{
         std::move( mapInfo )
-        , m_fontGuiTxt
-        , m_fontPauseTxt
-        , m_fontBig
         , &m_uiRings
-        , m_buttonTexture
         , U"Enemies:"
         , U"Previous Map", [this](){ if ( m_screenMissionSelect.prev() ) { m_audio->play( m_click ); } }
         , U"Next Map", [this](){ if ( m_screenMissionSelect.next() ) { m_audio->play( m_click ); } }
@@ -561,9 +550,6 @@ void Game::onInit()
     m_screenCustomize = ScreenCustomize{
         { 1, 2, 1 }
         , std::move( data )
-        , m_fontGuiTxt
-        , m_fontPauseTxt
-        , m_buttonTexture
         , &m_uiRings
         , U"Done", [this](){ changeScreen( Screen::eMainMenu, m_click ); }
         , U"Previous Jet", [this](){ if ( m_screenCustomize.prevJet() ) { m_audio->play( m_click ); } }
@@ -1121,6 +1107,5 @@ void Game::renderBackground( RenderContext rctx ) const
         },
     };
     rctx.renderer->push( pushBuffer, &pushConstant );
-
 }
 

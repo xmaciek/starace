@@ -76,6 +76,7 @@ set( STARACE_SOURCES
     ui_glow.hpp
     ui_image.cpp
     ui_image.hpp
+    ui_property.hpp
     ui_rings.cpp
     ui_rings.hpp
     units.hpp

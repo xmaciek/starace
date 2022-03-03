@@ -14,8 +14,6 @@
 #include <vector>
 #include <memory_resource>
 
-class Font;
-
 struct MissionInfo {
     std::pmr::u32string m_title;
     Texture m_preview;
@@ -48,11 +46,7 @@ public:
 
     ScreenMissionSelect(
         std::pmr::vector<MissionInfo>&&,
-        Font* fontSmall,
-        Font* fontMedium,
-        Font* fontLarge,
         Widget* rings,
-        Texture button,
         std::u32string_view enemyTxt,
         std::u32string_view txtPrev, std::function<void()>&&,
         std::u32string_view txtNext, std::function<void()>&&,

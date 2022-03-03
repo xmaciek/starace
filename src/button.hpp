@@ -25,9 +25,9 @@ private:
 public:
     ~Button() = default;
     Button() = default;
-    Button( std::u32string_view, Font*, Texture texture, std::function<void()>&& onTrigger );
-    Button( std::u32string_view, Font*, Texture texture, Anchor, std::function<void()>&& onTrigger );
-    Button( Font*, Texture texture, std::function<void()>&& onTrigger );
+    Button( std::u32string_view, std::function<void()>&& onTrigger );
+    Button( std::u32string_view, Anchor, std::function<void()>&& onTrigger );
+    Button( std::function<void()>&& onTrigger );
 
     virtual bool onMouseEvent( const MouseEvent& ) override;
     virtual void render( RenderContext ) const override;
@@ -36,7 +36,6 @@ public:
     bool isEnabled() const;
     void setEnabled( bool );
     void setText( std::u32string_view );
-    void setTexture( Texture t );
     void setFocused( bool );
     bool isFocused() const;
 };

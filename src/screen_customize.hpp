@@ -18,8 +18,6 @@
 #include <string>
 #include <vector>
 
-class Font;
-
 struct CustomizeData
 {
     std::u32string_view m_jetName{};
@@ -57,9 +55,6 @@ public:
     ScreenCustomize(
         std::array<uint32_t, 3> equipment
         , std::pmr::vector<CustomizeData>&& jets
-        , Font* fontSmall
-        , Font* fontMedium
-        , Texture btn
         , Widget* rings
         , std::u32string_view done, std::function<void()>&&
         , std::u32string_view pJet, std::function<void()>&&

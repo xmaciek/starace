@@ -26,9 +26,7 @@ public:
     ~ScreenTitle() noexcept = default;
     ScreenTitle() noexcept = default;
     ScreenTitle(
-        Font*
-        , Texture btn
-        , Widget* rings
+          Widget* rings
         , std::u32string_view mission, std::function<void()>&&
         , std::u32string_view customize, std::function<void()>&&
         , std::u32string_view quit, std::function<void()>&&

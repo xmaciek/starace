@@ -1,21 +1,19 @@
 #include "screen_pause.hpp"
 
 #include "colors.hpp"
+#include "ui_property.hpp"
 
 ScreenPause::ScreenPause(
-    Font* fontSmall
-    , Font* fontMedium
-    , Widget* rings
-    , Texture button
+      Widget* rings
     , std::u32string_view txtPause, std::function<void()>&& cbUnpause
     , std::u32string_view txtResume, std::function<void()>&& cbResume
     , std::u32string_view txtExit, std::function<void()>&& cbExit
 ) noexcept
 : m_glow{ color::dodgerBlue }
 , m_rings{ rings }
-, m_resume{ txtResume, fontSmall, button, std::move( cbResume ) }
-, m_exit{ txtExit, fontSmall, button, std::move( cbExit ) }
-, m_pause{ txtPause, fontMedium, Anchor::fCenter | Anchor::fMiddle, {}, color::yellow }
+, m_resume{ txtResume, std::move( cbResume ) }
+, m_exit{ txtExit, std::move( cbExit ) }
+, m_pause{ txtPause, g_uiProperty.fontMedium(), Anchor::fCenter | Anchor::fMiddle, {}, color::yellow }
 , m_unpause{ std::move( cbUnpause ) }
 {
     assert( rings );

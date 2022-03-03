@@ -1,20 +1,19 @@
 #include "screen_title.hpp"
 
 #include "game_action.hpp"
+#include "ui_property.hpp"
 
 ScreenTitle::ScreenTitle(
-    Font* f
-    , Texture t
-    , Widget* rings
+      Widget* rings
     , std::u32string_view mission, std::function<void()>&& mt
     , std::u32string_view customize, std::function<void()>&& ct
     , std::u32string_view quit, std::function<void()>&& qt
 ) noexcept
 : m_rings{ rings }
 , m_glow{ color::dodgerBlue }
-, m_newMission{ mission, f, t, std::move( mt ) }
-, m_customize{ customize, f, t, std::move( ct ) }
-, m_quit{ quit, f, t, std::move( qt ) }
+, m_newMission{ mission, std::move( mt ) }
+, m_customize{ customize, std::move( ct ) }
+, m_quit{ quit, std::move( qt ) }
 {
     assert( rings );
     uint16_t tab = 0;

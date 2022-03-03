@@ -2,24 +2,22 @@
 
 #include "colors.hpp"
 #include "utils.hpp"
+#include "ui_property.hpp"
 
 static constexpr Anchor c_textAnchor = Anchor::fCenter | Anchor::fMiddle;
 
 ScreenWinLoose::ScreenWinLoose(
-    Texture button
-    , math::vec4 color
-    , Font* fontSmall
-    , Font* fontLarge
+      math::vec4 color
     , Widget* rings
     , std::u32string_view title
     , std::function<void()>&& onContinue
 )
 : m_glow{ color }
 , m_rings{ rings }
-, m_title{ title, fontLarge, c_textAnchor, {}, color::white }
-, m_score{ U"Your score:", fontSmall, c_textAnchor, {}, color::white }
-, m_scoreValue{ U"N/A", fontSmall, c_textAnchor, {}, color::white }
-, m_continue{ U"Return", fontSmall, button, std::move( onContinue ) }
+, m_title{ title, g_uiProperty.fontLarge(), c_textAnchor, {}, color::white }
+, m_score{ U"Your score:", g_uiProperty.fontSmall(), c_textAnchor, {}, color::white }
+, m_scoreValue{ U"N/A", g_uiProperty.fontSmall(), c_textAnchor, {}, color::white }
+, m_continue{ U"Return", std::move( onContinue ) }
 {
     assert( rings );
 }

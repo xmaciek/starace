@@ -12,8 +12,6 @@
 #include <functional>
 #include <string>
 
-class Font;
-
 class ScreenPause : public Widget
 {
     Glow m_glow{};
@@ -28,10 +26,7 @@ public:
     ~ScreenPause() noexcept = default;
     ScreenPause() noexcept = default;
     ScreenPause(
-        Font* fontSmall
-        , Font* fontMedium
-        , Widget* rings
-        , Texture button
+          Widget* rings
         , std::u32string_view txtPause, std::function<void()>&& cbUnpause
         , std::u32string_view txtResume, std::function<void()>&&
         , std::u32string_view txtExit, std::function<void()>&&

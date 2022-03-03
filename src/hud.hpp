@@ -40,7 +40,7 @@ class Hud {
 
 public:
     Hud() noexcept = default;
-    Hud( const HudData*, Font* ) noexcept;
+    Hud( const HudData* ) noexcept;
 
     void render( RenderContext ) const;
     void update( const UpdateContext& );

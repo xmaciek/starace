@@ -52,9 +52,9 @@ private:
         eMainMenu,
     };
 
-    Font* m_fontBig = nullptr;
-    Font* m_fontGuiTxt = nullptr;
-    Font* m_fontPauseTxt = nullptr;
+    Font* m_fontSmall = nullptr;
+    Font* m_fontMedium = nullptr;
+    Font* m_fontLarge = nullptr;
     Model* m_enemyModel = nullptr;
     Jet m_jet{};
     Skybox m_skybox{};
@@ -81,7 +81,6 @@ private:
     BulletProto m_weapons[ 4 ]{};
 
     Texture m_atlasTexture{};
-    Texture m_buttonTexture{};
     Texture m_cyberRingTexture[ 3 ]{};
     Texture m_plasma{};
     std::pmr::map<std::filesystem::path, Texture> m_textures{};

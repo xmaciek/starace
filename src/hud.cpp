@@ -2,22 +2,23 @@
 
 #include "colors.hpp"
 #include "utils.hpp"
+#include "ui_property.hpp"
 
-Hud::Hud( const HudData* displayData, Font* font ) noexcept
+Hud::Hud( const HudData* displayData ) noexcept
 : m_displayData{ displayData }
-, m_score{ U"Score: ", font, {}, color::winScreen }
-, m_scoreValue{ U"0", font, {}, color::winScreen }
-, m_shots{ U"Shots: ", font, {}, color::winScreen }
-, m_shotsValue{ U"0", font, {}, color::winScreen }
-, m_pool{ U"Pool: ", font, {}, color::winScreen }
-, m_poolValue{ U"0", font, {}, color::winScreen }
-, m_fps{ U"FPS: ", font, {}, color::winScreen }
-, m_fpsValue{ U"0", font, {}, color::winScreen }
-, m_calc{ U"Calculated: ", font, {}, color::winScreen }
-, m_calcValue{ U"0", font, {}, color::winScreen }
-, m_speedMeter{ font }
-, m_hp{ U"HP", font }
-, m_pwr{ U"PWR", font }
+, m_score{ U"Score: ", g_uiProperty.fontSmall(), {}, color::winScreen }
+, m_scoreValue{ U"0", g_uiProperty.fontSmall(), {}, color::winScreen }
+, m_shots{ U"Shots: ", g_uiProperty.fontSmall(), {}, color::winScreen }
+, m_shotsValue{ U"0", g_uiProperty.fontSmall(), {}, color::winScreen }
+, m_pool{ U"Pool: ", g_uiProperty.fontSmall(), {}, color::winScreen }
+, m_poolValue{ U"0", g_uiProperty.fontSmall(), {}, color::winScreen }
+, m_fps{ U"FPS: ", g_uiProperty.fontSmall(), {}, color::winScreen }
+, m_fpsValue{ U"0", g_uiProperty.fontSmall(), {}, color::winScreen }
+, m_calc{ U"Calculated: ", g_uiProperty.fontSmall(), {}, color::winScreen }
+, m_calcValue{ U"0", g_uiProperty.fontSmall(), {}, color::winScreen }
+, m_speedMeter{ nullptr }
+, m_hp{ U"HP" }
+, m_pwr{ U"PWR" }
 {
     Widget* arr[] = {
         &m_score,

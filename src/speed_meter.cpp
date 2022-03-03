@@ -5,6 +5,7 @@
 #include "game_pipeline.hpp"
 #include "utils.hpp"
 #include "units.hpp"
+#include "ui_property.hpp"
 
 #include <engine/math.hpp>
 #include <renderer/renderer.hpp>
@@ -23,9 +24,9 @@ static math::vec2 rightOf( const Label& w )
     return w.position() + math::vec2{ w.size().x, 0.0f };
 };
 
-SpeedMeter::SpeedMeter( Font* font ) noexcept
-: m_speed{ U"Speed: ", font, Anchor::fBottom | Anchor::fLeft, { 38, 0 }, color::winScreen }
-, m_speedValue{ U"0", font, Anchor::fBottom | Anchor::fLeft, rightOf( m_speed ), color::winScreen }
+SpeedMeter::SpeedMeter( std::nullptr_t ) noexcept
+: m_speed{ U"Speed: ", g_uiProperty.fontSmall(), Anchor::fBottom | Anchor::fLeft, { 38, 0 }, color::winScreen }
+, m_speedValue{ U"0", g_uiProperty.fontSmall(), Anchor::fBottom | Anchor::fLeft, rightOf( m_speed ), color::winScreen }
 {
 }
 

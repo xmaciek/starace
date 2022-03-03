@@ -4,13 +4,14 @@
 #include "game_pipeline.hpp"
 #include "utils.hpp"
 #include "progressbar.hpp"
+#include "ui_property.hpp"
 
 #include <renderer/renderer.hpp>
 #include <engine/math.hpp>
 
-HudBar::HudBar( std::u32string_view txt, Font* font ) noexcept
+HudBar::HudBar( std::u32string_view txt ) noexcept
 : Widget{ {}, { 64, 112 }, Anchor::fBottom | Anchor::fLeft }
-, m_label{ txt, font, Anchor::fCenter | Anchor::fTop, { 32, 0 }, color::winScreen }
+, m_label{ txt, g_uiProperty.fontSmall(), Anchor::fCenter | Anchor::fTop, { 32, 0 }, color::winScreen }
 {}
 
 void HudBar::render( RenderContext rctx ) const

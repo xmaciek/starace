@@ -10,8 +10,6 @@
 
 #include <functional>
 
-class Font;
-
 class ScreenWinLoose : public Widget
 {
     Glow m_glow{};
@@ -25,10 +23,7 @@ public:
     ~ScreenWinLoose() noexcept = default;
     ScreenWinLoose() noexcept = default;
     ScreenWinLoose(
-        Texture button
-        , math::vec4 color
-        , Font* fontSmall
-        , Font* fontLarge
+          math::vec4 color
         , Widget* rings
         , std::u32string_view title
         , std::function<void()>&& onContinue

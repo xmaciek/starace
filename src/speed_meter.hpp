@@ -2,8 +2,6 @@
 
 #include "label.hpp"
 
-class Font;
-
 class SpeedMeter : public Widget {
     Label m_speed{};
     Label m_speedValue{};
@@ -14,7 +12,7 @@ class SpeedMeter : public Widget {
 public:
     ~SpeedMeter() noexcept = default;
     SpeedMeter() noexcept = default;
-    SpeedMeter( Font* ) noexcept;
+    SpeedMeter( std::nullptr_t ) noexcept;
 
     void setSpeed( float );
 

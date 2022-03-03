@@ -2,14 +2,11 @@
 
 #include "colors.hpp"
 #include "utils.hpp"
+#include "ui_property.hpp"
 
 ScreenMissionSelect::ScreenMissionSelect(
     std::pmr::vector<MissionInfo>&& data,
-    Font* fontSmall,
-    Font* fontMedium,
-    Font* fontLarge,
     Widget* rings,
-    Texture button,
     std::u32string_view enemyTxt,
     std::u32string_view txtPrev, std::function<void()>&& cbPrev,
     std::u32string_view txtNext, std::function<void()>&& cbNext,
@@ -20,13 +17,13 @@ ScreenMissionSelect::ScreenMissionSelect(
 , m_preview{ Anchor::fCenter | Anchor::fMiddle }
 , m_glow{ color::dodgerBlue }
 , m_rings{ rings }
-, m_title{ fontLarge, Anchor::fCenter | Anchor::fMiddle, {}, color::white }
-, m_enemy{ enemyTxt, fontMedium, Anchor::fRight, {}, color::white }
-, m_enemyCount{ fontMedium, Anchor::fLeft, {}, color::white }
-, m_prev{ txtPrev, fontSmall, button, std::move( cbPrev ) }
-, m_next{ txtNext, fontSmall, button, std::move( cbNext ) }
-, m_cancel{ txtCancel, fontSmall, button, std::move( cbCancel ) }
-, m_select{ txtSelect, fontSmall, button, std::move( cbSelect ) }
+, m_title{ g_uiProperty.fontLarge(), Anchor::fCenter | Anchor::fMiddle, {}, color::white }
+, m_enemy{ enemyTxt, g_uiProperty.fontMedium(), Anchor::fRight, {}, color::white }
+, m_enemyCount{ g_uiProperty.fontMedium(), Anchor::fLeft, {}, color::white }
+, m_prev{ txtPrev, std::move( cbPrev ) }
+, m_next{ txtNext, std::move( cbNext ) }
+, m_cancel{ txtCancel, std::move( cbCancel ) }
+, m_select{ txtSelect, std::move( cbSelect ) }
 {
     assert( !m_info.empty() );
     assert( rings );

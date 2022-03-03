@@ -1,8 +1,10 @@
 #include "screen_customize.hpp"
+
 #include "colors.hpp"
-#include "utils.hpp"
-#include "units.hpp"
 #include "game_action.hpp"
+#include "ui_property.hpp"
+#include "units.hpp"
+#include "utils.hpp"
 
 #include <cassert>
 
@@ -13,9 +15,6 @@ constexpr std::array c_weapName = { U"Laser"sv, U"Blaster"sv, U"Torpedo"sv };
 ScreenCustomize::ScreenCustomize(
     std::array<uint32_t, 3> equipment
     , std::pmr::vector<CustomizeData>&& jets
-    , Font* fontSmall
-    , Font* fontMedium
-    , Texture btn
     , Widget* rings
     , std::u32string_view done, std::function<void()>&& onDone
     , std::u32string_view pJet, std::function<void()>&& onPrev
@@ -31,13 +30,13 @@ ScreenCustomize::ScreenCustomize(
 , m_weap2{ equipment[ 1 ] }
 , m_weap3{ equipment[ 2 ] }
 , m_glow{ color::dodgerBlue }
-, m_jetName{ fontMedium, Anchor::fCenter | Anchor::fMiddle, color::white }
-, m_jetPrev{ pJet, fontSmall, btn, Anchor::fLeft | Anchor::fMiddle, std::move( onPrev ) }
-, m_jetNext{ nJet, fontSmall, btn, Anchor::fRight | Anchor::fMiddle, std::move( onNext ) }
-, m_done{ done, fontSmall, btn, Anchor::fCenter | Anchor::fMiddle, std::move( onDone ) }
-, m_btnWeap1{ c_weapName[ equipment[ 0 ] ], fontSmall, btn, Anchor::fRight | Anchor::fMiddle, std::move( w1 ) }
-, m_btnWeap2{ c_weapName[ equipment[ 1 ] ], fontSmall, btn, Anchor::fCenter | Anchor::fMiddle, std::move( w2 ) }
-, m_btnWeap3{ c_weapName[ equipment[ 2 ] ], fontSmall, btn, Anchor::fLeft | Anchor::fMiddle, std::move( w3 ) }
+, m_jetName{ g_uiProperty.fontMedium(), Anchor::fCenter | Anchor::fMiddle, color::white }
+, m_jetPrev{ pJet, Anchor::fLeft | Anchor::fMiddle, std::move( onPrev ) }
+, m_jetNext{ nJet, Anchor::fRight | Anchor::fMiddle, std::move( onNext ) }
+, m_done{ done, Anchor::fCenter | Anchor::fMiddle, std::move( onDone ) }
+, m_btnWeap1{ c_weapName[ equipment[ 0 ] ], Anchor::fRight | Anchor::fMiddle, std::move( w1 ) }
+, m_btnWeap2{ c_weapName[ equipment[ 1 ] ], Anchor::fCenter | Anchor::fMiddle, std::move( w2 ) }
+, m_btnWeap3{ c_weapName[ equipment[ 2 ] ], Anchor::fLeft | Anchor::fMiddle, std::move( w3 ) }
 {
     assert( m_rings );
     assert( !m_jets.empty() );
