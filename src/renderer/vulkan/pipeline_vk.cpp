@@ -24,6 +24,7 @@ PipelineVK::PipelineVK( PipelineVK&& rhs ) noexcept
     std::swap( m_pipelineDepthPrepass, rhs.m_pipelineDepthPrepass );
     std::swap( m_pushConstantSize, rhs.m_pushConstantSize );
     std::swap( m_vertexStride, rhs.m_vertexStride );
+    std::swap( m_textureBindPoints, rhs.m_textureBindPoints );
     std::swap( m_depthWrite, rhs.m_depthWrite );
     std::swap( m_useLines, rhs.m_useLines );
 }
@@ -36,6 +37,7 @@ PipelineVK& PipelineVK::operator = ( PipelineVK&& rhs ) noexcept
     std::swap( m_pipelineDepthPrepass, rhs.m_pipelineDepthPrepass );
     std::swap( m_pushConstantSize, rhs.m_pushConstantSize );
     std::swap( m_vertexStride, rhs.m_vertexStride );
+    std::swap( m_textureBindPoints, rhs.m_textureBindPoints );
     std::swap( m_depthWrite, rhs.m_depthWrite );
     std::swap( m_useLines, rhs.m_useLines );
     return *this;
@@ -126,10 +128,18 @@ static VkPipelineDepthStencilStateCreateInfo depthStencilInfo( bool depthTest, b
     };
 }
 
-PipelineVK::PipelineVK( const PipelineCreateInfo& pci, VkDevice device, VkRenderPass colorPass, VkRenderPass depthPrepass, VkDescriptorSetLayout layout )
+PipelineVK::PipelineVK(
+    const PipelineCreateInfo& pci
+    , VkDevice device
+    , VkRenderPass colorPass
+    , VkRenderPass depthPrepass
+    , VkDescriptorSetLayout layout
+    , uint32_t textureBindBits
+) noexcept
 : m_device{ device }
 , m_pushConstantSize{ pci.m_pushConstantSize }
 , m_vertexStride{ pci.m_vertexStride }
+, m_textureBindPoints{ textureBindBits }
 , m_depthWrite{ pci.m_enableDepthWrite }
 , m_useLines{ usesLines( pci.m_topology ) }
 {
@@ -308,4 +318,9 @@ VkPipeline PipelineVK::depthPrepass() const
 {
     assert( m_pipelineDepthPrepass );
     return m_pipelineDepthPrepass;
+}
+
+uint32_t PipelineVK::textureBindPoints() const
+{
+    return m_textureBindPoints;
 }

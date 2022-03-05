@@ -310,6 +310,7 @@ void RendererVK::createPipeline( const PipelineCreateInfo& pci )
         , m_mainPass
         , m_depthPrepass
         , descriptorSet->layout()
+        , pci.m_textureBindBits
     };
 }
 
@@ -783,20 +784,22 @@ static void updateDescriptor( VkDevice device
 
 void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
 {
-    Frame& fr = m_frames[ m_currentFrame ];
-    auto& descriptorPool = pushBuffer.m_texture
-        ? fr.m_descSetUniformSampler
-        : fr.m_descSetUniform;
-
     assert( pushBuffer.m_pipeline < m_pipelines.size() );
+
+    Frame& fr = m_frames[ m_currentFrame ];
     PipelineVK& currentPipeline = m_pipelines[ pushBuffer.m_pipeline ];
 
+    const bool bindTexture = currentPipeline.textureBindPoints() != 0u;
+    assert( !bindTexture || pushBuffer.m_texture );
     const bool rebindPipeline = m_lastPipeline != &currentPipeline;
     const bool depthWrite = currentPipeline.depthWrite();
     const bool updateLineWidth = currentPipeline.useLines() && pushBuffer.m_lineWidth != m_lastLineWidth;
     const bool bindBuffer = pushBuffer.m_vertice;
-    const bool bindTexture = pushBuffer.m_texture;
     uint32_t verticeCount = pushBuffer.m_verticeCount;
+
+    auto& descriptorPool = bindTexture
+        ? fr.m_descSetUniformSampler
+        : fr.m_descSetUniform;
 
     m_lastPipeline = &currentPipeline;
 

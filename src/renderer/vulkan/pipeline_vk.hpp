@@ -18,14 +18,22 @@ class PipelineVK {
     VkPipeline m_pipelineDepthPrepass = VK_NULL_HANDLE;
     uint32_t m_pushConstantSize = 0;
     uint32_t m_vertexStride = 0;
+    uint32_t m_textureBindPoints = 0;
     bool m_depthWrite = false;
     bool m_useLines = false;
 
 public:
-    ~PipelineVK();
-    PipelineVK() = default;
+    ~PipelineVK() noexcept;
+    PipelineVK() noexcept = default;
 
-    PipelineVK( const PipelineCreateInfo&, VkDevice, VkRenderPass color, VkRenderPass depth, VkDescriptorSetLayout );
+    PipelineVK(
+        const PipelineCreateInfo&
+        , VkDevice
+        , VkRenderPass color
+        , VkRenderPass depth
+        , VkDescriptorSetLayout
+        , uint32_t textureBindBits
+    ) noexcept;
 
     PipelineVK( PipelineVK&& ) noexcept;
     PipelineVK& operator = ( PipelineVK&& ) noexcept;
@@ -36,6 +44,8 @@ public:
     VkPipelineLayout layout() const;
     uint32_t pushConstantSize() const;
     uint32_t vertexStride() const;
+    uint32_t textureBindPoints() const;
+
     bool depthWrite() const;
     bool useLines() const;
 };
