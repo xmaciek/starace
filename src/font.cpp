@@ -270,16 +270,16 @@ float Font::textLength( std::u32string_view text ) const
 Font::RenderText Font::composeText( const math::vec4& color, std::u32string_view text ) const
 {
     ZoneScoped;
-    assert( text.size() < PushConstant<Pipeline::eShortString>::charCount );
+    assert( text.size() < PushConstant<Pipeline::eSpriteSequence>::c_spriteCount );
     PushBuffer pushBuffer{
-        .m_pipeline = static_cast<PipelineSlot>( Pipeline::eShortString ),
+        .m_pipeline = static_cast<PipelineSlot>( Pipeline::eSpriteSequence ),
         .m_verticeCount = static_cast<uint32_t>( text.size() * 6 ),
         .m_texture = m_texture,
     };
 
-    PushConstant<Pipeline::eShortString> pushConstant{};
+    PushConstant<Pipeline::eSpriteSequence> pushConstant{};
     pushConstant.m_color = color;
-    auto verticeIt = pushConstant.m_vertices.begin();
+    auto verticeIt = pushConstant.m_xyuv.begin();
     math::vec2 advance{};
 
     for ( auto ch : text ) {

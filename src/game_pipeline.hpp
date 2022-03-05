@@ -9,7 +9,7 @@ enum class Pipeline : PipelineSlot {
     eLine3dStripColor,
     eTriangleFan3dColor,
     eTriangleFan3dTexture,
-    eShortString,
+    eSpriteSequence,
     eProgressBar,
     eGlow,
     eBackground,
@@ -78,14 +78,14 @@ struct PushConstant<Pipeline::eTriangleFan3dColor> {
 };
 
 template <>
-struct PushConstant<Pipeline::eShortString> {
+struct PushConstant<Pipeline::eSpriteSequence> {
     math::mat4 m_model{};
     math::mat4 m_view{};
     math::mat4 m_projection{};
     math::vec4 m_color{};
 
-    static constexpr size_t charCount = 48;
-    std::array<math::vec4, charCount * 6> m_vertices{};
+    static constexpr size_t c_spriteCount = 48;
+    std::array<math::vec4, c_spriteCount * 6> m_xyuv{};
 };
 
 template <>
@@ -214,11 +214,11 @@ static constexpr PipelineCreateInfo g_pipelineLine3DColor{
     .m_constantBindBits = 0b1,
 };
 
-static constexpr PipelineCreateInfo g_pipelineShortString{
-    .m_vertexShader = "shaders/short_string.vert.spv",
-    .m_fragmentShader = "shaders/short_string.frag.spv",
-    .m_slot = static_cast<PipelineSlot>( Pipeline::eShortString ),
-    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eShortString> ),
+static constexpr PipelineCreateInfo g_pipelineSpriteSequence{
+    .m_vertexShader = "shaders/sprite_sequence.vert.spv",
+    .m_fragmentShader = "shaders/sprite_sequence.frag.spv",
+    .m_slot = static_cast<PipelineSlot>( Pipeline::eSpriteSequence ),
+    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eSpriteSequence> ),
     .m_enableBlend = true,
     .m_topology = PipelineCreateInfo::Topology::eTriangleList,
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,

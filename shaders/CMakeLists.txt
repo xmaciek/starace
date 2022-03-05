@@ -29,8 +29,8 @@ compileShader( trianglefan_texture.frag )
 compileShader( lines_color1.vert )
 compileShader( lines_color1.frag )
 
-compileShader( short_string.vert )
-compileShader( short_string.frag )
+compileShader( sprite_sequence.vert )
+compileShader( sprite_sequence.frag )
 
 compileShader( progressbar.vert )
 compileShader( progressbar.frag )

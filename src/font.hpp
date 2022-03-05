@@ -43,6 +43,6 @@ public:
     uint32_t height() const;
     float textLength( std::u32string_view ) const;
     void renderText( RenderContext, const math::vec4& color, double x, double y, std::u32string_view ) const;
-    using RenderText = std::pair<PushBuffer, PushConstant<Pipeline::eShortString>>;
+    using RenderText = std::pair<PushBuffer, PushConstant<Pipeline::eSpriteSequence>>;
     RenderText composeText( const math::vec4& color, std::u32string_view ) const;
 };

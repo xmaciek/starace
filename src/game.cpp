@@ -328,7 +328,7 @@ Game::Game( int argc, char** argv )
     m_renderer->createPipeline( g_pipelineTriangleFan3DTexture );
     m_renderer->createPipeline( g_pipelineTriangleFan3DColor );
     m_renderer->createPipeline( g_pipelineLine3DColor );
-    m_renderer->createPipeline( g_pipelineShortString );
+    m_renderer->createPipeline( g_pipelineSpriteSequence );
     m_renderer->createPipeline( g_pipelineProgressBar );
     m_renderer->createPipeline( g_pipelineGlow );
     m_renderer->createPipeline( g_pipelineBackground );
