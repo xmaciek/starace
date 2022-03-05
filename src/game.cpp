@@ -27,12 +27,12 @@ static constexpr const char* chunk0[] = {
     "textures/cyber_ring1.tga",
     "textures/cyber_ring2.tga",
     "textures/cyber_ring3.tga",
+    "textures/atlas_ui.tga",
     "maps.cfg",
     "jets.cfg",
 };
 
 static constexpr const char* chunk1[] = {
-    "textures/atlas_ui.tga",
     "textures/a2.tga",
     "textures/a3.tga",
     "textures/a4.tga",
@@ -40,36 +40,20 @@ static constexpr const char* chunk1[] = {
     "textures/plasma.tga",
 };
 
-struct UISprites {
-    enum : uint32_t {
-        eBackground,
-        eArrowLeft,
-        eArrowRight,
-        eTopLeft,
-        eTop,
-        eTopRight,
-        eLeft,
-        eMid,
-        eRight,
-        eBotLeft,
-        eBot,
-        eBotRight,
-    };
-};
 
 Sprite c_spritesUi[]{
-    /*[ UISprites::eBackground ] =*/ { 84, 0, 8, 8 },
-    /*[ UISprites::eArrowLeft ]  =*/ { 0, 0, 24, 48 },
-    /*[ UISprites::eArrowRight ] =*/ { 24, 0, 24, 48 },
-    /*[ UISprites::eTopLeft ]    =*/ { 48, 0, 8, 8 },
-    /*[ UISprites::eTop ]        =*/ { 60, 0, 8, 8 },
-    /*[ UISprites::eTopRight ]   =*/ { 72, 0, 8, 8 },
-    /*[ UISprites::eLeft ]       =*/ { 48, 12, 8, 8 },
-    /*[ UISprites::eMid ]        =*/ { 60, 12, 8, 8 },
-    /*[ UISprites::eRight ]      =*/ { 72, 12, 8, 8 },
-    /*[ UISprites::eBotLeft ]    =*/ { 48, 24, 8, 8 },
-    /*[ UISprites::eBot ]        =*/ { 60, 24, 8, 8 },
-    /*[ UISprites::eBotRight ]   =*/ { 72, 24, 8, 8 },
+    /*[ ui::AtlasSprite::eBackground ] =*/ { 84, 0, 8, 8 },
+    /*[ ui::AtlasSprite::eArrowLeft ]  =*/ { 0, 0, 24, 48 },
+    /*[ ui::AtlasSprite::eArrowRight ] =*/ { 24, 0, 24, 48 },
+    /*[ ui::AtlasSprite::eTopLeft ]    =*/ { 48, 0, 8, 8 },
+    /*[ ui::AtlasSprite::eTop ]        =*/ { 60, 0, 8, 8 },
+    /*[ ui::AtlasSprite::eTopRight ]   =*/ { 72, 0, 8, 8 },
+    /*[ ui::AtlasSprite::eLeft ]       =*/ { 48, 12, 8, 8 },
+    /*[ ui::AtlasSprite::eMid ]        =*/ { 60, 12, 8, 8 },
+    /*[ ui::AtlasSprite::eRight ]      =*/ { 72, 12, 8, 8 },
+    /*[ ui::AtlasSprite::eBotLeft ]    =*/ { 48, 24, 8, 8 },
+    /*[ ui::AtlasSprite::eBot ]        =*/ { 60, 24, 8, 8 },
+    /*[ ui::AtlasSprite::eBotRight ]   =*/ { 72, 24, 8, 8 },
 };
 
 
@@ -417,15 +401,18 @@ void Game::onInit()
     m_torpedo = m_audio->load( "sounds/torpedo.wav" );
     m_click = m_audio->load( "sounds/click.wav" );
 
-    g_uiProperty.m_buttonTexture = parseTexture( m_io->getWait( "textures/button1.tga" ) );
-
-
     const std::array rings = {
         parseTexture( m_io->getWait( "textures/cyber_ring1.tga" ) ),
         parseTexture( m_io->getWait( "textures/cyber_ring2.tga" ) ),
         parseTexture( m_io->getWait( "textures/cyber_ring3.tga" ) ),
     };
     m_uiRings = UIRings{ rings };
+
+    m_textures[ "textures/atlas_ui.tga" ] = parseTexture( m_io->getWait( "textures/atlas_ui.tga" ) );
+    g_uiProperty.m_atlasTexture = m_textures[ "textures/atlas_ui.tga" ];
+    g_uiProperty.m_atlas = &m_atlasUi;
+
+
 
     m_screenPause = ScreenPause{
         &m_uiRings,
@@ -441,29 +428,23 @@ void Game::onInit()
         U"Exit Game", [this](){ quit(); }
     };
 
-    auto onWinLoose = [this]()
-    {
-        m_audio->play( m_click );
-        changeScreen( Screen::eMissionSelection );
-    };
     m_screenWin = ScreenWinLoose{
           color::winScreen
         , &m_uiRings
         , U"MISSION SUCCESSFULL"
-        , decltype( onWinLoose ){ onWinLoose }
+        , [this](){ changeScreen( Screen::eMissionSelection, m_click ); }
     };
     m_screenLoose = ScreenWinLoose{
           color::crimson
         , &m_uiRings
         , U"MISSION FAILED"
-        , decltype( onWinLoose ){ onWinLoose }
+        , [this](){ changeScreen( Screen::eMissionSelection, m_click ); }
     };
 
     for ( const char* it : chunk1 ) {
         m_textures[ it ] = parseTexture( m_io->getWait( it ) );
     }
 
-    m_atlasTexture = m_textures[ "textures/atlas_ui.tga" ];
     m_plasma = m_textures[ "textures/plasma.tga" ];
     BulletProto tmpWeapon{};
     tmpWeapon.texture = m_textures[ "textures/plasma.tga" ];
@@ -1082,14 +1063,14 @@ void Game::renderBackground( RenderContext rctx ) const
     const PushBuffer pushBuffer{
         .m_pipeline = static_cast<PipelineSlot>( Pipeline::eBackground ),
         .m_verticeCount = 4,
-        .m_texture = m_atlasTexture,
+        .m_texture = g_uiProperty.atlasTexture(),
     };
     PushConstant<Pipeline::eBackground> pushConstant{
         .m_model = rctx.model,
         .m_view = rctx.view,
         .m_projection = rctx.projection,
         .m_color = color::dodgerBlue,
-        .m_uvSlice = m_atlasUi.sliceUV( UISprites::eBackground ),
+        .m_uvSlice = m_atlasUi.sliceUV( ui::AtlasSprite::eBackground ),
         .m_xyuv{
             math::vec4{ 0, 0, 0, 0 },
             math::vec4{ 0, h, 0, uv.y },

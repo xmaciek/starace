@@ -8,10 +8,21 @@
 static constexpr math::vec4 colorNormal = color::dodgerBlue;
 static constexpr math::vec4 colorHover = color::lightSkyBlue;
 static constexpr math::vec4 colorDisabled = color::lightSteelBlue;
-
+static constexpr auto c_defaultAnchor = Anchor::fCenter | Anchor::fMiddle;
+std::array<uint32_t, 9> c_slices = {
+    ui::AtlasSprite::eTopLeft,
+    ui::AtlasSprite::eTop,
+    ui::AtlasSprite::eTopRight,
+    ui::AtlasSprite::eLeft,
+    ui::AtlasSprite::eMid,
+    ui::AtlasSprite::eRight,
+    ui::AtlasSprite::eBotLeft,
+    ui::AtlasSprite::eBot,
+    ui::AtlasSprite::eBotRight,
+};
 
 Button::Button( std::u32string_view txt, std::function<void()>&& onTrigger )
-: UIImage{ {}, { 192.0f, 48.0f }, colorNormal, g_uiProperty.buttonTexture() }
+: NineSlice{ {}, { 192.0f, 48.0f }, colorNormal, c_defaultAnchor, g_uiProperty.atlas(), c_slices, g_uiProperty.atlasTexture() }
 , m_label(
     txt
     , g_uiProperty.fontSmall()
@@ -23,7 +34,7 @@ Button::Button( std::u32string_view txt, std::function<void()>&& onTrigger )
 }
 
 Button::Button( std::u32string_view txt, Anchor a, std::function<void()>&& onTrigger )
-: UIImage{ a, { 192.0f, 48.0f }, colorNormal, g_uiProperty.buttonTexture() }
+: NineSlice{ {}, { 192.0f, 48.0f }, colorNormal, a, g_uiProperty.atlas(), c_slices, g_uiProperty.atlasTexture() }
 , m_label(
     txt
     , g_uiProperty.fontSmall()
@@ -35,7 +46,7 @@ Button::Button( std::u32string_view txt, Anchor a, std::function<void()>&& onTri
 }
 
 Button::Button( std::function<void()>&& onTrigger )
-: UIImage{ {}, { 192.0f, 48.0f }, colorNormal, g_uiProperty.buttonTexture() }
+: NineSlice{ {}, { 192.0f, 48.0f }, colorNormal, c_defaultAnchor, g_uiProperty.atlas(), c_slices, g_uiProperty.atlasTexture() }
 , m_label(
     g_uiProperty.fontSmall()
     , Anchor::fCenter | Anchor::fMiddle
@@ -47,7 +58,7 @@ Button::Button( std::function<void()>&& onTrigger )
 
 void Button::render( RenderContext rctx ) const
 {
-    UIImage::render( rctx );
+    NineSlice::render( rctx );
     const math::vec2 pos = position() + offsetByAnchor() + size() * 0.5f;
     rctx.model = math::translate( rctx.model, math::vec3{ pos.x, pos.y, 0.0f } );
     m_label.render( rctx );

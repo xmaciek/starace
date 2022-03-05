@@ -39,6 +39,8 @@ set( STARACE_SOURCES
     model.cpp
     model.hpp
     model_proto.hpp
+    nineslice.cpp
+    nineslice.hpp
     obj.cpp
     obj.hpp
     progressbar.cpp

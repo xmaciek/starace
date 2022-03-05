@@ -80,7 +80,6 @@ private:
 
     BulletProto m_weapons[ 4 ]{};
 
-    Texture m_atlasTexture{};
     Texture m_cyberRingTexture[ 3 ]{};
     Texture m_plasma{};
     std::pmr::map<std::filesystem::path, Texture> m_textures{};

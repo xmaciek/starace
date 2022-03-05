@@ -2,7 +2,7 @@
 
 #include "colors.hpp"
 #include "label.hpp"
-#include "ui_image.hpp"
+#include "nineslice.hpp"
 
 #include <engine/render_context.hpp>
 #include <renderer/texture.hpp>
@@ -14,7 +14,7 @@
 
 class Font;
 
-class Button : public UIImage {
+class Button : public NineSlice {
 private:
     Label m_label{};
     std::function<void()> m_onTrigger{};

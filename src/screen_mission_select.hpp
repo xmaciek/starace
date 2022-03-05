@@ -5,6 +5,7 @@
 #include "label.hpp"
 #include "button.hpp"
 #include "ui_glow.hpp"
+#include "ui_image.hpp"
 
 #include <renderer/texture.hpp>
 
