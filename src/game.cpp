@@ -323,18 +323,9 @@ Game::Game( int argc, char** argv )
 {
     ZoneScoped;
     preloadData();
-    m_renderer->createPipeline( g_pipelineGui );
-    m_renderer->createPipeline( g_pipelineLineStripColor );
-    m_renderer->createPipeline( g_pipelineTriangleFan3DTexture );
-    m_renderer->createPipeline( g_pipelineTriangleFan3DColor );
-    m_renderer->createPipeline( g_pipelineLine3DColor );
-    m_renderer->createPipeline( g_pipelineSpriteSequence );
-    m_renderer->createPipeline( g_pipelineProgressBar );
-    m_renderer->createPipeline( g_pipelineGlow );
-    m_renderer->createPipeline( g_pipelineBackground );
-    m_renderer->createPipeline( g_pipelineAlbedo );
-    m_renderer->createPipeline( g_pipelineSprite3D );
-    m_renderer->createPipeline( g_pipelineThruster );
+    for ( const auto& p : g_pipelines ) {
+        m_renderer->createPipeline( p );
+    }
 
     changeScreen( Screen::eMainMenu );
 

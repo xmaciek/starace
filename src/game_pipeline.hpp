@@ -135,7 +135,8 @@ struct PushConstant<Pipeline::eSprite3D> {
     std::array<math::vec4, 4> m_uv{};
 };
 
-static constexpr PipelineCreateInfo g_pipelineGui{
+static constexpr std::array g_pipelines = {
+PipelineCreateInfo{
     .m_vertexShader = "shaders/gui_texture_color.vert.spv",
     .m_fragmentShader = "shaders/gui_texture_color.frag.spv",
     .m_slot = static_cast<PipelineSlot>( Pipeline::eGuiTextureColor1 ),
@@ -146,9 +147,9 @@ static constexpr PipelineCreateInfo g_pipelineGui{
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
     .m_constantBindBits = 0b1,
     .m_textureBindBits = 0b10,
-};
+},
 
-static constexpr PipelineCreateInfo g_pipelineBackground{
+PipelineCreateInfo{
     .m_vertexShader = "shaders/background.vert.spv",
     .m_fragmentShader = "shaders/background.frag.spv",
     .m_slot = static_cast<PipelineSlot>( Pipeline::eBackground ),
@@ -159,9 +160,9 @@ static constexpr PipelineCreateInfo g_pipelineBackground{
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
     .m_constantBindBits = 0b1,
     .m_textureBindBits = 0b10,
-};
+},
 
-static constexpr PipelineCreateInfo g_pipelineLineStripColor{
+PipelineCreateInfo{
     .m_vertexShader = "shaders/line3_strip_color.vert.spv",
     .m_fragmentShader = "shaders/line3_strip_color.frag.spv",
     .m_slot = static_cast<PipelineSlot>( Pipeline::eLine3dStripColor ),
@@ -171,9 +172,9 @@ static constexpr PipelineCreateInfo g_pipelineLineStripColor{
     .m_enableDepthWrite = false,
     .m_topology = PipelineCreateInfo::Topology::eLineStrip,
     .m_constantBindBits = 0b1,
-};
+},
 
-static constexpr PipelineCreateInfo g_pipelineTriangleFan3DTexture{
+PipelineCreateInfo{
     .m_vertexShader = "shaders/trianglefan_texture.vert.spv",
     .m_fragmentShader = "shaders/trianglefan_texture.frag.spv",
     .m_slot = static_cast<PipelineSlot>( Pipeline::eTriangleFan3dTexture ),
@@ -186,9 +187,9 @@ static constexpr PipelineCreateInfo g_pipelineTriangleFan3DTexture{
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
     .m_constantBindBits = 0b1,
     .m_textureBindBits = 0b10,
-};
+},
 
-static constexpr PipelineCreateInfo g_pipelineTriangleFan3DColor{
+PipelineCreateInfo{
     .m_vertexShader = "shaders/trianglefan_color.vert.spv",
     .m_fragmentShader = "shaders/trianglefan_color.frag.spv",
     .m_slot = static_cast<PipelineSlot>( Pipeline::eTriangleFan3dColor ),
@@ -200,9 +201,9 @@ static constexpr PipelineCreateInfo g_pipelineTriangleFan3DColor{
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
     .m_constantBindBits = 0b1,
-};
+},
 
-static constexpr PipelineCreateInfo g_pipelineLine3DColor{
+PipelineCreateInfo{
     .m_vertexShader = "shaders/lines_color1.vert.spv",
     .m_fragmentShader = "shaders/lines_color1.frag.spv",
     .m_slot = static_cast<PipelineSlot>( Pipeline::eLine3dColor1 ),
@@ -212,9 +213,9 @@ static constexpr PipelineCreateInfo g_pipelineLine3DColor{
     .m_enableDepthWrite = false,
     .m_topology = PipelineCreateInfo::Topology::eLineList,
     .m_constantBindBits = 0b1,
-};
+},
 
-static constexpr PipelineCreateInfo g_pipelineSpriteSequence{
+PipelineCreateInfo{
     .m_vertexShader = "shaders/sprite_sequence.vert.spv",
     .m_fragmentShader = "shaders/sprite_sequence.frag.spv",
     .m_slot = static_cast<PipelineSlot>( Pipeline::eSpriteSequence ),
@@ -225,9 +226,9 @@ static constexpr PipelineCreateInfo g_pipelineSpriteSequence{
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
     .m_constantBindBits = 0b1,
     .m_textureBindBits = 0b10,
-};
+},
 
-static constexpr PipelineCreateInfo g_pipelineAlbedo{
+PipelineCreateInfo{
     .m_vertexShader = "shaders/albedo.vert.spv",
     .m_fragmentShader = "shaders/albedo.frag.spv",
     .m_slot = static_cast<PipelineSlot>( Pipeline::eAlbedo ),
@@ -246,9 +247,9 @@ static constexpr PipelineCreateInfo g_pipelineAlbedo{
     },
     .m_constantBindBits = 0b1,
     .m_textureBindBits = 0b10,
-};
+},
 
-static constexpr PipelineCreateInfo g_pipelineProgressBar{
+PipelineCreateInfo{
     .m_vertexShader = "shaders/progressbar.vert.spv",
     .m_fragmentShader = "shaders/progressbar.frag.spv",
     .m_slot = static_cast<PipelineSlot>( Pipeline::eProgressBar ),
@@ -258,9 +259,9 @@ static constexpr PipelineCreateInfo g_pipelineProgressBar{
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
     .m_constantBindBits = 0b1,
-};
+},
 
-static constexpr PipelineCreateInfo g_pipelineGlow{
+PipelineCreateInfo{
     .m_vertexShader = "shaders/glow.vert.spv",
     .m_fragmentShader = "shaders/glow.frag.spv",
     .m_slot = static_cast<PipelineSlot>( Pipeline::eGlow ),
@@ -270,9 +271,9 @@ static constexpr PipelineCreateInfo g_pipelineGlow{
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
     .m_constantBindBits = 0b1,
-};
+},
 
-static constexpr PipelineCreateInfo g_pipelineThruster{
+PipelineCreateInfo{
     .m_vertexShader = "shaders/thruster.vert.spv",
     .m_fragmentShader = "shaders/thruster.frag.spv",
     .m_slot = static_cast<PipelineSlot>( Pipeline::eThruster ),
@@ -282,9 +283,9 @@ static constexpr PipelineCreateInfo g_pipelineThruster{
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
     .m_constantBindBits = 0b1,
-};
+},
 
-static constexpr PipelineCreateInfo g_pipelineSprite3D{
+PipelineCreateInfo{
     .m_vertexShader = "shaders/sprite3d.vert.spv",
     .m_fragmentShader = "shaders/sprite3d.frag.spv",
     .m_slot = static_cast<PipelineSlot>( Pipeline::eSprite3D ),
@@ -297,4 +298,6 @@ static constexpr PipelineCreateInfo g_pipelineSprite3D{
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
     .m_constantBindBits = 0b1,
     .m_textureBindBits = 0b10,
+},
+
 };
