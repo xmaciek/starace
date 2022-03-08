@@ -84,7 +84,7 @@ void ScreenTitle::resize( math::vec2 s )
     };
     setSize( s );
     m_glow.setSize( s );
-    Layout{ math::vec2{ s.x * 0.5f, s.y * 0.5f - 48 }, Layout::Flow::eVertical }( std::begin( btns ), std::end( btns ) );
+    Layout{ math::vec2{ s.x * 0.5f, s.y * 0.5f - 48 }, Layout::Flow::eVertical }( btns );
 }
 
 void ScreenTitle::onAction( Action a )

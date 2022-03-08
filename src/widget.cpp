@@ -77,21 +77,21 @@ math::vec2 Widget::offsetByAnchor() const
     return ret;
 }
 
-void Layout::operator()( Widget** begin, Widget** end ) const
+void Layout::operator() ( std::span<Widget*> wgts ) const
 {
     math::vec2 position = m_position;
     switch ( m_flow ) {
     case eHorizontal:
-        for ( ; begin != end; ++begin ) {
-            const math::vec2 size = (*begin)->size();
-            (*begin)->setPosition( position );
+        for ( Widget* it : wgts ) {
+            const math::vec2 size = it->size();
+            it->setPosition( position );
             position.x += size.x;
         }
         break;
     case eVertical:
-        for ( ; begin != end; ++begin ) {
-            const math::vec2 size = (*begin)->size();
-            (*begin)->setPosition( position );
+        for ( Widget* it : wgts ) {
+            const math::vec2 size = it->size();
+            it->setPosition( position );
             position.y += size.y;
         }
         break;

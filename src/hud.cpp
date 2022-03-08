@@ -27,7 +27,7 @@ Hud::Hud( const HudData* displayData ) noexcept
         &m_fps,
         &m_calc,
     };
-    Layout{ { 4.0f, 4.0f }, Layout::eVertical }( std::begin( arr ), std::end( arr ) );
+    Layout{ { 4.0f, 4.0f }, Layout::eVertical }( arr );
 
     const auto rightOf = []( const Label& w ) {
         return w.position() + math::vec2{ w.size().x, 0.0f };
@@ -91,5 +91,5 @@ void Hud::resize( math::vec2 s )
         &m_hp,
         &m_pwr,
     };
-    Layout{ { 4.0f, s.y - 4.0f }, Layout::eHorizontal }( std::begin( bars ), std::end( bars ) );
+    Layout{ { 4.0f, s.y - 4.0f }, Layout::eHorizontal }( bars );
 }

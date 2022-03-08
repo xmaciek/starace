@@ -9,6 +9,7 @@
 
 
 #include <array>
+#include <span>
 
 class Widget {
 protected:
@@ -76,5 +77,5 @@ public:
     , m_flow{ a }
     {}
 
-    void operator () ( Widget** begin, Widget** end ) const;
+    void operator () ( std::span<Widget*> ) const;
 };
