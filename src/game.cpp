@@ -40,7 +40,7 @@ static constexpr const char* chunk1[] = {
 };
 
 
-Sprite c_spritesUi[]{
+static constexpr Sprite c_spritesUi[]{
     /*[ ui::AtlasSprite::eBackground ] =*/ { 84, 0, 8, 8 },
     /*[ ui::AtlasSprite::eArrowLeft ]  =*/ { 0, 0, 24, 48 },
     /*[ ui::AtlasSprite::eArrowRight ] =*/ { 24, 0, 24, 48 },

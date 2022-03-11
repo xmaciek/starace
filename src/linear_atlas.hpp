@@ -19,7 +19,7 @@ private:
 
 public:
     LinearAtlas() noexcept = default;
-    LinearAtlas( std::span<Sprite>, uint16_t width, uint16_t height ) noexcept;
+    LinearAtlas( std::span<const Sprite>, uint16_t width, uint16_t height ) noexcept;
 
     math::vec2 extent() const;
     math::vec4 sliceUV( uint32_t ) const; // returns uv in xywh style

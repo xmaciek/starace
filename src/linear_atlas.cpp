@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-LinearAtlas::LinearAtlas( std::span<Sprite> data, uint16_t width, uint16_t height ) noexcept
+LinearAtlas::LinearAtlas( std::span<const Sprite> data, uint16_t width, uint16_t height ) noexcept
 : m_width{ width }
 , m_height{ height }
 {
