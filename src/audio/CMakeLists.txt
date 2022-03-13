@@ -15,6 +15,7 @@ set_target_properties( audio PROPERTIES
 )
 
 target_link_libraries( audio
+    shared
     cxx::flags
     Tracy::Client
     SDL2::SDL2

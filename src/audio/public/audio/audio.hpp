@@ -1,17 +1,22 @@
 #pragma once
 
 #include <string_view>
+#include <cstdint>
+
+class Engine;
 
 class Audio {
-public:
-    struct Chunk {
-        void* data = nullptr;
-    };
+    friend Engine;
+    static Audio* create();
 
-    virtual ~Audio() = default;
+protected:
     Audio() = default;
 
-    static Audio* create();
-    virtual void play( const Chunk& ) = 0;
-    virtual Chunk load( std::string_view ) = 0;
+public:
+    using Slot = uint16_t;
+
+    virtual ~Audio() = default;
+
+    virtual void play( Slot ) = 0;
+    virtual Slot load( std::string_view ) = 0;
 };

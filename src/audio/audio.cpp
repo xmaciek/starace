@@ -1,15 +1,17 @@
 #include <audio/audio.hpp>
 
+#include <shared/indexer.hpp>
+
 #include <Tracy.hpp>
 
 #include <SDL.h>
 
 #include <algorithm>
 #include <cassert>
-#include <map>
 #include <mutex>
-#include <string>
+#include <string_view>
 #include <vector>
+#include <memory_resource>
 
 #include <iostream>
 
@@ -32,15 +34,19 @@ struct Buffer {
 };
 
 struct BufferPlayed {
-    Buffer* buffer = nullptr;
-    Uint32 position = 0;
+    const Uint8* begin = nullptr;
+    const Uint8* end = nullptr;
 };
 
 class SDLAudioEngine : public Audio {
     SDL_AudioSpec m_spec{};
     SDL_AudioDeviceID m_device{};
-    std::map<void*, Buffer> m_loadedBuffers{};
-    std::vector<BufferPlayed> m_nowPlaying{};
+
+    static constexpr uint64_t c_maxSlots = 8;
+    Indexer<c_maxSlots> m_slotMachine{};
+    std::array<std::atomic<Buffer*>, c_maxSlots> m_audioSlots{};
+
+    std::pmr::vector<BufferPlayed> m_nowPlaying{};
     std::mutex m_playingAccess{};
 
     static void callback( void*, Uint8*, int );
@@ -49,8 +55,8 @@ public:
     virtual ~SDLAudioEngine() override;
     SDLAudioEngine();
 
-    virtual void play( const Chunk& ) override;
-    virtual Chunk load( std::string_view ) override;
+    virtual void play( Slot ) override;
+    virtual Slot load( std::string_view ) override;
 };
 
 Audio* Audio::create()
@@ -64,6 +70,9 @@ SDLAudioEngine::~SDLAudioEngine()
     SDL_PauseAudioDevice( m_device, 1 );
     SDL_CloseAudioDevice( m_device );
     SDL_AudioQuit();
+    for ( auto& it : m_audioSlots ) {
+        delete it.load();
+    }
 }
 
 SDLAudioEngine::SDLAudioEngine()
@@ -106,14 +115,14 @@ SDLAudioEngine::SDLAudioEngine()
         .userdata = this,
     };
 
-    m_device = SDL_OpenAudioDevice( audioDevices.front().c_str(), 0, &want, &m_spec, SDL_AUDIO_ALLOW_FORMAT_CHANGE );
-    if ( m_device == 0 ) {
-        std::cout << " Failed to open audio: " << SDL_GetError() << std::endl;
-        return;
+    for ( const auto& it : audioDevices ) {
+        m_device = SDL_OpenAudioDevice( audioDevices.front().c_str(), 0, &want, &m_spec, SDL_AUDIO_ALLOW_FORMAT_CHANGE );
+        if ( m_device != 0 ) { break; }
+        std::cout << "Failed to open audio device " << it << " : " << SDL_GetError() << std::endl;
     }
-
-    if ( want.format != m_spec.format ) {
-        std::cout << "Audio format changed" << std::endl;
+    if( m_device == 0 ) {
+        std::cout << "Failed to initialize audio" << std::endl;
+        std::abort();
     }
 
     SDL_PauseAudioDevice( m_device, 0 );
@@ -130,70 +139,79 @@ void SDLAudioEngine::callback( void* userData, Uint8* stream, int len )
 
     std::lock_guard<std::mutex> lg( instance->m_playingAccess );
     for ( BufferPlayed& it : instance->m_nowPlaying ) {
-        assert( it.buffer );
-        assert( it.buffer->data.size() >= it.position );
-        const Uint32 lengthRemaining = static_cast<Uint32>( it.buffer->data.size() ) - it.position;
-        const Uint32 playLength = std::min( static_cast<Uint32>( len ), lengthRemaining );
-        SDL_MixAudioFormat( stream, it.buffer->data.data() + it.position, instance->m_spec.format, playLength, SDL_MIX_MAXVOLUME );
-        it.position += playLength;
+        assert( it.begin );
+        assert( it.end );
+        assert( it.begin < it.end );
+        const Uint32 sizeRemaining = static_cast<Uint32>( it.end - it.begin );
+        const Uint32 playLength = std::min( static_cast<Uint32>( len ), sizeRemaining );
+        SDL_MixAudioFormat( stream
+            , it.begin
+            , instance->m_spec.format
+            , playLength
+            , SDL_MIX_MAXVOLUME
+        );
+        it.begin += playLength;
     }
 
-    const auto finishedPlaying =
-        []( const BufferPlayed& sound ) {
-            return sound.position >= sound.buffer->data.size();
-        };
+    const auto finishedPlaying = []( const BufferPlayed& sound )
+    {
+        return sound.begin == sound.end;
+    };
 
     const auto it = std::remove_if( instance->m_nowPlaying.begin(), instance->m_nowPlaying.end(), finishedPlaying );
-
     instance->m_nowPlaying.erase( it, instance->m_nowPlaying.end() );
 }
 
-Audio::Chunk SDLAudioEngine::load( std::string_view file )
+
+Audio::Slot SDLAudioEngine::load( std::string_view file )
 {
     ZoneScoped;
-    Buffer buffer{};
+    Buffer* buffer = new Buffer{};
     Uint8* tmpBuff = nullptr;
     Uint32 tmpLen = 0;
 
     [[maybe_unused]]
-    SDL_AudioSpec* specPtr = SDL_LoadWAV( file.data(), &buffer.spec, &tmpBuff, &tmpLen );
+    SDL_AudioSpec* specPtr = SDL_LoadWAV( file.data(), &buffer->spec, &tmpBuff, &tmpLen );
     assert( specPtr );
-    assert( &buffer.spec == specPtr );
+    assert( &buffer->spec == specPtr );
 
     SDL_AudioCVT cvt{};
-    SDL_BuildAudioCVT( &cvt, buffer.spec.format, buffer.spec.channels, buffer.spec.freq, m_spec.format, m_spec.channels, m_spec.freq );
+    SDL_BuildAudioCVT( &cvt, buffer->spec.format, buffer->spec.channels, buffer->spec.freq, m_spec.format, m_spec.channels, m_spec.freq );
     assert( cvt.needed );
 
-    buffer.data.resize( static_cast<Buffer::size_type>( tmpLen ) * static_cast<Buffer::size_type>( cvt.len_mult ) );
-    cvt.buf = buffer.data.data();
-    cvt.len = (int)tmpLen;
-    std::copy( tmpBuff, tmpBuff + tmpLen, buffer.data.begin() );
+    buffer->data.resize( static_cast<Buffer::size_type>( tmpLen ) * static_cast<Buffer::size_type>( cvt.len_mult ) );
+    cvt.buf = buffer->data.data();
+    cvt.len = static_cast<int>( tmpLen );
+    std::copy( tmpBuff, tmpBuff + tmpLen, buffer->data.begin() );
 
     [[maybe_unused]]
     const int convertErr = SDL_ConvertAudio( &cvt );
     assert( convertErr == 0 );
-    buffer.data.resize( static_cast<Buffer::size_type>( cvt.len_cvt ) );
+    buffer->data.resize( static_cast<Buffer::size_type>( cvt.len_cvt ) );
 
-    buffer.spec = m_spec;
+    buffer->spec = m_spec;
     SDL_FreeWAV( tmpBuff );
 
-    void* bufferId = buffer.data.data();
-    [[maybe_unused]]
-    const auto ret = m_loadedBuffers.emplace( std::make_pair( bufferId, std::move( buffer ) ) );
-    assert( ret.second );
-    return Chunk{ bufferId };
+    uint16_t slot = static_cast<uint16_t>( m_slotMachine.next() );
+    assert( slot < m_audioSlots.size() );
+    auto* previous = m_audioSlots[ slot ].exchange( buffer );
+    assert( !previous );
+    return slot + 1;
 }
 
-void SDLAudioEngine::play( const Chunk& c )
+void SDLAudioEngine::play( Audio::Slot idx )
 {
-    const auto& it = m_loadedBuffers.find( c.data );
-    if ( it == m_loadedBuffers.cend() ) {
-        return;
-    }
+    assert( idx > 0 );
+    idx--;
+    assert( idx < m_audioSlots.size() );
+    Buffer* buffer = m_audioSlots[ idx ];
+    assert( buffer );
 
-    BufferPlayed buf{};
-    buf.buffer = &it->second;
+    BufferPlayed b{
+        .begin = buffer->data.data(),
+        .end = buffer->data.data() + buffer->data.size(),
+    };
     std::lock_guard<std::mutex> lg( m_playingAccess );
-    m_nowPlaying.emplace_back( buf );
+    m_nowPlaying.push_back( b );
 }
 

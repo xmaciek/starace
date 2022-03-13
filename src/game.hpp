@@ -61,10 +61,10 @@ private:
     Skybox m_skybox{};
     LinearAtlas m_atlasUi{};
 
-    Audio::Chunk m_blaster{};
-    Audio::Chunk m_click{};
-    Audio::Chunk m_laser{};
-    Audio::Chunk m_torpedo{};
+    Audio::Slot m_blaster{};
+    Audio::Slot m_click{};
+    Audio::Slot m_laser{};
+    Audio::Slot m_torpedo{};
 
     Pool<Bullet, 1024> m_poolBullets{};
     Pool<Enemy, 100> m_poolEnemies{};
@@ -102,7 +102,7 @@ private:
     uint32_t viewportWidth() const;
     float viewportAspect() const;
     void addBullet( uint32_t wID );
-    void changeScreen( Screen, Audio::Chunk sound = {} );
+    void changeScreen( Screen, Audio::Slot sound = {} );
     void clearMapData();
     void createMapData( const MapCreateInfo&, const ModelProto& );
     void loadMapProto();

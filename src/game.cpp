@@ -801,10 +801,10 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
 
 }
 
-void Game::changeScreen( Screen scr, Audio::Chunk sound )
+void Game::changeScreen( Screen scr, Audio::Slot sound )
 {
     ZoneScoped;
-    if ( sound.data ) {
+    if ( sound ) {
         m_audio->play( sound );
     }
     SDL_ShowCursor( scr != Screen::eGame );
