@@ -3,9 +3,9 @@
 #include "widget.hpp"
 #include "button.hpp"
 #include "ui_glow.hpp"
+#include "tab_order.hpp"
 
 #include <engine/action.hpp>
-#include <shared/rotary_index.hpp>
 #include <renderer/texture.hpp>
 
 #include <cstdint>
@@ -15,7 +15,7 @@
 class Font;
 
 class ScreenTitle : public Widget {
-    RotaryIndex<uint16_t, 0, 3> m_currentButton{};
+    TabOrder<> m_currentButton{ 0, 3 };
     Widget* m_rings = nullptr;
     Glow m_glow{};
     Button m_newMission{};

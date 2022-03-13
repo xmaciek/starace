@@ -68,6 +68,7 @@ set( STARACE_SOURCES
     space_dust.hpp
     speed_meter.cpp
     speed_meter.hpp
+    tab_order.hpp
     targeting.cpp
     targeting.hpp
     texture.cpp

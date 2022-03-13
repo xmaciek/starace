@@ -27,7 +27,6 @@ ScreenTitle::ScreenTitle(
         it->setTabOrder( tab++ );
         it->setSize( { 320, 48 } );
     }
-    btns[ *m_currentButton ]->setFocused( true );
 }
 
 void ScreenTitle::render( RenderContext rctx ) const
@@ -59,7 +58,6 @@ bool ScreenTitle::onMouseEvent( const MouseEvent& event )
         &m_customize,
         &m_quit,
     };
-    bool ret = false;
     for ( auto* it : btns ) {
         const bool b = it->isFocused();
         const bool c = it->onMouseEvent( event );
@@ -69,10 +67,11 @@ bool ScreenTitle::onMouseEvent( const MouseEvent& event )
         }
         else {
             m_currentButton = it->tabOrder();
-            ret = true;
+            return true;
         }
     }
-    return ret;
+    m_currentButton.invalidate();
+    return false;
 }
 
 void ScreenTitle::resize( math::vec2 s )
