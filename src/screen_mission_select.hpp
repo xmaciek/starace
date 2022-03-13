@@ -4,18 +4,15 @@
 #include "game_action.hpp"
 #include "label.hpp"
 #include "map_create_info.hpp"
+#include "tab_order.hpp"
 #include "ui_glow.hpp"
 #include "ui_image.hpp"
 #include "widget.hpp"
 
-#include <renderer/texture.hpp>
-
 #include <cstdint>
 #include <functional>
-#include <memory_resource>
 #include <span>
-#include <string>
-#include <vector>
+#include <string_view>
 
 class ScreenMissionSelect : public Widget
 {
@@ -32,8 +29,8 @@ public:
     Button m_cancel{};
     Button m_select{};
 
-    uint32_t m_currentMission = 0;
-    uint32_t m_currentTab = 2;
+    TabOrder<> m_currentMission{};
+    TabOrder<> m_currentWidget{ 2, 0, 4 };
     void updateTabOrderFocus( uint32_t, bool );
     void updatePreview();
 

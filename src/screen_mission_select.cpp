@@ -24,6 +24,7 @@ ScreenMissionSelect::ScreenMissionSelect(
 , m_next{ txtNext, std::move( cbNext ) }
 , m_cancel{ txtCancel, std::move( cbCancel ) }
 , m_select{ txtSelect, std::move( cbSelect ) }
+, m_currentMission{ 0, 0, static_cast<uint16_t>( m_info.size() ) }
 {
     assert( !m_info.empty() );
     assert( rings );
@@ -77,38 +78,32 @@ void ScreenMissionSelect::onAction( Action a )
     default:
         break;
     case GameAction::eMenuConfirm:
-        switch ( m_currentTab ) {
+        if ( !m_currentWidget ) {
+            break;
+        }
+        switch ( *m_currentWidget ) {
         case 0: m_prev.trigger(); break;
         case 1: m_cancel.trigger(); break;
         case 2: m_select.trigger(); break;
         case 3: m_next.trigger(); break;
         default: break;
         }
-        return;
+        break;
+
     case GameAction::eMenuCancel:
         m_cancel.trigger();
         break;
+
     case GameAction::eMenuLeft:
-        if ( m_currentTab != c_invalidTabOrder ) {
-            updateTabOrderFocus( m_currentTab, false );
-        } else {
-            m_currentTab = 0;
-        }
-        if ( m_currentTab == 0 ) { m_currentTab = 3; }
-        else { m_currentTab--; }
-        updateTabOrderFocus( m_currentTab, true );
+        if ( m_currentWidget ) { updateTabOrderFocus( *m_currentWidget, false ); }
+        m_currentWidget--;
+        updateTabOrderFocus( *m_currentWidget, true );
         break;
 
     case GameAction::eMenuRight:
-        if ( m_currentTab == c_invalidTabOrder ) {
-            m_currentTab = 2;
-        }
-        else {
-            updateTabOrderFocus( m_currentTab, false );
-            m_currentTab++;
-        }
-        if ( m_currentTab > 3 ) { m_currentTab = 0; }
-        updateTabOrderFocus( m_currentTab, true );
+        if ( m_currentWidget ) { updateTabOrderFocus( *m_currentWidget, false ); }
+        m_currentWidget++;
+        updateTabOrderFocus( *m_currentWidget, true );
         break;
     }
 }
@@ -132,25 +127,20 @@ void ScreenMissionSelect::resize( math::vec2 wh )
 
 uint32_t ScreenMissionSelect::selectedMission() const
 {
-    return m_currentMission;
+    return *m_currentMission;
 }
 
 void ScreenMissionSelect::updatePreview()
 {
-    assert( m_currentMission < m_info.size() );
-    const auto& ci = m_info[ m_currentMission ];
+    assert( m_currentMission );
+    const auto& ci = m_info[ *m_currentMission ];
     m_preview.setTexture( ci.preview );
     m_title.setText( ci.name );
     m_enemyCount.setText( intToUTF32( ci.enemies ) );
-    m_prev.setEnabled( m_currentMission != 0 );
-    m_next.setEnabled( ( m_currentMission + 1 ) != m_info.size() );
 }
 
 bool ScreenMissionSelect::next()
 {
-    if ( ( m_currentMission + 1 ) == m_info.size() ) {
-        return false;
-    }
     m_currentMission++;
     updatePreview();
     return true;
@@ -158,9 +148,6 @@ bool ScreenMissionSelect::next()
 
 bool ScreenMissionSelect::prev()
 {
-    if ( m_currentMission == 0 ) {
-        return false;
-    }
     m_currentMission--;
     updatePreview();
     return true;
@@ -176,12 +163,17 @@ bool ScreenMissionSelect::onMouseEvent( const MouseEvent& event )
     };
     for ( auto it : wgts ) {
         if ( !it->onMouseEvent( event ) ) { continue; }
-        updateTabOrderFocus( m_currentTab, false );
-        m_currentTab = it->tabOrder();
-        updateTabOrderFocus( m_currentTab, true );
+        if ( m_currentWidget ) {
+            updateTabOrderFocus( *m_currentWidget, false );
+        }
+        const auto idx = it->tabOrder();
+        m_currentWidget = idx;
+        updateTabOrderFocus( idx, true );
         return true;
     }
-    updateTabOrderFocus( m_currentTab, false );
-    m_currentTab = c_invalidTabOrder;
+    if ( m_currentWidget ) {
+        updateTabOrderFocus( *m_currentWidget, false );
+    }
+    m_currentWidget.invalidate();
     return {};
 }
