@@ -5,30 +5,8 @@
 
 #include <array>
 #include <cstdint>
-#include <string>
-#include <filesystem>
-#include <memory_resource>
 
-struct MapCreateInfo {
-    std::pmr::u32string name{ U"unnamed map" };
-    enum Wall {
-        eTop,
-        eBottom,
-        eLeft,
-        eRight,
-        eFront,
-        eBack,
-        max,
-    };
-    std::filesystem::path previewPath{};
-    std::array<std::filesystem::path,Wall::max> filePath{};
-    std::array<Texture, 6> texture{};
-    Texture preview{};
-    uint32_t enemies = 0;
-};
-
-class Skybox
-{
+class Skybox {
     std::array<Texture, 6> m_texture{};
 
 public:

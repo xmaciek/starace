@@ -1,30 +1,26 @@
 #pragma once
 
-#include "game_action.hpp"
-#include "widget.hpp"
-#include "label.hpp"
 #include "button.hpp"
+#include "game_action.hpp"
+#include "label.hpp"
+#include "map_create_info.hpp"
 #include "ui_glow.hpp"
 #include "ui_image.hpp"
+#include "widget.hpp"
 
 #include <renderer/texture.hpp>
 
 #include <cstdint>
 #include <functional>
+#include <memory_resource>
+#include <span>
 #include <string>
 #include <vector>
-#include <memory_resource>
-
-struct MissionInfo {
-    std::pmr::u32string m_title;
-    Texture m_preview;
-    uint32_t m_enemyCount = 0;
-};
 
 class ScreenMissionSelect : public Widget
 {
 public:
-    std::pmr::vector<MissionInfo> m_info;
+    std::span<const MapCreateInfo> m_info;
     UIImage m_preview{};
     Glow m_glow{};
     Widget* m_rings = nullptr;
@@ -46,7 +42,7 @@ public:
     ScreenMissionSelect() noexcept = default;
 
     ScreenMissionSelect(
-        std::pmr::vector<MissionInfo>&&,
+        std::span<const MapCreateInfo>,
         Widget* rings,
         std::u32string_view enemyTxt,
         std::u32string_view txtPrev, std::function<void()>&&,

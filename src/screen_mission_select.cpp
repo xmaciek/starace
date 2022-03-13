@@ -5,7 +5,7 @@
 #include "ui_property.hpp"
 
 ScreenMissionSelect::ScreenMissionSelect(
-    std::pmr::vector<MissionInfo>&& data,
+    std::span<const MapCreateInfo> data,
     Widget* rings,
     std::u32string_view enemyTxt,
     std::u32string_view txtPrev, std::function<void()>&& cbPrev,
@@ -13,7 +13,7 @@ ScreenMissionSelect::ScreenMissionSelect(
     std::u32string_view txtCancel, std::function<void()>&& cbCancel,
     std::u32string_view txtSelect, std::function<void()>&& cbSelect
 ) noexcept
-: m_info{ std::move( data ) }
+: m_info{ data }
 , m_preview{ Anchor::fCenter | Anchor::fMiddle }
 , m_glow{ color::dodgerBlue }
 , m_rings{ rings }
@@ -27,11 +27,7 @@ ScreenMissionSelect::ScreenMissionSelect(
 {
     assert( !m_info.empty() );
     assert( rings );
-    m_preview.setTexture( m_info[ 0 ].m_preview );
-    m_title.setText( m_info[ 0 ].m_title );
-    m_enemyCount.setText( intToUTF32( m_info[ 0 ].m_enemyCount ) );
-    m_prev.setEnabled( false );
-    m_next.setEnabled( m_info.size() > 1 );
+    updatePreview();
     m_prev.setAnchor( Anchor::fLeft | Anchor::fMiddle );
     m_next.setAnchor( Anchor::fRight | Anchor::fMiddle );
     m_cancel.setAnchor( Anchor::fRight | Anchor::fMiddle );
@@ -143,9 +139,9 @@ void ScreenMissionSelect::updatePreview()
 {
     assert( m_currentMission < m_info.size() );
     const auto& ci = m_info[ m_currentMission ];
-    m_preview.setTexture( ci.m_preview );
-    m_title.setText( ci.m_title );
-    m_enemyCount.setText( intToUTF32( ci.m_enemyCount ) );
+    m_preview.setTexture( ci.preview );
+    m_title.setText( ci.name );
+    m_enemyCount.setText( intToUTF32( ci.enemies ) );
     m_prev.setEnabled( m_currentMission != 0 );
     m_next.setEnabled( ( m_currentMission + 1 ) != m_info.size() );
 }

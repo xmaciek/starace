@@ -1,6 +1,7 @@
 #include "skybox.hpp"
 
 #include "game_pipeline.hpp"
+#include "map_create_info.hpp"
 #include "utils.hpp"
 
 #include <engine/math.hpp>

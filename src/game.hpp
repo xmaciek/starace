@@ -8,6 +8,7 @@
 #include "hud.hpp"
 #include "jet.hpp"
 #include "linear_atlas.hpp"
+#include "map_create_info.hpp"
 #include "model_proto.hpp"
 #include "screen_customize.hpp"
 #include "screen_mission_select.hpp"

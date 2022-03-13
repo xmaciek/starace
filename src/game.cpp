@@ -482,17 +482,8 @@ void Game::onInit()
     m_weapons[ 2 ] = tmpWeapon;
 
     loadMapProto();
-    std::pmr::vector<MissionInfo> mapInfo{};
-    std::transform( m_mapsContainer.begin(), m_mapsContainer.end(), std::back_inserter( mapInfo ),
-    []( const MapCreateInfo& mci ) -> MissionInfo {
-        return MissionInfo{
-            .m_title = mci.name,
-            .m_preview = mci.preview,
-            .m_enemyCount = mci.enemies,
-        };
-    } );
     m_screenMissionSelect = ScreenMissionSelect{
-        std::move( mapInfo )
+        std::span<const MapCreateInfo>{ m_mapsContainer.begin(), m_mapsContainer.end() }
         , &m_uiRings
         , U"Enemies:"
         , U"Previous Map", [this](){ if ( m_screenMissionSelect.prev() ) { m_audio->play( m_click ); } }
