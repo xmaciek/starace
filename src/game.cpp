@@ -424,6 +424,7 @@ void Game::onInit()
         &m_uiRings,
         U"Select Mission", [this](){ changeScreen( Screen::eMissionSelection, m_click ); },
         U"Customize", [this](){ changeScreen( Screen::eCustomize, m_click ); },
+        U"Settings", [](){},
         U"Exit Game", [this](){ quit(); }
     };
 
