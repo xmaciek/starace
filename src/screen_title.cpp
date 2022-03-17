@@ -1,23 +1,24 @@
 #include "screen_title.hpp"
 
 #include "game_action.hpp"
+#include "ui_localize.hpp"
 #include "ui_property.hpp"
 
 static constexpr Anchor c_defaultAnchor = Anchor::fCenter | Anchor::fMiddle;
 
 ScreenTitle::ScreenTitle(
       Widget* rings
-    , std::u32string_view mission, std::function<void()>&& mt
-    , std::u32string_view customize, std::function<void()>&& ct
-    , std::u32string_view settings, std::function<void()>&& st
-    , std::u32string_view quit, std::function<void()>&& qt
+    , std::function<void()>&& onMissionSelect
+    , std::function<void()>&& onCustomize
+    , std::function<void()>&& onSettings
+    , std::function<void()>&& onQuit
 ) noexcept
 : m_rings{ rings }
 , m_glow{ color::dodgerBlue }
-, m_newMission{ mission, c_defaultAnchor, std::move( mt ) }
-, m_customize{ customize, c_defaultAnchor, std::move( ct ) }
-, m_settings{ settings, c_defaultAnchor, std::move( st ) }
-, m_quit{ quit, c_defaultAnchor, std::move( qt ) }
+, m_newMission{ ui::loc::missionSelect, c_defaultAnchor, std::move( onMissionSelect ) }
+, m_customize{ ui::loc::customize, c_defaultAnchor, std::move( onCustomize ) }
+, m_settings{ ui::loc::settings, c_defaultAnchor, std::move( onSettings ) }
+, m_quit{ ui::loc::quit, c_defaultAnchor, std::move( onQuit ) }
 {
     assert( rings );
     uint16_t tab = 0;

@@ -2,6 +2,7 @@
 
 #include "colors.hpp"
 #include "game_action.hpp"
+#include "ui_localize.hpp"
 #include "ui_property.hpp"
 #include "units.hpp"
 #include "utils.hpp"
@@ -16,9 +17,9 @@ ScreenCustomize::ScreenCustomize(
     std::array<uint32_t, 3> equipment
     , std::pmr::vector<CustomizeData>&& jets
     , Widget* rings
-    , std::u32string_view done, std::function<void()>&& onDone
-    , std::u32string_view pJet, std::function<void()>&& onPrev
-    , std::u32string_view nJet, std::function<void()>&& onNext
+    , std::function<void()>&& onDone
+    , std::function<void()>&& onPrev
+    , std::function<void()>&& onNext
     , std::function<void()>&& w1
     , std::function<void()>&& w2
     , std::function<void()>&& w3
@@ -31,9 +32,9 @@ ScreenCustomize::ScreenCustomize(
 , m_weap3{ equipment[ 2 ] }
 , m_glow{ color::dodgerBlue }
 , m_jetName{ g_uiProperty.fontMedium(), Anchor::fCenter | Anchor::fMiddle, color::white }
-, m_jetPrev{ pJet, Anchor::fLeft | Anchor::fMiddle, std::move( onPrev ) }
-, m_jetNext{ nJet, Anchor::fRight | Anchor::fMiddle, std::move( onNext ) }
-, m_done{ done, Anchor::fCenter | Anchor::fMiddle, std::move( onDone ) }
+, m_jetPrev{ ui::loc::prevJet, Anchor::fLeft | Anchor::fMiddle, std::move( onPrev ) }
+, m_jetNext{ ui::loc::nextJet, Anchor::fRight | Anchor::fMiddle, std::move( onNext ) }
+, m_done{ ui::loc::done, Anchor::fCenter | Anchor::fMiddle, std::move( onDone ) }
 , m_btnWeap1{ c_weapName[ equipment[ 0 ] ], Anchor::fRight | Anchor::fMiddle, std::move( w1 ) }
 , m_btnWeap2{ c_weapName[ equipment[ 1 ] ], Anchor::fCenter | Anchor::fMiddle, std::move( w2 ) }
 , m_btnWeap3{ c_weapName[ equipment[ 2 ] ], Anchor::fLeft | Anchor::fMiddle, std::move( w3 ) }

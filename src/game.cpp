@@ -6,6 +6,7 @@
 #include "game_pipeline.hpp"
 #include "utils.hpp"
 #include "units.hpp"
+#include "ui_localize.hpp"
 #include "ui_property.hpp"
 
 #include <shared/cfg.hpp>
@@ -416,18 +417,18 @@ void Game::onInit()
 
 
     m_screenPause = ScreenPause{
-        &m_uiRings,
-        U"PAUSED", [this](){ changeScreen( Screen::eGame ); },
-        U"Resume", [this](){ changeScreen( Screen::eGame, m_click ); },
-        U"Quit Mission", [this](){ changeScreen( Screen::eMissionSelection, m_click ); }
+        &m_uiRings
+        , [this](){ changeScreen( Screen::eGame ); }
+        , [this](){ changeScreen( Screen::eGame, m_click ); }
+        , [this](){ changeScreen( Screen::eMissionSelection, m_click ); }
     };
 
     m_screenTitle = ScreenTitle{
-        &m_uiRings,
-        U"Select Mission", [this](){ changeScreen( Screen::eMissionSelection, m_click ); },
-        U"Customize", [this](){ changeScreen( Screen::eCustomize, m_click ); },
-        U"Settings", [this](){ changeScreen( Screen::eSettings, m_click ); },
-        U"Exit Game", [this](){ quit(); }
+        &m_uiRings
+        , [this](){ changeScreen( Screen::eMissionSelection, m_click ); }
+        , [this](){ changeScreen( Screen::eCustomize, m_click ); }
+        , [this](){ changeScreen( Screen::eSettings, m_click ); }
+        , [this](){ quit(); }
     };
 
     m_screenSettings = ScreenSettings{
@@ -438,13 +439,13 @@ void Game::onInit()
     m_screenWin = ScreenWinLoose{
           color::winScreen
         , &m_uiRings
-        , U"MISSION SUCCESSFULL"
+        , ui::loc::missionWin
         , [this](){ changeScreen( Screen::eMissionSelection, m_click ); }
     };
     m_screenLoose = ScreenWinLoose{
           color::crimson
         , &m_uiRings
-        , U"MISSION FAILED"
+        , ui::loc::missionLost
         , [this](){ changeScreen( Screen::eMissionSelection, m_click ); }
     };
 
@@ -493,11 +494,10 @@ void Game::onInit()
     m_screenMissionSelect = ScreenMissionSelect{
         std::span<const MapCreateInfo>{ m_mapsContainer.begin(), m_mapsContainer.end() }
         , &m_uiRings
-        , U"Enemies:"
-        , U"Previous Map", [this](){ if ( m_screenMissionSelect.prev() ) { m_audio->play( m_click ); } }
-        , U"Next Map", [this](){ if ( m_screenMissionSelect.next() ) { m_audio->play( m_click ); } }
-        , U"Return", [this](){ changeScreen( Screen::eMainMenu, m_click ); }
-        , U"Start Mission", [this](){ changeScreen( Screen::eGameBriefing, m_click ); }
+        , [this](){ if ( m_screenMissionSelect.prev() ) { m_audio->play( m_click ); } }
+        , [this](){ if ( m_screenMissionSelect.next() ) { m_audio->play( m_click ); } }
+        , [this](){ changeScreen( Screen::eMainMenu, m_click ); }
+        , [this](){ changeScreen( Screen::eGameBriefing, m_click ); }
     };
 
     {
@@ -521,9 +521,9 @@ void Game::onInit()
         { 1, 2, 1 }
         , std::move( data )
         , &m_uiRings
-        , U"Done", [this](){ changeScreen( Screen::eMainMenu, m_click ); }
-        , U"Previous Jet", [this](){ if ( m_screenCustomize.prevJet() ) { m_audio->play( m_click ); } }
-        , U"Next Jet",  [this](){ if ( m_screenCustomize.nextJet() ) { m_audio->play( m_click ); } }
+        , [this](){ changeScreen( Screen::eMainMenu, m_click ); }
+        , [this](){ if ( m_screenCustomize.prevJet() ) { m_audio->play( m_click ); } }
+        , [this](){ if ( m_screenCustomize.nextJet() ) { m_audio->play( m_click ); } }
         , [this](){ m_screenCustomize.nextWeap( 0 ); m_audio->play( m_click ); }
         , [this](){ m_screenCustomize.nextWeap( 1 ); m_audio->play( m_click ); }
         , [this](){ m_screenCustomize.nextWeap( 2 ); m_audio->play( m_click ); }
@@ -1012,6 +1012,9 @@ void Game::onMouseEvent( const MouseEvent& mouseEvent )
 
     case Screen::eSettings:
         m_screenSettings.onMouseEvent( mouseEvent );
+        break;
+
+    case Screen::eGame:
         break;
 
     default:

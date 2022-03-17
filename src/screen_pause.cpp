@@ -1,25 +1,24 @@
 #include "screen_pause.hpp"
 
 #include "colors.hpp"
+#include "ui_localize.hpp"
 #include "ui_property.hpp"
 
 ScreenPause::ScreenPause(
       Widget* rings
-    , std::u32string_view txtPause, std::function<void()>&& cbUnpause
-    , std::u32string_view txtResume, std::function<void()>&& cbResume
-    , std::u32string_view txtExit, std::function<void()>&& cbExit
+    , std::function<void()>&& onUnpause
+    , std::function<void()>&& onResume
+    , std::function<void()>&& onExit
 ) noexcept
 : m_glow{ color::dodgerBlue }
 , m_rings{ rings }
-, m_resume{ txtResume, std::move( cbResume ) }
-, m_exit{ txtExit, std::move( cbExit ) }
-, m_pause{ txtPause, g_uiProperty.fontMedium(), Anchor::fCenter | Anchor::fMiddle, {}, color::yellow }
-, m_unpause{ std::move( cbUnpause ) }
+, m_resume{ ui::loc::resume, Anchor::fLeft | Anchor::fMiddle, std::move( onResume ) }
+, m_exit{ ui::loc::return2, Anchor::fRight | Anchor::fMiddle, std::move( onExit ) }
+, m_pause{ ui::loc::paused, g_uiProperty.fontMedium(), Anchor::fCenter | Anchor::fMiddle, {}, color::yellow }
+, m_unpause{ std::move( onUnpause ) }
 {
     assert( rings );
     assert( m_unpause );
-    m_resume.setAnchor( Anchor::fLeft | Anchor::fMiddle );
-    m_exit.setAnchor( Anchor::fRight | Anchor::fMiddle );
 }
 
 void ScreenPause::render( RenderContext rctx ) const

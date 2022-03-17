@@ -27,9 +27,9 @@ public:
     ScreenPause() noexcept = default;
     ScreenPause(
           Widget* rings
-        , std::u32string_view txtPause, std::function<void()>&& cbUnpause
-        , std::u32string_view txtResume, std::function<void()>&&
-        , std::u32string_view txtExit, std::function<void()>&&
+        , std::function<void()>&& onUnpause
+        , std::function<void()>&& onResume
+        , std::function<void()>&& onExit
     ) noexcept;
 
     void resize( math::vec2 );

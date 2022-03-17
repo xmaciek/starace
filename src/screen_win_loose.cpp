@@ -1,8 +1,9 @@
 #include "screen_win_loose.hpp"
 
 #include "colors.hpp"
-#include "utils.hpp"
+#include "ui_localize.hpp"
 #include "ui_property.hpp"
+#include "utils.hpp"
 
 static constexpr Anchor c_textAnchor = Anchor::fCenter | Anchor::fMiddle;
 
@@ -15,9 +16,9 @@ ScreenWinLoose::ScreenWinLoose(
 : m_glow{ color }
 , m_rings{ rings }
 , m_title{ title, g_uiProperty.fontLarge(), c_textAnchor, {}, color::white }
-, m_score{ U"Your score:", g_uiProperty.fontSmall(), c_textAnchor, {}, color::white }
+, m_score{ ui::loc::yourScore, g_uiProperty.fontSmall(), c_textAnchor, {}, color::white }
 , m_scoreValue{ U"N/A", g_uiProperty.fontSmall(), c_textAnchor, {}, color::white }
-, m_continue{ U"Return", std::move( onContinue ) }
+, m_continue{ ui::loc::return2, std::move( onContinue ) }
 {
     assert( rings );
 }

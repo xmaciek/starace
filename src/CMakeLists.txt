@@ -80,6 +80,7 @@ set( STARACE_SOURCES
     thruster.hpp
     ui_glow.cpp
     ui_glow.hpp
+    ui_localize.hpp
     ui_image.cpp
     ui_image.hpp
     ui_property.hpp

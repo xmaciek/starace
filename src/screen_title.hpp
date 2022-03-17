@@ -31,10 +31,10 @@ public:
     ScreenTitle() noexcept = default;
     ScreenTitle(
           Widget* rings
-        , std::u32string_view mission, std::function<void()>&&
-        , std::u32string_view customize, std::function<void()>&&
-        , std::u32string_view settings, std::function<void()>&&
-        , std::u32string_view quit, std::function<void()>&&
+        , std::function<void()>&& onMissionSelect
+        , std::function<void()>&& onCustomize
+        , std::function<void()>&& onSettings
+        , std::function<void()>&& onQuit
     ) noexcept;
 
     virtual void render( RenderContext ) const override;

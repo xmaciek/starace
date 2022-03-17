@@ -1,6 +1,7 @@
 #include "screen_settings.hpp"
 
 #include "colors.hpp"
+#include "ui_localize.hpp"
 #include "ui_property.hpp"
 
 #include <cassert>
@@ -11,8 +12,8 @@ ScreenSettings::ScreenSettings(
 ) noexcept
 : m_glow{ g_uiProperty.colorA() }
 , m_rings{ rings }
-, m_title{ U"Settings", g_uiProperty.fontMedium(), Anchor::fCenter | Anchor::fMiddle, color::white }
-, m_btnReturn{ U"Return", Anchor::fCenter | Anchor::fMiddle, std::move( onReturn ) }
+, m_title{ ui::loc::settings, g_uiProperty.fontMedium(), Anchor::fCenter | Anchor::fMiddle, color::white }
+, m_btnReturn{ ui::loc::return2, Anchor::fCenter | Anchor::fMiddle, std::move( onReturn ) }
 {
     assert( m_rings );
 }

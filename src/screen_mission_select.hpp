@@ -39,13 +39,12 @@ public:
     ScreenMissionSelect() noexcept = default;
 
     ScreenMissionSelect(
-        std::span<const MapCreateInfo>,
-        Widget* rings,
-        std::u32string_view enemyTxt,
-        std::u32string_view txtPrev, std::function<void()>&&,
-        std::u32string_view txtNext, std::function<void()>&&,
-        std::u32string_view txtCancel, std::function<void()>&&,
-        std::u32string_view txtSelect, std::function<void()>&&
+        std::span<const MapCreateInfo>
+        , Widget* rings
+        , std::function<void()>&& onPrev
+        , std::function<void()>&& onNext
+        , std::function<void()>&& onCancel
+        , std::function<void()>&& onSelect
     ) noexcept;
 
     uint32_t selectedMission() const;

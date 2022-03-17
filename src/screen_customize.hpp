@@ -56,9 +56,9 @@ public:
         std::array<uint32_t, 3> equipment
         , std::pmr::vector<CustomizeData>&& jets
         , Widget* rings
-        , std::u32string_view done, std::function<void()>&&
-        , std::u32string_view pJet, std::function<void()>&&
-        , std::u32string_view nJet, std::function<void()>&&
+        , std::function<void()>&& onDone
+        , std::function<void()>&& onPrev
+        , std::function<void()>&& onNext
         , std::function<void()>&& w1
         , std::function<void()>&& w2
         , std::function<void()>&& w3

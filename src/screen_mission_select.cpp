@@ -1,38 +1,34 @@
 #include "screen_mission_select.hpp"
 
 #include "colors.hpp"
-#include "utils.hpp"
+#include "ui_localize.hpp"
 #include "ui_property.hpp"
+#include "utils.hpp"
 
 ScreenMissionSelect::ScreenMissionSelect(
-    std::span<const MapCreateInfo> data,
-    Widget* rings,
-    std::u32string_view enemyTxt,
-    std::u32string_view txtPrev, std::function<void()>&& cbPrev,
-    std::u32string_view txtNext, std::function<void()>&& cbNext,
-    std::u32string_view txtCancel, std::function<void()>&& cbCancel,
-    std::u32string_view txtSelect, std::function<void()>&& cbSelect
+    std::span<const MapCreateInfo> data
+    , Widget* rings
+    , std::function<void()>&& onPrev
+    , std::function<void()>&& onNext
+    , std::function<void()>&& onCancel
+    , std::function<void()>&& onSelect
 ) noexcept
 : m_info{ data }
 , m_preview{ Anchor::fCenter | Anchor::fMiddle }
 , m_glow{ color::dodgerBlue }
 , m_rings{ rings }
 , m_title{ g_uiProperty.fontLarge(), Anchor::fCenter | Anchor::fMiddle, {}, color::white }
-, m_enemy{ enemyTxt, g_uiProperty.fontMedium(), Anchor::fRight, {}, color::white }
+, m_enemy{ ui::loc::enemyCount, g_uiProperty.fontMedium(), Anchor::fRight, {}, color::white }
 , m_enemyCount{ g_uiProperty.fontMedium(), Anchor::fLeft, {}, color::white }
-, m_prev{ txtPrev, std::move( cbPrev ) }
-, m_next{ txtNext, std::move( cbNext ) }
-, m_cancel{ txtCancel, std::move( cbCancel ) }
-, m_select{ txtSelect, std::move( cbSelect ) }
+, m_prev{ ui::loc::missionPrev, Anchor::fLeft | Anchor::fMiddle, std::move( onPrev ) }
+, m_next{ ui::loc::missionNext, Anchor::fRight | Anchor::fMiddle, std::move( onNext ) }
+, m_cancel{ ui::loc::return2, Anchor::fRight | Anchor::fMiddle, std::move( onCancel ) }
+, m_select{ ui::loc::missionStart, Anchor::fLeft | Anchor::fMiddle, std::move( onSelect ) }
 , m_currentMission{ 0, 0, static_cast<uint16_t>( m_info.size() ) }
 {
     assert( !m_info.empty() );
     assert( rings );
     updatePreview();
-    m_prev.setAnchor( Anchor::fLeft | Anchor::fMiddle );
-    m_next.setAnchor( Anchor::fRight | Anchor::fMiddle );
-    m_cancel.setAnchor( Anchor::fRight | Anchor::fMiddle );
-    m_select.setAnchor( Anchor::fLeft | Anchor::fMiddle );
     m_prev.setTabOrder( 0 );
     m_cancel.setTabOrder( 1 );
     m_select.setTabOrder( 2 );
