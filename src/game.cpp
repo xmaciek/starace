@@ -356,6 +356,7 @@ void Game::onResize( uint32_t w, uint32_t h )
     ZoneScoped;
     m_screenTitle.resize( { w, h } );
     m_screenCustomize.resize( { w, h } );
+    m_screenSettings.resize( { w, h } );
     m_screenPause.resize( { w, h } );
     m_screenMissionSelect.resize( { w, h } );
     m_screenWin.resize( { w, h } );
@@ -374,6 +375,7 @@ void Game::onInit()
         registerAction( static_cast<Action::Enum>( eid ), min, max );
     }
 
+    g_uiProperty.m_colorA = color::dodgerBlue;
     {
         std::pmr::u32string charset = U"0123456789"
         U"abcdefghijklmnopqrstuvwxyz"
@@ -424,8 +426,13 @@ void Game::onInit()
         &m_uiRings,
         U"Select Mission", [this](){ changeScreen( Screen::eMissionSelection, m_click ); },
         U"Customize", [this](){ changeScreen( Screen::eCustomize, m_click ); },
-        U"Settings", [](){},
+        U"Settings", [this](){ changeScreen( Screen::eSettings, m_click ); },
         U"Exit Game", [this](){ quit(); }
+    };
+
+    m_screenSettings = ScreenSettings{
+        &m_uiRings
+        , [this](){ changeScreen( Screen::eMainMenu, m_click ); }
     };
 
     m_screenWin = ScreenWinLoose{
@@ -569,6 +576,11 @@ void Game::onRender( RenderContext rctx )
         m_screenTitle.render( rctx );
         break;
 
+    case Screen::eSettings:
+        renderBackground( rctx );
+        m_screenSettings.render( rctx );
+        break;
+
     case Screen::eCustomize:
         renderBackground( rctx );
         m_screenCustomize.render( rctx );
@@ -604,6 +616,9 @@ void Game::onUpdate( const UpdateContext& updateContext )
         break;
     case Screen::eCustomize:
         m_screenCustomize.update( updateContext );
+        break;
+    case Screen::eSettings:
+        m_screenSettings.update( updateContext );
         break;
     default:
         break;
@@ -832,6 +847,7 @@ void Game::changeScreen( Screen scr, Audio::Slot sound )
         m_screenWin.setScore( m_hudData.score );
         [[fallthrough]];
 
+    case Screen::eSettings:
     case Screen::eCustomize:
         m_currentScreen = scr;
         break;
@@ -848,6 +864,7 @@ void Game::changeScreen( Screen scr, Audio::Slot sound )
         break;
 
     default:
+        assert( !"unhandled enum" );
         break;
     }
 }
@@ -931,6 +948,10 @@ void Game::onAction( Action a )
         m_screenMissionSelect.onAction( a );
         return;
 
+    case Screen::eSettings:
+        m_screenSettings.onAction( a );
+        return;
+
     case Screen::eGamePaused:
         m_screenPause.onAction( a );
         return;
@@ -956,6 +977,7 @@ void Game::onAction( Action a )
         }
 
     default:
+        assert( !"unhandled enum" );
         return;
     }
 }
@@ -988,7 +1010,12 @@ void Game::onMouseEvent( const MouseEvent& mouseEvent )
         m_screenCustomize.onMouseEvent( mouseEvent );
         break;
 
+    case Screen::eSettings:
+        m_screenSettings.onMouseEvent( mouseEvent );
+        break;
+
     default:
+        assert( !"unhandled enum" );
         break;
     }
 }

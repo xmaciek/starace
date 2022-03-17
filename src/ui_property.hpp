@@ -1,5 +1,6 @@
 #pragma once
 
+#include <engine/math.hpp>
 #include <renderer/texture.hpp>
 
 class Game;
@@ -16,6 +17,8 @@ class Property {
     const LinearAtlas* m_atlas = nullptr;
     Texture m_atlasTexture{};
 
+    math::vec4 m_colorA{};
+
 public:
     inline Texture atlasTexture() const { return m_atlasTexture; }
     inline const LinearAtlas* atlas() const { return m_atlas; }
@@ -23,6 +26,8 @@ public:
     inline const Font* fontSmall() const { return m_fontSmall; }
     inline const Font* fontMedium() const { return m_fontMedium; }
     inline const Font* fontLarge() const { return m_fontLarge; }
+
+    inline math::vec4 colorA() const { return m_colorA; }
 
 };
 

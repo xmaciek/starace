@@ -13,6 +13,7 @@
 #include "screen_customize.hpp"
 #include "screen_mission_select.hpp"
 #include "screen_pause.hpp"
+#include "screen_settings.hpp"
 #include "screen_title.hpp"
 #include "screen_win_loose.hpp"
 #include "skybox.hpp"
@@ -27,7 +28,6 @@
 #include <engine/update_context.hpp>
 #include <renderer/texture.hpp>
 #include <shared/pool.hpp>
-#include <shared/rotary_index.hpp>
 
 #include <SDL.h>
 
@@ -50,6 +50,7 @@ private:
         eDead,
         eWin,
         eCustomize,
+        eSettings,
         eMainMenu,
     };
 
@@ -88,6 +89,7 @@ private:
     SpaceDust m_spaceDust{};
     ScreenTitle m_screenTitle{};
     ScreenCustomize m_screenCustomize{};
+    ScreenSettings m_screenSettings{};
     ScreenMissionSelect m_screenMissionSelect{};
     ScreenPause m_screenPause{};
     ScreenWinLoose m_screenWin{};
