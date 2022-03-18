@@ -15,7 +15,7 @@ inline std::u32string_view prevJet = U"Previous Jet";
 inline std::u32string_view quit = U"Exit Game";
 inline std::u32string_view resume = U"Resume";
 inline std::u32string_view return2 = U"Return";
-inline std::u32string_view settings = U"Settings";
+inline std::u32string_view settings = U"[WIP] Settings";
 inline std::u32string_view yourScore = U"Your score:";
 
 
