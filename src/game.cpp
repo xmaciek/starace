@@ -385,7 +385,7 @@ void Game::onInit()
         std::sort( charset.begin(), charset.end() );
         const std::pmr::vector<uint8_t> fontFileContent = m_io->getWait( "misc/DejaVuSans-Bold.ttf" );
         const Font::CreateInfo createInfo{
-            .fontFileContent = &fontFileContent,
+            .fontFileContent = { fontFileContent.cbegin(), fontFileContent.cend() },
             .renderer = m_renderer,
             .charset = charset,
         };

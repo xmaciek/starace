@@ -183,8 +183,7 @@ Font::Font( const CreateInfo& fontInfo, uint32_t height )
 : m_height( height )
 {
     ZoneScoped;
-    assert( fontInfo.fontFileContent );
-    assert( !fontInfo.fontFileContent->empty() );
+    assert( !fontInfo.fontFileContent.empty() );
     assert( fontInfo.renderer );
     assert( !fontInfo.charset.empty() );
     assert( std::is_sorted( fontInfo.charset.begin(), fontInfo.charset.end() ) );
@@ -197,8 +196,8 @@ Font::Font( const CreateInfo& fontInfo, uint32_t height )
 
     const FT_Open_Args openArgs{
         .flags = FT_OPEN_MEMORY,
-        .memory_base = reinterpret_cast<const FT_Byte*>( fontInfo.fontFileContent->data() ),
-        .memory_size = static_cast<FT_Long>( fontInfo.fontFileContent->size() ),
+        .memory_base = reinterpret_cast<const FT_Byte*>( fontInfo.fontFileContent.data() ),
+        .memory_size = static_cast<FT_Long>( fontInfo.fontFileContent.size() ),
     };
 
     FT_Face face{};

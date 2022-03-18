@@ -13,6 +13,7 @@
 #include <string_view>
 #include <vector>
 #include <utility>
+#include <span>
 
 
 class Renderer;
@@ -34,7 +35,7 @@ public:
     ~Font();
 
     struct CreateInfo {
-        const std::pmr::vector<uint8_t>* fontFileContent = nullptr;
+        std::span<const uint8_t> fontFileContent{};
         Renderer* renderer = nullptr;
         std::u32string_view charset{};
     };
