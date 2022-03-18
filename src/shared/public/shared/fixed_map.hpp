@@ -47,6 +47,9 @@ public:
 
     FixedMap() noexcept = default;
 
+    FixedMap( const FixedMap& ) noexcept requires ( isTrivial<TKey>() && isTrivial<TValue>() ) = default;
+    FixedMap& operator = ( const FixedMap& ) noexcept requires ( isTrivial<TKey>() && isTrivial<TValue>() ) = default;
+
     size_type size() const noexcept
     {
         return m_currentSize;
