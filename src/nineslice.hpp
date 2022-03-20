@@ -7,6 +7,8 @@
 #include <renderer/texture.hpp>
 
 class NineSlice : public Widget {
+protected:
+
     math::vec4 m_color{};
     const LinearAtlas* m_atlas = nullptr;
     float m_top = 0.0f;
@@ -15,7 +17,6 @@ class NineSlice : public Widget {
     float m_right = 0.0f;
     Texture m_texture{};
     std::array<uint32_t, 9> m_spriteIds{};
-
 
 public:
     NineSlice() noexcept = default;
