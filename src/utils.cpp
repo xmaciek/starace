@@ -63,16 +63,3 @@ math::vec3 interceptTarget( const math::vec3& dir, const math::vec3& pos, const 
     ret += tgtDir * math::vec3( tmp );
     return math::normalize( ret );
 }
-
-
-std::array<math::vec4, 6> compose6( math::vec4 a, math::vec4 b )
-{
-    return {
-        math::vec4{ a.x, a.y,               b.x, b.y },
-        math::vec4{ a.x, a.y + a.w,         b.x, b.y + b.w },
-        math::vec4{ a.x + a.z, a.y + a.w,   b.x + b.z, b.y + b.w },
-        math::vec4{ a.x + a.z, a.y + a.w,   b.x + b.z, b.y + b.w },
-        math::vec4{ a.x + a.z, a.y,         b.x + b.z, b.y },
-        math::vec4{ a.x, a.y,               b.x, b.y },
-    };
-}

@@ -53,7 +53,21 @@ math::vec4 NineSliceComposer::operator () () noexcept
 
 }
 
-
+math::vec4 Vert6::operator () () noexcept
+{
+    assert( m_currentVert < count() );
+    switch ( m_currentVert++ ) {
+    case 0: [[fallthrough]];
+    case 5: return math::vec4{ m_xywh.x, m_xywh.y,                          m_uvwh.x, m_uvwh.y };
+    case 1: return math::vec4{ m_xywh.x, m_xywh.y + m_xywh.w,               m_uvwh.x, m_uvwh.y + m_uvwh.w };
+    case 2: [[fallthrough]];
+    case 3: return math::vec4{ m_xywh.x + m_xywh.z, m_xywh.y + m_xywh.w,    m_uvwh.x + m_uvwh.z, m_uvwh.y + m_uvwh.w };
+    case 4: return math::vec4{ m_xywh.x + m_xywh.z, m_xywh.y,               m_uvwh.x + m_uvwh.z, m_uvwh.y };
+    default:
+        assert( !"vertice id out of bounds" );
+        return {};
+    }
+}
 
 
 

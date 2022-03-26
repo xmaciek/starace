@@ -32,27 +32,3 @@ math::vec4 LinearAtlas::sliceUV( uint32_t s ) const
     const float h = static_cast<float>( sprite[ 3 ] ) / wh.y;
     return math::vec4{ x, y, w, h };
 }
-
-std::array<math::vec2, 4> LinearAtlas::composeUV4( uint32_t s ) const
-{
-    const math::vec4 slice = sliceUV( s );
-    return {
-        math::vec2{ slice.x, slice.y },
-        math::vec2{ slice.x, slice.y + slice.w },
-        math::vec2{ slice.x + slice.z, slice.y + slice.w },
-        math::vec2{ slice.x + slice.z, slice.y },
-    };
-}
-
-std::array<math::vec2, 6> LinearAtlas::composeUV6( uint32_t s ) const
-{
-    const math::vec4 slice = sliceUV( s );
-    return {
-        math::vec2{ slice.x, slice.y },
-        math::vec2{ slice.x, slice.y + slice.w },
-        math::vec2{ slice.x + slice.z, slice.y + slice.w },
-        math::vec2{ slice.x + slice.z, slice.y + slice.w },
-        math::vec2{ slice.x + slice.z, slice.y },
-        math::vec2{ slice.x, slice.y },
-    };
-}

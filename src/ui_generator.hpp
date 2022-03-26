@@ -21,6 +21,14 @@ struct NineSliceComposer {
     math::vec4 operator () () noexcept;
 };
 
+struct Vert6 {
+    math::vec4 m_xywh{};
+    math::vec4 m_uvwh{};
+    uint32_t m_currentVert = 0;
+
+    static constexpr uint32_t count() noexcept { return 6u; }
+    math::vec4 operator () () noexcept;
+};
 
 
 }

@@ -25,7 +25,4 @@ public:
     math::vec4 sliceUV( uint32_t ) const; // returns uv in xywh style
     Sprite sprite( uint32_t ) const;
 
-    std::array<math::vec2, 4> composeUV4( uint32_t ) const;
-    std::array<math::vec2, 6> composeUV6( uint32_t ) const;
-
 };
