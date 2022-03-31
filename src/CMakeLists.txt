@@ -70,6 +70,8 @@ set( STARACE_SOURCES
     space_dust.hpp
     speed_meter.cpp
     speed_meter.hpp
+    spritegen.cpp
+    spritegen.hpp
     tab_order.hpp
     targeting.cpp
     targeting.hpp
@@ -78,8 +80,6 @@ set( STARACE_SOURCES
     tga.hpp
     thruster.cpp
     thruster.hpp
-    ui_generator.cpp
-    ui_generator.hpp
     ui_glow.cpp
     ui_glow.hpp
     ui_localize.hpp

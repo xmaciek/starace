@@ -2,7 +2,7 @@
 
 #include "game_pipeline.hpp"
 #include "utils.hpp"
-#include "ui_generator.hpp"
+#include "spritegen.hpp"
 
 #include <renderer/renderer.hpp>
 
@@ -35,7 +35,7 @@ NineSlice::NineSlice(
 void NineSlice::render( RenderContext rctx ) const
 {
     ZoneScoped;
-    using Generator = ui::generator::NineSliceComposer;
+    using Generator = spritegen::NineSliceComposer;
     assert( m_texture );
     const PushBuffer pushBuffer{
         .m_pipeline = static_cast<PipelineSlot>( Pipeline::eSpriteSequence ),

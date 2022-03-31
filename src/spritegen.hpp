@@ -7,7 +7,7 @@
 
 class LinearAtlas;
 
-namespace ui::generator {
+namespace spritegen {
 
 struct NineSliceComposer {
     const LinearAtlas* m_atlas = nullptr;
