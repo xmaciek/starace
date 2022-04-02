@@ -119,12 +119,12 @@ SDL_WindowFlags Renderer::windowFlag()
     return SDL_WINDOW_VULKAN;
 }
 
-Renderer* Renderer::create( SDL_Window* window )
+Renderer* Renderer::create( SDL_Window* window, VSync vsync )
 {
-    return new RendererVK( window );
+    return new RendererVK( window, vsync );
 }
 
-RendererVK::RendererVK( SDL_Window* window )
+RendererVK::RendererVK( SDL_Window* window, VSync vsync )
 : m_window( window )
 {
     ZoneScoped;
@@ -221,6 +221,7 @@ RendererVK::RendererVK( SDL_Window* window )
         , m_device
         , m_surface
         , { m_queueFamilyGraphics, m_queueFamilyPresent }
+        , vsync
     );
 
     vkGetDeviceQueue( m_device, m_queueFamilyPresent, 0, &m_queuePresent );
@@ -352,6 +353,11 @@ RendererVK::~RendererVK()
     if ( m_instance ) {
         vkDestroyInstance( m_instance, nullptr );
     }
+}
+
+void RendererVK::setVSync( VSync v )
+{
+    m_pendingVSyncChange = v;
 }
 
 VkCommandBuffer RendererVK::flushUniforms()
@@ -500,6 +506,9 @@ Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::pmr::vecto
 void RendererVK::beginFrame()
 {
     ZoneScoped;
+    if ( m_pendingVSyncChange ) {
+        recreateSwapchain();
+    }
     m_lastLineWidth = 0.0f;
     uint32_t imageIndex = 0;
     static constexpr uint64_t timeout = 8'000'000'000; // 8 seconds
@@ -589,13 +598,21 @@ void RendererVK::recreateSwapchain()
     ZoneScoped;
     vkDeviceWaitIdle( m_device );
 
+    VSync v = m_pendingVSyncChange ? *m_pendingVSyncChange : m_swapchain.vsync();
+    m_pendingVSyncChange.reset();
+
     m_swapchain = Swapchain( m_physicalDevice
         , m_device
         , m_surface
         , { m_queueFamilyGraphics, m_queueFamilyPresent }
+        , v
         , m_swapchain.steal()
     );
+}
 
+void RendererVK::recreateRenderTargets()
+{
+    ZoneScoped;
     for ( auto& it : m_frames ) {
         it.m_renderDepthTarget = RenderTarget{
             RenderTarget::c_depth
@@ -730,6 +747,7 @@ void RendererVK::present()
     case VK_ERROR_OUT_OF_DATE_KHR:
     case VK_SUBOPTIMAL_KHR:
         recreateSwapchain();
+        recreateRenderTargets();
         break;
     default:
         assert( !"failed to present" );

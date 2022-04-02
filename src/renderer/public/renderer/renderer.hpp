@@ -1,6 +1,7 @@
 #pragma once
 
 #include <renderer/buffer.hpp>
+#include <renderer/display_mode.hpp>
 #include <renderer/texture.hpp>
 #include <renderer/pipeline.hpp>
 
@@ -15,12 +16,13 @@ public:
     virtual ~Renderer() = default;
     Renderer() = default;
 
-    static Renderer* create( SDL_Window* );
+    static Renderer* create( SDL_Window*, VSync );
     static Renderer* instance();
     static SDL_WindowFlags windowFlag();
 
     virtual std::pmr::memory_resource* allocator() = 0;
 
+    virtual void setVSync( VSync ) = 0;
     virtual void createPipeline( const PipelineCreateInfo& ) = 0;
 
     virtual Buffer createBuffer( std::pmr::vector<float>&& ) = 0;

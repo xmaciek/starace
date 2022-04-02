@@ -31,23 +31,22 @@ Swapchain::Swapchain( Swapchain&& rhs ) noexcept
 {
     std::swap( m_device, rhs.m_device );
     std::swap( m_swapchain, rhs.m_swapchain );
-    std::swap( m_presentMode, rhs.m_presentMode );
     std::swap( m_surfaceFormat, rhs.m_surfaceFormat );
     std::swap( m_extent, rhs.m_extent );
-    std::swap( m_imageCount, rhs.m_imageCount );
+    std::swap( m_vsync, rhs.m_vsync );
     std::swap( m_images, rhs.m_images );
+    std::swap( m_imageCount, rhs.m_imageCount );
 }
 
 Swapchain& Swapchain::operator = ( Swapchain&& rhs ) noexcept
 {
-    destroyResources();
-    m_device = std::exchange( rhs.m_device, {} );
-    m_swapchain = std::exchange( rhs.m_swapchain, {} );
-    m_presentMode = std::exchange( rhs.m_presentMode, {} );
-    m_surfaceFormat = std::exchange( rhs.m_surfaceFormat, {} );
-    m_extent = std::exchange( rhs.m_extent, {} );
-    m_imageCount = std::exchange( rhs.m_imageCount, {} );
-    m_images = std::move( rhs.m_images );
+    std::swap( m_device, rhs.m_device );
+    std::swap( m_swapchain, rhs.m_swapchain );
+    std::swap( m_surfaceFormat, rhs.m_surfaceFormat );
+    std::swap( m_extent, rhs.m_extent );
+    std::swap( m_vsync, rhs.m_vsync );
+    std::swap( m_imageCount, rhs.m_imageCount );
+    std::swap( m_images, rhs.m_images );
     return *this;
 }
 
@@ -75,32 +74,62 @@ static std::optional<VkSurfaceFormatKHR> findBestFormat( VkPhysicalDevice physic
     return {};
 }
 
-static std::optional<VkPresentModeKHR> findBestPresentMode( VkPhysicalDevice physicalDevice, VkSurfaceKHR surface )
+static VkPresentModeKHR mapVSync( VSync mode )
 {
-    assert( physicalDevice );
+    switch ( mode ) {
+    default:
+        assert( !"unhandled enum" );
+        [[fallthrough]];
+    case VSync::eOff: return VK_PRESENT_MODE_IMMEDIATE_KHR;
+    case VSync::eOn: return VK_PRESENT_MODE_FIFO_KHR;
+    case VSync::eMailbox: return VK_PRESENT_MODE_MAILBOX_KHR;
+    }
+}
+
+
+std::array<bool, 3> Swapchain::supportedVSyncs( VkPhysicalDevice device, VkSurfaceKHR surface )
+{
+    assert( device );
     assert( surface );
 
     uint32_t presentModeCount = 0;
-    vkGetPhysicalDeviceSurfacePresentModesKHR( physicalDevice, surface, &presentModeCount, nullptr );
+    vkGetPhysicalDeviceSurfacePresentModesKHR( device, surface, &presentModeCount, nullptr );
     std::pmr::vector<VkPresentModeKHR> presentModes( presentModeCount );
-    vkGetPhysicalDeviceSurfacePresentModesKHR( physicalDevice, surface, &presentModeCount, presentModes.data() );
+    vkGetPhysicalDeviceSurfacePresentModesKHR( device, surface, &presentModeCount, presentModes.data() );
 
-    static constexpr VkPresentModeKHR prefferedPresents[]{
-        VK_PRESENT_MODE_FIFO_KHR,
-        VK_PRESENT_MODE_IMMEDIATE_KHR,
-        VK_PRESENT_MODE_MAILBOX_KHR,
+    static constexpr VSync vsyncs[] = {
+        VSync::eOff,
+        VSync::eOn,
+        VSync::eMailbox,
     };
-    for ( const VkPresentModeKHR& it : prefferedPresents ) {
-        const auto found = std::find( presentModes.cbegin(), presentModes.cend(), it );
-        if ( found != presentModes.cend() ) {
-            return it;
-        }
+    std::array<bool, 3> ret{};
+
+    for ( uint32_t i = 0; i < std::size( vsyncs ); ++i ) {
+        const auto found = std::find( presentModes.cbegin(), presentModes.cend(), mapVSync( vsyncs[ i ] ) );
+        ret[ i ] = found != presentModes.cend();
     }
-    return {};
+    return ret;
 }
 
-Swapchain::Swapchain( VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, std::array<uint32_t,2> familyAccess, VkSwapchainKHR oldSwapchain )
+static VkPresentModeKHR findBestPresentMode( VkPhysicalDevice device, VkSurfaceKHR surface, VSync v )
+{
+    assert( device );
+    assert( surface );
+
+    const auto vs = Swapchain::supportedVSyncs( device, surface );
+    if ( vs[ static_cast<uint32_t>( v ) ] ) {
+        return mapVSync( v );
+    }
+
+    auto f = std::find( vs.begin(), vs.end(), true );
+    assert( f != vs.end() );
+    v = static_cast<VSync>( std::distance( vs.begin(), f ) );
+    return mapVSync( v );
+}
+
+Swapchain::Swapchain( VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, std::array<uint32_t,2> familyAccess, VSync vsync, VkSwapchainKHR oldSwapchain )
 : m_device{ device }
+, m_vsync{ vsync }
 {
     ZoneScoped;
     assert( physicalDevice );
@@ -122,9 +151,7 @@ Swapchain::Swapchain( VkPhysicalDevice physicalDevice, VkDevice device, VkSurfac
     assert( surfaceFormat );
     m_surfaceFormat = *surfaceFormat;
 
-    const std::optional<VkPresentModeKHR> presentMode = findBestPresentMode( physicalDevice, surface );
-    assert( presentMode );
-    m_presentMode = *presentMode;
+    const VkPresentModeKHR presentMode = findBestPresentMode( physicalDevice, surface, vsync );
 
     m_extent = surfaceCaps.currentExtent;
     m_imageCount = std::clamp<uint32_t>( 3u, surfaceCaps.minImageCount, surfaceCaps.maxImageCount );
@@ -143,7 +170,7 @@ Swapchain::Swapchain( VkPhysicalDevice physicalDevice, VkDevice device, VkSurfac
         .pQueueFamilyIndices = familyAccess.data(),
         .preTransform = surfaceCaps.currentTransform,
         .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
-        .presentMode = m_presentMode,
+        .presentMode = presentMode,
         .clipped = VK_FALSE,
         .oldSwapchain = oldSwapchain,
     };
@@ -165,9 +192,7 @@ Swapchain::Swapchain( VkPhysicalDevice physicalDevice, VkDevice device, VkSurfac
 
 VkSwapchainKHR Swapchain::steal()
 {
-    VkSwapchainKHR ret = m_swapchain;
-    m_swapchain = VK_NULL_HANDLE;
-    return ret;
+    return std::exchange( m_swapchain, VK_NULL_HANDLE );
 }
 
 uint32_t Swapchain::imageCount() const
@@ -188,6 +213,11 @@ VkExtent2D Swapchain::extent() const
 Swapchain::operator VkSwapchainKHR () const
 {
     return m_swapchain;
+}
+
+VSync Swapchain::vsync() const
+{
+    return m_vsync;
 }
 
 VkImage Swapchain::image( size_t i ) const

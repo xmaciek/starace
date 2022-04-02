@@ -21,6 +21,7 @@
 #include <memory_resource>
 #include <vector>
 #include <mutex>
+#include <optional>
 
 class RendererVK : public Renderer {
     SDL_Window* m_window = nullptr;
@@ -71,13 +72,16 @@ class RendererVK : public Renderer {
 
     VkFormat m_depthFormat = {};
 
+    std::optional<VSync> m_pendingVSyncChange{};
     [[nodiscard]]
     VkCommandBuffer flushUniforms();
     void recreateSwapchain();
+    void recreateRenderTargets();
 
 public:
     virtual ~RendererVK() override;
-    RendererVK( SDL_Window* );
+    RendererVK( SDL_Window*, VSync );
+    virtual void setVSync( VSync ) override;
 
     virtual void createPipeline( const PipelineCreateInfo& ) override;
     virtual Buffer createBuffer( std::pmr::vector<float>&& ) override;

@@ -77,7 +77,7 @@ Engine::Engine( int, char** ) noexcept
     m_ioPtr->mount( "." );
     m_io = m_ioPtr.get();
 
-    m_renderer = Renderer::create( m_window );
+    m_renderer = Renderer::create( m_window, VSync::eOn );
     m_rendererPtr = std::unique_ptr<Renderer>( m_renderer );
 
     m_audio = Audio::create();
