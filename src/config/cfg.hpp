@@ -22,10 +22,12 @@ struct Token {
     uint32_t length = 0;
     const char* data = nullptr;
 
+    inline
     operator bool () const
     {
         return length != 0;
     }
+    inline
     std::string_view operator * () const
     {
         return { data, data + length };
@@ -43,6 +45,7 @@ public:
     static constexpr uint32_t c_unknown = 0xFFFF'FFFF;
     static constexpr Token c_invalid{};
 
+    inline
     TokenIterator( std::span<const char> t, std::span<const char> d )
     : m_tokens{ t }
     , m_begin{ &*d.begin() }
@@ -51,7 +54,9 @@ public:
         ++*this;
     }
 
+    inline
     TokenIterator& operator ++ ();
+    inline
     Token operator * () const;
 
 };

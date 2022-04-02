@@ -11,11 +11,12 @@ target_link_libraries( tests
     GTest::GTest
     GTest::Main
     shared
+    config
 )
 
 target_sources( tests
     PRIVATE
+    test_config.cpp
     test_fixed_map.cpp
     test_bit_index_iterator.cpp
-    test_cfg_iterator.cpp
 )

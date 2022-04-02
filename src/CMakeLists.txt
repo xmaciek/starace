@@ -1,6 +1,7 @@
 find_package( Threads REQUIRED )
 
 add_subdirectory( audio )
+add_subdirectory( config )
 add_subdirectory( renderer )
 add_subdirectory( shared )
 add_subdirectory( engine )
@@ -104,6 +105,7 @@ set_cppver( ${bin_name} 20 )
 target_link_libraries( ${bin_name}
     cxx::flags
     engine
+    config
     Freetype::Freetype
     SDL2::SDL2
     SDL2::main

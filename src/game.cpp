@@ -9,7 +9,7 @@
 #include "ui_localize.hpp"
 #include "ui_property.hpp"
 
-#include <shared/cfg.hpp>
+#include <config/config.hpp>
 
 #include <Tracy.hpp>
 
@@ -101,92 +101,21 @@ constexpr std::tuple<GameAction, Actuator, Actuator> inputActions2[] = {
 static std::pmr::vector<ModelProto> loadJets( std::span<const char> str )
 {
     ZoneScoped;
-    enum AST {
-        eName,
-        eIdentifier,
-        eIdentifierOrPop,
-        eValue,
-        eAssignValue,
-        eAssignPush,
-        ePush,
-    };
-    AST expectedTokens = eName;
+    cfg::Entry entry = cfg::Entry::fromData( str );
 
-    enum AssignTo {
-        eNone,
-        eModel,
-        eTexture,
-        eScale,
-    };
-    AssignTo assignTo = eNone;
-
-    ModelProto mod;
     std::pmr::vector<ModelProto> jets;
     jets.reserve( 4 );
 
     using std::literals::string_view_literals::operator""sv;
-    auto whitespace = U" \t\n\r"sv;
-
-    cfg::TokenIterator it{ cfg::c_separators, str };
-    for ( auto token = *it; ( token = *it ); ++it ) {
-        if ( whitespace.find( static_cast<char32_t>( token.userEnum ) ) != std::u32string_view::npos ) { continue; }
-        switch ( expectedTokens ) {
-        case eName:
-            assert( token.userEnum == cfg::TokenIterator::c_unknown );
-            mod.name = std::u32string{ token.data, token.data + token.length }; // TODO utf-32
-            expectedTokens = eAssignPush;
-            continue;
-
-        case eAssignPush:
-            assert( token.userEnum == '=' );
-            expectedTokens = ePush;
-            continue;
-
-        case ePush:
-            assert( token.userEnum == '{' );
-            expectedTokens = eIdentifier;
-            continue;
-
-        case eIdentifierOrPop:
-            if ( token.userEnum == '}' ) {
-                jets.push_back( mod );
-                mod = {};
-                expectedTokens = eName;
-                continue;
-            }
-            [[fallthrough]];
-        case eIdentifier: {
-            assert( token.userEnum == cfg::TokenIterator::c_unknown );
-            std::string_view v = *token;
-            expectedTokens = eAssignValue;
-            if ( v == "model"sv ) { assignTo = eModel; continue; }
-            if ( v == "texture"sv ) { assignTo = eTexture; continue; };
-            if ( v == "scale"sv ) { assignTo = eScale; continue; };
-            assert( !"unhandled identifier" );
-            continue;
-        }
-
-        case eAssignValue:
-            assert( token.userEnum == '=' );
-            expectedTokens = eValue;
-            continue;
-
-        case eValue:
-            assert( token.userEnum == cfg::TokenIterator::c_unknown );
-            switch ( assignTo ) {
-            case eModel: mod.model_file = *token; break;
-            case eTexture: mod.model_texture = *token; break;
-            case eScale: mod.scale = std::strtof( token.data, nullptr ); break;
-            default: assert( !"unhandled variable" );
-            }
-            assignTo = eNone;
-            expectedTokens = eIdentifierOrPop;
-            continue;
-        }
-
+    for ( const cfg::Entry& it : entry ) {
+        std::string_view name = *it;
+        jets.emplace_back( ModelProto{
+            .name = std::u32string{ name.begin(), name.end() },
+            .model_file = std::string{ it[ "model"sv ].toString() },
+            .model_texture = std::string{ it[ "texture"sv ].toString() },
+            .scale = it[ "scale"sv ].toFloat(),
+        } );
     }
-    assert( expectedTokens == eName );
-    assert( assignTo == eNone );
 
     return jets;
 }
@@ -194,107 +123,26 @@ static std::pmr::vector<ModelProto> loadJets( std::span<const char> str )
 static std::pmr::vector<MapCreateInfo> loadMaps( std::span<const char> str )
 {
     ZoneScoped;
-    enum AST {
-        eName,
-        eIdentifier,
-        eIdentifierOrPop,
-        eValue,
-        eAssignValue,
-        eAssignPush,
-        ePush,
-    };
-    AST expectedTokens = eName;
+    cfg::Entry entry = cfg::Entry::fromData( str );
 
-    enum AssignTo {
-        eNone,
-        eEnemies,
-        eTop,
-        eBottom,
-        eLeft,
-        eRight,
-        eFront,
-        eBack,
-        ePreview,
-    };
-    AssignTo assignTo = eNone;
-
-    MapCreateInfo mod;
     std::pmr::vector<MapCreateInfo> levels;
     levels.reserve( 5 );
 
     using std::literals::string_view_literals::operator""sv;
-    auto whitespace = U" \t\n\r"sv;
-
-    cfg::TokenIterator it{ cfg::c_separators, str };
-    for ( auto token = *it; ( token = *it ); ++it ) {
-        if ( whitespace.find( static_cast<char32_t>( token.userEnum ) ) != std::u32string_view::npos ) { continue; }
-        switch ( expectedTokens ) {
-        case eName:
-            assert( token.userEnum == cfg::TokenIterator::c_unknown );
-            mod.name = std::u32string{ token.data, token.data + token.length }; // TODO utf-32
-            expectedTokens = eAssignPush;
-            continue;
-
-        case eAssignPush:
-            assert( token.userEnum == '=' );
-            expectedTokens = ePush;
-            continue;
-
-        case ePush:
-            assert( token.userEnum == '{' );
-            expectedTokens = eIdentifier;
-            continue;
-
-        case eIdentifierOrPop:
-            if ( token.userEnum == '}' ) {
-                levels.push_back( mod );
-                mod = {};
-                expectedTokens = eName;
-                continue;
-            }
-            [[fallthrough]];
-        case eIdentifier: {
-            assert( token.userEnum == cfg::TokenIterator::c_unknown );
-            std::string_view v = *token;
-            expectedTokens = eAssignValue;
-            if ( v == "enemies"sv ) { assignTo = eEnemies; continue; }
-            if ( v == "top"sv ) { assignTo = eTop; continue; }
-            if ( v == "bottom"sv ) { assignTo = eBottom; continue; }
-            if ( v == "left"sv ) { assignTo = eLeft; continue; }
-            if ( v == "right"sv ) { assignTo = eRight; continue; }
-            if ( v == "front"sv ) { assignTo = eFront; continue; }
-            if ( v == "back"sv ) { assignTo = eBack; continue; }
-            if ( v == "preview"sv ) { assignTo = ePreview; continue; }
-            assert( !"unhandled identifier" );
-            continue;
-        }
-
-        case eAssignValue:
-            assert( token.userEnum == '=' );
-            expectedTokens = eValue;
-            continue;
-
-        case eValue:
-            assert( token.userEnum == cfg::TokenIterator::c_unknown );
-            switch ( assignTo ) {
-            case eEnemies: mod.enemies = static_cast<uint32_t>( std::atoi( token.data ) ); break;
-            case eTop: mod.filePath[ MapCreateInfo::eTop ] = *token; break;
-            case eBottom: mod.filePath[ MapCreateInfo::eBottom] = *token; break;
-            case eLeft: mod.filePath[ MapCreateInfo::eLeft ] = *token; break;
-            case eRight: mod.filePath[ MapCreateInfo::eRight ] = *token; break;
-            case eFront: mod.filePath[ MapCreateInfo::eFront ] = *token; break;
-            case eBack: mod.filePath[ MapCreateInfo::eBack ] = *token; break;
-            case ePreview: mod.previewPath = *token; break;
-            default: assert( !"unhandled variable" );
-            }
-            assignTo = eNone;
-            expectedTokens = eIdentifierOrPop;
-            continue;
-        }
-
+    for ( const cfg::Entry& it : entry ) {
+        std::string_view name = *it;
+        levels.emplace_back( MapCreateInfo{
+            .name = std::pmr::u32string{ name.begin(), name.end() },
+            .previewPath = it[ "preview"sv ].toString(),
+            .enemies = static_cast<uint32_t>( it[ "enemies"sv ].toInt() ),
+        } );
+        levels.back().filePath[ MapCreateInfo::eTop ] = it[ "top"sv ].toString();
+        levels.back().filePath[ MapCreateInfo::eBottom ] = it[ "bottom"sv ].toString();
+        levels.back().filePath[ MapCreateInfo::eLeft ] = it[ "left"sv ].toString();
+        levels.back().filePath[ MapCreateInfo::eRight ] = it[ "right"sv ].toString();
+        levels.back().filePath[ MapCreateInfo::eFront ] = it[ "front"sv ].toString();
+        levels.back().filePath[ MapCreateInfo::eBack ] = it[ "back"sv ].toString();
     }
-    assert( expectedTokens == eName );
-    assert( assignTo == eNone );
 
     return levels;
 }
