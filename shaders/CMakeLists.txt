@@ -32,6 +32,9 @@ compileShader( lines_color1.frag )
 compileShader( sprite_sequence.vert )
 compileShader( sprite_sequence.frag )
 
+compileShader( sprite_sequence_colors.vert )
+compileShader( sprite_sequence_colors.frag )
+
 compileShader( progressbar.vert )
 compileShader( progressbar.frag )
 
