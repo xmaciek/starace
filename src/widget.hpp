@@ -21,6 +21,9 @@ protected:
     uint16_t m_tabOrder = c_invalidTabOrder;
 
     bool testRect( math::vec2 ) const;
+    static bool testRect( math::vec2 p, math::vec2 pos, math::vec2 size );
+    static bool testRect( math::vec2 p, const math::vec4& xywh );
+
     math::vec2 offsetByAnchor() const;
 
 public:

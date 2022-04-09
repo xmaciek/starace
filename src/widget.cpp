@@ -44,14 +44,26 @@ void Widget::update( const UpdateContext& )
 {
 }
 
-bool Widget::testRect( math::vec2 p ) const
+bool Widget::testRect( math::vec2 p, math::vec2 pos, math::vec2 size )
 {
-    const math::vec2 pos = position() + offsetByAnchor();
-    const math::vec2 br = pos + size();
+    const math::vec2 br = pos + size;
     return ( p.x >= pos.x )
         && ( p.y >= pos.y )
         && ( p.x < br.x )
         && ( p.y < br.y );
+}
+
+bool Widget::testRect( math::vec2 p, const math::vec4& xywh )
+{
+    return ( p.x >= xywh.x )
+        && ( p.y >= xywh.y )
+        && ( p.x < xywh.x + xywh.z )
+        && ( p.y < xywh.y + xywh.w );
+}
+
+bool Widget::testRect( math::vec2 p ) const
+{
+    return testRect( p, position() + offsetByAnchor(), size() );
 }
 
 math::vec2 Widget::offsetByAnchor() const

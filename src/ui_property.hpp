@@ -35,8 +35,8 @@ public:
 struct AtlasSprite {
     enum : uint32_t {
         eBackground,
-        eArrowLeft,
         eArrowRight,
+        eArrowLeft,
         eTopLeft,
         eTop,
         eTopRight,

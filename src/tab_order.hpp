@@ -10,6 +10,8 @@ class TabOrder {
     T m_value = 0;
 
 public:
+    using value_type = T;
+
     TabOrder() noexcept = default;
     TabOrder( const TabOrder& ) noexcept = default;
     TabOrder& operator = ( const TabOrder& ) noexcept = default;
