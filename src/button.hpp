@@ -32,6 +32,7 @@ public:
     virtual bool onMouseEvent( const MouseEvent& ) override;
     virtual void render( RenderContext ) const override;
 
+    void setTrigger( std::function<void()> );
     void trigger() const;
     bool isEnabled() const;
     void setEnabled( bool );

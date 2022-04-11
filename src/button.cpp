@@ -70,6 +70,11 @@ void Button::trigger() const
     m_onTrigger();
 }
 
+void Button::setTrigger( std::function<void()> t )
+{
+    m_onTrigger = t;
+}
+
 void Button::updateColor()
 {
     setColor( m_enabled ? ( m_focused ? colorHover : colorNormal ) : colorDisabled );
@@ -104,13 +109,13 @@ void Button::setText( std::u32string_view txt )
 
 bool Button::onMouseEvent( const MouseEvent& event )
 {
-    switch ( event.index() ) {
-    case 1:
-        setFocused( testRect( std::get<MouseMove>( event ) ) );
+    switch ( event.type ) {
+    case MouseEvent::eMove:
+        setFocused( testRect(  event.position ) );
         return m_focused;
-    case 2:
+    case MouseEvent::eClick:
         if ( !m_enabled ) { return false; }
-        if ( !testRect( std::get<MouseClick>( event ) ) ) { return false; }
+        if ( !testRect( event.position ) ) { return false; }
         trigger();
         return true;
     default:

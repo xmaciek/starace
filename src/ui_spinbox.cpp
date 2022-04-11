@@ -98,7 +98,7 @@ void SpinBox::render( RenderContext rctx ) const
 
 bool SpinBox::onMouseEvent( const MouseEvent& event )
 {
-    const math::vec2 p = ( event.index() == 1 ) ? (math::vec2)std::get<1>( event ) : (math::vec2)std::get<2>( event );
+    const math::vec2 p = event.position;
     const math::vec2 pos = position() + offsetByAnchor();
     const math::vec2 s = size();
     if ( !testRect( p, pos, s ) ) {
@@ -110,12 +110,12 @@ bool SpinBox::onMouseEvent( const MouseEvent& event )
 
     const bool left = testRect( p, arrowLeft() );
     const bool right = testRect( p, arrowRight() );
-    switch ( event.index() ) {
-    case 1:
+    switch ( event.type ) {
+    case MouseEvent::eMove:
         m_colorL = left ? color::lightSkyBlue : g_uiProperty.colorA();
         m_colorR = right ? color::lightSkyBlue : g_uiProperty.colorA();
         return true;
-    case 2:
+    case MouseEvent::eClick:
         if ( left ) {
             m_index--;
             assert( m_indexToText );
