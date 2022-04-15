@@ -12,13 +12,16 @@
 #include <span>
 
 class Widget {
-protected:
+public:
     static constexpr uint16_t c_invalidTabOrder = 0xFFFF;
 
+protected:
     math::vec2 m_position{};
     math::vec2 m_size{};
     Anchor m_anchor = Anchor::fTop | Anchor::fLeft;
     uint16_t m_tabOrder = c_invalidTabOrder;
+    bool m_enabled : 1 = true;
+    bool m_focused : 1 = false;
 
     bool testRect( math::vec2 ) const;
     static bool testRect( math::vec2 p, math::vec2 pos, math::vec2 size );
@@ -48,6 +51,11 @@ public:
     virtual void render( RenderContext ) const = 0;
     virtual bool onMouseEvent( const MouseEvent& );
 
+    virtual bool isEnabled() const;
+    virtual void setEnabled( bool );
+    virtual bool isFocused() const;
+    virtual void setFocused( bool );
+
     void setPosition( math::vec2 );
     void setSize( math::vec2 );
 
@@ -58,6 +66,7 @@ public:
     void setTabOrder( uint16_t );
 
     void setAnchor( Anchor );
+
 };
 
 

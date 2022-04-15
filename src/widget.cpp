@@ -44,6 +44,26 @@ void Widget::update( const UpdateContext& )
 {
 }
 
+bool Widget::isEnabled() const
+{
+    return m_enabled;
+}
+
+void Widget::setEnabled( bool b )
+{
+    m_enabled = b;
+}
+
+bool Widget::isFocused() const
+{
+    return m_focused;
+}
+
+void Widget::setFocused( bool b )
+{
+    m_focused = b;
+}
+
 bool Widget::testRect( math::vec2 p, math::vec2 pos, math::vec2 size )
 {
     const math::vec2 br = pos + size;

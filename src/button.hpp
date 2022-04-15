@@ -18,8 +18,6 @@ class Button : public NineSlice {
 private:
     Label m_label{};
     std::function<void()> m_onTrigger{};
-    bool m_focused = false;
-    bool m_enabled = true;
 
     void updateColor();
 public:
@@ -31,12 +29,11 @@ public:
 
     virtual bool onMouseEvent( const MouseEvent& ) override;
     virtual void render( RenderContext ) const override;
+    virtual void setEnabled( bool ) override;
+    virtual void setFocused( bool ) override;
 
     void setTrigger( std::function<void()> );
     void trigger() const;
-    bool isEnabled() const;
-    void setEnabled( bool );
     void setText( std::u32string_view );
-    void setFocused( bool );
-    bool isFocused() const;
+
 };

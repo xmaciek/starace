@@ -82,24 +82,15 @@ void Button::updateColor()
 
 void Button::setEnabled( bool b )
 {
-    m_enabled = b;
+    Widget::setEnabled( b );
     updateColor();
 }
 
-bool Button::isEnabled() const
-{
-    return m_enabled;
-}
 
 void Button::setFocused( bool b )
 {
-    m_focused = b;
+    Widget::setFocused( b );
     updateColor();
-}
-
-bool Button::isFocused() const
-{
-    return m_focused;
 }
 
 void Button::setText( std::u32string_view txt )
