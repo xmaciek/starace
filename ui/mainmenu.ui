@@ -1,0 +1,44 @@
+width = 1280
+height = 720
+
+Label = {
+    text = $loc:gamename
+    x = 48
+    y = 50
+}
+
+Button = {
+    text = $loc:newgame
+    trigger = $function:goto_newgame
+    x = 48
+    y = 150
+    width = 320
+    height = 48
+}
+
+Button = {
+    text = $loc:customize
+    trigger = $function:goto_customize
+    x = 48
+    y = 200
+    width = 320
+    height = 48
+}
+
+Button = {
+    text = $loc:settings
+    trigger = $function:goto_settings
+    x = 48
+    y = 250
+    width = 320
+    height = 48
+}
+
+Button = {
+    text = $loc:quit
+    trigger = $function:quit
+    x = 48
+    y = 300
+    width = 320
+    height = 48
+}
