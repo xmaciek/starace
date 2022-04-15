@@ -32,6 +32,7 @@ static constexpr const char* chunk0[] = {
     "maps.cfg",
     "jets.cfg",
     "ui/mainmenu.ui",
+    "ui/settings.ui",
 };
 
 static constexpr const char* chunk1[] = {
@@ -230,6 +231,7 @@ void Game::onInit()
     g_gameCallbacks[ "$function:goto_newgame" ] = [this](){ changeScreen( Screen::eMissionSelection, m_click ); };
     g_gameCallbacks[ "$function:goto_customize" ] = [this](){ changeScreen( Screen::eCustomize, m_click ); };
     g_gameCallbacks[ "$function:goto_settings" ] = [this](){ changeScreen( Screen::eSettings, m_click ); };
+    g_gameCallbacks[ "$function:goto_titlemenu" ] = [this](){ changeScreen( Screen::eMainMenu, m_click ); };
     g_gameCallbacks[ "$function:quit" ] = [this](){ quit(); };
 
     g_uiProperty.m_colorA = color::dodgerBlue;
@@ -281,16 +283,16 @@ void Game::onInit()
         , [this](){ changeScreen( Screen::eMissionSelection, m_click ); }
     };
 
+    auto makeScreen = []( std::string_view strv, auto* io )
     {
-        auto ui = m_io->getWait( "ui/mainmenu.ui" );
+        auto ui = io->getWait( strv );
         const char* txt = reinterpret_cast<const char*>( ui.data() );
         std::span<const char> span{ txt, txt + ui.size() };
-        m_screenTitle = ui::Screen{ cfg::Entry::fromData( span ) };
-    }
-    m_screenSettings = ScreenSettings{
-        &m_uiRings
-        , [this](){ changeScreen( Screen::eMainMenu, m_click ); }
+        return ui::Screen{ cfg::Entry::fromData( span ) };
+
     };
+    m_screenTitle = makeScreen( "ui/mainmenu.ui", m_io );
+    m_screenSettings = makeScreen( "ui/settings.ui", m_io );
 
     m_screenWin = ScreenWinLoose{
           color::winScreen
@@ -436,6 +438,13 @@ void Game::onRender( RenderContext rctx )
 
     case Screen::eSettings:
         renderBackground( rctx );
+        {
+            auto rctx2 = rctx;
+            rctx2.projection = math::perspective( 55.0_deg, 1280.0f / 720.0f, 0.001f, 2000.0f );
+            m_spaceDust.render( rctx2 );
+        }
+        m_uiRings.render( rctx );
+        m_glow.render( rctx );
         m_screenSettings.render( rctx );
         break;
 
@@ -469,15 +478,12 @@ void Game::onUpdate( const UpdateContext& updateContext )
         m_screenWin.update( updateContext );
         break;
     case Screen::eMainMenu:
+    case Screen::eSettings:
         m_spaceDust.update( updateContext );
         m_uiRings.update( updateContext );
-//         m_screenTitle.update( updateContext );
         break;
     case Screen::eCustomize:
         m_screenCustomize.update( updateContext );
-        break;
-    case Screen::eSettings:
-        m_screenSettings.update( updateContext );
         break;
     default:
         break;

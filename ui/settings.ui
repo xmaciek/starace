@@ -1,0 +1,23 @@
+width = 1280
+height = 720
+
+Label = {
+    text = $loc:settings
+    x = 48
+    y = 50
+}
+
+Label = {
+    text = $loc:vsync
+    x = 48
+    y = 150
+}
+
+Button = {
+    text = $loc:return
+    trigger = $function:goto_titlemenu
+    x = 48
+    y = 350
+    width = 320
+    height = 48
+}

@@ -58,8 +58,6 @@ set( STARACE_SOURCES
     screen_mission_select.hpp
     screen_pause.cpp
     screen_pause.hpp
-    screen_settings.cpp
-    screen_settings.hpp
     screen_win_loose.cpp
     screen_win_loose.hpp
     shield.cpp

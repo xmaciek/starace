@@ -13,7 +13,6 @@
 #include "screen_customize.hpp"
 #include "screen_mission_select.hpp"
 #include "screen_pause.hpp"
-#include "screen_settings.hpp"
 #include "screen_win_loose.hpp"
 #include "skybox.hpp"
 #include "space_dust.hpp"
@@ -90,8 +89,8 @@ private:
     Glow m_glow{};
     SpaceDust m_spaceDust{};
     ui::Screen m_screenTitle{};
+    ui::Screen m_screenSettings{};
     ScreenCustomize m_screenCustomize{};
-    ScreenSettings m_screenSettings{};
     ScreenMissionSelect m_screenMissionSelect{};
     ScreenPause m_screenPause{};
     ScreenWinLoose m_screenWin{};

@@ -19,6 +19,8 @@ static const std::unordered_map<std::string_view, std::u32string_view> g_locMap{
     , { "$loc:customize", ui::loc::customize }
     , { "$loc:settings", ui::loc::settings }
     , { "$loc:quit", ui::loc::quit }
+    , { "$loc:vsync", ui::loc::vsync }
+    , { "$loc:return", ui::loc::return2 }
 };
 
 static std::pmr::u32string locKeyToString( std::string_view strv )

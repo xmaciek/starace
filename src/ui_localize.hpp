@@ -17,6 +17,7 @@ inline std::u32string_view resume = U"Resume";
 inline std::u32string_view return2 = U"Return";
 inline std::u32string_view settings = U"[WIP] Settings";
 inline std::u32string_view yourScore = U"Your score:";
+inline std::u32string_view vsync = U"VSync";
 
 
 inline std::u32string_view missionLost = U"MISSION FAILED";
