@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cassert>
+#include <cstdint>
 #include <limits>
 
 template <typename T = uint16_t, T TInvalid = std::numeric_limits<T>::max()>
@@ -78,8 +79,6 @@ public:
 
     T operator * () const noexcept
     {
-        assert( m_value >= m_min );
-        assert( m_value < m_max );
         return m_value;
     }
 
