@@ -14,13 +14,14 @@
 #include "screen_mission_select.hpp"
 #include "screen_pause.hpp"
 #include "screen_settings.hpp"
-#include "screen_title.hpp"
 #include "screen_win_loose.hpp"
 #include "skybox.hpp"
 #include "space_dust.hpp"
 #include "targeting.hpp"
 #include "texture.hpp"
 #include "ui_rings.hpp"
+#include "ui_screen.hpp"
+#include "ui_glow.hpp"
 
 #include <engine/engine.hpp>
 #include <engine/math.hpp>
@@ -86,8 +87,9 @@ private:
     Texture m_plasma{};
     std::pmr::map<std::filesystem::path, Texture> m_textures{};
 
+    Glow m_glow{};
     SpaceDust m_spaceDust{};
-    ScreenTitle m_screenTitle{};
+    ui::Screen m_screenTitle{};
     ScreenCustomize m_screenCustomize{};
     ScreenSettings m_screenSettings{};
     ScreenMissionSelect m_screenMissionSelect{};

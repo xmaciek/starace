@@ -3,6 +3,7 @@
 #include "colors.hpp"
 #include "constants.hpp"
 #include "game_action.hpp"
+#include "game_callbacks.hpp"
 #include "game_pipeline.hpp"
 #include "utils.hpp"
 #include "units.hpp"
@@ -30,6 +31,7 @@ static constexpr const char* chunk0[] = {
     "textures/atlas_ui.tga",
     "maps.cfg",
     "jets.cfg",
+    "ui/mainmenu.ui",
 };
 
 static constexpr const char* chunk1[] = {
@@ -203,6 +205,7 @@ void Game::onExit()
 void Game::onResize( uint32_t w, uint32_t h )
 {
     ZoneScoped;
+    m_glow.setSize( { w, h } );
     m_screenTitle.resize( { w, h } );
     m_screenCustomize.resize( { w, h } );
     m_screenSettings.resize( { w, h } );
@@ -224,7 +227,14 @@ void Game::onInit()
         registerAction( static_cast<Action::Enum>( eid ), min, max );
     }
 
+    g_gameCallbacks[ "$function:goto_newgame" ] = [this](){ changeScreen( Screen::eMissionSelection, m_click ); };
+    g_gameCallbacks[ "$function:goto_customize" ] = [this](){ changeScreen( Screen::eCustomize, m_click ); };
+    g_gameCallbacks[ "$function:goto_settings" ] = [this](){ changeScreen( Screen::eSettings, m_click ); };
+    g_gameCallbacks[ "$function:quit" ] = [this](){ quit(); };
+
     g_uiProperty.m_colorA = color::dodgerBlue;
+    m_glow = Glow{ g_uiProperty.m_colorA };
+
     {
         std::pmr::u32string charset = U"0123456789"
         U"abcdefghijklmnopqrstuvwxyz"
@@ -271,14 +281,12 @@ void Game::onInit()
         , [this](){ changeScreen( Screen::eMissionSelection, m_click ); }
     };
 
-    m_screenTitle = ScreenTitle{
-        &m_uiRings
-        , [this](){ changeScreen( Screen::eMissionSelection, m_click ); }
-        , [this](){ changeScreen( Screen::eCustomize, m_click ); }
-        , [this](){ changeScreen( Screen::eSettings, m_click ); }
-        , [this](){ quit(); }
-    };
-
+    {
+        auto ui = m_io->getWait( "ui/mainmenu.ui" );
+        const char* txt = reinterpret_cast<const char*>( ui.data() );
+        std::span<const char> span{ txt, txt + ui.size() };
+        m_screenTitle = ui::Screen{ cfg::Entry::fromData( span ) };
+    }
     m_screenSettings = ScreenSettings{
         &m_uiRings
         , [this](){ changeScreen( Screen::eMainMenu, m_click ); }
@@ -421,6 +429,8 @@ void Game::onRender( RenderContext rctx )
             rctx2.projection = math::perspective( 55.0_deg, 1280.0f / 720.0f, 0.001f, 2000.0f );
             m_spaceDust.render( rctx2 );
         }
+        m_uiRings.render( rctx );
+        m_glow.render( rctx );
         m_screenTitle.render( rctx );
         break;
 
@@ -460,7 +470,8 @@ void Game::onUpdate( const UpdateContext& updateContext )
         break;
     case Screen::eMainMenu:
         m_spaceDust.update( updateContext );
-        m_screenTitle.update( updateContext );
+        m_uiRings.update( updateContext );
+//         m_screenTitle.update( updateContext );
         break;
     case Screen::eCustomize:
         m_screenCustomize.update( updateContext );
