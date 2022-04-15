@@ -25,6 +25,7 @@ set( STARACE_SOURCES
     game.cpp
     game.hpp
     game_action.hpp
+    game_callbacks.hpp
     game_pipeline.hpp
     hud.cpp
     hud.hpp
@@ -34,8 +35,8 @@ set( STARACE_SOURCES
     jet.hpp
     label.cpp
     label.hpp
-    linear_atlas.hpp
     linear_atlas.cpp
+    linear_atlas.hpp
     main.cpp
     map_create_info.hpp
     model.cpp
@@ -83,14 +84,16 @@ set( STARACE_SOURCES
     thruster.hpp
     ui_glow.cpp
     ui_glow.hpp
-    ui_localize.hpp
     ui_image.cpp
     ui_image.hpp
+    ui_localize.hpp
     ui_property.hpp
     ui_rings.cpp
     ui_rings.hpp
-    ui_spinbox.hpp
+    ui_screen.cpp
+    ui_screen.hpp
     ui_spinbox.cpp
+    ui_spinbox.hpp
     units.hpp
     utils.cpp
     utils.hpp
