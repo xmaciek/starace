@@ -52,7 +52,7 @@ public:
     bool next();
     bool prev();
 
-    void onAction( Action );
+    bool onAction( Action );
     virtual void render( RenderContext ) const override;
     virtual void update( const UpdateContext& ) override;
     virtual bool onMouseEvent( const MouseEvent& ) override;

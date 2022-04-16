@@ -237,6 +237,18 @@ void Game::onInit()
     g_uiProperty.m_colorA = color::dodgerBlue;
     m_glow = Glow{ g_uiProperty.m_colorA };
 
+    m_dataModelVSync.m_data.push_back( U"OFF" );
+    m_dataModelVSync.m_data.push_back( U"ON" );
+    m_dataModelVSync.m_data.push_back( U"MAILBOX" );
+    g_gameUiDataModels[ "$data:vsync" ] = &m_dataModelVSync;
+
+    m_dataModelResolution.m_data.push_back( U"1280 x 720 @ 144Hz" );
+    m_dataModelResolution.m_data.push_back( U"1920 x 1080 @ 144Hz" );
+    m_dataModelResolution.m_data.push_back( U"3440 x 1440 @ 144Hz" );
+    m_dataModelResolution.m_data.push_back( U"4th test entry" );
+    g_gameUiDataModels[ "$data:resolution" ] = &m_dataModelResolution;
+
+
     {
         std::pmr::u32string charset = U"0123456789"
         U"abcdefghijklmnopqrstuvwxyz"

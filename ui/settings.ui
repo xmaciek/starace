@@ -7,10 +7,32 @@ Label = {
     y = 50
 }
 
-Label = {
-    text = $loc:vsync
+SpinBox = {
+    data = $data:vsync
     x = 48
     y = 150
+    width = 320
+    height = 48
+}
+
+Label = {
+    text = $loc:vsync
+    x = 370
+    y = 150
+}
+
+SpinBox = {
+    data = $data:resolution
+    x = 48
+    y = 200
+    width = 320
+    height = 48
+}
+
+Label = {
+    text = $loc:resolution
+    x = 370
+    y = 200
 }
 
 Button = {

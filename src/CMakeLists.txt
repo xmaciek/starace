@@ -78,6 +78,8 @@ set( STARACE_SOURCES
     tga.hpp
     thruster.cpp
     thruster.hpp
+    ui_data_model.cpp
+    ui_data_model.hpp
     ui_glow.cpp
     ui_glow.hpp
     ui_image.cpp

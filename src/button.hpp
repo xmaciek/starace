@@ -31,6 +31,7 @@ public:
     virtual void render( RenderContext ) const override;
     virtual void setEnabled( bool ) override;
     virtual void setFocused( bool ) override;
+    virtual bool onAction( Action ) override;
 
     void setTrigger( std::function<void()> );
     void trigger() const;

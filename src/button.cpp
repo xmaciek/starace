@@ -2,6 +2,7 @@
 
 #include "colors.hpp"
 #include "ui_property.hpp"
+#include "game_action.hpp"
 
 #include <engine/math.hpp>
 
@@ -102,11 +103,25 @@ bool Button::onMouseEvent( const MouseEvent& event )
 {
     switch ( event.type ) {
     case MouseEvent::eMove:
-        setFocused( testRect(  event.position ) );
+        setFocused( testRect( event.position ) );
         return m_focused;
     case MouseEvent::eClick:
         if ( !m_enabled ) { return false; }
         if ( !testRect( event.position ) ) { return false; }
+        trigger();
+        return true;
+    default:
+        return false;
+    }
+}
+
+bool Button::onAction( Action a )
+{
+    if ( !a.digital ) {
+        return false;
+    }
+    switch ( a.toA<GameAction>() ) {
+    case GameAction::eMenuConfirm:
         trigger();
         return true;
     default:

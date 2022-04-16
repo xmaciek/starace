@@ -69,7 +69,7 @@ public:
     virtual bool onMouseEvent( const MouseEvent& ) override;
 
     void resize( math::vec2 );
-    void onAction( Action );
+    bool onAction( Action );
 
     bool nextJet();
     bool prevJet();

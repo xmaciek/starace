@@ -47,9 +47,9 @@ void ScreenPause::resize( math::vec2 wh )
     m_resume.setPosition( wh * math::vec2{ 0.55f, 0.7f } );
 }
 
-void ScreenPause::onAction( Action a )
+bool ScreenPause::onAction( Action a )
 {
-    if ( !a.digital ) { return; }
+    if ( !a.digital ) { return false; }
     switch ( a.toA<GameAction>() ) {
     case GameAction::eMenuLeft:
         m_currentTab = 0;
@@ -73,8 +73,9 @@ void ScreenPause::onAction( Action a )
         m_unpause();
         break;
     default:
-        break;
+        return false;
     }
+    return true;
 }
 
 bool ScreenPause::onMouseEvent( const MouseEvent& event )

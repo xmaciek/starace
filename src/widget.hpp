@@ -2,13 +2,12 @@
 
 #include "anchor.hpp"
 
+#include <engine/action.hpp>
 #include <engine/math.hpp>
+#include <engine/mouse_event.hpp>
 #include <engine/render_context.hpp>
 #include <engine/update_context.hpp>
-#include <engine/mouse_event.hpp>
 
-
-#include <array>
 #include <span>
 
 class Widget {
@@ -67,6 +66,7 @@ public:
 
     void setAnchor( Anchor );
 
+    virtual bool onAction( Action );
 };
 
 

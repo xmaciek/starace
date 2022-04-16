@@ -118,9 +118,9 @@ void ScreenCustomize::updateFocus()
     }
 }
 
-void ScreenCustomize::onAction( Action a )
+bool ScreenCustomize::onAction( Action a )
 {
-    if ( !a.digital ) { return; }
+    if ( !a.digital ) { return false; }
 
     switch ( a.toA<GameAction>() ) {
     case GameAction::eMenuCancel:
@@ -195,8 +195,9 @@ void ScreenCustomize::onAction( Action a )
         updateFocus();
         break;
     default:
-        break;
+        return false;
     }
+    return true;
 }
 
 void ScreenCustomize::resize( math::vec2 wh )

@@ -109,6 +109,11 @@ math::vec2 Widget::offsetByAnchor() const
     return ret;
 }
 
+bool Widget::onAction( Action )
+{
+    return false;
+}
+
 void Layout::operator() ( std::span<Widget*> wgts ) const
 {
     math::vec2 position = m_position;

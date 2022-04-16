@@ -24,25 +24,23 @@ static constexpr std::array<uint32_t, 9> c_slices = {
 
 namespace ui {
 
-SpinBox::SpinBox( int current, int min, int max ) noexcept
+SpinBox::SpinBox( DataModel* dataModel ) noexcept
 : Widget{ {}, { 240.0f, 48.0f } }
-, m_index{ current, min, max }
+, m_index{ 0, 0, dataModel->size() }
+, m_model{ dataModel }
 , m_colorL{ g_uiProperty.colorA() }
 , m_colorR{ g_uiProperty.colorA() }
 , m_label{ g_uiProperty.fontSmall(), Anchor::fCenter | Anchor::fMiddle, color::white }
 {
-    m_label.setText( m_indexToText( *m_index ) );
+    m_label.setText( m_model->at( value() ) );
 }
 
-SpinBox::SpinBox( int current, int min, int max, IndexToText&& indexToText ) noexcept
+SpinBox::SpinBox( char ) noexcept
 : Widget{ {}, { 240.0f, 48.0f } }
-, m_index{ current, min, max }
-, m_indexToText{ std::move( indexToText ) }
 , m_colorL{ g_uiProperty.colorA() }
 , m_colorR{ g_uiProperty.colorA() }
 , m_label{ g_uiProperty.fontSmall(), Anchor::fCenter | Anchor::fMiddle, color::white }
 {
-    m_label.setText( m_indexToText( *m_index ) );
 }
 
 void SpinBox::render( RenderContext rctx ) const
@@ -59,9 +57,10 @@ void SpinBox::render( RenderContext rctx ) const
         .m_projection = rctx.projection,
     };
 
+
     auto colorIt = pushConstant.m_color.begin();
     colorIt = std::fill_n( colorIt, 6, m_colorL );
-    colorIt = std::fill_n( colorIt, spritegen::NineSlice2::count(), g_uiProperty.colorA() );
+    colorIt = std::fill_n( colorIt, spritegen::NineSlice2::count(), isFocused() ? color::lightSkyBlue : g_uiProperty.colorA() );
               std::fill_n( colorIt, 6, m_colorR );
 
     const math::vec2 pos = position() + offsetByAnchor();
@@ -101,7 +100,8 @@ bool SpinBox::onMouseEvent( const MouseEvent& event )
     const math::vec2 p = event.position;
     const math::vec2 pos = position() + offsetByAnchor();
     const math::vec2 s = size();
-    if ( !testRect( p, pos, s ) ) {
+    setFocused( testRect( p, pos, s ) );
+    if ( !isFocused() ) {
         m_colorL = g_uiProperty.colorA();
         m_colorR = g_uiProperty.colorA();
         return false;
@@ -114,24 +114,32 @@ bool SpinBox::onMouseEvent( const MouseEvent& event )
     case MouseEvent::eMove:
         m_colorL = left ? color::lightSkyBlue : g_uiProperty.colorA();
         m_colorR = right ? color::lightSkyBlue : g_uiProperty.colorA();
-        return true;
+        break;
     case MouseEvent::eClick:
         if ( left ) {
             m_index--;
-            assert( m_indexToText );
-            m_label.setText( m_indexToText( *m_index ) );
-            return true;
+            m_label.setText( m_model->at( value() ) );
+            break;
         }
         if ( right ) {
             m_index++;
-            assert( m_indexToText );
-            m_label.setText( m_indexToText( *m_index ) );
-            return true;
+            m_label.setText( m_model->at( value() ) );
+            break;
         }
-
+        m_model->activate( value() );
+        break;
+    default:
+        break;
     }
 
-    return false;
+    return true;
+}
+
+void SpinBox::setModel( DataModel* model )
+{
+    m_index = TabOrder<DataModel::size_type>{ 0, 0, model->size() };
+    m_model = model;
+    m_label.setText( m_model->at( value() ) );
 }
 
 math::vec4 SpinBox::arrowLeft() const
@@ -149,8 +157,10 @@ math::vec4 SpinBox::arrowRight() const
     return { pos.x + s.x - static_cast<float>( arrow[ 2 ] ), pos.y, arrow[ 2 ], arrow[ 3 ] };
 }
 
-int SpinBox::value() const
+DataModel::size_type SpinBox::value() const
 {
+    assert( m_model );
+    assert( *m_index < m_model->size() );
     return *m_index;
 }
 
@@ -160,11 +170,13 @@ bool SpinBox::onAction( Action a )
     switch ( a.toA<GameAction>() ) {
     case GameAction::eMenuLeft: m_index--; break;
     case GameAction::eMenuRight: m_index++; break;
+    case GameAction::eMenuConfirm:
+        m_model->activate( value() );
+        break;
     default:
         return false;
     }
-    assert( m_indexToText );
-    m_label.setText( m_indexToText( *m_index ) );
+    m_label.setText( m_model->at( value() ) );
     return true;
 }
 

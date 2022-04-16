@@ -21,6 +21,7 @@
 #include "ui_rings.hpp"
 #include "ui_screen.hpp"
 #include "ui_glow.hpp"
+#include "ui_data_model.hpp"
 
 #include <engine/engine.hpp>
 #include <engine/math.hpp>
@@ -100,6 +101,9 @@ private:
 
     Jet::Input m_jetInput{};
     Screen m_currentScreen = Screen::eGame;
+
+    ui::StringListModel m_dataModelVSync{};
+    ui::StringListModel m_dataModelResolution{};
 
     uint32_t viewportHeight() const;
     uint32_t viewportWidth() const;

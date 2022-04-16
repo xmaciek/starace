@@ -67,12 +67,12 @@ void ScreenMissionSelect::updateTabOrderFocus( uint32_t idx, bool b )
     }
 }
 
-void ScreenMissionSelect::onAction( Action a )
+bool ScreenMissionSelect::onAction( Action a )
 {
-    if ( !a.digital ) { return; }
+    if ( !a.digital ) { return false; }
     switch ( a.toA<GameAction>() ) {
     default:
-        break;
+        return false;
     case GameAction::eMenuConfirm:
         if ( !m_currentWidget ) {
             break;
@@ -102,6 +102,7 @@ void ScreenMissionSelect::onAction( Action a )
         updateTabOrderFocus( *m_currentWidget, true );
         break;
     }
+    return true;
 }
 
 void ScreenMissionSelect::resize( math::vec2 wh )
