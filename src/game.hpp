@@ -121,6 +121,7 @@ private:
     void render3D( RenderContext );
     void renderBackground( RenderContext ) const;
     void renderGameScreen( RenderContext );
+    void renderMenuScreen( RenderContext ) const;
     void renderHUD( RenderContext );
 
     void preloadData();

@@ -447,26 +447,12 @@ void Game::onRender( RenderContext rctx )
         break;
 
     case Screen::eMainMenu:
-        renderBackground( rctx );
-        {
-            auto rctx2 = rctx;
-            rctx2.projection = math::perspective( 55.0_deg, 1280.0f / 720.0f, 0.001f, 2000.0f );
-            m_spaceDust.render( rctx2 );
-        }
-        m_uiRings.render( rctx );
-        m_glow.render( rctx );
+        renderMenuScreen( rctx );
         m_screenTitle.render( rctx );
         break;
 
     case Screen::eSettings:
-        renderBackground( rctx );
-        {
-            auto rctx2 = rctx;
-            rctx2.projection = math::perspective( 55.0_deg, 1280.0f / 720.0f, 0.001f, 2000.0f );
-            m_spaceDust.render( rctx2 );
-        }
-        m_uiRings.render( rctx );
-        m_glow.render( rctx );
+        renderMenuScreen( rctx );
         m_screenSettings.render( rctx );
         break;
 
@@ -987,5 +973,15 @@ void Game::renderBackground( RenderContext rctx ) const
         },
     };
     rctx.renderer->push( pushBuffer, &pushConstant );
+}
+
+void Game::renderMenuScreen( RenderContext rctx ) const
+{
+    renderBackground( rctx );
+    auto rctx2 = rctx;
+    rctx2.projection = math::perspective( 55.0_deg, 1280.0f / 720.0f, 0.001f, 2000.0f );
+    m_spaceDust.render( rctx2 );
+    m_uiRings.render( rctx );
+    m_glow.render( rctx );
 }
 
