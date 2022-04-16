@@ -237,9 +237,20 @@ void Game::onInit()
     g_uiProperty.m_colorA = color::dodgerBlue;
     m_glow = Glow{ g_uiProperty.m_colorA };
 
-    m_dataModelVSync.m_data.push_back( U"OFF" );
-    m_dataModelVSync.m_data.push_back( U"ON" );
-    m_dataModelVSync.m_data.push_back( U"MAILBOX" );
+    m_dataModelVSync.m_size = [](){ return 3; };
+    m_dataModelVSync.m_at = []( auto i ) -> std::pmr::u32string
+    {
+        assert( i < 3 );
+        using std::literals::string_view_literals::operator""sv;
+        static constexpr std::u32string_view s[] = { U"OFF"sv, U"ON"sv, U"MAILBOX"sv };
+        return { s[ i ].begin(), s[ i ].end() };
+    };
+    m_dataModelVSync.m_select = [this]( auto i )
+    {
+        assert( i < 3 );
+        static constexpr VSync v[] = { VSync::eOff, VSync::eOn, VSync::eMailbox };
+        m_renderer->setVSync( v[ i ] );
+    };
     g_gameUiDataModels[ "$data:vsync" ] = &m_dataModelVSync;
 
     m_dataModelResolution.m_data.push_back( U"1280 x 720 @ 144Hz" );
@@ -301,7 +312,6 @@ void Game::onInit()
         const char* txt = reinterpret_cast<const char*>( ui.data() );
         std::span<const char> span{ txt, txt + ui.size() };
         return ui::Screen{ cfg::Entry::fromData( span ) };
-
     };
     m_screenTitle = makeScreen( "ui/mainmenu.ui", m_io );
     m_screenSettings = makeScreen( "ui/settings.ui", m_io );

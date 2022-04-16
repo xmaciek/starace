@@ -102,7 +102,7 @@ private:
     Jet::Input m_jetInput{};
     Screen m_currentScreen = Screen::eGame;
 
-    ui::StringListModel m_dataModelVSync{};
+    ui::GenericDataModel m_dataModelVSync{};
     ui::StringListModel m_dataModelResolution{};
 
     uint32_t viewportHeight() const;

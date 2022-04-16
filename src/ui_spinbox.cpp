@@ -118,11 +118,13 @@ bool SpinBox::onMouseEvent( const MouseEvent& event )
     case MouseEvent::eClick:
         if ( left ) {
             m_index--;
+            m_model->select( value() );
             m_label.setText( m_model->at( value() ) );
             break;
         }
         if ( right ) {
             m_index++;
+            m_model->select( value() );
             m_label.setText( m_model->at( value() ) );
             break;
         }
@@ -168,8 +170,14 @@ bool SpinBox::onAction( Action a )
 {
     if ( !a.digital ) { return false; }
     switch ( a.toA<GameAction>() ) {
-    case GameAction::eMenuLeft: m_index--; break;
-    case GameAction::eMenuRight: m_index++; break;
+    case GameAction::eMenuLeft:
+        m_index--;
+        m_model->select( value() );
+        break;
+    case GameAction::eMenuRight:
+        m_index++;
+        m_model->select( value() );
+        break;
     case GameAction::eMenuConfirm:
         m_model->activate( value() );
         break;
