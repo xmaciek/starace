@@ -10,7 +10,6 @@
 #include "linear_atlas.hpp"
 #include "map_create_info.hpp"
 #include "model_proto.hpp"
-#include "screen_customize.hpp"
 #include "screen_mission_select.hpp"
 #include "screen_pause.hpp"
 #include "screen_win_loose.hpp"
@@ -59,6 +58,10 @@ private:
     Font* m_fontMedium = nullptr;
     Font* m_fontLarge = nullptr;
     Model* m_enemyModel = nullptr;
+    uint32_t m_currentJet = 0;
+    uint32_t m_weapon1 = 0;
+    uint32_t m_weapon2 = 0;
+    uint32_t m_weapon3 = 0;
     Jet m_jet{};
     Skybox m_skybox{};
     LinearAtlas m_atlasUi{};
@@ -90,8 +93,8 @@ private:
     Glow m_glow{};
     SpaceDust m_spaceDust{};
     ui::Screen m_screenTitle{};
+    ui::Screen m_screenCustomize{};
     ui::Screen m_screenSettings{};
-    ScreenCustomize m_screenCustomize{};
     ScreenMissionSelect m_screenMissionSelect{};
     ScreenPause m_screenPause{};
     ScreenWinLoose m_screenWin{};
@@ -103,6 +106,9 @@ private:
     Screen m_currentScreen = Screen::eGame;
 
     ui::GenericDataModel m_dataModelVSync{};
+    ui::GenericDataModel m_dataJet{};
+    ui::GenericDataModel m_dataWeaponPrimary{};
+    ui::GenericDataModel m_dataWeaponSecondary{};
     ui::StringListModel m_dataModelResolution{};
 
     uint32_t viewportHeight() const;

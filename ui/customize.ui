@@ -1,0 +1,59 @@
+width = 1280
+height = 720
+
+Label = {
+    text = $loc:customize
+    x = 48
+    y = 50
+}
+
+SpinBox = {
+    data = $data:jet
+    x = 48
+    y = 150
+    width = 320
+    height = 48
+}
+
+Label = {
+    text = $loc:jet
+    x = 370
+    y = 150
+}
+
+SpinBox = {
+    data = $data:weaponPrimary
+    x = 48
+    y = 200
+    width = 320
+    height = 48
+}
+
+Label = {
+    text = $loc:weaponPrimary
+    x = 370
+    y = 200
+}
+
+SpinBox = {
+    data = $data:weaponSecondary
+    x = 48
+    y = 250
+    width = 320
+    height = 48
+}
+
+Label = {
+    text = $loc:weaponSecondary
+    x = 370
+    y = 250
+}
+
+Button = {
+    text = $loc:return
+    trigger = $function:goto_titlemenu
+    x = 48
+    y = 350
+    width = 320
+    height = 48
+}

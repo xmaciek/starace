@@ -32,6 +32,7 @@ static constexpr const char* chunk0[] = {
     "maps.cfg",
     "jets.cfg",
     "ui/mainmenu.ui",
+    "ui/customize.ui",
     "ui/settings.ui",
 };
 
@@ -113,7 +114,7 @@ static std::pmr::vector<ModelProto> loadJets( std::span<const char> str )
     for ( const cfg::Entry& it : entry ) {
         std::string_view name = *it;
         jets.emplace_back( ModelProto{
-            .name = std::u32string{ name.begin(), name.end() },
+            .name = std::pmr::u32string{ name.begin(), name.end() },
             .model_file = std::string{ it[ "model"sv ].toString() },
             .model_texture = std::string{ it[ "texture"sv ].toString() },
             .scale = it[ "scale"sv ].toFloat(),
@@ -259,6 +260,35 @@ void Game::onInit()
     m_dataModelResolution.m_data.push_back( U"4th test entry" );
     g_gameUiDataModels[ "$data:resolution" ] = &m_dataModelResolution;
 
+    m_dataJet.m_size = [this](){ return m_jetsContainer.size(); };
+    m_dataJet.m_at = [this]( auto i )
+    {
+        assert( i < m_jetsContainer.size() );
+        return m_jetsContainer[ i ].name;
+    };
+    m_dataJet.m_select = [this]( auto i )
+    {
+        assert( i < m_jetsContainer.size() );
+        m_currentJet = i;
+    };
+    g_gameUiDataModels[ "$data:jet" ] = &m_dataJet;
+
+    auto weapNames = []( auto i ) -> std::pmr::u32string
+    {
+        assert( i < 3 );
+        using std::literals::string_view_literals::operator""sv;
+        static constexpr std::u32string_view s[] = { U"Laser"sv, U"Blaster"sv, U"Torpedo"sv };
+        return { s[ i ].begin(), s[ i ].end() };
+    };
+    m_dataWeaponPrimary.m_size = [](){ return 3; };
+    m_dataWeaponPrimary.m_at = weapNames;
+    m_dataWeaponPrimary.m_select = [this]( auto i ){ m_weapon1 = i; m_weapon3 = i; };
+    m_dataWeaponSecondary.m_size = [](){ return 3; };
+    m_dataWeaponSecondary.m_at = weapNames;
+    m_dataWeaponSecondary.m_select = [this]( auto i ){ m_weapon2 = i; };
+    g_gameUiDataModels[ "$data:weaponPrimary" ] = &m_dataWeaponPrimary;
+    g_gameUiDataModels[ "$data:weaponSecondary" ] = &m_dataWeaponSecondary;
+
 
     {
         std::pmr::u32string charset = U"0123456789"
@@ -313,8 +343,6 @@ void Game::onInit()
         std::span<const char> span{ txt, txt + ui.size() };
         return ui::Screen{ cfg::Entry::fromData( span ) };
     };
-    m_screenTitle = makeScreen( "ui/mainmenu.ui", m_io );
-    m_screenSettings = makeScreen( "ui/settings.ui", m_io );
 
     m_screenWin = ScreenWinLoose{
           color::winScreen
@@ -391,23 +419,10 @@ void Game::onInit()
         }
     }
 
-    std::pmr::vector<CustomizeData> data{};
-    data.reserve( m_jetsContainer.size() );
-    std::transform( m_jetsContainer.begin(), m_jetsContainer.end(), std::back_inserter( data ),
-        []( ModelProto& it ) { return CustomizeData{ it.name, it.model, 1.0f / it.scale }; }
-    );
+    m_screenTitle = makeScreen( "ui/mainmenu.ui", m_io );
+    m_screenCustomize = makeScreen( "ui/customize.ui", m_io );
+    m_screenSettings = makeScreen( "ui/settings.ui", m_io );
 
-    m_screenCustomize = ScreenCustomize{
-        { 1, 2, 1 }
-        , std::move( data )
-        , &m_uiRings
-        , [this](){ changeScreen( Screen::eMainMenu, m_click ); }
-        , [this](){ if ( m_screenCustomize.prevJet() ) { m_audio->play( m_click ); } }
-        , [this](){ if ( m_screenCustomize.nextJet() ) { m_audio->play( m_click ); } }
-        , [this](){ m_screenCustomize.nextWeap( 0 ); m_audio->play( m_click ); }
-        , [this](){ m_screenCustomize.nextWeap( 1 ); m_audio->play( m_click ); }
-        , [this](){ m_screenCustomize.nextWeap( 2 ); m_audio->play( m_click ); }
-    };
     m_enemyModel = new Model{ "models/a2.objc", m_textures[ "textures/a2.tga" ], m_renderer, 0.45f };
 
     onResize( viewportWidth(), viewportHeight() );
@@ -457,7 +472,7 @@ void Game::onRender( RenderContext rctx )
         break;
 
     case Screen::eCustomize:
-        renderBackground( rctx );
+        renderMenuScreen( rctx );
         m_screenCustomize.render( rctx );
         break;
 
@@ -487,11 +502,9 @@ void Game::onUpdate( const UpdateContext& updateContext )
         break;
     case Screen::eMainMenu:
     case Screen::eSettings:
+    case Screen::eCustomize:
         m_spaceDust.update( updateContext );
         m_uiRings.update( updateContext );
-        break;
-    case Screen::eCustomize:
-        m_screenCustomize.update( updateContext );
         break;
     default:
         break;
@@ -675,10 +688,9 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
     };
     m_skybox = Skybox{ mapInfo.texture };
     m_jet = Jet( modelData );
-    auto weap = m_screenCustomize.weapons();
-    m_jet.setWeapon( m_weapons[ weap[ 0 ] ], 0 );
-    m_jet.setWeapon( m_weapons[ weap[ 1 ] ], 1 );
-    m_jet.setWeapon( m_weapons[ weap[ 2 ] ], 2 );
+    m_jet.setWeapon( m_weapons[ m_weapon1 ], 0 );
+    m_jet.setWeapon( m_weapons[ m_weapon2 ], 1 );
+    m_jet.setWeapon( m_weapons[ m_weapon3 ], 2 );
 
     assert( m_enemies.empty() );
     m_enemies.resize( mapInfo.enemies );
@@ -725,11 +737,10 @@ void Game::changeScreen( Screen scr, Audio::Slot sound )
         m_currentScreen = scr;
         break;
 
-    case Screen::eGameBriefing: {
-        const uint32_t currentJet = m_screenCustomize.jet();
-        createMapData( m_mapsContainer.at( m_screenMissionSelect.selectedMission() ), m_jetsContainer.at( currentJet ) );
+    case Screen::eGameBriefing:
+        createMapData( m_mapsContainer.at( m_screenMissionSelect.selectedMission() ), m_jetsContainer[ m_currentJet ] );
         changeScreen( Screen::eGamePaused );
-    } break;
+        break;
 
     case Screen::eMissionSelection:
         clearMapData();
@@ -985,11 +996,10 @@ void Game::renderMenuScreen( RenderContext rctx ) const
         , 0.001f
         , 2000.0f
     );
-    const math::vec3 cameraPos = math::normalize( math::vec3{ -4, -3, -3 } ) * 30.0_m;
+    const math::vec3 cameraPos = math::normalize( math::vec3{ -4, -3, -3 } ) * 24.0_m;
     rctx2.view = math::lookAt( cameraPos, math::vec3{}, math::vec3{ 0, 1, 0 } );
 
-    int currentJet = 0;
-    auto* jet = m_jetsContainer[ currentJet ].model;
+    auto* jet = m_jetsContainer[ m_currentJet ].model;
     jet->render( rctx2 );
 
     m_spaceDust.render( rctx2 );
