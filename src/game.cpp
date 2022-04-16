@@ -700,7 +700,7 @@ void Game::changeScreen( Screen scr, Audio::Slot sound )
 
     switch ( scr ) {
     case Screen::eMainMenu:
-        m_spaceDust.setVelocity(  math::vec3{ 1.0f, -0.1f, -0.4f }  );
+        m_spaceDust.setVelocity(  math::vec3{ 0.0f, 0.0f, 26.0_m }  );
         m_spaceDust.setCenter( {} );
         m_spaceDust.setLineWidth( 2.0f );
         m_currentScreen = scr;
@@ -979,7 +979,19 @@ void Game::renderMenuScreen( RenderContext rctx ) const
 {
     renderBackground( rctx );
     auto rctx2 = rctx;
-    rctx2.projection = math::perspective( 55.0_deg, 1280.0f / 720.0f, 0.001f, 2000.0f );
+    rctx2.projection = math::perspective(
+        55.0_deg
+        , viewportAspect()
+        , 0.001f
+        , 2000.0f
+    );
+    const math::vec3 cameraPos = math::normalize( math::vec3{ -4, -3, -3 } ) * 30.0_m;
+    rctx2.view = math::lookAt( cameraPos, math::vec3{}, math::vec3{ 0, 1, 0 } );
+
+    int currentJet = 0;
+    auto* jet = m_jetsContainer[ currentJet ].model;
+    jet->render( rctx2 );
+
     m_spaceDust.render( rctx2 );
     m_uiRings.render( rctx );
     m_glow.render( rctx );
