@@ -1,5 +1,7 @@
 #pragma once
 
+#include <renderer/texture.hpp>
+
 #include <cstdint>
 #include <functional>
 #include <memory_resource>
@@ -7,6 +9,7 @@
 #include <string_view>
 #include <unordered_map>
 #include <vector>
+
 
 namespace ui {
 
@@ -16,8 +19,11 @@ struct DataModel {
     virtual ~DataModel() noexcept = default;
     DataModel() noexcept = default;
 
-    virtual size_type size() const = 0;
-    virtual std::pmr::u32string at( size_type ) const = 0;
+    virtual size_type current() const;
+    virtual size_type size() const;
+    virtual std::pmr::u32string at( size_type ) const;
+    virtual Texture texture( size_type ) const;
+
     virtual void activate( size_type );
     virtual void select( size_type );
 };
@@ -37,12 +43,17 @@ struct GenericDataModel : public DataModel {
     std::function<std::pmr::u32string(size_type)> m_at{};
     std::function<void(size_type)> m_activate{};
     std::function<void(size_type)> m_select{};
+    std::function<size_type()> m_current{};
+    std::function<Texture(size_type)> m_texture{};
 
     ~GenericDataModel() noexcept = default;
     GenericDataModel() noexcept = default;
 
+    virtual size_type current() const override;
     virtual size_type size() const override;
     virtual std::pmr::u32string at( size_type ) const override;
+    virtual Texture texture( size_type ) const override;
+
     virtual void activate( size_type ) override;
     virtual void select( size_type ) override;
 };

@@ -4,6 +4,26 @@
 
 namespace ui {
 
+DataModel::size_type DataModel::current() const
+{
+    return {};
+}
+
+DataModel::size_type DataModel::size() const
+{
+    return {};
+}
+
+std::pmr::u32string DataModel::at( size_type ) const
+{
+    return {};
+}
+
+Texture DataModel::texture( size_type ) const
+{
+    return {};
+}
+
 void DataModel::activate( size_type )
 {
 }
@@ -22,6 +42,8 @@ std::pmr::u32string StringListModel::at( size_type i ) const
     assert( i < size() );
     return m_data[ i ];
 }
+
+
 
 GenericDataModel::size_type GenericDataModel::size() const
 {
@@ -49,5 +71,14 @@ void GenericDataModel::select( size_type i )
     }
 }
 
+Texture GenericDataModel::texture( size_type i ) const
+{
+    return m_texture ? m_texture( i ) : Texture{};
+}
+
+GenericDataModel::size_type GenericDataModel::current() const
+{
+    return m_current ? m_current() : 0;
+}
 
 }
