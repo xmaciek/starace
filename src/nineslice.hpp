@@ -25,3 +25,5 @@ public:
     virtual void render( RenderContext ) const override;
     void setColor( math::vec4 c );
 };
+
+namespace ui { using NineSlice = ::NineSlice; }
