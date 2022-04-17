@@ -5,6 +5,7 @@
 #include <config/config.hpp>
 #include <engine/math.hpp>
 #include <engine/render_context.hpp>
+#include <engine/update_context.hpp>
 #include <engine/mouse_event.hpp>
 #include <engine/action.hpp>
 
@@ -37,6 +38,7 @@ public:
 
     void onAction( Action );
     void onMouseEvent( const MouseEvent& );
+    void update( const UpdateContext& );
     void render( const RenderContext& ) const;
     void resize( math::vec2 );
 };
