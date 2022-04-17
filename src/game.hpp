@@ -10,7 +10,6 @@
 #include "linear_atlas.hpp"
 #include "map_create_info.hpp"
 #include "model_proto.hpp"
-#include "screen_mission_select.hpp"
 #include "screen_pause.hpp"
 #include "screen_win_loose.hpp"
 #include "skybox.hpp"
@@ -58,6 +57,7 @@ private:
     Font* m_fontMedium = nullptr;
     Font* m_fontLarge = nullptr;
     Model* m_enemyModel = nullptr;
+    uint32_t m_currentMission = 0;
     uint32_t m_currentJet = 0;
     uint32_t m_weapon1 = 0;
     uint32_t m_weapon2 = 0;
@@ -95,7 +95,7 @@ private:
     ui::Screen m_screenTitle{};
     ui::Screen m_screenCustomize{};
     ui::Screen m_screenSettings{};
-    ScreenMissionSelect m_screenMissionSelect{};
+    ui::Screen m_screenMissionSelect{};
     ScreenPause m_screenPause{};
     ScreenWinLoose m_screenWin{};
     ScreenWinLoose m_screenLoose{};
@@ -105,6 +105,7 @@ private:
     Jet::Input m_jetInput{};
     Screen m_currentScreen = Screen::eGame;
 
+    ui::GenericDataModel m_dataMissionSelect{};
     ui::GenericDataModel m_dataModelVSync{};
     ui::GenericDataModel m_dataJet{};
     ui::GenericDataModel m_dataWeaponPrimary{};

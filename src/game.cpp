@@ -32,6 +32,7 @@ static constexpr const char* chunk0[] = {
     "maps.cfg",
     "jets.cfg",
     "ui/mainmenu.ui",
+    "ui/missionselect.ui",
     "ui/customize.ui",
     "ui/settings.ui",
 };
@@ -231,11 +232,13 @@ void Game::onInit()
         registerAction( static_cast<Action::Enum>( eid ), min, max );
     }
 
+    g_gameCallbacks[ "$function:goto_missionBriefing" ] = [this](){ changeScreen( Screen::eGameBriefing, m_click ); };
     g_gameCallbacks[ "$function:goto_newgame" ] = [this](){ changeScreen( Screen::eMissionSelection, m_click ); };
     g_gameCallbacks[ "$function:goto_customize" ] = [this](){ changeScreen( Screen::eCustomize, m_click ); };
     g_gameCallbacks[ "$function:goto_settings" ] = [this](){ changeScreen( Screen::eSettings, m_click ); };
     g_gameCallbacks[ "$function:goto_titlemenu" ] = [this](){ changeScreen( Screen::eMainMenu, m_click ); };
     g_gameCallbacks[ "$function:quit" ] = [this](){ quit(); };
+
 
     g_uiProperty.m_colorA = color::dodgerBlue;
     m_glow = Glow{ g_uiProperty.m_colorA };
@@ -292,6 +295,26 @@ void Game::onInit()
     g_gameUiDataModels[ "$data:weaponSecondary" ] = &m_dataWeaponSecondary;
 
 
+    m_dataMissionSelect.m_current = [this](){ return m_currentMission; };
+    m_dataMissionSelect.m_size = [this](){ return m_mapsContainer.size(); };
+    m_dataMissionSelect.m_at = [this]( auto i ) -> std::pmr::u32string
+    {
+        assert( i < m_mapsContainer.size() );
+        return m_mapsContainer[ i ].name;
+    };
+    m_dataMissionSelect.m_select = [this]( auto i )
+    {
+        assert( i < m_mapsContainer.size() );
+        m_currentMission = i;
+    };
+    m_dataMissionSelect.m_texture = [this]( auto i ) -> Texture
+    {
+        assert( i < m_mapsContainer.size() );
+        return m_mapsContainer[ i ].preview;
+    };
+    g_gameUiDataModels[ "$data:missionSelect" ] = &m_dataMissionSelect;
+
+
     {
         std::pmr::u32string charset = U"0123456789"
         U"abcdefghijklmnopqrstuvwxyz"
@@ -336,14 +359,6 @@ void Game::onInit()
         , [this](){ changeScreen( Screen::eGame ); }
         , [this](){ changeScreen( Screen::eGame, m_click ); }
         , [this](){ changeScreen( Screen::eMissionSelection, m_click ); }
-    };
-
-    auto makeScreen = []( std::string_view strv, auto* io )
-    {
-        auto ui = io->getWait( strv );
-        const char* txt = reinterpret_cast<const char*>( ui.data() );
-        std::span<const char> span{ txt, txt + ui.size() };
-        return ui::Screen{ cfg::Entry::fromData( span ) };
     };
 
     m_screenWin = ScreenWinLoose{
@@ -401,14 +416,6 @@ void Game::onInit()
     m_weapons[ 2 ] = tmpWeapon;
 
     loadMapProto();
-    m_screenMissionSelect = ScreenMissionSelect{
-        std::span<const MapCreateInfo>{ m_mapsContainer.begin(), m_mapsContainer.end() }
-        , &m_uiRings
-        , [this](){ if ( m_screenMissionSelect.prev() ) { m_audio->play( m_click ); } }
-        , [this](){ if ( m_screenMissionSelect.next() ) { m_audio->play( m_click ); } }
-        , [this](){ changeScreen( Screen::eMainMenu, m_click ); }
-        , [this](){ changeScreen( Screen::eGameBriefing, m_click ); }
-    };
 
     {
         std::pmr::vector<uint8_t> jetscfg = m_io->getWait( "jets.cfg" );
@@ -421,7 +428,16 @@ void Game::onInit()
         }
     }
 
+    auto makeScreen = []( std::string_view strv, auto* io )
+    {
+        auto ui = io->getWait( strv );
+        const char* txt = reinterpret_cast<const char*>( ui.data() );
+        std::span<const char> span{ txt, txt + ui.size() };
+        return ui::Screen{ cfg::Entry::fromData( span ) };
+    };
+
     m_screenTitle = makeScreen( "ui/mainmenu.ui", m_io );
+    m_screenMissionSelect = makeScreen( "ui/missionselect.ui", m_io );
     m_screenCustomize = makeScreen( "ui/customize.ui", m_io );
     m_screenSettings = makeScreen( "ui/settings.ui", m_io );
 
@@ -460,6 +476,7 @@ void Game::onRender( RenderContext rctx )
         break;
 
     case Screen::eMissionSelection:
+        renderMenuScreen( rctx );
         m_screenMissionSelect.render( rctx );
         break;
 
@@ -483,34 +500,39 @@ void Game::onRender( RenderContext rctx )
     }
 }
 
-void Game::onUpdate( const UpdateContext& updateContext )
+void Game::onUpdate( const UpdateContext& uctx )
 {
     ZoneScoped;
     switch ( m_currentScreen ) {
     case Screen::eGame:
-        updateGame( updateContext );
-        break;
-    case Screen::eMissionSelection:
-        m_screenMissionSelect.update( updateContext );
-        break;
+        updateGame( uctx );
+        return;
     case Screen::eGamePaused:
-        m_screenPause.update( updateContext );
-        break;
+        m_screenPause.update( uctx );
+        return;
     case Screen::eDead:
-        m_screenLoose.update( updateContext );
+        m_screenLoose.update( uctx );
         break;
     case Screen::eWin:
-        m_screenWin.update( updateContext );
+        m_screenWin.update( uctx );
+        break;
+    case Screen::eMissionSelection:
+        m_screenMissionSelect.update( uctx );
         break;
     case Screen::eMainMenu:
+        m_screenTitle.update( uctx );
+        break;
     case Screen::eSettings:
+        m_screenSettings.update( uctx );
+        break;
     case Screen::eCustomize:
-        m_spaceDust.update( updateContext );
-        m_uiRings.update( updateContext );
+        m_screenCustomize.update( uctx );
         break;
     default:
         break;
     }
+    m_spaceDust.update( uctx );
+    m_uiRings.update( uctx );
 }
 
 void Game::pause()
@@ -740,12 +762,19 @@ void Game::changeScreen( Screen scr, Audio::Slot sound )
         break;
 
     case Screen::eGameBriefing:
-        createMapData( m_mapsContainer.at( m_screenMissionSelect.selectedMission() ), m_jetsContainer[ m_currentJet ] );
+        createMapData( m_mapsContainer[ m_currentMission ], m_jetsContainer[ m_currentJet ] );
         changeScreen( Screen::eGamePaused );
         break;
 
     case Screen::eMissionSelection:
         clearMapData();
+        // when returning from game pause to menu
+        // TODO: separate space dust object
+        if ( m_currentScreen == Screen::eGamePaused ) {
+            m_spaceDust.setVelocity(  math::vec3{ 0.0f, 0.0f, 26.0_m }  );
+            m_spaceDust.setCenter( {} );
+            m_spaceDust.setLineWidth( 2.0f );
+        }
         m_currentScreen = scr;
         break;
 
