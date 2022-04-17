@@ -17,9 +17,9 @@ std::array<uint32_t, 9> c_slices = {
     ui::AtlasSprite::eLeft,
     ui::AtlasSprite::eMid,
     ui::AtlasSprite::eRight,
-    ui::AtlasSprite::eBotLeft,
+    ui::AtlasSprite::eBotLeft2,
     ui::AtlasSprite::eBot,
-    ui::AtlasSprite::eBotRight,
+    ui::AtlasSprite::eBotRight2,
 };
 
 Button::Button( std::u32string_view txt, std::function<void()>&& onTrigger )

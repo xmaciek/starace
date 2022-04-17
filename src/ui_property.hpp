@@ -46,6 +46,8 @@ struct AtlasSprite {
         eBotLeft,
         eBot,
         eBotRight,
+        eBotLeft2,
+        eBotRight2,
     };
 };
 

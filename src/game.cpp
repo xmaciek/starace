@@ -58,6 +58,8 @@ static constexpr Sprite c_spritesUi[]{
     /*[ ui::AtlasSprite::eBotLeft ]    =*/ { 48, 24, 8, 8 },
     /*[ ui::AtlasSprite::eBot ]        =*/ { 60, 24, 8, 8 },
     /*[ ui::AtlasSprite::eBotRight ]   =*/ { 72, 24, 8, 8 },
+    /*[ ui::AtlasSprite::eBotLeft2 ]   =*/ { 84, 12, 8, 8 },
+    /*[ ui::AtlasSprite::eBotRight2 ]   =*/ { 84, 24, 8, 8 },
 };
 
 
