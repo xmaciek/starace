@@ -1,0 +1,50 @@
+width = 1280
+height = 720
+
+Label = {
+    text = $loc:missionSelect
+    x = 48
+    y = 50
+}
+
+SpinBox = {
+    data = $data:missionSelect
+    x = 48
+    y = 150
+    width = 320
+    height = 48
+}
+
+Button = {
+    text = $loc:engage
+    trigger = $function:goto_missionBriefing
+    x = 48
+    y = 200
+    width = 320
+    height = 48
+}
+
+Button = {
+    text = $loc:return
+    trigger = $function:goto_titlemenu
+    x = 48
+    y = 350
+    width = 320
+    height = 48
+}
+
+
+NineSlice = {
+    x = 600
+    y = 48
+    width = 600
+    height = 600
+}
+
+Image = {
+    data = $data:missionSelect
+    x = 624
+    y = 72
+    width = 552
+    height = 552
+}
