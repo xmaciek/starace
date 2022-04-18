@@ -232,6 +232,10 @@ void Game::onInit()
         registerAction( static_cast<Action::Enum>( eid ), min, max );
     }
 
+    m_dustUi.setVelocity(  math::vec3{ 0.0f, 0.0f, 26.0_m }  );
+    m_dustUi.setCenter( {} );
+    m_dustUi.setLineWidth( 2.0f );
+
     g_gameCallbacks[ "$function:goto_missionBriefing" ] = [this](){ changeScreen( Screen::eGameBriefing, m_click ); };
     g_gameCallbacks[ "$function:goto_newgame" ] = [this](){ changeScreen( Screen::eMissionSelection, m_click ); };
     g_gameCallbacks[ "$function:goto_customize" ] = [this](){ changeScreen( Screen::eCustomize, m_click ); };
@@ -512,10 +516,11 @@ void Game::onUpdate( const UpdateContext& uctx )
         return;
     case Screen::eDead:
         m_screenLoose.update( uctx );
-        break;
+        return;
     case Screen::eWin:
         m_screenWin.update( uctx );
-        break;
+        return;
+
     case Screen::eMissionSelection:
         m_screenMissionSelect.update( uctx );
         break;
@@ -531,7 +536,7 @@ void Game::onUpdate( const UpdateContext& uctx )
     default:
         break;
     }
-    m_spaceDust.update( uctx );
+    m_dustUi.update( uctx );
     m_uiRings.update( uctx );
 }
 
@@ -565,9 +570,9 @@ void Game::updateGame( const UpdateContext& updateContext )
     }
 
     m_jet.update( updateContext );
-    m_spaceDust.setCenter( m_jet.position() );
-    m_spaceDust.setVelocity( m_jet.velocity() * -0.5f );
-    m_spaceDust.update( updateContext );
+    m_dustGame.setCenter( m_jet.position() );
+    m_dustGame.setVelocity( m_jet.velocity() * -0.5f );
+    m_dustGame.update( updateContext );
 
     for ( Explosion& it : m_explosions ) {
         it.update( updateContext );
@@ -736,17 +741,16 @@ void Game::changeScreen( Screen scr, Audio::Slot sound )
 
     switch ( scr ) {
     case Screen::eMainMenu:
-        m_spaceDust.setVelocity(  math::vec3{ 0.0f, 0.0f, 26.0_m }  );
-        m_spaceDust.setCenter( {} );
-        m_spaceDust.setLineWidth( 2.0f );
+    case Screen::eSettings:
+    case Screen::eCustomize:
         m_currentScreen = scr;
         break;
 
     case Screen::eGame:
     case Screen::eGamePaused:
-        m_spaceDust.setVelocity( m_jet.velocity() * -0.5f );
-        m_spaceDust.setCenter( m_jet.position() );
-        m_spaceDust.setLineWidth( 1.618f );
+        m_dustGame.setVelocity( m_jet.velocity() * -0.5f );
+        m_dustGame.setCenter( m_jet.position() );
+        m_dustGame.setLineWidth( 1.618f );
         m_currentScreen = scr;
         break;
 
@@ -754,10 +758,6 @@ void Game::changeScreen( Screen scr, Audio::Slot sound )
     case Screen::eWin:
         m_screenLoose.setScore( m_hudData.score );
         m_screenWin.setScore( m_hudData.score );
-        [[fallthrough]];
-
-    case Screen::eSettings:
-    case Screen::eCustomize:
         m_currentScreen = scr;
         break;
 
@@ -768,13 +768,6 @@ void Game::changeScreen( Screen scr, Audio::Slot sound )
 
     case Screen::eMissionSelection:
         clearMapData();
-        // when returning from game pause to menu
-        // TODO: separate space dust object
-        if ( m_currentScreen == Screen::eGamePaused ) {
-            m_spaceDust.setVelocity(  math::vec3{ 0.0f, 0.0f, 26.0_m }  );
-            m_spaceDust.setCenter( {} );
-            m_spaceDust.setLineWidth( 2.0f );
-        }
         m_currentScreen = scr;
         break;
 
@@ -973,7 +966,7 @@ void Game::render3D( RenderContext rctx )
     for ( const Explosion& it : m_explosions ) {
         it.render( rctx );
     }
-    m_spaceDust.render( rctx );
+    m_dustGame.render( rctx );
     for ( const Enemy* it : m_enemies ) {
         assert( it );
         it->render( rctx );
@@ -1033,7 +1026,7 @@ void Game::renderMenuScreen( RenderContext rctx ) const
     auto* jet = m_jetsContainer[ m_currentJet ].model;
     jet->render( rctx2 );
 
-    m_spaceDust.render( rctx2 );
+    m_dustUi.render( rctx2 );
     m_uiRings.render( rctx );
     m_glow.render( rctx );
 }

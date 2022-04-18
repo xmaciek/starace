@@ -91,7 +91,8 @@ private:
     std::pmr::map<std::filesystem::path, Texture> m_textures{};
 
     Glow m_glow{};
-    SpaceDust m_spaceDust{};
+    SpaceDust m_dustGame{};
+    SpaceDust m_dustUi{};
     ui::Screen m_screenTitle{};
     ui::Screen m_screenCustomize{};
     ui::Screen m_screenSettings{};
