@@ -21,6 +21,8 @@ class Screen {
     TabOrder<> m_tabOrder{};
     math::vec2 m_extent{ 1, 1 };
     math::vec2 m_resize{ 1, 1 };
+    math::vec2 m_viewport{ 1, 1 };
+    math::vec2 m_offset{};
     std::pmr::vector<std::unique_ptr<Widget>> m_widgets{};
 
     void changeFocus( uint16_t from, uint16_t to );

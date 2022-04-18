@@ -193,7 +193,8 @@ Screen::Screen( const cfg::Entry& entry ) noexcept
 void Screen::render( const RenderContext& rctx ) const
 {
     auto r = rctx;
-    r.projection = math::ortho( 0.0f, m_extent.x, 0.0f, m_extent.y, -1.0f, 1.0f );
+    r.projection = math::ortho( 0.0f, m_viewport.x, 0.0f, m_viewport.y, -1.0f, 1.0f );
+    r.view = math::translate( r.view, math::vec3{ m_offset.x, m_offset.y, 0.0f } );
     for ( const auto& it : m_widgets ) {
         it->render( r );
     }
@@ -210,7 +211,8 @@ void Screen::onMouseEvent( const MouseEvent& e )
 {
     MouseEvent event = e;
     event.position /= m_resize;
-    event.position *= m_extent;
+    event.position *= m_viewport;
+    event.position -= m_offset;
     m_tabOrder.invalidate();
     for ( const auto& it : m_widgets ) {
         if ( it->onMouseEvent( event ) ) {
@@ -260,6 +262,12 @@ void Screen::onAction( Action a )
 void Screen::resize( math::vec2 s )
 {
     m_resize = s;
+    const float aspect = m_resize.x / m_resize.y;
+    const float srcAspect = m_extent.x / m_extent.y;
+    m_viewport = ( aspect >= srcAspect )
+        ? math::vec2{ m_extent.y * aspect, m_extent.y }
+        : math::vec2{ m_extent.x, m_extent.x * ( m_resize.y / m_resize.x ) };
+    m_offset = ( m_viewport - m_extent ) * 0.5f;
 }
 
 
