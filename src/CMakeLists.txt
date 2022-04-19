@@ -52,8 +52,6 @@ set( STARACE_SOURCES
     reactor.hpp
     saobject.cpp
     saobject.hpp
-    screen_pause.cpp
-    screen_pause.hpp
     screen_win_loose.cpp
     screen_win_loose.hpp
     shield.cpp

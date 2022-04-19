@@ -10,7 +10,6 @@
 #include "linear_atlas.hpp"
 #include "map_create_info.hpp"
 #include "model_proto.hpp"
-#include "screen_pause.hpp"
 #include "screen_win_loose.hpp"
 #include "skybox.hpp"
 #include "space_dust.hpp"
@@ -97,7 +96,7 @@ private:
     ui::Screen m_screenCustomize{};
     ui::Screen m_screenSettings{};
     ui::Screen m_screenMissionSelect{};
-    ScreenPause m_screenPause{};
+    ui::Screen m_screenPause{};
     ScreenWinLoose m_screenWin{};
     ScreenWinLoose m_screenLoose{};
 

@@ -35,6 +35,7 @@ static constexpr const char* chunk0[] = {
     "ui/missionselect.ui",
     "ui/customize.ui",
     "ui/settings.ui",
+    "ui/pause.ui",
 };
 
 static constexpr const char* chunk1[] = {
@@ -242,6 +243,7 @@ void Game::onInit()
     g_gameCallbacks[ "$function:goto_settings" ] = [this](){ changeScreen( Screen::eSettings, m_click ); };
     g_gameCallbacks[ "$function:goto_titlemenu" ] = [this](){ changeScreen( Screen::eMainMenu, m_click ); };
     g_gameCallbacks[ "$function:quit" ] = [this](){ quit(); };
+    g_gameCallbacks[ "$function:resume" ] = [this]{ changeScreen( Screen::eGame, m_click ); };
 
 
     g_uiProperty.m_colorA = color::dodgerBlue;
@@ -358,13 +360,6 @@ void Game::onInit()
 
 
 
-    m_screenPause = ScreenPause{
-        &m_uiRings
-        , [this](){ changeScreen( Screen::eGame ); }
-        , [this](){ changeScreen( Screen::eGame, m_click ); }
-        , [this](){ changeScreen( Screen::eMissionSelection, m_click ); }
-    };
-
     m_screenWin = ScreenWinLoose{
           color::winScreen
         , &m_uiRings
@@ -444,6 +439,7 @@ void Game::onInit()
     m_screenMissionSelect = makeScreen( "ui/missionselect.ui", m_io );
     m_screenCustomize = makeScreen( "ui/customize.ui", m_io );
     m_screenSettings = makeScreen( "ui/settings.ui", m_io );
+    m_screenPause = makeScreen( "ui/pause.ui", m_io );
 
     m_enemyModel = new Model{ "models/a2.objc", m_textures[ "textures/a2.tga" ], m_renderer, 0.45f };
 
@@ -466,6 +462,8 @@ void Game::onRender( RenderContext rctx )
 
     case Screen::eGamePaused:
         renderGameScreen( rctx );
+        m_uiRings.render( rctx );
+        m_glow.render( rctx );
         m_screenPause.render( rctx );
         break;
 
@@ -512,6 +510,7 @@ void Game::onUpdate( const UpdateContext& uctx )
         updateGame( uctx );
         return;
     case Screen::eGamePaused:
+        m_uiRings.update( uctx );
         m_screenPause.update( uctx );
         return;
     case Screen::eDead:

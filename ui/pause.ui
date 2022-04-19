@@ -1,0 +1,26 @@
+width = 1280
+height = 720
+
+Label = {
+    text = $loc:pause
+    x = 48
+    y = 50
+}
+
+Button = {
+    text = $loc:resume
+    trigger = $function:resume
+    x = 48
+    y = 150
+    width = 320
+    height = 48
+}
+
+Button = {
+    text = $loc:missionCancel
+    trigger = $function:goto_newgame
+    x = 48
+    y = 200
+    width = 320
+    height = 48
+}

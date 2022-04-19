@@ -30,7 +30,10 @@ static const std::unordered_map<std::string_view, std::u32string_view> g_locMap{
     , { "$loc:jet", U"Frame" }
     , { "$loc:mission", U"Mission" }
     , { "$loc:missionSelect", U"Mission Select" }
+    , { "$loc:missionCancel", U"Cancel Mission" }
     , { "$loc:engage", U"Engage" }
+    , { "$loc:resume", U"Resume" }
+    , { "$loc:pause", U"PAUSE" }
 };
 
 static std::pmr::u32string locKeyToString( std::string_view strv )
