@@ -10,7 +10,6 @@
 #include "linear_atlas.hpp"
 #include "map_create_info.hpp"
 #include "model_proto.hpp"
-#include "screen_win_loose.hpp"
 #include "skybox.hpp"
 #include "space_dust.hpp"
 #include "targeting.hpp"
@@ -61,6 +60,7 @@ private:
     uint32_t m_weapon1 = 0;
     uint32_t m_weapon2 = 0;
     uint32_t m_weapon3 = 0;
+    uint32_t m_missionResult = 0;
     Jet m_jet{};
     Skybox m_skybox{};
     LinearAtlas m_atlasUi{};
@@ -96,9 +96,8 @@ private:
     ui::Screen m_screenCustomize{};
     ui::Screen m_screenSettings{};
     ui::Screen m_screenMissionSelect{};
+    ui::Screen m_screenMissionResult{};
     ui::Screen m_screenPause{};
-    ScreenWinLoose m_screenWin{};
-    ScreenWinLoose m_screenLoose{};
 
     Targeting m_targeting{};
 
@@ -106,6 +105,7 @@ private:
     Screen m_currentScreen = Screen::eGame;
 
     ui::GenericDataModel m_dataMissionSelect{};
+    ui::GenericDataModel m_dataMissionResult{};
     ui::GenericDataModel m_dataModelVSync{};
     ui::GenericDataModel m_dataJet{};
     ui::GenericDataModel m_dataWeaponPrimary{};

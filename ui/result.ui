@@ -1,0 +1,17 @@
+width = 1280
+height = 720
+
+Label = {
+    data = $data:missionResult
+    x = 48
+    y = 50
+}
+
+Button = {
+    text = $loc:missionReturn
+    trigger = $function:goto_newgame
+    x = 48
+    y = 200
+    width = 320
+    height = 48
+}

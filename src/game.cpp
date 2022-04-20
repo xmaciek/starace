@@ -36,6 +36,7 @@ static constexpr const char* chunk0[] = {
     "ui/customize.ui",
     "ui/settings.ui",
     "ui/pause.ui",
+    "ui/result.ui",
 };
 
 static constexpr const char* chunk1[] = {
@@ -217,8 +218,7 @@ void Game::onResize( uint32_t w, uint32_t h )
     m_screenSettings.resize( { w, h } );
     m_screenPause.resize( { w, h } );
     m_screenMissionSelect.resize( { w, h } );
-    m_screenWin.resize( { w, h } );
-    m_screenLoose.resize( { w, h } );
+    m_screenMissionResult.resize( { w, h } );
     m_hud.resize( { w, h } );
     m_uiRings.setSize( { w, h } );
 }
@@ -320,6 +320,19 @@ void Game::onInit()
     };
     g_gameUiDataModels[ "$data:missionSelect" ] = &m_dataMissionSelect;
 
+    // TODO reimplement this specific data model
+    m_dataMissionResult.m_size = [](){ return 2; };
+    m_dataMissionResult.m_current = [this](){ return m_missionResult; };
+    m_dataMissionResult.m_at = [this]( auto i ) -> std::pmr::u32string
+    {
+        assert( i < 2 );
+        using std::literals::string_view_literals::operator""sv;
+        static constexpr std::u32string_view s[] = { U"Mission Failed"sv, U"Mission Succeeded"sv };
+        std::pmr::u32string ret{ s[ i ].begin(), s[ i ].end() };
+        ret += U" " + intToUTF32( m_hudData.score );
+        return ret;
+    };
+    g_gameUiDataModels[ "$data:missionResult" ] = &m_dataMissionResult;
 
     {
         std::pmr::u32string charset = U"0123456789"
@@ -358,20 +371,6 @@ void Game::onInit()
     g_uiProperty.m_atlasTexture = m_textures[ "textures/atlas_ui.tga" ];
     g_uiProperty.m_atlas = &m_atlasUi;
 
-
-
-    m_screenWin = ScreenWinLoose{
-          color::winScreen
-        , &m_uiRings
-        , ui::loc::missionWin
-        , [this](){ changeScreen( Screen::eMissionSelection, m_click ); }
-    };
-    m_screenLoose = ScreenWinLoose{
-          color::crimson
-        , &m_uiRings
-        , ui::loc::missionLost
-        , [this](){ changeScreen( Screen::eMissionSelection, m_click ); }
-    };
 
     for ( const char* it : chunk1 ) {
         m_textures[ it ] = parseTexture( m_io->getWait( it ) );
@@ -440,6 +439,7 @@ void Game::onInit()
     m_screenCustomize = makeScreen( "ui/customize.ui", m_io );
     m_screenSettings = makeScreen( "ui/settings.ui", m_io );
     m_screenPause = makeScreen( "ui/pause.ui", m_io );
+    m_screenMissionResult = makeScreen( "ui/result.ui", m_io );
 
     m_enemyModel = new Model{ "models/a2.objc", m_textures[ "textures/a2.tga" ], m_renderer, 0.45f };
 
@@ -468,13 +468,11 @@ void Game::onRender( RenderContext rctx )
         break;
 
     case Screen::eDead:
-        renderGameScreen( rctx );
-        m_screenLoose.render( rctx );
-        break;
-
     case Screen::eWin:
         renderGameScreen( rctx );
-        m_screenWin.render( rctx );
+        m_uiRings.render( rctx );
+        m_glow.render( rctx );
+        m_screenMissionResult.render( rctx );
         break;
 
     case Screen::eMissionSelection:
@@ -514,10 +512,9 @@ void Game::onUpdate( const UpdateContext& uctx )
         m_screenPause.update( uctx );
         return;
     case Screen::eDead:
-        m_screenLoose.update( uctx );
-        return;
     case Screen::eWin:
-        m_screenWin.update( uctx );
+        m_uiRings.update( uctx );
+        m_screenMissionResult.update( uctx );
         return;
 
     case Screen::eMissionSelection:
@@ -754,9 +751,12 @@ void Game::changeScreen( Screen scr, Audio::Slot sound )
         break;
 
     case Screen::eDead:
+        m_missionResult = 0;
+        m_currentScreen = scr;
+        break;
+
     case Screen::eWin:
-        m_screenLoose.setScore( m_hudData.score );
-        m_screenWin.setScore( m_hudData.score );
+        m_missionResult = 1;
         m_currentScreen = scr;
         break;
 
@@ -864,11 +864,8 @@ void Game::onAction( Action a )
         return;
 
     case Screen::eWin:
-        m_screenWin.onAction( a );
-        return;
-
     case Screen::eDead:
-        m_screenLoose.onAction( a );
+        m_screenMissionResult.onAction( a );
         return;
 
     case Screen::eGame:
@@ -906,11 +903,8 @@ void Game::onMouseEvent( const MouseEvent& mouseEvent )
         break;
 
     case Screen::eDead:
-        m_screenLoose.onMouseEvent( mouseEvent );
-        break;
-
     case Screen::eWin:
-        m_screenWin.onMouseEvent( mouseEvent );
+        m_screenMissionResult.onMouseEvent( mouseEvent );
         break;
 
     case Screen::eCustomize:

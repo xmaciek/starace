@@ -31,6 +31,7 @@ static const std::unordered_map<std::string_view, std::u32string_view> g_locMap{
     , { "$loc:mission", U"Mission" }
     , { "$loc:missionSelect", U"Mission Select" }
     , { "$loc:missionCancel", U"Cancel Mission" }
+    , { "$loc:missionReturn", U"Return" }
     , { "$loc:engage", U"Engage" }
     , { "$loc:resume", U"Resume" }
     , { "$loc:pause", U"PAUSE" }
@@ -56,21 +57,6 @@ static auto dataKeyToModel( std::string_view strv )
     assert( it != g_gameUiDataModels.end() );
     assert( it->second );
     return it != g_gameUiDataModels.end() ? it->second : nullptr;
-}
-
-static Widget* makeLabel( const cfg::Entry& entry )
-{
-    Label* label = new Label( g_uiProperty.fontMedium(), Anchor::fTop | Anchor::fLeft, color::white );
-    math::vec2 pos = label->position();
-    for ( const auto& it : entry ) {
-        auto propName = *it;
-        if ( propName == "text"sv ) { label->setText( locKeyToString( it.toString() ) ); }
-        else if ( propName == "x"sv ) { pos.x = it.toFloat(); }
-        else if ( propName == "y"sv ) { pos.y = it.toFloat(); }
-        else { assert( !"unhandled label element" ); }
-    }
-    label->setPosition( pos );
-    return label;
 }
 
 static Widget* makeButton( const cfg::Entry& entry, int16_t tabOrder )
@@ -149,6 +135,27 @@ static NineSlice* makeNineSlice( const cfg::Entry& entry )
         , c_slices
         , g_uiProperty.atlasTexture()
     );
+}
+
+static Widget* makeLabel( const cfg::Entry& entry )
+{
+    DataModel* model = nullptr;
+    const Font* fnt = g_uiProperty.fontMedium();
+    math::vec2 pos{};
+    std::pmr::u32string txt{};
+
+    for ( const auto& it : entry ) {
+        auto propName = *it;
+        if ( propName == "text"sv ) { txt = locKeyToString( it.toString() ); }
+        else if ( propName == "x"sv ) { pos.x = it.toFloat(); }
+        else if ( propName == "y"sv ) { pos.y = it.toFloat(); }
+        else if ( propName == "data"sv ) { model = dataKeyToModel( it.toString() ); }
+        else { assert( !"unhandled label element" ); }
+    }
+    if ( model ) {
+        return new Label{ model, fnt, pos };
+    }
+    return new Label{ txt, fnt, pos, color::white };
 }
 
 static Widget* makeSpinBox( const cfg::Entry& entry, int16_t tabOrder )
