@@ -11,14 +11,13 @@
 #include <memory_resource>
 #include <vector>
 
+class Engine;
 class Renderer {
 public:
-    virtual ~Renderer() = default;
-    Renderer() = default;
+    virtual ~Renderer() noexcept = default;
+    Renderer() noexcept = default;
 
-    static Renderer* create( SDL_Window*, VSync );
     static Renderer* instance();
-    static SDL_WindowFlags windowFlag();
 
     virtual std::pmr::memory_resource* allocator() = 0;
 
@@ -31,8 +30,15 @@ public:
     virtual Texture createTexture( const TextureCreateInfo&, std::pmr::vector<uint8_t>&& ) = 0;
     virtual void deleteTexture( Texture ) = 0;
 
+    virtual void push( const PushBuffer&, const void* constant ) = 0;
+
+protected:
+    friend class Engine;
+
+    static Renderer* create( SDL_Window*, VSync );
+    static SDL_WindowFlags windowFlag();
+
     virtual void beginFrame() = 0;
     virtual void endFrame() = 0;
     virtual void present() = 0;
-    virtual void push( const PushBuffer&, const void* constant ) = 0;
 };
