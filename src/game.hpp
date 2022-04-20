@@ -51,6 +51,9 @@ private:
         eMainMenu,
     };
 
+    uint32_t m_currentResolution = 0;
+    std::pmr::vector<DisplayMode> m_displayModes{};
+
     Font* m_fontSmall = nullptr;
     Font* m_fontMedium = nullptr;
     Font* m_fontLarge = nullptr;
@@ -107,10 +110,10 @@ private:
     ui::GenericDataModel m_dataMissionSelect{};
     ui::GenericDataModel m_dataMissionResult{};
     ui::GenericDataModel m_dataModelVSync{};
+    ui::GenericDataModel m_dataModelResolution{};
     ui::GenericDataModel m_dataJet{};
     ui::GenericDataModel m_dataWeaponPrimary{};
     ui::GenericDataModel m_dataWeaponSecondary{};
-    ui::StringListModel m_dataModelResolution{};
 
     uint32_t viewportHeight() const;
     uint32_t viewportWidth() const;

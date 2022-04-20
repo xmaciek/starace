@@ -232,6 +232,7 @@ void Game::onInit()
     for ( auto [ eid, min, max ] : inputActions2 ) {
         registerAction( static_cast<Action::Enum>( eid ), min, max );
     }
+    m_displayModes = displayModes();
 
     m_dustUi.setVelocity(  math::vec3{ 0.0f, 0.0f, 26.0_m }  );
     m_dustUi.setCenter( {} );
@@ -265,10 +266,22 @@ void Game::onInit()
     };
     g_gameUiDataModels[ "$data:vsync" ] = &m_dataModelVSync;
 
-    m_dataModelResolution.m_data.push_back( U"1280 x 720 @ 144Hz" );
-    m_dataModelResolution.m_data.push_back( U"1920 x 1080 @ 144Hz" );
-    m_dataModelResolution.m_data.push_back( U"3440 x 1440 @ 144Hz" );
-    m_dataModelResolution.m_data.push_back( U"4th test entry" );
+    m_dataModelResolution.m_size = [this]() { return m_displayModes.size(); };
+    m_dataModelResolution.m_at = [this]( auto i )
+    {
+        assert( i < m_displayModes.size() );
+        auto d = m_displayModes[ i ];
+        return intToUTF32( d.width ) + U" x "
+            + intToUTF32( d.height ) + U" @ "
+            + intToUTF32( d.rate ) + U"Hz";
+    };
+    m_dataModelResolution.m_current = [this](){ return m_currentResolution; };
+    m_dataModelResolution.m_select = [this]( auto i ) { m_currentResolution = i; };
+    m_dataModelResolution.m_activate = [this]( auto i )
+    {
+        assert( i < m_displayModes.size() );
+        setDisplayMode( m_displayModes[ i ], 0 );
+    };
     g_gameUiDataModels[ "$data:resolution" ] = &m_dataModelResolution;
 
     m_dataJet.m_size = [this](){ return m_jetsContainer.size(); };
