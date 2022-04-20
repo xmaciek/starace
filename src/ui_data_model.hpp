@@ -8,7 +8,6 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
-#include <vector>
 
 
 namespace ui {
@@ -26,16 +25,6 @@ struct DataModel {
 
     virtual void activate( size_type );
     virtual void select( size_type );
-};
-
-struct StringListModel : public DataModel {
-    std::pmr::vector<std::pmr::u32string> m_data{};
-
-    ~StringListModel() noexcept = default;
-    StringListModel() noexcept = default;
-
-    virtual size_type size() const override;
-    virtual std::pmr::u32string at( size_type ) const override;
 };
 
 struct GenericDataModel : public DataModel {
