@@ -28,10 +28,8 @@ protected:
 public:
     ~SpinBox() noexcept = default;
     SpinBox() noexcept = default;
-    explicit SpinBox( char ) noexcept; // hack
     SpinBox( DataModel* ) noexcept;
 
-    void setModel( DataModel* );
     DataModel::size_type value() const;
 
     virtual void render( RenderContext ) const override;

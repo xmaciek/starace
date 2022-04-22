@@ -160,21 +160,22 @@ static Widget* makeLabel( const cfg::Entry& entry )
 
 static Widget* makeSpinBox( const cfg::Entry& entry, int16_t tabOrder )
 {
-    SpinBox* spinbox = new SpinBox{ '0' };
-    spinbox->setAnchor( Anchor::fTop | Anchor::fLeft );
-    spinbox->setTabOrder( tabOrder );
-
-    math::vec2 pos = spinbox->position();
-    math::vec2 size = spinbox->size();
+    math::vec2 pos{};
+    math::vec2 size{};
+    DataModel* dataModel = nullptr;
     for ( const auto& it : entry ) {
         auto propName = *it;
         if ( propName == "x"sv ) { pos.x = it.toFloat(); }
         else if ( propName == "y"sv ) { pos.y = it.toFloat(); }
         else if ( propName == "width"sv ) { size.x = it.toFloat(); }
         else if ( propName == "height"sv ) { size.y = it.toFloat(); }
-        else if ( propName == "data"sv ) { spinbox->setModel( dataKeyToModel( it.toString() ) ); }
+        else if ( propName == "data"sv ) { dataModel = dataKeyToModel( it.toString() ); }
         else { assert( !"unhandled spinbox element" ); }
     }
+
+    assert( dataModel );
+    SpinBox* spinbox = new SpinBox( dataModel );
+    spinbox->setTabOrder( tabOrder );
     spinbox->setPosition( pos );
     spinbox->setSize( size );
     return spinbox;

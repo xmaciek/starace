@@ -26,21 +26,13 @@ namespace ui {
 
 SpinBox::SpinBox( DataModel* dataModel ) noexcept
 : Widget{ {}, { 240.0f, 48.0f } }
-, m_index{ 0, 0, dataModel->size() }
+, m_index{ dataModel->current(), 0, dataModel->size() }
 , m_model{ dataModel }
 , m_colorL{ g_uiProperty.colorA() }
 , m_colorR{ g_uiProperty.colorA() }
 , m_label{ g_uiProperty.fontSmall(), Anchor::fCenter | Anchor::fMiddle, color::white }
 {
     m_label.setText( m_model->at( value() ) );
-}
-
-SpinBox::SpinBox( char ) noexcept
-: Widget{ {}, { 240.0f, 48.0f } }
-, m_colorL{ g_uiProperty.colorA() }
-, m_colorR{ g_uiProperty.colorA() }
-, m_label{ g_uiProperty.fontSmall(), Anchor::fCenter | Anchor::fMiddle, color::white }
-{
 }
 
 void SpinBox::render( RenderContext rctx ) const
@@ -135,13 +127,6 @@ bool SpinBox::onMouseEvent( const MouseEvent& event )
     }
 
     return true;
-}
-
-void SpinBox::setModel( DataModel* model )
-{
-    m_index = TabOrder<DataModel::size_type>{ 0, 0, model->size() };
-    m_model = model;
-    m_label.setText( m_model->at( value() ) );
 }
 
 math::vec4 SpinBox::arrowLeft() const
