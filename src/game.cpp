@@ -306,10 +306,12 @@ void Game::onInit()
     };
     m_dataWeaponPrimary.m_size = [](){ return 3; };
     m_dataWeaponPrimary.m_at = weapNames;
-    m_dataWeaponPrimary.m_select = [this]( auto i ){ m_weapon1 = i; m_weapon3 = i; };
+    m_dataWeaponPrimary.m_select = [this]( auto i ){ m_weapon1 = i; };
+    m_dataWeaponPrimary.m_current = [this](){ return m_weapon1; };
     m_dataWeaponSecondary.m_size = [](){ return 3; };
     m_dataWeaponSecondary.m_at = weapNames;
     m_dataWeaponSecondary.m_select = [this]( auto i ){ m_weapon2 = i; };
+    m_dataWeaponSecondary.m_current = [this](){ return m_weapon2; };
     g_gameUiDataModels[ "$data:weaponPrimary" ] = &m_dataWeaponPrimary;
     g_gameUiDataModels[ "$data:weaponSecondary" ] = &m_dataWeaponSecondary;
 
@@ -728,7 +730,7 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
     m_jet = Jet( modelData );
     m_jet.setWeapon( m_weapons[ m_weapon1 ], 0 );
     m_jet.setWeapon( m_weapons[ m_weapon2 ], 1 );
-    m_jet.setWeapon( m_weapons[ m_weapon3 ], 2 );
+    m_jet.setWeapon( m_weapons[ m_weapon1 ], 2 );
 
     assert( m_enemies.empty() );
     m_enemies.resize( mapInfo.enemies );
