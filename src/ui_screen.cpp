@@ -205,14 +205,27 @@ void Screen::render( const RenderContext& rctx ) const
 {
     auto r = rctx;
     r.projection = math::ortho( 0.0f, m_viewport.x, 0.0f, m_viewport.y, -1.0f, 1.0f );
-    r.view = math::translate( r.view, math::vec3{ m_offset.x, m_offset.y, 0.0f } );
+    const math::mat4 view = math::translate( r.view, math::vec3{ m_offset.x, m_offset.y, 0.0f } );
+
+    auto startPosistionForWidget = []( const auto& wgt, float viewportX, float extentX )
+    {
+        const math::vec2 pos = wgt->position() + wgt->offsetByAnchor();
+        const float left = pos.x;
+        const float right = extentX - ( pos.x + wgt->size().x );
+        return ( left < right ) ? -viewportX : viewportX;
+    };
+
     for ( const auto& it : m_widgets ) {
+        const float startPos = startPosistionForWidget( it, m_viewport.x, m_extent.x );
+        const float animX = math::nonlerp( startPos, 0.0f, m_anim );
+        r.view = math::translate( view, math::vec3{ animX, 0.0f, 0.0f } );
         it->render( r );
     }
 }
 
 void Screen::update( const UpdateContext& uctx )
 {
+    m_anim = std::clamp( m_anim + uctx.deltaTime * 5.0f, 0.0f, 1.0f );
     for ( const auto& it : m_widgets ) {
         it->update( uctx );
     }
@@ -281,8 +294,10 @@ void Screen::resize( math::vec2 s )
     m_offset = ( m_viewport - m_extent ) * 0.5f;
 }
 
-
-
+void Screen::show()
+{
+    m_anim = 0.0f;
+}
 
 
 

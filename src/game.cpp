@@ -750,6 +750,13 @@ void Game::changeScreen( Screen scr, Audio::Slot sound )
     }
     SDL_ShowCursor( scr != Screen::eGame );
 
+    m_screenCustomize.show();
+    m_screenMissionResult.show();
+    m_screenMissionSelect.show();
+    m_screenPause.show();
+    m_screenSettings.show();
+    m_screenTitle.show();
+
     switch ( scr ) {
     case Screen::eMainMenu:
     case Screen::eSettings:

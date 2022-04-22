@@ -26,8 +26,6 @@ protected:
     static bool testRect( math::vec2 p, math::vec2 pos, math::vec2 size );
     static bool testRect( math::vec2 p, const math::vec4& xywh );
 
-    math::vec2 offsetByAnchor() const;
-
 public:
     virtual ~Widget() noexcept = default;
     Widget() noexcept = default;
@@ -60,6 +58,7 @@ public:
 
     math::vec2 size() const;
     math::vec2 position() const;
+    math::vec2 offsetByAnchor() const;
 
     uint16_t tabOrder() const;
     void setTabOrder( uint16_t );
