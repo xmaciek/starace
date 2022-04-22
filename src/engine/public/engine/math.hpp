@@ -8,6 +8,9 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <cmath>
+#include <numbers>
+
 namespace math {
 
 using vec2 = glm::vec2;
@@ -15,6 +18,8 @@ using vec3 = glm::vec3;
 using vec4 = glm::vec4;
 using mat4 = glm::mat4;
 using quat = glm::quat;
+
+static constexpr float pi = std::numbers::pi_v<float>;
 
 static constexpr auto abs = []( const auto& t )
 {
@@ -44,6 +49,11 @@ static constexpr auto clamp = []( const auto& Tv, const auto& TMin, const auto& 
     return glm::clamp( Tv, TMin, TMax );
 };
 
+inline float cos( float f )
+{
+    return std::cos( f );
+}
+
 static constexpr auto cross = []( const auto& a, const auto& b )
 {
     return glm::cross( a, b );
@@ -69,19 +79,34 @@ static constexpr auto length = []( const auto& t )
     return glm::length( t );
 };
 
-inline auto lerp( const math::vec4& a, const math::vec4& b, float n )
+template <typename T = float>
+inline auto lerp( const T& a, const T&b, float n ) -> T
+{
+    return std::lerp( a, b, n );
+}
+
+template <>
+inline auto lerp<math::vec4>( const math::vec4& a, const math::vec4& b, float n ) -> math::vec4
 {
     return math::vec4{
-        std::lerp( a.x, b.x, n ),
-        std::lerp( a.y, b.y, n ),
-        std::lerp( a.z, b.z, n ),
-        std::lerp( a.w, b.w, n )
+        lerp( a.x, b.x, n ),
+        lerp( a.y, b.y, n ),
+        lerp( a.z, b.z, n ),
+        lerp( a.w, b.w, n )
     };
 }
 
 inline auto lookAt( const auto& cameraPosition, const auto& target, const auto& cameraUp )
 {
    return glm::lookAt( cameraPosition, target, cameraUp );
+}
+
+// non-linear interpolate
+template <typename T>
+inline T nonlerp( const T& a, const T& b, float n )
+{
+    const float n2 = 0.5f + 0.5f * -math::cos( n * math::pi );
+    return math::lerp( a, b, n2 );
 }
 
 static constexpr auto normalize = []( const auto& t )
