@@ -138,7 +138,7 @@ void RenderPass::begin( VkCommandBuffer cmd, VkFramebuffer framebuffer, const Vk
     assert( cmd );
     assert( framebuffer );
     static constexpr std::array clearColor{
-        VkClearValue{ .color = { .float32{ 0.0f, 0.0f, 1.0f, 0.0f } } },
+        VkClearValue{ .color = { .float32{ 0.0f, 0.0f, 0.0f, 0.0f } } },
         VkClearValue{ .depthStencil = { 1.0f, 0u } }
     };
 
