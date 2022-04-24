@@ -27,11 +27,11 @@ void Enemy::setWeapon( const BulletProto& b )
     m_shotFactor = randomRange( 0, m_weapon.delay );
 }
 
-Bullet* Enemy::weapon( void* ptr )
+UniquePointer<Bullet> Enemy::weapon( std::pmr::memory_resource* alloc )
 {
-    assert( ptr );
+    assert( alloc );
     m_weapon.position = m_position;
-    Bullet* bullet = new ( ptr ) Bullet( m_weapon );
+    UniquePointer<Bullet> bullet{ alloc, m_weapon };
     bullet->setDirection( direction() );
     bullet->setTarget( m_target );
     m_shotFactor = 0;

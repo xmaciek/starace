@@ -590,8 +590,8 @@ void Game::updateGame( const UpdateContext& updateContext )
     }
     m_explosions.erase( std::remove_if( m_explosions.begin(), m_explosions.end(), &Explosion::isInvalid ), m_explosions.end() );
 
+    auto isDead = []( const auto& it ) -> bool { return it->status() == SAObject::Status::eDead; };
     {
-        auto isDead = []( const auto& it ) -> bool { return it->status() == SAObject::Status::eDead; };
         for ( auto& b : m_bullets ) {
             assert( b );
             b->update( updateContext );
@@ -612,34 +612,29 @@ void Game::updateGame( const UpdateContext& updateContext )
 
     {
         const math::vec3 jetPos = m_jet.position();
-        for ( Bullet*& b : m_enemyBullets ) {
+        for ( auto& b : m_enemyBullets ) {
             b->update( updateContext );
+            if ( isDead( b ) ) { continue; }
             if ( intersectLineSphere( b->position(), b->prevPosition(), jetPos, 15.0_m ) ) {
                 m_jet.setDamage( b->damage() );
                 b->kill();
             }
-            if ( b->status() == SAObject::Status::eDead ) {
-                std::destroy_at( b );
-                m_poolBullets.dealloc( b );
-                b = nullptr;
-            }
         }
-        m_enemyBullets.erase( std::remove( m_enemyBullets.begin(), m_enemyBullets.end(), nullptr ), m_enemyBullets.end() );
+        m_enemyBullets.erase( std::remove_if( m_enemyBullets.begin(), m_enemyBullets.end(), isDead ), m_enemyBullets.end() );
     }
     {
         for ( auto& e : m_enemies ) {
             e->update( updateContext );
-            if ( e->status() == Enemy::Status::eDead ) {
+            if ( isDead( e ) ) {
                 m_jet.untarget( *e );
                 m_explosions.push_back( Explosion{ e->position(), e->velocity(), m_plasma, 0.0f } );
-                e = {};
                 continue;
             }
             if ( e->isWeaponReady() ) {
-                m_enemyBullets.push_back( e->weapon( m_poolBullets.alloc() ) );
+                m_enemyBullets.push_back( e->weapon( &m_poolBullets ) );
             }
         }
-        m_enemies.erase( std::remove( m_enemies.begin(), m_enemies.end(), UniquePointer<Enemy>{} ), m_enemies.end() );
+        m_enemies.erase( std::remove_if( m_enemies.begin(), m_enemies.end(), isDead ), m_enemies.end() );
     }
     const SAObject* tgt = m_jet.target();
     if ( tgt ) {
@@ -695,13 +690,7 @@ void Game::clearMapData()
     ZoneScoped;
     m_enemies.clear();
     m_bullets.clear();
-
-    for ( Bullet* b : m_enemyBullets ) {
-        std::destroy_at( b );
-    }
     m_enemyBullets.clear();
-    m_poolBullets.discardAll();
-    m_poolEnemies.discardAll();
 }
 
 void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelData )
@@ -978,7 +967,7 @@ void Game::render3D( RenderContext rctx )
         assert( it );
         it->render( rctx );
     }
-    for ( const Bullet* it : m_enemyBullets ) {
+    for ( auto& it : m_enemyBullets ) {
         assert( it );
         it->render( rctx );
     }

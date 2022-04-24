@@ -6,6 +6,9 @@
 #include "thruster.hpp"
 
 #include <engine/math.hpp>
+#include <shared/pmr_pointer.hpp>
+
+#include <memory_resource>
 
 class Enemy : public SAObject {
 private:
@@ -18,7 +21,7 @@ public:
     virtual ~Enemy() override = default;
     Enemy( Model* );
 
-    Bullet* weapon( void* );
+    UniquePointer<Bullet> weapon( std::pmr::memory_resource* );
     bool isWeaponReady() const;
     virtual void render( RenderContext ) const override;
     virtual void update( const UpdateContext& ) override;
