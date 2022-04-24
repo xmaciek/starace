@@ -15,14 +15,12 @@ namespace ui {
 NineSlice::NineSlice(
     math::vec2 position
     , math::vec2 extent
-    , math::vec4 color
     , Anchor a
     , const LinearAtlas* atlas
     , std::array<uint32_t, 9> ns
     , Texture t
 ) noexcept
 : Widget{ position, extent, a }
-, m_color{ color }
 , m_atlas{ atlas }
 , m_texture{ t }
 , m_spriteIds{ ns }
@@ -54,7 +52,7 @@ void NineSlice::render( RenderContext rctx ) const
     pushConstant.m_model = rctx.model;
     pushConstant.m_projection = rctx.projection;
     pushConstant.m_view = rctx.view;
-    pushConstant.m_color = m_color;
+    pushConstant.m_color = rctx.colorMain;
 
     Generator nineSliceComposer{
         .m_atlas = m_atlas,
@@ -65,11 +63,6 @@ void NineSlice::render( RenderContext rctx ) const
     std::generate_n( pushConstant.m_xyuv.begin(), Generator::count(), nineSliceComposer );
 
     rctx.renderer->push( pushBuffer, &pushConstant );
-}
-
-void NineSlice::setColor( math::vec4 c )
-{
-    m_color = c;
 }
 
 }

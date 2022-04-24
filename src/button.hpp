@@ -19,7 +19,6 @@ private:
     Label m_label{};
     std::function<void()> m_onTrigger{};
 
-    void updateColor();
 public:
     ~Button() = default;
     Button() = default;
@@ -29,8 +28,6 @@ public:
 
     virtual bool onMouseEvent( const MouseEvent& ) override;
     virtual void render( RenderContext ) const override;
-    virtual void setEnabled( bool ) override;
-    virtual void setFocused( bool ) override;
     virtual bool onAction( Action ) override;
 
     void setTrigger( std::function<void()> );

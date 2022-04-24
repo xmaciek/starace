@@ -10,8 +10,6 @@ namespace ui {
 
 class NineSlice : public Widget {
 protected:
-
-    math::vec4 m_color{};
     const LinearAtlas* m_atlas = nullptr;
     float m_top = 0.0f;
     float m_bot = 0.0f;
@@ -22,10 +20,9 @@ protected:
 
 public:
     NineSlice() noexcept = default;
-    NineSlice( math::vec2 position, math::vec2 extent, math::vec4 color, Anchor, const LinearAtlas*, std::array<uint32_t, 9>, Texture ) noexcept;
+    NineSlice( math::vec2 position, math::vec2 extent, Anchor, const LinearAtlas*, std::array<uint32_t, 9>, Texture ) noexcept;
 
     virtual void render( RenderContext ) const override;
-    void setColor( math::vec4 c );
 };
 
 }

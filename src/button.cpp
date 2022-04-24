@@ -6,9 +6,6 @@
 
 #include <engine/math.hpp>
 
-static constexpr math::vec4 colorNormal = color::dodgerBlue;
-static constexpr math::vec4 colorHover = color::lightSkyBlue;
-static constexpr math::vec4 colorDisabled = color::lightSteelBlue;
 static constexpr auto c_defaultAnchor = Anchor::fCenter | Anchor::fMiddle;
 std::array<uint32_t, 9> c_slices = {
     ui::AtlasSprite::eTopLeft,
@@ -25,7 +22,7 @@ std::array<uint32_t, 9> c_slices = {
 namespace ui {
 
 Button::Button( std::u32string_view txt, std::function<void()>&& onTrigger )
-: NineSlice{ {}, { 192.0f, 48.0f }, colorNormal, c_defaultAnchor, g_uiProperty.atlas(), c_slices, g_uiProperty.atlasTexture() }
+: NineSlice{ {}, { 192.0f, 48.0f }, c_defaultAnchor, g_uiProperty.atlas(), c_slices, g_uiProperty.atlasTexture() }
 , m_label(
     txt
     , g_uiProperty.fontSmall()
@@ -37,7 +34,7 @@ Button::Button( std::u32string_view txt, std::function<void()>&& onTrigger )
 }
 
 Button::Button( std::u32string_view txt, Anchor a, std::function<void()>&& onTrigger )
-: NineSlice{ {}, { 192.0f, 48.0f }, colorNormal, a, g_uiProperty.atlas(), c_slices, g_uiProperty.atlasTexture() }
+: NineSlice{ {}, { 192.0f, 48.0f }, a, g_uiProperty.atlas(), c_slices, g_uiProperty.atlasTexture() }
 , m_label(
     txt
     , g_uiProperty.fontSmall()
@@ -49,7 +46,7 @@ Button::Button( std::u32string_view txt, Anchor a, std::function<void()>&& onTri
 }
 
 Button::Button( std::function<void()>&& onTrigger )
-: NineSlice{ {}, { 192.0f, 48.0f }, colorNormal, c_defaultAnchor, g_uiProperty.atlas(), c_slices, g_uiProperty.atlasTexture() }
+: NineSlice{ {}, { 192.0f, 48.0f }, c_defaultAnchor, g_uiProperty.atlas(), c_slices, g_uiProperty.atlasTexture() }
 , m_label(
     g_uiProperty.fontSmall()
     , Anchor::fCenter | Anchor::fMiddle
@@ -61,6 +58,9 @@ Button::Button( std::function<void()>&& onTrigger )
 
 void Button::render( RenderContext rctx ) const
 {
+    if ( isFocused() ) {
+        rctx.colorMain = rctx.colorFocus;
+    }
     NineSlice::render( rctx );
     const math::vec2 pos = position() + offsetByAnchor() + size() * 0.5f;
     rctx.model = math::translate( rctx.model, math::vec3{ pos.x, pos.y, 0.0f } );
@@ -76,24 +76,6 @@ void Button::trigger() const
 void Button::setTrigger( std::function<void()> t )
 {
     m_onTrigger = t;
-}
-
-void Button::updateColor()
-{
-    setColor( m_enabled ? ( m_focused ? colorHover : colorNormal ) : colorDisabled );
-}
-
-void Button::setEnabled( bool b )
-{
-    Widget::setEnabled( b );
-    updateColor();
-}
-
-
-void Button::setFocused( bool b )
-{
-    Widget::setFocused( b );
-    updateColor();
 }
 
 void Button::setText( std::u32string_view txt )

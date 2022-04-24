@@ -248,7 +248,6 @@ void Game::onInit()
 
 
     g_uiProperty.m_colorA = color::dodgerBlue;
-    m_glow = Glow{ g_uiProperty.m_colorA };
 
     m_dataModelVSync.m_size = [](){ return 3; };
     m_dataModelVSync.m_at = []( auto i ) -> std::pmr::u32string
@@ -992,7 +991,7 @@ void Game::renderBackground( ui::RenderContext rctx ) const
         .m_model = rctx.model,
         .m_view = rctx.view,
         .m_projection = rctx.projection,
-        .m_color = g_uiProperty.colorA(),
+        .m_color = rctx.colorMain,
         .m_uvSlice = m_atlasUi.sliceUV( ui::AtlasSprite::eBackground ),
         .m_xyuv{
             math::vec4{ 0, 0, 0, 0 },

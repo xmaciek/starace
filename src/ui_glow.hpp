@@ -2,16 +2,9 @@
 
 #include "widget.hpp"
 
-class Glow : public Widget
-{
-    math::vec4 m_color{};
-
+class Glow : public Widget {
 public:
-    ~Glow() noexcept = default;
+    virtual ~Glow() noexcept override = default;
     Glow() noexcept = default;
-    inline Glow( math::vec4 color ) noexcept
-    : m_color{ color }
-    {}
-
     virtual void render( ui::RenderContext ) const override;
 };

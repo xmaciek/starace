@@ -134,7 +134,6 @@ static UniquePointer<Widget> makeNineSlice( std::pmr::memory_resource* alloc, co
     return UniquePointer<NineSlice>{ alloc
         , position
         , extent
-        , g_uiProperty.colorA()
         , Anchor::fTop | Anchor::fLeft
         , g_uiProperty.atlas()
         , c_slices

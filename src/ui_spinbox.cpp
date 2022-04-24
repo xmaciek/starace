@@ -28,8 +28,6 @@ SpinBox::SpinBox( DataModel* dataModel ) noexcept
 : Widget{ {}, { 240.0f, 48.0f } }
 , m_index{ dataModel->current(), 0, dataModel->size() }
 , m_model{ dataModel }
-, m_colorL{ g_uiProperty.colorA() }
-, m_colorR{ g_uiProperty.colorA() }
 , m_label{ g_uiProperty.fontSmall(), Anchor::fCenter | Anchor::fMiddle, color::white }
 {
     m_label.setText( m_model->at( value() ) );
@@ -51,9 +49,9 @@ void SpinBox::render( RenderContext rctx ) const
 
 
     auto colorIt = pushConstant.m_color.begin();
-    colorIt = std::fill_n( colorIt, 6, m_colorL );
-    colorIt = std::fill_n( colorIt, spritegen::NineSlice2::count(), isFocused() ? color::lightSkyBlue : g_uiProperty.colorA() );
-              std::fill_n( colorIt, 6, m_colorR );
+    colorIt = std::fill_n( colorIt, 6, m_focusL ? rctx.colorFocus : rctx.colorMain );
+    colorIt = std::fill_n( colorIt, spritegen::NineSlice2::count(), isFocused() ? rctx.colorFocus : rctx.colorMain );
+              std::fill_n( colorIt, 6, m_focusR ? rctx.colorFocus : rctx.colorMain );
 
     const math::vec2 pos = position() + offsetByAnchor();
     const math::vec2 s = size();
@@ -94,8 +92,8 @@ bool SpinBox::onMouseEvent( const MouseEvent& event )
     const math::vec2 s = size();
     setFocused( testRect( p, pos, s ) );
     if ( !isFocused() ) {
-        m_colorL = g_uiProperty.colorA();
-        m_colorR = g_uiProperty.colorA();
+        m_focusL = false;
+        m_focusR = false;
         return false;
     }
 
@@ -104,8 +102,8 @@ bool SpinBox::onMouseEvent( const MouseEvent& event )
     const bool right = testRect( p, arrowRight() );
     switch ( event.type ) {
     case MouseEvent::eMove:
-        m_colorL = left ? color::lightSkyBlue : g_uiProperty.colorA();
-        m_colorR = right ? color::lightSkyBlue : g_uiProperty.colorA();
+        m_focusL = left;
+        m_focusR = right;
         break;
     case MouseEvent::eClick:
         if ( left ) {

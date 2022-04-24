@@ -14,7 +14,7 @@ void Glow::render( ui::RenderContext rctx ) const
     pushConstant.m_model = rctx.model;
     pushConstant.m_view = rctx.view;
     pushConstant.m_projection = rctx.projection;
-    pushConstant.m_color = m_color;
+    pushConstant.m_color = rctx.colorMain;
 
     const math::vec2 pos = position() + offsetByAnchor();
     const float x = pos.x;

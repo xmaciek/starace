@@ -17,9 +17,8 @@ class SpinBox : public Widget {
 protected:
     TabOrder<DataModel::size_type> m_index{}; // TODO: replace with something more fitting
     DataModel* m_model = nullptr;
-
-    math::vec4 m_colorL{};
-    math::vec4 m_colorR{};
+    bool m_focusL : 1 = false;
+    bool m_focusR : 1 = false;
     Label m_label{};
 
     math::vec4 arrowLeft() const;
