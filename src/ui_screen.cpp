@@ -61,7 +61,7 @@ static auto dataKeyToModel( std::string_view strv )
     return it != g_gameUiDataModels.end() ? it->second : nullptr;
 }
 
-static UniquePointer<Widget> makeButton( std::pmr::memory_resource* alloc, const cfg::Entry& entry, int16_t tabOrder )
+static UniquePointer<Widget> makeButton( std::pmr::memory_resource* alloc, const cfg::Entry& entry, uint16_t tabOrder )
 {
     assert( alloc );
     auto button = UniquePointer<Button>{ alloc, [](){} };
@@ -164,7 +164,7 @@ static UniquePointer<Widget> makeLabel( std::pmr::memory_resource* alloc, const 
     return UniquePointer<Label>{ alloc, txt, fnt, pos, color::white };
 }
 
-static UniquePointer<Widget> makeSpinBox( std::pmr::memory_resource* alloc, const cfg::Entry& entry, int16_t tabOrder )
+static UniquePointer<Widget> makeSpinBox( std::pmr::memory_resource* alloc, const cfg::Entry& entry, uint16_t tabOrder )
 {
     assert( alloc );
     math::vec2 pos{};

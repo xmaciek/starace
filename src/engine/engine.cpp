@@ -300,18 +300,18 @@ void Engine::controllerRemove( int id )
 
 static std::pmr::vector<SDL_DisplayMode> getDisplayModes( uint32_t monitor )
 {
-    const int displayModeCount = SDL_GetNumDisplayModes( monitor );
+    const int displayModeCount = SDL_GetNumDisplayModes( static_cast<int>( monitor ) );
     if ( displayModeCount < 1 ) {
         return {};
     }
 
     std::pmr::vector<SDL_DisplayMode> ret{};
-    ret.resize( displayModeCount );
+    ret.resize( static_cast<decltype(ret)::size_type>( displayModeCount ) );
 
     auto genMode = [ i = 0, monitor ]() mutable
     {
         SDL_DisplayMode mode{};
-        SDL_GetDisplayMode( monitor, i++, &mode );
+        SDL_GetDisplayMode( static_cast<int>( monitor ), i++, &mode );
         return mode;
     };
     std::generate_n( ret.begin(), displayModeCount, genMode );
