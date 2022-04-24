@@ -12,7 +12,7 @@ ProgressBar::ProgressBar( math::vec2 pos, math::vec2 size, math::vec2 axis, cons
 {
 }
 
-void ProgressBar::render( RenderContext rctx ) const
+void ProgressBar::render( ui::RenderContext rctx ) const
 {
     PushBuffer pushBuffer{
         .m_pipeline = static_cast<PipelineSlot>( Pipeline::eProgressBar ),

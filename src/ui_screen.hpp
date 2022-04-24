@@ -4,7 +4,6 @@
 
 #include <config/config.hpp>
 #include <engine/math.hpp>
-#include <engine/render_context.hpp>
 #include <engine/update_context.hpp>
 #include <engine/mouse_event.hpp>
 #include <engine/action.hpp>
@@ -14,9 +13,10 @@
 #include <memory>
 #include <memory_resource>
 
-class Widget;
-
 namespace ui {
+
+struct RenderContext;
+class Widget;
 
 class Screen {
     TabOrder<> m_tabOrder{};
@@ -48,9 +48,5 @@ public:
 
     void show();
 };
-
-
-
-
 
 }

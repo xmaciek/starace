@@ -470,44 +470,53 @@ void Game::onRender( RenderContext rctx )
     rctx.camera3d = projection * view;
     rctx.viewport = { width, height };
 
+    ui::RenderContext r{
+        .renderer = rctx.renderer,
+        .model = rctx.model,
+        .view = rctx.view,
+        .projection = rctx.projection,
+        .colorMain = color::dodgerBlue,
+        .colorFocus = color::lightSkyBlue,
+    };
+
     switch ( m_currentScreen ) {
     case Screen::eGame:
-        renderGameScreen( rctx );
+        renderGameScreen( rctx, r );
         break;
 
     case Screen::eGamePaused:
-        renderGameScreen( rctx );
-        m_uiRings.render( rctx );
-        m_glow.render( rctx );
-        m_screenPause.render( rctx );
+        renderGameScreen( rctx, r );
+        m_uiRings.render( r );
+        m_glow.render( r );
+        m_screenPause.render( r );
         break;
 
     case Screen::eDead:
     case Screen::eWin:
-        renderGameScreen( rctx );
-        m_uiRings.render( rctx );
-        m_glow.render( rctx );
-        m_screenMissionResult.render( rctx );
+        renderGameScreen( rctx, r );
+        m_uiRings.render( r );
+        m_glow.render( r );
+        m_screenMissionResult.render( r );
         break;
 
     case Screen::eMissionSelection:
-        renderMenuScreen( rctx );
-        m_screenMissionSelect.render( rctx );
+        renderMenuScreen( rctx, r );
+        m_screenMissionSelect.render( r );
         break;
 
     case Screen::eMainMenu:
-        renderMenuScreen( rctx );
-        m_screenTitle.render( rctx );
+        renderMenuScreen( rctx, r );
+        m_screenTitle.render( r );
         break;
 
     case Screen::eSettings:
-        renderMenuScreen( rctx );
-        m_screenSettings.render( rctx );
+        renderMenuScreen( rctx, r );
+        m_screenSettings.render( r );
         break;
 
     case Screen::eCustomize:
-        renderMenuScreen( rctx );
-        m_screenCustomize.render( rctx );
+        renderMenuScreen( rctx, r );
+        m_screenCustomize.render( r );
         break;
 
     default:
@@ -922,18 +931,12 @@ void Game::onMouseEvent( const MouseEvent& mouseEvent )
     }
 }
 
-void Game::renderGameScreen( RenderContext rctx )
+void Game::renderGameScreen( RenderContext rctx, ui::RenderContext r )
 {
     render3D( rctx );
-    renderHUD( rctx );
-}
-
-void Game::renderHUD( RenderContext rctx )
-{
-    m_hud.render( rctx );
+    m_hud.render( r );
     m_targeting.render( rctx );
 }
-
 
 std::tuple<math::mat4, math::mat4> Game::getCameraMatrix() const
 {
@@ -974,7 +977,7 @@ void Game::render3D( RenderContext rctx )
     m_jet.render( rctx );
 }
 
-void Game::renderBackground( RenderContext rctx ) const
+void Game::renderBackground( ui::RenderContext rctx ) const
 {
     [[maybe_unused]]
     const auto [ w, h, a ] = viewport();
@@ -989,7 +992,7 @@ void Game::renderBackground( RenderContext rctx ) const
         .m_model = rctx.model,
         .m_view = rctx.view,
         .m_projection = rctx.projection,
-        .m_color = color::dodgerBlue,
+        .m_color = g_uiProperty.colorA(),
         .m_uvSlice = m_atlasUi.sliceUV( ui::AtlasSprite::eBackground ),
         .m_xyuv{
             math::vec4{ 0, 0, 0, 0 },
@@ -1001,24 +1004,23 @@ void Game::renderBackground( RenderContext rctx ) const
     rctx.renderer->push( pushBuffer, &pushConstant );
 }
 
-void Game::renderMenuScreen( RenderContext rctx ) const
+void Game::renderMenuScreen( RenderContext rctx, ui::RenderContext r ) const
 {
-    renderBackground( rctx );
-    auto rctx2 = rctx;
-    rctx2.projection = math::perspective(
+    renderBackground( r );
+    rctx.projection = math::perspective(
         55.0_deg
         , viewportAspect()
         , 0.001f
         , 2000.0f
     );
     const math::vec3 cameraPos = math::normalize( math::vec3{ -4, -3, -3 } ) * 24.0_m;
-    rctx2.view = math::lookAt( cameraPos, math::vec3{}, math::vec3{ 0, 1, 0 } );
+    rctx.view = math::lookAt( cameraPos, math::vec3{}, math::vec3{ 0, 1, 0 } );
 
     auto* jet = m_jetsContainer[ m_currentJet ].model;
-    jet->render( rctx2 );
+    jet->render( rctx );
+    m_dustUi.render( rctx );
 
-    m_dustUi.render( rctx2 );
-    m_uiRings.render( rctx );
-    m_glow.render( rctx );
+    m_uiRings.render( r );
+    m_glow.render( r );
 }
 

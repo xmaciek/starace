@@ -14,7 +14,7 @@ HudBar::HudBar( std::u32string_view txt ) noexcept
 , m_label{ txt, g_uiProperty.fontSmall(), Anchor::fCenter | Anchor::fTop, { 32, 0 }, color::winScreen }
 {}
 
-void HudBar::render( RenderContext rctx ) const
+void HudBar::render( ui::RenderContext rctx ) const
 {
     const math::vec4 xywh = math::vec4{ position() + offsetByAnchor(), size() };
     const float topoff = m_label.size().y + 4.0f;

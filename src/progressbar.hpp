@@ -15,5 +15,5 @@ public:
 
     void setValue( float );
 
-    virtual void render( RenderContext ) const override;
+    virtual void render( ui::RenderContext ) const override;
 };

@@ -128,10 +128,9 @@ private:
 
     // purposefully copy argument
     void render3D( RenderContext );
-    void renderBackground( RenderContext ) const;
-    void renderGameScreen( RenderContext );
-    void renderMenuScreen( RenderContext ) const;
-    void renderHUD( RenderContext );
+    void renderBackground( ui::RenderContext ) const;
+    void renderGameScreen( RenderContext, ui::RenderContext );
+    void renderMenuScreen( RenderContext, ui::RenderContext ) const;
 
     void preloadData();
     void retarget();

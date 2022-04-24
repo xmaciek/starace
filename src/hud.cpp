@@ -40,7 +40,7 @@ Hud::Hud( const HudData* displayData ) noexcept
     m_calcValue.setPosition( rightOf( m_calc ) );
 }
 
-void Hud::render( RenderContext rctx ) const
+void Hud::render( ui::RenderContext rctx ) const
 {
     const std::array arr = {
         &m_score,

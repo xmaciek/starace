@@ -13,7 +13,7 @@ UIRings::UIRings( std::array<Texture,3> t ) noexcept
 {
 }
 
-void UIRings::render( RenderContext rctx ) const
+void UIRings::render( ui::RenderContext rctx ) const
 {
     static constexpr std::array color = {
         math::vec4{ 1.0f, 1.0f, 1.0f, 0.8f },

@@ -3,7 +3,6 @@
 #include "widget.hpp"
 
 #include <renderer/texture.hpp>
-#include <engine/render_context.hpp>
 #include <engine/update_context.hpp>
 
 #include <array>
@@ -17,7 +16,7 @@ public:
     UIRings() noexcept = default;
     UIRings( std::array<Texture, 3> ) noexcept;
 
-    void render( RenderContext ) const override;
+    void render( ui::RenderContext ) const override;
     void update( const UpdateContext& ) override;
 
 };

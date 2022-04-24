@@ -22,6 +22,8 @@ std::array<uint32_t, 9> c_slices = {
     ui::AtlasSprite::eBotRight2,
 };
 
+namespace ui {
+
 Button::Button( std::u32string_view txt, std::function<void()>&& onTrigger )
 : NineSlice{ {}, { 192.0f, 48.0f }, colorNormal, c_defaultAnchor, g_uiProperty.atlas(), c_slices, g_uiProperty.atlasTexture() }
 , m_label(
@@ -127,4 +129,6 @@ bool Button::onAction( Action a )
     default:
         return false;
     }
+}
+
 }

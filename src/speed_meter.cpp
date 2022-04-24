@@ -30,7 +30,7 @@ SpeedMeter::SpeedMeter( std::nullptr_t ) noexcept
 {
 }
 
-void SpeedMeter::render( RenderContext rctx ) const
+void SpeedMeter::render( ui::RenderContext rctx ) const
 {
     rctx.model = math::translate( rctx.model, math::vec3{ position(), 0.0f } );
     m_speed.render( rctx );

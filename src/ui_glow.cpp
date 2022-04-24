@@ -4,7 +4,7 @@
 
 #include <renderer/renderer.hpp>
 
-void Glow::render( RenderContext rctx ) const
+void Glow::render( ui::RenderContext rctx ) const
 {
     PushBuffer pushBuffer{
         .m_pipeline = static_cast<PipelineSlot>( Pipeline::eGlow ),

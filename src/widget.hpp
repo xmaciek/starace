@@ -5,10 +5,23 @@
 #include <engine/action.hpp>
 #include <engine/math.hpp>
 #include <engine/mouse_event.hpp>
-#include <engine/render_context.hpp>
 #include <engine/update_context.hpp>
 
 #include <span>
+
+class Renderer;
+
+namespace ui {
+
+struct RenderContext {
+    Renderer* renderer = nullptr;
+    math::mat4 model{ 1.0f };
+    math::mat4 view{ 1.0f };
+    math::mat4 projection{ 1.0f };
+
+    math::vec4 colorMain{};
+    math::vec4 colorFocus{};
+};
 
 class Widget {
 public:
@@ -68,7 +81,11 @@ public:
     virtual bool onAction( Action );
 };
 
+}
 
+using Widget = ui::Widget;
+
+// TODO: remove
 class Layout {
 public:
     enum Flow {

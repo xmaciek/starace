@@ -6,6 +6,8 @@
 #include <engine/math.hpp>
 #include <renderer/texture.hpp>
 
+namespace ui {
+
 class NineSlice : public Widget {
 protected:
 
@@ -26,4 +28,6 @@ public:
     void setColor( math::vec4 c );
 };
 
-namespace ui { using NineSlice = ::NineSlice; }
+}
+
+using NineSlice = ui::NineSlice;

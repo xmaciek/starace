@@ -42,7 +42,7 @@ public:
     Hud() noexcept = default;
     Hud( const HudData* ) noexcept;
 
-    void render( RenderContext ) const;
+    void render( ui::RenderContext ) const;
     void update( const UpdateContext& );
 
     void resize( math::vec2 );

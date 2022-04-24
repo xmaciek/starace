@@ -1,5 +1,7 @@
 #include "widget.hpp"
 
+namespace ui {
+
 void Widget::setPosition( math::vec2 v )
 {
     m_position = v;
@@ -112,6 +114,8 @@ math::vec2 Widget::offsetByAnchor() const
 bool Widget::onAction( Action )
 {
     return false;
+}
+
 }
 
 void Layout::operator() ( std::span<Widget*> wgts ) const

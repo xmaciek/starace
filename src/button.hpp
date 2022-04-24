@@ -4,7 +4,6 @@
 #include "label.hpp"
 #include "nineslice.hpp"
 
-#include <engine/render_context.hpp>
 #include <renderer/texture.hpp>
 
 #include <array>
@@ -13,6 +12,7 @@
 #include <string_view>
 
 class Font;
+namespace ui {
 
 class Button : public NineSlice {
 private:
@@ -38,3 +38,7 @@ public:
     void setText( std::u32string_view );
 
 };
+
+}
+
+using Button = ui::Button;

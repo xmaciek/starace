@@ -10,6 +10,8 @@
 
 #include <cassert>
 
+namespace ui {
+
 NineSlice::NineSlice(
     math::vec2 position
     , math::vec2 extent
@@ -70,3 +72,4 @@ void NineSlice::setColor( math::vec4 c )
     m_color = c;
 }
 
+}

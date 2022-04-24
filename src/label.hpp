@@ -5,7 +5,6 @@
 #include "ui_data_model.hpp"
 
 #include <engine/math.hpp>
-#include <engine/render_context.hpp>
 #include <engine/update_context.hpp>
 
 #include <memory_resource>

@@ -12,7 +12,7 @@ public:
     HudBar() noexcept = default;
     HudBar( std::u32string_view ) noexcept;
 
-    virtual void render( RenderContext ) const override;
+    virtual void render( ui::RenderContext ) const override;
 
     void setValue( float );
 };

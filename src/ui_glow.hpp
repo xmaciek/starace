@@ -13,5 +13,5 @@ public:
     : m_color{ color }
     {}
 
-    virtual void render( RenderContext ) const override;
+    virtual void render( ui::RenderContext ) const override;
 };
