@@ -8,6 +8,7 @@
 #include <engine/update_context.hpp>
 #include <engine/mouse_event.hpp>
 #include <engine/action.hpp>
+#include <shared/pmr_pointer.hpp>
 
 #include <vector>
 #include <memory>
@@ -24,7 +25,7 @@ class Screen {
     math::vec2 m_viewport{ 1, 1 };
     math::vec2 m_offset{};
     float m_anim = 0.0f;
-    std::pmr::vector<std::unique_ptr<Widget>> m_widgets{};
+    std::pmr::vector<UniquePointer<Widget>> m_widgets{};
 
     void changeFocus( uint16_t from, uint16_t to );
     Widget* findWidgetByTabOrder( uint16_t );

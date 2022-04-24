@@ -11,6 +11,8 @@
 #include "ui_spinbox.hpp"
 #include "ui_image.hpp"
 
+#include <Tracy.hpp>
+
 #include <unordered_map>
 #include <string_view>
 using std::literals::string_view_literals::operator""sv;
@@ -59,9 +61,10 @@ static auto dataKeyToModel( std::string_view strv )
     return it != g_gameUiDataModels.end() ? it->second : nullptr;
 }
 
-static Widget* makeButton( const cfg::Entry& entry, int16_t tabOrder )
+static UniquePointer<Widget> makeButton( std::pmr::memory_resource* alloc, const cfg::Entry& entry, int16_t tabOrder )
 {
-    Button* button = new Button( [](){} );
+    assert( alloc );
+    auto button = UniquePointer<Button>{ alloc, [](){} };
     button->setAnchor( Anchor::fTop | Anchor::fLeft );
     button->setTabOrder( tabOrder );
 
@@ -69,13 +72,13 @@ static Widget* makeButton( const cfg::Entry& entry, int16_t tabOrder )
     math::vec2 size = button->size();
     for ( const auto& it : entry ) {
         auto propName = *it;
-        if ( propName == "text"sv ) { button->setText( locKeyToString( it.toString() ) ); }
-        else if ( propName == "x"sv ) { pos.x = it.toFloat(); }
-        else if ( propName == "y"sv ) { pos.y = it.toFloat(); }
-        else if ( propName == "width"sv ) { size.x = it.toFloat(); }
-        else if ( propName == "height"sv ) { size.y = it.toFloat(); }
-        else if ( propName == "trigger"sv ) { button->setTrigger( fnKeyToFunction( it.toString() ) ); }
-        else { assert( !"unhandled button element" ); }
+        if ( propName == "text"sv ) { button->setText( locKeyToString( it.toString() ) ); continue; }
+        if ( propName == "x"sv ) { pos.x = it.toFloat(); continue; }
+        if ( propName == "y"sv ) { pos.y = it.toFloat(); continue; }
+        if ( propName == "width"sv ) { size.x = it.toFloat(); continue; }
+        if ( propName == "height"sv ) { size.y = it.toFloat(); continue; }
+        if ( propName == "trigger"sv ) { button->setTrigger( fnKeyToFunction( it.toString() ) ); continue; }
+        assert( !"unhandled Button element" );
     }
     button->setPosition( pos );
     button->setSize( size );
@@ -84,8 +87,9 @@ static Widget* makeButton( const cfg::Entry& entry, int16_t tabOrder )
 
 namespace ui {
 
-static Image* makeImage( const cfg::Entry& entry )
+static UniquePointer<Widget> makeImage( std::pmr::memory_resource* alloc, const cfg::Entry& entry )
 {
+    assert( alloc );
     math::vec2 position{};
     math::vec2 extent{};
     DataModel* model = nullptr;
@@ -98,11 +102,12 @@ static Image* makeImage( const cfg::Entry& entry )
         if ( propName == "data"sv ) { model = dataKeyToModel( property.toString() ); continue; }
         assert( !"unhandled Image property" );
     }
-    return new Image{ position, extent, model };
+    return UniquePointer<Image>{ alloc, position, extent, model };
 }
 
-static NineSlice* makeNineSlice( const cfg::Entry& entry )
+static UniquePointer<Widget> makeNineSlice( std::pmr::memory_resource* alloc, const cfg::Entry& entry )
 {
+    assert( alloc );
     static constexpr std::array<uint32_t, 9> c_slices = {
         ui::AtlasSprite::eTopLeft,
         ui::AtlasSprite::eTop,
@@ -123,22 +128,23 @@ static NineSlice* makeNineSlice( const cfg::Entry& entry )
         if ( propName == "y"sv ) { position.y = property.toFloat(); continue; }
         if ( propName == "width"sv ) { extent.x = property.toFloat(); continue; }
         if ( propName == "height"sv ) { extent.y = property.toFloat(); continue; }
-        assert( !"unhandled property" );
+        assert( !"unhandled NineSlice property" );
     }
 
-    return new NineSlice(
-        position
+    return UniquePointer<NineSlice>{ alloc
+        , position
         , extent
         , g_uiProperty.colorA()
         , Anchor::fTop | Anchor::fLeft
         , g_uiProperty.atlas()
         , c_slices
         , g_uiProperty.atlasTexture()
-    );
+    };
 }
 
-static Widget* makeLabel( const cfg::Entry& entry )
+static UniquePointer<Widget> makeLabel( std::pmr::memory_resource* alloc, const cfg::Entry& entry )
 {
+    assert( alloc );
     DataModel* model = nullptr;
     const Font* fnt = g_uiProperty.fontMedium();
     math::vec2 pos{};
@@ -146,35 +152,36 @@ static Widget* makeLabel( const cfg::Entry& entry )
 
     for ( const auto& it : entry ) {
         auto propName = *it;
-        if ( propName == "text"sv ) { txt = locKeyToString( it.toString() ); }
-        else if ( propName == "x"sv ) { pos.x = it.toFloat(); }
-        else if ( propName == "y"sv ) { pos.y = it.toFloat(); }
-        else if ( propName == "data"sv ) { model = dataKeyToModel( it.toString() ); }
-        else { assert( !"unhandled label element" ); }
+        if ( propName == "text"sv ) { txt = locKeyToString( it.toString() ); continue; }
+        if ( propName == "x"sv ) { pos.x = it.toFloat(); continue; }
+        if ( propName == "y"sv ) { pos.y = it.toFloat(); continue; }
+        if ( propName == "data"sv ) { model = dataKeyToModel( it.toString() ); continue; }
+        assert( !"unhandled Label property" );
     }
     if ( model ) {
-        return new Label{ model, fnt, pos };
+        return UniquePointer<Label>{ alloc, model, fnt, pos };
     }
-    return new Label{ txt, fnt, pos, color::white };
+    return UniquePointer<Label>{ alloc, txt, fnt, pos, color::white };
 }
 
-static Widget* makeSpinBox( const cfg::Entry& entry, int16_t tabOrder )
+static UniquePointer<Widget> makeSpinBox( std::pmr::memory_resource* alloc, const cfg::Entry& entry, int16_t tabOrder )
 {
+    assert( alloc );
     math::vec2 pos{};
     math::vec2 size{};
     DataModel* dataModel = nullptr;
     for ( const auto& it : entry ) {
         auto propName = *it;
-        if ( propName == "x"sv ) { pos.x = it.toFloat(); }
-        else if ( propName == "y"sv ) { pos.y = it.toFloat(); }
-        else if ( propName == "width"sv ) { size.x = it.toFloat(); }
-        else if ( propName == "height"sv ) { size.y = it.toFloat(); }
-        else if ( propName == "data"sv ) { dataModel = dataKeyToModel( it.toString() ); }
-        else { assert( !"unhandled spinbox element" ); }
+        if ( propName == "x"sv ) { pos.x = it.toFloat(); continue; }
+        if ( propName == "y"sv ) { pos.y = it.toFloat(); continue; }
+        if ( propName == "width"sv ) { size.x = it.toFloat(); continue; }
+        if ( propName == "height"sv ) { size.y = it.toFloat(); continue; }
+        if ( propName == "data"sv ) { dataModel = dataKeyToModel( it.toString() ); continue; }
+        assert( !"unhandled SpinBox element" );
     }
 
     assert( dataModel );
-    SpinBox* spinbox = new SpinBox( dataModel );
+    UniquePointer<SpinBox> spinbox{ alloc, dataModel };
     spinbox->setTabOrder( tabOrder );
     spinbox->setPosition( pos );
     spinbox->setSize( size );
@@ -184,17 +191,19 @@ static Widget* makeSpinBox( const cfg::Entry& entry, int16_t tabOrder )
 
 Screen::Screen( const cfg::Entry& entry ) noexcept
 {
+    ZoneScoped;
+    std::pmr::memory_resource* alloc = std::pmr::get_default_resource();
     uint16_t tabOrderCount = 0;
     for ( const auto& it : entry ) {
         auto str = *it;
-        if ( str == "width"sv ) { m_extent.x = it.toFloat(); }
-        else if ( str == "height"sv ) { m_extent.y = it.toFloat(); }
-        else if ( str == "Label"sv ) { m_widgets.emplace_back( makeLabel( it ) ); }
-        else if ( str == "Button"sv ) { m_widgets.emplace_back( makeButton( it, tabOrderCount++ ) ); }
-        else if ( str == "SpinBox"sv ) { m_widgets.emplace_back( makeSpinBox( it, tabOrderCount++ ) ); }
-        else if ( str == "NineSlice"sv ) { m_widgets.emplace_back( makeNineSlice( it ) ); }
-        else if ( str == "Image"sv ) { m_widgets.emplace_back( makeImage( it ) ); }
-        else { assert( !"unhandled ui element" ); }
+        if ( str == "width"sv ) { m_extent.x = it.toFloat(); continue; }
+        if ( str == "height"sv ) { m_extent.y = it.toFloat(); continue; }
+        if ( str == "Label"sv ) { m_widgets.emplace_back( makeLabel( alloc, it ) ); continue; }
+        if ( str == "Button"sv ) { m_widgets.emplace_back( makeButton( alloc, it, tabOrderCount++ ) ); continue; }
+        if ( str == "SpinBox"sv ) { m_widgets.emplace_back( makeSpinBox( alloc, it, tabOrderCount++ ) ); continue; }
+        if ( str == "NineSlice"sv ) { m_widgets.emplace_back( makeNineSlice( alloc, it ) ); continue; }
+        if ( str == "Image"sv ) { m_widgets.emplace_back( makeImage( alloc, it ) ); continue; }
+        assert( !"unhandled ui element" );
     }
     m_tabOrder = TabOrder<>{ 0, 0, tabOrderCount };
     if ( tabOrderCount == 0 ) { return; }
@@ -203,6 +212,7 @@ Screen::Screen( const cfg::Entry& entry ) noexcept
 
 void Screen::render( const RenderContext& rctx ) const
 {
+    ZoneScoped;
     auto r = rctx;
     r.projection = math::ortho( 0.0f, m_viewport.x, 0.0f, m_viewport.y, -1.0f, 1.0f );
     const math::mat4 view = math::translate( r.view, math::vec3{ m_offset.x, m_offset.y, 0.0f } );
@@ -225,6 +235,7 @@ void Screen::render( const RenderContext& rctx ) const
 
 void Screen::update( const UpdateContext& uctx )
 {
+    ZoneScoped;
     m_anim = std::clamp( m_anim + uctx.deltaTime * 5.0f, 0.0f, 1.0f );
     for ( const auto& it : m_widgets ) {
         it->update( uctx );
@@ -256,7 +267,7 @@ Widget* Screen::findWidgetByTabOrder( uint16_t tabOrder )
     auto wgt = std::find_if( m_widgets.begin(), m_widgets.end()
         , [tabOrder]( const auto& wgt ) { return wgt->tabOrder() == tabOrder; }
     );
-    return ( wgt != m_widgets.end() ) ? wgt->get() : nullptr;
+    return ( wgt != m_widgets.end() ) ? **wgt : nullptr;
 }
 
 void Screen::changeFocus( uint16_t from, uint16_t to )
@@ -270,6 +281,7 @@ void Screen::changeFocus( uint16_t from, uint16_t to )
 
 void Screen::onAction( Action a )
 {
+    ZoneScoped;
     if ( !a.digital ) { return; }
     const uint16_t prevIndex = *m_tabOrder;
     switch ( a.toA<GameAction>() ) {
