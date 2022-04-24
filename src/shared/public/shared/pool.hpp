@@ -7,17 +7,37 @@
 #include <cstddef>
 #include <cstdint>
 #include <type_traits>
+#include <memory_resource>
 
-template <typename T, size_t TCapacity>
-class Pool : protected Indexer<TCapacity> {
+template <typename T, std::size_t TCapacity>
+class Pool : protected Indexer<TCapacity>, public std::pmr::memory_resource {
     using Super = Indexer<TCapacity>;
     using Storage = std::aligned_storage_t<sizeof( T ), alignof( T )>;
 
     typename Super::Atomic m_numAllocs = 0;
     std::array<Storage, TCapacity> m_data{};
 
+    virtual void* do_allocate( std::size_t bytes, std::size_t alignment ) override
+    {
+        assert( bytes <= sizeof( T ) );
+        assert( alignment <= alignof( T ) );
+        return alloc();
+    }
+
+    virtual void do_deallocate( void* ptr, std::size_t bytes, std::size_t alignment ) override
+    {
+        assert( bytes <= sizeof( T ) );
+        assert( alignment <= alignof( T ) );
+        dealloc( ptr );
+    }
+
+    virtual bool do_is_equal( const std::pmr::memory_resource& rhs ) const noexcept override
+    {
+        return &rhs == this;
+    }
+
 public:
-    ~Pool() noexcept = default;
+    virtual ~Pool() noexcept override = default;
     Pool() noexcept = default;
 
     [[nodiscard]]
