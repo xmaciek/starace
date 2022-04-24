@@ -76,7 +76,7 @@ private:
     Pool<Enemy, 100> m_poolEnemies{};
     std::pmr::vector<Bullet*> m_bullets{};
     std::pmr::vector<Bullet*> m_enemyBullets{};
-    std::pmr::vector<Enemy*> m_enemies{};
+    std::pmr::vector<UniquePointer<Enemy>> m_enemies{};
     std::pmr::vector<Explosion> m_explosions{};
     std::pmr::vector<MapCreateInfo> m_mapsContainer{};
     std::pmr::vector<ModelProto> m_jetsContainer{};

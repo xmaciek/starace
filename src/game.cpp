@@ -594,7 +594,7 @@ void Game::updateGame( const UpdateContext& updateContext )
         for ( Bullet*& b : m_bullets ) {
             assert( b );
             b->update( updateContext );
-            for ( Enemy* e : m_enemies ) {
+            for ( auto& e : m_enemies ) {
                 assert( e );
                 if ( !intersectLineSphere( b->position(), b->prevPosition(), e->position(), 15.0_m ) ) {
                     continue;
@@ -636,18 +636,16 @@ void Game::updateGame( const UpdateContext& updateContext )
         for ( auto& e : m_enemies ) {
             e->update( updateContext );
             if ( e->status() == Enemy::Status::eDead ) {
-                m_jet.untarget( e );
+                m_jet.untarget( *e );
                 m_explosions.push_back( Explosion{ e->position(), e->velocity(), m_plasma, 0.0f } );
-                std::destroy_at( e );
-                m_poolEnemies.dealloc( e );
-                e = nullptr;
+                e = {};
                 continue;
             }
             if ( e->isWeaponReady() ) {
                 m_enemyBullets.push_back( e->weapon( m_poolBullets.alloc() ) );
             }
         }
-        m_enemies.erase( std::remove( m_enemies.begin(), m_enemies.end(), nullptr ), m_enemies.end() );
+        m_enemies.erase( std::remove( m_enemies.begin(), m_enemies.end(), UniquePointer<Enemy>{} ), m_enemies.end() );
     }
     const SAObject* tgt = m_jet.target();
     if ( tgt ) {
@@ -695,16 +693,13 @@ void Game::retarget()
         return;
     }
     static Random random{ std::random_device()() };
-    m_jet.setTarget( m_enemies[ random() % m_enemies.size() ] );
+    m_jet.setTarget( *m_enemies[ random() % m_enemies.size() ] );
 }
 
 void Game::clearMapData()
 {
     ZoneScoped;
-    for ( Enemy* e : m_enemies ) {
-        std::destroy_at( e );
-    }
-
+    m_enemies.clear();
     for ( Bullet* b : m_bullets ) {
         std::destroy_at( b );
     }
@@ -734,11 +729,13 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
 
     assert( m_enemies.empty() );
     m_enemies.resize( mapInfo.enemies );
-    for ( Enemy*& it : m_enemies ) {
-        it = new ( m_poolEnemies.alloc() ) Enemy( m_enemyModel );
-        it->setTarget( &m_jet );
-        it->setWeapon( m_weapons[ 3 ] );
-    }
+    std::generate( m_enemies.begin(), m_enemies.end(), [this]()
+    {
+        UniquePointer<Enemy> ptr{ &m_poolEnemies, m_enemyModel };
+        ptr->setTarget( &m_jet );
+        ptr->setWeapon( m_weapons[ 3 ] );
+        return ptr;
+    });
 
 }
 
@@ -982,7 +979,7 @@ void Game::render3D( RenderContext rctx )
         it.render( rctx );
     }
     m_dustGame.render( rctx );
-    for ( const Enemy* it : m_enemies ) {
+    for ( auto& it : m_enemies ) {
         assert( it );
         it->render( rctx );
     }
