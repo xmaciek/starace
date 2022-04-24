@@ -32,7 +32,7 @@ private:
     Type m_type = Type::eSlug;
 
 public:
-    virtual ~Bullet() = default;
+    virtual ~Bullet() override = default;
     explicit Bullet( const BulletProto& bp );
 
     uint8_t damage() const;

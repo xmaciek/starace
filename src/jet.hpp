@@ -9,9 +9,12 @@
 #include "thruster.hpp"
 #include "units.hpp"
 
+#include <shared/pmr_pointer.hpp>
+
 #include <engine/math.hpp>
 
 #include <vector>
+#include <memory_resource>
 
 class Renderer;
 class Jet : public SAObject {
@@ -60,7 +63,7 @@ public:
     Jet() noexcept = default;
     explicit Jet( const ModelProto& ) noexcept;
 
-    Bullet* weapon( uint32_t weaponNum, void* ptr );
+    UniquePointer<Bullet> weapon( uint32_t weaponNum, std::pmr::memory_resource* );
     bool isShooting( uint32_t weaponNum ) const;
     bool isWeaponReady( uint32_t weaponNum ) const;
     double energy() const;

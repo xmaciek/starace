@@ -132,12 +132,14 @@ math::vec3 Jet::weaponPoint( uint32_t weaponNum )
     return w;
 }
 
-Bullet* Jet::weapon( uint32_t weaponNum, void* ptr )
+UniquePointer<Bullet> Jet::weapon( uint32_t weaponNum, std::pmr::memory_resource* alloc )
 {
-    assert( ptr );
+    assert( weaponNum < std::size( m_weapon ) );
+    assert( alloc );
     BulletProto tmp = m_weapon[ weaponNum ];
     tmp.position = math::rotate( quat(), m_model->weapon( weaponNum ) ) + position();
-    Bullet* b = new ( ptr ) Bullet( tmp );
+    UniquePointer<Bullet> b{ alloc, tmp };
+    assert( b->status() != Status::eDead );
     b->setDirection( direction() );
 
     switch ( b->type() ) {

@@ -591,29 +591,23 @@ void Game::updateGame( const UpdateContext& updateContext )
     m_explosions.erase( std::remove_if( m_explosions.begin(), m_explosions.end(), &Explosion::isInvalid ), m_explosions.end() );
 
     {
-        for ( Bullet*& b : m_bullets ) {
+        auto isDead = []( const auto& it ) -> bool { return it->status() == SAObject::Status::eDead; };
+        for ( auto& b : m_bullets ) {
             assert( b );
             b->update( updateContext );
+            if ( isDead( b ) ) { continue; }
             for ( auto& e : m_enemies ) {
                 assert( e );
                 if ( !intersectLineSphere( b->position(), b->prevPosition(), e->position(), 15.0_m ) ) {
                     continue;
                 }
                 e->setDamage( b->damage() );
-                b->kill();
                 m_hudData.score += b->score();
+                b->kill();
                 break;
             }
-
-            if ( b->status() == SAObject::Status::eDead ) {
-                std::destroy_at( b );
-                m_poolBullets.dealloc( b );
-                b = nullptr;
-            }
-
         }
-
-        m_bullets.erase( std::remove( m_bullets.begin(), m_bullets.end(), nullptr ), m_bullets.end() );
+        m_bullets.erase( std::remove_if( m_bullets.begin(), m_bullets.end(), isDead ), m_bullets.end() );
     }
 
     {
@@ -671,8 +665,8 @@ void Game::addBullet( uint32_t wID )
         return;
     }
     m_jet.takeEnergy( wID );
-    Bullet* bullet = m_jet.weapon( wID, m_poolBullets.alloc() );
-    m_bullets.push_back( bullet );
+    const auto& bullet = m_bullets.emplace_back( m_jet.weapon( wID, &m_poolBullets ) );
+
     m_hudData.shots++;
     switch ( bullet->type() ) {
     case Bullet::Type::eBlaster:
@@ -700,16 +694,12 @@ void Game::clearMapData()
 {
     ZoneScoped;
     m_enemies.clear();
-    for ( Bullet* b : m_bullets ) {
-        std::destroy_at( b );
-    }
+    m_bullets.clear();
 
     for ( Bullet* b : m_enemyBullets ) {
         std::destroy_at( b );
     }
-    m_bullets.clear();
     m_enemyBullets.clear();
-    m_enemies.clear();
     m_poolBullets.discardAll();
     m_poolEnemies.discardAll();
 }
@@ -984,7 +974,7 @@ void Game::render3D( RenderContext rctx )
         it->render( rctx );
     }
 
-    for ( const Bullet* it : m_bullets ) {
+    for ( auto& it : m_bullets ) {
         assert( it );
         it->render( rctx );
     }
