@@ -17,6 +17,8 @@ class SpinBox : public Widget {
 protected:
     TabOrder<DataModel::size_type> m_index{}; // TODO: replace with something more fitting
     DataModel* m_model = nullptr;
+    float m_animL = 1.0f;
+    float m_animR = 1.0f;
     bool m_focusL : 1 = false;
     bool m_focusR : 1 = false;
     Label m_label{};
@@ -32,6 +34,7 @@ public:
     DataModel::size_type value() const;
 
     virtual void render( RenderContext ) const override;
+    virtual void update( const UpdateContext& ) override;
     virtual bool onMouseEvent( const MouseEvent& ) override;
     virtual bool onAction( Action ) override;
 };

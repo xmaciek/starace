@@ -55,10 +55,18 @@ void SpinBox::render( RenderContext rctx ) const
 
     const math::vec2 pos = position() + offsetByAnchor();
     const math::vec2 s = size();
-    const math::vec4 left = arrowLeft();
-    const math::vec4 right = arrowRight();
-
+    math::vec4 left = arrowLeft();
+    math::vec4 right = arrowRight();
     math::vec4 mid{ left.x + left.z, pos.y, s.x - ( left.z + right.z ), s.y };
+
+    auto nonlerp2 = []( float a, float b, float n )
+    {
+        n = 0.5f - math::cos( n * math::pi * 2.0f ) * 0.5f;
+        return math::lerp( a, b, n );
+    };
+    left.x += nonlerp2( 0.0f, -5.0f, m_animL );
+    right.x += nonlerp2( 0.0f, 5.0f, m_animR );
+
 
     auto it = pushConstant.m_xyuv.begin();
     it = std::generate_n( it, 6, spritegen::Vert6{
@@ -107,12 +115,14 @@ bool SpinBox::onMouseEvent( const MouseEvent& event )
         break;
     case MouseEvent::eClick:
         if ( left ) {
+            m_animL = 0.0f;
             m_index--;
             m_model->select( value() );
             m_label.setText( m_model->at( value() ) );
             break;
         }
         if ( right ) {
+            m_animR = 0.0f;
             m_index++;
             m_model->select( value() );
             m_label.setText( m_model->at( value() ) );
@@ -154,10 +164,12 @@ bool SpinBox::onAction( Action a )
     if ( !a.digital ) { return false; }
     switch ( a.toA<GameAction>() ) {
     case GameAction::eMenuLeft:
+        m_animL = 0.0f;
         m_index--;
         m_model->select( value() );
         break;
     case GameAction::eMenuRight:
+        m_animR = 0.0f;
         m_index++;
         m_model->select( value() );
         break;
@@ -169,6 +181,12 @@ bool SpinBox::onAction( Action a )
     }
     m_label.setText( m_model->at( value() ) );
     return true;
+}
+
+void SpinBox::update( const UpdateContext& uctx )
+{
+    m_animL = std::min( m_animL + uctx.deltaTime * 7.0f, 1.0f );
+    m_animR = std::min( m_animR + uctx.deltaTime * 7.0f, 1.0f );
 }
 
 
