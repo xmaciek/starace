@@ -17,14 +17,14 @@ class Pool : protected Indexer<TCapacity>, public std::pmr::memory_resource {
     typename Super::Atomic m_numAllocs = 0;
     std::array<Storage, TCapacity> m_data{};
 
-    virtual void* do_allocate( std::size_t bytes, std::size_t alignment ) override
+    virtual void* do_allocate( [[maybe_unused]] std::size_t bytes, [[maybe_unused]] std::size_t alignment ) override
     {
         assert( bytes <= sizeof( T ) );
         assert( alignment <= alignof( T ) );
         return alloc();
     }
 
-    virtual void do_deallocate( void* ptr, std::size_t bytes, std::size_t alignment ) override
+    virtual void do_deallocate( void* ptr, [[maybe_unused]] std::size_t bytes, [[maybe_unused]] std::size_t alignment ) override
     {
         assert( bytes <= sizeof( T ) );
         assert( alignment <= alignof( T ) );

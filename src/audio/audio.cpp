@@ -194,6 +194,7 @@ Audio::Slot SDLAudioEngine::load( std::string_view file )
 
     uint16_t slot = static_cast<uint16_t>( m_slotMachine.next() );
     assert( slot < m_audioSlots.size() );
+    [[maybe_unused]]
     auto* previous = m_audioSlots[ slot ].exchange( buffer );
     assert( !previous );
     return slot + 1;
