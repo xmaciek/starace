@@ -57,12 +57,12 @@ private:
     Font* m_fontSmall = nullptr;
     Font* m_fontMedium = nullptr;
     Font* m_fontLarge = nullptr;
-    Model* m_enemyModel = nullptr;
     uint32_t m_currentMission = 0;
     uint32_t m_currentJet = 0;
     uint32_t m_weapon1 = 1;
     uint32_t m_weapon2 = 2;
     uint32_t m_missionResult = 0;
+    Model m_enemyModel{};
     Jet m_jet{};
     Skybox m_skybox{};
     LinearAtlas m_atlasUi{};
@@ -80,6 +80,7 @@ private:
     std::pmr::vector<Explosion> m_explosions{};
     std::pmr::vector<MapCreateInfo> m_mapsContainer{};
     std::pmr::vector<ModelProto> m_jetsContainer{};
+    std::pmr::map<std::filesystem::path, Mesh> m_meshes{};
 
     HudData m_hudData{};
     Hud m_hud{};

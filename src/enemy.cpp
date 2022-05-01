@@ -7,7 +7,7 @@
 #include <cassert>
 
 Enemy::Enemy( Model* m )
-: m_model{ m }
+: m_model{ *m }
 {
     m_position = math::vec3{
         randomRange( -10.0f, 10.0f ),
@@ -58,8 +58,8 @@ void Enemy::render( RenderContext rctx ) const
     const math::quat quat = math::quatLookAt( m_direction, { 0.0f, 1.0f, 0.0f } );
     rctx.model = math::translate( rctx.model, position() );
     rctx.model = rctx.model * math::toMat4( quat );
-    m_model->render( rctx );
-    for ( auto it : m_model->thrusters() ) {
+    m_model.render( rctx );
+    for ( auto it : m_model.thrusters() ) {
         m_thruster.renderAt( rctx, it );
     }
 }

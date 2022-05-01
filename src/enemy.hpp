@@ -14,7 +14,7 @@ class Enemy : public SAObject {
 private:
     BulletProto m_weapon{};
     Thruster m_thruster{};
-    Model* m_model = nullptr;
+    Model m_model{};
     float m_shotFactor = 0.0f;
 
 public:

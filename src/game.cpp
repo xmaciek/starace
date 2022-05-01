@@ -187,7 +187,6 @@ Game::~Game()
     delete m_fontMedium;
     delete m_fontLarge;
 
-    delete m_enemyModel;
 }
 
 void Game::preloadData()
@@ -204,9 +203,6 @@ void Game::preloadData()
 
 void Game::onExit()
 {
-    for ( auto& it : m_jetsContainer ) {
-        delete it.model;
-    }
 }
 
 void Game::onResize( uint32_t w, uint32_t h )
@@ -436,7 +432,11 @@ void Game::onInit()
         m_jetsContainer = loadJets( str );
         assert( !m_jetsContainer.empty() );
         for ( auto& it : m_jetsContainer ) {
-            it.model = new Model( it.model_file, m_textures[ it.model_texture ], m_renderer, it.scale );
+            m_io->enqueue( it.model_file );
+        }
+        for ( auto& it : m_jetsContainer ) {
+            m_meshes[ it.model_file ] = Mesh{ m_io->getWait( it.model_file ), m_renderer };
+            it.model = Model( m_meshes[ it.model_file ], m_textures[ it.model_texture ], it.scale );
         }
     }
 
@@ -455,7 +455,7 @@ void Game::onInit()
     m_screenPause = makeScreen( "ui/pause.ui", m_io );
     m_screenMissionResult = makeScreen( "ui/result.ui", m_io );
 
-    m_enemyModel = new Model{ "models/a2.objc", m_textures[ "textures/a2.tga" ], m_renderer, 0.45f };
+    m_enemyModel = Model{ m_meshes[ "models/a2.objc" ], m_textures[ "textures/a2.tga" ], 0.45f };
 
     onResize( viewportWidth(), viewportHeight() );
 }
@@ -718,7 +718,7 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
     m_enemies.resize( mapInfo.enemies );
     std::generate( m_enemies.begin(), m_enemies.end(), [this]()
     {
-        UniquePointer<Enemy> ptr{ &m_poolEnemies, m_enemyModel };
+        UniquePointer<Enemy> ptr{ &m_poolEnemies, &m_enemyModel };
         ptr->setTarget( &m_jet );
         ptr->setWeapon( m_weapons[ 3 ] );
         return ptr;
@@ -1015,8 +1015,8 @@ void Game::renderMenuScreen( RenderContext rctx, ui::RenderContext r ) const
     const math::vec3 cameraPos = math::normalize( math::vec3{ -4, -3, -3 } ) * 24.0_m;
     rctx.view = math::lookAt( cameraPos, math::vec3{}, math::vec3{ 0, 1, 0 } );
 
-    auto* jet = m_jetsContainer[ m_currentJet ].model;
-    jet->render( rctx );
+    auto& jet = m_jetsContainer[ m_currentJet ].model;
+    jet.render( rctx );
     m_dustUi.render( rctx );
 
     m_uiRings.render( r );

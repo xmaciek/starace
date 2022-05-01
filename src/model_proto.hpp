@@ -9,6 +9,6 @@ struct ModelProto {
     std::pmr::u32string name{};
     std::string model_file{};
     std::string model_texture{};
-    Model* model = nullptr;
+    Model model{};
     float scale = 1.0f;
 };

@@ -31,8 +31,8 @@ void Jet::render( RenderContext rctx ) const
     rctx.model *= math::toMat4( quat() );
     rctx.model *= math::toMat4( animation() );
 
-    m_model->render( rctx );
-    for ( const math::vec3& it : m_model->thrusters() ) {
+    m_model.render( rctx );
+    for ( const math::vec3& it : m_model.thrusters() ) {
         m_thruster.renderAt( rctx, it );
     }
 }
@@ -127,7 +127,7 @@ bool Jet::isShooting( uint32_t weaponNum ) const
 
 math::vec3 Jet::weaponPoint( uint32_t weaponNum )
 {
-    math::vec3 w = math::rotate( quat(), m_model->weapon( weaponNum ) );
+    math::vec3 w = math::rotate( quat(), m_model.weapon( weaponNum ) );
     w += position();
     return w;
 }
@@ -137,7 +137,7 @@ UniquePointer<Bullet> Jet::weapon( uint32_t weaponNum, std::pmr::memory_resource
     assert( weaponNum < std::size( m_weapon ) );
     assert( alloc );
     BulletProto tmp = m_weapon[ weaponNum ];
-    tmp.position = math::rotate( quat(), m_model->weapon( weaponNum ) ) + position();
+    tmp.position = math::rotate( quat(), m_model.weapon( weaponNum ) ) + position();
     UniquePointer<Bullet> b{ alloc, tmp };
     assert( b->status() != Status::eDead );
     b->setDirection( direction() );

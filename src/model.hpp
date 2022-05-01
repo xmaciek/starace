@@ -1,5 +1,7 @@
 #pragma once
 
+#include "mesh.hpp"
+
 #include <engine/math.hpp>
 #include <engine/render_context.hpp>
 #include <renderer/buffer.hpp>
@@ -19,19 +21,10 @@ private:
     std::array<math::vec3, 3> m_weapons{};
     float m_scale = 1.0f;
 
-    void loadOBJ( const std::filesystem::path& filename, Renderer* );
-    void destroy();
-
 public:
-    ~Model();
+    ~Model() = default;
     Model() = default;
-    Model( const std::filesystem::path&, Texture, Renderer*, float scale = 1.0f );
-
-    // TODO: make defaults when model stops owning resources
-    Model( const Model& ) = delete;
-    Model& operator = ( const Model& ) = delete;
-    Model( Model&& ) noexcept;
-    Model& operator = ( Model&& ) noexcept;
+    Model( const Mesh&, Texture, float scale = 1.0f ) noexcept;
 
     math::vec3 weapon( uint32_t ) const;
     std::vector<math::vec3> thrusters() const;
