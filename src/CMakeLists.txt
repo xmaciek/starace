@@ -39,6 +39,8 @@ set( STARACE_SOURCES
     linear_atlas.hpp
     main.cpp
     map_create_info.hpp
+    mesh.cpp
+    mesh.hpp
     model.cpp
     model.hpp
     model_proto.hpp
