@@ -35,11 +35,19 @@ static constexpr TransferInfo undefined{
     .m_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
 };
 
-static constexpr TransferInfo fragmentOut{
+static constexpr TransferInfo fragmentWrite{
     .m_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
     .m_access = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-    .m_stage = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+    .m_stage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
 };
+
+
+static constexpr TransferInfo computeReadWrite{
+    .m_layout = VK_IMAGE_LAYOUT_GENERAL,
+    .m_access = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT,
+    .m_stage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+};
+
 
 static constexpr TransferInfo present{
     .m_layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
