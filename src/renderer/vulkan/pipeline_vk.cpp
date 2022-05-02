@@ -312,6 +312,7 @@ PipelineVK::PipelineVK(
         .layout = m_layout,
     };
 
+    [[maybe_unused]]
     const VkResult pipelineOK = vkCreateComputePipelines( device, nullptr, 1, &info, nullptr, &m_pipeline );
     assert( pipelineOK == VK_SUCCESS );
 }
