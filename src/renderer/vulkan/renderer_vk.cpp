@@ -508,6 +508,35 @@ Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::pmr::vecto
     return idx + 1;
 }
 
+static void beginRecording( VkCommandBuffer cmd, VkExtent2D extent )
+{
+    const VkRect2D rect{ .extent = extent };
+    const VkViewport viewport{
+        .x = 0,
+        .y = 0,
+        .width = (float)extent.width,
+        .height = (float)extent.height,
+        .minDepth = 0.0f,
+        .maxDepth = 1.0f,
+    };
+
+    constexpr static VkCommandBufferBeginInfo beginInfo{
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+    };
+
+    [[maybe_unused]]
+    const VkResult resetOK = vkResetCommandBuffer( cmd, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT );
+    assert( resetOK == VK_SUCCESS );
+
+    [[maybe_unused]]
+    const VkResult cmdOK = vkBeginCommandBuffer( cmd, &beginInfo );
+    assert( cmdOK == VK_SUCCESS );
+
+    vkCmdSetViewport( cmd, 0, 1, &viewport );
+    vkCmdSetScissor( cmd, 0, 1, &rect );
+}
+
+
 void RendererVK::beginFrame()
 {
     ZoneScoped;
@@ -536,42 +565,10 @@ void RendererVK::beginFrame()
 
     const VkExtent2D extent = m_swapchain.extent();
     const VkRect2D rect{ .extent = extent };
-    const VkViewport viewport{
-        .x = 0,
-        .y = 0,
-        .width = (float)extent.width,
-        .height = (float)extent.height,
-        .minDepth = 0.0f,
-        .maxDepth = 1.0f,
-    };
-
-    constexpr static VkCommandBufferBeginInfo beginInfo{
-        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-    };
-
-    {
-        VkCommandBuffer cmd = fr.m_cmdRender;
-        vkResetCommandBuffer( cmd, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT );
-        [[maybe_unused]]
-        const VkResult cmdOK = vkBeginCommandBuffer( cmd, &beginInfo );
-        assert( cmdOK == VK_SUCCESS );
-
-        vkCmdSetViewport( cmd, 0, 1, &viewport );
-        vkCmdSetScissor( cmd, 0, 1, &rect );
-        m_mainPass.begin( cmd, fr.m_renderTarget.framebuffer(), rect );
-    }
-
-    {
-        VkCommandBuffer cmd = fr.m_cmdDepthPrepass;
-        vkResetCommandBuffer( cmd, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT );
-        [[maybe_unused]]
-        const VkResult cmdOK = vkBeginCommandBuffer( cmd, &beginInfo );
-        assert( cmdOK == VK_SUCCESS );
-
-        vkCmdSetViewport( cmd, 0, 1, &viewport );
-        vkCmdSetScissor( cmd, 0, 1, &rect );
-        m_depthPrepass.begin( cmd, fr.m_renderDepthTarget.framebuffer(), rect );
-    }
+    beginRecording( fr.m_cmdRender, extent );
+    beginRecording( fr.m_cmdDepthPrepass, extent );
+    m_mainPass.begin( fr.m_cmdRender, fr.m_renderTarget.framebuffer(), rect );
+    m_depthPrepass.begin( fr.m_cmdDepthPrepass, fr.m_renderDepthTarget.framebuffer(), rect );
 }
 
 void RendererVK::deleteBuffer( Buffer b )
