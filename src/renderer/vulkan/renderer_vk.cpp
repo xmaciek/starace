@@ -274,8 +274,9 @@ RendererVK::RendererVK( SDL_Window* window, VSync vsync )
             , VK_FORMAT_B8G8R8A8_UNORM
             , it.m_renderDepthTarget.view()
         };
-        it.m_descSetUniform = DescriptorSet{ m_device, 800, 0b1, 0 };
-        it.m_descSetUniformSampler = DescriptorSet{ m_device, 400, 0b1, 0b10 };
+        it.m_descSetUniform = DescriptorSet{ m_device, 800, 0b1, 0, 0 };
+        it.m_descSetUniformSampler = DescriptorSet{ m_device, 400, 0b1, 0b10, 0 };
+        it.m_descSetUniformImage = DescriptorSet{ m_device, 4, 0b1, 0, 0b10 };
         it.m_uniformBuffer = Uniform{ m_physicalDevice, m_device, 2_MiB, 256 };
         it.m_cmdTransfer = m_commandPool[ i++ ];
         it.m_cmdDepthPrepass = m_commandPool[ i++ ];
@@ -299,13 +300,25 @@ void RendererVK::createPipeline( const PipelineCreateInfo& pci )
     DescriptorSet* descriptorSet = nullptr;
     switch ( descriptorSetType ) {
     case 0x1'0000: descriptorSet = &m_frames[ 0 ].m_descSetUniform;  break;
-    case 0x1'0002: descriptorSet = &m_frames[ 0 ].m_descSetUniformSampler; break;
+    case 0x1'0002: descriptorSet = pci.m_computeShader
+        ? &m_frames[ 0 ].m_descSetUniformImage
+        : &m_frames[ 0 ].m_descSetUniformSampler;
+        break;
     default:
         assert( !"unsupported descriptor set type" );
         return;
     }
 
-    m_pipelines[ static_cast<PipelineSlot>( pci.m_slot ) ] = PipelineVK{
+    if ( pci.m_computeShader ) {
+        m_pipelines[ pci.m_slot ] = PipelineVK{
+        pci
+        , m_device
+        , descriptorSet->layout()
+    };
+        return;
+    }
+
+    m_pipelines[ pci.m_slot ] = PipelineVK{
         pci
         , m_device
         , m_mainPass
@@ -508,18 +521,8 @@ Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::pmr::vecto
     return idx + 1;
 }
 
-static void beginRecording( VkCommandBuffer cmd, VkExtent2D extent )
+static void beginRecording( VkCommandBuffer cmd )
 {
-    const VkRect2D rect{ .extent = extent };
-    const VkViewport viewport{
-        .x = 0,
-        .y = 0,
-        .width = (float)extent.width,
-        .height = (float)extent.height,
-        .minDepth = 0.0f,
-        .maxDepth = 1.0f,
-    };
-
     constexpr static VkCommandBufferBeginInfo beginInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
     };
@@ -532,8 +535,6 @@ static void beginRecording( VkCommandBuffer cmd, VkExtent2D extent )
     const VkResult cmdOK = vkBeginCommandBuffer( cmd, &beginInfo );
     assert( cmdOK == VK_SUCCESS );
 
-    vkCmdSetViewport( cmd, 0, 1, &viewport );
-    vkCmdSetScissor( cmd, 0, 1, &rect );
 }
 
 
@@ -559,16 +560,14 @@ void RendererVK::beginFrame()
 
     m_currentFrame = imageIndex;
     Frame& fr = m_frames[ imageIndex ];
+    fr.m_state = Frame::State::eNone;
     fr.m_descSetUniform.reset();
     fr.m_descSetUniformSampler.reset();
+    fr.m_descSetUniformImage.reset();
     fr.m_uniformBuffer.reset();
 
-    const VkExtent2D extent = m_swapchain.extent();
-    const VkRect2D rect{ .extent = extent };
-    beginRecording( fr.m_cmdRender, extent );
-    beginRecording( fr.m_cmdDepthPrepass, extent );
-    m_mainPass.begin( fr.m_cmdRender, fr.m_renderTarget.framebuffer(), rect );
-    m_depthPrepass.begin( fr.m_cmdDepthPrepass, fr.m_renderDepthTarget.framebuffer(), rect );
+    beginRecording( fr.m_cmdRender );
+    beginRecording( fr.m_cmdDepthPrepass );
 }
 
 void RendererVK::deleteBuffer( Buffer b )
@@ -643,30 +642,35 @@ void RendererVK::endFrame()
     ZoneScoped;
     m_lastPipeline = nullptr;
 
-    {
-        VkCommandBuffer cmd = m_frames[ m_currentFrame ].m_cmdDepthPrepass;
-        m_depthPrepass.end( cmd );
-
-        [[maybe_unused]]
-        const VkResult cmdEnd = vkEndCommandBuffer( cmd );
-        assert( cmdEnd == VK_SUCCESS );
+    Frame& fr = m_frames[ m_currentFrame ];
+    switch ( fr.m_state ) {
+    case Frame::State::eGraphics: {
+        m_depthPrepass.end( fr.m_cmdDepthPrepass );
+        m_mainPass.end( fr.m_cmdRender );
+        transferImage( fr.m_cmdRender, fr.m_renderTarget.image(), constants::fragmentWrite, constants::copyFrom );
+    } break;
+    case Frame::State::eCompute:
+        transferImage( fr.m_cmdRender, fr.m_renderTarget.image(), constants::computeReadWrite, constants::copyFrom );
+        break;
+    default:
+        assert( !"here be manticores" );
+        break;
     }
 
-    VkCommandBuffer cmd = m_frames[ m_currentFrame ].m_cmdRender;
-    m_mainPass.end( cmd );
+    [[maybe_unused]]
+    const VkResult cmdEndD = vkEndCommandBuffer( fr.m_cmdDepthPrepass );
+    assert( cmdEndD == VK_SUCCESS );
 
-    RenderTarget& mainTgt = m_frames[ m_currentFrame ].m_renderTarget;
-    transferImage( cmd, mainTgt.image(), constants::fragmentOut, constants::copyFrom );
+    VkCommandBuffer cmd = fr.m_cmdRender;
     transferImage( cmd, m_swapchain.image( m_currentFrame ), constants::undefined, constants::copyTo );
-
     const VkImageCopy region{
         .srcSubresource{ .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .layerCount = 1 },
         .dstSubresource{ .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .layerCount = 1 },
-        .extent = mainTgt.extent3D()
+        .extent = fr.m_renderTarget.extent3D()
     };
 
     vkCmdCopyImage( cmd
-        , mainTgt.image()
+        , fr.m_renderTarget.image()
         , constants::copyFrom.m_layout
         , m_swapchain.image( m_currentFrame )
         , constants::copyTo.m_layout
@@ -685,7 +689,7 @@ void RendererVK::endFrame()
 
     std::array cmds{
         flushUniforms()
-        , m_frames[ m_currentFrame ].m_cmdDepthPrepass
+        , fr.m_cmdDepthPrepass
         , cmd };
 
     const VkSubmitInfo submitInfo{
@@ -802,12 +806,57 @@ static void updateDescriptor( VkDevice device
     vkUpdateDescriptorSets( device, writeCount, descriptorWrites, 0, nullptr );
 }
 
+static void updateDescriptor2( VkDevice device
+    , VkDescriptorSet descriptorSet
+    , const VkDescriptorBufferInfo& bufferInfo
+    , const VkDescriptorImageInfo& imageInfo
+)
+{
+    const VkWriteDescriptorSet descriptorWrites[] = {
+        {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstSet = descriptorSet,
+            .dstBinding = 0,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .pBufferInfo = &bufferInfo,
+        },
+        {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstSet = descriptorSet,
+            .dstBinding = 1,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+            .pImageInfo = &imageInfo,
+        },
+    };
+    const uint32_t writeCount = (uint32_t)std::size( descriptorWrites );;
+    vkUpdateDescriptorSets( device, writeCount, descriptorWrites, 0, nullptr );
+}
+
 void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
 {
     assert( pushBuffer.m_pipeline < m_pipelines.size() );
 
     Frame& fr = m_frames[ m_currentFrame ];
     PipelineVK& currentPipeline = m_pipelines[ pushBuffer.m_pipeline ];
+
+    switch ( fr.m_state ) {
+    case Frame::State::eCompute:
+        transferImage( fr.m_cmdRender, fr.m_renderTarget.image(), constants::computeReadWrite, constants::fragmentWrite );
+        [[fallthrough]];
+    case Frame::State::eNone: {
+        fr.m_state = Frame::State::eGraphics;
+        const VkRect2D rect{ .extent = fr.m_renderDepthTarget.extent() };
+        m_depthPrepass.begin( fr.m_cmdDepthPrepass, fr.m_renderDepthTarget.framebuffer(), rect );
+        m_mainPass.begin( fr.m_cmdRender, fr.m_renderTarget.framebuffer(), rect );
+    } break;
+    default:
+        break;
+    }
+
 
     const bool bindTexture = currentPipeline.textureBindPoints() != 0u;
     assert( !bindTexture || pushBuffer.m_texture );
@@ -864,4 +913,34 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
 
     if ( depthWrite ) vkCmdDraw( fr.m_cmdDepthPrepass, verticeCount, 1, 0, 0 );
     vkCmdDraw( cmd, verticeCount, 1, 0, 0 );
+}
+
+void RendererVK::dispatch( const DispatchInfo& dispatchInfo, const void* constant )
+{
+    assert( dispatchInfo.m_pipeline < m_pipelines.size() );
+
+    Frame& fr = m_frames[ m_currentFrame ];
+    PipelineVK& currentPipeline = m_pipelines[ dispatchInfo.m_pipeline ];
+
+    switch ( fr.m_state ) {
+    case Frame::State::eGraphics:
+        fr.m_state = Frame::State::eCompute;
+        m_depthPrepass.end( fr.m_cmdDepthPrepass );
+        m_mainPass.end( fr.m_cmdRender );
+        transferImage( fr.m_cmdRender, fr.m_renderTarget.image(), constants::fragmentWrite, constants::computeReadWrite );
+        break;
+    default:
+        break;
+    }
+
+    auto& descriptorPool = fr.m_descSetUniformImage;
+    const VkDescriptorBufferInfo bufferInfo = fr.m_uniformBuffer.copy( constant, currentPipeline.pushConstantSize() );
+    const VkDescriptorSet descriptorSet = descriptorPool.next();
+    assert( descriptorSet != VK_NULL_HANDLE );
+    updateDescriptor2( m_device, descriptorSet, bufferInfo, fr.m_renderTarget.imageInfo() );
+    VkCommandBuffer cmd = fr.m_cmdRender;
+    vkCmdBindDescriptorSets( cmd, VK_PIPELINE_BIND_POINT_COMPUTE, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
+    vkCmdBindPipeline( cmd, VK_PIPELINE_BIND_POINT_COMPUTE, currentPipeline );
+    const VkExtent2D extent = fr.m_renderTarget.extent();
+    vkCmdDispatch( cmd, extent.width / 8, extent.height / 8, 1 );
 }

@@ -94,4 +94,5 @@ public:
     virtual void deleteTexture( Texture ) override;
     virtual void present() override;
     virtual void push( const PushBuffer& buffer, const void* constant ) override;
+    virtual void dispatch( const DispatchInfo&, const void* constant ) override;
 };

@@ -12,6 +12,10 @@
 #include <vector>
 #include <span>
 
+struct DispatchInfo {
+    PipelineSlot m_pipeline = 0;
+};
+
 class Engine;
 class Renderer {
 public:
@@ -33,6 +37,7 @@ public:
     virtual void deleteTexture( Texture ) = 0;
 
     virtual void push( const PushBuffer&, const void* constant ) = 0;
+    virtual void dispatch( const DispatchInfo&, const void* constant ) = 0;
 
 protected:
     friend class Engine;
