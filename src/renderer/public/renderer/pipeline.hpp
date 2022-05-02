@@ -21,6 +21,7 @@ struct PipelineCreateInfo {
 
     const char* m_vertexShader = nullptr;
     const char* m_fragmentShader = nullptr;
+    const char* m_computeShader = nullptr;
     PipelineSlot m_slot = 0;
     uint32_t m_pushConstantSize = 0;
     bool m_enableBlend : 1 = false;
