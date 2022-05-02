@@ -521,6 +521,15 @@ void Game::onRender( RenderContext rctx )
     default:
         break;
     }
+
+    const PushConstant<Pipeline::eGammaCorrection> pushConstant{
+        .m_power = 1.2f,
+    };
+
+    const DispatchInfo dispatchInfo{
+        .m_pipeline = static_cast<PipelineSlot>( Pipeline::eGammaCorrection ),
+    };
+    m_renderer->dispatch( dispatchInfo, &pushConstant );
 }
 
 void Game::onUpdate( const UpdateContext& uctx )

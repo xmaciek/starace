@@ -17,6 +17,7 @@ enum class Pipeline : PipelineSlot {
     eAlbedo,
     eSprite3D,
     eThruster,
+    eGammaCorrection,
     count,
 };
 
@@ -145,6 +146,11 @@ struct PushConstant<Pipeline::eSprite3D> {
     math::vec4 m_color{};
     std::array<math::vec4, 4> m_vertices{};
     std::array<math::vec4, 4> m_uv{};
+};
+
+template <>
+struct PushConstant<Pipeline::eGammaCorrection> {
+    float m_power = 2.2f;
 };
 
 [[maybe_unused]]
@@ -326,5 +332,14 @@ PipelineCreateInfo{
     .m_constantBindBits = 0b1,
     .m_textureBindBits = 0b10,
 },
+
+PipelineCreateInfo{
+    .m_computeShader = "shaders/gamma.comp.spv",
+    .m_slot = static_cast<PipelineSlot>( Pipeline::eGammaCorrection ),
+    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eGammaCorrection> ),
+    .m_constantBindBits = 0b1,
+    .m_textureBindBits = 0b10,
+},
+
 
 };

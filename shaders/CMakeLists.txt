@@ -49,3 +49,5 @@ compileShader( sprite3d.frag )
 
 compileShader( thruster.vert )
 compileShader( thruster.frag )
+
+compileShader( gamma.comp )
