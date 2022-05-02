@@ -5,7 +5,9 @@
 
 class RenderPass {
     VkDevice m_device = VK_NULL_HANDLE;
+    VkRenderPass m_renderClear = VK_NULL_HANDLE;
     VkRenderPass m_renderPass = VK_NULL_HANDLE;
+    VkRenderPass m_currentPass = VK_NULL_HANDLE;
     bool m_depthOnly = false;
 
 public:
@@ -22,6 +24,7 @@ public:
     operator VkRenderPass() const noexcept;
 
     void begin( VkCommandBuffer, VkFramebuffer, const VkRect2D& ) noexcept;
+    void resume( VkCommandBuffer, VkFramebuffer, const VkRect2D& ) noexcept;
     void end( VkCommandBuffer ) noexcept;
 
 };
