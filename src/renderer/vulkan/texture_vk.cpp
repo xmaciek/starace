@@ -122,7 +122,7 @@ TextureVK& TextureVK::operator = ( TextureVK&& rhs ) noexcept
 void TextureVK::transferFrom( VkCommandBuffer cmd, const BufferVK& buffer )
 {
     ZoneScoped;
-    transferImage( cmd, m_image, constants::undefined, constants::copyTo );
+    transfer( cmd, constants::copyTo );
     const VkBufferImageCopy region{
         .imageSubresource = VkImageSubresourceLayers{
             .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
@@ -135,7 +135,7 @@ void TextureVK::transferFrom( VkCommandBuffer cmd, const BufferVK& buffer )
         },
     };
     vkCmdCopyBufferToImage( cmd, buffer, m_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region );
-    transferImage( cmd, m_image, constants::copyTo, constants::fragmentRead );
+    transfer( cmd, constants::fragmentRead );
 }
 
 VkSampler TextureVK::sampler() const

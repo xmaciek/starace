@@ -644,13 +644,11 @@ void RendererVK::endFrame()
 
     Frame& fr = m_frames[ m_currentFrame ];
     switch ( fr.m_state ) {
-    case Frame::State::eGraphics: {
+    case Frame::State::eGraphics:
         m_depthPrepass.end( fr.m_cmdDepthPrepass );
         m_mainPass.end( fr.m_cmdRender );
-        transferImage( fr.m_cmdRender, fr.m_renderTarget.image(), constants::fragmentWrite, constants::copyFrom );
-    } break;
+        break;
     case Frame::State::eCompute:
-        transferImage( fr.m_cmdRender, fr.m_renderTarget.image(), constants::computeReadWrite, constants::copyFrom );
         break;
     default:
         assert( !"here be manticores" );
@@ -662,6 +660,7 @@ void RendererVK::endFrame()
     assert( cmdEndD == VK_SUCCESS );
 
     VkCommandBuffer cmd = fr.m_cmdRender;
+    fr.m_renderTarget.transfer( cmd, constants::copyFrom );
     transferImage( cmd, m_swapchain.image( m_currentFrame ), constants::undefined, constants::copyTo );
     const VkImageCopy region{
         .srcSubresource{ .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .layerCount = 1 },
@@ -843,10 +842,15 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
     Frame& fr = m_frames[ m_currentFrame ];
     PipelineVK& currentPipeline = m_pipelines[ pushBuffer.m_pipeline ];
 
+    fr.m_renderTarget.transfer( fr.m_cmdRender, constants::fragmentWrite );
     switch ( fr.m_state ) {
-    case Frame::State::eCompute:
-        transferImage( fr.m_cmdRender, fr.m_renderTarget.image(), constants::computeReadWrite, constants::fragmentWrite );
-        [[fallthrough]];
+    case Frame::State::eCompute: {
+        fr.m_state = Frame::State::eGraphics;
+        const VkRect2D rect{ .extent = fr.m_renderDepthTarget.extent() };
+        m_depthPrepass.resume( fr.m_cmdDepthPrepass, fr.m_renderDepthTarget.framebuffer(), rect );
+        m_mainPass.resume( fr.m_cmdRender, fr.m_renderTarget.framebuffer(), rect );
+    } break;
+
     case Frame::State::eNone: {
         fr.m_state = Frame::State::eGraphics;
         const VkRect2D rect{ .extent = fr.m_renderDepthTarget.extent() };
@@ -927,20 +931,22 @@ void RendererVK::dispatch( const DispatchInfo& dispatchInfo, const void* constan
         fr.m_state = Frame::State::eCompute;
         m_depthPrepass.end( fr.m_cmdDepthPrepass );
         m_mainPass.end( fr.m_cmdRender );
-        transferImage( fr.m_cmdRender, fr.m_renderTarget.image(), constants::fragmentWrite, constants::computeReadWrite );
         break;
     default:
         break;
     }
 
+    VkCommandBuffer cmd = fr.m_cmdRender;
     auto& descriptorPool = fr.m_descSetUniformImage;
     const VkDescriptorBufferInfo bufferInfo = fr.m_uniformBuffer.copy( constant, currentPipeline.pushConstantSize() );
     const VkDescriptorSet descriptorSet = descriptorPool.next();
     assert( descriptorSet != VK_NULL_HANDLE );
+
     updateDescriptor2( m_device, descriptorSet, bufferInfo, fr.m_renderTarget.imageInfo() );
-    VkCommandBuffer cmd = fr.m_cmdRender;
+    fr.m_renderTarget.transfer( cmd, constants::computeReadWrite );
     vkCmdBindDescriptorSets( cmd, VK_PIPELINE_BIND_POINT_COMPUTE, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
     vkCmdBindPipeline( cmd, VK_PIPELINE_BIND_POINT_COMPUTE, currentPipeline );
+
     const VkExtent2D extent = fr.m_renderTarget.extent();
     vkCmdDispatch( cmd, extent.width / 8, extent.height / 8, 1 );
 }

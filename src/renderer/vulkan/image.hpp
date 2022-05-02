@@ -1,5 +1,7 @@
 #pragma once
 
+#include "utils_vk.hpp"
+
 #include <vulkan/vulkan.h>
 
 class Image {
@@ -12,6 +14,8 @@ protected:
 
     VkExtent2D m_extent = {};
     VkFormat m_format = VK_FORMAT_UNDEFINED;
+
+    TransferInfo m_currentLocation = constants::undefined;
 
 public:
     ~Image() noexcept;
@@ -35,4 +39,6 @@ public:
     VkImage image() const;
     VkImageView view() const;
     VkExtent2D extent() const;
+
+    void transfer( VkCommandBuffer, const TransferInfo& );
 };

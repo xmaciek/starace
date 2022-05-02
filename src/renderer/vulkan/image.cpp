@@ -21,6 +21,7 @@ Image::Image( Image&& img ) noexcept
     std::swap( m_imageView, img.m_imageView );
     std::swap( m_extent, img.m_extent );
     std::swap( m_format, img.m_format );
+    std::swap( m_currentLocation, img.m_currentLocation );
 }
 
 Image& Image::operator = ( Image&& img ) noexcept
@@ -31,6 +32,7 @@ Image& Image::operator = ( Image&& img ) noexcept
     std::swap( m_imageView, img.m_imageView );
     std::swap( m_extent, img.m_extent );
     std::swap( m_format, img.m_format );
+    std::swap( m_currentLocation, img.m_currentLocation );
     return *this;
 }
 
@@ -132,4 +134,13 @@ Image::Image( VkPhysicalDevice physDevice
     [[maybe_unused]]
     const VkResult createOK = vkCreateImageView( m_device, &imageViewInfo, nullptr, &m_imageView );
     assert( createOK == VK_SUCCESS );
+}
+
+void Image::transfer( VkCommandBuffer cmd, const TransferInfo& dst )
+{
+    if ( m_currentLocation == dst ) {
+        return;
+    }
+    transferImage( cmd, m_image, m_currentLocation, dst );
+    m_currentLocation = dst;
 }

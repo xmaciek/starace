@@ -23,6 +23,7 @@ struct TransferInfo {
     VkImageLayout m_layout{};
     VkAccessFlags m_access{};
     VkPipelineStageFlags m_stage{};
+    inline bool operator == ( const TransferInfo& ) const noexcept = default;
 };
 
 void transferImage( VkCommandBuffer, VkImage, const TransferInfo& src, const TransferInfo& dst );
