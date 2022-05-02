@@ -85,6 +85,7 @@ public:
 
     virtual void createPipeline( const PipelineCreateInfo& ) override;
     virtual Buffer createBuffer( std::pmr::vector<float>&& ) override;
+    virtual Buffer createBuffer( std::span<const float> ) override;
     virtual std::pmr::memory_resource* allocator() override;
     virtual Texture createTexture( const TextureCreateInfo&, std::pmr::vector<uint8_t>&& ) override;
     virtual void beginFrame() override;

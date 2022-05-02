@@ -384,7 +384,7 @@ VkCommandBuffer RendererVK::flushUniforms()
 
 }
 
-Buffer RendererVK::createBuffer( std::pmr::vector<float>&& vec )
+Buffer RendererVK::createBuffer( std::span<const float> vec )
 {
     ZoneScoped;
     BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, static_cast<uint32_t>( vec.size() * sizeof( float ) ) };
@@ -425,6 +425,11 @@ Buffer RendererVK::createBuffer( std::pmr::vector<float>&& vec )
     BufferVK* oldBuff = m_bufferSlots[ idx ].exchange( buff );
     assert( !oldBuff );
     return idx + 1;
+}
+
+Buffer RendererVK::createBuffer( std::pmr::vector<float>&& vec )
+{
+    return createBuffer( std::span<const float>{ vec.data(), vec.data() + vec.size() } );
 }
 
 std::pmr::memory_resource* RendererVK::allocator()

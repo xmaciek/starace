@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <memory_resource>
 #include <vector>
+#include <span>
 
 class Engine;
 class Renderer {
@@ -25,6 +26,7 @@ public:
     virtual void createPipeline( const PipelineCreateInfo& ) = 0;
 
     virtual Buffer createBuffer( std::pmr::vector<float>&& ) = 0;
+    virtual Buffer createBuffer( std::span<const float> ) = 0;
     virtual void deleteBuffer( Buffer ) = 0;
 
     virtual Texture createTexture( const TextureCreateInfo&, std::pmr::vector<uint8_t>&& ) = 0;

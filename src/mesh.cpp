@@ -46,11 +46,11 @@ Mesh::Mesh( std::pmr::vector<uint8_t>&& data, Renderer* renderer ) noexcept
             continue;
         }
 
-        std::pmr::vector<float> floats{ chunk.floatCount, renderer->allocator() };
+        const float* floats = reinterpret_cast<const float*>( ptr );
+        std::span<const float> span{ floats, floats + chunk.floatCount };
         const uint32_t bytesToLoad = chunk.floatCount * sizeof( float );
-        std::memcpy( floats.data(), ptr, bytesToLoad );
         std::advance( ptr, bytesToLoad );
-        Buffer buffer = renderer->createBuffer( std::move( floats ) );
+        Buffer buffer = renderer->createBuffer( span );
         m_map.emplace( std::make_pair( std::pmr::string{ chunk.name }, buffer ) );
     }
 }
