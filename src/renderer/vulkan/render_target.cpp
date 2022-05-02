@@ -79,3 +79,11 @@ VkExtent3D RenderTarget::extent3D() const
         .depth = 1,
     };
 }
+
+VkDescriptorImageInfo RenderTarget::imageInfo() const
+{
+    return {
+        .imageView = m_imageView,
+        .imageLayout = VK_IMAGE_LAYOUT_GENERAL,
+    };
+}
