@@ -2,23 +2,16 @@
 
 #include "utils_vk.hpp"
 
-#include <shared/bit_index_iterator.hpp>
-
 #include <Tracy.hpp>
 
 #include <array>
 #include <bit>
 #include <cassert>
 
-void DescriptorSet::destroyResources()
+DescriptorSet::~DescriptorSet() noexcept
 {
     destroy<vkDestroyDescriptorSetLayout>( m_device, m_layout );
     destroy<vkDestroyDescriptorPool>( m_device, m_pool );
-}
-
-DescriptorSet::~DescriptorSet() noexcept
-{
-    destroyResources();
 }
 
 
@@ -33,63 +26,69 @@ DescriptorSet::DescriptorSet( DescriptorSet&& rhs ) noexcept
 
 DescriptorSet& DescriptorSet::operator = ( DescriptorSet&& rhs ) noexcept
 {
-    destroyResources();
-    m_device = std::exchange( rhs.m_device, {} );
-    m_pool = std::exchange( rhs.m_pool, {} );
-    m_layout = std::exchange( rhs.m_layout, {} );
-    m_set = std::move( rhs.m_set );
-    m_current = std::exchange( rhs.m_current, {} );
+    std::swap( m_device, rhs.m_device );
+    std::swap( m_pool, rhs.m_pool );
+    std::swap( m_layout, rhs.m_layout );
+    std::swap( m_set, rhs.m_set );
+    std::swap( m_current, rhs.m_current );
     return *this;
 }
 
+enum class LayoutStage {
+    eGraphics,
+    eCompute,
+};
+
 static VkDescriptorSetLayout createLayout(
     VkDevice device
+    , LayoutStage layoutStage
     , uint16_t constantBindBits
-    , uint16_t samplerBindBits
-    , uint16_t computeImageBindBits
+    , uint16_t imageBindBits
 )
 {
     assert( device );
     assert( std::popcount( constantBindBits ) == 1 );
-    assert( ( constantBindBits & samplerBindBits ) == 0 ); // mutually exclusive bits
-    assert( ( constantBindBits & computeImageBindBits ) == 0 ); // mutually exclusive bits
-    [[maybe_unused]]
-    const bool hasImageBindBits = samplerBindBits || computeImageBindBits;
-    assert( !hasImageBindBits || !!samplerBindBits != !!computeImageBindBits ); // mutually exclusive
+    assert( ( constantBindBits & imageBindBits ) == 0 ); // mutually exclusive bits
 
-    auto stage = computeImageBindBits
-        ? VK_SHADER_STAGE_COMPUTE_BIT
-        : VK_SHADER_STAGE_VERTEX_BIT;
+    const auto reserve = std::popcount( constantBindBits ) + std::popcount( imageBindBits );
+    std::pmr::vector<VkDescriptorSetLayoutBinding> layoutBinding{ static_cast<std::size_t>( reserve ) };
 
-    std::pmr::vector<VkDescriptorSetLayoutBinding> layoutBinding{};
-    using size_type = decltype( layoutBinding )::size_type;
-    const auto reserve = std::popcount( samplerBindBits ) + std::popcount( computeImageBindBits );
+    struct MakeBinding {
+        uint16_t bindBits = 0;
+        VkDescriptorType type{};
+        VkShaderStageFlagBits stageFlags{};
 
-    layoutBinding.reserve( static_cast<size_type>( reserve ) + 1 );
-    layoutBinding.push_back( VkDescriptorSetLayoutBinding{
-        .binding = *BitIndexIterator( constantBindBits ),
-        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-        .descriptorCount = 1,
-        .stageFlags = stage,
-    } );
+        VkDescriptorSetLayoutBinding operator () () noexcept
+        {
+            assert( bindBits != 0 );
+            auto binding = std::countr_zero( bindBits );
+            bindBits &= ~( 1ull << binding );
+            return {
+                .binding = static_cast<uint32_t>( binding ),
+                .descriptorType = type,
+                .descriptorCount = 1,
+                .stageFlags = stageFlags,
+            };
+        }
+    };
 
-    for ( BitIndexIterator it = samplerBindBits; it; ++it ) {
-        layoutBinding.push_back( VkDescriptorSetLayoutBinding{
-            .binding = *it,
-            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-        } );
-    }
+    auto constantStage = layoutStage == LayoutStage::eGraphics
+        ? VK_SHADER_STAGE_VERTEX_BIT
+        : VK_SHADER_STAGE_COMPUTE_BIT;
+    auto imageStage = layoutStage == LayoutStage::eGraphics
+        ? VK_SHADER_STAGE_FRAGMENT_BIT
+        : VK_SHADER_STAGE_COMPUTE_BIT;
+    auto imageType = layoutStage == LayoutStage::eGraphics
+        ? VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
+        : VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
 
-    for ( BitIndexIterator it = computeImageBindBits; it; ++it ) {
-        layoutBinding.push_back( VkDescriptorSetLayoutBinding{
-            .binding = *it,
-            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-        } );
-    }
+    auto it = layoutBinding.begin();
+
+    it = std::generate_n( it, std::popcount( constantBindBits ),
+            MakeBinding{ constantBindBits, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, constantStage } );
+
+    it = std::generate_n( it, std::popcount( imageBindBits ),
+            MakeBinding{ imageBindBits, imageType, imageStage } );
 
     const VkDescriptorSetLayoutCreateInfo layoutInfo{
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
@@ -99,8 +98,8 @@ static VkDescriptorSetLayout createLayout(
 
     VkDescriptorSetLayout ret = VK_NULL_HANDLE;
     [[maybe_unused]]
-    const VkResult setLayoutOK = vkCreateDescriptorSetLayout( device, &layoutInfo, nullptr, &ret );
-    assert( setLayoutOK == VK_SUCCESS );
+    const VkResult layoutOK = vkCreateDescriptorSetLayout( device, &layoutInfo, nullptr, &ret );
+    assert( layoutOK == VK_SUCCESS );
     return ret;
 }
 
@@ -122,7 +121,12 @@ DescriptorSet::DescriptorSet(
     const bool hasImageBindBits = samplerBindBits || computeImageBindBits;
     assert( !hasImageBindBits || !!samplerBindBits != !!computeImageBindBits ); // mutually exclusive
 
-    m_layout = createLayout( m_device, constantBindBits, samplerBindBits, computeImageBindBits );
+    if ( computeImageBindBits ) {
+        m_layout = createLayout( m_device, LayoutStage::eCompute, constantBindBits, computeImageBindBits );
+    }
+    else {
+        m_layout = createLayout( m_device, LayoutStage::eGraphics, constantBindBits, samplerBindBits );
+    }
 
     const uint32_t poolSizeCount = 1 + ( samplerBindBits != 0 );
     const std::array poolSizes = {

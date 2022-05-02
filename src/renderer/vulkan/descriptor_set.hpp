@@ -14,8 +14,6 @@ class DescriptorSet {
     std::pmr::vector<VkDescriptorSet> m_set;
     uint32_t m_current = 0;
 
-    void destroyResources();
-
 public:
     ~DescriptorSet() noexcept;
     DescriptorSet() noexcept = default;
