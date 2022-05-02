@@ -274,9 +274,9 @@ RendererVK::RendererVK( SDL_Window* window, VSync vsync )
             , VK_FORMAT_B8G8R8A8_UNORM
             , it.m_renderDepthTarget.view()
         };
-        it.m_descSetUniform = DescriptorSet{ m_device, 800, 0b1, 0, 0 };
-        it.m_descSetUniformSampler = DescriptorSet{ m_device, 400, 0b1, 0b10, 0 };
-        it.m_descSetUniformImage = DescriptorSet{ m_device, 4, 0b1, 0, 0b10 };
+        it.m_descSetUniform = DescriptorSet{ m_device, 0b1, 0, 0 };
+        it.m_descSetUniformSampler = DescriptorSet{ m_device, 0b1, 0b10, 0 };
+        it.m_descSetUniformImage = DescriptorSet{ m_device, 0b1, 0, 0b10 };
         it.m_uniformBuffer = Uniform{ m_physicalDevice, m_device, 2_MiB, 256 };
         it.m_cmdTransfer = m_commandPool[ i++ ];
         it.m_cmdDepthPrepass = m_commandPool[ i++ ];

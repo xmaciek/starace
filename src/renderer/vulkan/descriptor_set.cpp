@@ -11,26 +11,31 @@
 DescriptorSet::~DescriptorSet() noexcept
 {
     destroy<vkDestroyDescriptorSetLayout>( m_device, m_layout );
-    destroy<vkDestroyDescriptorPool>( m_device, m_pool );
+    for ( auto it : m_pools ) {
+        destroy<vkDestroyDescriptorPool>( m_device, it );
+    }
 }
-
 
 DescriptorSet::DescriptorSet( DescriptorSet&& rhs ) noexcept
 {
     std::swap( m_device, rhs.m_device );
-    std::swap( m_pool, rhs.m_pool );
     std::swap( m_layout, rhs.m_layout );
     std::swap( m_set, rhs.m_set );
     std::swap( m_current, rhs.m_current );
+    std::swap( m_pools, rhs.m_pools );
+    std::swap( m_imagesCount, rhs.m_imagesCount );
+    std::swap( m_isGraphics, rhs.m_isGraphics );
 }
 
 DescriptorSet& DescriptorSet::operator = ( DescriptorSet&& rhs ) noexcept
 {
     std::swap( m_device, rhs.m_device );
-    std::swap( m_pool, rhs.m_pool );
     std::swap( m_layout, rhs.m_layout );
     std::swap( m_set, rhs.m_set );
     std::swap( m_current, rhs.m_current );
+    std::swap( m_pools, rhs.m_pools );
+    std::swap( m_imagesCount, rhs.m_imagesCount );
+    std::swap( m_isGraphics, rhs.m_isGraphics );
     return *this;
 }
 
@@ -62,7 +67,7 @@ static VkDescriptorSetLayout createLayout(
         {
             assert( bindBits != 0 );
             auto binding = std::countr_zero( bindBits );
-            bindBits &= ~( 1ull << binding );
+            bindBits &= static_cast<uint16_t>( ~( 1ull << binding ) );
             return {
                 .binding = static_cast<uint32_t>( binding ),
                 .descriptorType = type,
@@ -105,7 +110,6 @@ static VkDescriptorSetLayout createLayout(
 
 DescriptorSet::DescriptorSet(
     VkDevice device
-    , uint32_t setsPerFrame
     , uint16_t constantBindBits
     , uint16_t samplerBindBits
     , uint16_t computeImageBindBits
@@ -122,46 +126,58 @@ DescriptorSet::DescriptorSet(
     assert( !hasImageBindBits || !!samplerBindBits != !!computeImageBindBits ); // mutually exclusive
 
     if ( computeImageBindBits ) {
+        m_imagesCount = static_cast<uint32_t>( std::popcount( computeImageBindBits ) );
+        m_isGraphics = false;
         m_layout = createLayout( m_device, LayoutStage::eCompute, constantBindBits, computeImageBindBits );
     }
     else {
+        m_imagesCount = static_cast<uint32_t>( std::popcount( samplerBindBits ) );
+        m_isGraphics = true;
         m_layout = createLayout( m_device, LayoutStage::eGraphics, constantBindBits, samplerBindBits );
     }
 
-    const uint32_t poolSizeCount = 1 + ( samplerBindBits != 0 );
+    expandCapacityBy( 50 );
+}
+
+void DescriptorSet::expandCapacityBy( uint32_t v )
+{
+    auto currentCapacity = m_set.size();
+    auto imageType = m_isGraphics
+        ? VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
+        : VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+
+    const uint32_t poolSizeCount = 1 + !!m_imagesCount;
     const std::array poolSizes = {
-        VkDescriptorPoolSize{ .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, .descriptorCount = setsPerFrame },
-        VkDescriptorPoolSize{
-            .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = setsPerFrame * static_cast<uint32_t>( std::popcount( samplerBindBits ) ),
-        }
+        VkDescriptorPoolSize{ .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, .descriptorCount = v },
+        VkDescriptorPoolSize{ .type = imageType, .descriptorCount = v * m_imagesCount },
     };
 
     const VkDescriptorPoolCreateInfo poolInfo{
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-        .maxSets = setsPerFrame,
+        .maxSets = v,
         .poolSizeCount = poolSizeCount,
         .pPoolSizes = poolSizes.data(),
     };
 
+    VkDescriptorPool pool = VK_NULL_HANDLE;
     [[maybe_unused]]
-    const VkResult descriptroPoolOK = vkCreateDescriptorPool( device, &poolInfo, nullptr, &m_pool );
+    const VkResult descriptroPoolOK = vkCreateDescriptorPool( m_device, &poolInfo, nullptr, &pool );
     assert( descriptroPoolOK == VK_SUCCESS );
+    m_pools.push_back( pool );
 
-    m_set.resize( setsPerFrame );
-    const std::pmr::vector<VkDescriptorSetLayout> layouts( setsPerFrame, m_layout );
+    m_set.resize( currentCapacity + v );
+    const std::pmr::vector<VkDescriptorSetLayout> layouts( v, m_layout );
     const VkDescriptorSetAllocateInfo allocInfo{
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-        .descriptorPool = m_pool,
-        .descriptorSetCount = setsPerFrame,
+        .descriptorPool = pool,
+        .descriptorSetCount = v,
         .pSetLayouts = layouts.data(),
     };
 
     [[maybe_unused]]
-    const VkResult allocOK = vkAllocateDescriptorSets( m_device, &allocInfo, m_set.data() );
+    const VkResult allocOK = vkAllocateDescriptorSets( m_device, &allocInfo, m_set.data() + currentCapacity );
     assert( allocOK == VK_SUCCESS );
 }
-
 
 VkDescriptorSetLayout DescriptorSet::layout() const
 {
@@ -170,6 +186,9 @@ VkDescriptorSetLayout DescriptorSet::layout() const
 
 VkDescriptorSet DescriptorSet::next()
 {
+    if ( m_current == m_set.size() ) {
+        expandCapacityBy( 50 );
+    }
     assert( m_current < m_set.size() );
     return m_set[ m_current++ ];
 }
