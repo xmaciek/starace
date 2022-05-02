@@ -25,6 +25,7 @@ public:
         , uint32_t setsPerFrame
         , uint16_t constantBindBits
         , uint16_t samplerBindBits
+        , uint16_t computeImageBindBits
     ) noexcept;
 
     DescriptorSet( DescriptorSet&& ) noexcept;

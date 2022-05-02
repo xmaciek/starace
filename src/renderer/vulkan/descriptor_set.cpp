@@ -42,20 +42,35 @@ DescriptorSet& DescriptorSet::operator = ( DescriptorSet&& rhs ) noexcept
     return *this;
 }
 
-static VkDescriptorSetLayout createLayout( VkDevice device, uint16_t constantBindBits, uint16_t samplerBindBits )
+static VkDescriptorSetLayout createLayout(
+    VkDevice device
+    , uint16_t constantBindBits
+    , uint16_t samplerBindBits
+    , uint16_t computeImageBindBits
+)
 {
     assert( device );
     assert( std::popcount( constantBindBits ) == 1 );
     assert( ( constantBindBits & samplerBindBits ) == 0 ); // mutually exclusive bits
+    assert( ( constantBindBits & computeImageBindBits ) == 0 ); // mutually exclusive bits
+    [[maybe_unused]]
+    const bool hasImageBindBits = samplerBindBits || computeImageBindBits;
+    assert( !hasImageBindBits || !!samplerBindBits != !!computeImageBindBits ); // mutually exclusive
+
+    auto stage = computeImageBindBits
+        ? VK_SHADER_STAGE_COMPUTE_BIT
+        : VK_SHADER_STAGE_VERTEX_BIT;
 
     std::pmr::vector<VkDescriptorSetLayoutBinding> layoutBinding{};
     using size_type = decltype( layoutBinding )::size_type;
-    layoutBinding.reserve( static_cast<size_type>( std::popcount( samplerBindBits ) + 1 ) );
-    layoutBinding.emplace_back( VkDescriptorSetLayoutBinding{
+    const auto reserve = std::popcount( samplerBindBits ) + std::popcount( computeImageBindBits );
+
+    layoutBinding.reserve( static_cast<size_type>( reserve ) + 1 );
+    layoutBinding.push_back( VkDescriptorSetLayoutBinding{
         .binding = *BitIndexIterator( constantBindBits ),
         .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
         .descriptorCount = 1,
-        .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+        .stageFlags = stage,
     } );
 
     for ( BitIndexIterator it = samplerBindBits; it; ++it ) {
@@ -64,6 +79,15 @@ static VkDescriptorSetLayout createLayout( VkDevice device, uint16_t constantBin
             .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             .descriptorCount = 1,
             .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+        } );
+    }
+
+    for ( BitIndexIterator it = computeImageBindBits; it; ++it ) {
+        layoutBinding.push_back( VkDescriptorSetLayoutBinding{
+            .binding = *it,
+            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+            .descriptorCount = 1,
+            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
         } );
     }
 
@@ -85,6 +109,7 @@ DescriptorSet::DescriptorSet(
     , uint32_t setsPerFrame
     , uint16_t constantBindBits
     , uint16_t samplerBindBits
+    , uint16_t computeImageBindBits
 ) noexcept
 : m_device{ device }
 {
@@ -92,8 +117,12 @@ DescriptorSet::DescriptorSet(
     assert( device );
     assert( std::popcount( constantBindBits ) == 1 );
     assert( ( constantBindBits & samplerBindBits ) == 0 ); // mutually exclusive bits
+    assert( ( constantBindBits & computeImageBindBits ) == 0 ); // mutually exclusive bits
+    [[maybe_unused]]
+    const bool hasImageBindBits = samplerBindBits || computeImageBindBits;
+    assert( !hasImageBindBits || !!samplerBindBits != !!computeImageBindBits ); // mutually exclusive
 
-    m_layout = createLayout( m_device, constantBindBits, samplerBindBits );
+    m_layout = createLayout( m_device, constantBindBits, samplerBindBits, computeImageBindBits );
 
     const uint32_t poolSizeCount = 1 + ( samplerBindBits != 0 );
     const std::array poolSizes = {
