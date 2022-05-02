@@ -283,6 +283,39 @@ PipelineVK::PipelineVK(
     m_pipelineDepthPrepass = pipelines[ 1 ];
 }
 
+PipelineVK::PipelineVK(
+    const PipelineCreateInfo& pci
+    , VkDevice device
+    , VkDescriptorSetLayout layout
+) noexcept
+: m_device{ device }
+, m_pushConstantSize{ pci.m_pushConstantSize }
+{
+    ZoneScoped;
+    assert( layout );
+
+    const Shader shader{ device, pci.m_computeShader };
+
+    const VkPipelineLayoutCreateInfo pipelineLayoutInfo{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+        .setLayoutCount = 1,
+        .pSetLayouts = &layout,
+    };
+
+    [[maybe_unused]]
+    const VkResult layoutOK = vkCreatePipelineLayout( m_device, &pipelineLayoutInfo, nullptr, &m_layout );
+    assert( layoutOK == VK_SUCCESS );
+
+    const VkComputePipelineCreateInfo info{
+        .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+        .stage = shader.compute(),
+        .layout = m_layout,
+    };
+
+    const VkResult pipelineOK = vkCreateComputePipelines( device, nullptr, 1, &info, nullptr, &m_pipeline );
+    assert( pipelineOK == VK_SUCCESS );
+}
+
 PipelineVK::operator VkPipeline () const
 {
     return m_pipeline;

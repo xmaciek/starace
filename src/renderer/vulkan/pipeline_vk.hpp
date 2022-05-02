@@ -35,6 +35,12 @@ public:
         , uint32_t textureBindBits
     ) noexcept;
 
+    PipelineVK(
+        const PipelineCreateInfo&
+        , VkDevice
+        , VkDescriptorSetLayout
+    ) noexcept;
+
     PipelineVK( PipelineVK&& ) noexcept;
     PipelineVK& operator = ( PipelineVK&& ) noexcept;
 
