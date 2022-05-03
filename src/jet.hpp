@@ -30,7 +30,7 @@ public:
     };
 
 private:
-    Thruster m_thruster;
+    Thruster m_thruster[ 2 ]{};
     Shield m_shield;
     Model m_model{};
 
@@ -56,6 +56,7 @@ private:
     float m_speedAcceleration = 256_kmph;
 
     Input m_input{};
+    bool m_vectorThrust = false;
 
 public:
     virtual ~Jet() noexcept override = default;

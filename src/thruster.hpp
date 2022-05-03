@@ -2,6 +2,7 @@
 
 #include "circle.hpp"
 #include "colors.hpp"
+#include "units.hpp"
 
 #include <engine/math.hpp>
 #include <engine/render_context.hpp>
@@ -13,7 +14,7 @@
 class Thruster {
 private:
     math::vec2 m_lengthRange{};
-    float m_length = 0.25f;
+    float m_length = 10.0_m;
     float m_wiggle = 0.0f;
     ColorScheme m_colorScheme = colorscheme::ion;
 

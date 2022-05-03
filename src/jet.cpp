@@ -12,14 +12,14 @@ constexpr static math::vec3 defaultPyrLimits{ 80.0_deg, 40.0_deg, 120.0_deg };
 constexpr static math::vec3 defaultPyrAnimLimits{ 5.0_deg, 5.0_deg, 15.0_deg };
 
 Jet::Jet( const ModelProto& modelData ) noexcept
-: m_thruster( modelData.scale, (float)modelData.scale * 0.04285f )
+: m_thruster{ { modelData.scale, modelData.scale * 0.04285f }, { modelData.scale, modelData.scale * 0.04285f } }
 , m_shield( 0.15, 0.03 )
 , m_pyrAccelleration{ defaultPyrAcceleration }
 , m_pyrLimits{ defaultPyrLimits }
 {
     m_direction.z = -1;
     m_health = 100;
-    m_speed = 4;
+    m_speed = 600_kmph;
     setStatus( Status::eAlive );
 
     m_model = modelData.model;
@@ -32,9 +32,20 @@ void Jet::render( RenderContext rctx ) const
     rctx.model *= math::toMat4( animation() );
 
     m_model.render( rctx );
-    for ( const math::vec3& it : m_model.thrusters() ) {
-        m_thruster.renderAt( rctx, it );
+    auto thrusters = m_model.thrusters();
+    if ( !m_vectorThrust || thrusters.size() != 2 ) {
+        for ( const math::vec3& it : thrusters ) {
+            m_thruster[ 0 ].renderAt( rctx, it );
+        }
+        return;
     }
+    const math::mat4 model = rctx.model;
+    const float left =  -5.0_deg * m_input.pitch + 5.0_deg * m_input.roll;
+    const float right = -5.0_deg * m_input.pitch - 5.0_deg * m_input.roll;
+    rctx.model = math::rotate( model, right, axis::x );
+    m_thruster[ 1 ].renderAt( rctx, thrusters[ 1 ] );
+    rctx.model = math::rotate( model, left, axis::x );
+    m_thruster[ 0 ].renderAt( rctx, thrusters[ 0 ] );
 }
 
 void Jet::update( const UpdateContext& updateContext )
@@ -69,9 +80,9 @@ void Jet::update( const UpdateContext& updateContext )
             else {
                 m_pyrAnimCurrent = aTarget;
             }
-            const math::quat qx{ m_pyrAnimCurrent * math::vec3{ 1.0f, 0.0f, 0.0f } };
-            const math::quat qy{ m_pyrAnimCurrent * math::vec3{ 0.0f, 1.0f, 0.0f } };
-            const math::quat qz{ m_pyrAnimCurrent * math::vec3{ 0.0f, 0.0f, 1.0f } };
+            const math::quat qx{ m_pyrAnimCurrent * axis::x };
+            const math::quat qy{ m_pyrAnimCurrent * axis::y };
+            const math::quat qz{ m_pyrAnimCurrent * axis::z };
             m_animation = qz * ( qy * ( math::quat{ math::vec3{} } * qx ) );
         }
     }
@@ -90,9 +101,11 @@ void Jet::update( const UpdateContext& updateContext )
     m_quaternion *= math::quat{ m_pyrCurrent * updateContext.deltaTime };
     m_direction = math::normalize( math::rotate( m_quaternion, math::vec3{ 0.0f, 0.0f, -1.0f } ) );
 
-    if ( speed() < 6.0f ) {
-        m_thruster.setLength( speed() / 16.0f );
-    }
+    // TODO: lerp
+    float left = 10.0_m + ( m_vectorThrust ? m_input.yaw * 3.0_m : 0.0f ) + m_input.speed * 4.0_m;
+    float right = 10.0_m + ( m_vectorThrust ? m_input.yaw * -3.0_m : 0.0f ) + m_input.speed * 4.0_m;
+    m_thruster[ 0 ].setLength( left );
+    m_thruster[ 1 ].setLength( right );
 
     if ( m_shotFactor[ 0 ] < m_weapon[ 0 ].delay ) {
         m_shotFactor[ 0 ] += updateContext.deltaTime;
@@ -106,7 +119,8 @@ void Jet::update( const UpdateContext& updateContext )
 
 
     m_position += velocity() * updateContext.deltaTime;
-    m_thruster.update( updateContext );
+    m_thruster[ 0 ].update( updateContext );
+    m_thruster[ 1 ].update( updateContext );
     m_shield.update( updateContext );
     if ( m_target ) {
         if ( m_target->status() != Status::eAlive ) {
