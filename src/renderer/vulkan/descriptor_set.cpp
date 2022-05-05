@@ -44,18 +44,13 @@ enum class LayoutStage {
     eCompute,
 };
 
-static VkDescriptorSetLayout createLayout(
-    VkDevice device
-    , LayoutStage layoutStage
-    , uint16_t constantBindBits
-    , uint16_t imageBindBits
-)
+static VkDescriptorSetLayout createLayout( VkDevice device, Bindpoints bindpoints )
 {
     assert( device );
-    assert( std::popcount( constantBindBits ) == 1 );
-    assert( ( constantBindBits & imageBindBits ) == 0 ); // mutually exclusive bits
+    assert( std::popcount( bindpoints.constant ) == 1 );
+    assert( ( bindpoints.constant & bindpoints.image ) == 0 ); // mutually exclusive bits
 
-    const auto reserve = std::popcount( constantBindBits ) + std::popcount( imageBindBits );
+    const auto reserve = std::popcount( bindpoints.constant ) + std::popcount( bindpoints.image );
     std::pmr::vector<VkDescriptorSetLayoutBinding> layoutBinding{ static_cast<std::size_t>( reserve ) };
 
     struct MakeBinding {
@@ -77,23 +72,23 @@ static VkDescriptorSetLayout createLayout(
         }
     };
 
-    auto constantStage = layoutStage == LayoutStage::eGraphics
+    auto constantStage = bindpoints.stage == Bindpoints::Stage::eGraphics
         ? VK_SHADER_STAGE_VERTEX_BIT
         : VK_SHADER_STAGE_COMPUTE_BIT;
-    auto imageStage = layoutStage == LayoutStage::eGraphics
+    auto imageStage = bindpoints.stage == Bindpoints::Stage::eGraphics
         ? VK_SHADER_STAGE_FRAGMENT_BIT
         : VK_SHADER_STAGE_COMPUTE_BIT;
-    auto imageType = layoutStage == LayoutStage::eGraphics
+    auto imageType = bindpoints.stage == Bindpoints::Stage::eGraphics
         ? VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
         : VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
 
     auto it = layoutBinding.begin();
 
-    it = std::generate_n( it, std::popcount( constantBindBits ),
-            MakeBinding{ constantBindBits, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, constantStage } );
+    it = std::generate_n( it, std::popcount( bindpoints.constant ),
+            MakeBinding{ bindpoints.constant, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, constantStage } );
 
-    it = std::generate_n( it, std::popcount( imageBindBits ),
-            MakeBinding{ imageBindBits, imageType, imageStage } );
+    it = std::generate_n( it, std::popcount( bindpoints.image ),
+            MakeBinding{ bindpoints.image, imageType, imageStage } );
 
     const VkDescriptorSetLayoutCreateInfo layoutInfo{
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
@@ -108,32 +103,23 @@ static VkDescriptorSetLayout createLayout(
     return ret;
 }
 
-DescriptorSet::DescriptorSet(
-    VkDevice device
-    , uint16_t constantBindBits
-    , uint16_t samplerBindBits
-    , uint16_t computeImageBindBits
-) noexcept
+DescriptorSet::DescriptorSet( VkDevice device, Bindpoints bindpoints ) noexcept
 : m_device{ device }
 {
     ZoneScoped;
     assert( device );
-    assert( std::popcount( constantBindBits ) == 1 );
-    assert( ( constantBindBits & samplerBindBits ) == 0 ); // mutually exclusive bits
-    assert( ( constantBindBits & computeImageBindBits ) == 0 ); // mutually exclusive bits
-    [[maybe_unused]]
-    const bool hasImageBindBits = samplerBindBits || computeImageBindBits;
-    assert( !hasImageBindBits || !!samplerBindBits != !!computeImageBindBits ); // mutually exclusive
+    assert( std::popcount( bindpoints.constant ) == 1 );
+    assert( ( bindpoints.constant & bindpoints.image ) == 0 ); // mutually exclusive bits
 
-    if ( computeImageBindBits ) {
-        m_imagesCount = static_cast<uint32_t>( std::popcount( computeImageBindBits ) );
+    m_imagesCount = static_cast<uint32_t>( std::popcount( bindpoints.image ) );
+    m_layout = createLayout( m_device, bindpoints );
+    switch ( bindpoints.stage ) {
+    case Bindpoints::Stage::eCompute:
         m_isGraphics = false;
-        m_layout = createLayout( m_device, LayoutStage::eCompute, constantBindBits, computeImageBindBits );
-    }
-    else {
-        m_imagesCount = static_cast<uint32_t>( std::popcount( samplerBindBits ) );
+        break;
+    case Bindpoints::Stage::eGraphics:
         m_isGraphics = true;
-        m_layout = createLayout( m_device, LayoutStage::eGraphics, constantBindBits, samplerBindBits );
+        break;
     }
 
     expandCapacityBy( 50 );

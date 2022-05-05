@@ -338,7 +338,7 @@ PipelineCreateInfo{
     .m_slot = static_cast<PipelineSlot>( Pipeline::eGammaCorrection ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eGammaCorrection> ),
     .m_constantBindBits = 0b1,
-    .m_textureBindBits = 0b10,
+    .m_textureBindBits = 0b110,
 },
 
 

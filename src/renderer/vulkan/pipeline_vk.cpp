@@ -22,9 +22,9 @@ PipelineVK::PipelineVK( PipelineVK&& rhs ) noexcept
     std::swap( m_layout, rhs.m_layout );
     std::swap( m_pipeline, rhs.m_pipeline );
     std::swap( m_pipelineDepthPrepass, rhs.m_pipelineDepthPrepass );
+    std::swap( m_bindpoints, rhs.m_bindpoints );
     std::swap( m_pushConstantSize, rhs.m_pushConstantSize );
     std::swap( m_vertexStride, rhs.m_vertexStride );
-    std::swap( m_textureBindPoints, rhs.m_textureBindPoints );
     std::swap( m_depthWrite, rhs.m_depthWrite );
     std::swap( m_useLines, rhs.m_useLines );
 }
@@ -35,9 +35,9 @@ PipelineVK& PipelineVK::operator = ( PipelineVK&& rhs ) noexcept
     std::swap( m_layout, rhs.m_layout );
     std::swap( m_pipeline, rhs.m_pipeline );
     std::swap( m_pipelineDepthPrepass, rhs.m_pipelineDepthPrepass );
+    std::swap( m_bindpoints, rhs.m_bindpoints );
     std::swap( m_pushConstantSize, rhs.m_pushConstantSize );
     std::swap( m_vertexStride, rhs.m_vertexStride );
-    std::swap( m_textureBindPoints, rhs.m_textureBindPoints );
     std::swap( m_depthWrite, rhs.m_depthWrite );
     std::swap( m_useLines, rhs.m_useLines );
     return *this;
@@ -134,12 +134,16 @@ PipelineVK::PipelineVK(
     , VkRenderPass colorPass
     , VkRenderPass depthPrepass
     , VkDescriptorSetLayout layout
-    , uint32_t textureBindBits
 ) noexcept
 : m_device{ device }
+, m_bindpoints{
+    .constant = pci.m_constantBindBits,
+    .image = pci.m_textureBindBits,
+    .buffer = 0, // TODO
+    .stage = Bindpoints::Stage::eGraphics,
+}
 , m_pushConstantSize{ pci.m_pushConstantSize }
 , m_vertexStride{ pci.m_vertexStride }
-, m_textureBindPoints{ textureBindBits }
 , m_depthWrite{ pci.m_enableDepthWrite }
 , m_useLines{ usesLines( pci.m_topology ) }
 {
@@ -148,6 +152,7 @@ PipelineVK::PipelineVK(
     assert( colorPass );
     assert( depthPrepass );
     assert( layout );
+
 
     const VkPipelineLayoutCreateInfo pipelineLayoutInfo{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
@@ -289,6 +294,12 @@ PipelineVK::PipelineVK(
     , VkDescriptorSetLayout layout
 ) noexcept
 : m_device{ device }
+, m_bindpoints{
+    .constant = pci.m_constantBindBits,
+    .image = pci.m_textureBindBits,
+    .buffer = 0, // TODO
+    .stage = Bindpoints::Stage::eCompute,
+}
 , m_pushConstantSize{ pci.m_pushConstantSize }
 {
     ZoneScoped;
@@ -354,7 +365,7 @@ VkPipeline PipelineVK::depthPrepass() const
     return m_pipelineDepthPrepass;
 }
 
-uint32_t PipelineVK::textureBindPoints() const
+Bindpoints PipelineVK::bindpoints() const
 {
-    return m_textureBindPoints;
+    return m_bindpoints;
 }

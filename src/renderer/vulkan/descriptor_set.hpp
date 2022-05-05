@@ -1,5 +1,7 @@
 #pragma once
 
+#include "bindpoints.hpp"
+
 #include <vulkan/vulkan.h>
 
 #include <cstdint>
@@ -21,15 +23,9 @@ class DescriptorSet {
 public:
     ~DescriptorSet() noexcept;
     DescriptorSet() noexcept = default;
-
-    DescriptorSet(
-        VkDevice
-        , uint16_t constantBindBits
-        , uint16_t samplerBindBits
-        , uint16_t computeImageBindBits
-    ) noexcept;
-
+    DescriptorSet( VkDevice, Bindpoints ) noexcept;
     DescriptorSet( DescriptorSet&& ) noexcept;
+
     DescriptorSet& operator = ( DescriptorSet&& ) noexcept;
 
     VkDescriptorSetLayout layout() const;

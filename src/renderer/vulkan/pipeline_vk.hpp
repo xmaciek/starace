@@ -1,6 +1,7 @@
 #pragma once
 
 #include <renderer/pipeline.hpp>
+#include "bindpoints.hpp"
 #include "buffer_vk.hpp"
 #include "descriptor_set.hpp"
 
@@ -16,9 +17,9 @@ class PipelineVK {
     VkPipelineLayout m_layout = VK_NULL_HANDLE;
     VkPipeline m_pipeline = VK_NULL_HANDLE;
     VkPipeline m_pipelineDepthPrepass = VK_NULL_HANDLE;
+    Bindpoints m_bindpoints{};
     uint32_t m_pushConstantSize = 0;
     uint32_t m_vertexStride = 0;
-    uint32_t m_textureBindPoints = 0;
     bool m_depthWrite = false;
     bool m_useLines = false;
 
@@ -32,7 +33,6 @@ public:
         , VkRenderPass color
         , VkRenderPass depth
         , VkDescriptorSetLayout
-        , uint32_t textureBindBits
     ) noexcept;
 
     PipelineVK(
@@ -50,7 +50,7 @@ public:
     VkPipelineLayout layout() const;
     uint32_t pushConstantSize() const;
     uint32_t vertexStride() const;
-    uint32_t textureBindPoints() const;
+    Bindpoints bindpoints() const;
 
     bool depthWrite() const;
     bool useLines() const;
