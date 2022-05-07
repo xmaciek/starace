@@ -6,17 +6,17 @@
 class Engine;
 
 class Audio {
+protected:
     friend Engine;
     static Audio* create();
-
-protected:
-    Audio() = default;
 
 public:
     using Slot = uint16_t;
 
     virtual ~Audio() = default;
+    Audio() = default;
 
-    virtual void play( Slot ) = 0;
+    [[nodiscard]]
     virtual Slot load( std::string_view ) = 0;
+    virtual void play( Slot ) = 0;
 };

@@ -10,6 +10,7 @@ target_compile_options( cxx::flags INTERFACE
     -Wpedantic
     -fno-exceptions
     -fno-rtti
+    -mcx16
 )
 elseif ( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" )
 target_compile_options( cxx::flags INTERFACE
@@ -22,6 +23,7 @@ target_compile_options( cxx::flags INTERFACE
     -Wpedantic
     -fno-exceptions
     -fno-rtti
+    -mcx16
 )
 elseif ( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" )
 else ()
