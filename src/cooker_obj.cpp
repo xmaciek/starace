@@ -1,5 +1,6 @@
 #include "obj.hpp"
 
+#include <array>
 #include <algorithm>
 #include <fstream>
 #include <iostream>

@@ -6,6 +6,7 @@
 #include <engine/math.hpp>
 #include <renderer/texture.hpp>
 
+#include <array>
 #include <cstdint>
 #include <vector>
 #include <memory_resource>
