@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 
 #include <config/config.hpp>
-#include <iostream>
 
 using std::literals::string_view_literals::operator""sv;
 
@@ -96,3 +95,36 @@ TEST( Config, iterator )
     EXPECT_EQ( **it, "c"sv );
     EXPECT_EQ( it->toString(), "d"sv );
 }
+
+TEST( Config, quotes )
+{
+    std::string_view sv = "a = \"q u o t e s\""sv;
+    cfg::Entry entry = cfg::Entry::fromData( { sv.data(), sv.data() + sv.size() } );
+
+    const auto* it = entry.begin();
+    EXPECT_EQ( **it, "a"sv );
+    EXPECT_EQ( it->toString(), "q u o t e s"sv );
+}
+
+TEST( Config, quotes2 )
+{
+    std::string_view sv = "a = \"in q u o t e s\" b = \"c\" d = \"\" e = f"sv;
+    cfg::Entry entry = cfg::Entry::fromData( { sv.data(), sv.data() + sv.size() } );
+
+    const auto* it = entry.begin();
+    EXPECT_EQ( **it, "a"sv );
+    EXPECT_EQ( it->toString(), "in q u o t e s"sv );
+
+    it++;
+    EXPECT_EQ( **it, "b"sv );
+    EXPECT_EQ( it->toString(), "c"sv );
+
+    it++;
+    EXPECT_EQ( **it, "d"sv );
+    EXPECT_EQ( it->toString(), ""sv );
+
+    it++;
+    EXPECT_EQ( **it, "e"sv );
+    EXPECT_EQ( it->toString(), "f"sv );
+}
+

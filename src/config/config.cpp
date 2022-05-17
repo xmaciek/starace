@@ -2,7 +2,6 @@
 
 #include "cfg.hpp"
 
-#include <cassert>
 #include <stack>
 #include <cstring>
 
@@ -71,14 +70,28 @@ Entry Entry::fromData( std::span<const char> data )
         if ( whitespace.find( static_cast<char32_t>( token.userEnum ) ) != std::u32string_view::npos ) { continue; }
         switch ( expectedToken ) {
         case eValueOrPush:
-            if ( token.userEnum == '{' ) {
+            switch ( token.userEnum ) {
+            case U'{':
                 expectedToken = eName;
                 continue;
+            case U'"': {
+                auto strBegin = it.begin();
+                auto strEnd = std::find_if( strBegin, it.end(), EndQuote{} );
+
+                if ( strEnd == it.end() ) { return {}; }
+
+                if ( *strEnd != '"' ) { return {}; }
+                stack.top()->value = std::pmr::string{ strBegin, strEnd };
+                stack.pop();
+                expectedToken = eNameOrPop;
+                it.advance( std::distance( it.begin(), strEnd + 1 ) );
+                continue;
+                }
             }
             [[fallthrough]];
 
         case eValue:
-            assert( token.userEnum == TokenIterator::c_unknown );
+            if ( token.userEnum != TokenIterator::c_unknown ) { return {}; }
             stack.top()->value = std::pmr::string{ token.data, token.data + token.length };
             stack.pop();
             expectedToken = eNameOrPop;
@@ -93,14 +106,14 @@ Entry Entry::fromData( std::span<const char> data )
             [[fallthrough]];
 
         case eName:
-            assert( token.userEnum == TokenIterator::c_unknown );
+            if ( token.userEnum != TokenIterator::c_unknown ) { return {}; }
             stack.top()->data.push_back( { .name = std::pmr::string{ token.data, token.data + token.length } } );
             stack.push( &(stack.top()->data.back()) );
             expectedToken = eAssign;
             continue;
 
         case eAssign:
-            assert( token.userEnum == '=' );
+            if ( token.userEnum != '=' ) { return {}; }
             expectedToken = eValueOrPush;
             continue;
 

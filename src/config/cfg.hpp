@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <algorithm>
 #include <array>
 #include <cstdint>
@@ -15,6 +16,28 @@ static constexpr std::array c_separators = {
     '\t',
     '{',
     '}',
+    '"',
+};
+
+struct EndQuote {
+    uint32_t m_escape = 0;
+
+    inline bool operator () ( char c ) noexcept
+    {
+        if ( m_escape ) {
+            m_escape--;
+            return false;
+        }
+
+        switch ( c ) {
+        case '"':
+            return true;
+        case '\\':
+            m_escape++;
+            break;
+        }
+        return false;
+    }
 };
 
 struct Token {
@@ -22,13 +45,12 @@ struct Token {
     uint32_t length = 0;
     const char* data = nullptr;
 
-    inline
-    operator bool () const
+    inline operator bool () const
     {
         return length != 0;
     }
-    inline
-    std::string_view operator * () const
+
+    inline std::string_view operator * () const
     {
         return { data, data + length };
     }
@@ -45,8 +67,9 @@ public:
     static constexpr uint32_t c_unknown = 0xFFFF'FFFF;
     static constexpr Token c_invalid{};
 
-    inline
-    TokenIterator( std::span<const char> t, std::span<const char> d )
+    using const_iterator = const char*;
+
+    inline TokenIterator( std::span<const char> t, std::span<const char> d )
     : m_tokens{ t }
     , m_begin{ &*d.begin() }
     , m_end{ &*d.end() }
@@ -54,11 +77,12 @@ public:
         ++*this;
     }
 
-    inline
-    TokenIterator& operator ++ ();
-    inline
-    Token operator * () const;
+    inline TokenIterator& operator ++ ();
+    inline Token operator * () const;
 
+    inline const_iterator begin() const;
+    inline const_iterator end() const;
+    inline void advance( uint32_t );
 };
 
 
@@ -69,6 +93,7 @@ Token TokenIterator::operator * () const
 
 TokenIterator& TokenIterator::operator ++ ()
 {
+    assert( m_begin <= m_end );
     if ( m_begin == m_end ) {
         m_current = c_invalid;
         return *this;
@@ -93,6 +118,24 @@ TokenIterator& TokenIterator::operator ++ ()
     };
     m_begin += m_current.length;
     return *this;
+}
+
+TokenIterator::const_iterator TokenIterator::begin() const
+{
+    return m_begin;
+}
+
+TokenIterator::const_iterator TokenIterator::end() const
+{
+    return m_end;
+}
+
+void TokenIterator::advance( uint32_t v )
+{
+    [[maybe_unused]]
+    auto d = std::distance( begin(), end() );
+    assert( v <= d );
+    std::advance( m_begin, v );
 }
 
 }
