@@ -330,20 +330,6 @@ void Game::onInit()
     };
     g_gameUiDataModels[ "$data:missionSelect" ] = &m_dataMissionSelect;
 
-    // TODO reimplement this specific data model
-    m_dataMissionResult.m_size = [](){ return 2; };
-    m_dataMissionResult.m_current = [this](){ return m_missionResult; };
-    m_dataMissionResult.m_at = [this]( auto i ) -> std::pmr::u32string
-    {
-        assert( i < 2 );
-        using std::literals::string_view_literals::operator""sv;
-        static constexpr std::u32string_view s[] = { U"Mission Failed"sv, U"Mission Succeeded"sv };
-        std::pmr::u32string ret{ s[ i ].begin(), s[ i ].end() };
-        ret += U" " + intToUTF32( m_hudData.score );
-        return ret;
-    };
-    g_gameUiDataModels[ "$data:missionResult" ] = &m_dataMissionResult;
-
     {
         std::pmr::u32string charset = U"0123456789"
         U"abcdefghijklmnopqrstuvwxyz"
@@ -535,6 +521,7 @@ void Game::onRender( RenderContext rctx )
 void Game::onUpdate( const UpdateContext& uctx )
 {
     ZoneScoped;
+
     switch ( m_currentScreen ) {
     case Screen::eGame:
         updateGame( uctx );
@@ -766,12 +753,14 @@ void Game::changeScreen( Screen scr, Audio::Slot sound )
         break;
 
     case Screen::eDead:
-        m_missionResult = 0;
+        m_uiMissionResult = U"Mission Failed";
+        m_uiScore = m_hudData.score;
         m_currentScreen = scr;
         break;
 
     case Screen::eWin:
-        m_missionResult = 1;
+        m_uiMissionResult = U"Mission Successful";
+        m_uiScore = m_hudData.score;
         m_currentScreen = scr;
         break;
 

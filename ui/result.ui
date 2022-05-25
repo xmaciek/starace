@@ -2,8 +2,14 @@ width = 1280
 height = 720
 
 Label = {
-    data = $data:missionResult
+    data = $var:missionResult
     x = 48
+    y = 50
+}
+
+Label = {
+    data = $var:score
+    x = 200
     y = 50
 }
 

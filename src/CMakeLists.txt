@@ -86,6 +86,7 @@ set( STARACE_SOURCES
     ui_screen.hpp
     ui_spinbox.cpp
     ui_spinbox.hpp
+    ui_var.hpp
     units.hpp
     utils.cpp
     utils.hpp

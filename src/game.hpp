@@ -18,6 +18,7 @@
 #include "ui_screen.hpp"
 #include "ui_glow.hpp"
 #include "ui_data_model.hpp"
+#include "ui_var.hpp"
 
 #include <engine/engine.hpp>
 #include <engine/math.hpp>
@@ -61,7 +62,6 @@ private:
     uint32_t m_currentJet = 0;
     uint32_t m_weapon1 = 1;
     uint32_t m_weapon2 = 2;
-    uint32_t m_missionResult = 0;
     Model m_enemyModel{};
     Jet m_jet{};
     Skybox m_skybox{};
@@ -108,12 +108,14 @@ private:
     Screen m_currentScreen = Screen::eGame;
 
     ui::GenericDataModel m_dataMissionSelect{};
-    ui::GenericDataModel m_dataMissionResult{};
     ui::GenericDataModel m_dataModelVSync{};
     ui::GenericDataModel m_dataModelResolution{};
     ui::GenericDataModel m_dataJet{};
     ui::GenericDataModel m_dataWeaponPrimary{};
     ui::GenericDataModel m_dataWeaponSecondary{};
+
+    ui::Var<uint32_t> m_uiScore{ "$var:score", 0u };
+    ui::Var<std::pmr::u32string> m_uiMissionResult{ "$var:missionResult", U"BUG ME" };
 
     uint32_t viewportHeight() const;
     uint32_t viewportWidth() const;
