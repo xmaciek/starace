@@ -4,6 +4,11 @@
 
 using std::literals::string_view_literals::operator""sv;
 
+std::span<const char> operator ""_span ( const char* str, unsigned long len ) noexcept
+{
+    return { str, str + len };
+}
+
 [[maybe_unused]]
 std::ostream& operator << ( std::ostream& cout, const cfg::Entry& e )
 {
@@ -19,8 +24,8 @@ std::ostream& operator << ( std::ostream& cout, const cfg::Entry& e )
 
 TEST( Config, simple )
 {
-    std::string_view sv = "a = b"sv;
-    cfg::Entry entry = cfg::Entry::fromData( { sv.data(), sv.data() + sv.size() } );
+    auto sv = "a = b"_span;
+    cfg::Entry entry = cfg::Entry::fromData( sv );
 
     EXPECT_EQ( *entry, ""sv );
     EXPECT_EQ( *(entry[ "a"sv ]), "a"sv );
@@ -29,8 +34,8 @@ TEST( Config, simple )
 
 TEST( Config, nested1 )
 {
-    std::string_view sv = "a = { b = c }"sv;
-    cfg::Entry entry = cfg::Entry::fromData( { sv.data(), sv.data() + sv.size() } );
+    auto sv = "a = { b = c }"_span;
+    cfg::Entry entry = cfg::Entry::fromData( sv );
 
     EXPECT_EQ( *(entry[ "a"sv ][ "b"sv ]), "b"sv );
     EXPECT_EQ( entry[ "a"sv ][ "b"sv ].toString(), "c"sv );
@@ -38,16 +43,16 @@ TEST( Config, nested1 )
 
 TEST( Config, nested2 )
 {
-    std::string_view sv = "a = { b = { c = d } }"sv;
-    cfg::Entry entry = cfg::Entry::fromData( { sv.data(), sv.data() + sv.size() } );
+    auto sv = "a = { b = { c = d } }"_span;
+    cfg::Entry entry = cfg::Entry::fromData( sv );
 
     EXPECT_EQ( entry[ "a"sv ][ "b"sv ][ "c"sv ].toString(), "d"sv );
 }
 
 TEST( Config, multi )
 {
-    std::string_view sv = "a = b c = d"sv;
-    cfg::Entry entry = cfg::Entry::fromData( { sv.data(), sv.data() + sv.size() } );
+    auto sv = "a = b c = d"_span;
+    cfg::Entry entry = cfg::Entry::fromData( sv );
 
     EXPECT_EQ( entry[ "a"sv ].toString(), "b"sv );
     EXPECT_EQ( entry[ "c"sv ].toString(), "d"sv );
@@ -55,8 +60,8 @@ TEST( Config, multi )
 
 TEST( Config, multiNested )
 {
-    std::string_view sv = "a = { b = c d = e } }"sv;
-    cfg::Entry entry = cfg::Entry::fromData( { sv.data(), sv.data() + sv.size() } );
+    auto sv = "a = { b = c d = e } }"_span;
+    cfg::Entry entry = cfg::Entry::fromData( sv );
 
     EXPECT_EQ( entry[ "a"sv ][ "b"sv ].toString(), "c"sv );
     EXPECT_EQ( entry[ "a"sv ][ "d"sv ].toString(), "e"sv );
@@ -64,8 +69,8 @@ TEST( Config, multiNested )
 
 TEST( Config, complex )
 {
-    std::string_view sv = "a = { b = c d = e f = { g = h } i = { j = { k = l } } } m = { n = o }"sv;
-    cfg::Entry entry = cfg::Entry::fromData( { sv.data(), sv.data() + sv.size() } );
+    auto sv = "a = { b = c d = e f = { g = h } i = { j = { k = l } } } m = { n = o }"_span;
+    cfg::Entry entry = cfg::Entry::fromData( sv );
 
     EXPECT_EQ( entry[ "a" ][ "b" ].toString(), "c"sv );
     EXPECT_EQ( entry[ "a" ][ "d" ].toString(), "e"sv );
@@ -76,8 +81,8 @@ TEST( Config, complex )
 
 TEST( Config, numbers )
 {
-    std::string_view sv = "a = 1024 b = 1.024"sv;
-    cfg::Entry entry = cfg::Entry::fromData( { sv.data(), sv.data() + sv.size() } );
+    auto sv = "a = 1024 b = 1.024"_span;
+    cfg::Entry entry = cfg::Entry::fromData( sv );
 
     EXPECT_EQ( entry[ "a" ].toInt(), 1024 );
     EXPECT_EQ( entry[ "b" ].toFloat(), 1.024f );
@@ -85,8 +90,8 @@ TEST( Config, numbers )
 
 TEST( Config, iterator )
 {
-    std::string_view sv = "a = b c = d"sv;
-    cfg::Entry entry = cfg::Entry::fromData( { sv.data(), sv.data() + sv.size() } );
+    auto sv = "a = b c = d"_span;
+    cfg::Entry entry = cfg::Entry::fromData( sv );
 
     const auto* it = entry.begin();
     EXPECT_EQ( **it, "a"sv );
@@ -98,8 +103,8 @@ TEST( Config, iterator )
 
 TEST( Config, quotes )
 {
-    std::string_view sv = "a = \"q u o t e s\""sv;
-    cfg::Entry entry = cfg::Entry::fromData( { sv.data(), sv.data() + sv.size() } );
+    auto sv = "a = \"q u o t e s\""_span;
+    cfg::Entry entry = cfg::Entry::fromData( sv );
 
     const auto* it = entry.begin();
     EXPECT_EQ( **it, "a"sv );
@@ -108,8 +113,8 @@ TEST( Config, quotes )
 
 TEST( Config, quotes2 )
 {
-    std::string_view sv = "a = \"in q u o t e s\" b = \"c\" d = \"\" e = f"sv;
-    cfg::Entry entry = cfg::Entry::fromData( { sv.data(), sv.data() + sv.size() } );
+    auto sv = "a = \"in q u o t e s\" b = \"c\" d = \"\" e = f"_span;
+    cfg::Entry entry = cfg::Entry::fromData( sv );
 
     const auto* it = entry.begin();
     EXPECT_EQ( **it, "a"sv );

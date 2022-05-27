@@ -47,6 +47,12 @@ const Entry& Entry::operator [] ( std::string_view name ) const
     return ( it == v.cend() ) ? e : *it;
 }
 
+Entry Entry::fromData( std::pmr::vector<uint8_t>&& data )
+{
+    const char* begin = reinterpret_cast<const char*>( data.data() );
+    return fromData( std::span<const char>{ begin, begin + data.size() } );
+}
+
 Entry Entry::fromData( std::span<const char> data )
 {
     using std::literals::string_view_literals::operator""sv;
