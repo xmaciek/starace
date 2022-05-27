@@ -2,7 +2,7 @@ width = 1280
 height = 720
 
 Label = {
-    text = $loc:missionSelect
+    text = missionSelect
     x = 48
     y = 50
 }
@@ -16,7 +16,7 @@ SpinBox = {
 }
 
 Button = {
-    text = $loc:engage
+    text = engage
     trigger = $function:goto_missionBriefing
     x = 48
     y = 200
@@ -25,7 +25,7 @@ Button = {
 }
 
 Button = {
-    text = $loc:return
+    text = return
     trigger = $function:goto_titlemenu
     x = 48
     y = 350

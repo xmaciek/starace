@@ -2,6 +2,7 @@
 
 #include <engine/math.hpp>
 #include <renderer/texture.hpp>
+#include <config/config.hpp>
 
 class Game;
 class Font;
@@ -15,6 +16,7 @@ class Property {
     const Font* m_fontMedium = nullptr;
     const Font* m_fontLarge = nullptr;
     const LinearAtlas* m_atlas = nullptr;
+    cfg::Entry* m_localize = nullptr;
     Texture m_atlasTexture{};
 
     math::vec4 m_colorA{};
@@ -28,6 +30,7 @@ public:
     inline const Font* fontLarge() const { return m_fontLarge; }
 
     inline math::vec4 colorA() const { return m_colorA; }
+    inline const cfg::Entry& localize() const { return *m_localize; }
 
 };
 

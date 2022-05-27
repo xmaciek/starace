@@ -2,13 +2,13 @@ width = 1280
 height = 720
 
 Label = {
-    text = $loc:gamename
+    text = title
     x = 48
     y = 50
 }
 
 Button = {
-    text = $loc:newgame
+    text = missionSelect
     trigger = $function:goto_newgame
     x = 48
     y = 150
@@ -17,7 +17,7 @@ Button = {
 }
 
 Button = {
-    text = $loc:customize
+    text = customize
     trigger = $function:goto_customize
     x = 48
     y = 200
@@ -26,7 +26,7 @@ Button = {
 }
 
 Button = {
-    text = $loc:settings
+    text = settings
     trigger = $function:goto_settings
     x = 48
     y = 250
@@ -35,7 +35,7 @@ Button = {
 }
 
 Button = {
-    text = $loc:quit
+    text = exitGame
     trigger = $function:quit
     x = 48
     y = 300

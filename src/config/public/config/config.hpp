@@ -22,6 +22,7 @@ public:
     const Entry* end() const;
 
     std::string_view toString() const;
+    std::pmr::u32string toString32() const;
     int toInt() const;
     float toFloat() const;
 

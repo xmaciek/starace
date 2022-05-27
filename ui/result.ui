@@ -8,13 +8,13 @@ Label = {
 }
 
 Label = {
-    data = $var:score
-    x = 200
-    y = 50
+    data = $var:missionScore
+    x = 48
+    y = 100
 }
 
 Button = {
-    text = $loc:missionReturn
+    text = missionReturn
     trigger = $function:goto_newgame
     x = 48
     y = 200

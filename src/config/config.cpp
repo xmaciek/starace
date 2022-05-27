@@ -11,6 +11,13 @@ std::string_view Entry::toString() const
     return { value.begin(), value.end() };
 }
 
+std::pmr::u32string Entry::toString32() const
+{
+    auto sv = toString();
+    // TODO transcode to utf32
+    return std::pmr::u32string{ sv.begin(), sv.end() };
+}
+
 int Entry::toInt() const
 {
     char** e = nullptr;

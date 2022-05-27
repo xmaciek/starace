@@ -22,6 +22,7 @@ endfunction()
 
 find_package( Vulkan REQUIRED )
 add_subdirectory( sdk )
+add_subdirectory( lang )
 add_subdirectory( misc )
 add_subdirectory( models )
 add_subdirectory( shaders )

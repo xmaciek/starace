@@ -2,7 +2,7 @@ width = 1280
 height = 720
 
 Label = {
-    text = $loc:settings
+    text = settings
     x = 48
     y = 50
 }
@@ -16,7 +16,7 @@ SpinBox = {
 }
 
 Label = {
-    text = $loc:vsync
+    text = vsync
     x = 370
     y = 150
 }
@@ -30,13 +30,13 @@ SpinBox = {
 }
 
 Label = {
-    text = $loc:resolution
+    text = resolution
     x = 370
     y = 200
 }
 
 Button = {
-    text = $loc:return
+    text = return
     trigger = $function:goto_titlemenu
     x = 48
     y = 350

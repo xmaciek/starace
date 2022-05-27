@@ -20,6 +20,7 @@
 #include "ui_data_model.hpp"
 #include "ui_var.hpp"
 
+#include <config/config.hpp>
 #include <engine/engine.hpp>
 #include <engine/math.hpp>
 #include <engine/render_context.hpp>
@@ -114,8 +115,9 @@ private:
     ui::GenericDataModel m_dataWeaponPrimary{};
     ui::GenericDataModel m_dataWeaponSecondary{};
 
-    ui::Var<uint32_t> m_uiScore{ "$var:score", 0u };
     ui::Var<std::pmr::u32string> m_uiMissionResult{ "$var:missionResult", U"BUG ME" };
+    ui::Var<std::pmr::u32string> m_uiMissionScore{ "$var:missionScore", U"BUG ME" };
+    cfg::Entry m_localize{};
 
     uint32_t viewportHeight() const;
     uint32_t viewportWidth() const;

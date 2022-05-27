@@ -15,35 +15,16 @@
 
 #include <unordered_map>
 #include <string_view>
+
 using std::literals::string_view_literals::operator""sv;
-
-// TODO load from file
-static const std::unordered_map<std::string_view, std::u32string_view> g_locMap{
-      { "$loc:gamename", ui::loc::title }
-    , { "$loc:newgame", ui::loc::missionSelect }
-    , { "$loc:customize", ui::loc::customize }
-    , { "$loc:settings", ui::loc::settings }
-    , { "$loc:quit", ui::loc::quit }
-    , { "$loc:vsync", ui::loc::vsync }
-    , { "$loc:return", ui::loc::return2 }
-    , { "$loc:resolution", U"RESOLUTION" }
-    , { "$loc:weaponPrimary", U"Primary weapon" }
-    , { "$loc:weaponSecondary", U"Secondary weapon" }
-    , { "$loc:jet", U"Frame" }
-    , { "$loc:mission", U"Mission" }
-    , { "$loc:missionSelect", U"Mission Select" }
-    , { "$loc:missionCancel", U"Cancel Mission" }
-    , { "$loc:missionReturn", U"Return" }
-    , { "$loc:engage", U"Engage" }
-    , { "$loc:resume", U"Resume" }
-    , { "$loc:pause", U"PAUSE" }
-};
-
+[[maybe_unused]]
 static std::pmr::u32string locKeyToString( std::string_view strv )
 {
-    auto it = g_locMap.find( strv );
-    assert( it != g_locMap.end() );
-    return it == g_locMap.end() ? std::pmr::u32string{ strv.begin(), strv.end() } : std::pmr::u32string{ it->second.begin(), it->second.end() };
+    auto str = g_uiProperty.localize()[ strv ].toString();
+    return str.empty()
+        ? U"BUG ME: " + std::pmr::u32string{ strv.begin(), strv.end() }
+        // TODO: utf32 transcode
+        : std::pmr::u32string{ str.begin(), str.end() };
 }
 
 static auto fnKeyToFunction( std::string_view strv )
@@ -61,9 +42,13 @@ static auto dataKeyToModel( std::string_view strv )
     return it != g_gameUiDataModels.end() ? it->second : nullptr;
 }
 
+
+namespace ui {
+
 static UniquePointer<Widget> makeButton( std::pmr::memory_resource* alloc, const cfg::Entry& entry, uint16_t tabOrder )
 {
     assert( alloc );
+    std::pmr::u32string text{};
     auto button = UniquePointer<Button>{ alloc, [](){} };
     button->setAnchor( Anchor::fTop | Anchor::fLeft );
     button->setTabOrder( tabOrder );
@@ -72,7 +57,7 @@ static UniquePointer<Widget> makeButton( std::pmr::memory_resource* alloc, const
     math::vec2 size = button->size();
     for ( const auto& it : entry ) {
         auto propName = *it;
-        if ( propName == "text"sv ) { button->setText( locKeyToString( it.toString() ) ); continue; }
+        if ( propName == "text"sv ) { text = locKeyToString( it.toString() ); continue; }
         if ( propName == "x"sv ) { pos.x = it.toFloat(); continue; }
         if ( propName == "y"sv ) { pos.y = it.toFloat(); continue; }
         if ( propName == "width"sv ) { size.x = it.toFloat(); continue; }
@@ -80,12 +65,11 @@ static UniquePointer<Widget> makeButton( std::pmr::memory_resource* alloc, const
         if ( propName == "trigger"sv ) { button->setTrigger( fnKeyToFunction( it.toString() ) ); continue; }
         assert( !"unhandled Button element" );
     }
+    button->setText( text );
     button->setPosition( pos );
     button->setSize( size );
     return button;
 }
-
-namespace ui {
 
 static UniquePointer<Widget> makeImage( std::pmr::memory_resource* alloc, const cfg::Entry& entry )
 {
@@ -147,11 +131,11 @@ static UniquePointer<Widget> makeLabel( std::pmr::memory_resource* alloc, const 
     DataModel* model = nullptr;
     const Font* fnt = g_uiProperty.fontMedium();
     math::vec2 pos{};
-    std::pmr::u32string txt{};
+    std::pmr::u32string text{};
 
     for ( const auto& it : entry ) {
         auto propName = *it;
-        if ( propName == "text"sv ) { txt = locKeyToString( it.toString() ); continue; }
+        if ( propName == "text"sv ) { text = locKeyToString( it.toString() ); continue; }
         if ( propName == "x"sv ) { pos.x = it.toFloat(); continue; }
         if ( propName == "y"sv ) { pos.y = it.toFloat(); continue; }
         if ( propName == "data"sv ) { model = dataKeyToModel( it.toString() ); continue; }
@@ -160,7 +144,7 @@ static UniquePointer<Widget> makeLabel( std::pmr::memory_resource* alloc, const 
     if ( model ) {
         return UniquePointer<Label>{ alloc, model, fnt, pos };
     }
-    return UniquePointer<Label>{ alloc, txt, fnt, pos, color::white };
+    return UniquePointer<Label>{ alloc, text, fnt, pos, color::white };
 }
 
 static UniquePointer<Widget> makeSpinBox( std::pmr::memory_resource* alloc, const cfg::Entry& entry, uint16_t tabOrder )

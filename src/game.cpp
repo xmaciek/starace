@@ -25,6 +25,7 @@
 
 static constexpr const char* chunk0[] = {
     "misc/DejaVuSans-Bold.ttf",
+    "lang/en.txt",
     "textures/cyber_ring1.tga",
     "textures/cyber_ring2.tga",
     "textures/cyber_ring3.tga",
@@ -107,10 +108,10 @@ constexpr std::tuple<GameAction, Actuator, Actuator> inputActions2[] = {
 };
 
 
-static std::pmr::vector<ModelProto> loadJets( std::span<const char> str )
+static std::pmr::vector<ModelProto> loadJets( std::pmr::vector<uint8_t>&& data )
 {
     ZoneScoped;
-    cfg::Entry entry = cfg::Entry::fromData( str );
+    cfg::Entry entry = cfg::Entry::fromData( std::move( data ) );
 
     std::pmr::vector<ModelProto> jets;
     jets.reserve( 4 );
@@ -129,10 +130,10 @@ static std::pmr::vector<ModelProto> loadJets( std::span<const char> str )
     return jets;
 }
 
-static std::pmr::vector<MapCreateInfo> loadMaps( std::span<const char> str )
+static std::pmr::vector<MapCreateInfo> loadMaps( std::pmr::vector<uint8_t>&& data )
 {
     ZoneScoped;
-    cfg::Entry entry = cfg::Entry::fromData( str );
+    cfg::Entry entry = cfg::Entry::fromData( std::move( data ) );
 
     std::pmr::vector<MapCreateInfo> levels;
     levels.reserve( 5 );
@@ -349,6 +350,10 @@ void Game::onInit()
         g_uiProperty.m_fontMedium = m_fontMedium;
         g_uiProperty.m_fontLarge = m_fontLarge;
     }
+
+    m_localize = cfg::Entry::fromData( m_io->getWait( "lang/en.txt" ) );
+    g_uiProperty.m_localize = &m_localize;
+
     m_hud = Hud{ &m_hudData };
 
     m_laser = m_audio->load( "sounds/laser.wav" );
@@ -411,35 +416,22 @@ void Game::onInit()
 
     loadMapProto();
 
-    {
-        std::pmr::vector<uint8_t> jetscfg = m_io->getWait( "jets.cfg" );
-        const char* ptr = reinterpret_cast<const char*>( jetscfg.data() );
-        std::span<const char> str{ ptr, ptr + jetscfg.size() };
-        m_jetsContainer = loadJets( str );
-        assert( !m_jetsContainer.empty() );
-        for ( auto& it : m_jetsContainer ) {
-            m_io->enqueue( it.model_file );
-        }
-        for ( auto& it : m_jetsContainer ) {
-            m_meshes[ it.model_file ] = Mesh{ m_io->getWait( it.model_file ), m_renderer };
-            it.model = Model( m_meshes[ it.model_file ], m_textures[ it.model_texture ], it.scale );
-        }
+    m_jetsContainer = loadJets( m_io->getWait( "jets.cfg" ) );
+    assert( !m_jetsContainer.empty() );
+    for ( auto& it : m_jetsContainer ) {
+        m_io->enqueue( it.model_file );
+    }
+    for ( auto& it : m_jetsContainer ) {
+        m_meshes[ it.model_file ] = Mesh{ m_io->getWait( it.model_file ), m_renderer };
+        it.model = Model( m_meshes[ it.model_file ], m_textures[ it.model_texture ], it.scale );
     }
 
-    auto makeScreen = []( std::string_view strv, auto* io )
-    {
-        auto ui = io->getWait( strv );
-        const char* txt = reinterpret_cast<const char*>( ui.data() );
-        std::span<const char> span{ txt, txt + ui.size() };
-        return ui::Screen{ cfg::Entry::fromData( span ) };
-    };
-
-    m_screenTitle = makeScreen( "ui/mainmenu.ui", m_io );
-    m_screenMissionSelect = makeScreen( "ui/missionselect.ui", m_io );
-    m_screenCustomize = makeScreen( "ui/customize.ui", m_io );
-    m_screenSettings = makeScreen( "ui/settings.ui", m_io );
-    m_screenPause = makeScreen( "ui/pause.ui", m_io );
-    m_screenMissionResult = makeScreen( "ui/result.ui", m_io );
+    m_screenTitle =         cfg::Entry::fromData( m_io->getWait( "ui/mainmenu.ui" ) );
+    m_screenMissionSelect = cfg::Entry::fromData( m_io->getWait( "ui/missionselect.ui" ) );
+    m_screenCustomize =     cfg::Entry::fromData( m_io->getWait( "ui/customize.ui" ) );
+    m_screenSettings =      cfg::Entry::fromData( m_io->getWait( "ui/settings.ui" ) );
+    m_screenPause =         cfg::Entry::fromData( m_io->getWait( "ui/pause.ui" ) );
+    m_screenMissionResult = cfg::Entry::fromData( m_io->getWait( "ui/result.ui" ) );
 
     m_enemyModel = Model{ m_meshes[ "models/a2.objc" ], m_textures[ "textures/a2.tga" ], 0.45f };
 
@@ -753,14 +745,14 @@ void Game::changeScreen( Screen scr, Audio::Slot sound )
         break;
 
     case Screen::eDead:
-        m_uiMissionResult = U"Mission Failed";
-        m_uiScore = m_hudData.score;
+        m_uiMissionResult = m_localize[ "missionLost" ].toString32();
+        m_uiMissionScore = m_localize[ "yourScore" ].toString32() + intToUTF32( m_hudData.score );
         m_currentScreen = scr;
         break;
 
     case Screen::eWin:
-        m_uiMissionResult = U"Mission Successful";
-        m_uiScore = m_hudData.score;
+        m_uiMissionResult = m_localize[ "missionWin" ].toString32();
+        m_uiMissionScore = m_localize[ "yourScore" ].toString32() + intToUTF32( m_hudData.score );
         m_currentScreen = scr;
         break;
 
@@ -784,11 +776,7 @@ void Game::loadMapProto()
 {
     ZoneScoped;
     assert( m_mapsContainer.empty() );
-
-    std::pmr::vector<uint8_t> mapscfg = m_io->getWait( "maps.cfg" );
-    const char* ptr = reinterpret_cast<const char*>( mapscfg.data() );
-    std::span<const char> str{ ptr, ptr + mapscfg.size() };
-    m_mapsContainer = loadMaps( str );
+    m_mapsContainer = loadMaps( m_io->getWait( "maps.cfg" ) );
     assert( !m_mapsContainer.empty() );
 
     std::pmr::set<std::filesystem::path> uniqueTextures;

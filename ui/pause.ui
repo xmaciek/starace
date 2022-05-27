@@ -2,13 +2,13 @@ width = 1280
 height = 720
 
 Label = {
-    text = $loc:pause
+    text = pause
     x = 48
     y = 50
 }
 
 Button = {
-    text = $loc:resume
+    text = resume
     trigger = $function:resume
     x = 48
     y = 150
@@ -17,7 +17,7 @@ Button = {
 }
 
 Button = {
-    text = $loc:missionCancel
+    text = missionCancel
     trigger = $function:goto_newgame
     x = 48
     y = 200
