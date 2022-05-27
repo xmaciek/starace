@@ -51,6 +51,10 @@ static BinaryConfigBlob loadConfig()
 Engine::Engine( int, char** ) noexcept
 {
     ZoneScoped;
+    m_ioPtr = std::make_unique<AsyncIO>();
+    m_ioPtr->mount( "." );
+    m_io = m_ioPtr.get();
+
     {
         ZoneScopedN( "SDL init" );
         [[maybe_unused]]
@@ -74,9 +78,6 @@ Engine::Engine( int, char** ) noexcept
         assert( m_window );
     }
     m_actionMapping = std::make_unique<ActionMapping>();
-    m_ioPtr = std::make_unique<AsyncIO>();
-    m_ioPtr->mount( "." );
-    m_io = m_ioPtr.get();
 
     m_renderer = Renderer::create( m_window, VSync::eOn );
     m_rendererPtr = std::unique_ptr<Renderer>( m_renderer );
