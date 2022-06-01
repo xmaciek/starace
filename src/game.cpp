@@ -32,6 +32,7 @@ static constexpr const char* chunk0[] = {
     "textures/atlas_ui.tga",
     "maps.cfg",
     "jets.cfg",
+    "weapons.cfg",
     "ui/mainmenu.ui",
     "ui/missionselect.ui",
     "ui/customize.ui",
@@ -157,7 +158,35 @@ static std::pmr::vector<MapCreateInfo> loadMaps( std::pmr::vector<uint8_t>&& dat
     return levels;
 }
 
+static BulletProto makeWeapon( const cfg::Entry& entry, Texture t, Bullet::Type type )
+{
+    BulletProto ret{};
 
+    using std::literals::string_view_literals::operator""sv;
+    static const auto& colorMap = []() -> const FixedMap<std::string_view, math::vec4, 6>&
+    {
+        static FixedMap<std::string_view, math::vec4, 6> ret{};
+        ret.insert( "white"sv, color::white );
+        ret.insert( "orchid"sv, color::orchid );
+        ret.insert( "dodgerBlue"sv, color::dodgerBlue );
+        ret.insert( "blaster"sv, color::blaster );
+        ret.insert( "yellow"sv, color::yellow );
+        ret.insert( "yellowBlaster"sv, color::yellowBlaster );
+        return ret;
+    }();
+    ret.type = type;
+    ret.damage = static_cast<uint8_t>( entry[ "damage"sv ].toInt() );
+    ret.energy = static_cast<uint32_t>( entry[ "energy"sv ].toInt() );
+    ret.score_per_hit = static_cast<uint16_t>( entry[ "score"sv ].toInt() );
+    const math::vec4* color1 = colorMap[ entry[ "color1"sv ].toString() ];
+    const math::vec4* color2 = colorMap[ entry[ "color2"sv ].toString() ];
+    ret.color1 = color1 ? *color1 : color::orchid;
+    ret.color2 = color2 ? *color2 : color::orchid;
+    ret.speed = entry[ "kmph"sv ].toFloat() * (float)kmph;
+    ret.delay = entry[ "delay"sv ].toFloat();
+    ret.texture = t;
+    return ret;
+}
 
 Game::Game( int argc, char** argv )
 : Engine{ argc, argv }
@@ -377,43 +406,11 @@ void Game::onInit()
         m_textures[ it ] = parseTexture( m_io->getWait( it ) );
     }
 
+    cfg::Entry weapons = cfg::Entry::fromData( m_io->getWait( "weapons.cfg" ) );
     m_plasma = m_textures[ "textures/plasma.tga" ];
-    BulletProto tmpWeapon{};
-    tmpWeapon.texture = m_textures[ "textures/plasma.tga" ];
-    tmpWeapon.type = Bullet::Type::eSlug;
-    tmpWeapon.delay = 0.05f;
-    tmpWeapon.energy = 15;
-    tmpWeapon.damage = 1;
-    tmpWeapon.score_per_hit = 1;
-    tmpWeapon.color1 = color::yellow;
-    tmpWeapon.color2 = color::yellow;
-    m_weapons[ 0 ] = tmpWeapon;
-
-    tmpWeapon.type = Bullet::Type::eBlaster;
-    tmpWeapon.speed = 5100_kmph;
-    tmpWeapon.damage = 10;
-    tmpWeapon.energy = 10;
-    tmpWeapon.delay = 0.1f;
-    tmpWeapon.color1 = color::blaster;
-    tmpWeapon.color2 = color::dodgerBlue;
-    tmpWeapon.score_per_hit = 30;
-    m_weapons[ 1 ] = tmpWeapon;
-
-    tmpWeapon.color1 = color::yellowBlaster;
-    tmpWeapon.color2 = color::white;
-    tmpWeapon.delay = 0.4f;
-    m_weapons[ 3 ] = tmpWeapon;
-
-    tmpWeapon.type = Bullet::Type::eTorpedo;
-    tmpWeapon.damage = 1;
-    tmpWeapon.delay = 0.2f;
-    tmpWeapon.energy = 1;
-    tmpWeapon.speed = 2400_kmph;
-    tmpWeapon.score_per_hit = 2;
-    tmpWeapon.color1 = color::orchid;
-    tmpWeapon.color2 = color::white;
-    m_weapons[ 2 ] = tmpWeapon;
-
+    m_weapons[ 1 ] = makeWeapon( weapons[ "Blaster" ], m_plasma, Bullet::Type::eBlaster );
+    m_weapons[ 2 ] = makeWeapon( weapons[ "Torpedo" ], m_plasma, Bullet::Type::eTorpedo );
+    m_weapons[ 3 ] = makeWeapon( weapons[ "Enemy" ], m_plasma, Bullet::Type::eBlaster );
     loadMapProto();
 
     m_jetsContainer = loadJets( m_io->getWait( "jets.cfg" ) );
