@@ -326,14 +326,14 @@ void Game::onInit()
     {
         assert( i < 3 );
         using std::literals::string_view_literals::operator""sv;
-        static constexpr std::u32string_view s[] = { U"Laser"sv, U"Blaster"sv, U"Torpedo"sv };
+        static constexpr std::u32string_view s[] = { U"Blaster"sv, U"Torpedo"sv };
         return { s[ i ].begin(), s[ i ].end() };
     };
-    m_dataWeaponPrimary.m_size = [](){ return 3; };
+    m_dataWeaponPrimary.m_size = [](){ return 2; };
     m_dataWeaponPrimary.m_at = weapNames;
     m_dataWeaponPrimary.m_select = [this]( auto i ){ m_weapon1 = i; };
     m_dataWeaponPrimary.m_current = [this](){ return m_weapon1; };
-    m_dataWeaponSecondary.m_size = [](){ return 3; };
+    m_dataWeaponSecondary.m_size = [](){ return 2; };
     m_dataWeaponSecondary.m_at = weapNames;
     m_dataWeaponSecondary.m_select = [this]( auto i ){ m_weapon2 = i; };
     m_dataWeaponSecondary.m_current = [this](){ return m_weapon2; };
@@ -385,7 +385,6 @@ void Game::onInit()
 
     m_hud = Hud{ &m_hudData };
 
-    m_laser = m_audio->load( "sounds/laser.wav" );
     m_blaster = m_audio->load( "sounds/blaster.wav" );
     m_torpedo = m_audio->load( "sounds/torpedo.wav" );
     m_click = m_audio->load( "sounds/click.wav" );
@@ -408,9 +407,9 @@ void Game::onInit()
 
     cfg::Entry weapons = cfg::Entry::fromData( m_io->getWait( "weapons.cfg" ) );
     m_plasma = m_textures[ "textures/plasma.tga" ];
-    m_weapons[ 1 ] = makeWeapon( weapons[ "Blaster" ], m_plasma, Bullet::Type::eBlaster );
-    m_weapons[ 2 ] = makeWeapon( weapons[ "Torpedo" ], m_plasma, Bullet::Type::eTorpedo );
-    m_weapons[ 3 ] = makeWeapon( weapons[ "Enemy" ], m_plasma, Bullet::Type::eBlaster );
+    m_weapons[ static_cast<int>( Bullet::Type::eBlaster ) ] = makeWeapon( weapons[ "Blaster" ], m_plasma, Bullet::Type::eBlaster );
+    m_weapons[ static_cast<int>( Bullet::Type::eTorpedo ) ] = makeWeapon( weapons[ "Torpedo" ], m_plasma, Bullet::Type::eTorpedo );
+    m_enemyWeapon = makeWeapon( weapons[ "Enemy" ], m_plasma, Bullet::Type::eBlaster );
     loadMapProto();
 
     m_jetsContainer = loadJets( m_io->getWait( "jets.cfg" ) );
@@ -660,9 +659,6 @@ void Game::addBullet( uint32_t wID )
     case Bullet::Type::eBlaster:
         m_audio->play( m_blaster );
         break;
-    case Bullet::Type::eSlug:
-        m_audio->play( m_laser );
-        break;
     case Bullet::Type::eTorpedo:
         m_audio->play( m_torpedo );
         break;
@@ -705,7 +701,7 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
     {
         UniquePointer<Enemy> ptr{ &m_poolEnemies, &m_enemyModel };
         ptr->setTarget( &m_jet );
-        ptr->setWeapon( m_weapons[ 3 ] );
+        ptr->setWeapon( m_enemyWeapon );
         return ptr;
     });
 

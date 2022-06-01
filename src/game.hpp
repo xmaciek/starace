@@ -61,8 +61,8 @@ private:
     Font* m_fontLarge = nullptr;
     uint32_t m_currentMission = 0;
     uint32_t m_currentJet = 0;
-    uint32_t m_weapon1 = 1;
-    uint32_t m_weapon2 = 2;
+    uint32_t m_weapon1 = 0;
+    uint32_t m_weapon2 = 1;
     Model m_enemyModel{};
     Jet m_jet{};
     Skybox m_skybox{};
@@ -70,7 +70,6 @@ private:
 
     Audio::Slot m_blaster{};
     Audio::Slot m_click{};
-    Audio::Slot m_laser{};
     Audio::Slot m_torpedo{};
 
     Pool<Bullet, 1024> m_poolBullets{};
@@ -87,7 +86,8 @@ private:
     Hud m_hud{};
     UIRings m_uiRings{};
 
-    BulletProto m_weapons[ 4 ]{};
+    BulletProto m_weapons[ 2 ]{};
+    BulletProto m_enemyWeapon{};
 
     Texture m_cyberRingTexture[ 3 ]{};
     Texture m_plasma{};

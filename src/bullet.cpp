@@ -103,11 +103,6 @@ void Bullet::update( const UpdateContext& updateContext )
     }
 
     switch ( m_type ) {
-    case Type::eSlug:
-        m_color1[ 3 ] -= 2.0f * updateContext.deltaTime;
-        m_range += c_maxRange * 2.0f * updateContext.deltaTime;
-        break;
-
     case Type::eTorpedo:
         if ( m_target && m_target->status() != Status::eDead ) {
             m_direction = interceptTarget( m_direction, m_position, m_target->position(), 160.0_deg * updateContext.deltaTime );
@@ -134,10 +129,6 @@ void Bullet::update( const UpdateContext& updateContext )
 void Bullet::setDirection( const math::vec3& v )
 {
     m_direction = math::normalize( v );
-    if ( m_type == Type::eSlug ) {
-        std::rotate( m_tail.begin(), m_tail.end() - 1, m_tail.end() );
-        m_tail.front() = position() + direction() * 1000.0f;
-    }
 }
 
 uint16_t Bullet::score() const

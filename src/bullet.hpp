@@ -15,10 +15,9 @@ struct BulletProto;
 
 class Bullet : public SAObject {
 public:
-    enum struct Type : uint8_t {
+    enum class Type : uint8_t {
         eBlaster,
         eTorpedo,
-        eSlug,
     };
 
 private:
@@ -30,7 +29,7 @@ private:
     float m_range = 0.0;
     uint16_t m_score = 0;
     uint8_t m_damage = 0;
-    Type m_type = Type::eSlug;
+    Type m_type{};
 
 public:
     virtual ~Bullet() override = default;
@@ -56,5 +55,5 @@ struct BulletProto {
     uint32_t energy = 0;
     uint16_t score_per_hit = 0;
     uint8_t damage = 0;
-    Bullet::Type type = Bullet::Type::eBlaster;
+    Bullet::Type type{};
 };
