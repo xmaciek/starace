@@ -860,11 +860,17 @@ void Game::renderGameScreen( RenderContext rctx, ui::RenderContext r )
     m_targeting.render( rctx );
 }
 
+std::tuple<math::vec3, math::vec3, math::vec3> Game::getCamera() const
+{
+    math::vec3 cameraPos = m_jet.position() + math::vec3{ 0, -10.5_m, 41.5_m } * m_jet.rotation();
+    math::vec3 cameraUp = math::vec3{ 0, 1, 0 } * m_jet.rotation();
+    math::vec3 cameraTgt = cameraPos + m_jet.direction();
+    return { cameraPos, cameraUp, cameraTgt };
+}
+
 std::tuple<math::mat4, math::mat4> Game::getCameraMatrix() const
 {
-    const math::vec3 cameraPos = m_jet.position() + math::vec3{ 0, -10.5_m, 41.5_m } * m_jet.rotation();
-    const math::vec3 cameraUp = math::vec3{ 0, 1, 0 } * m_jet.rotation();
-    const math::vec3 cameraTgt = cameraPos + m_jet.direction();
+    const auto [ cameraPos, cameraUp, cameraTgt ] = getCamera();
     return {
         math::lookAt( cameraPos, cameraTgt, cameraUp ),
         math::perspective( math::radians( 55.0f + m_jet.speed() * 3 ), viewportAspect(), 0.001f, 2000.0f )
@@ -874,9 +880,7 @@ std::tuple<math::mat4, math::mat4> Game::getCameraMatrix() const
 void Game::render3D( RenderContext rctx )
 {
     std::tie( rctx.view, rctx.projection ) = getCameraMatrix();
-
-    rctx.cameraPosition = m_jet.position() + math::vec3{ 0, -10.5_m, 41.5_m } * m_jet.rotation();
-    rctx.cameraUp = math::vec3{ 0, 1, 0 } * m_jet.rotation();
+    std::tie( rctx.cameraPosition, rctx.cameraUp, std::ignore ) = getCamera();
 
     m_skybox.render( rctx );
     for ( const Explosion& it : m_explosions ) {

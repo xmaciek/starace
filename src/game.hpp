@@ -132,6 +132,8 @@ private:
     void pause();
 
     ui::Screen* currentScreen();
+
+    std::tuple<math::vec3, math::vec3, math::vec3> getCamera() const;
     std::tuple<math::mat4, math::mat4> getCameraMatrix() const;
 
     // purposefully copy argument
