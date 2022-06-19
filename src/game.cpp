@@ -434,6 +434,33 @@ void Game::onInit()
     onResize( viewportWidth(), viewportHeight() );
 }
 
+ui::Screen* Game::currentScreen()
+{
+    switch ( m_currentScreen ) {
+    case Screen::eGamePaused:
+        return &m_screenPause;
+
+    case Screen::eDead:
+    case Screen::eWin:
+        return &m_screenMissionResult;
+
+    case Screen::eMissionSelection:
+        return &m_screenMissionSelect;
+
+    case Screen::eMainMenu:
+        return &m_screenTitle;
+
+    case Screen::eSettings:
+        return &m_screenSettings;
+
+    case Screen::eCustomize:
+        return &m_screenCustomize;
+
+    default:
+        return nullptr;
+    }
+}
+
 void Game::onRender( RenderContext rctx )
 {
     ZoneScoped;
@@ -461,7 +488,6 @@ void Game::onRender( RenderContext rctx )
         renderGameScreen( rctx, r );
         m_uiRings.render( r );
         m_glow.render( r );
-        m_screenPause.render( r );
         break;
 
     case Screen::eDead:
@@ -469,31 +495,21 @@ void Game::onRender( RenderContext rctx )
         renderGameScreen( rctx, r );
         m_uiRings.render( r );
         m_glow.render( r );
-        m_screenMissionResult.render( r );
         break;
 
     case Screen::eMissionSelection:
-        renderMenuScreen( rctx, r );
-        m_screenMissionSelect.render( r );
-        break;
-
     case Screen::eMainMenu:
-        renderMenuScreen( rctx, r );
-        m_screenTitle.render( r );
-        break;
-
     case Screen::eSettings:
-        renderMenuScreen( rctx, r );
-        m_screenSettings.render( r );
-        break;
-
     case Screen::eCustomize:
         renderMenuScreen( rctx, r );
-        m_screenCustomize.render( r );
         break;
 
     default:
         break;
+    }
+
+    if ( ui::Screen* screen = currentScreen(); screen ) {
+        screen->render( r );
     }
 
     const PushConstant<Pipeline::eGammaCorrection> pushConstant{
@@ -514,33 +530,16 @@ void Game::onUpdate( const UpdateContext& uctx )
     case Screen::eGame:
         updateGame( uctx );
         return;
-    case Screen::eGamePaused:
-        m_uiRings.update( uctx );
-        m_screenPause.update( uctx );
-        return;
-    case Screen::eDead:
-    case Screen::eWin:
-        m_uiRings.update( uctx );
-        m_screenMissionResult.update( uctx );
-        return;
-
-    case Screen::eMissionSelection:
-        m_screenMissionSelect.update( uctx );
-        break;
-    case Screen::eMainMenu:
-        m_screenTitle.update( uctx );
-        break;
-    case Screen::eSettings:
-        m_screenSettings.update( uctx );
-        break;
-    case Screen::eCustomize:
-        m_screenCustomize.update( uctx );
-        break;
     default:
         break;
     }
     m_dustUi.update( uctx );
     m_uiRings.update( uctx );
+
+    ui::Screen* screen = currentScreen();
+    if ( screen ) {
+        screen->update( uctx );
+    }
 }
 
 void Game::pause()
@@ -827,33 +826,11 @@ void Game::onAction( Action a )
     default: break;
     }
 
-    switch ( m_currentScreen ) {
-    case Screen::eMainMenu:
-        m_screenTitle.onAction( a );
-        return;
-
-    case Screen::eCustomize:
-        m_screenCustomize.onAction( a );
-        break;
-
-    case Screen::eMissionSelection:
-        m_screenMissionSelect.onAction( a );
-        return;
-
-    case Screen::eSettings:
-        m_screenSettings.onAction( a );
-        return;
-
-    case Screen::eGamePaused:
-        m_screenPause.onAction( a );
-        return;
-
-    case Screen::eWin:
-    case Screen::eDead:
-        m_screenMissionResult.onAction( a );
-        return;
-
-    case Screen::eGame:
+    ui::Screen* screen = currentScreen();
+    if ( screen ) {
+        screen->onAction( a );
+    }
+    if ( m_currentScreen == Screen::eGame ) {
         switch ( action ) {
         case GameAction::eJetTarget:
             if ( a.digital ) { retarget(); }
@@ -864,48 +841,15 @@ void Game::onAction( Action a )
         default:
             return;
         }
-
-    default:
-        assert( !"unhandled enum" );
-        return;
     }
 }
 
 void Game::onMouseEvent( const MouseEvent& mouseEvent )
 {
     ZoneScoped;
-    switch ( m_currentScreen ) {
-    case Screen::eGamePaused:
-        m_screenPause.onMouseEvent( mouseEvent );
-        break;
-
-    case Screen::eMainMenu:
-        m_screenTitle.onMouseEvent( mouseEvent );
-        break;
-
-    case Screen::eMissionSelection:
-        m_screenMissionSelect.onMouseEvent( mouseEvent );
-        break;
-
-    case Screen::eDead:
-    case Screen::eWin:
-        m_screenMissionResult.onMouseEvent( mouseEvent );
-        break;
-
-    case Screen::eCustomize:
-        m_screenCustomize.onMouseEvent( mouseEvent );
-        break;
-
-    case Screen::eSettings:
-        m_screenSettings.onMouseEvent( mouseEvent );
-        break;
-
-    case Screen::eGame:
-        break;
-
-    default:
-        assert( !"unhandled enum" );
-        break;
+    ui::Screen* screen = currentScreen();
+    if ( screen ) {
+        screen->onMouseEvent( mouseEvent );
     }
 }
 

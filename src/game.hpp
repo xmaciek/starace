@@ -41,16 +41,18 @@ public:
     ~Game();
 
 private:
-    enum class Screen {
+    enum class Screen : uint32_t {
         eGame,
         eGameBriefing,
         eGamePaused,
+        eGameResult,
         eMissionSelection,
         eDead,
         eWin,
         eCustomize,
         eSettings,
         eMainMenu,
+        max,
     };
 
     uint32_t m_currentResolution = 0;
@@ -129,6 +131,7 @@ private:
     void loadMapProto();
     void pause();
 
+    ui::Screen* currentScreen();
     std::tuple<math::mat4, math::mat4> getCameraMatrix() const;
 
     // purposefully copy argument
