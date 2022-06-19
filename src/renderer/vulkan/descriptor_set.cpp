@@ -7,6 +7,7 @@
 #include <array>
 #include <bit>
 #include <cassert>
+#include <algorithm>
 
 DescriptorSet::~DescriptorSet() noexcept
 {

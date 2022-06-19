@@ -4,8 +4,8 @@
 
 #include <Tracy.hpp>
 
+#include <algorithm>
 #include <cassert>
-#include <iostream>
 #include <memory_resource>
 #include <optional>
 #include <vector>

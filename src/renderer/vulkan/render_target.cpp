@@ -4,6 +4,7 @@
 
 #include <Tracy.hpp>
 
+#include <array>
 #include <cassert>
 #include <utility>
 
@@ -31,7 +32,7 @@ RenderTarget::RenderTarget(
     assert( pdevice );
     assert( device );
 
-    const std::array attachments = { view(), extraView };
+    const std::array attachments{ view(), extraView };
     const VkFramebufferCreateInfo framebufferInfo{
         .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
         .renderPass = renderPass,
