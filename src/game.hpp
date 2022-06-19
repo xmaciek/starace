@@ -65,6 +65,7 @@ private:
     uint32_t m_currentJet = 0;
     uint32_t m_weapon1 = 0;
     uint32_t m_weapon2 = 1;
+    uint32_t m_gammaIndex = 8;
     Model m_enemyModel{};
     Jet m_jet{};
     Skybox m_skybox{};
@@ -112,6 +113,7 @@ private:
 
     ui::GenericDataModel m_dataMissionSelect{};
     ui::GenericDataModel m_dataModelVSync{};
+    ui::GenericDataModel m_dataModelGamma{};
     ui::GenericDataModel m_dataModelResolution{};
     ui::GenericDataModel m_dataJet{};
     ui::GenericDataModel m_dataWeaponPrimary{};

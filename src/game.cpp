@@ -291,6 +291,20 @@ void Game::onInit()
     };
     g_gameUiDataModels[ "$data:vsync" ] = &m_dataModelVSync;
 
+    m_dataModelGamma.m_size = [](){ return 22; };
+    m_dataModelGamma.m_at = []( auto i ) -> std::pmr::u32string
+    {
+        float f = 0.4f + 0.1f * static_cast<float>( i );
+        std::string str = std::to_string( f );
+        return { str.begin(), str.end() };
+    };
+    m_dataModelGamma.m_current = [this](){ return m_gammaIndex; };
+    m_dataModelGamma.m_select = [this]( auto i )
+    {
+        m_gammaIndex = i;
+    };
+    g_gameUiDataModels[ "$data:gammaCorrection" ] = &m_dataModelGamma;
+
     m_dataModelResolution.m_size = [this]() { return m_displayModes.size(); };
     m_dataModelResolution.m_at = [this]( auto i )
     {
@@ -513,7 +527,7 @@ void Game::onRender( RenderContext rctx )
     }
 
     const PushConstant<Pipeline::eGammaCorrection> pushConstant{
-        .m_power = 1.2f,
+        .m_power = 0.4f + static_cast<float>( m_gammaIndex ) * 0.1f,
     };
 
     const DispatchInfo dispatchInfo{
