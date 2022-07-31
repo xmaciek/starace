@@ -7,14 +7,11 @@
 #include <algorithm>
 #include <cassert>
 
-constexpr static math::vec3 defaultPyrAcceleration{ 30.0_deg, 20.0_deg, 100.0_deg };
 constexpr static math::vec3 defaultPyrLimits{ 80.0_deg, 40.0_deg, 120.0_deg };
 constexpr static math::vec3 defaultPyrAnimLimits{ 5.0_deg, 5.0_deg, 15.0_deg };
 
 Jet::Jet( const ModelProto& modelData ) noexcept
 : m_thruster{ { modelData.scale, modelData.scale * 0.04285f }, { modelData.scale, modelData.scale * 0.04285f } }
-, m_shield( 0.15, 0.03 )
-, m_pyrAccelleration{ defaultPyrAcceleration }
 , m_pyrLimits{ defaultPyrLimits }
 {
     m_direction.z = -1;
@@ -29,7 +26,7 @@ void Jet::render( RenderContext rctx ) const
 {
     rctx.model = math::translate( rctx.model, position() );
     rctx.model *= math::toMat4( quat() );
-    rctx.model *= math::toMat4( animation() );
+    rctx.model *= math::toMat4( math::quat{ m_animationAngleState.value() } );
 
     m_model.render( rctx );
     auto thrusters = m_model.thrusters();
@@ -40,11 +37,13 @@ void Jet::render( RenderContext rctx ) const
         return;
     }
     const math::mat4 model = rctx.model;
-    const float left =  -5.0_deg * m_input.pitch + 5.0_deg * m_input.roll;
-    const float right = -5.0_deg * m_input.pitch - 5.0_deg * m_input.roll;
-    rctx.model = math::rotate( model, right, axis::x );
+    const math::vec2 left = m_vectorThrustLeft.value();
+    const math::vec2 right = m_vectorThrustRight.value();
+
+    rctx.model = math::rotate( model, right.x + right.y, axis::x );
     m_thruster[ 1 ].renderAt( rctx, thrusters[ 1 ] );
-    rctx.model = math::rotate( model, left, axis::x );
+
+    rctx.model = math::rotate( model, left.x + left.y, axis::x );
     m_thruster[ 0 ].renderAt( rctx, thrusters[ 0 ] );
 }
 
@@ -57,37 +56,15 @@ void Jet::update( const UpdateContext& updateContext )
     m_reactor.update( updateContext );
 
     const math::vec3 pyrControl{ m_input.pitch, m_input.yaw, m_input.roll };
-    m_pyrTarget = pyrControl * m_pyrLimits;
-    const math::vec3 dir = m_pyrTarget - m_pyrCurrent;
-    if ( const float length = math::length( dir ); length > 0.0f ) {
-        const math::vec3 pyrAdd = math::normalize( dir ) * m_pyrAccelleration * updateContext.deltaTime;
-        if ( length >= math::length( pyrAdd ) ) {
-            m_pyrCurrent = math::clamp( m_pyrCurrent + pyrAdd, -m_pyrLimits, m_pyrLimits );
-        }
-        else {
-            m_pyrCurrent = m_pyrTarget;
-        }
-    }
+    const math::vec3 pyrTarget = pyrControl * m_pyrLimits;
+    m_angleState.setTarget( pyrTarget );
+    m_angleState.update( updateContext.deltaTime );
 
-    {
-        const math::vec3 aTarget = pyrControl * defaultPyrAnimLimits;
-        const math::vec3 aDir = aTarget - m_pyrAnimCurrent;
-        if ( const float length = math::length( aDir ); length > 0.0f ) {
-            const math::vec3 animAdd = math::normalize( aDir ) * m_pyrAccelleration * updateContext.deltaTime;
-            if ( length > math::length( animAdd ) ) {
-                m_pyrAnimCurrent = math::clamp( m_pyrAnimCurrent + animAdd, -defaultPyrAnimLimits, defaultPyrAnimLimits  );
-            }
-            else {
-                m_pyrAnimCurrent = aTarget;
-            }
-            const math::quat qx{ m_pyrAnimCurrent * axis::x };
-            const math::quat qy{ m_pyrAnimCurrent * axis::y };
-            const math::quat qz{ m_pyrAnimCurrent * axis::z };
-            m_animation = qz * ( qy * ( math::quat{ math::vec3{} } * qx ) );
-        }
-    }
+    const math::vec3 pyrAnimTarget = pyrControl * defaultPyrAnimLimits;
+    m_animationAngleState.setTarget( pyrAnimTarget );
+    m_animationAngleState.update( updateContext.deltaTime );
 
-    m_speedTarget = m_input.speed >= 0
+    float speedTarget = m_input.speed >= 0
         ? std::lerp( m_speedNorm, m_speedMax, m_input.speed )
         : std::lerp( m_speedMin, m_speedNorm, 1.0f + m_input.speed );
     if ( m_input.speed > 0 ) {
@@ -95,33 +72,47 @@ void Jet::update( const UpdateContext& updateContext )
         m_reactor.consume( afterburnerCost );
     }
 
-    m_speed += math::clamp( m_speedTarget - m_speed, -m_speedAcceleration, m_speedAcceleration )
-        * updateContext.deltaTime;
+    m_speedTarget.setTarget( speedTarget );
+    m_speedTarget.update( updateContext.deltaTime );
+    m_speed = m_speedTarget.value();
 
-    m_quaternion *= math::quat{ m_pyrCurrent * updateContext.deltaTime };
+    m_quaternion *= math::quat{ m_angleState.value() * updateContext.deltaTime };
     m_direction = math::normalize( math::rotate( m_quaternion, math::vec3{ 0.0f, 0.0f, -1.0f } ) );
 
-    // TODO: lerp
+
+    float horizontalN = m_input.yaw * 0.5f + 0.5f;
+    float verticalN = m_input.pitch * 0.5f + 0.5f;
+    float horizontalPos = math::lerp( 0.2f, -0.2f, horizontalN );
+    float verticalPos = math::lerp( -0.2f, 0.2f, verticalN );
+    float horizontalPos2 = math::lerp( 6.0_m, -6.0_m, horizontalN );
+    float verticalPos2 = math::lerp( -2.0_m, 2.0_m, verticalN );
+    m_camDirection.setTarget( math::normalize( math::vec3{ horizontalPos, verticalPos, -1.0f } ) );
+    m_camDirection.update( updateContext.deltaTime );
+    m_camPosition.setTarget( { horizontalPos2, verticalPos2, 0.0f } );
+    m_camPosition.update( updateContext.deltaTime );
+
+    m_vectorThrustLeft.setTarget( { -5.0_deg * m_input.pitch, 5.0_deg * m_input.roll } );
+    m_vectorThrustRight.setTarget( { -5.0_deg * m_input.pitch, -5.0_deg * m_input.roll } );
+    m_vectorThrustLeft.update( updateContext.deltaTime );
+    m_vectorThrustRight.update( updateContext.deltaTime );
+
     float left = 10.0_m + ( m_vectorThrust ? m_input.yaw * 3.0_m : 0.0f ) + m_input.speed * 4.0_m;
     float right = 10.0_m + ( m_vectorThrust ? m_input.yaw * -3.0_m : 0.0f ) + m_input.speed * 4.0_m;
-    m_thruster[ 0 ].setLength( left );
-    m_thruster[ 1 ].setLength( right );
+    m_thrusterLength.setTarget( { left, right } );
+    m_thrusterLength.update( updateContext.deltaTime );
+    math::vec2 thrusterLength = m_thrusterLength.value();
+    m_thruster[ 0 ].setLength( thrusterLength.x );
+    m_thruster[ 1 ].setLength( thrusterLength.y );
 
-    if ( m_shotFactor[ 0 ] < m_weapon[ 0 ].delay ) {
-        m_shotFactor[ 0 ] += updateContext.deltaTime;
+    for ( auto i : { 0, 1, 2 } ) {
+        if ( m_weaponCooldown[ i ] >= m_weapon[ i ].delay ) continue;
+        m_weaponCooldown[ i ] += updateContext.deltaTime;
     }
-    if ( m_shotFactor[ 1 ] < m_weapon[ 1 ].delay ) {
-        m_shotFactor[ 1 ] += updateContext.deltaTime;
-    }
-    if ( m_shotFactor[ 2 ] < m_weapon[ 2 ].delay ) {
-        m_shotFactor[ 2 ] += updateContext.deltaTime;
-    }
-
 
     m_position += velocity() * updateContext.deltaTime;
     m_thruster[ 0 ].update( updateContext );
     m_thruster[ 1 ].update( updateContext );
-    m_shield.update( updateContext );
+
     if ( m_target ) {
         if ( m_target->status() != Status::eAlive ) {
             m_target = nullptr;
@@ -186,24 +177,19 @@ void Jet::setWeapon( BulletProto bp, uint32_t id )
 
 bool Jet::isWeaponReady( uint32_t weaponNum ) const
 {
-    return ( m_shotFactor[ weaponNum ] >= m_weapon[ weaponNum ].delay )
+    return ( m_weaponCooldown[ weaponNum ] >= m_weapon[ weaponNum ].delay )
         && ( (uint32_t)m_reactor.power() >= m_weapon[ weaponNum ].energy );
 }
 
 void Jet::takeEnergy( uint32_t weaponNum )
 {
     m_reactor.consume( (float)m_weapon[ weaponNum ].energy );
-    m_shotFactor[ weaponNum ] = 0;
+    m_weaponCooldown[ weaponNum ] = 0.0f;
 }
 
 double Jet::energy() const
 {
     return m_reactor.power();
-}
-
-math::quat Jet::animation() const
-{
-    return m_animation;
 }
 
 math::quat Jet::quat() const
@@ -226,4 +212,14 @@ void Jet::untarget( const SAObject* tgt )
 void Jet::setInput( const Jet::Input& input )
 {
     m_input = input;
+}
+
+math::vec3 Jet::cameraPosition() const
+{
+    return m_camPosition.value() + math::vec3{ 0.0f, -10.5_m, 41.5_m };
+}
+
+math::vec3 Jet::cameraDirection() const
+{
+    return m_direction;
 }

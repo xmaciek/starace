@@ -876,9 +876,10 @@ void Game::renderGameScreen( RenderContext rctx, ui::RenderContext r )
 
 std::tuple<math::vec3, math::vec3, math::vec3> Game::getCamera() const
 {
-    math::vec3 cameraPos = m_jet.position() + math::vec3{ 0, -10.5_m, 41.5_m } * m_jet.rotation();
+    
+    math::vec3 cameraPos = m_jet.position() + m_jet.cameraPosition() * m_jet.rotation();
     math::vec3 cameraUp = math::vec3{ 0, 1, 0 } * m_jet.rotation();
-    math::vec3 cameraTgt = cameraPos + m_jet.direction();
+    math::vec3 cameraTgt = cameraPos + m_jet.cameraDirection();
     return { cameraPos, cameraUp, cameraTgt };
 }
 

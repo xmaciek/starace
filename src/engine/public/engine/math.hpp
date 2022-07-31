@@ -74,7 +74,12 @@ static constexpr auto inverse = []( const auto& t )
     return glm::inverse( t );
 };
 
-static constexpr auto length = []( const auto& t )
+inline float length( float f )
+{
+    return std::abs( f );
+}
+
+inline auto length( const auto& t )
 {
     return glm::length( t );
 };
@@ -109,10 +114,17 @@ inline T nonlerp( const T& a, const T& b, float n )
     return math::lerp( a, b, n2 );
 }
 
-static constexpr auto normalize = []( const auto& t )
+
+inline float normalize( float f )
+{
+    return f < 0.0f ? -1.0f : 1.0f;
+}
+
+inline auto normalize( const auto& t )
 {
     return glm::normalize( t );
 };
+
 
 static constexpr auto ortho = []( float a, float b, float c, float d, float e, float f )
 {

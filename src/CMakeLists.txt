@@ -13,6 +13,7 @@ set( STARACE_SOURCES
     bullet.hpp
     button.cpp
     button.hpp
+    chase.hpp
     circle.hpp
     colors.hpp
     constants.hpp
