@@ -4,6 +4,7 @@
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 #include <glm/mat4x4.hpp>
+#include <glm/gtx/closest_point.hpp>
 #include <glm/gtx/quaternion.hpp>
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -21,17 +22,17 @@ using quat = glm::quat;
 
 static constexpr float pi = std::numbers::pi_v<float>;
 
-static constexpr auto abs = []( const auto& t )
+inline auto abs( const auto& t )
 {
     return glm::abs( t );
 };
 
-static constexpr auto acos = []( const auto& t )
+inline auto acos( const auto& t )
 {
     return glm::acos( t );
 };
 
-static constexpr auto billboard = []( const vec3& position, const vec3& cameraPosition, const vec3& cameraUp )
+inline auto billboard( const vec3& position, const vec3& cameraPosition, const vec3& cameraUp )
 {
     const vec3 direction = glm::normalize( cameraPosition - position );
     const vec3 right = glm::cross( cameraUp, direction );
@@ -44,39 +45,39 @@ static constexpr auto billboard = []( const vec3& position, const vec3& cameraPo
     };
 };
 
-static constexpr auto clamp = []( const auto& Tv, const auto& TMin, const auto& TMax )
+inline auto clamp( const auto& Tv, const auto& TMin, const auto& TMax )
 {
     return glm::clamp( Tv, TMin, TMax );
 };
 
 inline float cos( float f )
 {
-    return std::cos( f );
+    return glm::cos( f );
 }
 
-static constexpr auto cross = []( const auto& a, const auto& b )
+inline auto cross( const auto& a, const auto& b )
 {
     return glm::cross( a, b );
 };
 
-static constexpr auto distance = []( const auto& a, const auto& b )
+inline auto distance( const auto& a, const auto& b )
 {
     return glm::distance( a, b );
 };
 
-static constexpr auto dot = []( const auto& a, const auto& b )
+inline auto dot( const auto& a, const auto& b )
 {
     return glm::dot( a, b );
 };
 
-static constexpr auto inverse = []( const auto& t )
+inline auto inverse( const auto& t )
 {
     return glm::inverse( t );
 };
 
 inline float length( float f )
 {
-    return std::abs( f );
+    return glm::abs( f );
 }
 
 inline auto length( const auto& t )
@@ -126,49 +127,55 @@ inline auto normalize( const auto& t )
 };
 
 
-static constexpr auto ortho = []( float a, float b, float c, float d, float e, float f )
+inline auto ortho( float a, float b, float c, float d, float e, float f )
 {
     return glm::ortho( a, b, c, d, e, f );
 };
 
-static constexpr auto perspective = []( float a, float b, float c, float d )
+inline auto perspective( float a, float b, float c, float d )
 {
     return glm::perspective( a, b, c, d );
 };
 
-static constexpr auto quatLookAt = []( const auto& TQuat, const math::vec3& TVec )
+inline auto quatLookAt( const auto& TQuat, const math::vec3& TVec )
 {
     return glm::quatLookAt( TQuat, TVec );
 };
 
-static constexpr auto radians = []( auto t )
+inline auto radians( auto t )
 {
     return glm::radians( t );
 };
 
-static constexpr auto rotate( const auto& TMat, const auto& TVec )
+inline auto rotate( const auto& TMat, const auto& TVec )
 {
     return glm::rotate( TMat, TVec );
 }
 
-static constexpr auto rotate( const auto& TMat, float f, const auto& TVec )
+inline auto rotate( const auto& TMat, float f, const auto& TVec )
 {
     return glm::rotate( TMat, f, TVec );
 }
 
-static constexpr auto toMat4 = []( const auto& t )
+inline auto toMat4( const auto& t )
 {
     return glm::toMat4( t );
 };
 
-static constexpr auto translate = []( const auto& TMat, const auto& TVec )
+inline auto translate( const auto& TMat, const auto& TVec )
 {
     return glm::translate( TMat, TVec );
 };
 
-static constexpr auto scale = []( const auto& TMat, const auto& TVec )
+inline auto scale( const auto& TMat, const auto& TVec )
 {
     return glm::scale( TMat, TVec );
 };
+
+inline float pointLineDistance( const math::vec3& point, const math::vec3& lineDir, const math::vec3& lineOrg ) noexcept
+{
+    glm::vec3 p = glm::closestPointOnLine( point, lineOrg, lineOrg + lineDir * 1000.0f );
+    return distance( point, p );
+}
 
 }
