@@ -1,7 +1,5 @@
 #include <engine/engine.hpp>
 
-#include "action_mapping.hpp"
-
 #include <SDL.h>
 #include <Tracy.hpp>
 
@@ -10,7 +8,6 @@
 #include <cstring>
 #include <fstream>
 #include <utility>
-#include <iostream>
 
 Engine::~Engine() noexcept
 {
@@ -77,7 +74,6 @@ Engine::Engine( int, char** ) noexcept
         );
         assert( m_window );
     }
-    m_actionMapping = std::make_unique<ActionMapping>();
 
     m_renderer = Renderer::create( m_window, VSync::eOn );
     m_rendererPtr = std::unique_ptr<Renderer>( m_renderer );
@@ -188,12 +184,9 @@ void Engine::processEvents()
         case SDL_CONTROLLERBUTTONUP:
         {
             const bool state = event.cbutton.state == SDL_PRESSED;
-            const Actuator a{ static_cast<Actuator::Buttoncode>( event.cbutton.button ) };
-            auto [ it, end ] = m_actionMapping->resolve1( a );
-            for ( ; it != end; ++it ) {
-                assert( it );
-                onAction( Action{ .digital = state, .userEnum = *it } );
-            }
+            Actuator a{ static_cast<Actuator::Buttoncode>( event.cbutton.button ) };
+            a.value = state;
+            onActuator( a );
         } break;
 
         case SDL_CONTROLLERAXISMOTION:
@@ -209,16 +202,9 @@ void Engine::processEvents()
                 break;
             }
 
-            const Actuator a{ static_cast<Actuator::Axiscode>( event.caxis.axis ) };
-            auto [ it, end ] = m_actionMapping->resolve1( a );
-            for ( ; it != end; ++it ) {
-                assert( it );
-                onAction( Action{ .analog = newStateF, .userEnum = *it } );
-            }
-            auto actions = m_actionMapping->resolve2( a, newState );
-            for ( auto [ eid, value ] : actions ) {
-                onAction( Action{ .analog = value, .userEnum = eid } );
-            }
+            Actuator a{ static_cast<Actuator::Axiscode>( event.caxis.axis ) };
+            a.value = newState;
+            onActuator( a );
         } break;
 
         case SDL_KEYDOWN:
@@ -234,16 +220,9 @@ void Engine::processEvents()
                 break;
             }
 
-            const Actuator a{ static_cast<Actuator::Scancode>( event.key.keysym.scancode ) };
-            auto [ it, end ] = m_actionMapping->resolve1( a );
-            for ( ; it != end; ++it ) {
-                assert( it );
-                onAction( Action{ .digital = newState, .userEnum = *it } );
-            }
-            auto actions = m_actionMapping->resolve2( a, newState );
-            for ( auto [ eid, value ] : actions ) {
-                onAction( Action{ .analog = value, .userEnum = eid } );
-            }
+            Actuator a{ static_cast<Actuator::Scancode>( event.key.keysym.scancode ) };
+            a.value = newState;
+            onActuator( a );
         } break;
 
         default:
@@ -268,16 +247,6 @@ std::tuple<uint32_t, uint32_t, float> Engine::viewport() const
     return m_viewport;
 }
 
-void Engine::registerAction( Action::Enum eid, Actuator a )
-{
-    m_actionMapping->registerAction( eid, a );
-}
-
-void Engine::registerAction( Action::Enum eid, Actuator a, Actuator b )
-{
-    m_actionMapping->registerAction( eid, a, b );
-}
-
 void Engine::controllerAdd( int idx )
 {
     if ( SDL_FALSE == SDL_GetHintBoolean( "SDL_GAMECONTROLLER_ALLOW_STEAM_VIRTUAL_GAMEPAD", SDL_FALSE ) ) {
@@ -286,6 +255,9 @@ void Engine::controllerAdd( int idx )
         if ( namesv == "Steam Virtual Gamepad" ) {
             return;
         }
+    }
+    if ( SDL_GameControllerTypeForIndex( idx ) == SDL_CONTROLLER_TYPE_VIRTUAL ) {
+        return;
     }
     SDL_GameController* controller = SDL_GameControllerOpen( idx );
     assert( controller );

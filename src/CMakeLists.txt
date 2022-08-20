@@ -7,6 +7,8 @@ add_subdirectory( shared )
 add_subdirectory( engine )
 
 set( STARACE_SOURCES
+    action_state_tracker.cpp
+    action_state_tracker.hpp
     anchor.hpp
     autoaim.hpp
     bullet.cpp

@@ -3,8 +3,6 @@ set_cppver( engine 20 )
 
 target_sources( engine
     PRIVATE
-    action_mapping.hpp
-    action_mapping.cpp
     async_io.cpp
     async_io.cpp
     engine.cpp

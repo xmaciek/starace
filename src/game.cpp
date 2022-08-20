@@ -253,10 +253,10 @@ void Game::onInit()
 {
     ZoneScoped;
     for ( auto [ eid, act ] : inputActions ) {
-        registerAction( static_cast<Action::Enum>( eid ), act );
+        m_actionStateTracker.add( static_cast<Action::Enum>( eid ), act );
     }
     for ( auto [ eid, min, max ] : inputActions2 ) {
-        registerAction( static_cast<Action::Enum>( eid ), min, max );
+        m_actionStateTracker.add( static_cast<Action::Enum>( eid ), min, max );
     }
     m_displayModes = displayModes();
 
@@ -965,3 +965,10 @@ void Game::renderMenuScreen( RenderContext rctx, ui::RenderContext r ) const
     m_glow.render( r );
 }
 
+void Game::onActuator( Actuator a )
+{
+    const std::pmr::vector<Action> actions = m_actionStateTracker.updateAndResolve( a );
+    for ( const auto& it : actions ) {
+        onAction( it );
+    }
+}

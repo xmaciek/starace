@@ -1,5 +1,6 @@
 #pragma once
 
+#include "action_state_tracker.hpp"
 #include "bullet.hpp"
 #include "button.hpp"
 #include "enemy.hpp"
@@ -123,6 +124,8 @@ private:
     ui::Var<std::pmr::u32string> m_uiMissionScore{ "$var:missionScore", U"BUG ME" };
     cfg::Entry m_localize{};
 
+    ActionStateTracker m_actionStateTracker{};
+
     uint32_t viewportHeight() const;
     uint32_t viewportWidth() const;
     float viewportAspect() const;
@@ -150,7 +153,8 @@ private:
     void unpause();
     void updateGame( const UpdateContext& );
 
-    virtual void onAction( Action ) override;
+    void onAction( Action );
+    virtual void onActuator( Actuator ) override;
     virtual void onInit() override;
     virtual void onExit() override;
     virtual void onRender( RenderContext ) override;

@@ -15,7 +15,7 @@ struct Actuator {
     using Buttoncode = SDL_GameControllerButton;
     using Axiscode = SDL_GameControllerAxis;
 
-    enum class Type : uint32_t {
+    enum class Type : uint16_t {
         eNone,
         eScancode,
         eButtoncode,
@@ -27,6 +27,7 @@ struct Actuator {
         Axiscode axiscode;
     };
     Type type{};
+    int16_t value{};
 
     constexpr Actuator() noexcept = default;
     constexpr Actuator( Scancode s ) noexcept : scancode{ s }, type{ Type::eScancode } {};

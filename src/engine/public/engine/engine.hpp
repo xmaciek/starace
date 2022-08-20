@@ -20,7 +20,6 @@
 #include <vector>
 
 struct SDL_Window;
-class ActionMapping;
 
 class Engine {
 private:
@@ -28,7 +27,6 @@ private:
 
     SDL_Window* m_window = nullptr;
     std::tuple<uint32_t, uint32_t, float> m_viewport{};
-    std::unique_ptr<ActionMapping> m_actionMapping{};
     std::unique_ptr<AsyncIO> m_ioPtr{};
     std::unique_ptr<Audio> m_audioPtr{};
     std::unique_ptr<Renderer> m_rendererPtr{};
@@ -55,7 +53,7 @@ protected:
     void registerAction( Action::Enum, Actuator );
     void registerAction( Action::Enum, Actuator, Actuator );
 
-    virtual void onAction( Action ) = 0;
+    virtual void onActuator( Actuator ) = 0;
     virtual void onInit() = 0;
     virtual void onExit() = 0;
     virtual void onRender( RenderContext ) = 0;
