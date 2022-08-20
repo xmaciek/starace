@@ -53,8 +53,6 @@ set( STARACE_SOURCES
     obj.hpp
     progressbar.cpp
     progressbar.hpp
-    reactor.cpp
-    reactor.hpp
     saobject.cpp
     saobject.hpp
     shield.cpp

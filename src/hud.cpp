@@ -18,7 +18,6 @@ Hud::Hud( const HudData* displayData ) noexcept
 , m_calcValue{ U"0", g_uiProperty.fontSmall(), {}, color::winScreen }
 , m_speedMeter{ nullptr }
 , m_hp{ U"HP" }
-, m_pwr{ U"PWR" }
 {
     Widget* arr[] = {
         &m_score,
@@ -59,7 +58,6 @@ void Hud::render( ui::RenderContext rctx ) const
     }
     m_speedMeter.render( rctx );
     m_hp.render( rctx );
-    m_pwr.render( rctx );
 }
 
 void Hud::update( const UpdateContext& uctx )
@@ -78,7 +76,6 @@ void Hud::update( const UpdateContext& uctx )
     m_speedMeter.setSpeed( m_displayData->speed );
     m_speedMeter.update( uctx );
     m_hp.setValue( m_displayData->hp );
-    m_pwr.setValue( m_displayData->pwr );
 
     m_lastData = *m_displayData;
 }
@@ -89,7 +86,6 @@ void Hud::resize( math::vec2 s )
 
     Widget* bars[] = {
         &m_hp,
-        &m_pwr,
     };
     Layout{ { 4.0f, s.y - 4.0f }, Layout::eHorizontal }( bars );
 }

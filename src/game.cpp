@@ -176,7 +176,6 @@ static BulletProto makeWeapon( const cfg::Entry& entry, Texture t, Bullet::Type 
     }();
     ret.type = type;
     ret.damage = static_cast<uint8_t>( entry[ "damage"sv ].toInt() );
-    ret.energy = static_cast<uint32_t>( entry[ "energy"sv ].toInt() );
     ret.score_per_hit = static_cast<uint16_t>( entry[ "score"sv ].toInt() );
     const math::vec4* color1 = colorMap[ entry[ "color1"sv ].toString() ];
     const math::vec4* color2 = colorMap[ entry[ "color2"sv ].toString() ];
@@ -653,7 +652,6 @@ void Game::updateGame( const UpdateContext& updateContext )
     m_hudData.pool = static_cast<uint32_t>( m_poolBullets.allocCount() );
     m_hudData.speed = m_jet.speed();
     m_hudData.hp = static_cast<float>( m_jet.health() ) / 100.0f;
-    m_hudData.pwr = static_cast<float>( m_jet.energy() ) / 100.0f;
     m_hud.update( updateContext );
 }
 
@@ -664,7 +662,6 @@ void Game::addBullet( uint32_t wID )
     if ( !m_jet.isWeaponReady( wID ) ) {
         return;
     }
-    m_jet.takeEnergy( wID );
     const auto& bullet = m_bullets.emplace_back( m_jet.weapon( wID, &m_poolBullets ) );
 
     m_hudData.shots++;
@@ -700,7 +697,6 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
     ZoneScoped;
     m_hudData = HudData{
         .hp = 1.0f,
-        .pwr = 1.0f,
     };
     m_skybox = Skybox{ mapInfo.texture };
     m_jet = Jet( modelData );

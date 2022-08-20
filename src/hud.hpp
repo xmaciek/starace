@@ -17,7 +17,6 @@ struct HudData {
     uint32_t calc = 0;
     float speed = 0;
     float hp = 0.0f;
-    float pwr = 0.0f;
 };
 
 class Hud {
@@ -36,7 +35,6 @@ class Hud {
     Label m_calcValue{};
     SpeedMeter m_speedMeter{};
     HudBar m_hp{};
-    HudBar m_pwr{};
 
 public:
     Hud() noexcept = default;

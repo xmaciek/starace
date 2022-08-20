@@ -53,7 +53,6 @@ void Jet::update( const UpdateContext& updateContext )
     if ( status() == Status::eDead ) {
         return;
     }
-    m_reactor.update( updateContext );
 
     const math::vec3 pyrControl{ m_input.pitch, m_input.yaw, m_input.roll };
     const math::vec3 pyrTarget = pyrControl * m_pyrLimits;
@@ -67,10 +66,6 @@ void Jet::update( const UpdateContext& updateContext )
     float speedTarget = m_input.speed >= 0
         ? std::lerp( m_speedNorm, m_speedMax, m_input.speed )
         : std::lerp( m_speedMin, m_speedNorm, 1.0f + m_input.speed );
-    if ( m_input.speed > 0 ) {
-        const float afterburnerCost = 70.0f * updateContext.deltaTime;
-        m_reactor.consume( afterburnerCost );
-    }
 
     m_speedTarget.setTarget( speedTarget );
     m_speedTarget.update( updateContext.deltaTime );
@@ -141,6 +136,7 @@ UniquePointer<Bullet> Jet::weapon( uint32_t weaponNum, std::pmr::memory_resource
 {
     assert( weaponNum < std::size( m_weapon ) );
     assert( alloc );
+    m_weaponCooldown[ weaponNum ] = 0.0f;
     BulletProto tmp = m_weapon[ weaponNum ];
     tmp.position = math::rotate( quat(), m_model.weapon( weaponNum ) ) + position();
     UniquePointer<Bullet> b{ alloc, tmp };
@@ -177,19 +173,7 @@ void Jet::setWeapon( BulletProto bp, uint32_t id )
 
 bool Jet::isWeaponReady( uint32_t weaponNum ) const
 {
-    return ( m_weaponCooldown[ weaponNum ] >= m_weapon[ weaponNum ].delay )
-        && ( (uint32_t)m_reactor.power() >= m_weapon[ weaponNum ].energy );
-}
-
-void Jet::takeEnergy( uint32_t weaponNum )
-{
-    m_reactor.consume( (float)m_weapon[ weaponNum ].energy );
-    m_weaponCooldown[ weaponNum ] = 0.0f;
-}
-
-double Jet::energy() const
-{
-    return m_reactor.power();
+    return m_weaponCooldown[ weaponNum ] >= m_weapon[ weaponNum ].delay;
 }
 
 math::quat Jet::quat() const

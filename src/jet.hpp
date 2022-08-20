@@ -3,7 +3,6 @@
 #include "bullet.hpp"
 #include "model.hpp"
 #include "model_proto.hpp"
-#include "reactor.hpp"
 #include "saobject.hpp"
 #include "thruster.hpp"
 #include "units.hpp"
@@ -49,8 +48,6 @@ private:
     Chase<math::vec3> m_camPosition{ { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0.2f };
     Chase<math::vec3, math::vec3> m_angleState{ {}, {}, { 30.0_deg, 20.0_deg, 100.0_deg } };
     Chase<math::vec3, math::vec3> m_animationAngleState{ {}, {}, { 30.0_deg, 20.0_deg, 100.0_deg } };
-    Reactor m_reactor{};
-
 
     float m_speedMax = 1800_kmph;
     float m_speedMin = 192_kmph;
@@ -70,7 +67,6 @@ public:
     UniquePointer<Bullet> weapon( uint32_t weaponNum, std::pmr::memory_resource* );
     bool isShooting( uint32_t weaponNum ) const;
     bool isWeaponReady( uint32_t weaponNum ) const;
-    double energy() const;
 
     math::quat quat() const;
     math::quat rotation() const;
@@ -81,7 +77,6 @@ public:
     void processCollision( std::vector<Bullet*>& );
     void setModel( Model* );
     void setWeapon( BulletProto bp, uint32_t id );
-    void takeEnergy( uint32_t weaponNum );
     void untarget( const SAObject* );
     void setInput( const Input& );
 
