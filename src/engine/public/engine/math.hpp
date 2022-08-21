@@ -60,15 +60,20 @@ inline auto cross( const auto& a, const auto& b )
     return glm::cross( a, b );
 };
 
-inline auto distance( const auto& a, const auto& b )
+inline float distance( const auto& a, const auto& b )
 {
     return glm::distance( a, b );
 };
 
-inline auto dot( const auto& a, const auto& b )
+inline float dot( const auto& a, const auto& b )
 {
     return glm::dot( a, b );
 };
+
+inline float angle( const auto& a, const auto&b )
+{
+    return acos( dot( a, b ) );
+}
 
 inline auto inverse( const auto& t )
 {

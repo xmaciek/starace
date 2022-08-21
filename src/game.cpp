@@ -680,8 +680,29 @@ void Game::retarget()
     if ( m_enemies.empty() ) {
         return;
     }
-    static Random random{ std::random_device()() };
-    m_jet.setTarget( *m_enemies[ random() % m_enemies.size() ] );
+
+    struct TgtInfo {
+        SAObject* obj;
+        float dist;
+        bool operator < ( const TgtInfo& rhs ) const noexcept
+        {
+            return dist < rhs.dist;
+        }
+    };
+
+    math::vec3 jetPos = m_jet.position();
+    math::vec3 jetDir = m_jet.direction();
+    std::pmr::vector<TgtInfo> tgtInfo;
+    tgtInfo.resize( m_enemies.size() );
+    std::transform( m_enemies.begin(), m_enemies.end(), tgtInfo.begin(),
+        [jetPos, jetDir]( auto& obj ) -> TgtInfo
+        {
+            return { *obj, math::angle( math::normalize( obj->position() - jetPos ), jetDir ) };
+        }
+    );
+    auto it = std::min_element( tgtInfo.begin(), tgtInfo.end() );
+
+    m_jet.setTarget( it->obj );
 }
 
 void Game::clearMapData()
