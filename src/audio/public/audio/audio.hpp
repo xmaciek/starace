@@ -12,6 +12,7 @@ protected:
 
 public:
     using Slot = uint16_t;
+    static constexpr uint16_t c_invalidSlot = 0xFFFFu;
 
     virtual ~Audio() = default;
     Audio() = default;

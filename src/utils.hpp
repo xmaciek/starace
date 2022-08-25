@@ -40,7 +40,7 @@ char32_t* toChars( char32_t* begin, [[maybe_unused]] char32_t* end, T t )
     }
     char32_t* it = begin;
     do {
-        *it++ = U'0' + ( v % 10 );
+        *it++ = U'0' + static_cast<char32_t>( v % 10 );
     }
     while ( v /= 10 );
 

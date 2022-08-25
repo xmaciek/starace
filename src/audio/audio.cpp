@@ -21,10 +21,12 @@ constexpr unsigned long long operator""_Hz( unsigned long long hz ) noexcept
 
 using Buffer = std::pmr::vector<Uint8>;
 
-struct alignas( 16 ) PlaySpan {
-    const Uint8* begin;
-    const Uint8* end;
+struct alignas( 8 ) PlaySpan {
+    uint32_t position;
+    Audio::Slot slot;
+    bool isEnqueued;
 };
+static_assert( sizeof( PlaySpan ) == 8 );
 
 class SDLAudioEngine : public Audio {
     SDL_AudioSpec m_spec{};
@@ -86,6 +88,7 @@ SDLAudioEngine::SDLAudioEngine()
         return SDL_GetAudioDeviceName( idx++, false );
     } );
     assert( !devices.empty() );
+    std::reverse( devices.begin(), devices.end() );
 
     const SDL_AudioSpec want{
         .freq = 48000_Hz,
@@ -125,22 +128,24 @@ void SDLAudioEngine::callback( void* userData, Uint8* stream, int len )
     const auto format = instance->m_spec.format;
 
     for ( auto& it : toPlay ) {
-        PlaySpan buff = it.load();
-        if ( !buff.begin && !buff.end ) continue;
-        assert( buff.begin );
-        assert( buff.end );
-        assert( buff.begin < buff.end );
+        PlaySpan span = it.load();
+        if ( !span.isEnqueued ) continue;
+        if ( span.slot == c_invalidSlot ) continue;
+        assert( span.slot < instance->m_audioSlots.size() );
+        const Buffer& buffer = instance->m_audioSlots[ span.slot ];
+        const uint32_t bufferSize = static_cast<uint32_t>( buffer.size() );
+        assert( span.position < bufferSize );
 
-        const Uint32 sizeRemaining = static_cast<Uint32>( buff.end - buff.begin );
+        const Uint32 sizeRemaining = static_cast<Uint32>( bufferSize - span.position );
         const Uint32 playLength = std::min( static_cast<Uint32>( len ), sizeRemaining );
         SDL_MixAudioFormat( stream
-            , buff.begin
+            , buffer.data() + span.position
             , format
             , playLength
             , SDL_MIX_MAXVOLUME
         );
-        buff.begin += playLength;
-        it.store( buff.begin == buff.end ? PlaySpan{} : buff );
+        span.position += playLength;
+        it.store( span.position == bufferSize ? PlaySpan{} : span );
     }
 }
 
@@ -184,11 +189,11 @@ void SDLAudioEngine::play( Audio::Slot idx )
     assert( idx > 0 );
     idx--;
     assert( idx < m_audioSlots.size() );
-    Buffer& buffer = m_audioSlots[ idx ];
 
     PlaySpan span{
-        .begin = buffer.data(),
-        .end = buffer.data() + buffer.size(),
+        .position = 0,
+        .slot = idx,
+        .isEnqueued = true,
     };
     for ( auto& it : m_nowPlaying ) {
         PlaySpan empty{};

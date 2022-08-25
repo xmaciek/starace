@@ -815,7 +815,7 @@ static void updateDescriptor2( VkDevice device
                 ? VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
                 : VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
             uint32_t dstBinding = static_cast<uint32_t>( std::countr_zero( bindpoints.image ) );
-            bindpoints.image &= ~( 1 << dstBinding );
+            bindpoints.image &= ~(uint16_t)( 1u << dstBinding );
             return {
                 .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                 .dstSet = descriptorSet,
