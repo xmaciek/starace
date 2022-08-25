@@ -1,7 +1,6 @@
 #include "game.hpp"
 
 #include "colors.hpp"
-#include "constants.hpp"
 #include "game_action.hpp"
 #include "game_callbacks.hpp"
 #include "game_pipeline.hpp"

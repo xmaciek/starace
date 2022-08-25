@@ -1,6 +1,5 @@
 #include "bullet.hpp"
 
-#include "constants.hpp"
 #include "game_pipeline.hpp"
 #include "utils.hpp"
 

@@ -2,14 +2,12 @@
 
 #include "circle.hpp"
 #include "game_pipeline.hpp"
-#include "constants.hpp"
 #include "units.hpp"
 
 #include <renderer/renderer.hpp>
 
 #include <algorithm>
 #include <cassert>
-#include <cmath>
 
 static constexpr float rad = 0.32f * 0.04285f;
 static const std::array<math::vec4, 32> s_outter = CircleGen<math::vec4>::getCircle<32>( rad );
@@ -33,8 +31,8 @@ void Thruster::setColorScheme( const ColorScheme& col )
 void Thruster::update( const UpdateContext& updateContext )
 {
     constexpr static float wiggleDuration = 0.125f;
-    m_wiggle = std::fmod( m_wiggle + updateContext.deltaTime, wiggleDuration );
-    const float f = std::cos( constants::pi * ( m_wiggle / wiggleDuration - 0.25f ) );
+    m_wiggle = math::fmod( m_wiggle + updateContext.deltaTime, wiggleDuration );
+    const float f = math::cos( math::pi * ( m_wiggle / wiggleDuration - 0.25f ) );
     const float diff = m_lengthRange.y - m_lengthRange.x;
     m_length = m_lengthRange.x + f * diff;
 }

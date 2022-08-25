@@ -75,6 +75,11 @@ inline float angle( const auto& a, const auto&b )
     return acos( dot( a, b ) );
 }
 
+inline float fmod( float a, float b )
+{
+    return std::fmod( a, b );
+}
+
 inline auto inverse( const auto& t )
 {
     return glm::inverse( t );
@@ -171,6 +176,16 @@ inline auto translate( const auto& TMat, const auto& TVec )
 {
     return glm::translate( TMat, TVec );
 };
+
+inline float sin( const float f )
+{
+    return std::sin( f );
+}
+
+inline auto sin( const auto& v )
+{
+    return glm::sin( v );
+}
 
 inline auto scale( const auto& TMat, const auto& TVec )
 {

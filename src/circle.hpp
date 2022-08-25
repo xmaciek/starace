@@ -1,13 +1,12 @@
 #pragma once
 
-#include "constants.hpp"
+#include "engine/math.hpp"
 
 #include <array>
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
-#include <cmath>
 
 template <typename TScalar>
 class CircleGen {
@@ -21,14 +20,14 @@ public:
     : m_max{ segments }
     , m_size{ size }
     {
-        m_angle = 2.0f * constants::pi / (float)( segments - 1 );
+        m_angle = 2.0f * math::pi / (float)( segments - 1 );
     }
 
     TScalar operator ()() noexcept
     {
         const float angle = m_angle * static_cast<float>( m_i++ % m_max );
-        const float x = -std::cos( angle ) * m_size;
-        const float y = std::sin( angle ) * m_size;
+        const float x = -math::cos( angle ) * m_size;
+        const float y = math::sin( angle ) * m_size;
         constexpr size_t nfloat = sizeof( TScalar ) / sizeof( float );
         if constexpr ( nfloat == 2 ) {
             return { x, y };

@@ -18,7 +18,6 @@ set( STARACE_SOURCES
     chase.hpp
     circle.hpp
     colors.hpp
-    constants.hpp
     enemy.cpp
     enemy.hpp
     explosion.cpp

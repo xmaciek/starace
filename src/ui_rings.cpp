@@ -1,6 +1,5 @@
 #include "ui_rings.hpp"
 
-#include "constants.hpp"
 #include "game_pipeline.hpp"
 #include "utils.hpp"
 #include "units.hpp"
@@ -50,8 +49,8 @@ void UIRings::update( const UpdateContext& uctx )
 {
     static constexpr auto warp = []( float f )
     {
-        if ( f > constants::pi ) { return f - constants::pi * 2.0f; }
-        if ( f < -constants::pi ) { return f + constants::pi * 2.0f; }
+        if ( f > math::pi ) { return f - math::pi * 2.0f; }
+        if ( f < -math::pi ) { return f + math::pi * 2.0f; }
         return f;
     };
     m_angle[ 0 ] = warp( m_angle[ 0 ] + 50.0_deg * uctx.deltaTime );
