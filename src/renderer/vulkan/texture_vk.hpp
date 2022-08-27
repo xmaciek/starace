@@ -9,6 +9,7 @@
 
 class TextureVK : public Image {
     VkSampler m_sampler = VK_NULL_HANDLE;
+    TextureCreateInfo::MipArray m_mipArray{};
 
 public:
     ~TextureVK();

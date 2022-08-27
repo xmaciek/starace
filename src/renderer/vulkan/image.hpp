@@ -16,6 +16,7 @@ protected:
     VkFormat m_format = VK_FORMAT_UNDEFINED;
 
     TransferInfo m_currentLocation = constants::undefined;
+    uint32_t m_mipCount = 0;
 
 public:
     ~Image() noexcept;
@@ -36,6 +37,7 @@ public:
     Image( const Image& ) = delete;
     Image& operator = ( const Image& ) = delete;
 
+    uint32_t mipCount() const;
     VkImage image() const;
     VkImageView view() const;
     VkExtent2D extent() const;

@@ -22,6 +22,7 @@ Image::Image( Image&& img ) noexcept
     std::swap( m_extent, img.m_extent );
     std::swap( m_format, img.m_format );
     std::swap( m_currentLocation, img.m_currentLocation );
+    std::swap( m_mipCount, img.m_mipCount );
 }
 
 Image& Image::operator = ( Image&& img ) noexcept
@@ -33,6 +34,7 @@ Image& Image::operator = ( Image&& img ) noexcept
     std::swap( m_extent, img.m_extent );
     std::swap( m_format, img.m_format );
     std::swap( m_currentLocation, img.m_currentLocation );
+    std::swap( m_mipCount, img.m_mipCount );
     return *this;
 }
 
@@ -53,6 +55,12 @@ VkExtent2D Image::extent() const
     return m_extent;
 }
 
+uint32_t Image::mipCount() const
+{
+    assert( m_mipCount > 0 );
+    return m_mipCount;
+}
+
 Image::Image( VkPhysicalDevice physDevice
     , VkDevice device
     , VkExtent2D extent
@@ -65,6 +73,7 @@ Image::Image( VkPhysicalDevice physDevice
 : m_device{ device }
 , m_extent{ extent }
 , m_format{ format }
+, m_mipCount{ mipCount }
 {
     ZoneScoped;
 
@@ -141,6 +150,6 @@ void Image::transfer( VkCommandBuffer cmd, const TransferInfo& dst )
     if ( m_currentLocation == dst ) {
         return;
     }
-    transferImage( cmd, m_image, m_currentLocation, dst );
+    transferImage( cmd, m_image, m_currentLocation, dst, m_mipCount );
     m_currentLocation = dst;
 }

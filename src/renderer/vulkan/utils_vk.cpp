@@ -45,12 +45,13 @@ uint32_t memoryType( VkPhysicalDevice device, uint32_t typeBits, VkMemoryPropert
     return 0;
 }
 
-void transferImage( VkCommandBuffer cmd, VkImage image, const TransferInfo& src, const TransferInfo& dst )
+void transferImage( VkCommandBuffer cmd, VkImage image, const TransferInfo& src, const TransferInfo& dst, uint32_t mipCount )
 {
-    static constexpr VkImageSubresourceRange imageSubresourceRange{
+    assert( mipCount > 0 );
+    const VkImageSubresourceRange imageSubresourceRange{
         .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
         .baseMipLevel = 0,
-        .levelCount = 1,
+        .levelCount = mipCount,
         .baseArrayLayer = 0,
         .layerCount = 1,
     };

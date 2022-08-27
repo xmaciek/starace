@@ -26,7 +26,7 @@ struct TransferInfo {
     inline bool operator == ( const TransferInfo& ) const noexcept = default;
 };
 
-void transferImage( VkCommandBuffer, VkImage, const TransferInfo& src, const TransferInfo& dst );
+void transferImage( VkCommandBuffer, VkImage, const TransferInfo& src, const TransferInfo& dst, uint32_t mipCount = 1 );
 
 namespace constants {
 

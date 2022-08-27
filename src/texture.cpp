@@ -45,6 +45,7 @@ Texture parseTexture( std::pmr::vector<uint8_t>&& data )
         tci.dataBeginOffset = sizeof( tga::Header );
         tci.format = bytesPerPixel == 1 ? TextureFormat::eR : TextureFormat::eBGRA;
         texture = std::move( data );
+        tci.mipArray[ 0 ] = { 0, texture.size() };
     } break;
 
     case 3:
@@ -52,6 +53,7 @@ Texture parseTexture( std::pmr::vector<uint8_t>&& data )
         ZoneScopedN( "convert texture data" );
         tci.format = TextureFormat::eBGRA;
         texture.resize( header.width * header.height * 4 );
+        tci.mipArray[ 0 ] = { 0, texture.size() };
         using BGR = uint8_t[3];
         const BGR* bgrBegin = reinterpret_cast<const BGR*>( &*it );
         const BGR* bgrEnd = bgrBegin + header.width * header.height;

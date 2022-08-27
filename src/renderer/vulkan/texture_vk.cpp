@@ -77,11 +77,12 @@ TextureVK::TextureVK( const TextureCreateInfo& tci, VkPhysicalDevice physDevice,
     , device
     , { .width = tci.width, .height = tci.height }
     , format( tci )
-    , 1
+    , tci.mips
     , VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT
     , VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
     , VK_IMAGE_ASPECT_COLOR_BIT
 }
+, m_mipArray{ tci.mipArray }
 {
     ZoneScoped;
     assert( tci.width > 0 );
@@ -96,6 +97,8 @@ TextureVK::TextureVK( const TextureCreateInfo& tci, VkPhysicalDevice physDevice,
         .addressModeV = addressMode( tci.v ),
         .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
         .mipLodBias = 0.0f,
+        .anisotropyEnable = tci.mips > 1,
+        .maxAnisotropy = 16.0f,
         .minLod = 0.0f,
         .maxLod = 0.0f,
         .unnormalizedCoordinates = VK_FALSE,
@@ -110,31 +113,61 @@ TextureVK::TextureVK( TextureVK&& rhs ) noexcept
 {
     std::swap<Image>( *this, rhs );
     std::swap( m_sampler, rhs.m_sampler );
+    std::swap( m_mipArray, rhs.m_mipArray );
 }
 
 TextureVK& TextureVK::operator = ( TextureVK&& rhs ) noexcept
 {
     std::swap<Image>( *this, rhs );
     std::swap( m_sampler, rhs.m_sampler );
+    std::swap( m_mipArray, rhs.m_mipArray );
     return *this;
 }
+
+struct RegionGenerator {
+    const TextureCreateInfo::MipArray* mipArray = nullptr;
+    uint32_t width = 0;
+    uint32_t height = 0;
+    uint32_t mipId = 0;
+
+    VkBufferImageCopy operator () ();
+};
+
+VkBufferImageCopy RegionGenerator::operator () ()
+{
+    const uint32_t mipLevel = mipId++;
+    return VkBufferImageCopy{
+        .bufferOffset = std::get<0>( (*mipArray)[ mipLevel ] ),
+        .imageSubresource = VkImageSubresourceLayers{
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+            .mipLevel = mipLevel,
+            .layerCount = 1,
+        },
+        .imageExtent = VkExtent3D{
+            .width = width >> mipLevel,
+            .height = height >> mipLevel,
+            .depth = 1,
+        },
+    };
+}
+
 
 void TextureVK::transferFrom( VkCommandBuffer cmd, const BufferVK& buffer )
 {
     ZoneScoped;
     transfer( cmd, constants::copyTo );
-    const VkBufferImageCopy region{
-        .imageSubresource = VkImageSubresourceLayers{
-            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-            .layerCount = 1,
-        },
-        .imageExtent = VkExtent3D{
-            .width = m_extent.width,
-            .height = m_extent.height,
-            .depth = 1,
-        },
-    };
-    vkCmdCopyBufferToImage( cmd, buffer, m_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region );
+
+    std::pmr::vector<VkBufferImageCopy> regions( mipCount() );
+    std::generate( regions.begin(), regions.end(), RegionGenerator{ &m_mipArray, m_extent.width, m_extent.height } );
+
+    vkCmdCopyBufferToImage(
+        cmd
+        , buffer
+        , m_image
+        , VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
+        , static_cast<uint32_t>( regions.size() )
+        , regions.data()
+    );
     transfer( cmd, constants::fragmentRead );
 }
 
