@@ -25,6 +25,7 @@ struct alignas( 8 ) PlaySpan {
     uint32_t position;
     Audio::Slot slot;
     bool isEnqueued;
+    bool padding;
 };
 static_assert( sizeof( PlaySpan ) == 8 );
 
