@@ -5,6 +5,7 @@ add_subdirectory( config )
 add_subdirectory( renderer )
 add_subdirectory( shared )
 add_subdirectory( engine )
+add_subdirectory( extra )
 
 set( STARACE_SOURCES
     action_state_tracker.cpp
@@ -104,6 +105,7 @@ target_link_libraries( ${bin_name}
     cxx::flags
     engine
     config
+    extra
     Freetype::Freetype
     SDL2::SDL2
     SDL2::main

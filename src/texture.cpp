@@ -1,6 +1,7 @@
 #include "texture.hpp"
 
 #include <renderer/renderer.hpp>
+#include <extra/dds.hpp>
 
 #include "tga.hpp"
 
@@ -11,10 +12,50 @@
 #include <cstring>
 #include <vector>
 
+static Texture maybeDDS( std::pmr::vector<uint8_t>& data )
+{
+    dds::Header header{};
+    std::copy_n( data.begin(), sizeof( header ), reinterpret_cast<uint8_t*>( &header ) );
+    if ( header.magic != dds::c_magic ) { return {}; }
+
+    TextureCreateInfo tci{};
+    tci.width = static_cast<uint16_t>( header.width );
+    tci.height = static_cast<uint16_t>(  header.height );
+    tci.mips = std::min( (uint8_t)header.mipMapCount, (uint8_t)tci.mipArray.size() );
+    tci.dataBeginOffset = sizeof( header );
+
+    const uint32_t fourcc = ( header.pixelFormat == dds::constants::bgra )
+        ? 'BGRA'
+        : header.pixelFormat.fourCC;
+    switch ( fourcc ) {
+    case 'BGRA': tci.format = TextureFormat::eBGRA; break;
+    case dds::c_dxt1: tci.format = TextureFormat::eBC1_unorm; break;
+    case dds::c_dxt3: tci.format = TextureFormat::eBC2_unorm; break;
+    case dds::c_dxt5: tci.format = TextureFormat::eBC3_unorm; break;
+    default:
+        assert( !"unhandled format, here be dragons" );
+        return {};
+    }
+
+    auto mipOffsetGenerator = [offset = 0u, pitchOrLinearSize = header.pitchOrLinearSize]() mutable -> TextureCreateInfo::MipArray::value_type
+    {
+        uintptr_t begin = offset;
+        offset += pitchOrLinearSize;
+        uintptr_t end = offset;
+        pitchOrLinearSize >>= 2;
+        return { begin, end };
+    };
+    std::generate_n( tci.mipArray.begin(), tci.mips, mipOffsetGenerator );
+    return Renderer::instance()->createTexture( tci, std::move( data ) );
+}
+
 Texture parseTexture( std::pmr::vector<uint8_t>&& data )
 {
     ZoneScoped;
     assert( !data.empty() );
+
+    if ( Texture dds = maybeDDS( data ); dds ) { return dds; }
+
     assert( data.size() >= sizeof( tga::Header ) );
     tga::Header header{};
     auto it = data.begin();
