@@ -2,8 +2,7 @@
 
 #include <renderer/renderer.hpp>
 #include <extra/dds.hpp>
-
-#include "tga.hpp"
+#include <extra/tga.hpp>
 
 #include <Tracy.hpp>
 

@@ -1,6 +1,7 @@
 #include "mesh.hpp"
 
 #include <renderer/renderer.hpp>
+#include <extra/obj.hpp>
 
 #include <Tracy.hpp>
 

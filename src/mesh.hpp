@@ -1,7 +1,5 @@
 #pragma once
 
-#include "obj.hpp"
-
 #include <engine/math.hpp>
 #include <renderer/buffer.hpp>
 

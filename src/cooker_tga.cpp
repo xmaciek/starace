@@ -1,4 +1,4 @@
-#include "tga.hpp"
+#include <extra/tga.hpp>
 
 #include <algorithm>
 #include <cassert>

@@ -49,8 +49,6 @@ set( STARACE_SOURCES
     model_proto.hpp
     nineslice.cpp
     nineslice.hpp
-    obj.cpp
-    obj.hpp
     progressbar.cpp
     progressbar.hpp
     saobject.cpp
@@ -70,7 +68,6 @@ set( STARACE_SOURCES
     targeting.hpp
     texture.cpp
     texture.hpp
-    tga.hpp
     thruster.cpp
     thruster.hpp
     ui_data_model.cpp
@@ -116,15 +113,13 @@ target_link_libraries( ${bin_name}
 target_sources( cooker_obj
     PRIVATE
     cooker_obj.cpp
-    obj.hpp
 )
-target_link_libraries( cooker_obj cxx::flags )
+target_link_libraries( cooker_obj cxx::flags extra )
 set_cppver( cooker_obj 20 )
 
 target_sources( cooker_tga
     PRIVATE
     cooker_tga.cpp
-    tga.hpp
 )
-target_link_libraries( cooker_tga cxx::flags )
+target_link_libraries( cooker_tga cxx::flags extra )
 set_cppver( cooker_tga 20 )

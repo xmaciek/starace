@@ -1,12 +1,14 @@
-add_library( extra INTERFACE )
+add_library( extra STATIC )
 set_cppver( extra 20 )
 
 target_sources( extra
-    #PRIVATE
-    #dds.cpp
+    PRIVATE
+    obj.cpp
 
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/public/extra/dds.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/extra/obj.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/extra/tga.hpp
 )
 
 set_target_properties( extra PROPERTIES
@@ -15,6 +17,6 @@ set_target_properties( extra PROPERTIES
 )
 
 target_link_libraries( extra
-    INTERFACE
+    Tracy::Client
     cxx::flags
 )
