@@ -7,9 +7,13 @@
 using Texture = uint32_t;
 
 enum class TextureFormat : uint8_t {
+    eUnknown,
     eR,
     eRGBA,
     eBGRA,
+    eBC1_unorm,
+    eBC2_unorm,
+    eBC3_unorm,
 };
 
 enum class TextureAddressMode : uint8_t {

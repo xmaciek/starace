@@ -201,6 +201,7 @@ RendererVK::RendererVK( SDL_Window* window, VSync vsync )
 
         VkPhysicalDeviceFeatures deviceFeatures{
             .wideLines = VK_TRUE,
+            .samplerAnisotropy = VK_TRUE,
         };
         const VkDeviceCreateInfo createInfo{
             .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
@@ -432,20 +433,6 @@ std::pmr::memory_resource* RendererVK::allocator()
     return std::pmr::get_default_resource();
 }
 
-static uint32_t formatToSize( TextureFormat fmt )
-{
-    switch ( fmt ) {
-    case TextureFormat::eR:
-        return 1;
-    case TextureFormat::eRGBA:
-    case TextureFormat::eBGRA:
-        return 4;
-    default:
-        assert( !"unhandled format" );
-        return 0;
-    }
-}
-
 Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::pmr::vector<uint8_t>&& data )
 {
     ZoneScoped;
@@ -453,17 +440,8 @@ Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::pmr::vecto
     assert( tci.height > 0 );
     assert( !data.empty() );
 
-    switch ( tci.format ) {
-    case TextureFormat::eR:
-    case TextureFormat::eRGBA:
-    case TextureFormat::eBGRA:
-        break;
-    default:
-        assert( !"unsuported format" );
-        return 0;
-    }
-    const uint32_t size = tci.width * tci.height * formatToSize( tci.format );
-    assert( ( size + tci.dataBeginOffset ) <= data.size() );
+    const uint32_t size = static_cast<uint32_t>( data.size() );
+
     BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, size };
     staging.copyData( data.data() + tci.dataBeginOffset );
 
