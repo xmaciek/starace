@@ -1,0 +1,1 @@
+050000005e040000220b000013050000,Xbox One Elite 2 Controller,a:b0,b:b1,x:b2,y:b3,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,dpup:h0.1,leftshoulder:b4,rightshoulder:b5,back:b6,start:b7,guide:b8,leftstick:b9,rightstick:10,paddle1:b11,paddle2:b12,paddle3:b13,paddle4:b14,leftx:a0,lefty:a1,lefttrigger:a2,rightx:a3,righty:a4,righttrigger:a5,platform:Linux,

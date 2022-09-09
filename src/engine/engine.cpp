@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <chrono>
 #include <cstring>
-#include <fstream>
 #include <utility>
 
 Engine::~Engine() noexcept
@@ -18,33 +17,6 @@ Engine::~Engine() noexcept
     SDL_Quit();
 }
 
-
-struct BinaryConfigBlob {
-    std::pair<uint32_t, uint32_t> windowExtent{ 1280, 720 };
-};
-
-static BinaryConfigBlob loadConfig()
-{
-    ZoneScoped;
-    BinaryConfigBlob ret{};
-    std::ifstream file( "engine.cfg" );
-    std::array<char, 48> tmp1{};
-    std::array<char, 48> tmp2{};
-
-    std::pmr::string line;
-    while ( getline( file, line ) ) {
-        std::sscanf( line.c_str(), "%s %s", tmp1.data(), tmp2.data() );
-        if ( std::strcmp( tmp1.data(), "windowWidth" ) == 0 ) {
-            ret.windowExtent.first = static_cast<uint32_t>( std::atoi( tmp2.data() ) );
-        }
-        else if ( std::strcmp( tmp1.data(), "windowHeight" ) == 0 ) {
-            ret.windowExtent.second = static_cast<uint32_t>( std::atoi( tmp2.data() ) );
-        }
-    }
-    return ret;
-}
-
-
 Engine::Engine( int, char** ) noexcept
 {
     ZoneScoped;
@@ -54,21 +26,23 @@ Engine::Engine( int, char** ) noexcept
 
     {
         ZoneScopedN( "SDL init" );
+        SDL_SetHint( SDL_HINT_GAMECONTROLLERCONFIG_FILE, "SDL2_gamecontrollerdb.txt" );
+
         [[maybe_unused]]
         const int initOK = SDL_Init( SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER );
         assert( initOK >= 0 );
     }
-
-    const BinaryConfigBlob blob = loadConfig();
-    setViewport( blob.windowExtent.first, blob.windowExtent.second );
+    const int width = 1280;
+    const int height = 720;
+    setViewport( width, height );
 
     {
         ZoneScopedN( "create window" );
         m_window = SDL_CreateWindow( "Starace"
             , SDL_WINDOWPOS_CENTERED
             , SDL_WINDOWPOS_CENTERED
-            , static_cast<int>( blob.windowExtent.first )
-            , static_cast<int>( blob.windowExtent.second )
+            , width
+            , height
             , Renderer::windowFlag()
                 | SDL_WINDOW_RESIZABLE
         );
