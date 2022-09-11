@@ -74,7 +74,7 @@ void SpaceDust::render( RenderContext rctx ) const
     PushBuffer pushBuffer{
         .m_pipeline = static_cast<PipelineSlot>( Pipeline::eLine3dColor1 ),
         .m_verticeCount = static_cast<uint32_t>( m_particles.size() * 2 ),
-        .m_lineWidth = m_lineWidth,
+        .m_lineWidth = m_lineWidth * ( rctx.viewport.y / 720.0f ),
     };
     assert( pushBuffer.m_verticeCount <= pushConstant.m_vertices.size() );
 
