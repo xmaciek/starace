@@ -8,7 +8,6 @@
 #include <cassert>
 
 constexpr static math::vec3 defaultPyrLimits{ 80.0_deg, 40.0_deg, 120.0_deg };
-constexpr static math::vec3 defaultPyrAnimLimits{ 5.0_deg, 5.0_deg, 15.0_deg };
 
 Jet::Jet( const ModelProto& modelData ) noexcept
 : m_thruster{ { modelData.scale, modelData.scale * 0.04285f }, { modelData.scale, modelData.scale * 0.04285f } }
@@ -26,7 +25,6 @@ void Jet::render( RenderContext rctx ) const
 {
     rctx.model = math::translate( rctx.model, position() );
     rctx.model *= math::toMat4( quat() );
-    rctx.model *= math::toMat4( math::quat{ m_animationAngleState.value() } );
 
     m_model.render( rctx );
     auto thrusters = m_model.thrusters();
@@ -59,10 +57,6 @@ void Jet::update( const UpdateContext& updateContext )
     m_angleState.setTarget( pyrTarget );
     m_angleState.update( updateContext.deltaTime );
 
-    const math::vec3 pyrAnimTarget = pyrControl * defaultPyrAnimLimits;
-    m_animationAngleState.setTarget( pyrAnimTarget );
-    m_animationAngleState.update( updateContext.deltaTime );
-
     float speedTarget = m_input.speed >= 0
         ? std::lerp( m_speedNorm, m_speedMax, m_input.speed )
         : std::lerp( m_speedMin, m_speedNorm, 1.0f + m_input.speed );
@@ -77,10 +71,10 @@ void Jet::update( const UpdateContext& updateContext )
 
     float horizontalN = m_input.yaw * 0.5f + 0.5f;
     float verticalN = m_input.pitch * 0.5f + 0.5f;
-    float horizontalPos = math::lerp( 0.2f, -0.2f, horizontalN );
-    float verticalPos = math::lerp( -0.2f, 0.2f, verticalN );
-    float horizontalPos2 = math::lerp( 6.0_m, -6.0_m, horizontalN );
-    float verticalPos2 = math::lerp( -2.0_m, 2.0_m, verticalN );
+    float horizontalPos = math::nonlerp( 0.2f, -0.2f, horizontalN );
+    float verticalPos = math::nonlerp( -0.2f, 0.2f, verticalN );
+    float horizontalPos2 = math::nonlerp( 6.0_m, -6.0_m, horizontalN );
+    float verticalPos2 = math::nonlerp( -2.0_m, 2.0_m, verticalN );
     m_camDirection.setTarget( math::normalize( math::vec3{ horizontalPos, verticalPos, -1.0f } ) );
     m_camDirection.update( updateContext.deltaTime );
     m_camPosition.setTarget( { horizontalPos2, verticalPos2, 0.0f } );

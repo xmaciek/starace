@@ -46,8 +46,7 @@ private:
 
     Chase<math::vec3> m_camDirection{ { 0.0f, 0.0f, -1.0f }, { 0.0f, 0.0f, -1.0f }, 0.2f };
     Chase<math::vec3> m_camPosition{ { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0.2f };
-    Chase<math::vec3, math::vec3> m_angleState{ {}, {}, { 30.0_deg, 20.0_deg, 100.0_deg } };
-    Chase<math::vec3, math::vec3> m_animationAngleState{ {}, {}, { 30.0_deg, 20.0_deg, 100.0_deg } };
+    Chase<math::vec3, math::vec3> m_angleState{ {}, {}, { 60.0_deg, 40.0_deg, 200.0_deg } };
 
     float m_speedMax = 1800_kmph;
     float m_speedMin = 192_kmph;
