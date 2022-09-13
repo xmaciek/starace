@@ -32,7 +32,7 @@ struct Actuator {
     constexpr Actuator() noexcept = default;
     constexpr Actuator( Scancode s ) noexcept : scancode{ s }, type{ Type::eScancode } {};
     constexpr Actuator( Buttoncode s ) noexcept : buttoncode{ s }, type{ Type::eButtoncode } {};
-    constexpr Actuator( Axiscode s ) noexcept : axiscode{ s }, type{ Type::eAxiscode } {};
+    constexpr Actuator( Axiscode s, int16_t v = 0 ) noexcept : axiscode{ s }, type{ Type::eAxiscode }, value{ v } {};
 
     constexpr std::strong_ordering operator <=> ( const Actuator& rhs ) const noexcept
     {

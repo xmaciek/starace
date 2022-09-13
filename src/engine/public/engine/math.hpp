@@ -192,6 +192,11 @@ inline auto scale( const auto& TMat, const auto& TVec )
     return glm::scale( TMat, TVec );
 };
 
+inline float sqrt( float f )
+{
+    return std::sqrt( f );
+}
+
 inline float pointLineDistance( const math::vec3& point, const math::vec3& lineDir, const math::vec3& lineOrg ) noexcept
 {
     glm::vec3 p = glm::closestPointOnLine( point, lineOrg, lineOrg + lineDir * 1000.0f );
