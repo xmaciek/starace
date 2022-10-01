@@ -131,10 +131,9 @@ UniquePointer<Bullet> Jet::weapon( uint32_t weaponNum, std::pmr::memory_resource
     assert( weaponNum < std::size( m_weapon ) );
     assert( alloc );
     m_weaponCooldown[ weaponNum ] = 0.0f;
-    BulletProto tmp = m_weapon[ weaponNum ];
-    tmp.position = math::rotate( quat(), m_model.weapon( weaponNum ) ) + position();
-    UniquePointer<Bullet> b{ alloc, tmp };
+    UniquePointer<Bullet> b{ alloc, m_weapon[ weaponNum ], math::rotate( quat(), m_model.weapon( weaponNum ) ) + position() };
     assert( b->status() != Status::eDead );
+
     b->setDirection( direction() );
 
     switch ( b->type() ) {
@@ -160,9 +159,9 @@ UniquePointer<Bullet> Jet::weapon( uint32_t weaponNum, std::pmr::memory_resource
     return b;
 }
 
-void Jet::setWeapon( BulletProto bp, uint32_t id )
+void Jet::setWeapon( const WeaponCreateInfo& w, uint32_t id )
 {
-    m_weapon[ id ] = bp;
+    m_weapon[ id ] = w;
 }
 
 bool Jet::isWeaponReady( uint32_t weaponNum ) const

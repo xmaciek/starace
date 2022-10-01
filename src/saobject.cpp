@@ -32,6 +32,11 @@ void SAObject::setStatus( SAObject::Status s )
     m_status = s;
 }
 
+void SAObject::setPosition( const math::vec3& v )
+{
+    m_position = v;
+}
+
 void SAObject::setTarget( SAObject* t )
 {
     m_target = t;

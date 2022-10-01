@@ -13,7 +13,7 @@
 static constexpr float c_maxRange = 6000.0_m;
 static constexpr float c_tailChunkLength = 5.0_m;
 
-Bullet::Bullet( const BulletProto& bp )
+Bullet::Bullet( const WeaponCreateInfo& bp, const math::vec3& position )
 : m_color1{ bp.color1 }
 , m_color2{ bp.color2 }
 , m_texture{ bp.texture }
@@ -21,9 +21,9 @@ Bullet::Bullet( const BulletProto& bp )
 , m_damage{ bp.damage }
 , m_type{ bp.type }
 {
-    std::fill( m_tail.begin(), m_tail.end(), bp.position );
+    std::fill( m_tail.begin(), m_tail.end(), position );
     m_speed = bp.speed;
-    m_position = bp.position;
+    m_position = position;
     setStatus( Status::eAlive );
 };
 

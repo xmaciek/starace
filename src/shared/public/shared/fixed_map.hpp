@@ -14,8 +14,7 @@ template <typename TKey, typename TValue, size_t TCapacity>
 class FixedMap {
     template <typename T>
     static constexpr bool isTrivial() noexcept {
-        return sizeof( T ) <= 8
-        && std::is_trivially_constructible_v<T>
+        return std::is_trivially_constructible_v<T>
         && std::is_trivially_copyable_v<T>
         && std::is_trivially_destructible_v<T>
         ;

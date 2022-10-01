@@ -11,7 +11,7 @@
 #include <vector>
 #include <memory_resource>
 
-struct BulletProto;
+struct WeaponCreateInfo;
 
 class Bullet : public SAObject {
 public:
@@ -33,7 +33,7 @@ private:
 
 public:
     virtual ~Bullet() override = default;
-    explicit Bullet( const BulletProto& bp );
+    explicit Bullet( const WeaponCreateInfo&, const math::vec3& position );
 
     uint8_t damage() const;
     Type type() const;
@@ -45,15 +45,14 @@ public:
     uint16_t score() const;
 };
 
-struct BulletProto {
+struct WeaponCreateInfo {
     math::vec4 color1{};
     math::vec4 color2{};
-    math::vec3 position{};
     Texture texture{};
     float delay = 0.0f;
     float speed = 0.0f;
-    uint32_t energy = 0;
     uint16_t score_per_hit = 0;
     uint8_t damage = 0;
     Bullet::Type type{};
+    std::pmr::string displayName{};
 };

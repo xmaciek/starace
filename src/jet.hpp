@@ -36,7 +36,7 @@ private:
 
     Model m_model{};
 
-    BulletProto m_weapon[ 3 ]{};
+    WeaponCreateInfo m_weapon[ 3 ]{};
     float m_weaponCooldown[ 3 ]{};
 
     math::quat m_quaternion{ math::vec3{} };
@@ -75,7 +75,7 @@ public:
     void lockTarget( SAObject* );
     void processCollision( std::vector<Bullet*>& );
     void setModel( Model* );
-    void setWeapon( BulletProto bp, uint32_t id );
+    void setWeapon( const WeaponCreateInfo&, uint32_t id );
     void untarget( const SAObject* );
     void setInput( const Input& );
 

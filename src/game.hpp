@@ -86,12 +86,13 @@ private:
     std::pmr::vector<ModelProto> m_jetsContainer{};
     std::pmr::map<std::filesystem::path, Mesh> m_meshes{};
 
+    std::pmr::vector<WeaponCreateInfo> m_weapons{};
+    WeaponCreateInfo m_enemyWeapon{};
+
     HudData m_hudData{};
     Hud m_hud{};
     UIRings m_uiRings{};
 
-    BulletProto m_weapons[ 2 ]{};
-    BulletProto m_enemyWeapon{};
 
     Texture m_cyberRingTexture[ 3 ]{};
     Texture m_plasma{};

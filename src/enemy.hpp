@@ -12,7 +12,7 @@
 
 class Enemy : public SAObject {
 private:
-    BulletProto m_weapon{};
+    WeaponCreateInfo m_weapon{};
     Thruster m_thruster{};
     Model m_model{};
     float m_shotFactor = 0.0f;
@@ -25,5 +25,5 @@ public:
     bool isWeaponReady() const;
     virtual void render( RenderContext ) const override;
     virtual void update( const UpdateContext& ) override;
-    void setWeapon( const BulletProto& b );
+    void setWeapon( const WeaponCreateInfo& );
 };

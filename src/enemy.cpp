@@ -21,17 +21,16 @@ Enemy::Enemy( Model* m )
     m_direction = math::vec3( 0.0f, 0.0f, 1.0f );
 }
 
-void Enemy::setWeapon( const BulletProto& b )
+void Enemy::setWeapon( const WeaponCreateInfo& w )
 {
-    m_weapon = b;
+    m_weapon = w;
     m_shotFactor = randomRange( 0, m_weapon.delay );
 }
 
 UniquePointer<Bullet> Enemy::weapon( std::pmr::memory_resource* alloc )
 {
     assert( alloc );
-    m_weapon.position = m_position;
-    UniquePointer<Bullet> bullet{ alloc, m_weapon };
+    UniquePointer<Bullet> bullet{ alloc, m_weapon, position() };
     bullet->setDirection( direction() );
     bullet->setTarget( m_target );
     m_shotFactor = 0;

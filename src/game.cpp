@@ -157,10 +157,8 @@ static std::pmr::vector<MapCreateInfo> loadMaps( std::pmr::vector<uint8_t>&& dat
     return levels;
 }
 
-static BulletProto makeWeapon( const cfg::Entry& entry, Texture t, Bullet::Type type )
+static std::tuple<WeaponCreateInfo, bool> parseWeapon( const cfg::Entry& entry, Texture t )
 {
-    BulletProto ret{};
-
     using std::literals::string_view_literals::operator""sv;
     static const auto& colorMap = []() -> const FixedMap<std::string_view, math::vec4, 6>&
     {
@@ -173,17 +171,32 @@ static BulletProto makeWeapon( const cfg::Entry& entry, Texture t, Bullet::Type 
         ret.insert( "yellowBlaster"sv, color::yellowBlaster );
         return ret;
     }();
-    ret.type = type;
-    ret.damage = static_cast<uint8_t>( entry[ "damage"sv ].toInt() );
-    ret.score_per_hit = static_cast<uint16_t>( entry[ "score"sv ].toInt() );
+    static const auto& typeMap = []() -> const FixedMap<std::string_view, Bullet::Type, 2>&
+    {
+        static FixedMap<std::string_view, Bullet::Type, 2> ret{};
+        ret.insert( "blaster"sv, Bullet::Type::eBlaster );
+        ret.insert( "torpedo"sv, Bullet::Type::eTorpedo );
+        return ret;
+    }();
+
     const math::vec4* color1 = colorMap[ entry[ "color1"sv ].toString() ];
     const math::vec4* color2 = colorMap[ entry[ "color2"sv ].toString() ];
-    ret.color1 = color1 ? *color1 : color::orchid;
-    ret.color2 = color2 ? *color2 : color::orchid;
-    ret.speed = entry[ "kmph"sv ].toFloat() * (float)kmph;
-    ret.delay = entry[ "delay"sv ].toFloat();
-    ret.texture = t;
-    return ret;
+    const Bullet::Type* type = typeMap[ entry[ "type"sv ].toString() ];
+    std::string_view loc = entry[ "loc"sv ].toString();
+    return {
+        WeaponCreateInfo{
+            .color1 = color1 ? *color1 : color::orchid,
+            .color2 = color2 ? *color2 : color::orchid,
+            .texture = t,
+            .delay = entry[ "delay"sv ].toFloat(),
+            .speed = entry[ "kmph"sv ].toFloat() * (float)kmph,
+            .score_per_hit = static_cast<uint16_t>( entry[ "score"sv ].toInt() ),
+            .damage = static_cast<uint8_t>( entry[ "damage"sv ].toInt() ),
+            .type = type ? *type : Bullet::Type::eBlaster,
+            .displayName{ loc.begin(), loc.end() }
+        },
+        !!entry[ "hidden"sv ].toInt()
+    };
 }
 
 Game::Game( int argc, char** argv )
@@ -232,7 +245,7 @@ void Game::preloadData()
 void Game::onExit()
 {
 }
-
+#include <iostream>
 void Game::onResize( uint32_t w, uint32_t h )
 {
     ZoneScoped;
@@ -334,18 +347,23 @@ void Game::onInit()
     };
     g_gameUiDataModels[ "$data:jet" ] = &m_dataJet;
 
-    auto weapNames = []( auto i ) -> std::pmr::u32string
+    auto weapNames = [this]( auto i ) -> std::pmr::u32string
     {
-        assert( i < 3 );
-        using std::literals::string_view_literals::operator""sv;
-        static constexpr std::u32string_view s[] = { U"Blaster"sv, U"Torpedo"sv };
-        return { s[ i ].begin(), s[ i ].end() };
+        assert( i < m_weapons.size() );
+        auto key = m_weapons[ i ].displayName;
+        assert( !key.empty() );
+        auto name = m_localize[ key ].toString32();
+        //assert( !name.empty() );
+        if ( name.empty() ) {
+            std::cout << "the key is: " << key << std::endl;
+        }
+        return name;
     };
-    m_dataWeaponPrimary.m_size = [](){ return 2; };
+    m_dataWeaponPrimary.m_size = [this](){ return m_weapons.size(); };
     m_dataWeaponPrimary.m_at = weapNames;
     m_dataWeaponPrimary.m_select = [this]( auto i ){ m_weapon1 = i; };
     m_dataWeaponPrimary.m_current = [this](){ return m_weapon1; };
-    m_dataWeaponSecondary.m_size = [](){ return 2; };
+    m_dataWeaponSecondary.m_size = [this](){ return m_weapons.size(); };
     m_dataWeaponSecondary.m_at = weapNames;
     m_dataWeaponSecondary.m_select = [this]( auto i ){ m_weapon2 = i; };
     m_dataWeaponSecondary.m_current = [this](){ return m_weapon2; };
@@ -417,11 +435,21 @@ void Game::onInit()
         m_textures[ it ] = parseTexture( m_io->getWait( it ) );
     }
 
-    cfg::Entry weapons = cfg::Entry::fromData( m_io->getWait( "weapons.cfg" ) );
     m_plasma = m_textures[ "textures/plasma.tga" ];
-    m_weapons[ static_cast<int>( Bullet::Type::eBlaster ) ] = makeWeapon( weapons[ "Blaster" ], m_plasma, Bullet::Type::eBlaster );
-    m_weapons[ static_cast<int>( Bullet::Type::eTorpedo ) ] = makeWeapon( weapons[ "Torpedo" ], m_plasma, Bullet::Type::eTorpedo );
-    m_enemyWeapon = makeWeapon( weapons[ "Enemy" ], m_plasma, Bullet::Type::eBlaster );
+    cfg::Entry weapons = cfg::Entry::fromData( m_io->getWait( "weapons.cfg" ) );
+    for ( const auto& it : weapons ) {
+        auto [ weapon, isHidden ] = parseWeapon( it, m_plasma );
+        if ( isHidden ) {
+            m_enemyWeapon = weapon;
+        }
+        else {
+            m_weapons.emplace_back( weapon );
+        }
+    }
+    assert( m_weapons.size() == 2 );
+//     m_weapons[ static_cast<int>( Bullet::Type::eBlaster ) ] = makeWeapon( weapons[ "Blaster" ], m_plasma );
+//     m_weapons[ static_cast<int>( Bullet::Type::eTorpedo ) ] = makeWeapon( weapons[ "Torpedo" ], m_plasma );
+//     m_enemyWeapon = makeWeapon( weapons[ "Enemy" ], m_plasma );
     loadMapProto();
 
     m_jetsContainer = loadJets( m_io->getWait( "jets.cfg" ) );
@@ -719,6 +747,10 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
         .hp = 1.0f,
     };
     m_skybox = Skybox{ mapInfo.texture };
+    m_explosions.clear();
+    m_dustUi.setVelocity( math::vec3{ 0.0f, 0.0f, 26.0_m } );
+    m_dustUi.setCenter( {} );
+    m_dustUi.setLineWidth( 2.0f );
     m_jet = Jet( modelData );
     m_jet.setWeapon( m_weapons[ m_weapon1 ], 0 );
     m_jet.setWeapon( m_weapons[ m_weapon2 ], 1 );

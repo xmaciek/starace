@@ -30,6 +30,7 @@ public:
     void setDamage( uint8_t d );
     void setStatus( Status s );
     void setTarget( SAObject* t );
+    void setPosition( const math::vec3& );
     SAObject* target() const;
 
 protected:
