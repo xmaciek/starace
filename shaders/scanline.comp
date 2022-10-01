@@ -1,0 +1,18 @@
+#version 450
+
+layout( local_size_x = 8, local_size_y = 8 ) in;
+
+layout( binding = 0 ) uniform ubo {
+    vec4 power;
+};
+layout( rgba32f, binding = 1 ) uniform image2D srcImg;
+layout( rgba32f, binding = 2 ) uniform image2D dstImg;
+
+void main()
+{
+    ivec2 xy = ivec2( gl_GlobalInvocationID.xy );
+    vec4 pixel[2];
+    pixel[ 0 ] = imageLoad( srcImg, xy );
+    pixel[ 1 ] = pixel[ 0 ] * power;
+    imageStore( dstImg, xy, pixel[ xy.y % 2 ] );
+}

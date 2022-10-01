@@ -51,3 +51,4 @@ compileShader( thruster.vert )
 compileShader( thruster.frag )
 
 compileShader( gamma.comp )
+compileShader( scanline.comp )
