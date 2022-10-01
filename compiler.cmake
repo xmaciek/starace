@@ -6,17 +6,14 @@ target_compile_options( cxx::flags INTERFACE
     -Wconversion
     -Werror
     -Wextra
-    -Wno-error=interference-size
+    -Wno-multichar
     -Wno-interference-size
     -Wno-missing-field-initializers
     -Wpedantic
     -fno-exceptions
     -fno-rtti
-    -mcx16
 )
-target_link_options( cxx::flags INTERFACE
-    -mcx16
-)
+
 elseif ( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" )
 target_compile_options( cxx::flags INTERFACE
     -Wall
@@ -28,8 +25,8 @@ target_compile_options( cxx::flags INTERFACE
     -Wpedantic
     -fno-exceptions
     -fno-rtti
-    -mcx16
 )
+
 elseif ( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" )
 else ()
     message( FATAL_ERROR "Unsuported compiler" )
