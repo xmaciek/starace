@@ -17,15 +17,6 @@
 #include <string_view>
 
 using std::literals::string_view_literals::operator""sv;
-[[maybe_unused]]
-static std::pmr::u32string locKeyToString( std::string_view strv )
-{
-    auto str = g_uiProperty.localize()[ strv ].toString();
-    return str.empty()
-        ? U"BUG ME: " + std::pmr::u32string{ strv.begin(), strv.end() }
-        // TODO: utf32 transcode
-        : std::pmr::u32string{ str.begin(), str.end() };
-}
 
 static auto fnKeyToFunction( std::string_view strv )
 {
@@ -57,7 +48,7 @@ static UniquePointer<Widget> makeButton( std::pmr::memory_resource* alloc, const
     math::vec2 size = button->size();
     for ( const auto& it : entry ) {
         auto propName = *it;
-        if ( propName == "text"sv ) { text = locKeyToString( it.toString() ); continue; }
+        if ( propName == "text"sv ) { text = g_uiProperty.localize( it.toString() ); continue; }
         if ( propName == "x"sv ) { pos.x = it.toFloat(); continue; }
         if ( propName == "y"sv ) { pos.y = it.toFloat(); continue; }
         if ( propName == "width"sv ) { size.x = it.toFloat(); continue; }
@@ -135,7 +126,7 @@ static UniquePointer<Widget> makeLabel( std::pmr::memory_resource* alloc, const 
 
     for ( const auto& it : entry ) {
         auto propName = *it;
-        if ( propName == "text"sv ) { text = locKeyToString( it.toString() ); continue; }
+        if ( propName == "text"sv ) { text = g_uiProperty.localize( it.toString() ); continue; }
         if ( propName == "x"sv ) { pos.x = it.toFloat(); continue; }
         if ( propName == "y"sv ) { pos.y = it.toFloat(); continue; }
         if ( propName == "data"sv ) { model = dataKeyToModel( it.toString() ); continue; }

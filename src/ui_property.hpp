@@ -1,8 +1,12 @@
 #pragma once
 
+#include "ui_localize.hpp"
+#include "utils.hpp"
+
 #include <engine/math.hpp>
 #include <renderer/texture.hpp>
-#include <config/config.hpp>
+
+#include <cassert>
 
 class Game;
 class Font;
@@ -16,7 +20,7 @@ class Property {
     const Font* m_fontMedium = nullptr;
     const Font* m_fontLarge = nullptr;
     const LinearAtlas* m_atlas = nullptr;
-    cfg::Entry* m_localize = nullptr;
+    const LocTable* m_locTable = nullptr;
     Texture m_atlasTexture{};
 
     math::vec4 m_colorA{};
@@ -30,7 +34,21 @@ public:
     inline const Font* fontLarge() const { return m_fontLarge; }
 
     inline math::vec4 colorA() const { return m_colorA; }
-    inline const cfg::Entry& localize() const { return *m_localize; }
+
+    inline std::pmr::u32string localize( Hash::value_type key ) const
+    {
+        assert( m_locTable );
+        const auto* value = (*m_locTable)[ key ];
+        return value ? *value : ( U"LOC:" + intToUTF32( key ) );
+    }
+
+    inline std::pmr::u32string localize( std::string_view key ) const
+    {
+        assert( m_locTable );
+        Hash hash{};
+        const auto* value = (*m_locTable)[ hash( key ) ];
+        return value ? *value : ( U"LOC:" + std::pmr::u32string{ key.begin(), key.end() } );
+    }
 
 };
 

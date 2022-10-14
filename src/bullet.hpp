@@ -5,6 +5,7 @@
 
 #include <engine/math.hpp>
 #include <renderer/texture.hpp>
+#include <shared/hash.hpp>
 
 #include <array>
 #include <cstdint>
@@ -54,5 +55,5 @@ struct WeaponCreateInfo {
     uint16_t score_per_hit = 0;
     uint8_t damage = 0;
     Bullet::Type type{};
-    std::pmr::string displayName{};
+    Hash::value_type displayName{};
 };

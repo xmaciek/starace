@@ -15,10 +15,11 @@
 #include "space_dust.hpp"
 #include "targeting.hpp"
 #include "texture.hpp"
+#include "ui_data_model.hpp"
+#include "ui_glow.hpp"
+#include "ui_localize.hpp"
 #include "ui_rings.hpp"
 #include "ui_screen.hpp"
-#include "ui_glow.hpp"
-#include "ui_data_model.hpp"
 #include "ui_var.hpp"
 
 #include <config/config.hpp>
@@ -27,6 +28,7 @@
 #include <engine/render_context.hpp>
 #include <engine/update_context.hpp>
 #include <renderer/texture.hpp>
+#include <shared/hash.hpp>
 #include <shared/pool.hpp>
 
 #include <SDL.h>
@@ -123,7 +125,7 @@ private:
 
     ui::Var<std::pmr::u32string> m_uiMissionResult{ "$var:missionResult", U"BUG ME" };
     ui::Var<std::pmr::u32string> m_uiMissionScore{ "$var:missionScore", U"BUG ME" };
-    cfg::Entry m_localize{};
+    LocTable m_localizationMap{};
 
     ActionStateTracker m_actionStateTracker{};
 

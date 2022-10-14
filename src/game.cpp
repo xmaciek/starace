@@ -193,7 +193,7 @@ static std::tuple<WeaponCreateInfo, bool> parseWeapon( const cfg::Entry& entry, 
             .score_per_hit = static_cast<uint16_t>( entry[ "score"sv ].toInt() ),
             .damage = static_cast<uint8_t>( entry[ "damage"sv ].toInt() ),
             .type = type ? *type : Bullet::Type::eBlaster,
-            .displayName{ loc.begin(), loc.end() }
+            .displayName = Hash{}( loc ),
         },
         !!entry[ "hidden"sv ].toInt()
     };
@@ -285,14 +285,14 @@ void Game::onInit()
 
 
     g_uiProperty.m_colorA = color::dodgerBlue;
+    g_uiProperty.m_locTable = &m_localizationMap;
 
     m_dataModelVSync.m_size = [](){ return 3; };
     m_dataModelVSync.m_at = []( auto i ) -> std::pmr::u32string
     {
         assert( i < 3 );
-        using std::literals::string_view_literals::operator""sv;
-        static constexpr std::u32string_view s[] = { U"OFF"sv, U"ON"sv, U"MAILBOX"sv };
-        return { s[ i ].begin(), s[ i ].end() };
+        static constexpr Hash::value_type keys[] = { "on"_hash, "off"_hash, "mailbox"_hash };
+        return g_uiProperty.localize( keys[ i ] );
     };
     m_dataModelVSync.m_select = [this]( auto i )
     {
@@ -351,13 +351,7 @@ void Game::onInit()
     {
         assert( i < m_weapons.size() );
         auto key = m_weapons[ i ].displayName;
-        assert( !key.empty() );
-        auto name = m_localize[ key ].toString32();
-        //assert( !name.empty() );
-        if ( name.empty() ) {
-            std::cout << "the key is: " << key << std::endl;
-        }
-        return name;
+        return g_uiProperty.localize( key );
     };
     m_dataWeaponPrimary.m_size = [this](){ return m_weapons.size(); };
     m_dataWeaponPrimary.m_at = weapNames;
@@ -410,9 +404,14 @@ void Game::onInit()
         g_uiProperty.m_fontLarge = m_fontLarge;
     }
 
-    m_localize = cfg::Entry::fromData( m_io->getWait( "lang/en.txt" ) );
-    g_uiProperty.m_localize = &m_localize;
-
+    {
+        ZoneScopedN( "HashMap" );
+        auto loc = cfg::Entry::fromData( m_io->getWait( "lang/en.txt" ) );
+        Hash hash{};
+        for ( const auto& it : loc ) {
+            m_localizationMap.insert( hash( *it ), it.toString32() );
+        }
+    }
     m_hud = Hud{ &m_hudData };
 
     m_blaster = m_audio->load( "sounds/blaster.wav" );
@@ -447,9 +446,6 @@ void Game::onInit()
         }
     }
     assert( m_weapons.size() == 2 );
-//     m_weapons[ static_cast<int>( Bullet::Type::eBlaster ) ] = makeWeapon( weapons[ "Blaster" ], m_plasma );
-//     m_weapons[ static_cast<int>( Bullet::Type::eTorpedo ) ] = makeWeapon( weapons[ "Torpedo" ], m_plasma );
-//     m_enemyWeapon = makeWeapon( weapons[ "Enemy" ], m_plasma );
     loadMapProto();
 
     m_jetsContainer = loadJets( m_io->getWait( "jets.cfg" ) );
@@ -803,14 +799,14 @@ void Game::changeScreen( Screen scr, Audio::Slot sound )
         break;
 
     case Screen::eDead:
-        m_uiMissionResult = m_localize[ "missionLost" ].toString32();
-        m_uiMissionScore = m_localize[ "yourScore" ].toString32() + intToUTF32( m_hudData.score );
+        m_uiMissionResult = g_uiProperty.localize( "missionLost"_hash );
+        m_uiMissionScore = g_uiProperty.localize( "yourScore"_hash ) + intToUTF32( m_hudData.score );
         m_currentScreen = scr;
         break;
 
     case Screen::eWin:
-        m_uiMissionResult = m_localize[ "missionWin" ].toString32();
-        m_uiMissionScore = m_localize[ "yourScore" ].toString32() + intToUTF32( m_hudData.score );
+        m_uiMissionResult = g_uiProperty.localize( "missionWin"_hash );
+        m_uiMissionScore = g_uiProperty.localize( "yourScore"_hash ) + intToUTF32( m_hudData.score );
         m_currentScreen = scr;
         break;
 
