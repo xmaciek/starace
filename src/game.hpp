@@ -6,6 +6,7 @@
 #include "enemy.hpp"
 #include "explosion.hpp"
 #include "font.hpp"
+#include "game_options.hpp"
 #include "hud.hpp"
 #include "jet.hpp"
 #include "linear_atlas.hpp"
@@ -68,7 +69,6 @@ private:
     uint32_t m_currentJet = 0;
     uint32_t m_weapon1 = 0;
     uint32_t m_weapon2 = 1;
-    uint32_t m_gammaIndex = 8;
     Model m_enemyModel{};
     Jet m_jet{};
     Skybox m_skybox{};
@@ -116,12 +116,9 @@ private:
     Screen m_currentScreen = Screen::eGame;
 
     ui::GenericDataModel m_dataMissionSelect{};
-    ui::GenericDataModel m_dataModelVSync{};
-    ui::GenericDataModel m_dataModelGamma{};
-    ui::GenericDataModel m_dataModelResolution{};
-    ui::GenericDataModel m_dataJet{};
-    ui::GenericDataModel m_dataWeaponPrimary{};
-    ui::GenericDataModel m_dataWeaponSecondary{};
+
+    OptionsGFX m_optionsGFX{};
+    OptionsCustomize m_optionsCustomize{};
 
     ui::Var<std::pmr::u32string> m_uiMissionResult{ "$var:missionResult", U"BUG ME" };
     ui::Var<std::pmr::u32string> m_uiMissionScore{ "$var:missionScore", U"BUG ME" };

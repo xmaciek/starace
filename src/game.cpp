@@ -287,37 +287,30 @@ void Game::onInit()
     g_uiProperty.m_colorA = color::dodgerBlue;
     g_uiProperty.m_locTable = &m_localizationMap;
 
-    m_dataModelVSync.m_size = [](){ return 3; };
-    m_dataModelVSync.m_at = []( auto i ) -> std::pmr::u32string
+    m_optionsGFX.m_vsync.m_size = [](){ return 3; };
+    m_optionsGFX.m_vsync.m_at = []( auto i ) -> std::pmr::u32string
     {
         assert( i < 3 );
-        static constexpr Hash::value_type keys[] = { "on"_hash, "off"_hash, "mailbox"_hash };
+        static constexpr Hash::value_type keys[] = { "off"_hash, "on"_hash, "mailbox"_hash };
         return g_uiProperty.localize( keys[ i ] );
     };
-    m_dataModelVSync.m_select = [this]( auto i )
+    m_optionsGFX.m_vsync.m_select = [this]( auto i )
     {
         assert( i < 3 );
         static constexpr VSync v[] = { VSync::eOff, VSync::eOn, VSync::eMailbox };
         m_renderer->setVSync( v[ i ] );
     };
-    g_gameUiDataModels[ "$data:vsync" ] = &m_dataModelVSync;
+    g_gameUiDataModels[ "$data:vsync" ] = &m_optionsGFX.m_vsync;
 
-    m_dataModelGamma.m_size = [](){ return 22; };
-    m_dataModelGamma.m_at = []( auto i ) -> std::pmr::u32string
-    {
-        float f = 0.4f + 0.1f * static_cast<float>( i );
-        std::string str = std::to_string( f );
-        return { str.begin(), str.end() };
+    m_optionsGFX.m_gamma = std::pmr::vector<float>{ 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f
+        , 1.0f, 1.1f, 1.2f, 1.3f, 1.4f, 1.5f, 1.6f, 1.7f, 1.8f, 1.9f
+        , 2.0f, 2.1f, 2.2f, 2.3f, 2.4f, 2.5f, 2.6f, 2.7f, 2.8f, 2.9f
     };
-    m_dataModelGamma.m_current = [this](){ return m_gammaIndex; };
-    m_dataModelGamma.m_select = [this]( auto i )
-    {
-        m_gammaIndex = i;
-    };
-    g_gameUiDataModels[ "$data:gammaCorrection" ] = &m_dataModelGamma;
+    m_optionsGFX.m_gamma.select( 8 );
+    g_gameUiDataModels[ "$data:gammaCorrection" ] = &m_optionsGFX.m_gamma;
 
-    m_dataModelResolution.m_size = [this]() { return m_displayModes.size(); };
-    m_dataModelResolution.m_at = [this]( auto i )
+    m_optionsGFX.m_resolution.m_size = [this]() { return m_displayModes.size(); };
+    m_optionsGFX.m_resolution.m_at = [this]( auto i )
     {
         assert( i < m_displayModes.size() );
         auto d = m_displayModes[ i ];
@@ -325,27 +318,27 @@ void Game::onInit()
             + intToUTF32( d.height ) + U" @ "
             + intToUTF32( d.rate ) + U"Hz";
     };
-    m_dataModelResolution.m_current = [this](){ return m_currentResolution; };
-    m_dataModelResolution.m_select = [this]( auto i ) { m_currentResolution = i; };
-    m_dataModelResolution.m_activate = [this]( auto i )
+    m_optionsGFX.m_resolution.m_current = [this](){ return m_currentResolution; };
+    m_optionsGFX.m_resolution.m_select = [this]( auto i ) { m_currentResolution = i; };
+    m_optionsGFX.m_resolution.m_activate = [this]( auto i )
     {
         assert( i < m_displayModes.size() );
         setDisplayMode( m_displayModes[ i ], 0 );
     };
-    g_gameUiDataModels[ "$data:resolution" ] = &m_dataModelResolution;
+    g_gameUiDataModels[ "$data:resolution" ] = &m_optionsGFX.m_resolution;
 
-    m_dataJet.m_size = [this](){ return m_jetsContainer.size(); };
-    m_dataJet.m_at = [this]( auto i )
+    m_optionsCustomize.m_jet.m_size = [this](){ return m_jetsContainer.size(); };
+    m_optionsCustomize.m_jet.m_at = [this]( auto i )
     {
         assert( i < m_jetsContainer.size() );
         return m_jetsContainer[ i ].name;
     };
-    m_dataJet.m_select = [this]( auto i )
+    m_optionsCustomize.m_jet.m_select = [this]( auto i )
     {
         assert( i < m_jetsContainer.size() );
         m_currentJet = i;
     };
-    g_gameUiDataModels[ "$data:jet" ] = &m_dataJet;
+    g_gameUiDataModels[ "$data:jet" ] = &m_optionsCustomize.m_jet;
 
     auto weapNames = [this]( auto i ) -> std::pmr::u32string
     {
@@ -353,16 +346,16 @@ void Game::onInit()
         auto key = m_weapons[ i ].displayName;
         return g_uiProperty.localize( key );
     };
-    m_dataWeaponPrimary.m_size = [this](){ return m_weapons.size(); };
-    m_dataWeaponPrimary.m_at = weapNames;
-    m_dataWeaponPrimary.m_select = [this]( auto i ){ m_weapon1 = i; };
-    m_dataWeaponPrimary.m_current = [this](){ return m_weapon1; };
-    m_dataWeaponSecondary.m_size = [this](){ return m_weapons.size(); };
-    m_dataWeaponSecondary.m_at = weapNames;
-    m_dataWeaponSecondary.m_select = [this]( auto i ){ m_weapon2 = i; };
-    m_dataWeaponSecondary.m_current = [this](){ return m_weapon2; };
-    g_gameUiDataModels[ "$data:weaponPrimary" ] = &m_dataWeaponPrimary;
-    g_gameUiDataModels[ "$data:weaponSecondary" ] = &m_dataWeaponSecondary;
+    m_optionsCustomize.m_weaponPrimary.m_size = [this](){ return m_weapons.size(); };
+    m_optionsCustomize.m_weaponPrimary.m_at = weapNames;
+    m_optionsCustomize.m_weaponPrimary.m_select = [this]( auto i ){ m_weapon1 = i; };
+    m_optionsCustomize.m_weaponPrimary.m_current = [this](){ return m_weapon1; };
+    m_optionsCustomize.m_weaponSecondary.m_size = [this](){ return m_weapons.size(); };
+    m_optionsCustomize.m_weaponSecondary.m_at = weapNames;
+    m_optionsCustomize.m_weaponSecondary.m_select = [this]( auto i ){ m_weapon2 = i; };
+    m_optionsCustomize.m_weaponSecondary.m_current = [this](){ return m_weapon2; };
+    g_gameUiDataModels[ "$data:weaponPrimary" ] = &m_optionsCustomize.m_weaponPrimary;
+    g_gameUiDataModels[ "$data:weaponSecondary" ] = &m_optionsCustomize.m_weaponSecondary;
 
 
     m_dataMissionSelect.m_current = [this](){ return m_currentMission; };
@@ -549,7 +542,7 @@ void Game::onRender( RenderContext rctx )
     }
 
     const PushConstant<Pipeline::eGammaCorrection> pushConstant{
-        .m_power = 0.4f + static_cast<float>( m_gammaIndex ) * 0.1f,
+        .m_power = m_optionsGFX.m_gamma.value(),
     };
 
     const DispatchInfo dispatchInfo{

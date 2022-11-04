@@ -29,6 +29,7 @@ set( STARACE_SOURCES
     game.hpp
     game_action.hpp
     game_callbacks.hpp
+    game_options.hpp
     game_pipeline.hpp
     hud.cpp
     hud.hpp
@@ -77,6 +78,7 @@ set( STARACE_SOURCES
     ui_image.cpp
     ui_image.hpp
     ui_localize.hpp
+    ui_options_models.hpp
     ui_property.hpp
     ui_rings.cpp
     ui_rings.hpp
