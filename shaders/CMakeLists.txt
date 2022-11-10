@@ -52,3 +52,5 @@ compileShader( thruster.frag )
 
 compileShader( gamma.comp )
 compileShader( scanline.comp )
+
+compileShader( particles_blob.vert )

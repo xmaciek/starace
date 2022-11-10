@@ -27,69 +27,67 @@ Bullet::Bullet( const WeaponCreateInfo& bp, const math::vec3& position )
     setStatus( Status::eAlive );
 };
 
-void Bullet::render( RenderContext rctx ) const
+void Bullet::render( RenderContext ) const
 {
-    assert( status() == Status::eAlive );
-    // culling
+    assert( !"deleted function" );
+}
+
+void Bullet::renderAll( const RenderContext& rctx, std::span<const UniquePointer<Bullet>> span )
+{
+    if ( span.empty() ) return;
+
+    using ParticleBlob = PushConstant<Pipeline::eParticleBlob>;
+    PushBuffer pushBuffer{
+        .m_pipeline = static_cast<PipelineSlot>( Pipeline::eParticleBlob ),
+        .m_texture = span[ 0 ]->m_texture,
+    };
+    ParticleBlob pushConstant{
+        .m_view = rctx.view,
+        .m_projection = rctx.projection,
+        .m_cameraPosition = rctx.cameraPosition,
+        .m_cameraUp = rctx.cameraUp,
+    };
+
+    auto pushBullet = []( auto& pushConstant, uint32_t idx, const Bullet& bullet )
     {
-        const math::mat4 mvp = rctx.projection * rctx.view * rctx.model;
-        const math::vec2 viewport = rctx.viewport;
-        if ( !isOnScreen( mvp, m_position, viewport ) ) {
-            return;
+        assert( ( idx + 5 ) <= ParticleBlob::INSTANCES );
+
+        auto makeParticle = []( const math::vec3& pos, float size, const math::vec4& color ) -> ParticleBlob::Particle
+        {
+            return {
+                .m_position = math::vec4{ pos.x, pos.y, pos.z, size },
+                .m_uvxywh = math::makeUVxywh<1, 1>( 0, 0 ),
+                .m_color = color,
+            };
+        };
+        const float size = 2.6_m;
+        pushConstant.m_particles[ idx++ ] = makeParticle( bullet.m_position, size, bullet.m_color1 );
+        pushConstant.m_particles[ idx++ ] = makeParticle( bullet.m_tail[ 0 ], size * 0.8f, bullet.m_color2 );
+        pushConstant.m_particles[ idx++ ] = makeParticle( bullet.m_tail[ 1 ], size * 0.6f, bullet.m_color2 );
+        pushConstant.m_particles[ idx++ ] = makeParticle( bullet.m_tail[ 2 ], size * 0.4f, bullet.m_color2 );
+        pushConstant.m_particles[ idx++ ] = makeParticle( bullet.m_tail[ 3 ], size * 0.2f, bullet.m_color2 );
+        return idx;
+    };
+
+    const math::mat4 mvp = rctx.projection * rctx.view * rctx.model;
+
+    uint32_t idx = 0;
+    for ( const auto& it : span ) {
+        assert( it );
+        if ( !isOnScreen( mvp, it->m_position, rctx.viewport ) ) {
+            continue;
+        }
+        idx = pushBullet( pushConstant, idx, **it );
+        if ( ParticleBlob::INSTANCES - idx < 5 ) {
+            pushBuffer.m_verticeCount = idx * 6;
+            rctx.renderer->push( pushBuffer, &pushConstant );
+            idx = 0;
         }
     }
-
-    const float size = 2.6_m;
-    PushBuffer pushBuffer{
-        .m_pipeline = static_cast<PipelineSlot>( Pipeline::eSprite3D ),
-        .m_verticeCount = 4,
-        .m_texture = m_texture,
-    };
-
-    PushConstant<Pipeline::eSprite3D> plasmaFace{
-        .m_model = math::billboard( m_position, rctx.cameraPosition, rctx.cameraUp ),
-        .m_view = rctx.view,
-        .m_projection = rctx.projection,
-        .m_color = m_color1,
-        .m_vertices = {
-            math::vec4{ -size, -size, 0, 0 },
-            math::vec4{ -size, size, 0, 0 },
-            math::vec4{ size, size, 0, 0 },
-            math::vec4{ size, -size, 0, 0 },
-        },
-        .m_uv = {
-            math::vec4{ 0, 0, 0, 0 },
-            math::vec4{ 0, 1, 0, 0 },
-            math::vec4{ 1, 1, 0, 0 },
-            math::vec4{ 1, 0, 0, 0 },
-        },
-    };
-    rctx.renderer->push( pushBuffer, &plasmaFace );
-
-    pushBuffer.m_pipeline = static_cast<PipelineSlot>( Pipeline::eThruster );
-    pushBuffer.m_texture = {};
-
-    PushConstant<Pipeline::eThruster> afterGlow{
-        .m_view = rctx.view,
-        .m_projection = rctx.projection,
-        .m_color = m_color2,
-        .m_xyuv = {
-            math::vec4{ -size, -size, 0, 0 },
-            math::vec4{ -size, size, 0, 1 },
-            math::vec4{ size, size, 1, 1 },
-            math::vec4{ size, -size, 1, 0 },
-        },
-    };
-    const float r[ 4 ] = { 0.15f, 0.2f, 0.25f, 0.3f };
-    const float distance = math::distance( m_position, rctx.cameraPosition );
-    const float lodRange[] = { 1000.0_m, 800.0_m, 600.0_m, 400.0_m };
-    for ( uint32_t i : { 0u, 1u, 2u, 3u } ) {
-        if ( distance > lodRange[ i ] ) { continue; }
-        afterGlow.m_radius = r[ i ];
-        afterGlow.m_model = math::billboard( m_tail[ i ], rctx.cameraPosition, rctx.cameraUp );
-        rctx.renderer->push( pushBuffer, &afterGlow );
+    if ( idx != 0 ) {
+        pushBuffer.m_verticeCount = idx * 6;
+        rctx.renderer->push( pushBuffer, &pushConstant );
     }
-
 }
 
 void Bullet::update( const UpdateContext& updateContext )

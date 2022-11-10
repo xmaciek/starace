@@ -203,4 +203,12 @@ inline float pointLineDistance( const math::vec3& point, const math::vec3& lineD
     return distance( point, p );
 }
 
+template <uint32_t TRow, uint32_t TCol>
+inline vec4 makeUVxywh( uint32_t x, uint32_t y ) noexcept
+{
+    const float w = 1.0f / static_cast<float>( TRow );
+    const float h = 1.0f / static_cast<float>( TCol );
+    return vec4{ w * static_cast<float>( x ), h * static_cast<float>( y ), w, h };
+}
+
 }

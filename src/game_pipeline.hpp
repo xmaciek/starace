@@ -16,6 +16,7 @@ enum class Pipeline : PipelineSlot {
     eBackground,
     eAlbedo,
     eSprite3D,
+    eParticleBlob,
     eThruster,
     eGammaCorrection,
     eScanline,
@@ -147,6 +148,21 @@ struct PushConstant<Pipeline::eSprite3D> {
     math::vec4 m_color{};
     std::array<math::vec4, 4> m_vertices{};
     std::array<math::vec4, 4> m_uv{};
+};
+
+template <>
+struct PushConstant<Pipeline::eParticleBlob> {
+    static constexpr uint32_t INSTANCES = 320;
+    struct Particle {
+        alignas( 16 ) math::vec4 m_position{};
+        alignas( 16 ) math::vec4 m_uvxywh{};
+        alignas( 16 ) math::vec4 m_color{};
+    };
+    math::mat4 m_view{};
+    math::mat4 m_projection{};
+    alignas( 16 ) math::vec3 m_cameraPosition{};
+    alignas( 16 ) math::vec3 m_cameraUp{};
+    alignas( 16 ) std::array<Particle, INSTANCES> m_particles{};
 };
 
 template <>
@@ -333,6 +349,21 @@ PipelineCreateInfo{
     .m_enableDepthTest = true,
     .m_enableDepthWrite = false,
     .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
+    .m_cullMode = PipelineCreateInfo::CullMode::eBack,
+    .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
+    .m_constantBindBits = 0b1,
+    .m_textureBindBits = 0b10,
+},
+
+PipelineCreateInfo{
+    .m_vertexShader = "shaders/particles_blob.vert.spv",
+    .m_fragmentShader = "shaders/sprite3d.frag.spv",
+    .m_slot = static_cast<PipelineSlot>( Pipeline::eParticleBlob ),
+    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eParticleBlob> ),
+    .m_enableBlend = true,
+    .m_enableDepthTest = true,
+    .m_enableDepthWrite = false,
+    .m_topology = PipelineCreateInfo::Topology::eTriangleList,
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
     .m_constantBindBits = 0b1,

@@ -947,15 +947,8 @@ void Game::render3D( RenderContext rctx )
         assert( it );
         it->render( rctx );
     }
-
-    for ( auto& it : m_bullets ) {
-        assert( it );
-        it->render( rctx );
-    }
-    for ( auto& it : m_enemyBullets ) {
-        assert( it );
-        it->render( rctx );
-    }
+    Bullet::renderAll( rctx, m_bullets );
+    Bullet::renderAll( rctx, m_enemyBullets );
     m_jet.render( rctx );
 }
 

@@ -6,11 +6,13 @@
 #include <engine/math.hpp>
 #include <renderer/texture.hpp>
 #include <shared/hash.hpp>
+#include <shared/pmr_pointer.hpp>
 
 #include <array>
 #include <cstdint>
 #include <vector>
 #include <memory_resource>
+#include <span>
 
 struct WeaponCreateInfo;
 
@@ -44,6 +46,8 @@ public:
 
     math::vec3 prevPosition() const;
     uint16_t score() const;
+
+    static void renderAll( const RenderContext&, std::span<const UniquePointer<Bullet>> );
 };
 
 struct WeaponCreateInfo {
