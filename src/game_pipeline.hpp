@@ -16,6 +16,7 @@ enum class Pipeline : PipelineSlot {
     eBackground,
     eAlbedo,
     eSprite3D,
+    eSpaceDust,
     eParticleBlob,
     eThruster,
     eGammaCorrection,
@@ -70,6 +71,17 @@ struct PushConstant<Pipeline::eLine3dColor1> {
     math::mat4 m_projection{};
     math::vec4 m_color{};
     std::array<math::vec4, 200> m_vertices{};
+};
+
+template <>
+struct PushConstant<Pipeline::eSpaceDust> {
+    static constexpr uint32_t INSTANCES = 100;
+    math::mat4 m_model{};
+    math::mat4 m_view{};
+    math::mat4 m_projection{};
+    math::vec4 m_color{};
+    math::vec4 m_particleOffset{};
+    std::array<math::vec4, INSTANCES> m_particles{};
 };
 
 template <>
@@ -253,6 +265,17 @@ PipelineCreateInfo{
     .m_enableBlend = true,
     .m_enableDepthTest = true,
     .m_enableDepthWrite = false,
+    .m_topology = PipelineCreateInfo::Topology::eLineList,
+    .m_constantBindBits = 0b1,
+},
+
+PipelineCreateInfo{
+    .m_vertexShader = "shaders/space_dust.vert.spv",
+    .m_fragmentShader = "shaders/lines_color1.frag.spv",
+    .m_slot = static_cast<PipelineSlot>( Pipeline::eSpaceDust ),
+    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eSpaceDust> ),
+    .m_enableBlend = true,
+    .m_enableDepthTest = true,
     .m_topology = PipelineCreateInfo::Topology::eLineList,
     .m_constantBindBits = 0b1,
 },

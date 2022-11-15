@@ -26,6 +26,6 @@ public:
     void setCenter( const math::vec3& );
 
     void update( const UpdateContext& );
-    void render( RenderContext ) const;
+    void render( const RenderContext& ) const;
 
 };

@@ -57,7 +57,7 @@ class RendererVK : public Renderer {
     RenderPass m_mainPass{};
     std::pmr::vector<Frame> m_frames{};
 
-    std::array<PipelineVK, 16> m_pipelines{};
+    std::array<PipelineVK, 32> m_pipelines{};
     PipelineVK* m_lastPipeline = nullptr;
 
     Indexer<64> m_textureIndexer{};

@@ -15,14 +15,14 @@ static math::vec4 randomPosition()
         randomRange( -1.0f, 1.0f ),
         randomRange( -1.0f, 1.0f ),
         randomRange( -1.0f, 1.0f ),
-        0.0f,
+        1.0f,
     };
 }
 
 SpaceDust::SpaceDust() noexcept
-: m_particles{ 100 }
 {
     ZoneScoped;
+    m_particles.resize( 100 );
     std::generate( m_particles.begin(), m_particles.end(), &randomPosition );
 }
 
@@ -49,40 +49,37 @@ void SpaceDust::setLineWidth( float w )
 void SpaceDust::update( const UpdateContext& uctx )
 {
     ZoneScoped;
-    assert( ( m_particles.size() % 2 ) == 0 );
-    const float range = m_range;
     const math::vec4 velocity{ m_velocity * uctx.deltaTime, 0.0f };
     const math::vec4 center{ m_center, 0.0f };
 
     for ( auto& it : m_particles ) {
         it += velocity;
-        if ( math::distance( it, center ) >= range ) {
+        if ( math::distance( it, center ) >= m_range ) {
             it = randomPosition() + center;
         }
     }
 }
 
-void SpaceDust::render( RenderContext rctx ) const
+void SpaceDust::render( const RenderContext& rctx ) const
 {
     ZoneScoped;
-    PushConstant<Pipeline::eLine3dColor1> pushConstant{};
-    pushConstant.m_model = rctx.model;
-    pushConstant.m_view = rctx.view;
-    pushConstant.m_projection = rctx.projection;
-    pushConstant.m_color = math::vec4{ 1.0f, 1.0f, 1.0f, 0.4f };
 
     PushBuffer pushBuffer{
-        .m_pipeline = static_cast<PipelineSlot>( Pipeline::eLine3dColor1 ),
+        .m_pipeline = static_cast<PipelineSlot>( Pipeline::eSpaceDust ),
         .m_verticeCount = static_cast<uint32_t>( m_particles.size() * 2 ),
         .m_lineWidth = m_lineWidth * ( rctx.viewport.y / 720.0f ),
     };
-    assert( pushBuffer.m_verticeCount <= pushConstant.m_vertices.size() );
 
-    const math::vec4 particleLength = math::vec4{ m_velocity * 0.05f, 0.0f };
-    size_t i = 0;
-    for ( const math::vec4& it : m_particles ) {
-        pushConstant.m_vertices[ i++ ] = it;
-        pushConstant.m_vertices[ i++ ] = it + particleLength;
-    }
+    PushConstant<Pipeline::eSpaceDust> pushConstant{
+        .m_model = rctx.model,
+        .m_view = rctx.view,
+        .m_projection = rctx.projection,
+        .m_color = math::vec4{ 1.0f, 1.0f, 1.0f, 0.4f },
+        .m_particleOffset = math::vec4{ m_velocity * 0.05f, 0.0f },
+    };
+
+    assert( m_particles.size() <= pushConstant.m_particles.size() );
+
+    std::copy( m_particles.begin(), m_particles.end(), pushConstant.m_particles.begin() );
     rctx.renderer->push( pushBuffer, &pushConstant );
 }

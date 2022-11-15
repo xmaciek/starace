@@ -54,3 +54,5 @@ compileShader( gamma.comp )
 compileShader( scanline.comp )
 
 compileShader( particles_blob.vert )
+
+compileShader( space_dust.vert )
