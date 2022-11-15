@@ -13,6 +13,16 @@ struct Bindpoints {
     uint16_t image;
     uint16_t buffer;
     Stage stage;
+
+    inline bool operator == ( const Bindpoints& rhs ) const noexcept
+    {
+        return constant == rhs.constant
+            && image == rhs.image
+            && buffer == rhs.buffer
+            && stage == rhs.stage
+            ;
+    }
+
     inline std::strong_ordering operator <=> ( const Bindpoints& rhs ) const noexcept
     {
         if ( constant != rhs.constant ) return constant <=> rhs.constant;

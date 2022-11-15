@@ -18,8 +18,6 @@ struct Frame
     RenderTarget m_renderDepthTarget{};
     RenderTarget m_renderTarget{};
     RenderTarget m_renderTargetTmp{};
-    DescriptorSet m_descSetUniform{};
-    DescriptorSet m_descSetUniformSampler{};
-    DescriptorSet m_descSetUniformImage{};
     Uniform m_uniformBuffer{};
+    std::array<DescriptorSet, 32> m_descriptorSets{};
 };

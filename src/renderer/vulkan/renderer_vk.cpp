@@ -259,9 +259,6 @@ RendererVK::RendererVK( SDL_Window* window, VSync vsync )
     uint32_t i = 1;
     m_frames.resize( m_swapchain.imageCount() );
     for ( auto& it : m_frames ) {
-        it.m_descSetUniform = DescriptorSet{ m_device, { .constant = 0b1, .stage = Bindpoints::Stage::eGraphics } };
-        it.m_descSetUniformSampler = DescriptorSet{ m_device, { .constant = 0b1, .image = 0b10, .stage = Bindpoints::Stage::eGraphics } };
-        it.m_descSetUniformImage = DescriptorSet{ m_device, { .constant = 0b1, .image = 0b110, .stage = Bindpoints::Stage::eCompute } };
         it.m_uniformBuffer = Uniform{ m_physicalDevice, m_device, 2_MiB, 256 };
         it.m_cmdTransfer = m_commandPool[ i++ ];
         it.m_cmdDepthPrepass = m_commandPool[ i++ ];
@@ -279,26 +276,40 @@ void RendererVK::createPipeline( const PipelineCreateInfo& pci )
     assert( std::popcount( pci.m_constantBindBits ) == 1 );
     assert( ( pci.m_constantBindBits & pci.m_textureBindBits ) == 0 ); // mutually exclusive bits
 
-    uint32_t descriptorSetType = pci.m_constantBindBits;
-    descriptorSetType <<= 16;
-    descriptorSetType |= pci.m_textureBindBits;
+    const Bindpoints bindpoints{
+        .constant = pci.m_constantBindBits,
+        .image = pci.m_textureBindBits,
+        .stage = pci.m_computeShader ? Bindpoints::Stage::eCompute : Bindpoints::Stage::eGraphics,
+    };
 
-    DescriptorSet* descriptorSet = nullptr;
-    switch ( descriptorSetType ) {
-    case 0x1'0000: descriptorSet = &m_frames[ 0 ].m_descSetUniform;  break;
-    case 0x1'0000 | 0b10: descriptorSet = &m_frames[ 0 ].m_descSetUniformSampler; break;
-    case 0x1'0000 | 0b110: descriptorSet = &m_frames[ 0 ].m_descSetUniformImage; break;
-    default:
-        assert( !"unsupported descriptor set type" );
-        return;
+    auto findOrAddDescriptorId = []( auto& array, Bindpoints bindpoints ) -> std::tuple<uint32_t, bool>
+    {
+        auto it = std::find( array.begin(), array.end(), bindpoints );
+        if ( it != array.end() ) {
+            return { std::distance( array.begin(), it ), false };
+        }
+        it = std::find( array.begin(), array.end(), Bindpoints{} );
+        assert( it != array.end() );
+        *it = bindpoints;
+        return { std::distance( array.begin(), it ), true };
+    };
+
+    auto [ descriptorId, add ] = findOrAddDescriptorId( m_pipelineDescriptorIds, bindpoints );
+    if ( add ) {
+        for ( auto& fr : m_frames ) {
+            fr.m_descriptorSets[ descriptorId ] = DescriptorSet{ m_device, bindpoints };
+        }
     }
+
+    DescriptorSet* descriptorSet = &m_frames[ 0 ].m_descriptorSets[ descriptorId ];
 
     if ( pci.m_computeShader ) {
         m_pipelines[ pci.m_slot ] = PipelineVK{
-        pci
-        , m_device
-        , descriptorSet->layout()
-    };
+            pci
+            , m_device
+            , descriptorSet->layout()
+            , descriptorId
+        };
         return;
     }
 
@@ -308,6 +319,7 @@ void RendererVK::createPipeline( const PipelineCreateInfo& pci )
         , m_mainPass
         , m_depthPrepass
         , descriptorSet->layout()
+        , descriptorId
     };
 }
 
@@ -521,10 +533,10 @@ void RendererVK::beginFrame()
     m_currentFrame = imageIndex;
     Frame& fr = m_frames[ imageIndex ];
     fr.m_state = Frame::State::eNone;
-    fr.m_descSetUniform.reset();
-    fr.m_descSetUniformSampler.reset();
-    fr.m_descSetUniformImage.reset();
     fr.m_uniformBuffer.reset();
+    for ( auto& set : fr.m_descriptorSets ) {
+        set.reset();
+    }
 
     beginRecording( fr.m_cmdRender );
     beginRecording( fr.m_cmdDepthPrepass );
@@ -859,9 +871,7 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
     const bool bindBuffer = pushBuffer.m_vertice;
     uint32_t verticeCount = pushBuffer.m_verticeCount;
 
-    auto& descriptorPool = bindTexture
-        ? fr.m_descSetUniformSampler
-        : fr.m_descSetUniform;
+    auto& descriptorPool = fr.m_descriptorSets[ currentPipeline.descriptorSetId() ];
 
     m_lastPipeline = &currentPipeline;
 
@@ -926,7 +936,7 @@ void RendererVK::dispatch( const DispatchInfo& dispatchInfo, const void* constan
     }
 
     VkCommandBuffer cmd = fr.m_cmdRender;
-    auto& descriptorPool = fr.m_descSetUniformImage;
+    auto& descriptorPool = fr.m_descriptorSets[ currentPipeline.descriptorSetId() ];
     const VkDescriptorBufferInfo bufferInfo = fr.m_uniformBuffer.copy( constant, currentPipeline.pushConstantSize() );
     const VkDescriptorSet descriptorSet = descriptorPool.next();
     assert( descriptorSet != VK_NULL_HANDLE );

@@ -20,6 +20,7 @@ class PipelineVK {
     Bindpoints m_bindpoints{};
     uint32_t m_pushConstantSize = 0;
     uint32_t m_vertexStride = 0;
+    uint32_t m_descriptorSetId = 0;
     bool m_depthWrite = false;
     bool m_useLines = false;
 
@@ -33,12 +34,14 @@ public:
         , VkRenderPass color
         , VkRenderPass depth
         , VkDescriptorSetLayout
+        , uint32_t descriptorSetId
     ) noexcept;
 
     PipelineVK(
         const PipelineCreateInfo&
         , VkDevice
         , VkDescriptorSetLayout
+        , uint32_t descriptorSetId
     ) noexcept;
 
     PipelineVK( PipelineVK&& ) noexcept;
@@ -51,6 +54,7 @@ public:
     uint32_t pushConstantSize() const;
     uint32_t vertexStride() const;
     Bindpoints bindpoints() const;
+    uint32_t descriptorSetId() const;
 
     bool depthWrite() const;
     bool useLines() const;

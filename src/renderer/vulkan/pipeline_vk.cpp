@@ -25,6 +25,7 @@ PipelineVK::PipelineVK( PipelineVK&& rhs ) noexcept
     std::swap( m_bindpoints, rhs.m_bindpoints );
     std::swap( m_pushConstantSize, rhs.m_pushConstantSize );
     std::swap( m_vertexStride, rhs.m_vertexStride );
+    std::swap( m_descriptorSetId, rhs.m_descriptorSetId );
     std::swap( m_depthWrite, rhs.m_depthWrite );
     std::swap( m_useLines, rhs.m_useLines );
 }
@@ -38,6 +39,7 @@ PipelineVK& PipelineVK::operator = ( PipelineVK&& rhs ) noexcept
     std::swap( m_bindpoints, rhs.m_bindpoints );
     std::swap( m_pushConstantSize, rhs.m_pushConstantSize );
     std::swap( m_vertexStride, rhs.m_vertexStride );
+    std::swap( m_descriptorSetId, rhs.m_descriptorSetId );
     std::swap( m_depthWrite, rhs.m_depthWrite );
     std::swap( m_useLines, rhs.m_useLines );
     return *this;
@@ -134,6 +136,7 @@ PipelineVK::PipelineVK(
     , VkRenderPass colorPass
     , VkRenderPass depthPrepass
     , VkDescriptorSetLayout layout
+    , uint32_t descriptorSetId
 ) noexcept
 : m_device{ device }
 , m_bindpoints{
@@ -144,6 +147,7 @@ PipelineVK::PipelineVK(
 }
 , m_pushConstantSize{ pci.m_pushConstantSize }
 , m_vertexStride{ pci.m_vertexStride }
+, m_descriptorSetId{ descriptorSetId }
 , m_depthWrite{ pci.m_enableDepthWrite }
 , m_useLines{ usesLines( pci.m_topology ) }
 {
@@ -292,6 +296,7 @@ PipelineVK::PipelineVK(
     const PipelineCreateInfo& pci
     , VkDevice device
     , VkDescriptorSetLayout layout
+    , uint32_t descriptorSetId
 ) noexcept
 : m_device{ device }
 , m_bindpoints{
@@ -301,6 +306,7 @@ PipelineVK::PipelineVK(
     .stage = Bindpoints::Stage::eCompute,
 }
 , m_pushConstantSize{ pci.m_pushConstantSize }
+, m_descriptorSetId{ descriptorSetId }
 {
     ZoneScoped;
     assert( layout );
@@ -369,3 +375,9 @@ Bindpoints PipelineVK::bindpoints() const
 {
     return m_bindpoints;
 }
+
+uint32_t PipelineVK::descriptorSetId() const
+{
+    return m_descriptorSetId;
+}
+
