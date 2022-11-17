@@ -1,8 +1,8 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
+#include "device_memory.hpp"
 
-#include <cstddef>
+#include <vulkan/vulkan.h>
 
 class BufferVK {
 public:
@@ -12,13 +12,11 @@ public:
     };
 
 private:
+    DeviceMemory m_memory{};
     VkDevice m_device = VK_NULL_HANDLE;
-    VkDeviceMemory m_memory = VK_NULL_HANDLE;
     VkBuffer m_buffer = VK_NULL_HANDLE;
     uint32_t m_size = 0;
     Purpose m_purpose = Purpose::eStaging;
-
-    void destroyResources();
 
 public:
     ~BufferVK() noexcept;

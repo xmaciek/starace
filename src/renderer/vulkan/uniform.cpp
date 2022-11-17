@@ -14,8 +14,6 @@ void Uniform::destroyResources() noexcept
     }
     destroy<vkDestroyBuffer>( m_device, m_buffer );
     destroy<vkDestroyBuffer>( m_device, m_staging );
-    destroy<vkFreeMemory>( m_device, m_memoryDeviceLocal );
-    destroy<vkFreeMemory>( m_device, m_memoryStaging );
 }
 
 Uniform::~Uniform() noexcept
@@ -54,24 +52,6 @@ Uniform& Uniform::operator = ( Uniform&& rhs ) noexcept
     return *this;
 }
 
-
-static VkDeviceMemory alloc( VkPhysicalDevice physDevice, VkDevice device, VkBuffer buffer, VkMemoryPropertyFlags flags ) noexcept
-{
-    VkMemoryRequirements memRequirements{};
-    vkGetBufferMemoryRequirements( device, buffer, &memRequirements );
-    const VkMemoryAllocateInfo allocInfo{
-        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-        .allocationSize = memRequirements.size,
-        .memoryTypeIndex = memoryType( physDevice, memRequirements.memoryTypeBits, flags ),
-    };
-
-    VkDeviceMemory memory = VK_NULL_HANDLE;
-    [[maybe_unused]]
-    const VkResult allocOK = vkAllocateMemory( device, &allocInfo, nullptr, &memory );
-    assert( allocOK == VK_SUCCESS );
-    return memory;
-}
-
 static VkBuffer createBuffer( VkDevice device, std::size_t size, VkBufferUsageFlags flags ) noexcept
 {
     const VkBufferCreateInfo bufferInfo{
@@ -96,14 +76,15 @@ Uniform::Uniform( VkPhysicalDevice physDevice, VkDevice device, std::size_t size
     m_staging = createBuffer( device, m_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT );
     m_buffer = createBuffer( device, m_size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT );
 
-    m_memoryStaging = alloc( physDevice, device, m_staging, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
-    m_memoryDeviceLocal = alloc( physDevice, device, m_buffer, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
+    m_memoryStaging = DeviceMemory{ physDevice, device, m_staging, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
+    m_memoryDeviceLocal = DeviceMemory{ physDevice, device, m_buffer, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT };
 
     [[maybe_unused]] const VkResult sOK = vkBindBufferMemory( device, m_staging, m_memoryStaging, 0 );
     [[maybe_unused]] const VkResult lOK = vkBindBufferMemory( device, m_buffer, m_memoryDeviceLocal, 0 );
     assert( sOK == VK_SUCCESS );
     assert( lOK == VK_SUCCESS );
 
+    assert( m_size <= m_memoryStaging.size() );
     [[maybe_unused]]
     const VkResult mapOK = vkMapMemory( m_device, m_memoryStaging, 0, m_size, {}, &m_mapped );
     assert( mapOK == VK_SUCCESS );

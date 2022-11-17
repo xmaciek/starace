@@ -10,7 +10,6 @@ Image::~Image() noexcept
 {
     destroy<vkDestroyImageView>( m_device, m_imageView );
     destroy<vkDestroyImage>( m_device, m_image );
-    destroy<vkFreeMemory>( m_device, m_deviceMemory );
 }
 
 Image::Image( Image&& img ) noexcept
@@ -100,18 +99,7 @@ Image::Image( VkPhysicalDevice physDevice
     const VkResult imageOK = vkCreateImage( m_device, &imageInfo, nullptr, &m_image );
     assert( imageOK == VK_SUCCESS );
 
-    VkMemoryRequirements memRequirements{};
-    vkGetImageMemoryRequirements( m_device, m_image, &memRequirements );
-
-    const VkMemoryAllocateInfo allocInfo{
-        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-        .allocationSize = memRequirements.size,
-        .memoryTypeIndex = memoryType( physDevice, memRequirements.memoryTypeBits, memoryFlags ),
-    };
-
-    [[maybe_unused]]
-    const VkResult allocOK = vkAllocateMemory( m_device, &allocInfo, nullptr, &m_deviceMemory );
-    assert( allocOK == VK_SUCCESS );
+    m_deviceMemory = DeviceMemory{ physDevice, m_device, m_image, memoryFlags };
 
     [[maybe_unused]]
     const VkResult bindOK = vkBindImageMemory( m_device, m_image, m_deviceMemory, 0 );

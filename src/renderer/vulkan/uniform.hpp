@@ -1,14 +1,16 @@
 #pragma once
 
+#include "device_memory.hpp"
+
 #include <vulkan/vulkan.h>
 
 #include <cstddef>
 #include <cstdint>
 
 class Uniform {
+    DeviceMemory m_memoryStaging{};
+    DeviceMemory m_memoryDeviceLocal{};
     VkDevice m_device = VK_NULL_HANDLE;
-    VkDeviceMemory m_memoryStaging = VK_NULL_HANDLE;
-    VkDeviceMemory m_memoryDeviceLocal = VK_NULL_HANDLE;
     VkBuffer m_staging = VK_NULL_HANDLE;
     VkBuffer m_buffer = VK_NULL_HANDLE;
     void* m_mapped = nullptr;

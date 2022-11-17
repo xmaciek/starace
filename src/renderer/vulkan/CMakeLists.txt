@@ -12,6 +12,8 @@ target_sources( renderer_vk
     debug_messanger.hpp
     descriptor_set.cpp
     descriptor_set.hpp
+    device_memory.cpp
+    device_memory.hpp
     frame.hpp
     image.cpp
     image.hpp

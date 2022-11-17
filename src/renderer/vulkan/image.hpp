@@ -1,13 +1,14 @@
 #pragma once
 
+#include "device_memory.hpp"
 #include "utils_vk.hpp"
 
 #include <vulkan/vulkan.h>
 
 class Image {
 protected:
+    DeviceMemory m_deviceMemory{};
     VkDevice m_device = VK_NULL_HANDLE;
-    VkDeviceMemory m_deviceMemory = VK_NULL_HANDLE;
 
     VkImage m_image = VK_NULL_HANDLE;
     VkImageView m_imageView = VK_NULL_HANDLE;

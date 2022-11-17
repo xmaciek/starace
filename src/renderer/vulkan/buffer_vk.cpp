@@ -8,15 +8,9 @@
 
 #include <Tracy.hpp>
 
-void BufferVK::destroyResources()
-{
-    destroy<vkDestroyBuffer>( m_device, m_buffer );
-    destroy<vkFreeMemory>( m_device, m_memory );
-}
-
 BufferVK::~BufferVK() noexcept
 {
-    destroyResources();
+    destroy<vkDestroyBuffer>( m_device, m_buffer );
 }
 
 BufferVK::BufferVK( BufferVK&& rhs ) noexcept
@@ -30,12 +24,11 @@ BufferVK::BufferVK( BufferVK&& rhs ) noexcept
 
 BufferVK& BufferVK::operator = ( BufferVK&& rhs ) noexcept
 {
-    destroyResources();
-    m_device = std::exchange( rhs.m_device, {} );
-    m_memory = std::exchange( rhs.m_memory, {} );
-    m_buffer = std::exchange( rhs.m_buffer, {} );
-    m_size = std::exchange( rhs.m_size, {} );
-    m_purpose = std::exchange( rhs.m_purpose, Purpose::eStaging );
+    std::swap( m_device, rhs.m_device );
+    std::swap( m_memory, rhs.m_memory );
+    std::swap( m_buffer, rhs.m_buffer );
+    std::swap( m_size, rhs.m_size );
+    std::swap( m_purpose, rhs.m_purpose );
     return *this;
 }
 
@@ -70,18 +63,7 @@ BufferVK::BufferVK( VkPhysicalDevice physicalDevice, VkDevice device, Purpose pu
     const VkResult bufferOK = vkCreateBuffer( device, &bufferInfo, nullptr, &m_buffer );
     assert( bufferOK == VK_SUCCESS );
 
-    VkMemoryRequirements memRequirements{};
-    vkGetBufferMemoryRequirements( device, m_buffer, &memRequirements );
-
-    const VkMemoryAllocateInfo allocInfo{
-        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-        .allocationSize = memRequirements.size,
-        .memoryTypeIndex = memoryType( physicalDevice, memRequirements.memoryTypeBits, flags ),
-    };
-
-    [[maybe_unused]]
-    const VkResult allocOK = vkAllocateMemory( device, &allocInfo, nullptr, &m_memory );
-    assert( allocOK == VK_SUCCESS );
+    m_memory = DeviceMemory{ physicalDevice, m_device, m_buffer, flags };
 
     [[maybe_unused]]
     const VkResult bindOK = vkBindBufferMemory( device, m_buffer, m_memory, 0 );
@@ -103,6 +85,7 @@ void BufferVK::copyData( const uint8_t* data )
     ZoneScoped;
     assert( data );
     void* ptr = nullptr;
+    assert( m_size <= m_memory.size() );
     [[maybe_unused]]
     const VkResult mapOK = vkMapMemory( m_device, m_memory, 0, m_size, 0, &ptr );
     assert( mapOK == VK_SUCCESS );

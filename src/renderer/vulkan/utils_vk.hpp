@@ -9,8 +9,6 @@
 
 VkFormat pickSupportedFormat( VkPhysicalDevice, const std::pmr::vector<VkFormat>&, VkImageTiling, VkFormatFeatureFlags );
 
-uint32_t memoryType( VkPhysicalDevice, uint32_t typeBits, VkMemoryPropertyFlags );
-
 template <auto pfnDestroy, typename T>
 void destroy( VkDevice device, T t ) noexcept
 {
