@@ -136,12 +136,15 @@ struct PushConstant<Pipeline::eGlow> {
 
 template <>
 struct PushConstant<Pipeline::eThruster> {
-    math::mat4 m_model{};
-    math::mat4 m_view{};
-    math::mat4 m_projection{};
-    math::vec4 m_color{};
-    std::array<math::vec4, 4> m_xyuv{};
-    float m_radius = 0.0f;
+    struct alignas( 16 ) Afterglow {
+        math::vec4 color{};
+        math::vec4 xyzs{};
+        float radius = 0.0f;
+    };
+    alignas( 16 ) math::mat4 m_model{};
+    alignas( 16 ) math::mat4 m_view{};
+    alignas( 16 ) math::mat4 m_projection{};
+    alignas( 16 ) std::array<Afterglow, 4> m_afterglow{};
 };
 
 template <>
@@ -381,7 +384,7 @@ PipelineCreateInfo{
     .m_slot = static_cast<PipelineSlot>( Pipeline::eThruster ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eThruster> ),
     .m_enableBlend = true,
-    .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
+    .m_topology = PipelineCreateInfo::Topology::eTriangleList,
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
     .m_binding{

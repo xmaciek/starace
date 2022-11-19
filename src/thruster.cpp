@@ -59,22 +59,24 @@ void Thruster::renderAt( RenderContext rctx, const math::vec3& pos ) const
     std::fill_n( pushConstant.m_colors.begin() + 1, 32, m_colorScheme[ 2 ] );
     rctx.renderer->push( pushBuffer, &pushConstant );
 
+
     pushBuffer.m_pipeline = static_cast<PipelineSlot>( Pipeline::eThruster );
-    pushBuffer.m_verticeCount = 4;
+    pushBuffer.m_verticeCount = 24;
     PushConstant<Pipeline::eThruster> pushConstant2{};
+    pushConstant2.m_model = math::translate( rctx.model, pos );
     pushConstant2.m_view = rctx.view;
     pushConstant2.m_projection = rctx.projection;
+
     const float size = 3.0_m;
-    pushConstant2.m_xyuv = {
-        math::vec4{ -size, -size, 0, 0 },
-        math::vec4{ -size, size, 0, 1 },
-        math::vec4{ size, size, 1, 1 },
-        math::vec4{ size, -size, 1, 0 },
-    };
-    for ( float r : { 0.4f, 0.3f, 0.2f, 0.1f } ) {
-        pushConstant2.m_radius = r;
-        pushConstant2.m_model = math::translate( rctx.model, pos + math::vec3{ 0, 0, m_length * r } );
-        pushConstant2.m_color = math::lerp( m_colorScheme[ 0 ], m_colorScheme[ 1 ], r * 2.0f );
-        rctx.renderer->push( pushBuffer, &pushConstant2 );
+    const float table[] = { 0.4f, 0.3f, 0.2f, 0.1f };
+    for ( uint32_t i = 0; i < 4; ++i ) {
+        pushConstant2.m_afterglow[ i ] = {
+            .color = math::lerp( m_colorScheme[ 0 ], m_colorScheme[ 1 ], table[ i ] * 2.0f ),
+            .xyzs = math::vec4{ 0.0f, 0.0f, m_length * table[ i ], size },
+            .radius = table[ i ],
+        };
+
     }
+    rctx.renderer->push( pushBuffer, &pushConstant2 );
+
 }
