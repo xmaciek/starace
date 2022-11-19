@@ -37,11 +37,11 @@ void NineSlice::render( RenderContext rctx ) const
     ZoneScoped;
     using Generator = spritegen::NineSliceComposer;
     assert( m_texture );
-    const PushBuffer pushBuffer{
+    PushBuffer pushBuffer{
         .m_pipeline = static_cast<PipelineSlot>( Pipeline::eSpriteSequence ),
         .m_verticeCount = Generator::count(),
-        .m_texture = m_texture,
     };
+    pushBuffer.m_resource[ 1 ].texture = m_texture;
 
     const math::vec2 pos = position() + offsetByAnchor();
     const math::vec2 s = size();

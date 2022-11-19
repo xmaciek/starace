@@ -958,11 +958,12 @@ void Game::renderBackground( ui::RenderContext rctx ) const
     const auto [ w, h, a ] = viewport();
     const math::vec2 uv = math::vec2{ w, h } / m_atlasUi.extent();
 
-    const PushBuffer pushBuffer{
+    PushBuffer pushBuffer{
         .m_pipeline = static_cast<PipelineSlot>( Pipeline::eBackground ),
         .m_verticeCount = 4,
-        .m_texture = g_uiProperty.atlasTexture(),
     };
+    pushBuffer.m_resource[ 1 ].texture = g_uiProperty.atlasTexture();
+
     PushConstant<Pipeline::eBackground> pushConstant{
         .m_model = rctx.model,
         .m_view = rctx.view,

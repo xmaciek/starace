@@ -33,8 +33,8 @@ void Model::render( RenderContext rctx ) const
     PushBuffer pushBuffer{
         .m_pipeline = static_cast<PipelineSlot>( Pipeline::eAlbedo ),
         .m_vertice = m_vertices,
-        .m_texture = m_texture,
     };
+    pushBuffer.m_resource[ 1 ].texture = m_texture;
 
     rctx.renderer->push( pushBuffer, &pushConstant );
 }

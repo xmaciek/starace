@@ -55,11 +55,11 @@ Image::Image( math::vec2 position, math::vec2 extent, DataModel* dataModel )
 void Image::render( RenderContext rctx ) const
 {
     assert( m_texture );
-    const PushBuffer pushBuffer{
+    PushBuffer pushBuffer{
         .m_pipeline = static_cast<PipelineSlot>( Pipeline::eGuiTextureColor1 ),
         .m_verticeCount = 4,
-        .m_texture = m_texture,
     };
+    pushBuffer.m_resource[ 1 ].texture = m_texture;
 
     PushConstant<Pipeline::eGuiTextureColor1> pushConstant{};
     pushConstant.m_model = rctx.model;

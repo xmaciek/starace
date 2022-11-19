@@ -37,7 +37,7 @@ void UIRings::render( ui::RenderContext rctx ) const
     };
     for ( size_t i = 0; i < 3; i++ ) {
         assert( m_texture[ i ] );
-        pushBuffer.m_texture = m_texture[ i ];
+        pushBuffer.m_resource[ 1 ].texture = m_texture[ i ];
         pushConstant.m_model = math::rotate( rctx.model, m_angle[ i ], axis::z );
         pushConstant.m_model = math::translate( pushConstant.m_model, math::vec3{ mx * -0.5, mx * -0.5, 0.0 } );
         pushConstant.m_color = color[ i ];

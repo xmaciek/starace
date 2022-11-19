@@ -35,11 +35,11 @@ SpinBox::SpinBox( DataModel* dataModel ) noexcept
 
 void SpinBox::render( RenderContext rctx ) const
 {
-    const PushBuffer pushBuffer{
+    PushBuffer pushBuffer{
         .m_pipeline = static_cast<PipelineSlot>( Pipeline::eSpriteSequenceColors ),
         .m_verticeCount = spritegen::NineSlice2::count() + 12,
-        .m_texture = g_uiProperty.atlasTexture(),
     };
+    pushBuffer.m_resource[ 1 ].texture = g_uiProperty.atlasTexture();
 
     PushConstant<Pipeline::eSpriteSequenceColors> pushConstant{
         .m_model = rctx.model,

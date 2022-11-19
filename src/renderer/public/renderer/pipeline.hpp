@@ -66,7 +66,6 @@ struct PushData {
     uint32_t m_verticeCount = 0;
     float m_lineWidth = 1.0f;
     Buffer m_vertice{};
-    Texture m_texture{};
     std::array<BindResource, 8> m_resource{};
 };
 

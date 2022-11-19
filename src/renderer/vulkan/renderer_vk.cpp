@@ -800,8 +800,9 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
             break;
 
         case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER: {
-            assert( pushBuffer.m_texture > 0 );
-            const TextureVK* texture = m_textureSlots[ pushBuffer.m_texture - 1 ];
+            const Texture texId = pushBuffer.m_resource[ i ].texture;
+            assert( texId > 0 );
+            const TextureVK* texture = m_textureSlots[ texId - 1 ];
             assert( texture );
             bindInfo[ i ].imageInfo = texture->imageInfo();
             descriptorWrites[ i ].pImageInfo = &bindInfo[ i ].imageInfo;
