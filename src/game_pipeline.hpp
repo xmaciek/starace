@@ -199,8 +199,10 @@ PipelineCreateInfo{
     .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_constantBindBits = 0b1,
-    .m_textureBindBits = 0b10,
+    .m_binding{
+        BindType::eVertexUniform,
+        BindType::eFragmentImage,
+    },
 },
 
 PipelineCreateInfo{
@@ -212,8 +214,10 @@ PipelineCreateInfo{
     .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_constantBindBits = 0b1,
-    .m_textureBindBits = 0b10,
+    .m_binding{
+        BindType::eVertexUniform,
+        BindType::eFragmentImage,
+    },
 },
 
 PipelineCreateInfo{
@@ -225,7 +229,9 @@ PipelineCreateInfo{
     .m_enableDepthTest = true,
     .m_enableDepthWrite = false,
     .m_topology = PipelineCreateInfo::Topology::eLineStrip,
-    .m_constantBindBits = 0b1,
+    .m_binding{
+        BindType::eVertexUniform,
+    },
 },
 
 PipelineCreateInfo{
@@ -239,8 +245,10 @@ PipelineCreateInfo{
     .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_constantBindBits = 0b1,
-    .m_textureBindBits = 0b10,
+    .m_binding{
+        BindType::eVertexUniform,
+        BindType::eFragmentImage,
+    },
 },
 
 PipelineCreateInfo{
@@ -254,7 +262,9 @@ PipelineCreateInfo{
     .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_constantBindBits = 0b1,
+    .m_binding{
+        BindType::eVertexUniform,
+    },
 },
 
 PipelineCreateInfo{
@@ -266,7 +276,9 @@ PipelineCreateInfo{
     .m_enableDepthTest = true,
     .m_enableDepthWrite = false,
     .m_topology = PipelineCreateInfo::Topology::eLineList,
-    .m_constantBindBits = 0b1,
+    .m_binding{
+        BindType::eVertexUniform,
+    },
 },
 
 PipelineCreateInfo{
@@ -277,7 +289,9 @@ PipelineCreateInfo{
     .m_enableBlend = true,
     .m_enableDepthTest = true,
     .m_topology = PipelineCreateInfo::Topology::eLineList,
-    .m_constantBindBits = 0b1,
+    .m_binding{
+        BindType::eVertexUniform,
+    },
 },
 
 PipelineCreateInfo{
@@ -289,8 +303,10 @@ PipelineCreateInfo{
     .m_topology = PipelineCreateInfo::Topology::eTriangleList,
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_constantBindBits = 0b1,
-    .m_textureBindBits = 0b10,
+    .m_binding{
+        BindType::eVertexUniform,
+        BindType::eFragmentImage,
+    },
 },
 
 PipelineCreateInfo{
@@ -302,8 +318,10 @@ PipelineCreateInfo{
     .m_topology = PipelineCreateInfo::Topology::eTriangleList,
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_constantBindBits = 0b1,
-    .m_textureBindBits = 0b10,
+    .m_binding{
+        BindType::eVertexUniform,
+        BindType::eFragmentImage,
+    },
 },
 
 PipelineCreateInfo{
@@ -323,8 +341,10 @@ PipelineCreateInfo{
         PipelineCreateInfo::Assembly{ PipelineCreateInfo::InputType::eF2, 1, 12 },
         PipelineCreateInfo::Assembly{ PipelineCreateInfo::InputType::eF3, 2, 20 }
     },
-    .m_constantBindBits = 0b1,
-    .m_textureBindBits = 0b10,
+    .m_binding{
+        BindType::eVertexUniform,
+        BindType::eFragmentImage,
+    },
 },
 
 PipelineCreateInfo{
@@ -336,7 +356,9 @@ PipelineCreateInfo{
     .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_constantBindBits = 0b1,
+    .m_binding{
+        BindType::eVertexUniform,
+    },
 },
 
 PipelineCreateInfo{
@@ -348,7 +370,9 @@ PipelineCreateInfo{
     .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_constantBindBits = 0b1,
+    .m_binding{
+        BindType::eVertexUniform,
+    },
 },
 
 PipelineCreateInfo{
@@ -360,7 +384,9 @@ PipelineCreateInfo{
     .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_constantBindBits = 0b1,
+    .m_binding{
+        BindType::eVertexUniform,
+    },
 },
 
 PipelineCreateInfo{
@@ -374,8 +400,10 @@ PipelineCreateInfo{
     .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_constantBindBits = 0b1,
-    .m_textureBindBits = 0b10,
+    .m_binding{
+        BindType::eVertexUniform,
+        BindType::eFragmentImage,
+    },
 },
 
 PipelineCreateInfo{
@@ -389,23 +417,31 @@ PipelineCreateInfo{
     .m_topology = PipelineCreateInfo::Topology::eTriangleList,
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_constantBindBits = 0b1,
-    .m_textureBindBits = 0b10,
+    .m_binding{
+        BindType::eVertexUniform,
+        BindType::eFragmentImage,
+    },
 },
 
 PipelineCreateInfo{
     .m_computeShader = "shaders/gamma.comp.spv",
     .m_slot = static_cast<PipelineSlot>( Pipeline::eGammaCorrection ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eGammaCorrection> ),
-    .m_constantBindBits = 0b1,
-    .m_textureBindBits = 0b110,
+    .m_binding{
+        BindType::eComputeUniform,
+        BindType::eComputeImage,
+        BindType::eComputeImage,
+    },
 },
 PipelineCreateInfo{
     .m_computeShader = "shaders/scanline.comp.spv",
     .m_slot = static_cast<PipelineSlot>( Pipeline::eScanline ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eScanline> ),
-    .m_constantBindBits = 0b1,
-    .m_textureBindBits = 0b110,
+    .m_binding{
+        BindType::eComputeUniform,
+        BindType::eComputeImage,
+        BindType::eComputeImage,
+    },
 },
 
 

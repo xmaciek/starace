@@ -3,7 +3,6 @@ set_cppver( renderer_vk 20 )
 
 target_sources( renderer_vk
     PRIVATE
-    bindpoints.hpp
     buffer_vk.cpp
     buffer_vk.hpp
     command_pool.cpp

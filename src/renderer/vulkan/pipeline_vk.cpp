@@ -22,10 +22,11 @@ PipelineVK::PipelineVK( PipelineVK&& rhs ) noexcept
     std::swap( m_layout, rhs.m_layout );
     std::swap( m_pipeline, rhs.m_pipeline );
     std::swap( m_pipelineDepthPrepass, rhs.m_pipelineDepthPrepass );
-    std::swap( m_bindpoints, rhs.m_bindpoints );
     std::swap( m_pushConstantSize, rhs.m_pushConstantSize );
     std::swap( m_vertexStride, rhs.m_vertexStride );
     std::swap( m_descriptorSetId, rhs.m_descriptorSetId );
+    std::swap( m_descriptorWrites, rhs.m_descriptorWrites );
+    std::swap( m_descriptorWriteCount, rhs.m_descriptorWriteCount );
     std::swap( m_depthWrite, rhs.m_depthWrite );
     std::swap( m_useLines, rhs.m_useLines );
 }
@@ -36,10 +37,11 @@ PipelineVK& PipelineVK::operator = ( PipelineVK&& rhs ) noexcept
     std::swap( m_layout, rhs.m_layout );
     std::swap( m_pipeline, rhs.m_pipeline );
     std::swap( m_pipelineDepthPrepass, rhs.m_pipelineDepthPrepass );
-    std::swap( m_bindpoints, rhs.m_bindpoints );
     std::swap( m_pushConstantSize, rhs.m_pushConstantSize );
     std::swap( m_vertexStride, rhs.m_vertexStride );
     std::swap( m_descriptorSetId, rhs.m_descriptorSetId );
+    std::swap( m_descriptorWrites, rhs.m_descriptorWrites );
+    std::swap( m_descriptorWriteCount, rhs.m_descriptorWriteCount );
     std::swap( m_depthWrite, rhs.m_depthWrite );
     std::swap( m_useLines, rhs.m_useLines );
     return *this;
@@ -130,6 +132,36 @@ static VkPipelineDepthStencilStateCreateInfo depthStencilInfo( bool depthTest, b
     };
 }
 
+static std::tuple<PipelineVK::DescriptorWrites, uint32_t> prepareDescriptorWrites( const auto& arr )
+{
+    auto descriptorType = []( BindType bp ) -> VkDescriptorType
+    {
+        switch ( bp ) {
+        case BindType::eFragmentImage: return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        case BindType::eComputeImage: return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        case BindType::eComputeUniform: return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        case BindType::eVertexUniform: return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        default:
+            assert( !"TODO" );
+            return {};
+        }
+    };
+    PipelineVK::DescriptorWrites ret{};
+    uint32_t count = 0;
+    for ( uint32_t i = 0; i < arr.size(); ++i ) {
+        if ( arr[ i ] == BindType::none ) continue;
+        ret[ count++ ] = {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstBinding = i,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = descriptorType( arr[ i ] ),
+        };
+    }
+    return { ret, count };
+}
+
+// graphics
 PipelineVK::PipelineVK(
     const PipelineCreateInfo& pci
     , VkDevice device
@@ -139,12 +171,6 @@ PipelineVK::PipelineVK(
     , uint32_t descriptorSetId
 ) noexcept
 : m_device{ device }
-, m_bindpoints{
-    .constant = pci.m_constantBindBits,
-    .image = pci.m_textureBindBits,
-    .buffer = 0, // TODO
-    .stage = Bindpoints::Stage::eGraphics,
-}
 , m_pushConstantSize{ pci.m_pushConstantSize }
 , m_vertexStride{ pci.m_vertexStride }
 , m_descriptorSetId{ descriptorSetId }
@@ -168,19 +194,19 @@ PipelineVK::PipelineVK(
     const VkResult layoutOK = vkCreatePipelineLayout( m_device, &pipelineLayoutInfo, nullptr, &m_layout );
     assert( layoutOK == VK_SUCCESS );
 
-    static constexpr VkPipelineViewportStateCreateInfo viewportState{
+    const VkPipelineViewportStateCreateInfo viewportState{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
         .viewportCount = 1,
         .scissorCount = 1,
     };
 
-    static constexpr VkPipelineMultisampleStateCreateInfo multisampling{
+    const VkPipelineMultisampleStateCreateInfo multisampling{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
         .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
         .sampleShadingEnable = VK_FALSE,
     };
 
-    static VkPipelineRasterizationStateCreateInfo rasterizer{
+    const VkPipelineRasterizationStateCreateInfo rasterizer{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
         .depthClampEnable = VK_FALSE,
         .rasterizerDiscardEnable = VK_FALSE,
@@ -193,7 +219,7 @@ PipelineVK::PipelineVK(
     const auto depthStencilColor = depthStencilInfo( pci.m_enableDepthTest, pci.m_enableDepthWrite, false );
     const auto depthStencilPrepass = depthStencilInfo( pci.m_enableDepthTest, pci.m_enableDepthWrite, true );
 
-    static VkPipelineColorBlendAttachmentState colorBlendAttachment{
+    const VkPipelineColorBlendAttachmentState colorBlendAttachment{
         .blendEnable = pci.m_enableBlend ? VK_TRUE : VK_FALSE,
         .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
         .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
@@ -212,7 +238,7 @@ PipelineVK::PipelineVK(
         .pAttachments = &colorBlendAttachment,
     };
 
-    static constexpr std::array dynamicStates{
+    const std::array dynamicStates{
         VK_DYNAMIC_STATE_VIEWPORT,
         VK_DYNAMIC_STATE_SCISSOR,
         VK_DYNAMIC_STATE_LINE_WIDTH,
@@ -290,8 +316,10 @@ PipelineVK::PipelineVK(
     assert( pipelineOK == VK_SUCCESS );
     m_pipeline = pipelines[ 0 ];
     m_pipelineDepthPrepass = pipelines[ 1 ];
+    std::tie( m_descriptorWrites, m_descriptorWriteCount ) = prepareDescriptorWrites( pci.m_binding );
 }
 
+// compute
 PipelineVK::PipelineVK(
     const PipelineCreateInfo& pci
     , VkDevice device
@@ -299,12 +327,6 @@ PipelineVK::PipelineVK(
     , uint32_t descriptorSetId
 ) noexcept
 : m_device{ device }
-, m_bindpoints{
-    .constant = pci.m_constantBindBits,
-    .image = pci.m_textureBindBits,
-    .buffer = 0, // TODO
-    .stage = Bindpoints::Stage::eCompute,
-}
 , m_pushConstantSize{ pci.m_pushConstantSize }
 , m_descriptorSetId{ descriptorSetId }
 {
@@ -332,6 +354,8 @@ PipelineVK::PipelineVK(
     [[maybe_unused]]
     const VkResult pipelineOK = vkCreateComputePipelines( device, nullptr, 1, &info, nullptr, &m_pipeline );
     assert( pipelineOK == VK_SUCCESS );
+
+    std::tie( m_descriptorWrites, m_descriptorWriteCount ) = prepareDescriptorWrites( pci.m_binding );
 }
 
 PipelineVK::operator VkPipeline () const
@@ -371,13 +395,18 @@ VkPipeline PipelineVK::depthPrepass() const
     return m_pipelineDepthPrepass;
 }
 
-Bindpoints PipelineVK::bindpoints() const
-{
-    return m_bindpoints;
-}
-
 uint32_t PipelineVK::descriptorSetId() const
 {
     return m_descriptorSetId;
+}
+
+uint32_t PipelineVK::descriptorWriteCount() const
+{
+    return m_descriptorWriteCount;
+}
+
+PipelineVK::DescriptorWrites PipelineVK::descriptorWrites() const
+{
+    return m_descriptorWrites;
 }
 

@@ -57,7 +57,7 @@ class RendererVK : public Renderer {
     RenderPass m_mainPass{};
     std::pmr::vector<Frame> m_frames{};
 
-    std::array<Bindpoints, 32> m_pipelineDescriptorIds{};
+    std::array<uint64_t, 32> m_pipelineDescriptorIds{};
     std::array<PipelineVK, 32> m_pipelines{};
     PipelineVK* m_lastPipeline = nullptr;
 

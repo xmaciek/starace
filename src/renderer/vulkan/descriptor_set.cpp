@@ -5,7 +5,6 @@
 #include <Tracy.hpp>
 
 #include <array>
-#include <bit>
 #include <cassert>
 #include <algorithm>
 
@@ -40,56 +39,48 @@ DescriptorSet& DescriptorSet::operator = ( DescriptorSet&& rhs ) noexcept
     return *this;
 }
 
-enum class LayoutStage {
-    eGraphics,
-    eCompute,
-};
-
-static VkDescriptorSetLayout createLayout( VkDevice device, Bindpoints bindpoints )
+static VkDescriptorSetLayout createLayout( VkDevice device, const DescriptorSet::BindingInfo& binding )
 {
     assert( device );
-    assert( std::popcount( bindpoints.constant ) == 1 );
-    assert( ( bindpoints.constant & bindpoints.image ) == 0 ); // mutually exclusive bits
-
-    const auto reserve = std::popcount( bindpoints.constant ) + std::popcount( bindpoints.image );
-    std::pmr::vector<VkDescriptorSetLayoutBinding> layoutBinding{ static_cast<std::size_t>( reserve ) };
-
-    struct MakeBinding {
-        uint16_t bindBits = 0;
-        VkDescriptorType type{};
-        VkShaderStageFlagBits stageFlags{};
-
-        VkDescriptorSetLayoutBinding operator () () noexcept
-        {
-            assert( bindBits != 0 );
-            auto binding = std::countr_zero( bindBits );
-            bindBits &= static_cast<uint16_t>( ~( 1ull << binding ) );
-            return {
-                .binding = static_cast<uint32_t>( binding ),
-                .descriptorType = type,
-                .descriptorCount = 1,
-                .stageFlags = stageFlags,
-            };
+    auto convert = []( BindType b, uint32_t idx ) -> VkDescriptorSetLayoutBinding
+    {
+        switch ( b ) {
+        case BindType::eComputeUniform: return {
+            .binding = idx,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .descriptorCount = 1,
+            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+        };
+        case BindType::eComputeImage: return {
+            .binding = idx,
+            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+            .descriptorCount = 1,
+            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+        };
+        case BindType::eVertexUniform: return {
+            .binding = idx,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .descriptorCount = 1,
+            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+        };
+        case BindType::eFragmentImage: return {
+            .binding = idx,
+            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .descriptorCount = 1,
+            .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+        };
+        default:
+            assert( !"todo" );
+            return {};
         }
     };
+    std::pmr::vector<VkDescriptorSetLayoutBinding> layoutBinding;
+    layoutBinding.reserve( binding.size() );
 
-    auto constantStage = bindpoints.stage == Bindpoints::Stage::eGraphics
-        ? VK_SHADER_STAGE_VERTEX_BIT
-        : VK_SHADER_STAGE_COMPUTE_BIT;
-    auto imageStage = bindpoints.stage == Bindpoints::Stage::eGraphics
-        ? VK_SHADER_STAGE_FRAGMENT_BIT
-        : VK_SHADER_STAGE_COMPUTE_BIT;
-    auto imageType = bindpoints.stage == Bindpoints::Stage::eGraphics
-        ? VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
-        : VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-
-    auto it = layoutBinding.begin();
-
-    it = std::generate_n( it, std::popcount( bindpoints.constant ),
-            MakeBinding{ bindpoints.constant, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, constantStage } );
-
-    it = std::generate_n( it, std::popcount( bindpoints.image ),
-            MakeBinding{ bindpoints.image, imageType, imageStage } );
+    for ( uint32_t i = 0; i < binding.size(); ++i ) {
+        if ( binding[ i ] == BindType::none ) continue;
+        layoutBinding.push_back( convert( binding[ i ], i ) );
+    }
 
     const VkDescriptorSetLayoutCreateInfo layoutInfo{
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
@@ -104,24 +95,18 @@ static VkDescriptorSetLayout createLayout( VkDevice device, Bindpoints bindpoint
     return ret;
 }
 
-DescriptorSet::DescriptorSet( VkDevice device, Bindpoints bindpoints ) noexcept
+DescriptorSet::DescriptorSet( VkDevice device, const BindingInfo& binding ) noexcept
 : m_device{ device }
 {
-    ZoneScoped;
-    assert( device );
-    assert( std::popcount( bindpoints.constant ) == 1 );
-    assert( ( bindpoints.constant & bindpoints.image ) == 0 ); // mutually exclusive bits
+    m_layout = createLayout( m_device, binding );
+    m_isGraphics = std::find_if( binding.begin(), binding.end(), []( BindType b )
+    {
+        return ( ( b & BindType::fVertex ) == BindType::fVertex )
+            || ( ( b & BindType::fFragment ) == BindType::fFragment );
+    } ) != binding.end();
 
-    m_imagesCount = static_cast<uint32_t>( std::popcount( bindpoints.image ) );
-    m_layout = createLayout( m_device, bindpoints );
-    switch ( bindpoints.stage ) {
-    case Bindpoints::Stage::eCompute:
-        m_isGraphics = false;
-        break;
-    case Bindpoints::Stage::eGraphics:
-        m_isGraphics = true;
-        break;
-    }
+    auto predicate = []( BindType b ) -> bool { return ( b & BindType::fImage ) == BindType::fImage; };
+    m_imagesCount = static_cast<uint32_t>( std::count_if( binding.begin(), binding.end(), predicate ) );
 
     expandCapacityBy( 50 );
 }

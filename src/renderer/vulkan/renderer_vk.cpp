@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <bit>
 #include <cassert>
+#include <cstring>
 #include <iostream>
 
 static Renderer* g_instance = nullptr;
@@ -272,37 +273,30 @@ void RendererVK::createPipeline( const PipelineCreateInfo& pci )
     ZoneScoped;
 
     assert( pci.m_slot < m_pipelines.size() );
-    assert( pci.m_constantBindBits != 0 );
-    assert( std::popcount( pci.m_constantBindBits ) == 1 );
-    assert( ( pci.m_constantBindBits & pci.m_textureBindBits ) == 0 ); // mutually exclusive bits
 
-    const Bindpoints bindpoints{
-        .constant = pci.m_constantBindBits,
-        .image = pci.m_textureBindBits,
-        .stage = pci.m_computeShader ? Bindpoints::Stage::eCompute : Bindpoints::Stage::eGraphics,
-    };
-
-    auto findOrAddDescriptorId = []( auto& array, Bindpoints bindpoints ) -> std::tuple<uint32_t, bool>
+    auto findOrAddDescriptorId = []( auto& array, uint64_t bindpoints ) -> std::tuple<uint32_t, bool>
     {
         auto it = std::find( array.begin(), array.end(), bindpoints );
         if ( it != array.end() ) {
             return { std::distance( array.begin(), it ), false };
         }
-        it = std::find( array.begin(), array.end(), Bindpoints{} );
+        it = std::find( array.begin(), array.end(), 0 );
         assert( it != array.end() );
         *it = bindpoints;
         return { std::distance( array.begin(), it ), true };
     };
 
-    auto [ descriptorId, add ] = findOrAddDescriptorId( m_pipelineDescriptorIds, bindpoints );
+    static_assert( sizeof( pci.m_binding ) == sizeof( uint64_t ), "TODO: different method of matching descriptor sets" );
+    uint64_t binding = 0;
+    std::memcpy( &binding, pci.m_binding.data(), sizeof( uint64_t ) );
+    auto [ descriptorId, add ] = findOrAddDescriptorId( m_pipelineDescriptorIds, binding );
     if ( add ) {
         for ( auto& fr : m_frames ) {
-            fr.m_descriptorSets[ descriptorId ] = DescriptorSet{ m_device, bindpoints };
+            fr.m_descriptorSets[ descriptorId ] = DescriptorSet{ m_device, pci.m_binding };
         }
     }
 
     DescriptorSet* descriptorSet = &m_frames[ 0 ].m_descriptorSets[ descriptorId ];
-
     if ( pci.m_computeShader ) {
         m_pipelines[ pci.m_slot ] = PipelineVK{
             pci
@@ -742,99 +736,6 @@ void RendererVK::present()
     vkQueueWaitIdle( m_queuePresent );
 }
 
-static void updateDescriptor( VkDevice device, VkDescriptorSet descriptorSet, const VkDescriptorBufferInfo& bufferInfo )
-{
-    const VkWriteDescriptorSet descriptorWrite{
-        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-        .dstSet = descriptorSet,
-        .dstBinding = 0,
-        .dstArrayElement = 0,
-        .descriptorCount = 1,
-        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-        .pBufferInfo = &bufferInfo,
-    };
-    vkUpdateDescriptorSets( device, 1, &descriptorWrite, 0, nullptr );
-}
-
-static void updateDescriptor( VkDevice device
-    , VkDescriptorSet descriptorSet
-    , const VkDescriptorBufferInfo& bufferInfo
-    , const VkDescriptorImageInfo& imageInfo
-)
-{
-    const VkWriteDescriptorSet descriptorWrites[] = {
-        {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstSet = descriptorSet,
-            .dstBinding = 0,
-            .dstArrayElement = 0,
-            .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .pBufferInfo = &bufferInfo,
-        },
-        {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstSet = descriptorSet,
-            .dstBinding = 1,
-            .dstArrayElement = 0,
-            .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .pImageInfo = &imageInfo,
-        },
-    };
-    const uint32_t writeCount = (uint32_t)std::size( descriptorWrites );;
-    vkUpdateDescriptorSets( device, writeCount, descriptorWrites, 0, nullptr );
-}
-
-[[maybe_unused]]
-static void updateDescriptor2( VkDevice device
-    , VkDescriptorSet descriptorSet
-    , Bindpoints bindpoints
-    , const VkDescriptorBufferInfo& bufferInfo
-    , const VkDescriptorImageInfo& imageInfo1
-    , const VkDescriptorImageInfo& imageInfo2
-)
-{
-    struct GenWrite {
-        VkDescriptorSet descriptorSet{};
-        Bindpoints bindpoints{};
-        VkWriteDescriptorSet operator () ( const VkDescriptorImageInfo& imageInfo ) noexcept
-        {
-            assert( bindpoints.image );
-            const auto descriptorType = bindpoints.stage == Bindpoints::Stage::eGraphics
-                ? VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
-                : VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-            uint32_t dstBinding = static_cast<uint32_t>( std::countr_zero( bindpoints.image ) );
-            bindpoints.image &= ~(uint16_t)( 1u << dstBinding );
-            return {
-                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                .dstSet = descriptorSet,
-                .dstBinding = dstBinding,
-                .dstArrayElement = 0,
-                .descriptorCount = 1,
-                .descriptorType = descriptorType,
-                .pImageInfo = &imageInfo,
-            };
-        }
-    };
-
-    std::array<VkWriteDescriptorSet, 3> descriptorWrites;
-    descriptorWrites[ 0 ] = {
-        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-        .dstSet = descriptorSet,
-        .dstBinding = 0,
-        .dstArrayElement = 0,
-        .descriptorCount = 1,
-        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-        .pBufferInfo = &bufferInfo,
-    };
-    std::array imgInfo = { imageInfo1, imageInfo2 };
-    std::transform( imgInfo.begin(), imgInfo.end(), descriptorWrites.begin() + 1
-        , GenWrite{ descriptorSet, bindpoints } );
-    vkUpdateDescriptorSets( device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr );
-}
-
-
 void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
 {
     assert( pushBuffer.m_pipeline < m_pipelines.size() );
@@ -861,10 +762,6 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
         break;
     }
 
-
-    const Bindpoints bindpoints = currentPipeline.bindpoints();
-    const bool bindTexture = !!bindpoints.image;
-    assert( !bindTexture || pushBuffer.m_texture );
     const bool rebindPipeline = m_lastPipeline != &currentPipeline;
     const bool depthWrite = currentPipeline.depthWrite();
     const bool updateLineWidth = currentPipeline.useLines() && pushBuffer.m_lineWidth != m_lastLineWidth;
@@ -875,7 +772,7 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
 
     m_lastPipeline = &currentPipeline;
 
-    const VkDescriptorBufferInfo bufferInfo = fr.m_uniformBuffer.copy( constant, currentPipeline.pushConstantSize() );
+    const VkDescriptorBufferInfo uniformInfo = fr.m_uniformBuffer.copy( constant, currentPipeline.pushConstantSize() );
     const VkDescriptorSet descriptorSet = descriptorPool.next();
     assert( descriptorSet != VK_NULL_HANDLE );
     VkCommandBuffer cmd = fr.m_cmdRender;
@@ -886,14 +783,35 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
         vkCmdBindPipeline( cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline );
     }
 
-    if ( bindTexture ) {
-        const TextureVK* texture = m_textureSlots[ pushBuffer.m_texture - 1 ];
-        assert( texture );
-        updateDescriptor( m_device, descriptorSet, bufferInfo, texture->imageInfo() );
+    union BindInfo {
+        VkDescriptorBufferInfo bufferInfo;
+        VkDescriptorImageInfo imageInfo;
+    };
+
+    std::array<BindInfo, 8> bindInfo{};
+    PipelineVK::DescriptorWrites descriptorWrites = currentPipeline.descriptorWrites();
+    const uint32_t descriptorWriteCount = currentPipeline.descriptorWriteCount();
+    for ( uint32_t i = 0; i < descriptorWriteCount; ++i ) {
+        descriptorWrites[ i ].dstSet = descriptorSet;
+        switch ( descriptorWrites[ i ].descriptorType ) {
+        case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+            bindInfo[ i ].bufferInfo = uniformInfo;
+            descriptorWrites[ i ].pBufferInfo = &bindInfo[ i ].bufferInfo;
+            break;
+
+        case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER: {
+            assert( pushBuffer.m_texture > 0 );
+            const TextureVK* texture = m_textureSlots[ pushBuffer.m_texture - 1 ];
+            assert( texture );
+            bindInfo[ i ].imageInfo = texture->imageInfo();
+            descriptorWrites[ i ].pImageInfo = &bindInfo[ i ].imageInfo;
+        } break;
+        default:
+            assert( !"here be dragons" );
+            return;
+        }
     }
-    else {
-        updateDescriptor( m_device, descriptorSet, bufferInfo );
-    }
+    vkUpdateDescriptorSets( m_device, descriptorWriteCount, descriptorWrites.data(), 0, nullptr );
 
     if ( depthWrite ) vkCmdBindDescriptorSets( fr.m_cmdDepthPrepass, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
     vkCmdBindDescriptorSets( cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
@@ -918,7 +836,7 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
     vkCmdDraw( cmd, verticeCount, 1, 0, 0 );
 }
 
-void RendererVK::dispatch( const DispatchInfo& dispatchInfo, const void* constant )
+void RendererVK::dispatch( [[maybe_unused]] const DispatchInfo& dispatchInfo, [[maybe_unused]] const void* constant )
 {
     assert( dispatchInfo.m_pipeline < m_pipelines.size() );
 
@@ -937,11 +855,44 @@ void RendererVK::dispatch( const DispatchInfo& dispatchInfo, const void* constan
 
     VkCommandBuffer cmd = fr.m_cmdRender;
     auto& descriptorPool = fr.m_descriptorSets[ currentPipeline.descriptorSetId() ];
-    const VkDescriptorBufferInfo bufferInfo = fr.m_uniformBuffer.copy( constant, currentPipeline.pushConstantSize() );
+    const VkDescriptorBufferInfo uniformInfo = fr.m_uniformBuffer.copy( constant, currentPipeline.pushConstantSize() );
     const VkDescriptorSet descriptorSet = descriptorPool.next();
     assert( descriptorSet != VK_NULL_HANDLE );
 
-    updateDescriptor2( m_device, descriptorSet, currentPipeline.bindpoints(), bufferInfo, fr.m_renderTarget.imageInfo(), fr.m_renderTargetTmp.imageInfo() );
+    union BindInfo {
+        VkDescriptorBufferInfo bufferInfo;
+        VkDescriptorImageInfo imageInfo;
+    };
+
+    const RenderTarget* rtgt[] = {
+        &fr.m_renderTarget,
+        &fr.m_renderTargetTmp,
+    };
+    uint32_t rtgtId = 0;
+
+    std::array<BindInfo, 8> bindInfo{};
+    PipelineVK::DescriptorWrites descriptorWrites = currentPipeline.descriptorWrites();
+    const uint32_t descriptorWriteCount = currentPipeline.descriptorWriteCount();
+    for ( uint32_t i = 0; i < descriptorWriteCount; ++i ) {
+        descriptorWrites[ i ].dstSet = descriptorSet;
+        switch ( descriptorWrites[ i ].descriptorType ) {
+        case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+            bindInfo[ i ].bufferInfo = uniformInfo;
+            descriptorWrites[ i ].pBufferInfo = &bindInfo[ i ].bufferInfo;
+            break;
+
+        case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+            assert( rtgtId < 2 );
+            bindInfo[ i ].imageInfo = rtgt[ rtgtId++ ]->imageInfo();
+            descriptorWrites[ i ].pImageInfo = &bindInfo[ i ].imageInfo;
+        break;
+        default:
+            assert( !"here be dragons" );
+            return;
+        }
+    }
+    vkUpdateDescriptorSets( m_device, descriptorWriteCount, descriptorWrites.data(), 0, nullptr );
+
     fr.m_renderTarget.transfer( cmd, constants::computeReadWrite );
     fr.m_renderTargetTmp.transfer( cmd, constants::computeReadWrite );
     vkCmdBindDescriptorSets( cmd, VK_PIPELINE_BIND_POINT_COMPUTE, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "bindpoints.hpp"
+#include <renderer/pipeline.hpp>
 
 #include <vulkan/vulkan.h>
 
@@ -21,9 +21,11 @@ class DescriptorSet {
     void expandCapacityBy( uint32_t );
 
 public:
+    using BindingInfo = decltype( PipelineCreateInfo::m_binding );
     ~DescriptorSet() noexcept;
     DescriptorSet() noexcept = default;
-    DescriptorSet( VkDevice, Bindpoints ) noexcept;
+
+    DescriptorSet( VkDevice, const BindingInfo& ) noexcept;
     DescriptorSet( DescriptorSet&& ) noexcept;
 
     DescriptorSet& operator = ( DescriptorSet&& ) noexcept;
