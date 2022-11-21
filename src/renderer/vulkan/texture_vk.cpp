@@ -40,41 +40,6 @@ TextureVK::~TextureVK()
     destroy<vkDestroySampler>( m_device, m_sampler );
 }
 
-TextureVK::TextureVK( VkPhysicalDevice physDevice, VkDevice device, VkExtent2D extent, VkFormat format )
-: Image{
-    physDevice
-    , device
-    , extent
-    , format
-    , 1
-    , VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT
-    , VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
-    , VK_IMAGE_ASPECT_COLOR_BIT
-}
-{
-    ZoneScoped;
-    assert( extent.width > 0 );
-    assert( extent.height > 0 );
-
-    const VkSamplerCreateInfo samplerInfo{
-        .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-        .magFilter = VK_FILTER_LINEAR,
-        .minFilter = VK_FILTER_LINEAR,
-        .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
-        .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-        .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-        .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-        .mipLodBias = 0.0f,
-        .minLod = 0.0f,
-        .maxLod = 0.0f,
-        .unnormalizedCoordinates = VK_FALSE,
-    };
-
-    [[maybe_unused]]
-    const VkResult samplerOK = vkCreateSampler( m_device, &samplerInfo, nullptr, &m_sampler );
-    assert( samplerOK == VK_SUCCESS );
-}
-
 TextureVK::TextureVK( const TextureCreateInfo& tci, VkPhysicalDevice physDevice, VkDevice device )
 : Image{
     physDevice

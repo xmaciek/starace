@@ -14,7 +14,6 @@ class TextureVK : public Image {
 public:
     ~TextureVK();
     TextureVK() = default;
-    TextureVK( VkPhysicalDevice, VkDevice, VkExtent2D, VkFormat );
     TextureVK( const TextureCreateInfo&, VkPhysicalDevice, VkDevice );
 
     TextureVK( TextureVK&& ) noexcept;
