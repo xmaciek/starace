@@ -6,9 +6,18 @@
 
 class BufferVK {
 public:
-    enum struct Purpose {
-        eStaging,
-        eVertex,
+    struct Purpose {
+        VkBufferUsageFlags usage{};
+        VkMemoryPropertyFlags flags{};
+    };
+    static constexpr Purpose STAGING{
+        .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        .flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+    };
+
+    static constexpr Purpose DEVICE_LOCAL{
+        .usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+        .flags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
     };
 
 private:
@@ -16,12 +25,11 @@ private:
     VkDevice m_device = VK_NULL_HANDLE;
     VkBuffer m_buffer = VK_NULL_HANDLE;
     uint32_t m_size = 0;
-    Purpose m_purpose = Purpose::eStaging;
 
 public:
     ~BufferVK() noexcept;
     BufferVK() noexcept = default;
-    BufferVK( VkPhysicalDevice, VkDevice, Purpose, uint32_t ) noexcept;
+    BufferVK( VkPhysicalDevice, VkDevice, const Purpose&, uint32_t ) noexcept;
     BufferVK( const BufferVK& ) = delete;
     BufferVK& operator = ( const BufferVK& ) = delete;
     BufferVK( BufferVK&& ) noexcept;

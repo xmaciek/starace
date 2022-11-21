@@ -19,7 +19,6 @@ BufferVK::BufferVK( BufferVK&& rhs ) noexcept
     std::swap( m_memory, rhs.m_memory );
     std::swap( m_buffer, rhs.m_buffer );
     std::swap( m_size, rhs.m_size );
-    std::swap( m_purpose, rhs.m_purpose );
 }
 
 BufferVK& BufferVK::operator = ( BufferVK&& rhs ) noexcept
@@ -28,34 +27,19 @@ BufferVK& BufferVK::operator = ( BufferVK&& rhs ) noexcept
     std::swap( m_memory, rhs.m_memory );
     std::swap( m_buffer, rhs.m_buffer );
     std::swap( m_size, rhs.m_size );
-    std::swap( m_purpose, rhs.m_purpose );
     return *this;
 }
 
-BufferVK::BufferVK( VkPhysicalDevice physicalDevice, VkDevice device, Purpose purpose, uint32_t size ) noexcept
+BufferVK::BufferVK( VkPhysicalDevice physicalDevice, VkDevice device, const Purpose& purpose, uint32_t size ) noexcept
 : m_device( device )
 , m_size( size )
-, m_purpose( purpose )
 {
     ZoneScoped;
-    VkBufferUsageFlags usage{};
-    VkMemoryPropertyFlags flags{};
-    switch ( m_purpose ) {
-    case Purpose::eStaging:
-        usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-        flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-        break;
-
-    case Purpose::eVertex:
-        usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-        flags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-        break;
-    }
 
     const VkBufferCreateInfo bufferInfo{
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .size = size,
-        .usage = usage,
+        .usage = purpose.usage,
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
     };
 
@@ -63,7 +47,7 @@ BufferVK::BufferVK( VkPhysicalDevice physicalDevice, VkDevice device, Purpose pu
     const VkResult bufferOK = vkCreateBuffer( device, &bufferInfo, nullptr, &m_buffer );
     assert( bufferOK == VK_SUCCESS );
 
-    m_memory = DeviceMemory{ physicalDevice, m_device, m_buffer, flags };
+    m_memory = DeviceMemory{ physicalDevice, m_device, m_buffer, purpose.flags };
 
     [[maybe_unused]]
     const VkResult bindOK = vkBindBufferMemory( device, m_buffer, m_memory, 0 );

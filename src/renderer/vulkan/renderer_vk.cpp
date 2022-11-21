@@ -389,10 +389,10 @@ VkCommandBuffer RendererVK::flushUniforms()
 Buffer RendererVK::createBuffer( std::span<const float> vec )
 {
     ZoneScoped;
-    BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, static_cast<uint32_t>( vec.size() * sizeof( float ) ) };
+    BufferVK staging{ m_physicalDevice, m_device, BufferVK::STAGING, static_cast<uint32_t>( vec.size() * sizeof( float ) ) };
     staging.copyData( reinterpret_cast<const uint8_t*>( vec.data() ) );
 
-    BufferVK* buff = new BufferVK{ m_physicalDevice, m_device, BufferVK::Purpose::eVertex, staging.sizeInBytes() };
+    BufferVK* buff = new BufferVK{ m_physicalDevice, m_device, BufferVK::DEVICE_LOCAL, staging.sizeInBytes() };
 
     static constexpr VkCommandBufferBeginInfo beginInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -448,7 +448,7 @@ Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::pmr::vecto
 
     const uint32_t size = static_cast<uint32_t>( data.size() );
 
-    BufferVK staging{ m_physicalDevice, m_device, BufferVK::Purpose::eStaging, size };
+    BufferVK staging{ m_physicalDevice, m_device, BufferVK::STAGING, size };
     staging.copyData( data.data() + tci.dataBeginOffset );
 
     TextureVK* tex = new TextureVK{ tci, m_physicalDevice, m_device };
