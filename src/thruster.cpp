@@ -61,7 +61,8 @@ void Thruster::renderAt( RenderContext rctx, const math::vec3& pos ) const
 
 
     pushBuffer.m_pipeline = static_cast<PipelineSlot>( Pipeline::eThruster );
-    pushBuffer.m_verticeCount = 24;
+    pushBuffer.m_verticeCount = 6u;
+    pushBuffer.m_instanceCount = 4u;
     PushConstant<Pipeline::eThruster> pushConstant2{};
     pushConstant2.m_model = math::translate( rctx.model, pos );
     pushConstant2.m_view = rctx.view;

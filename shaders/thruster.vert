@@ -40,18 +40,15 @@ const vec2 vertexUV[ 6 ] = {
 
 void main()
 {
-    const uint instanceID = gl_VertexIndex / 6;
-    const uint vertexID = gl_VertexIndex % 6;
-
-    Afterglow a = afterglow[ instanceID ];
-    vec3 vertex = vertexPos[ vertexID ] * a.xyzs.w + a.xyzs.xyz;
+    Afterglow a = afterglow[ gl_InstanceIndex ];
+    vec3 vertex = vertexPos[ gl_VertexIndex ] * a.xyzs.w + a.xyzs.xyz;
 
     gl_Position = projectionMatrix
         * viewMatrix
         * modelMatrix
         * vec4( vertex, 1.0 );
 
-    uvOut = vertexUV[ vertexID ];
+    uvOut = vertexUV[ gl_VertexIndex ];
     colorOut = a.color;
     radiusOut = a.radius;
 }

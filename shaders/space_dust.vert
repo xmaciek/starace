@@ -17,17 +17,14 @@ layout( location = 0 ) out vec4 colorOut;
 
 void main()
 {
-    uint instanceID = gl_VertexIndex / 2;
-    uint vertexID = gl_VertexIndex % 2;
-
-    vec4 vertex = particle[ instanceID ];
+    vec4 vertex = particle[ gl_InstanceIndex ];
     vec4 vertexPos[2];
     vertexPos[ 0 ] = vertex;
     vertexPos[ 1 ] = vertex + particleOffset;
     gl_Position = projectionMatrix
         * viewMatrix
         * modelMatrix
-        * vertexPos[ vertexID ];
+        * vertexPos[ gl_VertexIndex ];
 
     colorOut = color;
 }

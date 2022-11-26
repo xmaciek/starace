@@ -64,6 +64,7 @@ struct PipelineCreateInfo {
 struct PushData {
     PipelineSlot m_pipeline{};
     uint32_t m_verticeCount = 0;
+    uint32_t m_instanceCount = 1;
     float m_lineWidth = 1.0f;
     Buffer m_vertice{};
     std::array<BindResource, 8> m_resource{};

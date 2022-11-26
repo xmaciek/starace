@@ -54,16 +54,14 @@ const vec2 vertexUV[ 6 ] = {
 
 void main()
 {
-    uint instanceID = gl_VertexIndex / 6;
-    uint vertexID = gl_VertexIndex % 6;
-    Particle particle = particles[ instanceID ];
+    Particle particle = particles[ gl_InstanceIndex ];
 
-    vec3 vertexPos = vertexPos[ vertexID ] * particle.position.w;
+    vec3 vertexPos = vertexPos[ gl_VertexIndex ] * particle.position.w;
     gl_Position = projectionMatrix
         * viewMatrix
         * billboardModelMatrix( particle.position.xyz )
         * vec4( vertexPos, 1.0 );
 
-    fragmentUV = particle.uvxywh.xy + vertexUV[ vertexID ] * particle.uvxywh.zw;
+    fragmentUV = particle.uvxywh.xy + vertexUV[ gl_VertexIndex ] * particle.uvxywh.zw;
     colorOut = particle.color;
 }

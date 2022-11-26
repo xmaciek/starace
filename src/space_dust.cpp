@@ -66,7 +66,8 @@ void SpaceDust::render( const RenderContext& rctx ) const
 
     PushBuffer pushBuffer{
         .m_pipeline = static_cast<PipelineSlot>( Pipeline::eSpaceDust ),
-        .m_verticeCount = static_cast<uint32_t>( m_particles.size() * 2 ),
+        .m_verticeCount = 2u,
+        .m_instanceCount = static_cast<uint32_t>( m_particles.size() ),
         .m_lineWidth = m_lineWidth * ( rctx.viewport.y / 720.0f ),
     };
 

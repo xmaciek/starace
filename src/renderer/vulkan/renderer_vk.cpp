@@ -739,6 +739,7 @@ void RendererVK::present()
 void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
 {
     assert( pushBuffer.m_pipeline < m_pipelines.size() );
+    assert( pushBuffer.m_instanceCount > 0 );
 
     Frame& fr = m_frames[ m_currentFrame ];
     PipelineVK& currentPipeline = m_pipelines[ pushBuffer.m_pipeline ];
@@ -833,8 +834,8 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
         vkCmdBindVertexBuffers( cmd, 0, 1, buffers.data(), offsets.data() );
     }
 
-    if ( depthWrite ) vkCmdDraw( fr.m_cmdDepthPrepass, verticeCount, 1, 0, 0 );
-    vkCmdDraw( cmd, verticeCount, 1, 0, 0 );
+    if ( depthWrite ) vkCmdDraw( fr.m_cmdDepthPrepass, verticeCount, pushBuffer.m_instanceCount, 0, 0 );
+    vkCmdDraw( cmd, verticeCount, pushBuffer.m_instanceCount, 0, 0 );
 }
 
 void RendererVK::dispatch( [[maybe_unused]] const DispatchInfo& dispatchInfo, [[maybe_unused]] const void* constant )

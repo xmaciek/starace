@@ -39,6 +39,7 @@ void Bullet::renderAll( const RenderContext& rctx, std::span<const UniquePointer
     using ParticleBlob = PushConstant<Pipeline::eParticleBlob>;
     PushBuffer pushBuffer{
         .m_pipeline = static_cast<PipelineSlot>( Pipeline::eParticleBlob ),
+        .m_verticeCount = 6,
     };
     pushBuffer.m_resource[ 1 ].texture = span[ 0 ]->m_texture;
 
@@ -80,13 +81,13 @@ void Bullet::renderAll( const RenderContext& rctx, std::span<const UniquePointer
         }
         idx = pushBullet( pushConstant, idx, **it );
         if ( ParticleBlob::INSTANCES - idx < 5 ) {
-            pushBuffer.m_verticeCount = idx * 6;
+            pushBuffer.m_instanceCount = idx;
             rctx.renderer->push( pushBuffer, &pushConstant );
             idx = 0;
         }
     }
     if ( idx != 0 ) {
-        pushBuffer.m_verticeCount = idx * 6;
+        pushBuffer.m_instanceCount = idx;
         rctx.renderer->push( pushBuffer, &pushConstant );
     }
 }
