@@ -1,5 +1,6 @@
 #pragma once
 
+#include "colors.hpp"
 #include "font.hpp"
 #include "widget.hpp"
 #include "ui_data_model.hpp"
@@ -17,7 +18,7 @@ private:
     DataModel* m_dataModel = nullptr;
     const Font* m_font = nullptr;
     std::pmr::u32string m_text{};
-    math::vec4 m_color{};
+    math::vec4 m_color = color::white;
     math::vec2 m_textExtent{};
     DataModel::size_type m_currentIdx = 0;
     mutable Font::RenderText m_renderText{};
