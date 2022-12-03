@@ -119,9 +119,9 @@ target_sources( cooker_obj
 target_link_libraries( cooker_obj cxx::flags extra )
 set_cppver( cooker_obj 20 )
 
-target_sources( cooker_tga
+target_sources( cooker_dds
     PRIVATE
-    cooker_tga.cpp
+    cooker_dds.cpp
 )
-target_link_libraries( cooker_tga cxx::flags extra )
-set_cppver( cooker_tga 20 )
+target_link_libraries( cooker_dds cxx::flags extra )
+set_cppver( cooker_dds 20 )

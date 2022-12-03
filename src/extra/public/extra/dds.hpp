@@ -1,19 +1,26 @@
 #pragma once
 
+// https://learn.microsoft.com/en-us/windows/win32/direct3ddds/dds-header
+// https://learn.microsoft.com/en-us/windows/win32/direct3ddds/dds-header-dxt10
+// https://learn.microsoft.com/en-us/windows/win32/direct3ddds/dds-pixelformat
+// https://learn.microsoft.com/en-us/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format
+
+
 #include <cstdint>
-#include <tuple>
 
 namespace dds {
 
-static constexpr uint32_t c_magic = ' SDD';
-static constexpr uint32_t c_dxt1 = '1TXD';
-static constexpr uint32_t c_dxt3 = '3TXD';
-static constexpr uint32_t c_dxt5 = '5TXD';
-static constexpr uint32_t c_dxgi = '01XD';
+inline constexpr uint32_t c_magic = ' SDD';
+inline constexpr uint32_t c_dxt1 = '1TXD';
+inline constexpr uint32_t c_dxt3 = '3TXD';
+inline constexpr uint32_t c_dxt5 = '5TXD';
+inline constexpr uint32_t c_dxgi = '01XD';
 
 namespace dxgi {
 enum class Format : uint32_t {
-    eUnknown = 0,
+    UNKNOWN = 0,
+
+    R8_UNORM = 61,
 
     BC1_TYPELESS = 70,
     BC1_UNORM = 71,
@@ -40,7 +47,7 @@ enum class Dimension : uint32_t {
 };
 
 struct Header {
-    Format format = Format::eUnknown;
+    Format format = {};
     Dimension dimension = Dimension::eUnknown;
     uint32_t flags = 0;
     uint32_t arraySize = 0;
@@ -111,15 +118,11 @@ static_assert( sizeof( Header ) == 128 );
 namespace constants {
 
 using enum Header::Flags;
-static constexpr uint32_t uncompressed = fCaps | fWidth | fHeight | fPitch | fPixelFormat;
+inline constexpr Header::Flags uncompressed = static_cast<Header::Flags>( fCaps | fWidth | fHeight | fPixelFormat | fMipMapCount );
 
-static constexpr PixelFormat bgra{
-    .flags = static_cast<PixelFormat::Flags>( PixelFormat::fAlpha | PixelFormat::fAlphaPixels | PixelFormat::fRGB ),
-    .rgbBitCount = 32,
-    .bitmaskR = 0x0000FF00,
-    .bitmaskG = 0x00FF0000,
-    .bitmaskB = 0xFF000000,
-    .bitmaskA = 0x000000FF,
+inline constexpr PixelFormat DXGI{
+    .flags = PixelFormat::Flags::fFourCC,
+    .fourCC = c_dxgi,
 };
 
 } // namespace constants

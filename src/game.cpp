@@ -25,10 +25,10 @@
 static constexpr const char* chunk0[] = {
     "misc/DejaVuSans-Bold.ttf",
     "lang/en.txt",
-    "textures/cyber_ring1.tga",
-    "textures/cyber_ring2.tga",
-    "textures/cyber_ring3.tga",
-    "textures/atlas_ui.tga",
+    "textures/cyber_ring1.dds",
+    "textures/cyber_ring2.dds",
+    "textures/cyber_ring3.dds",
+    "textures/atlas_ui.dds",
     "maps.cfg",
     "jets.cfg",
     "weapons.cfg",
@@ -41,11 +41,11 @@ static constexpr const char* chunk0[] = {
 };
 
 static constexpr const char* chunk1[] = {
-    "textures/a2.tga",
-    "textures/a3.tga",
-    "textures/a4.tga",
-    "textures/a5.tga",
-    "textures/plasma.tga",
+    "textures/a2.dds",
+    "textures/a3.dds",
+    "textures/a4.dds",
+    "textures/a5.dds",
+    "textures/plasma.dds",
 };
 
 
@@ -412,14 +412,14 @@ void Game::onInit()
     m_click = m_audio->load( "sounds/click.wav" );
 
     const std::array rings = {
-        parseTexture( m_io->getWait( "textures/cyber_ring1.tga" ) ),
-        parseTexture( m_io->getWait( "textures/cyber_ring2.tga" ) ),
-        parseTexture( m_io->getWait( "textures/cyber_ring3.tga" ) ),
+        parseTexture( m_io->getWait( "textures/cyber_ring1.dds" ) ),
+        parseTexture( m_io->getWait( "textures/cyber_ring2.dds" ) ),
+        parseTexture( m_io->getWait( "textures/cyber_ring3.dds" ) ),
     };
     m_uiRings = UIRings{ rings };
 
-    m_textures[ "textures/atlas_ui.tga" ] = parseTexture( m_io->getWait( "textures/atlas_ui.tga" ) );
-    g_uiProperty.m_atlasTexture = m_textures[ "textures/atlas_ui.tga" ];
+    m_textures[ "textures/atlas_ui.dds" ] = parseTexture( m_io->getWait( "textures/atlas_ui.dds" ) );
+    g_uiProperty.m_atlasTexture = m_textures[ "textures/atlas_ui.dds" ];
     g_uiProperty.m_atlas = &m_atlasUi;
 
 
@@ -427,7 +427,7 @@ void Game::onInit()
         m_textures[ it ] = parseTexture( m_io->getWait( it ) );
     }
 
-    m_plasma = m_textures[ "textures/plasma.tga" ];
+    m_plasma = m_textures[ "textures/plasma.dds" ];
     cfg::Entry weapons = cfg::Entry::fromData( m_io->getWait( "weapons.cfg" ) );
     for ( const auto& it : weapons ) {
         auto [ weapon, isHidden ] = parseWeapon( it, m_plasma );
@@ -458,7 +458,7 @@ void Game::onInit()
     m_screenPause =         cfg::Entry::fromData( m_io->getWait( "ui/pause.ui" ) );
     m_screenMissionResult = cfg::Entry::fromData( m_io->getWait( "ui/result.ui" ) );
 
-    m_enemyModel = Model{ m_meshes[ "models/a2.objc" ], m_textures[ "textures/a2.tga" ], 0.45f };
+    m_enemyModel = Model{ m_meshes[ "models/a2.objc" ], m_textures[ "textures/a2.dds" ], 0.45f };
 
     onResize( viewportWidth(), viewportHeight() );
 }

@@ -11,7 +11,7 @@ include( compiler.cmake )
 
 add_custom_target( cook ALL )
 add_executable( cooker_obj )
-add_executable( cooker_tga )
+add_executable( cooker_dds )
 
 function( set_cppver tgt cppver )
     set_target_properties( ${tgt} PROPERTIES
