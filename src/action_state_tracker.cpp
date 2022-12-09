@@ -66,6 +66,7 @@ std::pmr::vector<Action> ActionStateTracker::updateAndResolve( Actuator a )
                 };
             default:
                 assert( !"invalid actuator" );
+                return {};
             }
         }
     );
