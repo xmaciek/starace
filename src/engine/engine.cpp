@@ -49,7 +49,7 @@ Engine::Engine( int, char** ) noexcept
         assert( m_window );
     }
 
-    m_renderer = Renderer::create( m_window, VSync::eOn );
+    m_renderer = Renderer::create( { .window = m_window, .vsync = VSync::eOn } );
     m_rendererPtr = std::unique_ptr<Renderer>( m_renderer );
 
     m_audio = Audio::create();

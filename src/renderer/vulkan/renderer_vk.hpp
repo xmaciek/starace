@@ -81,7 +81,7 @@ class RendererVK : public Renderer {
 
 public:
     virtual ~RendererVK() override;
-    RendererVK( SDL_Window*, VSync );
+    RendererVK( const Renderer::CreateInfo& );
     virtual void setVSync( VSync ) override;
 
     virtual void createPipeline( const PipelineCreateInfo& ) override;

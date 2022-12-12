@@ -42,7 +42,11 @@ public:
 protected:
     friend class Engine;
 
-    static Renderer* create( SDL_Window*, VSync );
+    struct CreateInfo{
+        SDL_Window* window = nullptr;
+        VSync vsync = {};
+    };
+    static Renderer* create( const CreateInfo& );
     static SDL_WindowFlags windowFlag();
 
     virtual void beginFrame() = 0;

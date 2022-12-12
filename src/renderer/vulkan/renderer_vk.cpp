@@ -120,13 +120,13 @@ SDL_WindowFlags Renderer::windowFlag()
     return SDL_WINDOW_VULKAN;
 }
 
-Renderer* Renderer::create( SDL_Window* window, VSync vsync )
+Renderer* Renderer::create( const Renderer::CreateInfo& createInfo )
 {
-    return new RendererVK( window, vsync );
+    return new RendererVK( createInfo );
 }
 
-RendererVK::RendererVK( SDL_Window* window, VSync vsync )
-: m_window( window )
+RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
+: m_window( createInfo.window )
 {
     ZoneScoped;
 
@@ -223,7 +223,7 @@ RendererVK::RendererVK( SDL_Window* window, VSync vsync )
         , m_device
         , m_surface
         , { m_queueFamilyGraphics, m_queueFamilyPresent }
-        , vsync
+        , createInfo.vsync
     );
 
     vkGetDeviceQueue( m_device, m_queueFamilyPresent, 0, &m_queuePresent );
