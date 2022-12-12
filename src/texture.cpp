@@ -17,7 +17,14 @@ Texture parseTexture( std::pmr::vector<uint8_t>&& data )
     const uint8_t* dataPtr = data.data();
     dds::Header header{};
     std::memcpy( &header, dataPtr, sizeof( header ) );
-    if ( header.magic != dds::c_magic ) { return {}; }
+    if ( header.magic != dds::c_magic ) {
+        assert( !"dds .magic field mismatch" );
+        return {};
+    }
+    if ( header.size != 124 ) {
+        assert( !"dds .size filed not 144" );
+        return {};
+    }
     dataPtr += sizeof( header );
 
     TextureCreateInfo tci{
