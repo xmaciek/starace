@@ -191,7 +191,7 @@ struct PushConstant<Pipeline::eScanline> {
 };
 
 [[maybe_unused]]
-static constexpr std::array g_pipelines = {
+inline constexpr std::array g_pipelines = {
 
 PipelineCreateInfo{
     .m_vertexShader = "shaders/gui_texture_color.vert.spv",
@@ -436,6 +436,7 @@ PipelineCreateInfo{
         BindType::eComputeImage,
     },
 },
+
 PipelineCreateInfo{
     .m_computeShader = "shaders/scanline.comp.spv",
     .m_slot = static_cast<PipelineSlot>( Pipeline::eScanline ),
