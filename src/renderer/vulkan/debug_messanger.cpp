@@ -4,6 +4,31 @@
 #include <iostream>
 #include <utility>
 
+static VkBool32 callback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT severity
+    , VkDebugUtilsMessageTypeFlagsEXT type
+    , const VkDebugUtilsMessengerCallbackDataEXT* data
+    , void* )
+{
+    static constexpr uint32_t expectedSeverity
+        = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT
+        | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+    if ( !( severity & expectedSeverity ) ) {
+        return VK_FALSE;
+    }
+
+    static constexpr uint32_t expectedType
+        = VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT
+        | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+    if ( !( type & expectedType ) ) {
+        return VK_FALSE;
+    }
+
+    std::cout << "[ FAIL ] " << data->pMessage << std::endl << std::flush;
+    std::abort();
+    return VK_FALSE;
+}
+
 DebugMsg::DebugMsg( VkInstance instance ) noexcept
 : m_vkInstance{ instance }
 {
@@ -18,7 +43,7 @@ DebugMsg::DebugMsg( VkInstance instance ) noexcept
             = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT
             | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT
             | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
-        .pfnUserCallback = &DebugMsg::callback,
+        .pfnUserCallback = &callback,
     };
     const PFN_vkCreateDebugUtilsMessengerEXT create = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>( vkGetInstanceProcAddr( instance, "vkCreateDebugUtilsMessengerEXT" ) );
     assert( create );
@@ -46,39 +71,9 @@ DebugMsg::DebugMsg( DebugMsg&& rhs ) noexcept
 
 DebugMsg& DebugMsg::operator = ( DebugMsg&& rhs ) noexcept
 {
-    if ( m_inst ) {
-        assert( m_vkInstance );
-        assert( m_destroy );
-        m_destroy( m_vkInstance, m_inst, nullptr );
-    }
-    m_vkInstance = std::exchange( rhs.m_vkInstance, {} );
-    m_inst = std::exchange( rhs.m_inst, {} );
-    m_destroy = std::exchange( rhs.m_destroy, {} );
+    std::swap( m_vkInstance, rhs.m_vkInstance );
+    std::swap( m_inst, rhs.m_inst );
+    std::swap( m_destroy, rhs.m_destroy );
     return *this;
 }
 
-
-VkBool32 DebugMsg::callback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT severity
-    , VkDebugUtilsMessageTypeFlagsEXT type
-    , const VkDebugUtilsMessengerCallbackDataEXT* data
-    , void* )
-{
-    static constexpr uint32_t expectedSeverity
-        = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT
-        | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-    if ( !( severity & expectedSeverity ) ) {
-        return VK_FALSE;
-    }
-
-    static constexpr uint32_t expectedType
-        = VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT
-        | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-    if ( !( type & expectedType ) ) {
-        return VK_FALSE;
-    }
-
-    std::cout << "[ FAIL ] " << data->pMessage << std::endl << std::flush;
-    std::abort();
-    return VK_FALSE;
-}

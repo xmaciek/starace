@@ -1,7 +1,6 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
-
+#include "vk.hpp"
 
 class RenderPass {
     VkDevice m_device = VK_NULL_HANDLE;

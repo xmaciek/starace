@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
+#include "vk.hpp"
 
 #include <cstdint>
 #include <memory_resource>

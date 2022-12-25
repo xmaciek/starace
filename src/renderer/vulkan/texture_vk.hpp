@@ -2,10 +2,10 @@
 
 #include "buffer_vk.hpp"
 #include "image.hpp"
+#include "vk.hpp"
 
 #include <renderer/texture.hpp>
 
-#include <vulkan/vulkan.h>
 
 class TextureVK : public Image {
     VkSampler m_sampler = VK_NULL_HANDLE;

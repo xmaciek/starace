@@ -34,12 +34,20 @@ target_sources( renderer_vk
     uniform.hpp
     utils_vk.cpp
     utils_vk.hpp
+    vk.hpp
+    vk.cpp
+    vk.def
 )
 
 target_link_libraries( renderer_vk
     cxx::flags
     renderer
     shared
-    Vulkan::Vulkan
+    Vulkan::Headers
     Tracy::Client
+)
+
+target_compile_definitions( renderer_vk
+    PRIVATE
+    VK_NO_PROTOTYPES=1
 )

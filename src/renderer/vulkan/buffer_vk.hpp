@@ -1,8 +1,7 @@
 #pragma once
 
 #include "device_memory.hpp"
-
-#include <vulkan/vulkan.h>
+#include "vk.hpp"
 
 class BufferVK {
 public:

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
+#include "vk.hpp"
 
 class DebugMsg {
     VkInstance m_vkInstance = VK_NULL_HANDLE;
@@ -17,11 +17,4 @@ public:
 
     DebugMsg( DebugMsg&& ) noexcept;
     DebugMsg& operator = ( DebugMsg&& ) noexcept;
-
-    static VKAPI_ATTR VkBool32 VKAPI_CALL callback(
-        VkDebugUtilsMessageSeverityFlagBitsEXT
-        , VkDebugUtilsMessageTypeFlagsEXT
-        , const VkDebugUtilsMessengerCallbackDataEXT*
-        , void*
-    );
 };

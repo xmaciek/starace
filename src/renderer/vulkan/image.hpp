@@ -2,8 +2,7 @@
 
 #include "device_memory.hpp"
 #include "utils_vk.hpp"
-
-#include <vulkan/vulkan.h>
+#include "vk.hpp"
 
 class Image {
 protected:

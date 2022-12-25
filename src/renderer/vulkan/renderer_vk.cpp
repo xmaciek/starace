@@ -11,6 +11,11 @@
 #include <cstring>
 #include <iostream>
 
+namespace vk {
+bool dllLoad();
+void dllUnload();
+}
+
 static Renderer* g_instance = nullptr;
 
 static constexpr std::array c_enabledLayers = {
@@ -126,13 +131,18 @@ Renderer* Renderer::create( const Renderer::CreateInfo& createInfo )
 }
 
 RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
-: m_window( createInfo.window )
+: m_unloader{ .fn = &vk::dllUnload }
+, m_window( createInfo.window )
 {
     ZoneScoped;
-
     assert( !g_instance );
     g_instance = this;
 
+    if ( !vk::dllLoad() ) {
+        assert( !"Failed to load vulkan library" );
+        std::cout << "Failed to load vulkan library" << std::endl;
+        std::abort();
+    }
     {
         ZoneScopedN( "create instance" );
         const VkApplicationInfo appInfo{

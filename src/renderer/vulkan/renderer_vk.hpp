@@ -1,21 +1,20 @@
 #pragma once
 
-#include <renderer/renderer.hpp>
 
 #include "buffer_vk.hpp"
-#include "renderpass.hpp"
 #include "command_pool.hpp"
+#include "debug_messanger.hpp"
+#include "frame.hpp"
 #include "pipeline_vk.hpp"
+#include "render_target.hpp"
+#include "renderpass.hpp"
 #include "swapchain.hpp"
 #include "texture_vk.hpp"
-#include "debug_messanger.hpp"
-#include "render_target.hpp"
 #include "uniform.hpp"
-#include "frame.hpp"
+#include "vk.hpp"
 
+#include <renderer/renderer.hpp>
 #include <shared/indexer.hpp>
-
-#include <vulkan/vulkan.h>
 
 #include <array>
 #include <memory_resource>
@@ -24,6 +23,13 @@
 #include <optional>
 
 class RendererVK : public Renderer {
+    struct Unloader {
+        using Fn = void();
+        Fn* fn = nullptr;
+        ~Unloader() { if ( fn ) fn(); };
+    };
+    Unloader m_unloader{};
+
     SDL_Window* m_window = nullptr;
 
     VkInstance m_instance = VK_NULL_HANDLE;

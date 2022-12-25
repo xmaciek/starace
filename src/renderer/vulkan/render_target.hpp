@@ -1,8 +1,7 @@
 #pragma once
 
 #include "image.hpp"
-
-#include <vulkan/vulkan.h>
+#include "vk.hpp"
 
 #include <tuple>
 
