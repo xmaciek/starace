@@ -251,7 +251,7 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
         std::get<std::mutex*>( m_queueTransfer ) = &m_cmdBottleneck[ idx ];
     }
 
-    m_mainPass = RenderPass{ m_device, VK_FORMAT_B8G8R8A8_UNORM, m_depthFormat };
+    m_mainPass = RenderPass{ m_device, m_colorFormat, m_depthFormat };
     m_depthPrepass = RenderPass{ m_device, m_depthFormat };
 
     {
@@ -606,7 +606,7 @@ void RendererVK::recreateRenderTargets()
             , m_device
             , m_mainPass
             , m_swapchain.extent()
-            , VK_FORMAT_B8G8R8A8_UNORM
+            , m_colorFormat
             , it.m_renderDepthTarget.view()
         };
         it.m_renderTargetTmp = RenderTarget{
@@ -615,11 +615,16 @@ void RendererVK::recreateRenderTargets()
             , m_device
             , m_mainPass
             , m_swapchain.extent()
-            , VK_FORMAT_B8G8R8A8_UNORM
+            , m_colorFormat
             , it.m_renderDepthTarget.view()
         };
     }
     vkDeviceWaitIdle( m_device );
+}
+
+static bool operator == ( const VkExtent2D& lhs, const VkExtent2D& rhs ) noexcept
+{
+    return lhs.width == rhs.width && lhs.height == rhs.height;
 }
 
 void RendererVK::endFrame()
@@ -647,21 +652,27 @@ void RendererVK::endFrame()
     VkCommandBuffer cmd = fr.m_cmdRender;
     fr.m_renderTarget.transfer( cmd, constants::copyFrom );
     transferImage( cmd, m_swapchain.image( m_currentFrame ), constants::undefined, constants::copyTo );
-    const VkImageCopy region{
-        .srcSubresource{ .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .layerCount = 1 },
-        .dstSubresource{ .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .layerCount = 1 },
-        .extent = fr.m_renderTarget.extent3D()
-    };
 
-    vkCmdCopyImage( cmd
+    // resize if necessary
+    const VkExtent2D srcExtent = fr.m_renderTarget.extent();
+    const VkExtent2D dstExtent = m_swapchain.extent();
+    const VkOffset3D srcOffset{ .x = (int)srcExtent.width, .y = (int)srcExtent.height, .z = 1 };
+    const VkOffset3D dstOffset{ .x = (int)dstExtent.width, .y = (int)dstExtent.height, .z = 1 };
+    const VkImageBlit region{
+        .srcSubresource{ .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .layerCount = 1 },
+        .srcOffsets{ {}, srcOffset },
+        .dstSubresource{ .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .layerCount = 1 },
+        .dstOffsets{ {}, dstOffset },
+    };
+    vkCmdBlitImage( cmd
         , fr.m_renderTarget.image()
         , constants::copyFrom.m_layout
         , m_swapchain.image( m_currentFrame )
         , constants::copyTo.m_layout
         , 1
         , &region
+        , srcExtent == dstExtent ? VK_FILTER_NEAREST : VK_FILTER_LINEAR
     );
-
     transferImage( cmd, m_swapchain.image( m_currentFrame ), constants::copyTo, constants::present );
 
     [[maybe_unused]]

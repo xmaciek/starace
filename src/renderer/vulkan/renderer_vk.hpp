@@ -77,6 +77,7 @@ class RendererVK : public Renderer {
     std::mutex m_bufferBottleneck{};
     std::pmr::vector<BufferVK*> m_bufferPendingDelete{};
 
+    VkFormat m_colorFormat = VK_FORMAT_R16G16B16A16_UNORM;
     VkFormat m_depthFormat = {};
 
     std::optional<VSync> m_pendingVSyncChange{};
