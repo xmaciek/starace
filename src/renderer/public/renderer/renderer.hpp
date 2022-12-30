@@ -39,6 +39,8 @@ public:
     virtual void push( const PushBuffer&, const void* constant ) = 0;
     virtual void dispatch( const DispatchInfo&, const void* constant ) = 0;
 
+    virtual void setResolution( uint32_t width, uint32_t height ) = 0;
+
 protected:
     friend class Engine;
 

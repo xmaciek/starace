@@ -275,7 +275,7 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
         it.m_cmdDepthPrepass = m_commandPool[ i++ ];
         it.m_cmdRender = m_commandPool[ i++ ];
     }
-    recreateRenderTargets();
+    recreateRenderTargets( m_swapchain.extent() );
 }
 
 void RendererVK::createPipeline( const PipelineCreateInfo& pci )
@@ -587,7 +587,12 @@ void RendererVK::recreateSwapchain()
     );
 }
 
-void RendererVK::recreateRenderTargets()
+void RendererVK::setResolution( uint32_t width, uint32_t height )
+{
+    m_pendingResolutionChange.store( VkExtent2D{ .width = width, .height = height } );
+}
+
+void RendererVK::recreateRenderTargets( const VkExtent2D& resolution )
 {
     ZoneScoped;
     for ( auto& it : m_frames ) {
@@ -596,7 +601,7 @@ void RendererVK::recreateRenderTargets()
             , m_physicalDevice
             , m_device
             , m_depthPrepass
-            , m_swapchain.extent()
+            , resolution
             , m_depthFormat
             , nullptr
         };
@@ -605,7 +610,7 @@ void RendererVK::recreateRenderTargets()
             , m_physicalDevice
             , m_device
             , m_mainPass
-            , m_swapchain.extent()
+            , resolution
             , m_colorFormat
             , it.m_renderDepthTarget.view()
         };
@@ -614,7 +619,7 @@ void RendererVK::recreateRenderTargets()
             , m_physicalDevice
             , m_device
             , m_mainPass
-            , m_swapchain.extent()
+            , resolution
             , m_colorFormat
             , it.m_renderDepthTarget.view()
         };
@@ -748,12 +753,15 @@ void RendererVK::present()
     case VK_ERROR_OUT_OF_DATE_KHR:
     case VK_SUBOPTIMAL_KHR:
         recreateSwapchain();
-        recreateRenderTargets();
         break;
     default:
         assert( !"failed to present" );
     }
 
+    const VkExtent2D res = m_pendingResolutionChange.exchange( {} );
+    if ( res.width && res.height ) {
+        recreateRenderTargets( res );
+    }
     vkQueueWaitIdle( m_queuePresent );
 }
 

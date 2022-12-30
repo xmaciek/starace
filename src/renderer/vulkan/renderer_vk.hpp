@@ -25,7 +25,7 @@
 class RendererVK : public Renderer {
     struct Unloader {
         using Fn = void();
-        Fn* fn = nullptr;
+        const Fn* fn = nullptr;
         ~Unloader() { if ( fn ) fn(); };
     };
     Unloader m_unloader{};
@@ -80,11 +80,13 @@ class RendererVK : public Renderer {
     VkFormat m_colorFormat = VK_FORMAT_R16G16B16A16_UNORM;
     VkFormat m_depthFormat = {};
 
+    std::atomic<VkExtent2D> m_pendingResolutionChange = {};
     std::optional<VSync> m_pendingVSyncChange{};
+
     [[nodiscard]]
     VkCommandBuffer flushUniforms();
     void recreateSwapchain();
-    void recreateRenderTargets();
+    void recreateRenderTargets( const VkExtent2D& );
 
 public:
     virtual ~RendererVK() override;
@@ -103,4 +105,5 @@ public:
     virtual void present() override;
     virtual void push( const PushBuffer& buffer, const void* constant ) override;
     virtual void dispatch( const DispatchInfo&, const void* constant ) override;
+    virtual void setResolution( uint32_t width, uint32_t height ) override;
 };
