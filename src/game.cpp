@@ -322,20 +322,10 @@ void Game::onInit()
     {
         assert( i < m_displayModes.size() );
         DisplayMode displayMode = m_displayModes[ i ];
-        displayMode.fullscreen = m_fullscreen > 0;
+        displayMode.fullscreen = m_optionsGFX.m_fullscreen.value();
         setDisplayMode( displayMode );
     };
     g_gameUiDataModels[ "$data:resolution" ] = &m_optionsGFX.m_resolution;
-
-    m_optionsGFX.m_fullscreen.m_size = []() { return 2; };
-    m_optionsGFX.m_fullscreen.m_at = [this]( auto i )
-    {
-        assert( i < 2 );
-        static constexpr Hash::value_type keys[] = { "off"_hash, "on"_hash };
-        return g_uiProperty.localize( keys[ i ] );
-    };
-    m_optionsGFX.m_fullscreen.m_current = [this]() { return m_fullscreen; };
-    m_optionsGFX.m_fullscreen.m_select = [this]( auto i ) { m_fullscreen = i; };
     g_gameUiDataModels[ "$data:fullscreen" ] = &m_optionsGFX.m_fullscreen;
 
     m_optionsCustomize.m_jet.m_size = [this](){ return m_jetsContainer.size(); };
