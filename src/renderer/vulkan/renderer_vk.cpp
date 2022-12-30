@@ -759,9 +759,13 @@ void RendererVK::present()
     }
 
     const VkExtent2D res = m_pendingResolutionChange.exchange( {} );
-    if ( res.width && res.height ) {
+    do {
+        if ( !res.width ) break;
+        if ( !res.height ) break;
+        const VkExtent2D currentRes = m_frames[ 0 ].m_renderTarget.extent();
+        if ( currentRes == res ) break;
         recreateRenderTargets( res );
-    }
+    } while ( 0 );
     vkQueueWaitIdle( m_queuePresent );
 }
 
