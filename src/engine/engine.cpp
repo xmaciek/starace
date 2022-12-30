@@ -294,8 +294,7 @@ static std::pmr::vector<SDL_DisplayMode> getDisplayModes( uint32_t monitor )
         return {};
     }
 
-    std::pmr::vector<SDL_DisplayMode> ret{};
-    ret.resize( static_cast<decltype(ret)::size_type>( displayModeCount ) );
+    std::pmr::vector<SDL_DisplayMode> ret( static_cast<size_t>( displayModeCount ) );
 
     auto genMode = [ i = 0, monitor ]() mutable
     {
@@ -304,6 +303,14 @@ static std::pmr::vector<SDL_DisplayMode> getDisplayModes( uint32_t monitor )
         return mode;
     };
     std::generate_n( ret.begin(), displayModeCount, genMode );
+
+    auto eq = []( const auto& lhs, const auto& rhs )
+    {
+        return lhs.w == rhs.w && lhs.h == rhs.h;
+    };
+    auto last = std::unique( ret.begin(), ret.end(), eq );
+    if ( last != ret.end() ) ret.erase( last, ret.end() );
+
     return ret;
 }
 
@@ -311,45 +318,56 @@ std::pmr::vector<DisplayMode> Engine::displayModes( uint32_t monitor ) const
 {
     auto modes = getDisplayModes( monitor );
     std::pmr::vector<DisplayMode> ret{ modes.size() };
-    std::transform( modes.begin(), modes.end(), ret.begin(), []( const auto& it ) -> DisplayMode
+    std::transform( modes.begin(), modes.end(), ret.begin(), [monitor]( const auto& it ) -> DisplayMode
     {
         return {
             .width = static_cast<uint16_t>( it.w ),
             .height = static_cast<uint16_t>( it.h ),
-            .rate = static_cast<uint16_t>( it.refresh_rate ),
+            .monitor = static_cast<uint16_t>( monitor ),
         };
     } );
     return ret;
 }
 
-void Engine::setDisplayMode( const DisplayMode& displayMode, uint32_t monitor )
+void Engine::setDisplayMode( const DisplayMode& displayMode )
 {
-    auto modes = getDisplayModes( monitor );
+    auto modes = getDisplayModes( displayMode.monitor );
     auto cmp = [ displayMode ]( const auto& a, const auto& b )
     {
         const int w1 = static_cast<int>( displayMode.width ) - a.w;
         const int w2 = static_cast<int>( displayMode.width ) - b.w;
         if ( w1 != w2 ) { return std::abs( w1 ) < std::abs( w2 ); }
 
-        const int h1 = static_cast<int>( displayMode.height )- a.h;
-        const int h2 = static_cast<int>( displayMode.height )- b.h;
-        if ( h1 != h2 ) { return std::abs( h1 ) < std::abs( h2 ); }
-
-        const int r1 = static_cast<int>( displayMode.rate ) - a.refresh_rate;
-        const int r2 = static_cast<int>( displayMode.rate ) - b.refresh_rate;
-        return std::abs( r1 ) < std::abs( r2 );
+        const int h1 = static_cast<int>( displayMode.height ) - a.h;
+        const int h2 = static_cast<int>( displayMode.height ) - b.h;
+        return std::abs( h1 ) < std::abs( h2 );
     };
 
     auto it = std::min_element( modes.begin(), modes.end(), cmp );
     assert( it != modes.end() );
 
+    const SDL_DisplayMode nearestMode = *it;
+    m_renderer->setResolution( nearestMode.w, nearestMode.h );
+
     SDL_Event e{};
     e.type = SDL_WINDOWEVENT;
     e.window.event = SDL_WINDOWEVENT_RESIZED;
-    e.window.data1 = it->w;
-    e.window.data2 = it->h;
+
+    if ( displayMode.fullscreen ) {
+        SDL_DisplayMode desktopMode{};
+        SDL_GetDesktopDisplayMode( displayMode.monitor, &desktopMode );
+        SDL_SetWindowFullscreen( m_window, SDL_WINDOW_FULLSCREEN_DESKTOP );
+        e.window.data1 = desktopMode.w;
+        e.window.data2 = desktopMode.h;
+    }
+    else {
+        SDL_SetWindowFullscreen( m_window, 0 );
+        SDL_SetWindowSize( m_window, nearestMode.w, nearestMode.h );
+        SDL_SetWindowPosition( m_window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED );
+        e.window.data1 = nearestMode.w;
+        e.window.data2 = nearestMode.h;
+    }
+
     SDL_PushEvent( &e );
 
-    SDL_SetWindowSize( m_window, it->w, it->h ); // if window;
-//     SDL_SetWindowDisplayMode( m_window, &*it ); // if fullscreen
 }

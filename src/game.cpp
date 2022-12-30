@@ -314,18 +314,29 @@ void Game::onInit()
     {
         assert( i < m_displayModes.size() );
         auto d = m_displayModes[ i ];
-        return intToUTF32( d.width ) + U" x "
-            + intToUTF32( d.height ) + U" @ "
-            + intToUTF32( d.rate ) + U"Hz";
+        return intToUTF32( d.width ) + U" x " + intToUTF32( d.height );
     };
     m_optionsGFX.m_resolution.m_current = [this](){ return m_currentResolution; };
     m_optionsGFX.m_resolution.m_select = [this]( auto i ) { m_currentResolution = i; };
     m_optionsGFX.m_resolution.m_activate = [this]( auto i )
     {
         assert( i < m_displayModes.size() );
-        setDisplayMode( m_displayModes[ i ], 0 );
+        DisplayMode displayMode = m_displayModes[ i ];
+        displayMode.fullscreen = m_fullscreen > 0;
+        setDisplayMode( displayMode );
     };
     g_gameUiDataModels[ "$data:resolution" ] = &m_optionsGFX.m_resolution;
+
+    m_optionsGFX.m_fullscreen.m_size = []() { return 2; };
+    m_optionsGFX.m_fullscreen.m_at = [this]( auto i )
+    {
+        assert( i < 2 );
+        static constexpr Hash::value_type keys[] = { "off"_hash, "on"_hash };
+        return g_uiProperty.localize( keys[ i ] );
+    };
+    m_optionsGFX.m_fullscreen.m_current = [this]() { return m_fullscreen; };
+    m_optionsGFX.m_fullscreen.m_select = [this]( auto i ) { m_fullscreen = i; };
+    g_gameUiDataModels[ "$data:fullscreen" ] = &m_optionsGFX.m_fullscreen;
 
     m_optionsCustomize.m_jet.m_size = [this](){ return m_jetsContainer.size(); };
     m_optionsCustomize.m_jet.m_at = [this]( auto i )

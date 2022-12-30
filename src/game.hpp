@@ -59,6 +59,7 @@ private:
         max,
     };
 
+    uint32_t m_fullscreen = 0;
     uint32_t m_currentResolution = 0;
     std::pmr::vector<DisplayMode> m_displayModes{};
 

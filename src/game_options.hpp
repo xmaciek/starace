@@ -5,6 +5,7 @@
 struct OptionsGFX {
     ui::GenericDataModel m_vsync{};
     ui::GenericDataModel m_resolution{};
+    ui::GenericDataModel m_fullscreen{};
     ui::OptionsArrayModel<float> m_gamma{};
 };
 

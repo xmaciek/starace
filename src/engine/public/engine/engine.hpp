@@ -61,8 +61,8 @@ protected:
     virtual void onMouseEvent( const MouseEvent& ) = 0;
     virtual void onResize( uint32_t, uint32_t ) = 0;
 
-    std::pmr::vector<DisplayMode> displayModes( uint32_t monitor = 0) const;
-    void setDisplayMode( const DisplayMode&, uint32_t monitor = 0 );
+    std::pmr::vector<DisplayMode> displayModes( uint32_t monitor = 0 ) const;
+    void setDisplayMode( const DisplayMode& );
 
 private:
     void gameThread();

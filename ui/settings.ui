@@ -36,7 +36,7 @@ Label = {
 }
 
 SpinBox = {
-    data = $data:gammaCorrection
+    data = $data:fullscreen
     x = 48
     y = 250
     width = 320
@@ -44,16 +44,30 @@ SpinBox = {
 }
 
 Label = {
-    text = gammaCorrection
+    text = fullscreen
     x = 370
     y = 250
+}
+
+SpinBox = {
+    data = $data:gammaCorrection
+    x = 48
+    y = 300
+    width = 320
+    height = 48
+}
+
+Label = {
+    text = gammaCorrection
+    x = 370
+    y = 300
 }
 
 Button = {
     text = return
     trigger = $function:goto_titlemenu
     x = 48
-    y = 350
+    y = 400
     width = 320
     height = 48
 }
