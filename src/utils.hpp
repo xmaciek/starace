@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <array>
+#include <charconv>
 #include <memory_resource>
 #include <random>
 #include <string>
@@ -22,41 +23,13 @@ constexpr double colorHalf( double col ) noexcept
 }
 
 template <typename T>
-requires std::is_integral_v<T>
-char32_t* toChars( char32_t* begin, [[maybe_unused]] char32_t* end, T t )
+char32_t* toChars( char32_t* begin, char32_t* end, T t )
 {
-    uint64_t v = 0;
-    if constexpr ( std::is_signed_v<T> ) {
-        if ( t < 0 ) {
-            *begin++ = U'-';
-            v = static_cast<uint64_t>( -t );
-        }
-        else {
-            v = static_cast<uint64_t>( t );
-        }
-    }
-    else {
-        v = t;
-    }
-    char32_t* it = begin;
-    do {
-        *it++ = U'0' + static_cast<char32_t>( v % 10 );
-    }
-    while ( v /= 10 );
-
-    std::reverse( begin, it );
-    return it;
-}
-
-[[maybe_unused]]
-inline char32_t* toChars( char32_t* begin, char32_t* end, float f )
-{
-    int32_t a = static_cast<int32_t>( f );
-    static constexpr float maxDecimalPlaces = 10000.0f; // pow( 10.0f, number of digits )
-    uint32_t b = static_cast<uint32_t>( maxDecimalPlaces * ( f - static_cast<float>( a ) ) );
-    char32_t* it = toChars<int32_t>( begin, end, a );
-    *it++ = U'.';
-    return toChars<uint32_t>( it, end, b );
+    char tmpBuff[ 20 ]{};
+    const auto res = std::to_chars( std::begin( tmpBuff ), std::end( tmpBuff ), t );
+    const auto rangeSize = std::min( std::distance( begin, end ), std::distance( std::begin( tmpBuff ), res.ptr ) );
+    std::copy_n( std::begin( tmpBuff ), rangeSize, begin );
+    return begin + rangeSize;
 }
 
 template <typename T>
