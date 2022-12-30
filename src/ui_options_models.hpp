@@ -58,28 +58,42 @@ public:
 
 template <typename T>
 class Option : public DataModel {
+public:
+    using FnToString = std::function<std::pmr::u32string(const T&)>;
+
 private:
     size_type m_currentIndex = 0;
-    std::pmr::vector<Hash::value_type> m_locValues;
     std::pmr::vector<T> m_values;
+    std::pmr::vector<Hash::value_type> m_locValues;
+    FnToString m_toString{};
 
 public:
     virtual ~Option() noexcept = default;
+    Option() noexcept = default;
 
     Option( size_type currentIndex ) noexcept
     requires std::is_same_v<bool, T>
     : m_currentIndex{ currentIndex }
-    , m_locValues{ "off"_hash, "on"_hash }
     , m_values{ false, true }
+    , m_locValues{ "off"_hash, "on"_hash }
     {}
 
     Option( size_type currentIndex
-        , std::pmr::vector<Hash::value_type>&& locValues
         , std::pmr::vector<T>&& values
+        , std::pmr::vector<Hash::value_type>&& locValues
     ) noexcept
     : m_currentIndex{ currentIndex }
-    , m_locValues( std::move( locValues ) )
     , m_values( std::move( values ) )
+    , m_locValues( std::move( locValues ) )
+    {}
+
+    Option( size_type currentIndex
+        , std::pmr::vector<T>&& values
+        , FnToString&& toString
+    ) noexcept
+    : m_currentIndex{ currentIndex }
+    , m_values( std::move( values ) )
+    , m_toString( std::move( toString ) )
     {}
 
     T value() const
@@ -100,6 +114,8 @@ public:
 
     virtual std::pmr::u32string at( size_type i ) const override
     {
+        assert( i < m_values.size() );
+        if ( m_toString ) return m_toString( m_values[ i ] );
         assert( i < m_locValues.size() );
         return g_uiProperty.localize( m_locValues[ i ] );
     }
@@ -111,5 +127,6 @@ public:
     }
 
 };
+
 
 }

@@ -59,9 +59,6 @@ private:
         max,
     };
 
-    uint32_t m_currentResolution = 0;
-    std::pmr::vector<DisplayMode> m_displayModes{};
-
     Font* m_fontSmall = nullptr;
     Font* m_fontMedium = nullptr;
     Font* m_fontLarge = nullptr;

@@ -64,10 +64,19 @@ Label = {
 }
 
 Button = {
+    text = apply
+    trigger = $function:applyGFX
+    x = 48
+    y = 400
+    width = 320
+    height = 48
+}
+
+Button = {
     text = return
     trigger = $function:goto_titlemenu
     x = 48
-    y = 400
+    y = 450
     width = 320
     height = 48
 }

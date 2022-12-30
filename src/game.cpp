@@ -269,7 +269,6 @@ void Game::onInit()
     for ( auto [ eid, min, max ] : inputActions2 ) {
         m_actionStateTracker.add( static_cast<Action::Enum>( eid ), min, max );
     }
-    m_displayModes = displayModes();
 
     m_dustUi.setVelocity(  math::vec3{ 0.0f, 0.0f, 26.0_m }  );
     m_dustUi.setCenter( {} );
@@ -282,25 +281,17 @@ void Game::onInit()
     g_gameCallbacks[ "$function:goto_titlemenu" ] = [this](){ changeScreen( Screen::eMainMenu, m_click ); };
     g_gameCallbacks[ "$function:quit" ] = [this](){ quit(); };
     g_gameCallbacks[ "$function:resume" ] = [this]{ changeScreen( Screen::eGame, m_click ); };
+    g_gameCallbacks[ "$function:applyGFX" ] = [this]
+    {
+        DisplayMode displayMode = m_optionsGFX.m_resolution.value();
+        displayMode.fullscreen = m_optionsGFX.m_fullscreen.value();
+        setDisplayMode( displayMode );
+        m_renderer->setVSync( m_optionsGFX.m_vsync.value() );
+    };
 
 
     g_uiProperty.m_colorA = color::dodgerBlue;
     g_uiProperty.m_locTable = &m_localizationMap;
-
-    m_optionsGFX.m_vsync.m_size = [](){ return 3; };
-    m_optionsGFX.m_vsync.m_at = []( auto i ) -> std::pmr::u32string
-    {
-        assert( i < 3 );
-        static constexpr Hash::value_type keys[] = { "off"_hash, "on"_hash, "mailbox"_hash };
-        return g_uiProperty.localize( keys[ i ] );
-    };
-    m_optionsGFX.m_vsync.m_select = [this]( auto i )
-    {
-        assert( i < 3 );
-        static constexpr VSync v[] = { VSync::eOff, VSync::eOn, VSync::eMailbox };
-        m_renderer->setVSync( v[ i ] );
-    };
-    g_gameUiDataModels[ "$data:vsync" ] = &m_optionsGFX.m_vsync;
 
     m_optionsGFX.m_gamma = std::pmr::vector<float>{ 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f
         , 1.0f, 1.1f, 1.2f, 1.3f, 1.4f, 1.5f, 1.6f, 1.7f, 1.8f, 1.9f
@@ -309,24 +300,13 @@ void Game::onInit()
     m_optionsGFX.m_gamma.select( 18 );
     g_gameUiDataModels[ "$data:gammaCorrection" ] = &m_optionsGFX.m_gamma;
 
-    m_optionsGFX.m_resolution.m_size = [this]() { return m_displayModes.size(); };
-    m_optionsGFX.m_resolution.m_at = [this]( auto i )
-    {
-        assert( i < m_displayModes.size() );
-        auto d = m_displayModes[ i ];
-        return intToUTF32( d.width ) + U" x " + intToUTF32( d.height );
-    };
-    m_optionsGFX.m_resolution.m_current = [this](){ return m_currentResolution; };
-    m_optionsGFX.m_resolution.m_select = [this]( auto i ) { m_currentResolution = i; };
-    m_optionsGFX.m_resolution.m_activate = [this]( auto i )
-    {
-        assert( i < m_displayModes.size() );
-        DisplayMode displayMode = m_displayModes[ i ];
-        displayMode.fullscreen = m_optionsGFX.m_fullscreen.value();
-        setDisplayMode( displayMode );
+    m_optionsGFX.m_resolution = ui::Option<DisplayMode>{ 0, displayModes(),
+        []( const auto& dm ) { return intToUTF32( dm.width ) + U" x " + intToUTF32( dm.height ); }
     };
     g_gameUiDataModels[ "$data:resolution" ] = &m_optionsGFX.m_resolution;
     g_gameUiDataModels[ "$data:fullscreen" ] = &m_optionsGFX.m_fullscreen;
+    g_gameUiDataModels[ "$data:vsync" ] = &m_optionsGFX.m_vsync;
+
 
     m_optionsCustomize.m_jet.m_size = [this](){ return m_jetsContainer.size(); };
     m_optionsCustomize.m_jet.m_at = [this]( auto i )
