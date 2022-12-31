@@ -289,15 +289,9 @@ void Game::onInit()
         m_renderer->setVSync( m_optionsGFX.m_vsync.value() );
     };
 
-
     g_uiProperty.m_colorA = color::dodgerBlue;
     g_uiProperty.m_locTable = &m_localizationMap;
 
-    m_optionsGFX.m_gamma = std::pmr::vector<float>{ 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f
-        , 1.0f, 1.1f, 1.2f, 1.3f, 1.4f, 1.5f, 1.6f, 1.7f, 1.8f, 1.9f
-        , 2.0f, 2.1f, 2.2f, 2.3f, 2.4f, 2.5f, 2.6f, 2.7f, 2.8f, 2.9f
-    };
-    m_optionsGFX.m_gamma.select( 18 );
     g_gameUiDataModels[ "$data:gammaCorrection" ] = &m_optionsGFX.m_gamma;
 
     m_optionsGFX.m_resolution = ui::Option<DisplayMode>{ 0, displayModes(),
@@ -306,7 +300,6 @@ void Game::onInit()
     g_gameUiDataModels[ "$data:resolution" ] = &m_optionsGFX.m_resolution;
     g_gameUiDataModels[ "$data:fullscreen" ] = &m_optionsGFX.m_fullscreen;
     g_gameUiDataModels[ "$data:vsync" ] = &m_optionsGFX.m_vsync;
-
 
     m_optionsCustomize.m_jet.m_size = [this](){ return m_jetsContainer.size(); };
     m_optionsCustomize.m_jet.m_at = [this]( auto i )
