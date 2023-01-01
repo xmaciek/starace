@@ -470,7 +470,7 @@ Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::pmr::vecto
 
     VkCommandBuffer cmd = m_commandPool[ 0 ];
     vkBeginCommandBuffer( cmd, &beginInfo );
-    tex->transferFrom( cmd, staging );
+    tex->transferFrom( cmd, staging, tci.mip0ByteCount );
     vkEndCommandBuffer( cmd );
 
     const VkSubmitInfo submitInfo{

@@ -51,7 +51,6 @@ TextureVK::TextureVK( const TextureCreateInfo& tci, VkPhysicalDevice physDevice,
     , VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
     , VK_IMAGE_ASPECT_COLOR_BIT
 }
-, m_mipArray{ tci.mipArray }
 {
     ZoneScoped;
     assert( tci.width > 0 );
@@ -82,21 +81,20 @@ TextureVK::TextureVK( TextureVK&& rhs ) noexcept
 {
     std::swap<Image>( *this, rhs );
     std::swap( m_sampler, rhs.m_sampler );
-    std::swap( m_mipArray, rhs.m_mipArray );
 }
 
 TextureVK& TextureVK::operator = ( TextureVK&& rhs ) noexcept
 {
     std::swap<Image>( *this, rhs );
     std::swap( m_sampler, rhs.m_sampler );
-    std::swap( m_mipArray, rhs.m_mipArray );
     return *this;
 }
 
 struct RegionGenerator {
-    const TextureCreateInfo::MipArray* mipArray = nullptr;
+    uint32_t byteCount = 0;
     uint32_t width = 0;
     uint32_t height = 0;
+    uint32_t offset = 0;
     uint32_t mipId = 0;
 
     VkBufferImageCopy operator () ();
@@ -105,8 +103,11 @@ struct RegionGenerator {
 VkBufferImageCopy RegionGenerator::operator () ()
 {
     const uint32_t mipLevel = mipId++;
+    const uint32_t bufferOffset = offset;
+    offset += byteCount;
+    byteCount >>= 2;
     return VkBufferImageCopy{
-        .bufferOffset = std::get<0>( (*mipArray)[ mipLevel ] ),
+        .bufferOffset = bufferOffset,
         .imageSubresource = VkImageSubresourceLayers{
             .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
             .mipLevel = mipLevel,
@@ -120,14 +121,18 @@ VkBufferImageCopy RegionGenerator::operator () ()
     };
 }
 
-
-void TextureVK::transferFrom( VkCommandBuffer cmd, const BufferVK& buffer )
+void TextureVK::transferFrom( VkCommandBuffer cmd, const BufferVK& buffer, uint32_t mip0ByteCount )
 {
     ZoneScoped;
     transfer( cmd, constants::copyTo );
 
+    RegionGenerator regionGen{
+        .byteCount = mip0ByteCount,
+        .width = m_extent.width,
+        .height = m_extent.height,
+    };
     std::pmr::vector<VkBufferImageCopy> regions( mipCount() );
-    std::generate( regions.begin(), regions.end(), RegionGenerator{ &m_mipArray, m_extent.width, m_extent.height } );
+    std::generate( regions.begin(), regions.end(), regionGen );
 
     vkCmdCopyBufferToImage(
         cmd

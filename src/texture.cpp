@@ -22,17 +22,18 @@ Texture parseTexture( std::pmr::vector<uint8_t>&& data )
         return {};
     }
     if ( header.size != 124 ) {
-        assert( !"dds .size filed not 144" );
+        assert( !"dds .size filed not 124" );
         return {};
     }
     dataPtr += sizeof( header );
 
     TextureCreateInfo tci{
-        .dataBeginOffset = sizeof( header ),
         .width = static_cast<uint16_t>( header.width ),
-        .height = static_cast<uint16_t>(  header.height ),
+        .height = static_cast<uint16_t>( header.height ),
+        .mip0ByteCount = header.pitchOrLinearSize,
+        .dataBeginOffset = sizeof( header ),
+        .mips = static_cast<uint8_t>( std::max( header.mipMapCount, 1u ) ),
     };
-    tci.mips = std::clamp( (uint8_t)header.mipMapCount, (uint8_t)1, (uint8_t)tci.mipArray.size() );
 
 
     switch ( header.pixelFormat.fourCC ) {
@@ -41,6 +42,7 @@ Texture parseTexture( std::pmr::vector<uint8_t>&& data )
         std::memcpy( &dxgiHeader, dataPtr, sizeof( dxgiHeader ) );
         dataPtr += sizeof( dxgiHeader );
         tci.dataBeginOffset += sizeof( dxgiHeader );
+        assert( tci.dataBeginOffset == 148 );
         using enum dds::dxgi::Format;
         switch ( dxgiHeader.format ) {
         case BC1_UNORM: tci.format = TextureFormat::eBC1_unorm; break;
@@ -61,15 +63,6 @@ Texture parseTexture( std::pmr::vector<uint8_t>&& data )
         return {};
     }
 
-    auto mipOffsetGenerator = [offset = 0u, byteCount = header.pitchOrLinearSize]() mutable -> TextureCreateInfo::MipArray::value_type
-    {
-        uintptr_t begin = offset;
-        offset += byteCount;
-        uintptr_t end = offset;
-        byteCount >>= 2;
-        return { begin, end };
-    };
-    std::generate_n( tci.mipArray.begin(), tci.mips, mipOffsetGenerator );
     return Renderer::instance()->createTexture( tci, std::move( data ) );
 }
 

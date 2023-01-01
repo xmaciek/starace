@@ -237,6 +237,7 @@ Font::Font( const CreateInfo& fontInfo, uint32_t height )
     const TextureCreateInfo tci{
         .width = static_cast<uint16_t>( dstPitch ),
         .height = static_cast<uint16_t>( dstPitch ),
+        .mip0ByteCount = static_cast<uint32_t>( texture.size() ),
         .mips = 1,
         .format = TextureFormat::eR,
     };

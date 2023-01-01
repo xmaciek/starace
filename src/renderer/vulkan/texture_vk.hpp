@@ -9,7 +9,6 @@
 
 class TextureVK : public Image {
     VkSampler m_sampler = VK_NULL_HANDLE;
-    TextureCreateInfo::MipArray m_mipArray{};
 
 public:
     ~TextureVK();
@@ -19,7 +18,7 @@ public:
     TextureVK( TextureVK&& ) noexcept;
     TextureVK& operator = ( TextureVK&& ) noexcept;
 
-    void transferFrom( VkCommandBuffer, const BufferVK& );
+    void transferFrom( VkCommandBuffer, const BufferVK&, uint32_t mip0ByteCount );
 
     VkSampler sampler() const;
     VkDescriptorImageInfo imageInfo() const;
