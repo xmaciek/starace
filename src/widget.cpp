@@ -37,9 +37,9 @@ void Widget::setTabOrder( uint16_t v )
     m_tabOrder = v;
 }
 
-bool Widget::onMouseEvent( const MouseEvent& )
+MouseEvent::Processing Widget::onMouseEvent( const MouseEvent& )
 {
-    return false;
+    return MouseEvent::eContinue;
 }
 
 void Widget::update( const UpdateContext& )

@@ -224,10 +224,10 @@ void Screen::onMouseEvent( const MouseEvent& e )
     event.position -= m_offset;
     m_tabOrder.invalidate();
     for ( const auto& it : m_widgets ) {
-        if ( it->onMouseEvent( event ) ) {
-            m_tabOrder = it->tabOrder();
-            return;
-        }
+        auto mouseProcessing = it->onMouseEvent( event );
+        if ( mouseProcessing == MouseEvent::eContinue ) continue;
+        m_tabOrder = it->tabOrder();
+        return;
     }
 
 }

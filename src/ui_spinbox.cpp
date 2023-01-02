@@ -93,7 +93,7 @@ void SpinBox::render( RenderContext rctx ) const
     m_label.render( r );
 }
 
-bool SpinBox::onMouseEvent( const MouseEvent& event )
+MouseEvent::Processing SpinBox::onMouseEvent( const MouseEvent& event )
 {
     const math::vec2 p = event.position;
     const math::vec2 pos = position() + offsetByAnchor();
@@ -102,7 +102,7 @@ bool SpinBox::onMouseEvent( const MouseEvent& event )
     if ( !isFocused() ) {
         m_focusL = false;
         m_focusR = false;
-        return false;
+        return MouseEvent::eContinue;
     }
 
 
@@ -134,7 +134,7 @@ bool SpinBox::onMouseEvent( const MouseEvent& event )
         break;
     }
 
-    return true;
+    return MouseEvent::eStop;
 }
 
 math::vec4 SpinBox::arrowLeft() const

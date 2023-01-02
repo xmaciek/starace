@@ -35,7 +35,7 @@ public:
 
     virtual void render( RenderContext ) const override;
     virtual void update( const UpdateContext& ) override;
-    virtual bool onMouseEvent( const MouseEvent& ) override;
+    virtual MouseEvent::Processing onMouseEvent( const MouseEvent& ) override;
     virtual bool onAction( Action ) override;
 };
 

@@ -59,7 +59,7 @@ public:
 
     virtual void update( const UpdateContext& );
     virtual void render( RenderContext ) const = 0;
-    virtual bool onMouseEvent( const MouseEvent& );
+    virtual MouseEvent::Processing onMouseEvent( const MouseEvent& );
 
     virtual bool isEnabled() const;
     virtual void setEnabled( bool );

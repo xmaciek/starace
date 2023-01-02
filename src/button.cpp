@@ -83,19 +83,19 @@ void Button::setText( std::u32string_view txt )
     m_label.setText( txt );
 }
 
-bool Button::onMouseEvent( const MouseEvent& event )
+MouseEvent::Processing Button::onMouseEvent( const MouseEvent& event )
 {
     switch ( event.type ) {
     case MouseEvent::eMove:
         setFocused( testRect( event.position ) );
-        return m_focused;
+        return m_focused ? MouseEvent::eStop : MouseEvent::eContinue;
     case MouseEvent::eClick:
-        if ( !m_enabled ) { return false; }
-        if ( !testRect( event.position ) ) { return false; }
+        if ( !m_enabled ) { return MouseEvent::eContinue; }
+        if ( !testRect( event.position ) ) { return MouseEvent::eContinue; }
         trigger();
-        return true;
+        return MouseEvent::eStop;
     default:
-        return false;
+        return MouseEvent::eContinue;
     }
 }
 
