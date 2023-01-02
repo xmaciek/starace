@@ -43,17 +43,16 @@ static std::pmr::vector<const char*> windowExtensions( SDL_Window* window )
     return ext;
 }
 
-static VkPhysicalDevice selectPhysicalDevice( VkInstance instance )
+static VkPhysicalDevice selectPhysicalDevice( VkInstance instance, VkPhysicalDeviceProperties* deviceProperties )
 {
     uint32_t count = 0;
     vkEnumeratePhysicalDevices( instance, &count, nullptr );
     std::pmr::vector<VkPhysicalDevice> devices( count );
     vkEnumeratePhysicalDevices( instance, &count, devices.data() );
 
-    VkPhysicalDeviceProperties deviceProperties{};
     for ( VkPhysicalDevice it : devices ) {
-        vkGetPhysicalDeviceProperties( it, &deviceProperties );
-        if ( deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU ) {
+        vkGetPhysicalDeviceProperties( it, deviceProperties );
+        if ( deviceProperties->deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU ) {
             return it;
         }
     }
@@ -177,7 +176,9 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
     }
 
     m_debugMsg = DebugMsg{ m_instance };
-    m_physicalDevice = selectPhysicalDevice( m_instance );
+
+    VkPhysicalDeviceProperties physicalProperties{};
+    m_physicalDevice = selectPhysicalDevice( m_instance, &physicalProperties );
     assert( m_physicalDevice );
 
     m_depthFormat = pickSupportedFormat(
@@ -269,8 +270,9 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
 
     uint32_t i = 1;
     m_frames.resize( m_swapchain.imageCount() );
+
     for ( auto& it : m_frames ) {
-        it.m_uniformBuffer = Uniform{ m_physicalDevice, m_device, 2_MiB, 256 };
+        it.m_uniformBuffer = Uniform{ m_physicalDevice, m_device, 2_MiB, physicalProperties.limits.minUniformBufferOffsetAlignment };
         it.m_cmdTransfer = m_commandPool[ i++ ];
         it.m_cmdDepthPrepass = m_commandPool[ i++ ];
         it.m_cmdRender = m_commandPool[ i++ ];
