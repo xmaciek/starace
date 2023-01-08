@@ -6,7 +6,7 @@
 #include <array>
 #include <cstdint>
 
-using PipelineSlot = uint16_t;
+using PipelineSlot = uint32_t;
 
 enum class BindType : uint8_t
 {
@@ -47,7 +47,7 @@ struct PipelineCreateInfo {
     const char* m_vertexShader = nullptr;
     const char* m_fragmentShader = nullptr;
     const char* m_computeShader = nullptr;
-    PipelineSlot m_slot = 0;
+    uint32_t m_userHint = 0;
     uint32_t m_pushConstantSize = 0;
     bool m_enableBlend : 1 = false;
     bool m_enableDepthTest : 1 = false;

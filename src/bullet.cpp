@@ -38,7 +38,7 @@ void Bullet::renderAll( const RenderContext& rctx, std::span<const UniquePointer
 
     using ParticleBlob = PushConstant<Pipeline::eParticleBlob>;
     PushBuffer pushBuffer{
-        .m_pipeline = static_cast<PipelineSlot>( Pipeline::eParticleBlob ),
+        .m_pipeline = g_pipelines[ Pipeline::eParticleBlob ],
         .m_verticeCount = 6,
     };
     pushBuffer.m_resource[ 1 ].texture = span[ 0 ]->m_texture;

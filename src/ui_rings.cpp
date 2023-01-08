@@ -32,7 +32,7 @@ void UIRings::render( ui::RenderContext rctx ) const
     pushConstant.m_vertices[ 3 ] = math::vec4{ mx, 0.0f, 1.0f, 0.0f };
 
     PushBuffer pushBuffer{
-        .m_pipeline = static_cast<PipelineSlot>( Pipeline::eGuiTextureColor1 ),
+        .m_pipeline = g_pipelines[ Pipeline::eGuiTextureColor1 ],
         .m_verticeCount = 4,
     };
     for ( size_t i = 0; i < 3; i++ ) {

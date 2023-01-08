@@ -280,11 +280,11 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
     recreateRenderTargets( m_swapchain.extent() );
 }
 
-void RendererVK::createPipeline( const PipelineCreateInfo& pci )
+PipelineSlot RendererVK::createPipeline( const PipelineCreateInfo& pci )
 {
     ZoneScoped;
 
-    assert( pci.m_slot < m_pipelines.size() );
+    const PipelineSlot slot = static_cast<PipelineSlot>( m_pipelineIndexer.next() );
 
     auto findOrAddDescriptorId = []( auto& array, uint64_t bindpoints ) -> std::tuple<uint32_t, bool>
     {
@@ -310,16 +310,16 @@ void RendererVK::createPipeline( const PipelineCreateInfo& pci )
 
     DescriptorSet* descriptorSet = &m_frames[ 0 ].m_descriptorSets[ descriptorId ];
     if ( pci.m_computeShader ) {
-        m_pipelines[ pci.m_slot ] = PipelineVK{
+        m_pipelines[ slot ] = PipelineVK{
             pci
             , m_device
             , descriptorSet->layout()
             , descriptorId
         };
-        return;
+        return slot;
     }
 
-    m_pipelines[ pci.m_slot ] = PipelineVK{
+    m_pipelines[ slot ] = PipelineVK{
         pci
         , m_device
         , m_mainPass
@@ -327,6 +327,7 @@ void RendererVK::createPipeline( const PipelineCreateInfo& pci )
         , descriptorSet->layout()
         , descriptorId
     };
+    return slot;
 }
 
 RendererVK::~RendererVK()

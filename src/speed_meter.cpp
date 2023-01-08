@@ -45,7 +45,7 @@ void SpeedMeter::render( ui::RenderContext rctx ) const
         std::fill_n( pushConstant.m_colors.begin(), c_circle.size(), color::winScreen );
 
         PushBuffer pushBuffer{
-            .m_pipeline = static_cast<PipelineSlot>( Pipeline::eLine3dStripColor ),
+            .m_pipeline = g_pipelines[ Pipeline::eLine3dStripColor ],
             .m_verticeCount = c_circle.size(),
             .m_lineWidth = 1.0f,
         };
@@ -61,7 +61,7 @@ void SpeedMeter::render( ui::RenderContext rctx ) const
         std::fill_n( pushConstant.m_colors.begin(), 5, color::winScreen );
 
         PushBuffer pushBuffer{
-            .m_pipeline = static_cast<PipelineSlot>( Pipeline::eTriangleFan3dColor ),
+            .m_pipeline = g_pipelines[ Pipeline::eTriangleFan3dColor ],
             .m_verticeCount = c_fan.size(),
         };
         rctx.renderer->push( pushBuffer, &pushConstant );

@@ -91,7 +91,7 @@ void Skybox::render( const RenderContext& rctx ) const
 {
     using Wall = MapCreateInfo::Wall;
     PushBuffer pushBuffer{
-        .m_pipeline = static_cast<PipelineSlot>( Pipeline::eTriangleFan3dTexture ),
+        .m_pipeline = g_pipelines[ Pipeline::eTriangleFan3dTexture ],
         .m_verticeCount = 4,
     };
     PushConstant<Pipeline::eTriangleFan3dTexture> pushConstant{};

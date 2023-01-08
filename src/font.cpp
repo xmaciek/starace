@@ -272,7 +272,7 @@ Font::RenderText Font::composeText( const math::vec4& color, std::u32string_view
     ZoneScoped;
     assert( text.size() < PushConstant<Pipeline::eSpriteSequence>::c_spriteCount );
     PushBuffer pushBuffer{
-        .m_pipeline = static_cast<PipelineSlot>( Pipeline::eSpriteSequence ),
+        .m_pipeline = g_pipelines[ Pipeline::eSpriteSequence ],
         .m_verticeCount = static_cast<uint32_t>( text.size() * 6 ),
     };
     pushBuffer.m_resource[ 1 ].texture = m_texture;

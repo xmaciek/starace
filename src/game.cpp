@@ -205,8 +205,8 @@ Game::Game( int argc, char** argv )
 {
     ZoneScoped;
     preloadData();
-    for ( const auto& p : g_pipelines ) {
-        m_renderer->createPipeline( p );
+    for ( const auto& p : g_pipelineCreateInfo ) {
+        g_pipelines[ static_cast<Pipeline>( p.m_userHint ) ] = m_renderer->createPipeline( p );
     }
 
     changeScreen( Screen::eMainMenu );
@@ -520,12 +520,12 @@ void Game::onRender( RenderContext rctx )
     };
 
     const DispatchInfo dispatchInfo{
-        .m_pipeline = static_cast<PipelineSlot>( Pipeline::eGammaCorrection ),
+        .m_pipeline = g_pipelines[ Pipeline::eGammaCorrection ],
     };
     m_renderer->dispatch( dispatchInfo, &pushConstant );
 
     const PushConstant<Pipeline::eScanline> pushScanline{ .m_power = { 0.816f, 0.816f, 0.816f, 1.0f } };
-    const DispatchInfo dispatchScanline{ .m_pipeline = static_cast<PipelineSlot>( Pipeline::eScanline ) };
+    const DispatchInfo dispatchScanline{ .m_pipeline = g_pipelines[ Pipeline::eScanline ] };
     m_renderer->dispatch( dispatchScanline, &pushScanline );
 }
 
@@ -891,7 +891,6 @@ void Game::renderGameScreen( RenderContext rctx, ui::RenderContext r )
 
 std::tuple<math::vec3, math::vec3, math::vec3> Game::getCamera() const
 {
-    
     math::vec3 cameraPos = m_jet.position() + m_jet.cameraPosition() * m_jet.rotation();
     math::vec3 cameraUp = math::vec3{ 0, 1, 0 } * m_jet.rotation();
     math::vec3 cameraTgt = cameraPos + m_jet.cameraDirection();
@@ -933,7 +932,7 @@ void Game::renderBackground( ui::RenderContext rctx ) const
     const math::vec2 uv = math::vec2{ w, h } / m_atlasUi.extent();
 
     PushBuffer pushBuffer{
-        .m_pipeline = static_cast<PipelineSlot>( Pipeline::eBackground ),
+        .m_pipeline = g_pipelines[ Pipeline::eBackground ],
         .m_verticeCount = 4,
     };
     pushBuffer.m_resource[ 1 ].texture = g_uiProperty.atlasTexture();

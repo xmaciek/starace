@@ -63,8 +63,10 @@ class RendererVK : public Renderer {
     RenderPass m_mainPass{};
     std::pmr::vector<Frame> m_frames{};
 
-    std::array<uint64_t, 32> m_pipelineDescriptorIds{};
-    std::array<PipelineVK, 32> m_pipelines{};
+    static constexpr uint32_t MAX_PIPELINES = 32;
+    Indexer<MAX_PIPELINES> m_pipelineIndexer{};
+    std::array<uint64_t, MAX_PIPELINES> m_pipelineDescriptorIds{};
+    std::array<PipelineVK, MAX_PIPELINES> m_pipelines{};
     PipelineVK* m_lastPipeline = nullptr;
 
     Indexer<64> m_textureIndexer{};
@@ -93,7 +95,7 @@ public:
     RendererVK( const Renderer::CreateInfo& );
     virtual void setVSync( VSync ) override;
 
-    virtual void createPipeline( const PipelineCreateInfo& ) override;
+    virtual PipelineSlot createPipeline( const PipelineCreateInfo& ) override;
     virtual Buffer createBuffer( std::pmr::vector<float>&& ) override;
     virtual Buffer createBuffer( std::span<const float> ) override;
     virtual std::pmr::memory_resource* allocator() override;

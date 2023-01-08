@@ -31,7 +31,7 @@ void Model::render( RenderContext rctx ) const
     pushConstant.m_projection = rctx.projection;
 
     PushBuffer pushBuffer{
-        .m_pipeline = static_cast<PipelineSlot>( Pipeline::eAlbedo ),
+        .m_pipeline = g_pipelines[ Pipeline::eAlbedo ],
         .m_vertice = m_vertices,
     };
     pushBuffer.m_resource[ 1 ].texture = m_texture;

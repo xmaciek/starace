@@ -56,7 +56,7 @@ void Image::render( RenderContext rctx ) const
 {
     assert( m_texture );
     PushBuffer pushBuffer{
-        .m_pipeline = static_cast<PipelineSlot>( Pipeline::eGuiTextureColor1 ),
+        .m_pipeline = g_pipelines[ Pipeline::eGuiTextureColor1 ],
         .m_verticeCount = 4,
     };
     pushBuffer.m_resource[ 1 ].texture = m_texture;

@@ -38,7 +38,7 @@ void NineSlice::render( RenderContext rctx ) const
     using Generator = spritegen::NineSliceComposer;
     assert( m_texture );
     PushBuffer pushBuffer{
-        .m_pipeline = static_cast<PipelineSlot>( Pipeline::eSpriteSequence ),
+        .m_pipeline = g_pipelines[ Pipeline::eSpriteSequence ],
         .m_verticeCount = Generator::count(),
     };
     pushBuffer.m_resource[ 1 ].texture = m_texture;

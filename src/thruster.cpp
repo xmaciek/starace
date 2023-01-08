@@ -40,7 +40,7 @@ void Thruster::update( const UpdateContext& updateContext )
 void Thruster::renderAt( RenderContext rctx, const math::vec3& pos ) const
 {
     PushBuffer pushBuffer{
-        .m_pipeline = static_cast<PipelineSlot>( Pipeline::eTriangleFan3dColor ),
+        .m_pipeline = g_pipelines[ Pipeline::eTriangleFan3dColor ],
         .m_verticeCount = 33,
     };
 
@@ -60,7 +60,7 @@ void Thruster::renderAt( RenderContext rctx, const math::vec3& pos ) const
     rctx.renderer->push( pushBuffer, &pushConstant );
 
 
-    pushBuffer.m_pipeline = static_cast<PipelineSlot>( Pipeline::eThruster );
+    pushBuffer.m_pipeline = g_pipelines[ Pipeline::eThruster ];
     pushBuffer.m_verticeCount = 6u;
     pushBuffer.m_instanceCount = 4u;
     PushConstant<Pipeline::eThruster> pushConstant2{};

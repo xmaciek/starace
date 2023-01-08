@@ -190,13 +190,24 @@ struct PushConstant<Pipeline::eScanline> {
     math::vec4 m_power{};
 };
 
+struct PipelineAtlas {
+    std::array<PipelineSlot, static_cast<uint32_t>( Pipeline::count )> m_pipes{};
+    constexpr PipelineAtlas() noexcept = default;
+    PipelineSlot& operator [] ( Pipeline p ) noexcept
+    {
+        return m_pipes[ static_cast<uint32_t>( p ) ];
+    }
+};
 [[maybe_unused]]
-inline constexpr std::array g_pipelines = {
+inline constinit PipelineAtlas g_pipelines{};
+
+[[maybe_unused]]
+inline constexpr std::array g_pipelineCreateInfo = {
 
 PipelineCreateInfo{
     .m_vertexShader = "shaders/gui_texture_color.vert.spv",
     .m_fragmentShader = "shaders/gui_texture_color.frag.spv",
-    .m_slot = static_cast<PipelineSlot>( Pipeline::eGuiTextureColor1 ),
+    .m_userHint = static_cast<uint32_t>( Pipeline::eGuiTextureColor1 ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eGuiTextureColor1> ),
     .m_enableBlend = true,
     .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
@@ -211,7 +222,7 @@ PipelineCreateInfo{
 PipelineCreateInfo{
     .m_vertexShader = "shaders/background.vert.spv",
     .m_fragmentShader = "shaders/background.frag.spv",
-    .m_slot = static_cast<PipelineSlot>( Pipeline::eBackground ),
+    .m_userHint = static_cast<uint32_t>( Pipeline::eBackground ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eBackground> ),
     .m_enableBlend = true,
     .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
@@ -226,7 +237,7 @@ PipelineCreateInfo{
 PipelineCreateInfo{
     .m_vertexShader = "shaders/line3_strip_color.vert.spv",
     .m_fragmentShader = "shaders/line3_strip_color.frag.spv",
-    .m_slot = static_cast<PipelineSlot>( Pipeline::eLine3dStripColor ),
+    .m_userHint = static_cast<uint32_t>( Pipeline::eLine3dStripColor ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eLine3dStripColor> ),
     .m_enableBlend = true,
     .m_enableDepthTest = true,
@@ -240,7 +251,7 @@ PipelineCreateInfo{
 PipelineCreateInfo{
     .m_vertexShader = "shaders/trianglefan_texture.vert.spv",
     .m_fragmentShader = "shaders/trianglefan_texture.frag.spv",
-    .m_slot = static_cast<PipelineSlot>( Pipeline::eTriangleFan3dTexture ),
+    .m_userHint = static_cast<uint32_t>( Pipeline::eTriangleFan3dTexture ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eTriangleFan3dTexture> ),
     .m_enableBlend = true,
     .m_enableDepthTest = true,
@@ -257,7 +268,7 @@ PipelineCreateInfo{
 PipelineCreateInfo{
     .m_vertexShader = "shaders/trianglefan_color.vert.spv",
     .m_fragmentShader = "shaders/trianglefan_color.frag.spv",
-    .m_slot = static_cast<PipelineSlot>( Pipeline::eTriangleFan3dColor ),
+    .m_userHint = static_cast<uint32_t>( Pipeline::eTriangleFan3dColor ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eTriangleFan3dColor> ),
     .m_enableBlend = true,
     .m_enableDepthTest = true,
@@ -273,7 +284,7 @@ PipelineCreateInfo{
 PipelineCreateInfo{
     .m_vertexShader = "shaders/lines_color1.vert.spv",
     .m_fragmentShader = "shaders/lines_color1.frag.spv",
-    .m_slot = static_cast<PipelineSlot>( Pipeline::eLine3dColor1 ),
+    .m_userHint = static_cast<uint32_t>( Pipeline::eLine3dColor1 ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eLine3dColor1> ),
     .m_enableBlend = true,
     .m_enableDepthTest = true,
@@ -287,7 +298,7 @@ PipelineCreateInfo{
 PipelineCreateInfo{
     .m_vertexShader = "shaders/space_dust.vert.spv",
     .m_fragmentShader = "shaders/lines_color1.frag.spv",
-    .m_slot = static_cast<PipelineSlot>( Pipeline::eSpaceDust ),
+    .m_userHint = static_cast<uint32_t>( Pipeline::eSpaceDust ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eSpaceDust> ),
     .m_enableBlend = true,
     .m_enableDepthTest = true,
@@ -300,7 +311,7 @@ PipelineCreateInfo{
 PipelineCreateInfo{
     .m_vertexShader = "shaders/sprite_sequence.vert.spv",
     .m_fragmentShader = "shaders/sprite_sequence.frag.spv",
-    .m_slot = static_cast<PipelineSlot>( Pipeline::eSpriteSequence ),
+    .m_userHint = static_cast<uint32_t>( Pipeline::eSpriteSequence ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eSpriteSequence> ),
     .m_enableBlend = true,
     .m_topology = PipelineCreateInfo::Topology::eTriangleList,
@@ -315,7 +326,7 @@ PipelineCreateInfo{
 PipelineCreateInfo{
     .m_vertexShader = "shaders/sprite_sequence_colors.vert.spv",
     .m_fragmentShader = "shaders/sprite_sequence_colors.frag.spv",
-    .m_slot = static_cast<PipelineSlot>( Pipeline::eSpriteSequenceColors ),
+    .m_userHint = static_cast<uint32_t>( Pipeline::eSpriteSequenceColors ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eSpriteSequenceColors> ),
     .m_enableBlend = true,
     .m_topology = PipelineCreateInfo::Topology::eTriangleList,
@@ -330,7 +341,7 @@ PipelineCreateInfo{
 PipelineCreateInfo{
     .m_vertexShader = "shaders/albedo.vert.spv",
     .m_fragmentShader = "shaders/albedo.frag.spv",
-    .m_slot = static_cast<PipelineSlot>( Pipeline::eAlbedo ),
+    .m_userHint = static_cast<uint32_t>( Pipeline::eAlbedo ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eAlbedo> ),
     .m_enableBlend = false,
     .m_enableDepthTest = true,
@@ -353,7 +364,7 @@ PipelineCreateInfo{
 PipelineCreateInfo{
     .m_vertexShader = "shaders/progressbar.vert.spv",
     .m_fragmentShader = "shaders/progressbar.frag.spv",
-    .m_slot = static_cast<PipelineSlot>( Pipeline::eProgressBar ),
+    .m_userHint = static_cast<uint32_t>( Pipeline::eProgressBar ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eProgressBar> ),
     .m_enableBlend = true,
     .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
@@ -367,7 +378,7 @@ PipelineCreateInfo{
 PipelineCreateInfo{
     .m_vertexShader = "shaders/glow.vert.spv",
     .m_fragmentShader = "shaders/glow.frag.spv",
-    .m_slot = static_cast<PipelineSlot>( Pipeline::eGlow ),
+    .m_userHint = static_cast<uint32_t>( Pipeline::eGlow ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eGlow> ),
     .m_enableBlend = true,
     .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
@@ -381,7 +392,7 @@ PipelineCreateInfo{
 PipelineCreateInfo{
     .m_vertexShader = "shaders/thruster.vert.spv",
     .m_fragmentShader = "shaders/thruster.frag.spv",
-    .m_slot = static_cast<PipelineSlot>( Pipeline::eThruster ),
+    .m_userHint = static_cast<uint32_t>( Pipeline::eThruster ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eThruster> ),
     .m_enableBlend = true,
     .m_topology = PipelineCreateInfo::Topology::eTriangleList,
@@ -395,7 +406,7 @@ PipelineCreateInfo{
 PipelineCreateInfo{
     .m_vertexShader = "shaders/sprite3d.vert.spv",
     .m_fragmentShader = "shaders/sprite3d.frag.spv",
-    .m_slot = static_cast<PipelineSlot>( Pipeline::eSprite3D ),
+    .m_userHint = static_cast<uint32_t>( Pipeline::eSprite3D ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eSprite3D> ),
     .m_enableBlend = true,
     .m_enableDepthTest = true,
@@ -412,7 +423,7 @@ PipelineCreateInfo{
 PipelineCreateInfo{
     .m_vertexShader = "shaders/particles_blob.vert.spv",
     .m_fragmentShader = "shaders/sprite3d.frag.spv",
-    .m_slot = static_cast<PipelineSlot>( Pipeline::eParticleBlob ),
+    .m_userHint = static_cast<uint32_t>( Pipeline::eParticleBlob ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eParticleBlob> ),
     .m_enableBlend = true,
     .m_enableDepthTest = true,
@@ -428,7 +439,7 @@ PipelineCreateInfo{
 
 PipelineCreateInfo{
     .m_computeShader = "shaders/gamma.comp.spv",
-    .m_slot = static_cast<PipelineSlot>( Pipeline::eGammaCorrection ),
+    .m_userHint = static_cast<uint32_t>( Pipeline::eGammaCorrection ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eGammaCorrection> ),
     .m_binding{
         BindType::eComputeUniform,
@@ -439,7 +450,7 @@ PipelineCreateInfo{
 
 PipelineCreateInfo{
     .m_computeShader = "shaders/scanline.comp.spv",
-    .m_slot = static_cast<PipelineSlot>( Pipeline::eScanline ),
+    .m_userHint = static_cast<uint32_t>( Pipeline::eScanline ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eScanline> ),
     .m_binding{
         BindType::eComputeUniform,

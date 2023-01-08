@@ -21,7 +21,7 @@ void Explosion::render( const RenderContext& rctx ) const
 {
     PushBuffer pushBuffer{};
     pushBuffer.m_verticeCount = 4;
-    pushBuffer.m_pipeline = static_cast<PipelineSlot>( Pipeline::eSprite3D );
+    pushBuffer.m_pipeline = g_pipelines[ Pipeline::eSprite3D ];
     pushBuffer.m_resource[ 1 ].texture = m_texture;
 
     PushConstant<Pipeline::eSprite3D> pushConstant{};

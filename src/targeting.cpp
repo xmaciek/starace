@@ -34,7 +34,7 @@ void Targeting::render( RenderContext rctx ) const
         return;
     }
     PushBuffer pushBuffer{
-        .m_pipeline = static_cast<PipelineSlot>( Pipeline::eLine3dColor1 ),
+        .m_pipeline = g_pipelines[ Pipeline::eLine3dColor1 ],
         .m_verticeCount = target.size(),
         .m_lineWidth = 2.0f,
     };
