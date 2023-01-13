@@ -83,6 +83,7 @@ class RendererVK : public Renderer {
     VkFormat m_depthFormat = {};
 
     std::atomic<VkExtent2D> m_pendingResolutionChange = {};
+    static_assert( std::atomic<VkExtent2D>::is_always_lock_free, "extent atomic not lock free" );
     std::optional<VSync> m_pendingVSyncChange{};
 
     [[nodiscard]]
