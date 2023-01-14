@@ -27,4 +27,9 @@ public:
     {
         m_target = t;
     }
+
+    void setVelocity( const TVelocity& t )
+    {
+        m_velocity = t;
+    }
 };

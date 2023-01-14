@@ -715,10 +715,14 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
     };
     m_skybox = Skybox{ mapInfo.texture };
     m_explosions.clear();
-    m_dustUi.setVelocity( math::vec3{ 0.0f, 0.0f, 26.0_m } );
-    m_dustUi.setCenter( {} );
-    m_dustUi.setLineWidth( 2.0f );
-    m_jet = Jet( modelData );
+    m_dustGame.setVelocity( math::vec3{ 0.0f, 0.0f, 26.0_m } );
+    m_dustGame.setCenter( {} );
+    m_dustGame.setLineWidth( 2.0f );
+    m_jet = Jet( Jet::CreateInfo{
+        .model = modelData.model,
+        .modelScale = modelData.scale,
+        .vectorThrust = true,
+    } );
     m_jet.setWeapon( m_weapons[ m_weapon1 ], 0 );
     m_jet.setWeapon( m_weapons[ m_weapon2 ], 1 );
     m_jet.setWeapon( m_weapons[ m_weapon1 ], 2 );

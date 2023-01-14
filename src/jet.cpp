@@ -7,18 +7,32 @@
 #include <algorithm>
 #include <cassert>
 
-constexpr static math::vec3 defaultPyrLimits{ 80.0_deg, 40.0_deg, 120.0_deg };
+static constexpr math::vec3 defaultPyrLimits{ 80.0_deg, 40.0_deg, 120.0_deg };
+static constexpr math::vec3 defaultPyrSpeed{ 60.0_deg, 40.0_deg, 200.0_deg };
 
-Jet::Jet( const ModelProto& modelData ) noexcept
-: m_thruster{ { modelData.scale, modelData.scale * 0.04285f }, { modelData.scale, modelData.scale * 0.04285f } }
+static math::vec3 pointMult( uint8_t a, uint8_t b, uint8_t c )
+{
+    return math::vec3{
+        1.0f + SAObject::pointsToMultiplier( a ),
+        1.0f + SAObject::pointsToMultiplier( b ),
+        1.0f + SAObject::pointsToMultiplier( c )
+    };
+};
+
+Jet::Jet( const CreateInfo& ci ) noexcept
+: m_thruster{ { ci.modelScale, ci.modelScale * 0.04285f }, { ci.modelScale, ci.modelScale * 0.04285f } }
+, m_model{ ci.model }
 , m_pyrLimits{ defaultPyrLimits }
+, m_angleState{ {}, {}, defaultPyrSpeed * pointMult( ci.points.pitch, ci.points.yaw, ci.points.roll ) }
+, m_points{ ci.points }
 {
     m_direction.z = -1;
-    m_health = 100;
+    m_health = static_cast<uint8_t>( 100.0f * ( 1.0f + pointsToMultiplier( m_points.hp ) ) );
+    m_speedMax *= 1.0f + pointsToMultiplier( m_points.speedMax );
     m_speed = 600_kmph;
+    m_vectorThrust = ci.vectorThrust && m_model.thrusters().size() == 2;
     setStatus( Status::eAlive );
 
-    m_model = modelData.model;
 };
 
 void Jet::render( RenderContext rctx ) const
@@ -28,21 +42,21 @@ void Jet::render( RenderContext rctx ) const
 
     m_model.render( rctx );
     auto thrusters = m_model.thrusters();
-    if ( !m_vectorThrust || thrusters.size() != 2 ) {
+    if ( !m_vectorThrust ) {
         for ( const math::vec3& it : thrusters ) {
             m_thruster[ 0 ].renderAt( rctx, it );
         }
         return;
     }
     const math::mat4 model = rctx.model;
-    const math::vec2 left = m_vectorThrustLeft.value();
-    const math::vec2 right = m_vectorThrustRight.value();
+    const math::vec4 tangle = m_thrusterAngles.value();
 
-    rctx.model = math::rotate( model, right.x + right.y, axis::x );
+    rctx.model = math::rotate( model, tangle.x + tangle.y, axis::x );
+    m_thruster[ 0 ].renderAt( rctx, thrusters[ 0 ] );
+
+    rctx.model = math::rotate( model, tangle.z + tangle.w, axis::x );
     m_thruster[ 1 ].renderAt( rctx, thrusters[ 1 ] );
 
-    rctx.model = math::rotate( model, left.x + left.y, axis::x );
-    m_thruster[ 0 ].renderAt( rctx, thrusters[ 0 ] );
 }
 
 void Jet::update( const UpdateContext& updateContext )
@@ -57,33 +71,36 @@ void Jet::update( const UpdateContext& updateContext )
     m_angleState.setTarget( pyrTarget );
     m_angleState.update( updateContext.deltaTime );
 
-    float speedTarget = m_input.speed >= 0
+    const bool accell = m_input.speed >= 0.0f;
+    const float speedTarget = accell
         ? std::lerp( m_speedNorm, m_speedMax, m_input.speed )
         : std::lerp( m_speedMin, m_speedNorm, 1.0f + m_input.speed );
-
+    const float accellMultiplier = 1.0f + pointsToMultiplier( accell ? m_points.accell : m_points.deaccell );
     m_speedTarget.setTarget( speedTarget );
-    m_speedTarget.update( updateContext.deltaTime );
+    m_speedTarget.setVelocity( ( accell ? m_accell : m_deaccell ) * accellMultiplier );
+    m_speedTarget.update( updateContext.deltaTime + updateContext.deltaTime * updateContext.deltaTime );
     m_speed = m_speedTarget.value();
 
     m_quaternion *= math::quat{ m_angleState.value() * updateContext.deltaTime };
     m_direction = math::normalize( math::rotate( m_quaternion, math::vec3{ 0.0f, 0.0f, -1.0f } ) );
 
 
-    float horizontalN = m_input.yaw * 0.5f + 0.5f;
-    float verticalN = m_input.pitch * 0.5f + 0.5f;
-    float horizontalPos = math::nonlerp( 0.2f, -0.2f, horizontalN );
-    float verticalPos = math::nonlerp( -0.2f, 0.2f, verticalN );
-    float horizontalPos2 = math::nonlerp( 6.0_m, -6.0_m, horizontalN );
-    float verticalPos2 = math::nonlerp( -2.0_m, 2.0_m, verticalN );
-    m_camDirection.setTarget( math::normalize( math::vec3{ horizontalPos, verticalPos, -1.0f } ) );
-    m_camDirection.update( updateContext.deltaTime );
-    m_camPosition.setTarget( { horizontalPos2, verticalPos2, 0.0f } );
-    m_camPosition.update( updateContext.deltaTime );
+    auto nlerpRescale = []( float min, float max, float n )
+    {
+        return math::nonlerp( min, max, n * 0.5f + 0.5f );
+    };
 
-    m_vectorThrustLeft.setTarget( { -5.0_deg * m_input.pitch, 5.0_deg * m_input.roll } );
-    m_vectorThrustRight.setTarget( { -5.0_deg * m_input.pitch, -5.0_deg * m_input.roll } );
-    m_vectorThrustLeft.update( updateContext.deltaTime );
-    m_vectorThrustRight.update( updateContext.deltaTime );
+    m_camOffset.setTarget( math::vec3{
+        nlerpRescale( 6.0_m, -6.0_m, m_input.yaw ),
+        nlerpRescale( -2.0_m, 2.0_m, m_input.pitch ),
+        0.0f }
+    );
+    m_camOffset.update( updateContext.deltaTime );
+
+    math::vec4 thrusterAngles{ -2.5_deg, -2.5_deg, -2.5_deg, 2.5_deg };
+    thrusterAngles *= math::vec4{ m_input.pitch, m_input.roll, m_input.pitch, m_input.roll };
+    m_thrusterAngles.setTarget( thrusterAngles );
+    m_thrusterAngles.update( updateContext.deltaTime );
 
     float left = 10.0_m + ( m_vectorThrust ? m_input.yaw * 3.0_m : 0.0f ) + m_input.speed * 4.0_m;
     float right = 10.0_m + ( m_vectorThrust ? m_input.yaw * -3.0_m : 0.0f ) + m_input.speed * 4.0_m;
@@ -193,7 +210,7 @@ void Jet::setInput( const Jet::Input& input )
 
 math::vec3 Jet::cameraPosition() const
 {
-    return m_camPosition.value() + math::vec3{ 0.0f, -10.5_m, 41.5_m };
+    return m_camOffset.value() + math::vec3{ 0.0f, -10.5_m, 41.5_m };
 }
 
 math::vec3 Jet::cameraDirection() const
