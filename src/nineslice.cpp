@@ -37,22 +37,23 @@ void NineSlice::render( RenderContext rctx ) const
     ZoneScoped;
     using Generator = spritegen::NineSliceComposer;
     assert( m_texture );
-    PushBuffer pushBuffer{
+    PushData pushData{
         .m_pipeline = g_pipelines[ Pipeline::eSpriteSequence ],
-        .m_verticeCount = Generator::count(),
+        .m_verticeCount = 6,
+        .m_instanceCount = 9,
     };
-    pushBuffer.m_resource[ 1 ].texture = m_texture;
+    pushData.m_resource[ 1 ].texture = m_texture;
 
     const math::vec2 pos = position() + offsetByAnchor();
     const math::vec2 s = size();
     const math::vec2 midWH{ s.x - ( m_left + m_right ), s.y - ( m_top + m_bot ) };
 
-    PushConstant<Pipeline::eSpriteSequence> pushConstant{};
-    assert( Generator::count() <= pushConstant.m_xyuv.size() );
-    pushConstant.m_model = rctx.model;
-    pushConstant.m_projection = rctx.projection;
-    pushConstant.m_view = rctx.view;
-    pushConstant.m_color = rctx.colorMain;
+    PushConstant<Pipeline::eSpriteSequence> pushConstant{
+        .m_model = rctx.model,
+        .m_view = rctx.view,
+        .m_projection = rctx.projection,
+        .m_color = rctx.colorMain,
+    };
 
     Generator nineSliceComposer{
         .m_atlas = m_atlas,
@@ -60,9 +61,12 @@ void NineSlice::render( RenderContext rctx ) const
         .m_xyBegin = math::vec4{ pos.x, pos.y, 0, 0 },
         .m_midStretch = midWH,
     };
-    std::generate_n( pushConstant.m_xyuv.begin(), Generator::count(), nineSliceComposer );
+    auto gen = [&nineSliceComposer]() { return nineSliceComposer(); };
+    for ( uint32_t i = 0; i < 9; ++i ) {
+        std::generate_n( pushConstant.m_sprites[ i ].m_xyuv.begin(), 6, gen );
+    }
 
-    rctx.renderer->push( pushBuffer, &pushConstant );
+    rctx.renderer->push( pushData, &pushConstant );
 }
 
 }

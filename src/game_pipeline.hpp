@@ -95,24 +95,28 @@ struct PushConstant<Pipeline::eTriangleFan3dColor> {
 
 template <>
 struct PushConstant<Pipeline::eSpriteSequence> {
+    static constexpr uint32_t INSTANCES = 48;
+    struct Sprite {
+        std::array<math::vec4, 6> m_xyuv;
+    };
     math::mat4 m_model{};
     math::mat4 m_view{};
     math::mat4 m_projection{};
     math::vec4 m_color{};
-
-    static constexpr size_t c_spriteCount = 48;
-    std::array<math::vec4, c_spriteCount * 6> m_xyuv{};
+    std::array<Sprite, INSTANCES> m_sprites{};
 };
 
 template <>
 struct PushConstant<Pipeline::eSpriteSequenceColors> {
+    static constexpr uint32_t INSTANCES = 48;
+    struct Sprite {
+        math::vec4 m_color;
+        std::array<math::vec4, 6> m_xyuv;
+    };
     math::mat4 m_model{};
     math::mat4 m_view{};
     math::mat4 m_projection{};
-
-    static constexpr size_t c_spriteCount = 48;
-    std::array<math::vec4, c_spriteCount * 6> m_color{};
-    std::array<math::vec4, c_spriteCount * 6> m_xyuv{};
+    std::array<Sprite, INSTANCES> m_sprites{};
 };
 
 template <>

@@ -270,27 +270,28 @@ float Font::textLength( std::u32string_view text ) const
 Font::RenderText Font::composeText( const math::vec4& color, std::u32string_view text ) const
 {
     ZoneScoped;
-    assert( text.size() < PushConstant<Pipeline::eSpriteSequence>::c_spriteCount );
-    PushBuffer pushBuffer{
+    assert( text.size() < PushConstant<Pipeline::eSpriteSequence>::INSTANCES );
+    const uint32_t count = static_cast<uint32_t>( text.size() );
+
+    PushData pushData{
         .m_pipeline = g_pipelines[ Pipeline::eSpriteSequence ],
-        .m_verticeCount = static_cast<uint32_t>( text.size() * 6 ),
+        .m_verticeCount = 6,
+        .m_instanceCount = count,
     };
-    pushBuffer.m_resource[ 1 ].texture = m_texture;
+    pushData.m_resource[ 1 ].texture = m_texture;
 
     PushConstant<Pipeline::eSpriteSequence> pushConstant{};
     pushConstant.m_color = color;
-    auto verticeIt = pushConstant.m_xyuv.begin();
     math::vec2 advance{};
 
-    for ( auto ch : text ) {
-        const Glyph* glyph = m_glyphs[ ch ];
+    for ( uint32_t i = 0; i < count; ++i ) {
+        const Glyph* glyph = m_glyphs[ text[ i ] ];
         assert( glyph );
         const auto vertice = composeVertice( glyph->uv, advance, glyph->size, glyph->padding, { 0.0f, m_height } );
-        std::copy_n( vertice.begin(), vertice.size(), verticeIt );
-        std::advance( verticeIt, vertice.size() );
+        std::copy_n( vertice.begin(), vertice.size(), pushConstant.m_sprites[ i ].m_xyuv.begin() );
         advance.x += glyph->advance.x;
     }
-    return { pushBuffer, pushConstant };
+    return { pushData, pushConstant };
 }
 
 void Font::renderText( RenderContext rctx, const math::vec4& color, double x, double y, std::u32string_view text ) const

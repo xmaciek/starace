@@ -35,23 +35,18 @@ SpinBox::SpinBox( DataModel* dataModel ) noexcept
 
 void SpinBox::render( RenderContext rctx ) const
 {
-    PushBuffer pushBuffer{
+    PushData pushData{
         .m_pipeline = g_pipelines[ Pipeline::eSpriteSequenceColors ],
-        .m_verticeCount = spritegen::NineSlice2::count() + 12,
+        .m_verticeCount = 6u,
+        .m_instanceCount = 11u,
     };
-    pushBuffer.m_resource[ 1 ].texture = g_uiProperty.atlasTexture();
+    pushData.m_resource[ 1 ].texture = g_uiProperty.atlasTexture();
 
     PushConstant<Pipeline::eSpriteSequenceColors> pushConstant{
         .m_model = rctx.model,
         .m_view = rctx.view,
         .m_projection = rctx.projection,
     };
-
-
-    auto colorIt = pushConstant.m_color.begin();
-    colorIt = std::fill_n( colorIt, 6, m_focusL ? rctx.colorFocus : rctx.colorMain );
-    colorIt = std::fill_n( colorIt, spritegen::NineSlice2::count(), isFocused() ? rctx.colorFocus : rctx.colorMain );
-              std::fill_n( colorIt, 6, m_focusR ? rctx.colorFocus : rctx.colorMain );
 
     const math::vec2 pos = position() + offsetByAnchor();
     const math::vec2 s = size();
@@ -67,30 +62,31 @@ void SpinBox::render( RenderContext rctx ) const
     left.x += nonlerp2( 0.0f, -5.0f, m_animL );
     right.x += nonlerp2( 0.0f, 5.0f, m_animR );
 
-
-    auto it = pushConstant.m_xyuv.begin();
-    it = std::generate_n( it, 6, spritegen::Vert6{
+    pushConstant.m_sprites[ 0 ].m_color = m_focusL ? rctx.colorFocus : rctx.colorMain;
+    std::generate_n( pushConstant.m_sprites[ 0 ].m_xyuv.begin(), 6, spritegen::Vert6{
         .m_xywh = left,
         .m_uvwh = g_uiProperty.atlas()->sliceUV( ui::AtlasSprite::eArrowLeft ),
     } );
 
-    it = std::generate_n( it, spritegen::NineSlice2::count(), spritegen::NineSlice2{
-        mid,
-        g_uiProperty.atlas(),
-        c_slices
-    } );
-
-    std::generate_n( it, 6, spritegen::Vert6{
+    pushConstant.m_sprites[ 1 ].m_color = m_focusR ? rctx.colorFocus : rctx.colorMain;
+    std::generate_n( pushConstant.m_sprites[ 1 ].m_xyuv.begin(), 6, spritegen::Vert6{
         .m_xywh = right,
         .m_uvwh = g_uiProperty.atlas()->sliceUV( ui::AtlasSprite::eArrowRight ),
     } );
 
-    rctx.renderer->push( pushBuffer, &pushConstant );
+
+    spritegen::NineSlice2 vertGen{ mid, g_uiProperty.atlas(), c_slices };
+    auto gen = [&vertGen]() { return vertGen(); };
+
+    for ( uint32_t i = 2; i < 11; ++i ) {
+        pushConstant.m_sprites[ i ].m_color = isFocused() ? rctx.colorFocus : rctx.colorMain;
+        std::generate_n( pushConstant.m_sprites[ i ].m_xyuv.begin(), 6, gen );
+    };
+    rctx.renderer->push( pushData, &pushConstant );
 
     const math::vec2 mv = pos + s * 0.5f;
-    RenderContext r = rctx;
-    r.model = math::translate( rctx.model, math::vec3{ mv.x, mv.y, 0.0f } );
-    m_label.render( r );
+    rctx.model = math::translate( rctx.model, math::vec3{ mv.x, mv.y, 0.0f } );
+    m_label.render( rctx );
 }
 
 MouseEvent::Processing SpinBox::onMouseEvent( const MouseEvent& event )
