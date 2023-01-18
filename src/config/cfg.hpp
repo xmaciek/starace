@@ -71,8 +71,8 @@ public:
 
     inline TokenIterator( std::span<const char> t, std::span<const char> d )
     : m_tokens{ t }
-    , m_begin{ &*d.begin() }
-    , m_end{ &*d.end() }
+    , m_begin{ d.data() }
+    , m_end{ d.data() + d.size() }
     {
         ++*this;
     }

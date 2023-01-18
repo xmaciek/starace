@@ -592,7 +592,10 @@ void RendererVK::recreateSwapchain()
 
 void RendererVK::setResolution( uint32_t width, uint32_t height )
 {
-    m_pendingResolutionChange.store( VkExtent2D{ .width = width, .height = height } );
+    uint64_t packedResolution = static_cast<uint64_t>( width );
+    packedResolution <<= 32;
+    packedResolution |= height;
+    m_pendingResolutionChange.store( packedResolution );
 }
 
 void RendererVK::recreateRenderTargets( const VkExtent2D& resolution )
@@ -752,6 +755,7 @@ void RendererVK::present()
     };
 
     switch ( vkQueuePresentKHR( m_queuePresent, &presentInfo ) ) {
+    [[likely]]
     case VK_SUCCESS: break;
     case VK_ERROR_OUT_OF_DATE_KHR:
     case VK_SUBOPTIMAL_KHR:
@@ -761,8 +765,13 @@ void RendererVK::present()
         assert( !"failed to present" );
     }
 
-    const VkExtent2D res = m_pendingResolutionChange.exchange( {} );
     do {
+        const uint64_t packedResolution = m_pendingResolutionChange.exchange( 0 );
+        if ( packedResolution == 0 ) [[likely]] break;
+        const VkExtent2D res{
+            .width = static_cast<uint32_t>( packedResolution >> 32 ),
+            .height = static_cast<uint32_t>( packedResolution & 0xFFFF'FFFFull ),
+        };
         if ( !res.width ) break;
         if ( !res.height ) break;
         const VkExtent2D currentRes = m_frames[ 0 ].m_renderTarget.extent();

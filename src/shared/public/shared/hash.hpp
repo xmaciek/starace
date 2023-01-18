@@ -79,7 +79,7 @@ struct Hash {
         return h;
     }
 
-    static constexpr value_type calc( const char* str, unsigned long len ) noexcept
+    static constexpr value_type calc( const char* str, std::size_t len ) noexcept
     {
         // NOTE: what are the odds that 2 different hash algorithms are going to collide silmutanously for same data?
         value_type ret = crc32( str, len );
@@ -94,7 +94,7 @@ struct Hash {
     }
 };
 
-constexpr Hash::value_type operator ""_hash( const char* str, unsigned long len ) noexcept
+constexpr Hash::value_type operator ""_hash( const char* str, std::size_t len ) noexcept
 {
     return Hash::calc( str, len );
 }

@@ -177,7 +177,7 @@ inline auto translate( const auto& TMat, const auto& TVec )
     return glm::translate( TMat, TVec );
 };
 
-inline float sin( const float f )
+inline float sin( float f )
 {
     return std::sin( f );
 }

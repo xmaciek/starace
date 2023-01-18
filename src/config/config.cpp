@@ -32,12 +32,12 @@ float Entry::toFloat() const
 
 const Entry* Entry::begin() const
 {
-    return &*data.cbegin();
+    return data.data();
 }
 
 const Entry* Entry::end() const
 {
-    return &*data.cend();
+    return data.data() + data.size();
 }
 
 std::string_view Entry::operator * () const

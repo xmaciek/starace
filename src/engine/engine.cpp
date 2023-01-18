@@ -347,7 +347,7 @@ void Engine::setDisplayMode( const DisplayMode& displayMode )
     assert( it != modes.end() );
 
     const SDL_DisplayMode nearestMode = *it;
-    m_renderer->setResolution( nearestMode.w, nearestMode.h );
+    m_renderer->setResolution( static_cast<uint32_t>( nearestMode.w ), static_cast<uint32_t>( nearestMode.h ) );
 
     SDL_Event e{};
     e.type = SDL_WINDOWEVENT;

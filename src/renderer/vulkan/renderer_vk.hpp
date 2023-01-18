@@ -25,7 +25,7 @@
 class RendererVK : public Renderer {
     struct Unloader {
         using Fn = void();
-        const Fn* fn = nullptr;
+        Fn* fn = nullptr;
         ~Unloader() { if ( fn ) fn(); };
     };
     Unloader m_unloader{};
@@ -82,8 +82,7 @@ class RendererVK : public Renderer {
     VkFormat m_colorFormat = VK_FORMAT_R16G16B16A16_UNORM;
     VkFormat m_depthFormat = {};
 
-    std::atomic<VkExtent2D> m_pendingResolutionChange = {};
-    static_assert( std::atomic<VkExtent2D>::is_always_lock_free, "extent atomic not lock free" );
+    std::atomic<uint64_t> m_pendingResolutionChange = {};
     std::optional<VSync> m_pendingVSyncChange{};
 
     [[nodiscard]]
