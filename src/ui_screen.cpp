@@ -168,6 +168,7 @@ Screen::Screen( const cfg::Entry& entry ) noexcept
     ZoneScoped;
     std::pmr::memory_resource* alloc = std::pmr::get_default_resource();
     uint16_t tabOrderCount = 0;
+
     for ( const auto& it : entry ) {
         auto str = *it;
         if ( str == "width"sv ) { m_extent.x = it.toFloat(); continue; }
@@ -222,11 +223,13 @@ void Screen::onMouseEvent( const MouseEvent& e )
     event.position /= m_resize;
     event.position *= m_viewport;
     event.position -= m_offset;
+    uint16_t prevWidget = *m_tabOrder;
     m_tabOrder.invalidate();
     for ( const auto& it : m_widgets ) {
         auto mouseProcessing = it->onMouseEvent( event );
         if ( mouseProcessing == MouseEvent::eContinue ) continue;
         m_tabOrder = it->tabOrder();
+        changeFocus( prevWidget, *m_tabOrder );
         return;
     }
 
@@ -246,6 +249,7 @@ Widget* Screen::findWidgetByTabOrder( uint16_t tabOrder )
 
 void Screen::changeFocus( uint16_t from, uint16_t to )
 {
+    if ( from == to ) { return; }
     Widget* wgt = findWidgetByTabOrder( from );
     if ( wgt ) { wgt->setFocused( false ); }
 
