@@ -1,4 +1,4 @@
-cmake_minimum_required( VERSION 3.20.0 )
+cmake_minimum_required( VERSION 3.24.0 )
 project( StarAce )
 
 set( STARACE_MAJOR_VERSION 1 )
@@ -27,7 +27,7 @@ add_executable( cooker_obj )
 set_vs_directory( cooker_obj cooker )
 
 add_executable( cooker_dds )
-set_vs_directory( cooker_obj cooker )
+set_vs_directory( cooker_dds cooker )
 
 
 find_package( Vulkan REQUIRED )

@@ -17,6 +17,7 @@ endfunction()
 
 glmFromDirectory( "${CMAKE_CURRENT_SOURCE_DIR}" )
 glmFromDirectory( "$ENV{VK_SDK_PATH}/Third-Party/Include" )
+glmFromDirectory( "$ENV{VK_SDK_PATH}/Include" )
 
 if ( NOT TARGET glm::glm AND UNIX )
     find_package( glm REQUIRED )

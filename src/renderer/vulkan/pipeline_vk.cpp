@@ -216,7 +216,7 @@ PipelineVK::PipelineVK(
         .lineWidth = 1.0f,
     };
 
-    const auto depthStencilColor = depthStencilInfo( pci.m_enableDepthTest, pci.m_enableDepthWrite, false );
+    const auto depthStencilColor = depthStencilInfo( pci.m_enableDepthTest, false, false );
     const auto depthStencilPrepass = depthStencilInfo( pci.m_enableDepthTest, pci.m_enableDepthWrite, true );
 
     const VkPipelineColorBlendAttachmentState colorBlendAttachment{

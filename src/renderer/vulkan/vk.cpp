@@ -7,6 +7,7 @@
 #include <dlfcn.h>
 static constexpr auto LIB_NAME = "libvulkan.so";
 static constexpr auto FLAGS = RTLD_LAZY | RTLD_LOCAL;
+static void* dllHandle = nullptr;
 
 #elif defined( _WIN64 )
 #define WIN32_LEAN_AND_MEAN 1
@@ -17,6 +18,7 @@ static constexpr auto FLAGS = 0;
 static auto dlopen = []( auto name, auto ) { return LoadLibraryA( name ); };
 static auto& dlsym = GetProcAddress;
 static auto& dlclose = FreeLibrary;
+static HMODULE dllHandle = {};
 
 #else
 #error "platform not supported"
@@ -25,7 +27,6 @@ static auto& dlclose = FreeLibrary;
 
 namespace vk {
 
-static void* dllHandle = nullptr;
 
 bool dllLoad()
 {
@@ -47,7 +48,7 @@ bool dllLoad()
 
 void dllUnload()
 {
-    void* dll = dllHandle;
+    auto dll = dllHandle;
     dllHandle = nullptr;
     if ( !dll ) { return; }
 #define DECL_FUNCTION( name ) name = nullptr;
