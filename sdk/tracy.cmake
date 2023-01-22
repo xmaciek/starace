@@ -20,7 +20,6 @@ if ( ${EnableTracyProfiler} AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${tracy_dir}
         TRACY_ENABLE=1
     )
     target_link_libraries( tracy dl )
-
 else()
     add_library( tracy INTERFACE )
     target_sources( tracy
@@ -34,4 +33,5 @@ else()
     )
 endif()
 
+set_vs_directory( tracy "sdk" )
 add_library( Tracy::Client ALIAS tracy )

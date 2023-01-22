@@ -1,4 +1,5 @@
 add_custom_target( texture )
+set_vs_directory( texture "textures" )
 add_dependencies( cook texture )
 
 function( cook_dds file dstFile )
@@ -10,6 +11,7 @@ function( cook_dds file dstFile )
         COMMAND cooker_dds "${CMAKE_CURRENT_SOURCE_DIR}/${file}" "${dstFile}" ${ARGV2}
     )
     add_dependencies( texture "texture.${dstFile}" )
+    set_vs_directory( "texture.${dstFile}" "textures" )
 endfunction()
 
 

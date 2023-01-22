@@ -10,6 +10,7 @@ target_sources( shared
     ${CMAKE_CURRENT_SOURCE_DIR}/public/shared/pool.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/shared/rotary_index.hpp
 )
+set_vs_directory( shared "libs" )
 
 set_target_properties( shared PROPERTIES
     INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/public/

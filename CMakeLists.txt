@@ -9,16 +9,26 @@ set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
 include( compiler.cmake )
 
-add_custom_target( cook ALL )
-add_executable( cooker_obj )
-add_executable( cooker_dds )
-
 function( set_cppver tgt cppver )
     set_target_properties( ${tgt} PROPERTIES
         CXX_STANDARD ${cppver}
         CXX_STANDARD_REQUIRED ${cppver}
     )
 endfunction()
+function( set_vs_directory tgt dirname )
+    set_target_properties( ${tgt} PROPERTIES
+        FOLDER "${dirname}"
+    )
+endfunction()
+
+add_custom_target( cook ALL )
+
+add_executable( cooker_obj )
+set_vs_directory( cooker_obj cooker )
+
+add_executable( cooker_dds )
+set_vs_directory( cooker_obj cooker )
+
 
 find_package( Vulkan REQUIRED )
 add_subdirectory( sdk )

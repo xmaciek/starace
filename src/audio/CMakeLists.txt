@@ -8,6 +8,7 @@ target_sources( audio
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/public/audio/audio.hpp
 )
+set_vs_directory( audio "libs" )
 
 set_target_properties( audio PROPERTIES
     INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/public/

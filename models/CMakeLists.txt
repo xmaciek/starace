@@ -1,4 +1,5 @@
 add_custom_target( model )
+set_vs_directory( model "models" )
 add_dependencies( cook model )
 
 function( cook_obj file )
@@ -10,9 +11,9 @@ function( cook_obj file )
         COMMAND "${CMAKE_BINARY_DIR}/cooker_obj" "${CMAKE_CURRENT_SOURCE_DIR}/${file}.obj" "${file}.objc"
     )
     add_dependencies( model "model.${file}" )
+    set_vs_directory( "model.${file}" "models" )
 endfunction()
 
-#cook_obj( a1 )
 cook_obj( a2 )
 cook_obj( a3 )
 cook_obj( a4 )

@@ -10,6 +10,7 @@ target_sources( extra
     ${CMAKE_CURRENT_SOURCE_DIR}/public/extra/obj.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/extra/tga.hpp
 )
+set_vs_directory( extra "libs" )
 
 set_target_properties( extra PROPERTIES
     INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/public/

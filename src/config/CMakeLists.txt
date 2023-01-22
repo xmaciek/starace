@@ -9,6 +9,7 @@ target_sources( config
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/public/config/config.hpp
 )
+set_vs_directory( config "libs" )
 
 set_target_properties( config PROPERTIES
     INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/public/

@@ -8,6 +8,7 @@ target_sources( renderer
     ${CMAKE_CURRENT_SOURCE_DIR}/public/renderer/renderer.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/renderer/texture.hpp
 )
+set_vs_directory( renderer "libs" )
 
 set_target_properties( renderer PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/public/

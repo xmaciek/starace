@@ -1,5 +1,6 @@
 add_library( renderer_vk STATIC )
 set_cppver( renderer_vk 20 )
+set_vs_directory( renderer_vk "libs" )
 
 target_sources( renderer_vk
     PRIVATE

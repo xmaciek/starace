@@ -17,6 +17,7 @@ target_sources( engine
     ${CMAKE_CURRENT_SOURCE_DIR}/public/engine/render_context.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/engine/update_context.hpp
 )
+set_vs_directory( engine "libs" )
 
 set_target_properties( engine PROPERTIES
     INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/public/
