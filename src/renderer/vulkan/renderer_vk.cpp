@@ -290,12 +290,12 @@ PipelineSlot RendererVK::createPipeline( const PipelineCreateInfo& pci )
     {
         auto it = std::find( array.begin(), array.end(), bindpoints );
         if ( it != array.end() ) {
-            return { std::distance( array.begin(), it ), false };
+            return { static_cast<uint32_t>( std::distance( array.begin(), it ) ), false };
         }
         it = std::find( array.begin(), array.end(), 0 );
         assert( it != array.end() );
         *it = bindpoints;
-        return { std::distance( array.begin(), it ), true };
+        return { static_cast<uint32_t>( std::distance( array.begin(), it ) ), true };
     };
 
     static_assert( sizeof( pci.m_binding ) == sizeof( uint64_t ), "TODO: different method of matching descriptor sets" );

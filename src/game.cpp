@@ -301,7 +301,7 @@ void Game::onInit()
     g_gameUiDataModels[ "$data:fullscreen" ] = &m_optionsGFX.m_fullscreen;
     g_gameUiDataModels[ "$data:vsync" ] = &m_optionsGFX.m_vsync;
 
-    m_optionsCustomize.m_jet.m_size = [this](){ return m_jetsContainer.size(); };
+    m_optionsCustomize.m_jet.m_size = [this](){ return static_cast<ui::DataModel::size_type>( m_jetsContainer.size() ); };
     m_optionsCustomize.m_jet.m_at = [this]( auto i )
     {
         assert( i < m_jetsContainer.size() );
@@ -320,11 +320,12 @@ void Game::onInit()
         auto key = m_weapons[ i ].displayName;
         return g_uiProperty.localize( key );
     };
-    m_optionsCustomize.m_weaponPrimary.m_size = [this](){ return m_weapons.size(); };
+    auto weaponCount = [this](){ return static_cast<ui::DataModel::size_type>( m_weapons.size() ); };
+    m_optionsCustomize.m_weaponPrimary.m_size = weaponCount;
     m_optionsCustomize.m_weaponPrimary.m_at = weapNames;
     m_optionsCustomize.m_weaponPrimary.m_select = [this]( auto i ){ m_weapon1 = i; };
     m_optionsCustomize.m_weaponPrimary.m_current = [this](){ return m_weapon1; };
-    m_optionsCustomize.m_weaponSecondary.m_size = [this](){ return m_weapons.size(); };
+    m_optionsCustomize.m_weaponSecondary.m_size = weaponCount;
     m_optionsCustomize.m_weaponSecondary.m_at = weapNames;
     m_optionsCustomize.m_weaponSecondary.m_select = [this]( auto i ){ m_weapon2 = i; };
     m_optionsCustomize.m_weaponSecondary.m_current = [this](){ return m_weapon2; };
@@ -333,7 +334,7 @@ void Game::onInit()
 
 
     m_dataMissionSelect.m_current = [this](){ return m_currentMission; };
-    m_dataMissionSelect.m_size = [this](){ return m_mapsContainer.size(); };
+    m_dataMissionSelect.m_size = [this](){ return static_cast<ui::DataModel::size_type>( m_mapsContainer.size() ); };
     m_dataMissionSelect.m_at = [this]( auto i ) -> std::pmr::u32string
     {
         assert( i < m_mapsContainer.size() );
