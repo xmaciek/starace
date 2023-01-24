@@ -223,11 +223,6 @@ Game::~Game()
 {
     ZoneScoped;
     clearMapData();
-
-    delete m_fontSmall;
-    delete m_fontMedium;
-    delete m_fontLarge;
-
 }
 
 void Game::preloadData()
@@ -364,12 +359,13 @@ void Game::onInit()
             .renderer = m_renderer,
             .charset = charset,
         };
-        m_fontSmall = new Font( createInfo, 12 );
-        m_fontMedium = new Font( createInfo, 18 );
-        m_fontLarge = new Font( createInfo, 32 );
-        g_uiProperty.m_fontSmall = m_fontSmall;
-        g_uiProperty.m_fontMedium = m_fontMedium;
-        g_uiProperty.m_fontLarge = m_fontLarge;
+        auto* alloc = std::pmr::get_default_resource();
+        m_fontSmall = UniquePointer<Font>{ alloc, createInfo, 12 };
+        m_fontMedium = UniquePointer<Font>{ alloc, createInfo, 18 };
+        m_fontLarge = UniquePointer<Font>{ alloc, createInfo, 32 };
+        g_uiProperty.m_fontSmall = m_fontSmall.get();
+        g_uiProperty.m_fontMedium = m_fontMedium.get();
+        g_uiProperty.m_fontLarge = m_fontLarge.get();
     }
 
     {
@@ -625,7 +621,7 @@ void Game::updateGame( const UpdateContext& updateContext )
         for ( auto& e : m_enemies ) {
             e->update( updateContext );
             if ( isDead( e ) ) {
-                m_jet.untarget( *e );
+                m_jet.untarget( e.get() );
                 m_explosions.push_back( Explosion{ e->position(), e->velocity(), m_plasma, 0.0f } );
                 continue;
             }
@@ -692,7 +688,7 @@ void Game::retarget()
     std::transform( m_enemies.begin(), m_enemies.end(), tgtInfo.begin(),
         [jetPos, jetDir]( auto& obj ) -> TgtInfo
         {
-            return { *obj, math::angle( math::normalize( obj->position() - jetPos ), jetDir ) };
+            return { obj.get(), math::angle( math::normalize( obj->position() - jetPos ), jetDir ) };
         }
     );
     auto it = std::min_element( tgtInfo.begin(), tgtInfo.end() );

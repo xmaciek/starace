@@ -9,6 +9,8 @@
 #include <type_traits>
 #include <memory_resource>
 
+#include <Tracy.hpp>
+
 template <typename T, std::size_t TCapacity>
 class Pool : protected Indexer<TCapacity>, public std::pmr::memory_resource {
     using Super = Indexer<TCapacity>;
@@ -57,11 +59,14 @@ public:
         const auto [ chunk, bitMask ] = Super::split( index );
         assert( ( Super::m_indexes[ chunk ].load() & bitMask ) == bitMask );
         m_numAllocs.fetch_add( 1 );
-        return &m_data[ index ];
+        void* ret = &m_data[ index ];
+        TracyAlloc( ret, sizeof( T ) );
+        return ret;
     }
 
     void dealloc( void* ptr ) noexcept
     {
+        TracyFree( ptr );
         m_numAllocs.fetch_sub( 1 );
         const std::uintptr_t index = static_cast<std::uintptr_t>(
             reinterpret_cast<const Storage*>( ptr ) - &m_data.front()

@@ -18,6 +18,7 @@ if ( ${EnableTracyProfiler} AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${tracy_dir}
     target_compile_definitions( tracy
         PUBLIC
         TRACY_ENABLE=1
+        TRACY_CALLSTACK=1
     )
     target_link_libraries( tracy dl )
 else()

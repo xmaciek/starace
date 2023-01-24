@@ -59,9 +59,9 @@ private:
         max,
     };
 
-    Font* m_fontSmall = nullptr;
-    Font* m_fontMedium = nullptr;
-    Font* m_fontLarge = nullptr;
+    UniquePointer<Font> m_fontSmall{};
+    UniquePointer<Font> m_fontMedium{};
+    UniquePointer<Font> m_fontLarge{};
     uint32_t m_currentMission = 0;
     uint32_t m_currentJet = 0;
     uint32_t m_weapon1 = 0;

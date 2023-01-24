@@ -99,7 +99,15 @@ public:
         return m_ptr;
     }
 
-    pointer operator * () const noexcept
+    T& operator * () noexcept
+    {
+        return *m_ptr;
+    }
+    const T& operator * () const noexcept
+    {
+        return *m_ptr;
+    }
+    pointer get() const noexcept
     {
         return m_ptr;
     }

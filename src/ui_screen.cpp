@@ -244,7 +244,7 @@ Widget* Screen::findWidgetByTabOrder( uint16_t tabOrder )
     auto wgt = std::find_if( m_widgets.begin(), m_widgets.end()
         , [tabOrder]( const auto& wgt ) { return wgt->tabOrder() == tabOrder; }
     );
-    return ( wgt != m_widgets.end() ) ? **wgt : nullptr;
+    return ( wgt != m_widgets.end() ) ? wgt->get() : nullptr;
 }
 
 void Screen::changeFocus( uint16_t from, uint16_t to )

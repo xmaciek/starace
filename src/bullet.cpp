@@ -79,7 +79,7 @@ void Bullet::renderAll( const RenderContext& rctx, std::span<const UniquePointer
         if ( !isOnScreen( mvp, it->m_position, rctx.viewport ) ) {
             continue;
         }
-        idx = pushBullet( pushConstant, idx, **it );
+        idx = pushBullet( pushConstant, idx, *it );
         if ( ParticleBlob::INSTANCES - idx < 5 ) {
             pushBuffer.m_instanceCount = idx;
             rctx.renderer->push( pushBuffer, &pushConstant );

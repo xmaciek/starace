@@ -9,6 +9,7 @@ target_sources( shared
     ${CMAKE_CURRENT_SOURCE_DIR}/public/shared/indexer.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/shared/pool.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/shared/rotary_index.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/shared/track_allocator.hpp
 )
 set_vs_directory( shared "libs" )
 
@@ -20,4 +21,5 @@ set_target_properties( shared PROPERTIES
 target_link_libraries( shared
     INTERFACE
     cxx::flags
+    Tracy::Client
 )

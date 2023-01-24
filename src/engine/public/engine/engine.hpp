@@ -8,6 +8,7 @@
 #include <engine/mouse_event.hpp>
 #include <audio/audio.hpp>
 #include <renderer/renderer.hpp>
+#include <shared/track_allocator.hpp>
 
 #include <SDL_events.h>
 
@@ -23,6 +24,11 @@ struct SDL_Window;
 
 class Engine {
 private:
+#ifdef TRACY_ENABLE
+    [[no_unique_address]]
+    TrackAllocator<> m_trackAllocator{};
+#endif
+
     std::atomic<bool> m_isRunning = true;
 
     SDL_Window* m_window = nullptr;
