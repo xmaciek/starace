@@ -22,24 +22,6 @@
 #include <cmath>
 #include <set>
 
-static constexpr const char* chunk0[] = {
-    "misc/DejaVuSans-Bold.ttf",
-    "lang/en.txt",
-    "textures/cyber_ring1.dds",
-    "textures/cyber_ring2.dds",
-    "textures/cyber_ring3.dds",
-    "textures/atlas_ui.dds",
-    "maps.cfg",
-    "jets.cfg",
-    "weapons.cfg",
-    "ui/mainmenu.ui",
-    "ui/missionselect.ui",
-    "ui/customize.ui",
-    "ui/settings.ui",
-    "ui/pause.ui",
-    "ui/result.ui",
-};
-
 static constexpr const char* chunk1[] = {
     "textures/a2.dds",
     "textures/a3.dds",
@@ -204,7 +186,13 @@ Game::Game( int argc, char** argv )
 , m_atlasUi{ c_spritesUi, 96, 48 }
 {
     ZoneScoped;
-    preloadData();
+    m_io->mount( "shaders.tar" );
+    m_io->mount( "misc.tar" );
+    m_io->mount( "ui.tar" );
+    m_io->mount( "sounds.tar" );
+    m_io->mount( "models.tar" );
+    m_io->mount( "textures.tar" );
+
     for ( const auto& p : g_pipelineCreateInfo ) {
         g_pipelines[ static_cast<Pipeline>( p.m_userHint ) ] = m_renderer->createPipeline( p );
     }
@@ -223,18 +211,6 @@ Game::~Game()
 {
     ZoneScoped;
     clearMapData();
-}
-
-void Game::preloadData()
-{
-    ZoneScoped;
-    for ( const char* it : chunk0 ) {
-        m_io->enqueue( it );
-    }
-
-    for ( const char* it : chunk1 ) {
-        m_io->enqueue( it );
-    }
 }
 
 void Game::onExit()
@@ -353,9 +329,8 @@ void Game::onInit()
         U"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         U" `~'\",./\\?+-*!@#$%^&()[]{};:<>";
         std::sort( charset.begin(), charset.end() );
-        const std::pmr::vector<uint8_t> fontFileContent = m_io->getWait( "misc/DejaVuSans-Bold.ttf" );
         const Font::CreateInfo createInfo{
-            .fontFileContent = { fontFileContent.cbegin(), fontFileContent.cend() },
+            .fontFileContent = m_io->viewWait( "misc/DejaVuSans-Bold.ttf" ),
             .renderer = m_renderer,
             .charset = charset,
         };
@@ -368,9 +343,15 @@ void Game::onInit()
         g_uiProperty.m_fontLarge = m_fontLarge.get();
     }
 
+    auto TODO_makeViewable = [io = m_io]( const auto& path )
+    {
+        auto view = io->viewWait( path );
+        return std::pmr::vector<uint8_t>{ view.begin(), view.end() };
+    };
     {
         ZoneScopedN( "HashMap" );
-        auto loc = cfg::Entry::fromData( m_io->getWait( "lang/en.txt" ) );
+        // TODO make viewable
+        auto loc = cfg::Entry::fromData( TODO_makeViewable( "lang/en.txt" ) );
         Hash hash{};
         for ( const auto& it : loc ) {
             m_localizationMap.insert( hash( *it ), it.toString32() );
@@ -378,28 +359,29 @@ void Game::onInit()
     }
     m_hud = Hud{ &m_hudData };
 
-    m_blaster = m_audio->load( "sounds/blaster.wav" );
-    m_torpedo = m_audio->load( "sounds/torpedo.wav" );
-    m_click = m_audio->load( "sounds/click.wav" );
+    m_blaster = m_audio->load( m_io->viewWait( "sounds/blaster.wav" ) );
+    m_torpedo = m_audio->load( m_io->viewWait( "sounds/torpedo.wav" ) );
+    m_click = m_audio->load( m_io->viewWait( "sounds/click.wav" ) );
 
     const std::array rings = {
-        parseTexture( m_io->getWait( "textures/cyber_ring1.dds" ) ),
-        parseTexture( m_io->getWait( "textures/cyber_ring2.dds" ) ),
-        parseTexture( m_io->getWait( "textures/cyber_ring3.dds" ) ),
+        parseTexture( m_io->viewWait( "textures/cyber_ring1.dds" ) ),
+        parseTexture( m_io->viewWait( "textures/cyber_ring2.dds" ) ),
+        parseTexture( m_io->viewWait( "textures/cyber_ring3.dds" ) ),
     };
     m_uiRings = UIRings{ rings };
 
-    m_textures[ "textures/atlas_ui.dds" ] = parseTexture( m_io->getWait( "textures/atlas_ui.dds" ) );
+    m_textures[ "textures/atlas_ui.dds" ] = parseTexture( m_io->viewWait( "textures/atlas_ui.dds" ) );
     g_uiProperty.m_atlasTexture = m_textures[ "textures/atlas_ui.dds" ];
     g_uiProperty.m_atlas = &m_atlasUi;
 
 
     for ( const char* it : chunk1 ) {
-        m_textures[ it ] = parseTexture( m_io->getWait( it ) );
+        m_textures[ it ] = parseTexture( m_io->viewWait( it ) );
     }
 
     m_plasma = m_textures[ "textures/plasma.dds" ];
-    cfg::Entry weapons = cfg::Entry::fromData( m_io->getWait( "weapons.cfg" ) );
+
+    cfg::Entry weapons = cfg::Entry::fromData( TODO_makeViewable( "misc/weapons.cfg" ) );
     for ( const auto& it : weapons ) {
         auto [ weapon, isHidden ] = parseWeapon( it, m_plasma );
         if ( isHidden ) {
@@ -412,22 +394,19 @@ void Game::onInit()
     assert( m_weapons.size() == 2 );
     loadMapProto();
 
-    m_jetsContainer = loadJets( m_io->getWait( "jets.cfg" ) );
+    m_jetsContainer = loadJets( TODO_makeViewable( "misc/jets.cfg" ) );
     assert( !m_jetsContainer.empty() );
     for ( auto& it : m_jetsContainer ) {
-        m_io->enqueue( it.model_file );
-    }
-    for ( auto& it : m_jetsContainer ) {
-        m_meshes[ it.model_file ] = Mesh{ m_io->getWait( it.model_file ), m_renderer };
+        m_meshes[ it.model_file ] = Mesh{ TODO_makeViewable( it.model_file ), m_renderer };
         it.model = Model( m_meshes[ it.model_file ], m_textures[ it.model_texture ], it.scale );
     }
 
-    m_screenTitle =         cfg::Entry::fromData( m_io->getWait( "ui/mainmenu.ui" ) );
-    m_screenMissionSelect = cfg::Entry::fromData( m_io->getWait( "ui/missionselect.ui" ) );
-    m_screenCustomize =     cfg::Entry::fromData( m_io->getWait( "ui/customize.ui" ) );
-    m_screenSettings =      cfg::Entry::fromData( m_io->getWait( "ui/settings.ui" ) );
-    m_screenPause =         cfg::Entry::fromData( m_io->getWait( "ui/pause.ui" ) );
-    m_screenMissionResult = cfg::Entry::fromData( m_io->getWait( "ui/result.ui" ) );
+    m_screenTitle =         cfg::Entry::fromData( TODO_makeViewable( "ui/mainmenu.ui" ) );
+    m_screenMissionSelect = cfg::Entry::fromData( TODO_makeViewable( "ui/missionselect.ui" ) );
+    m_screenCustomize =     cfg::Entry::fromData( TODO_makeViewable( "ui/customize.ui" ) );
+    m_screenSettings =      cfg::Entry::fromData( TODO_makeViewable( "ui/settings.ui" ) );
+    m_screenPause =         cfg::Entry::fromData( TODO_makeViewable( "ui/pause.ui" ) );
+    m_screenMissionResult = cfg::Entry::fromData( TODO_makeViewable( "ui/result.ui" ) );
 
     m_enemyModel = Model{ m_meshes[ "models/a2.objc" ], m_textures[ "textures/a2.dds" ], 0.45f };
 
@@ -798,7 +777,9 @@ void Game::loadMapProto()
 {
     ZoneScoped;
     assert( m_mapsContainer.empty() );
-    m_mapsContainer = loadMaps( m_io->getWait( "maps.cfg" ) );
+    // TODO make viewable
+    auto view = m_io->viewWait( "misc/maps.cfg" );
+    m_mapsContainer = loadMaps( { view.begin(), view.end() } );
     assert( !m_mapsContainer.empty() );
 
     std::pmr::set<std::filesystem::path> uniqueTextures;
@@ -810,10 +791,7 @@ void Game::loadMapProto()
     }
 
     for ( const auto& it : uniqueTextures ) {
-        m_io->enqueue( it );
-    }
-    for ( const auto& it : uniqueTextures ) {
-        m_textures[ it ] = parseTexture( m_io->getWait( it ) );
+        m_textures[ it ] = parseTexture( m_io->viewWait( it ) );
     }
     for ( auto& it : m_mapsContainer ) {
         for ( size_t i = 0; i < it.texture.size(); ++i ) {

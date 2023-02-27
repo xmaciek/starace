@@ -144,7 +144,6 @@ private:
     void renderGameScreen( RenderContext, ui::RenderContext );
     void renderMenuScreen( RenderContext, ui::RenderContext ) const;
 
-    void preloadData();
     void retarget();
     void setCamera();
     void unpause();

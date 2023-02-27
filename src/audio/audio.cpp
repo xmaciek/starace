@@ -48,7 +48,7 @@ public:
     SDLAudioEngine();
 
     virtual void play( Slot ) override;
-    virtual Slot load( std::string_view ) override;
+    virtual Slot load( std::span<const uint8_t> ) override;
 };
 
 Audio* Audio::create()
@@ -150,16 +150,17 @@ void SDLAudioEngine::callback( void* userData, Uint8* stream, int len )
     }
 }
 
-Audio::Slot SDLAudioEngine::load( std::string_view file )
+Audio::Slot SDLAudioEngine::load( std::span<const uint8_t> data )
 {
     ZoneScoped;
     Buffer buffer{ allocator() };
     Uint8* tmpBuff = nullptr;
     Uint32 tmpLen = 0;
 
+    SDL_RWops* rwops = SDL_RWFromConstMem( data.data(), static_cast<int>( data.size() ) );
     SDL_AudioSpec spec{};
     [[maybe_unused]]
-    SDL_AudioSpec* specPtr = SDL_LoadWAV( file.data(), &spec, &tmpBuff, &tmpLen );
+    SDL_AudioSpec* specPtr = SDL_LoadWAV_RW( rwops, 0, &spec, &tmpBuff, &tmpLen );
     assert( &spec == specPtr );
 
     SDL_AudioCVT cvt{};
@@ -181,6 +182,7 @@ Audio::Slot SDLAudioEngine::load( std::string_view file )
     uint16_t slot = static_cast<uint16_t>( m_slotMachine.next() );
     assert( slot < m_audioSlots.size() );
     m_audioSlots[ slot ] = std::move( buffer );
+    SDL_RWclose( rwops );
     return slot + 1;
 }
 

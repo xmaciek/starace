@@ -12,6 +12,8 @@ function( cook_dds file dstFile )
     )
     add_dependencies( texture "texture.${dstFile}" )
     set_vs_directory( "texture.${dstFile}" "textures" )
+
+    set( texture_list "${texture_list}" "${CMAKE_CURRENT_BINARY_DIR}/${dstFile}" PARENT_SCOPE )
 endfunction()
 
 
@@ -30,3 +32,5 @@ cook_dds( nebula1.tga       nebula1.dds     mipgen )
 cook_dds( star_field.tga    star_field.dds  mipgen )
 cook_dds( plasma.tga        plasma.dds      mipgen )
 cook_dds( atlas_ui.tga      atlas_ui.dds )
+
+pack_tar( ARCHIVE "textures.tar" FILES "${texture_list}" )

@@ -27,6 +27,7 @@ set_target_properties( engine PROPERTIES
 target_link_libraries( engine
     cxx::flags
     audio
+    extra
     renderer_vk
     shared
     glm::glm

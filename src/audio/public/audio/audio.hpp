@@ -1,7 +1,7 @@
 #pragma once
 
-#include <string_view>
 #include <cstdint>
+#include <span>
 
 class Engine;
 
@@ -18,6 +18,6 @@ public:
     Audio() = default;
 
     [[nodiscard]]
-    virtual Slot load( std::string_view ) = 0;
+    virtual Slot load( std::span<const uint8_t> ) = 0;
     virtual void play( Slot ) = 0;
 };

@@ -11,7 +11,8 @@
 #include <cstring>
 #include <vector>
 
-Texture parseTexture( std::pmr::vector<uint8_t>&& data )
+template <typename T>
+static Texture parseTexture( const T& data )
 {
     ZoneScoped;
     const uint8_t* dataPtr = data.data();
@@ -63,7 +64,17 @@ Texture parseTexture( std::pmr::vector<uint8_t>&& data )
         return {};
     }
 
-    return Renderer::instance()->createTexture( tci, std::move( data ) );
+    return Renderer::instance()->createTexture( tci, data );
+}
+
+Texture parseTexture( std::span<const uint8_t> span )
+{
+    return parseTexture<std::span<const uint8_t>>( span );
+}
+
+Texture parseTexture( std::pmr::vector<uint8_t>&& vec )
+{
+    return parseTexture<std::pmr::vector<uint8_t>>( vec );
 }
 
 

@@ -11,6 +11,7 @@ function( compileShader file )
     )
     add_dependencies( shader "shader.${file}" )
     set_vs_directory( "shader.${file}" "shaders" )
+    set( shader_list "${shader_list}" "${CMAKE_CURRENT_BINARY_DIR}/${file}.spv" PARENT_SCOPE )
 endfunction()
 
 compileShader( gui_texture_color.vert )
@@ -58,3 +59,6 @@ compileShader( scanline.comp )
 compileShader( particles_blob.vert )
 
 compileShader( space_dust.vert )
+
+
+pack_tar( ARCHIVE "shaders.tar" FILES "${shader_list}" )

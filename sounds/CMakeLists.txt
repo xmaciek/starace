@@ -1,4 +1,6 @@
-configure_file( blaster.wav blaster.wav COPYONLY )
-configure_file( laser.wav laser.wav COPYONLY )
-configure_file( torpedo.wav torpedo.wav COPYONLY )
-configure_file( click.wav click.wav COPYONLY )
+list( APPEND sound_list "${CMAKE_CURRENT_SOURCE_DIR}/blaster.wav" )
+list( APPEND sound_list "${CMAKE_CURRENT_SOURCE_DIR}/laser.wav" )
+list( APPEND sound_list "${CMAKE_CURRENT_SOURCE_DIR}/torpedo.wav" )
+list( APPEND sound_list "${CMAKE_CURRENT_SOURCE_DIR}/click.wav" )
+
+pack_tar( ARCHIVE "sounds.tar" FILES "${sound_list}" )

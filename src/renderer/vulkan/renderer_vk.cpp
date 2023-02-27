@@ -452,7 +452,7 @@ std::pmr::memory_resource* RendererVK::allocator()
     return std::pmr::get_default_resource();
 }
 
-Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::pmr::vector<uint8_t>&& data )
+Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::span<const uint8_t> data )
 {
     ZoneScoped;
     assert( tci.width > 0 );
@@ -498,6 +498,11 @@ Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::pmr::vecto
     TextureVK* oldTex = m_textureSlots[ idx ].exchange( tex );
     assert( !oldTex );
     return idx + 1;
+}
+
+Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::pmr::vector<uint8_t>&& data )
+{
+    return createTexture( tci, static_cast<std::span<const uint8_t>>( data ) );
 }
 
 static void beginRecording( VkCommandBuffer cmd )

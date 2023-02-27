@@ -34,6 +34,7 @@ public:
     virtual void deleteBuffer( Buffer ) = 0;
 
     virtual Texture createTexture( const TextureCreateInfo&, std::pmr::vector<uint8_t>&& ) = 0;
+    virtual Texture createTexture( const TextureCreateInfo&, std::span<const uint8_t> ) = 0;
     virtual void deleteTexture( Texture ) = 0;
 
     virtual void push( const PushBuffer&, const void* constant ) = 0;

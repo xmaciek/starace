@@ -12,9 +12,12 @@ function( cook_obj file )
     )
     add_dependencies( model "model.${file}" )
     set_vs_directory( "model.${file}" "models" )
+    set( model_list "${model_list}" "${CMAKE_CURRENT_BINARY_DIR}/${file}.objc" PARENT_SCOPE )
 endfunction()
 
 cook_obj( a2 )
 cook_obj( a3 )
 cook_obj( a4 )
 cook_obj( a5 )
+
+pack_tar( ARCHIVE "models.tar" FILES "${model_list}" )
