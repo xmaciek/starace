@@ -82,22 +82,31 @@ math::vec4 NineSlice2::operator () () noexcept
 
     const math::vec4 uvwh = m_atlas->sliceUV( m_spriteIds[ spriteId ] );
 
-    math::vec4 xywh{};
-    switch ( spriteId ) {
-    case 0: xywh = math::vec4{ m_xy.x,                       m_xy.y, m_w[ 0 ], m_h[ 0 ] }; break;
-    case 1: xywh = math::vec4{ m_xy.x + m_w[ 0 ],            m_xy.y, m_w[ 1 ], m_h[ 0 ] }; break;
-    case 2: xywh = math::vec4{ m_xy.x + m_w[ 0 ] + m_w[ 1 ], m_xy.y, m_w[ 2 ], m_h[ 0 ] }; break;
-
-    case 3: xywh = math::vec4{ m_xy.x,                       m_xy.y + m_h[ 0 ], m_w[ 0 ], m_h[ 1 ] }; break;
-    case 4: xywh = math::vec4{ m_xy.x + m_w[ 0 ],            m_xy.y + m_h[ 0 ], m_w[ 1 ], m_h[ 1 ] }; break;
-    case 5: xywh = math::vec4{ m_xy.x + m_w[ 0 ] + m_w[ 1 ], m_xy.y + m_h[ 0 ], m_w[ 2 ], m_h[ 1 ] }; break;
-
-    case 6: xywh = math::vec4{ m_xy.x,                       m_xy.y + m_h[ 0 ] + m_h[ 1 ], m_w[ 0 ], m_h[ 2 ] }; break;
-    case 7: xywh = math::vec4{ m_xy.x + m_w[ 0 ],            m_xy.y + m_h[ 0 ] + m_h[ 1 ], m_w[ 1 ], m_h[ 2 ] }; break;
-    case 8: xywh = math::vec4{ m_xy.x + m_w[ 0 ] + m_w[ 1 ], m_xy.y + m_h[ 0 ] + m_h[ 1 ], m_w[ 2 ], m_h[ 2 ] }; break;
-    }
+    math::vec4 xywh = (*this)( spriteId );
 
     return xyuvForVertice6( xywh, uvwh, vertId );
+
+}
+
+math::vec4 NineSlice2::operator () ( uint32_t spriteId ) const noexcept
+{
+    switch ( spriteId ) {
+    case 0: return math::vec4{ m_xy.x,                       m_xy.y, m_w[ 0 ], m_h[ 0 ] }; break;
+    case 1: return math::vec4{ m_xy.x + m_w[ 0 ],            m_xy.y, m_w[ 1 ], m_h[ 0 ] }; break;
+    case 2: return math::vec4{ m_xy.x + m_w[ 0 ] + m_w[ 1 ], m_xy.y, m_w[ 2 ], m_h[ 0 ] }; break;
+
+    case 3: return math::vec4{ m_xy.x,                       m_xy.y + m_h[ 0 ], m_w[ 0 ], m_h[ 1 ] }; break;
+    case 4: return math::vec4{ m_xy.x + m_w[ 0 ],            m_xy.y + m_h[ 0 ], m_w[ 1 ], m_h[ 1 ] }; break;
+    case 5: return math::vec4{ m_xy.x + m_w[ 0 ] + m_w[ 1 ], m_xy.y + m_h[ 0 ], m_w[ 2 ], m_h[ 1 ] }; break;
+
+    case 6: return math::vec4{ m_xy.x,                       m_xy.y + m_h[ 0 ] + m_h[ 1 ], m_w[ 0 ], m_h[ 2 ] }; break;
+    case 7: return math::vec4{ m_xy.x + m_w[ 0 ],            m_xy.y + m_h[ 0 ] + m_h[ 1 ], m_w[ 1 ], m_h[ 2 ] }; break;
+    case 8: return math::vec4{ m_xy.x + m_w[ 0 ] + m_w[ 1 ], m_xy.y + m_h[ 0 ] + m_h[ 1 ], m_w[ 2 ], m_h[ 2 ] }; break;
+
+    default:
+        assert( !"sprite id out of bounds" );
+        return {};
+    }
 
 }
 

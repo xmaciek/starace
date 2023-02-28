@@ -4,9 +4,19 @@
 
 const uint INSTANCES = 48;
 
+const vec2 vertmult[] = {
+    vec2( 0.0, 0.0 ),
+    vec2( 0.0, 1.0 ),
+    vec2( 1.0, 1.0 ),
+    vec2( 1.0, 1.0 ),
+    vec2( 1.0, 0.0 ),
+    vec2( 0.0, 0.0 ),
+};
+
 struct Sprite {
     vec4 color;
-    vec4 xyuv[ 6 ];
+    vec4 xywh;
+    vec4 uvwh;
 };
 
 layout( binding = 0 ) uniform ubo {
@@ -21,11 +31,13 @@ layout( location = 1 ) out vec2 outUV;
 
 void main()
 {
+    vec2 vertPos = sprites[ gl_InstanceIndex ].xywh.xy + sprites[ gl_InstanceIndex ].xywh.zw * vertmult[ gl_VertexIndex ];
+    vec2 uvPos = sprites[ gl_InstanceIndex ].uvwh.xy + sprites[ gl_InstanceIndex ].uvwh.zw * vertmult[ gl_VertexIndex ];
     gl_Position = projectionMatrix
         * viewMatrix
         * modelMatrix
-        * vec4( sprites[ gl_InstanceIndex ].xyuv[ gl_VertexIndex ].xy, 0.0, 1.0 );
+        * vec4( vertPos, 0.0, 1.0 );
 
     outColor = sprites[ gl_InstanceIndex ].color;
-    outUV = sprites[ gl_InstanceIndex ].xyuv[ gl_VertexIndex ].zw;
+    outUV = uvPos;
 }

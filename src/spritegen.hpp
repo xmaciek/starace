@@ -33,6 +33,7 @@ struct NineSlice2 {
     NineSlice2( const math::vec4& xywh, const LinearAtlas*, const std::array<uint32_t, 9>& ) noexcept;
     static constexpr uint32_t count() noexcept { return 54u; }
     math::vec4 operator () () noexcept;
+    math::vec4 operator () ( uint32_t spriteId ) const noexcept;
 };
 
 struct Vert6 {

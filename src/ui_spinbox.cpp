@@ -63,25 +63,21 @@ void SpinBox::render( RenderContext rctx ) const
     right.x += nonlerp2( 0.0f, 5.0f, m_animR );
 
     pushConstant.m_sprites[ 0 ].m_color = m_focusL ? rctx.colorFocus : rctx.colorMain;
-    std::generate_n( pushConstant.m_sprites[ 0 ].m_xyuv.begin(), 6, spritegen::Vert6{
-        .m_xywh = left,
-        .m_uvwh = g_uiProperty.atlas()->sliceUV( ui::AtlasSprite::eArrowLeft ),
-    } );
+    pushConstant.m_sprites[ 0 ].m_xywh = left;
+    pushConstant.m_sprites[ 0 ].m_uvwh = g_uiProperty.atlas()->sliceUV( ui::AtlasSprite::eArrowLeft );
 
     pushConstant.m_sprites[ 1 ].m_color = m_focusR ? rctx.colorFocus : rctx.colorMain;
-    std::generate_n( pushConstant.m_sprites[ 1 ].m_xyuv.begin(), 6, spritegen::Vert6{
-        .m_xywh = right,
-        .m_uvwh = g_uiProperty.atlas()->sliceUV( ui::AtlasSprite::eArrowRight ),
-    } );
+    pushConstant.m_sprites[ 1 ].m_xywh = right;
+    pushConstant.m_sprites[ 1 ].m_uvwh = g_uiProperty.atlas()->sliceUV( ui::AtlasSprite::eArrowRight );
 
-
-    spritegen::NineSlice2 vertGen{ mid, g_uiProperty.atlas(), c_slices };
-    auto gen = [&vertGen]() { return vertGen(); };
-
-    for ( uint32_t i = 2; i < 11; ++i ) {
-        pushConstant.m_sprites[ i ].m_color = isFocused() ? rctx.colorFocus : rctx.colorMain;
-        std::generate_n( pushConstant.m_sprites[ i ].m_xyuv.begin(), 6, gen );
-    };
+    auto color = isFocused() ? rctx.colorFocus : rctx.colorMain;
+    spritegen::NineSlice2 gen{ mid, g_uiProperty.atlas(), c_slices };
+    for ( auto i = 0u; i < 9u; ++i ) {
+        auto& sprite = pushConstant.m_sprites[ i + 2u ];
+        sprite.m_color = color;
+        sprite.m_xywh = gen( i );
+        sprite.m_uvwh = g_uiProperty.atlas()->sliceUV( c_slices[ i ] );
+    }
     rctx.renderer->push( pushData, &pushConstant );
 
     const math::vec2 mv = pos + s * 0.5f;
