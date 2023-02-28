@@ -25,18 +25,16 @@ NineSlice::NineSlice(
 , m_texture{ t }
 , m_spriteIds{ ns }
 {
-    m_top = static_cast<float>( m_atlas->sprite( m_spriteIds[ 0u ] )[ 3 ] );
-    m_left = static_cast<float>( m_atlas->sprite( m_spriteIds[ 0u ] )[ 2 ] );
-    m_right = static_cast<float>( m_atlas->sprite( m_spriteIds[ 2u ] )[ 2 ] );
-    m_bot = static_cast<float>( m_atlas->sprite( m_spriteIds[ 6u ] )[ 3 ] );
 }
 
 
 void NineSlice::render( RenderContext rctx ) const
 {
     ZoneScoped;
-    using Generator = spritegen::NineSliceComposer;
+
     assert( m_texture );
+    assert( m_atlas );
+
     PushData pushData{
         .m_pipeline = g_pipelines[ Pipeline::eSpriteSequence ],
         .m_verticeCount = 6,
@@ -46,7 +44,7 @@ void NineSlice::render( RenderContext rctx ) const
 
     const math::vec2 pos = position() + offsetByAnchor();
     const math::vec2 s = size();
-    const math::vec2 midWH{ s.x - ( m_left + m_right ), s.y - ( m_top + m_bot ) };
+    const math::vec4 mid{ pos.x, pos.y, s.x, s.y };
 
     PushConstant<Pipeline::eSpriteSequence> pushConstant{
         .m_model = rctx.model,
@@ -55,17 +53,12 @@ void NineSlice::render( RenderContext rctx ) const
         .m_color = rctx.colorMain,
     };
 
-    Generator nineSliceComposer{
-        .m_atlas = m_atlas,
-        .m_spriteIds = m_spriteIds,
-        .m_xyBegin = math::vec4{ pos.x, pos.y, 0, 0 },
-        .m_midStretch = midWH,
-    };
-    auto gen = [&nineSliceComposer]() { return nineSliceComposer(); };
-    for ( uint32_t i = 0; i < 9; ++i ) {
-        std::generate_n( pushConstant.m_sprites[ i ].m_xyuv.begin(), 6, gen );
+    spritegen::NineSlice2 gen{ mid, m_atlas, m_spriteIds };
+    for ( auto i = 0u; i < 9u; ++i ) {
+        auto& sprite = pushConstant.m_sprites[ i ];
+        sprite.m_xywh = gen( i );
+        sprite.m_uvwh = m_atlas->sliceUV( m_spriteIds[ i ] );
     }
-
     rctx.renderer->push( pushData, &pushConstant );
 }
 

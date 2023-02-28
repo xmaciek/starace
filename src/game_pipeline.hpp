@@ -97,7 +97,8 @@ template <>
 struct PushConstant<Pipeline::eSpriteSequence> {
     static constexpr uint32_t INSTANCES = 48;
     struct Sprite {
-        std::array<math::vec4, 6> m_xyuv;
+        math::vec4 m_xywh;
+        math::vec4 m_uvwh;
     };
     math::mat4 m_model{};
     math::mat4 m_view{};

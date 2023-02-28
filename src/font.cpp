@@ -19,28 +19,15 @@ constexpr static float FONT_RESOLUTION_SCALE = 64.0f * FONT_SIZE_SCALE;
 constexpr static uint32_t TILE_COUNT = 10;
 constexpr static uint32_t TILE_PADDING = 2;
 
-static std::array<math::vec4, 6> composeVertice( math::vec4 uv, math::vec2 advance, math::vec2 size, math::vec2 padding, math::vec2 originPointHack )
+static std::tuple<math::vec4, math::vec4> composeSprite( math::vec4 uv, math::vec2 advance, math::vec2 size, math::vec2 padding, math::vec2 originPointHack )
 {
     padding *= math::vec2{ 1.0f, -1.0f };
     padding += originPointHack; // top vs bottom
     const math::vec2 topLeft = advance + padding;
-    const math::vec2 botLeft = advance + padding + math::vec2{ 0.0f, size.y };
-    const math::vec2 topRight = advance + padding + math::vec2{ size.x, 0.0f };
-    const math::vec2 botRight = advance + padding + size;
-
-    const math::vec2 uvTopLeft{ uv.x, uv.y };
-    const math::vec2 uvBotLeft{ uv.x, uv.w };
-    const math::vec2 uvTopRight{ uv.z, uv.y };
-    const math::vec2 uvBotRight{ uv.z, uv.w };
-    return {
-        math::vec4{ topLeft, uvTopLeft },
-        math::vec4{ botLeft, uvBotLeft },
-        math::vec4{ botRight, uvBotRight },
-
-        math::vec4{ botRight, uvBotRight },
-        math::vec4{ topRight, uvTopRight},
-        math::vec4{ topLeft, uvTopLeft },
-    };
+    return std::make_tuple(
+        math::vec4{ topLeft.x, topLeft.y, size.x, size.y },
+        math::vec4{ uv.x, uv.y, uv.z - uv.x, uv.w - uv.y }
+    );
 }
 
 struct BlitIterator {
@@ -285,10 +272,11 @@ Font::RenderText Font::composeText( const math::vec4& color, std::u32string_view
     math::vec2 advance{};
 
     for ( uint32_t i = 0; i < count; ++i ) {
-        const Glyph* glyph = m_glyphs[ text[ i ] ];
+        char32_t chr = text[ i ];
+        const Glyph* glyph = m_glyphs[ chr ];
         assert( glyph );
-        const auto vertice = composeVertice( glyph->uv, advance, glyph->size, glyph->padding, { 0.0f, m_height } );
-        std::copy_n( vertice.begin(), vertice.size(), pushConstant.m_sprites[ i ].m_xyuv.begin() );
+        auto& sprite = pushConstant.m_sprites[ i ];
+        std::tie( sprite.m_xywh, sprite.m_uvwh ) = composeSprite( glyph->uv, advance, glyph->size, glyph->padding, { 0.0f, m_height } );
         advance.x += glyph->advance.x;
     }
     return { pushData, pushConstant };
