@@ -14,51 +14,36 @@ function( compileShader file )
     set( shader_list "${shader_list}" "${CMAKE_CURRENT_BINARY_DIR}/${file}.spv" PARENT_SCOPE )
 endfunction()
 
-compileShader( gui_texture_color.vert )
-compileShader( gui_texture_color.frag )
-
-compileShader( albedo.vert )
 compileShader( albedo.frag )
-
-compileShader( line3_strip_color.vert )
-compileShader( line3_strip_color.frag )
-
-compileShader( trianglefan_color.vert )
-compileShader( trianglefan_color.frag )
-
-compileShader( trianglefan_texture.vert )
-compileShader( trianglefan_texture.frag )
-
-compileShader( lines_color1.vert )
-compileShader( lines_color1.frag )
-
-compileShader( sprite_sequence.vert )
-compileShader( sprite_sequence.frag )
-
-compileShader( sprite_sequence_colors.vert )
-compileShader( sprite_sequence_colors.frag )
-
-compileShader( progressbar.vert )
-compileShader( progressbar.frag )
-
-compileShader( glow.vert )
-compileShader( glow.frag )
-
-compileShader( background.vert )
+compileShader( albedo.vert )
 compileShader( background.frag )
-
-compileShader( sprite3d.vert )
-compileShader( sprite3d.frag )
-
-compileShader( thruster.vert )
-compileShader( thruster.frag )
-
+compileShader( background.vert )
 compileShader( gamma.comp )
-compileShader( scanline.comp )
-
+compileShader( glow.frag )
+compileShader( glow.vert )
+compileShader( gui_texture_color.frag )
+compileShader( gui_texture_color.vert )
+compileShader( line3_strip_color.frag )
+compileShader( line3_strip_color.vert )
+compileShader( lines_color1.frag )
+compileShader( lines_color1.vert )
 compileShader( particles_blob.vert )
-
+compileShader( progressbar.frag )
+compileShader( progressbar.vert )
+compileShader( scanline.comp )
 compileShader( space_dust.vert )
-
+compileShader( sprite3d.frag )
+compileShader( sprite3d.vert )
+compileShader( sprite_sequence.frag )
+compileShader( sprite_sequence.vert )
+compileShader( sprite_sequence_colors.frag )
+compileShader( sprite_sequence_colors.vert )
+compileShader( sprite_sequence_rgba.frag )
+compileShader( thruster.frag )
+compileShader( thruster.vert )
+compileShader( trianglefan_color.frag )
+compileShader( trianglefan_color.vert )
+compileShader( trianglefan_texture.frag )
+compileShader( trianglefan_texture.vert )
 
 pack_tar( ARCHIVE "shaders.tar" FILES "${shader_list}" )

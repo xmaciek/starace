@@ -56,26 +56,20 @@ void Image::render( RenderContext rctx ) const
 {
     assert( m_texture );
     PushBuffer pushBuffer{
-        .m_pipeline = g_pipelines[ Pipeline::eGuiTextureColor1 ],
-        .m_verticeCount = 4,
+        .m_pipeline = g_pipelines[ Pipeline::eSpriteSequenceRGBA ],
+        .m_verticeCount = 6,
     };
     pushBuffer.m_resource[ 1 ].texture = m_texture;
 
-    PushConstant<Pipeline::eGuiTextureColor1> pushConstant{};
-    pushConstant.m_model = rctx.model;
-    pushConstant.m_projection = rctx.projection;
-    pushConstant.m_view = rctx.view;
-    pushConstant.m_color = m_color;
-
     const math::vec2 pos = position() + offsetByAnchor();
-    const float x = pos.x;
-    const float y = pos.y;
-    const float xw = x + m_size.x;
-    const float yh = y + m_size.y;
-    pushConstant.m_vertices[ 0 ] = math::vec4{ x, y, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 1 ] = math::vec4{ x, yh, 0.0f, 1.0f };
-    pushConstant.m_vertices[ 2 ] = math::vec4{ xw, yh, 1.0f, 1.0f };
-    pushConstant.m_vertices[ 3 ] = math::vec4{ xw, y, 1.0f, 0.0f };
+    PushConstant<Pipeline::eSpriteSequenceRGBA> pushConstant{
+        .m_model = rctx.model,
+        .m_view = rctx.view,
+        .m_projection = rctx.projection,
+        .m_color = m_color,
+    };
+    pushConstant.m_sprites[ 0 ].m_xywh = math::vec4{ pos.x, pos.y, m_size.x, m_size.y };
+    pushConstant.m_sprites[ 0 ].m_uvwh = math::vec4{ 0.0f, 0.0f, 1.0f, 1.0f };
 
     rctx.renderer->push( pushBuffer, &pushConstant );
 }
