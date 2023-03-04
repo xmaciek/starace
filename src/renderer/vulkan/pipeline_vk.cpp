@@ -269,8 +269,8 @@ PipelineVK::PipelineVK(
         .primitiveRestartEnable = VK_FALSE,
     };
 
-    const Shader vertexShader{ device, pci.m_vertexShader };
-    const Shader fragmentShader{ device, pci.m_fragmentShader };
+    const Shader vertexShader{ device, pci.m_vertexShaderData };
+    const Shader fragmentShader{ device, pci.m_fragmentShaderData };
     const std::array stages = {
         vertexShader.vertex(),
         fragmentShader.fragment()
@@ -333,7 +333,7 @@ PipelineVK::PipelineVK(
     ZoneScoped;
     assert( layout );
 
-    const Shader shader{ device, pci.m_computeShader };
+    const Shader shader{ device, pci.m_computeShaderData };
 
     const VkPipelineLayoutCreateInfo pipelineLayoutInfo{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,

@@ -1,36 +1,20 @@
 #include "shader.hpp"
 
 #include <cassert>
-#include <fstream>
-#include <memory_resource>
-#include <iostream>
-#include <vector>
 
 #include "utils_vk.hpp"
 
-static std::pmr::vector<char> getShaderContent( std::string_view filePath )
-{
-    std::ifstream ifs( std::string{ filePath }, std::ios::binary | std::ios::ate );
-    assert( ifs.is_open() );
-    const std::streamsize size = ifs.tellg();
-    assert( size > 0 );
-    assert( size % 4 == 0 );
-    std::pmr::vector<char> vec( static_cast<std::size_t>( size ) );
-    ifs.seekg( 0 );
-    ifs.read( vec.data(), (int)size );
-    return vec;
-}
-
-Shader::Shader( VkDevice device, std::string_view filePath ) noexcept
+Shader::Shader( VkDevice device, std::span<const uint8_t> shaderData ) noexcept
 : m_device( device )
 {
-    std::pmr::vector<char> content = getShaderContent( filePath );
-    assert( !content.empty() );
+    assert( shaderData.size() > 0 );
+    assert( shaderData.size() % 4 == 0 );
+    assert( ( reinterpret_cast<uintptr_t>( shaderData.data() ) & ( sizeof( uint32_t ) - 1u ) ) == 0 ); // data align
 
     const VkShaderModuleCreateInfo vertexInfo{
         .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-        .codeSize = content.size(),
-        .pCode = reinterpret_cast<uint32_t*>( content.data() ),
+        .codeSize = shaderData.size(),
+        .pCode = reinterpret_cast<const uint32_t*>( shaderData.data() ),
     };
     [[maybe_unused]]
     const VkResult moduleOK = vkCreateShaderModule( device, &vertexInfo, nullptr, &m_module );

@@ -2,8 +2,8 @@
 
 #include "vk.hpp"
 
-#include <array>
-#include <string_view>
+#include <cstdint>
+#include <span>
 
 class Shader {
     VkDevice m_device = VK_NULL_HANDLE;
@@ -11,7 +11,7 @@ class Shader {
 
 public:
     ~Shader() noexcept;
-    Shader( VkDevice, std::string_view filePath ) noexcept;
+    Shader( VkDevice, std::span<const uint8_t> shaderData ) noexcept;
 
     Shader( const Shader& ) = delete;
     Shader& operator = ( const Shader& ) = delete;

@@ -193,7 +193,10 @@ Game::Game( int argc, char** argv )
     m_io->mount( "models.tar" );
     m_io->mount( "textures.tar" );
 
-    for ( const auto& p : g_pipelineCreateInfo ) {
+    for ( auto p : g_pipelineCreateInfo ) {
+        if ( p.m_vertexShader ) p.m_vertexShaderData = m_io->viewWait( p.m_vertexShader );
+        if ( p.m_fragmentShader ) p.m_fragmentShaderData = m_io->viewWait( p.m_fragmentShader );
+        if ( p.m_computeShader ) p.m_computeShaderData = m_io->viewWait( p.m_computeShader );
         g_pipelines[ static_cast<Pipeline>( p.m_userHint ) ] = m_renderer->createPipeline( p );
     }
 

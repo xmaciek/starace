@@ -5,6 +5,7 @@
 
 #include <array>
 #include <cstdint>
+#include <span>
 
 using PipelineSlot = uint32_t;
 
@@ -47,6 +48,9 @@ struct PipelineCreateInfo {
     const char* m_vertexShader = nullptr;
     const char* m_fragmentShader = nullptr;
     const char* m_computeShader = nullptr;
+    std::span<const uint8_t> m_vertexShaderData{};
+    std::span<const uint8_t> m_fragmentShaderData{};
+    std::span<const uint8_t> m_computeShaderData{};
     uint32_t m_userHint = 0;
     uint32_t m_pushConstantSize = 0;
     bool m_enableBlend : 1 = false;
