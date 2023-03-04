@@ -55,7 +55,7 @@ static std::pmr::vector<const char*> enabledLayers()
     Wishlist<VkLayerProperties> wishlist{ &layerList, &ret };
 
     wishlist( "VK_LAYER_KHRONOS_validation" );
-    wishlist( "VK_LAYER_RENDERDOC_Capture" );
+    // wishlist( "VK_LAYER_RENDERDOC_Capture" );
     return ret;
 }
 
