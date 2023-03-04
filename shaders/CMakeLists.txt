@@ -3,11 +3,14 @@ set_vs_directory( shader "shaders" )
 add_dependencies( cook shader )
 
 function( compileShader file )
+    #set( OPTIMIZE_LEVEL "-O0" "-g" ) # debug
+    set( OPTIMIZE_LEVEL "-O" ) # optimized
+
     add_custom_target( "shader.${file}" DEPENDS "${file}.spv" )
     add_custom_command(
         OUTPUT "${file}.spv"
         DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${file}"
-        COMMAND Vulkan::glslc "${CMAKE_CURRENT_SOURCE_DIR}/${file}" -o "${file}.spv"
+        COMMAND Vulkan::glslc ${OPTIMIZE_LEVEL} "${CMAKE_CURRENT_SOURCE_DIR}/${file}" -o "${file}.spv"
     )
     add_dependencies( shader "shader.${file}" )
     set_vs_directory( "shader.${file}" "shaders" )
