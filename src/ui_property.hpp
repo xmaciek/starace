@@ -69,6 +69,7 @@ struct AtlasSprite {
         eBotRight,
         eBotLeft2,
         eBotRight2,
+        count
     };
 };
 

@@ -30,24 +30,28 @@ static constexpr const char* chunk1[] = {
     "textures/plasma.dds",
 };
 
+// TODO: move to asset file
+static constexpr auto c_spritesUi = []()
+{
+    std::array<Sprite, ui::AtlasSprite::count> ret{};
 
-static constexpr Sprite c_spritesUi[]{
-    /*[ ui::AtlasSprite::eBackground ] =*/ { 84, 0, 8, 8 },
-    /*[ ui::AtlasSprite::eArrowLeft ]  =*/ { 0, 0, 24, 48 },
-    /*[ ui::AtlasSprite::eArrowRight ] =*/ { 24, 0, 24, 48 },
-    /*[ ui::AtlasSprite::eTopLeft ]    =*/ { 48, 0, 8, 8 },
-    /*[ ui::AtlasSprite::eTop ]        =*/ { 60, 0, 8, 8 },
-    /*[ ui::AtlasSprite::eTopRight ]   =*/ { 72, 0, 8, 8 },
-    /*[ ui::AtlasSprite::eLeft ]       =*/ { 48, 12, 8, 8 },
-    /*[ ui::AtlasSprite::eMid ]        =*/ { 60, 12, 8, 8 },
-    /*[ ui::AtlasSprite::eRight ]      =*/ { 72, 12, 8, 8 },
-    /*[ ui::AtlasSprite::eBotLeft ]    =*/ { 48, 24, 8, 8 },
-    /*[ ui::AtlasSprite::eBot ]        =*/ { 60, 24, 8, 8 },
-    /*[ ui::AtlasSprite::eBotRight ]   =*/ { 72, 24, 8, 8 },
-    /*[ ui::AtlasSprite::eBotLeft2 ]   =*/ { 84, 12, 8, 8 },
-    /*[ ui::AtlasSprite::eBotRight2 ]   =*/ { 84, 24, 8, 8 },
-};
+    ret[ ui::AtlasSprite::eBackground ] = { 84, 0, 8, 8 };
+    ret[ ui::AtlasSprite::eArrowRight ] = { 0, 0, 24, 48 };
+    ret[ ui::AtlasSprite::eArrowLeft ]  = { 24, 0, 24, 48 };
+    ret[ ui::AtlasSprite::eTopLeft ]    = { 48, 0, 8, 8 };
+    ret[ ui::AtlasSprite::eTop ]        = { 60, 0, 8, 8 };
+    ret[ ui::AtlasSprite::eTopRight ]   = { 72, 0, 8, 8 };
+    ret[ ui::AtlasSprite::eLeft ]       = { 48, 12, 8, 8 };
+    ret[ ui::AtlasSprite::eMid ]        = { 60, 12, 8, 8 };
+    ret[ ui::AtlasSprite::eRight ]      = { 72, 12, 8, 8 };
+    ret[ ui::AtlasSprite::eBotLeft ]    = { 48, 24, 8, 8 };
+    ret[ ui::AtlasSprite::eBot ]        = { 60, 24, 8, 8 };
+    ret[ ui::AtlasSprite::eBotRight ]   = { 72, 24, 8, 8 };
+    ret[ ui::AtlasSprite::eBotLeft2 ]   = { 84, 12, 8, 8 };
+    ret[ ui::AtlasSprite::eBotRight2 ]  = { 84, 24, 8, 8 };
+    return ret;
 
+}();
 
 constexpr std::tuple<GameAction, Actuator> inputActions[] = {
     { GameAction::eGamePause, SDL_CONTROLLER_BUTTON_START },
