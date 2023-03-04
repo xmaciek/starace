@@ -11,5 +11,6 @@ layout( location = 0 ) out vec4 outColor;
 
 void main()
 {
-    outColor = texture( textureSampler, fragUV ).rgba;// * fragmentColor;
+    outColor = texture( textureSampler, fragUV ).rgba
+    + vec4( fragNormal, 0.0 ) * 0.001; // + silence vk validation warning
 }
