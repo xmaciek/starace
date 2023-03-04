@@ -18,11 +18,7 @@ void dllUnload();
 
 static Renderer* g_instance = nullptr;
 
-static constexpr std::array c_enabledLayers = {
-    "VK_LAYER_KHRONOS_validation",
-};
-
-static constexpr std::array c_enabledDeviceExtensions = {
+static constexpr std::array REQUIRED_DEVICE_EXTENSIONS = {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME,
 };
 
@@ -31,16 +27,54 @@ constexpr std::size_t operator ""_MiB( unsigned long long v ) noexcept
     return v << 20;
 }
 
-static std::pmr::vector<const char*> windowExtensions( SDL_Window* window )
+template <typename T>
+struct Wishlist{
+    std::pmr::vector<T>* m_checklist = nullptr;
+    std::pmr::vector<const char*>* m_ret = nullptr;
+
+    static bool scmp( const VkLayerProperties& prop, const char* name ) { return std::strcmp( prop.layerName, name ) == 0; }
+    static bool scmp( const VkExtensionProperties& prop, const char* name ) { return std::strcmp( prop.extensionName, name ) == 0; }
+
+    void operator () ( const char* name )
+    {
+        auto cmp = [name]( const auto& prop ) { return scmp( prop, name ); };
+        if ( std::find_if( m_checklist->begin(), m_checklist->end(), cmp ) == m_checklist->end() ) return;
+        m_ret->emplace_back( name );
+    }
+};
+
+static std::pmr::vector<const char*> enabledLayers()
+{
+    uint32_t count = 0;
+    vkEnumerateInstanceLayerProperties( &count, nullptr );
+    std::pmr::vector<VkLayerProperties> layerList( count );
+    vkEnumerateInstanceLayerProperties( &count, layerList.data() );
+
+    std::pmr::vector<const char*> ret;
+    [[maybe_unused]]
+    Wishlist<VkLayerProperties> wishlist{ &layerList, &ret };
+
+    wishlist( "VK_LAYER_KHRONOS_validation" );
+    wishlist( "VK_LAYER_RENDERDOC_Capture" );
+    return ret;
+}
+
+static std::pmr::vector<const char*> enabledExtensions( SDL_Window* window )
 {
     uint32_t count = 0;
     SDL_Vulkan_GetInstanceExtensions( window, &count, nullptr );
-    std::pmr::vector<const char*> ext{};
-    ext.reserve( count + 1 );
-    ext.resize( count );
-    SDL_Vulkan_GetInstanceExtensions( window, &count, ext.data() );
-    ext.emplace_back( VK_EXT_DEBUG_UTILS_EXTENSION_NAME );
-    return ext;
+    std::pmr::vector<const char*> ret( count );
+    SDL_Vulkan_GetInstanceExtensions( window, &count, ret.data() );
+
+    vkEnumerateInstanceExtensionProperties( nullptr, &count, nullptr );
+    std::pmr::vector<VkExtensionProperties> extensionList( count );
+    vkEnumerateInstanceExtensionProperties( nullptr, &count, extensionList.data() );
+
+    [[maybe_unused]]
+    Wishlist<VkExtensionProperties> wishlist{ &extensionList, &ret };
+    wishlist( VK_EXT_DEBUG_UTILS_EXTENSION_NAME );
+
+    return ret;
 }
 
 static VkPhysicalDevice selectPhysicalDevice( VkInstance instance, VkPhysicalDeviceProperties* deviceProperties )
@@ -142,6 +176,10 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
         std::cout << "Failed to load vulkan library" << std::endl;
         std::abort();
     }
+
+    const std::pmr::vector<const char*> layers = enabledLayers();
+    const std::pmr::vector<const char*> extensions = enabledExtensions( m_window );
+
     {
         ZoneScopedN( "create instance" );
         const VkApplicationInfo appInfo{
@@ -153,15 +191,14 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
             .apiVersion = VK_API_VERSION_1_1,
         };
 
-        const std::pmr::vector<const char*> ext = windowExtensions( m_window );
 
         const VkInstanceCreateInfo instanceCreateInfo{
             .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
             .pApplicationInfo = &appInfo,
-            .enabledLayerCount = static_cast<uint32_t>( c_enabledLayers.size() ),
-            .ppEnabledLayerNames = c_enabledLayers.data(),
-            .enabledExtensionCount = static_cast<uint32_t>( ext.size() ),
-            .ppEnabledExtensionNames = ext.data(),
+            .enabledLayerCount = static_cast<uint32_t>( layers.size() ),
+            .ppEnabledLayerNames = layers.data(),
+            .enabledExtensionCount = static_cast<uint32_t>( extensions.size() ),
+            .ppEnabledExtensionNames = extensions.data(),
         };
 
         [[maybe_unused]]
@@ -219,10 +256,10 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
             .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
             .queueCreateInfoCount = std::size( queueCreateInfo ),
             .pQueueCreateInfos = queueCreateInfo,
-            .enabledLayerCount = static_cast<uint32_t>( c_enabledLayers.size() ),
-            .ppEnabledLayerNames = c_enabledLayers.data(),
-            .enabledExtensionCount = static_cast<uint32_t>( c_enabledDeviceExtensions.size() ),
-            .ppEnabledExtensionNames = c_enabledDeviceExtensions.data(),
+            .enabledLayerCount = static_cast<uint32_t>( layers.size() ),
+            .ppEnabledLayerNames = layers.data(),
+            .enabledExtensionCount = static_cast<uint32_t>( REQUIRED_DEVICE_EXTENSIONS.size() ),
+            .ppEnabledExtensionNames = REQUIRED_DEVICE_EXTENSIONS.data(),
             .pEnabledFeatures = &deviceFeatures,
         };
         [[maybe_unused]]
