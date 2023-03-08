@@ -6,16 +6,16 @@
 
 Hud::Hud( const HudData* displayData ) noexcept
 : m_displayData{ displayData }
-, m_score{ U"Score: ", g_uiProperty.fontSmall(), {}, color::winScreen }
-, m_scoreValue{ U"0", g_uiProperty.fontSmall(), {}, color::winScreen }
-, m_shots{ U"Shots: ", g_uiProperty.fontSmall(), {}, color::winScreen }
-, m_shotsValue{ U"0", g_uiProperty.fontSmall(), {}, color::winScreen }
-, m_pool{ U"Pool: ", g_uiProperty.fontSmall(), {}, color::winScreen }
-, m_poolValue{ U"0", g_uiProperty.fontSmall(), {}, color::winScreen }
-, m_fps{ U"FPS: ", g_uiProperty.fontSmall(), {}, color::winScreen }
-, m_fpsValue{ U"0", g_uiProperty.fontSmall(), {}, color::winScreen }
-, m_calc{ U"Calculated: ", g_uiProperty.fontSmall(), {}, color::winScreen }
-, m_calcValue{ U"0", g_uiProperty.fontSmall(), {}, color::winScreen }
+, m_score{ Label::CreateInfo{ .text = U"Score: ", .font = g_uiProperty.fontSmall(), .color = color::winScreen } }
+, m_scoreValue{ Label::CreateInfo{ .text = U"0", .font = g_uiProperty.fontSmall(), .color = color::winScreen } }
+, m_shots{ Label::CreateInfo{ .text = U"Shots: ", .font = g_uiProperty.fontSmall(), .color = color::winScreen } }
+, m_shotsValue{ Label::CreateInfo{ .text = U"0", .font = g_uiProperty.fontSmall(), .color = color::winScreen } }
+, m_pool{ Label::CreateInfo{ .text = U"Pool: ", .font = g_uiProperty.fontSmall(), .color = color::winScreen } }
+, m_poolValue{ Label::CreateInfo{ .text = U"0", .font = g_uiProperty.fontSmall(), .color = color::winScreen } }
+, m_fps{ Label::CreateInfo{ .text = U"FPS: ", .font = g_uiProperty.fontSmall(), .color = color::winScreen } }
+, m_fpsValue{ Label::CreateInfo{ .text = U"0", .font = g_uiProperty.fontSmall(), .color = color::winScreen } }
+, m_calc{ Label::CreateInfo{ .text = U"Calculated: ", .font = g_uiProperty.fontSmall(), .color = color::winScreen } }
+, m_calcValue{ Label::CreateInfo{ .text = U"0", .font = g_uiProperty.fontSmall(), .color = color::winScreen } }
 , m_speedMeter{ nullptr }
 , m_hp{ U"HP" }
 {

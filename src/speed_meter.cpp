@@ -25,8 +25,8 @@ static math::vec2 rightOf( const Label& w )
 };
 
 SpeedMeter::SpeedMeter( std::nullptr_t ) noexcept
-: m_speed{ U"Speed: ", g_uiProperty.fontSmall(), Anchor::fBottom | Anchor::fLeft, { 38, 0 }, color::winScreen }
-, m_speedValue{ U"0", g_uiProperty.fontSmall(), Anchor::fBottom | Anchor::fLeft, rightOf( m_speed ), color::winScreen }
+: m_speed{ Label::CreateInfo{ .text = U"Speed: ", .font = g_uiProperty.fontSmall(), .position{ 38, 0 }, .color = color::winScreen, .anchor = Anchor::fBottom | Anchor::fLeft, } }
+, m_speedValue{ Label::CreateInfo{ .text = U"0", .font = g_uiProperty.fontSmall(), .position = rightOf( m_speed ), .color = color::winScreen, .anchor = Anchor::fBottom | Anchor::fLeft, } }
 {
 }
 

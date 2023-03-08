@@ -14,6 +14,15 @@
 namespace ui {
 
 class Label : public Widget {
+public:
+    struct CreateInfo {
+        DataModel* dataModel = nullptr;
+        std::u32string_view text{};
+        const Font* font = nullptr;
+        math::vec2 position{};
+        math::vec4 color = color::white;
+        Anchor anchor = Anchor::fLeft | Anchor::fTop;
+    };
 private:
     DataModel* m_dataModel = nullptr;
     const Font* m_font = nullptr;
@@ -25,18 +34,14 @@ private:
 
 public:
     Label() = default;
-    Label( DataModel*, const Font*, const math::vec2& position );
-    Label( std::u32string_view, const Font*, const math::vec2& position, const math::vec4& color );
-    Label( std::u32string_view, const Font*, Anchor, const math::vec2& position, const math::vec4& color );
-    Label( std::u32string_view, const Font*, Anchor, const math::vec4& color );
-    Label( const Font*, Anchor, const math::vec2& position, const math::vec4& color );
-    Label( const Font*, Anchor, const math::vec4& color );
+    Label( const CreateInfo& );
 
     virtual void render( RenderContext ) const override;
     virtual void update( const UpdateContext& ) override;
 
     void setText( std::u32string_view );
     void setText( std::pmr::u32string&& );
+    DataModel* dataModel() const;
 };
 }
 

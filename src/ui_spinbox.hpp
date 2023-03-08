@@ -7,10 +7,6 @@
 #include "tab_order.hpp"
 #include "ui_data_model.hpp"
 
-#include <functional>
-#include <string>
-#include <memory_resource>
-
 namespace ui {
 
 class SpinBox : public Widget {

@@ -28,9 +28,8 @@ SpinBox::SpinBox( DataModel* dataModel ) noexcept
 : Widget{ {}, { 240.0f, 48.0f } }
 , m_index{ dataModel->current(), 0, dataModel->size() }
 , m_model{ dataModel }
-, m_label{ g_uiProperty.fontSmall(), Anchor::fCenter | Anchor::fMiddle, color::white }
+, m_label{ Label::CreateInfo{ .dataModel = dataModel, .font = g_uiProperty.fontSmall(), .color = color::white, .anchor = Anchor::fCenter | Anchor::fMiddle, } }
 {
-    m_label.setText( m_model->at( value() ) );
 }
 
 void SpinBox::render( RenderContext rctx ) const
@@ -110,14 +109,12 @@ MouseEvent::Processing SpinBox::onMouseEvent( const MouseEvent& event )
             m_animL = 0.0f;
             m_index--;
             m_model->select( value() );
-            m_label.setText( m_model->at( value() ) );
             break;
         }
         if ( right ) {
             m_animR = 0.0f;
             m_index++;
             m_model->select( value() );
-            m_label.setText( m_model->at( value() ) );
             break;
         }
         m_model->activate( value() );
@@ -177,6 +174,7 @@ bool SpinBox::onAction( Action a )
 
 void SpinBox::update( const UpdateContext& uctx )
 {
+    m_label.update( uctx );
     m_animL = std::min( m_animL + uctx.deltaTime * 7.0f, 1.0f );
     m_animR = std::min( m_animR + uctx.deltaTime * 7.0f, 1.0f );
 }

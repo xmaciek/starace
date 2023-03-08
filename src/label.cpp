@@ -8,59 +8,20 @@
 
 namespace ui {
 
-Label::Label( DataModel* dataModel, const Font* f, const math::vec2& position )
-: Widget{ position, {} }
-, m_dataModel{ dataModel }
-, m_font{ f }
-, m_color{ color::white }
+Label::Label( const Label::CreateInfo& ci )
+: Widget{ ci.position, {}, ci.anchor }
+, m_dataModel{ ci.dataModel }
+, m_font{ ci.font }
+, m_color{ ci.color }
 {
-    assert( dataModel );
-    assert( f );
-    m_currentIdx = m_dataModel->current();
-    setText( m_dataModel->at( m_currentIdx ) );
-}
-
-Label::Label( std::u32string_view s, const Font* f, const math::vec2& position, const math::vec4& color )
-: Widget{ position, {} }
-, m_font{ f }
-, m_color{ color }
-{
-    assert( f );
-    setText( s );
-}
-
-Label::Label( std::u32string_view s, const Font* f, Anchor a, const math::vec2& position, const math::vec4& color )
-: Widget{ position, {}, a }
-, m_font{ f }
-, m_color{ color }
-{
-    assert( f );
-    setText( s );
-}
-
-Label::Label( std::u32string_view s, const Font* f, Anchor a, const math::vec4& color )
-: Widget{ a }
-, m_font{ f }
-, m_color{ color }
-{
-    assert( f );
-    setText( s );
-}
-
-Label::Label( const Font* f, Anchor a, const math::vec2& position, const math::vec4& color )
-: Widget{ position, {}, a }
-, m_font{ f }
-, m_color{ color }
-{
-    assert( f );
-}
-
-Label::Label( const Font* f, Anchor a, const math::vec4& color )
-: Widget{ a }
-, m_font{ f }
-, m_color{ color }
-{
-    assert( f );
+    assert( ci.font );
+    if ( ci.dataModel ) {
+        m_currentIdx = m_dataModel->current();
+        setText( m_dataModel->at( m_currentIdx ) );
+    }
+    else {
+        setText( ci.text );
+    }
 }
 
 void Label::render( RenderContext rctx ) const
@@ -95,6 +56,11 @@ void Label::update( const UpdateContext& )
     if ( idx == m_currentIdx ) { return; }
     m_currentIdx = idx;
     setText( m_dataModel->at( idx ) );
+}
+
+DataModel* Label::dataModel() const
+{
+    return m_dataModel;
 }
 
 

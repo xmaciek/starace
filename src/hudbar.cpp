@@ -11,7 +11,7 @@
 
 HudBar::HudBar( std::u32string_view txt ) noexcept
 : Widget{ {}, { 64, 112 }, Anchor::fBottom | Anchor::fLeft }
-, m_label{ txt, g_uiProperty.fontSmall(), Anchor::fCenter | Anchor::fTop, { 32, 0 }, color::winScreen }
+, m_label{ Label::CreateInfo{ .text = txt, .font = g_uiProperty.fontSmall(), .position = math::vec2{ 32, 0 }, .color = color::winScreen, .anchor = Anchor::fCenter | Anchor::fTop } }
 {}
 
 void HudBar::render( ui::RenderContext rctx ) const

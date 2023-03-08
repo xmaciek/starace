@@ -119,23 +119,20 @@ static UniquePointer<Widget> makeNineSlice( std::pmr::memory_resource* alloc, co
 static UniquePointer<Widget> makeLabel( std::pmr::memory_resource* alloc, const cfg::Entry& entry )
 {
     assert( alloc );
-    DataModel* model = nullptr;
-    const Font* fnt = g_uiProperty.fontMedium();
-    math::vec2 pos{};
-    std::pmr::u32string text{};
-
+    Label::CreateInfo ci{
+        .font = g_uiProperty.fontMedium(),
+    };
+    std::u32string text{};
     for ( const auto& it : entry ) {
         auto propName = *it;
         if ( propName == "text"sv ) { text = g_uiProperty.localize( it.toString() ); continue; }
-        if ( propName == "x"sv ) { pos.x = it.toFloat(); continue; }
-        if ( propName == "y"sv ) { pos.y = it.toFloat(); continue; }
-        if ( propName == "data"sv ) { model = dataKeyToModel( it.toString() ); continue; }
+        if ( propName == "x"sv ) { ci.position.x = it.toFloat(); continue; }
+        if ( propName == "y"sv ) { ci.position.y = it.toFloat(); continue; }
+        if ( propName == "data"sv ) { ci.dataModel = dataKeyToModel( it.toString() ); continue; }
         assert( !"unhandled Label property" );
     }
-    if ( model ) {
-        return UniquePointer<Label>{ alloc, model, fnt, pos };
-    }
-    return UniquePointer<Label>{ alloc, text, fnt, pos, color::white };
+    ci.text = text;
+    return UniquePointer<Label>{ alloc, ci };
 }
 
 static UniquePointer<Widget> makeSpinBox( std::pmr::memory_resource* alloc, const cfg::Entry& entry, uint16_t tabOrder )

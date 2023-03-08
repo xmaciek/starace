@@ -23,35 +23,21 @@ namespace ui {
 
 Button::Button( std::u32string_view txt, std::function<void()>&& onTrigger )
 : NineSlice{ {}, { 192.0f, 48.0f }, c_defaultAnchor, g_uiProperty.atlas(), c_slices, g_uiProperty.atlasTexture() }
-, m_label(
-    txt
-    , g_uiProperty.fontSmall()
-    , Anchor::fCenter | Anchor::fMiddle
-    , {}
-    , color::white )
+, m_label{ Label::CreateInfo{ .text = txt, .font = g_uiProperty.fontSmall(), .anchor = Anchor::fCenter | Anchor::fMiddle } }
 , m_onTrigger{ onTrigger }
 {
 }
 
 Button::Button( std::u32string_view txt, Anchor a, std::function<void()>&& onTrigger )
 : NineSlice{ {}, { 192.0f, 48.0f }, a, g_uiProperty.atlas(), c_slices, g_uiProperty.atlasTexture() }
-, m_label(
-    txt
-    , g_uiProperty.fontSmall()
-    , Anchor::fCenter | Anchor::fMiddle
-    , {}
-    , color::white )
+, m_label{ Label::CreateInfo{ .text = txt, .font = g_uiProperty.fontSmall(), .anchor = Anchor::fCenter | Anchor::fMiddle } }
 , m_onTrigger{ onTrigger }
 {
 }
 
 Button::Button( std::function<void()>&& onTrigger )
 : NineSlice{ {}, { 192.0f, 48.0f }, c_defaultAnchor, g_uiProperty.atlas(), c_slices, g_uiProperty.atlasTexture() }
-, m_label(
-    g_uiProperty.fontSmall()
-    , Anchor::fCenter | Anchor::fMiddle
-    , {}
-    , color::white )
+, m_label{ Label::CreateInfo{ .font = g_uiProperty.fontSmall(), .anchor = Anchor::fCenter | Anchor::fMiddle } }
 , m_onTrigger{ onTrigger }
 {
 }
