@@ -27,6 +27,8 @@ class Screen {
     float m_anim = 0.0f;
     std::pmr::vector<UniquePointer<Widget>> m_widgets{};
 
+    UniquePointer<Widget> m_comboBoxList{};
+
     void changeFocus( uint16_t from, uint16_t to );
     Widget* findWidgetByTabOrder( uint16_t );
 

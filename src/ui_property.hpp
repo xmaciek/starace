@@ -25,7 +25,16 @@ class Property {
 
     math::vec4 m_colorA{};
 
+
 public:
+    struct PendingComboBox{
+        math::vec2 position{};
+        math::vec2 size{};
+        DataModel* model = nullptr;
+        inline operator bool () const noexcept { return !!model; };
+    };
+    PendingComboBox m_pendingComboBox{};
+
     inline Texture atlasTexture() const { return m_atlasTexture; }
     inline const LinearAtlas* atlas() const { return m_atlas; }
 
@@ -50,6 +59,14 @@ public:
         return value ? *value : ( U"LOC:" + std::pmr::u32string{ key.begin(), key.end() } );
     }
 
+    inline void requestModalComboBox( math::vec2 position, math::vec2 size, DataModel* model )
+    {
+        m_pendingComboBox = { position, size, model };
+    }
+    inline PendingComboBox pendingModalComboBox() const
+    {
+        return m_pendingComboBox;
+    }
 };
 
 

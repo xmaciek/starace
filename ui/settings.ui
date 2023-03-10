@@ -22,23 +22,9 @@ Label = {
 }
 
 SpinBox = {
-    data = $data:resolution
-    x = 48
-    y = 200
-    width = 320
-    height = 48
-}
-
-Label = {
-    text = resolution
-    x = 370
-    y = 200
-}
-
-SpinBox = {
     data = $data:fullscreen
     x = 48
-    y = 250
+    y = 200
     width = 320
     height = 48
 }
@@ -46,7 +32,16 @@ SpinBox = {
 Label = {
     text = fullscreen
     x = 370
+    y = 200
+}
+
+ComboBox = {
+    text = resolution
+    data = $data:resolution
+    x = 48
     y = 250
+    width = 400
+    height = 48
 }
 
 SpinBox = {

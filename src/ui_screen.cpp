@@ -6,10 +6,11 @@
 #include "game_callbacks.hpp"
 #include "label.hpp"
 #include "nineslice.hpp"
+#include "ui_combobox.hpp"
+#include "ui_image.hpp"
 #include "ui_localize.hpp"
 #include "ui_property.hpp"
 #include "ui_spinbox.hpp"
-#include "ui_image.hpp"
 
 #include <Tracy.hpp>
 
@@ -160,6 +161,31 @@ static UniquePointer<Widget> makeSpinBox( std::pmr::memory_resource* alloc, cons
 }
 
 
+static UniquePointer<Widget> makeComboBox( std::pmr::memory_resource* alloc, const cfg::Entry& entry, uint16_t tabOrder )
+{
+    assert( alloc );
+    ComboBox::CreateInfo ci{};
+    Hash hash{};
+    for ( const auto& it : entry ) {
+        switch ( auto h = hash( *it ) ) {
+        case "x"_hash: ci.position.x = it.toFloat(); continue;
+        case "y"_hash: ci.position.y = it.toFloat(); continue;
+        case "width"_hash: ci.size.x = it.toFloat(); continue;
+        case "height"_hash: ci.size.y = it.toFloat(); continue;
+        case "data"_hash: ci.model = dataKeyToModel( it.toString() ); continue;
+        case "text"_hash: ci.text = g_uiProperty.localize( it.toString() ); continue;
+        default:
+            assert( !"unhandled Entry element" );
+            continue;
+        }
+    }
+
+    assert( ci.model );
+    UniquePointer<ComboBox> ptr{ alloc, ci };
+    ptr->setTabOrder( tabOrder );
+    return ptr;
+}
+
 Screen::Screen( const cfg::Entry& entry ) noexcept
 {
     ZoneScoped;
@@ -174,6 +200,7 @@ Screen::Screen( const cfg::Entry& entry ) noexcept
         if ( str == "Button"sv ) { m_widgets.emplace_back( makeButton( alloc, it, tabOrderCount++ ) ); continue; }
         if ( str == "SpinBox"sv ) { m_widgets.emplace_back( makeSpinBox( alloc, it, tabOrderCount++ ) ); continue; }
         if ( str == "NineSlice"sv ) { m_widgets.emplace_back( makeNineSlice( alloc, it ) ); continue; }
+        if ( str == "ComboBox"sv ) { m_widgets.emplace_back( makeComboBox( alloc, it, tabOrderCount++ ) ); continue; }
         if ( str == "Image"sv ) { m_widgets.emplace_back( makeImage( alloc, it ) ); continue; }
         assert( !"unhandled ui element" );
     }
@@ -203,15 +230,23 @@ void Screen::render( const RenderContext& rctx ) const
         r.view = math::translate( view, math::vec3{ animX, 0.0f, 0.0f } );
         it->render( r );
     }
+
+    if ( m_comboBoxList ) m_comboBoxList->render( r );
 }
 
 void Screen::update( const UpdateContext& uctx )
 {
     ZoneScoped;
+    if ( auto c = g_uiProperty.pendingModalComboBox(); c.model ) {
+        g_uiProperty.requestModalComboBox( {}, {}, {} );
+        ComboBoxList::CreateInfo ci{ .model = c.model, .position = c.position, .size = c.size };
+        m_comboBoxList = UniquePointer<ComboBoxList>( std::pmr::get_default_resource(), ci );
+    }
     m_anim = std::clamp( m_anim + uctx.deltaTime * 5.0f, 0.0f, 1.0f );
     for ( const auto& it : m_widgets ) {
         it->update( uctx );
     }
+    if ( m_comboBoxList ) m_comboBoxList->update( uctx );
 }
 
 void Screen::onMouseEvent( const MouseEvent& e )
@@ -220,6 +255,13 @@ void Screen::onMouseEvent( const MouseEvent& e )
     event.position /= m_resize;
     event.position *= m_viewport;
     event.position -= m_offset;
+    if ( m_comboBoxList ) {
+        auto mouseProcessing = m_comboBoxList->onMouseEvent( event );
+        if ( mouseProcessing == MouseEvent::eStop ) {
+            m_comboBoxList = {};
+        }
+        return;
+    }
     uint16_t prevWidget = *m_tabOrder;
     m_tabOrder.invalidate();
     for ( const auto& it : m_widgets ) {
@@ -257,6 +299,12 @@ void Screen::changeFocus( uint16_t from, uint16_t to )
 void Screen::onAction( Action a )
 {
     ZoneScoped;
+    if ( m_comboBoxList ) {
+        if ( m_comboBoxList->onAction( a ) ) {
+            m_comboBoxList = {};
+        }
+        return;
+    }
     if ( !a.digital ) { return; }
     const uint16_t prevIndex = *m_tabOrder;
     switch ( a.toA<GameAction>() ) {
