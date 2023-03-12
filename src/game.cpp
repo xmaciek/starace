@@ -902,10 +902,7 @@ void Game::render3D( RenderContext rctx )
         it.render( rctx );
     }
     m_dustGame.render( rctx );
-    for ( auto& it : m_enemies ) {
-        assert( it );
-        it->render( rctx );
-    }
+    Enemy::renderAll( rctx, m_enemies );
     Bullet::renderAll( rctx, m_bullets );
     Bullet::renderAll( rctx, m_enemyBullets );
     m_jet.render( rctx );

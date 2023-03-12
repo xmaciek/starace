@@ -4,6 +4,8 @@
 #include "utils.hpp"
 #include "units.hpp"
 
+#include <Tracy.hpp>
+
 #include <cassert>
 
 Enemy::Enemy( Model* m )
@@ -46,21 +48,28 @@ bool Enemy::isWeaponReady() const
     return AutoAim{}.matches( position(), direction(), m_target->position() );
 }
 
-void Enemy::render( RenderContext rctx ) const
-{
-    assert( status() == Status::eAlive );
-    const math::vec3 screenPos = project3dTo2d( rctx.camera3d, m_position, rctx.viewport );
-    if ( !isOnScreen( screenPos, rctx.viewport ) ) {
-        return;
-    }
 
-    const math::quat quat = math::quatLookAt( m_direction, { 0.0f, 1.0f, 0.0f } );
-    rctx.model = math::translate( rctx.model, position() );
-    rctx.model = rctx.model * math::toMat4( quat );
-    m_model.render( rctx );
-    for ( auto it : m_model.thrusters() ) {
-        m_thruster.renderAt( rctx, it );
+void Enemy::renderAll( const RenderContext& rctx, std::span<const UniquePointer<Enemy>> span )
+{
+    ZoneScoped;
+    auto r = rctx;
+    for ( const auto& ptr : span ) {
+        assert( ptr->status() == Status::eAlive );
+        const math::vec3 screenPos = project3dTo2d( rctx.camera3d, ptr->m_position, rctx.viewport );
+        if ( !isOnScreen( screenPos, rctx.viewport ) ) { continue; }
+
+        const math::quat quat = math::quatLookAt( ptr->m_direction, { 0.0f, 1.0f, 0.0f } );
+        r.model = math::translate( rctx.model, ptr->m_position ) * math::toMat4( quat );
+        ptr->m_model.render( r );
+        for ( auto it : ptr->m_model.thrusters() ) {
+            ptr->m_thruster.renderAt( r, it );
+        }
     }
+}
+
+void Enemy::render( RenderContext ) const
+{
+    assert( !"not callable" );
 }
 
 void Enemy::update( const UpdateContext& updateContext )

@@ -26,4 +26,6 @@ public:
     virtual void render( RenderContext ) const override;
     virtual void update( const UpdateContext& ) override;
     void setWeapon( const WeaponCreateInfo& );
+
+    static void renderAll( const RenderContext&, std::span<const UniquePointer<Enemy>> );
 };
