@@ -5,7 +5,7 @@
 #include "nineslice.hpp"
 #include "ui_data_model.hpp"
 #include "widget.hpp"
-#include "ui_scroll_index.hpp"
+#include <ui/scroll_index.hpp>
 
 namespace ui {
 

@@ -2,10 +2,11 @@ find_package( Threads REQUIRED )
 
 add_subdirectory( audio )
 add_subdirectory( config )
-add_subdirectory( renderer )
-add_subdirectory( shared )
 add_subdirectory( engine )
 add_subdirectory( extra )
+add_subdirectory( renderer )
+add_subdirectory( shared )
+add_subdirectory( ui )
 
 set( STARACE_SOURCES
     action_state_tracker.cpp
@@ -86,8 +87,6 @@ set( STARACE_SOURCES
     ui_rings.hpp
     ui_screen.cpp
     ui_screen.hpp
-    ui_scroll_index.cpp
-    ui_scroll_index.hpp
     ui_spinbox.cpp
     ui_spinbox.hpp
     ui_var.hpp
@@ -106,9 +105,10 @@ set_cppver( ${bin_name} 20 )
 
 target_link_libraries( ${bin_name}
     cxx::flags
-    engine
     config
+    engine
     extra
+    ui
     Freetype::Freetype
     SDL2::SDL2
     SDL2::main
