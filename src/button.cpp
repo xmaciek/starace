@@ -1,7 +1,7 @@
 #include "button.hpp"
 
 #include "colors.hpp"
-#include "ui_property.hpp"
+#include <ui/property.hpp>
 #include "game_action.hpp"
 
 #include <engine/math.hpp>

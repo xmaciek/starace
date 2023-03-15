@@ -18,7 +18,6 @@
 #include "texture.hpp"
 #include <ui/data_model.hpp>
 #include "ui_glow.hpp"
-#include "ui_localize.hpp"
 #include "ui_rings.hpp"
 #include "ui_screen.hpp"
 #include "ui_var.hpp"

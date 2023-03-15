@@ -8,8 +8,7 @@
 #include "nineslice.hpp"
 #include "ui_combobox.hpp"
 #include "ui_image.hpp"
-#include "ui_localize.hpp"
-#include "ui_property.hpp"
+#include <ui/property.hpp>
 #include "ui_spinbox.hpp"
 
 #include <Tracy.hpp>

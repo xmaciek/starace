@@ -4,7 +4,7 @@
 #include "game_pipeline.hpp"
 #include "utils.hpp"
 #include "progressbar.hpp"
-#include "ui_property.hpp"
+#include <ui/property.hpp>
 
 #include <renderer/renderer.hpp>
 #include <engine/math.hpp>

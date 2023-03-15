@@ -7,7 +7,7 @@
 #include "linear_atlas.hpp"
 #include "nineslice.hpp"
 #include "spritegen.hpp"
-#include "ui_property.hpp"
+#include <ui/property.hpp>
 
 #include <renderer/renderer.hpp>
 

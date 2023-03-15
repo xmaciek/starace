@@ -1,7 +1,7 @@
 #pragma once
 
 #include <ui/data_model.hpp>
-#include "ui_property.hpp"
+#include <ui/property.hpp>
 #include "utils.hpp"
 
 #include <cassert>

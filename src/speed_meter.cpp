@@ -5,7 +5,7 @@
 #include "game_pipeline.hpp"
 #include "utils.hpp"
 #include "units.hpp"
-#include "ui_property.hpp"
+#include <ui/property.hpp>
 
 #include <engine/math.hpp>
 #include <renderer/renderer.hpp>

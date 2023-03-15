@@ -6,8 +6,7 @@
 #include "game_pipeline.hpp"
 #include "utils.hpp"
 #include "units.hpp"
-#include "ui_localize.hpp"
-#include "ui_property.hpp"
+#include <ui/property.hpp>
 
 #include <config/config.hpp>
 

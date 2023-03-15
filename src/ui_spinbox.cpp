@@ -1,6 +1,6 @@
 #include "ui_spinbox.hpp"
 
-#include "ui_property.hpp"
+#include <ui/property.hpp>
 #include "spritegen.hpp"
 #include "game_pipeline.hpp"
 #include "linear_atlas.hpp"

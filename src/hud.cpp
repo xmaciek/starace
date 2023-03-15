@@ -2,7 +2,7 @@
 
 #include "colors.hpp"
 #include "utils.hpp"
-#include "ui_property.hpp"
+#include <ui/property.hpp>
 
 Hud::Hud( const HudData* displayData ) noexcept
 : m_displayData{ displayData }

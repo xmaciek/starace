@@ -1,16 +1,18 @@
 #pragma once
 
-#include "ui_localize.hpp"
-#include "utils.hpp"
-
 #include <engine/math.hpp>
 #include <renderer/texture.hpp>
+#include <shared/fixed_map.hpp>
+#include <shared/hash.hpp>
 
 #include <cassert>
+#include <memory_resource>
+#include <string>
 
 class Game;
 class Font;
 class LinearAtlas;
+using LocTable = FixedMap<Hash::value_type, std::pmr::u32string, 64>;
 
 namespace ui {
 
@@ -48,7 +50,11 @@ public:
     {
         assert( m_locTable );
         const auto* value = (*m_locTable)[ key ];
-        return value ? *value : ( U"LOC:" + intToUTF32( key ) );
+        if ( value ) {
+            return *value;
+        }
+        assert( !"missing loc key" );
+        return U"<BUG:Missing loc key>";
     }
 
     inline std::pmr::u32string localize( std::string_view key ) const
