@@ -1,8 +1,8 @@
 #include "ui_spinbox.hpp"
 
 #include <ui/property.hpp>
+#include <ui/pipeline.hpp>
 #include "spritegen.hpp"
-#include "game_pipeline.hpp"
 #include "linear_atlas.hpp"
 #include "colors.hpp"
 
@@ -35,7 +35,7 @@ SpinBox::SpinBox( DataModel* dataModel ) noexcept
 void SpinBox::render( RenderContext rctx ) const
 {
     PushData pushData{
-        .m_pipeline = g_pipelines[ Pipeline::eSpriteSequenceColors ],
+        .m_pipeline = g_uiProperty.pipelineSpriteSequenceColors(),
         .m_verticeCount = 6u,
         .m_instanceCount = 11u,
     };

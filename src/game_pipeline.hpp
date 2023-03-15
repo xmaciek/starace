@@ -9,9 +9,6 @@ enum class Pipeline : PipelineSlot {
     eLine3dStripColor,
     eTriangleFan3dColor,
     eTriangleFan3dTexture,
-    eSpriteSequence,
-    eSpriteSequenceColors,
-    eSpriteSequenceRGBA,
     eProgressBar,
     eGlow,
     eBackground,
@@ -92,48 +89,6 @@ struct PushConstant<Pipeline::eTriangleFan3dColor> {
     math::mat4 m_projection{};
     std::array<math::vec4, 48> m_vertices{};
     std::array<math::vec4, 48> m_colors{};
-};
-
-template <>
-struct PushConstant<Pipeline::eSpriteSequence> {
-    static constexpr uint32_t INSTANCES = 48;
-    struct Sprite {
-        math::vec4 m_xywh;
-        math::vec4 m_uvwh;
-    };
-    math::mat4 m_model{};
-    math::mat4 m_view{};
-    math::mat4 m_projection{};
-    math::vec4 m_color{};
-    std::array<Sprite, INSTANCES> m_sprites{};
-};
-
-template <>
-struct PushConstant<Pipeline::eSpriteSequenceRGBA> {
-    static constexpr uint32_t INSTANCES = 48;
-    struct Sprite {
-        math::vec4 m_xywh;
-        math::vec4 m_uvwh;
-    };
-    math::mat4 m_model{};
-    math::mat4 m_view{};
-    math::mat4 m_projection{};
-    math::vec4 m_color{};
-    std::array<Sprite, INSTANCES> m_sprites{};
-};
-
-template <>
-struct PushConstant<Pipeline::eSpriteSequenceColors> {
-    static constexpr uint32_t INSTANCES = 48;
-    struct Sprite {
-        math::vec4 m_color;
-        math::vec4 m_xywh;
-        math::vec4 m_uvwh;
-    };
-    math::mat4 m_model{};
-    math::mat4 m_view{};
-    math::mat4 m_projection{};
-    std::array<Sprite, INSTANCES> m_sprites{};
 };
 
 template <>
@@ -326,51 +281,6 @@ PipelineCreateInfo{
     .m_topology = PipelineCreateInfo::Topology::eLineList,
     .m_binding{
         BindType::eVertexUniform,
-    },
-},
-
-PipelineCreateInfo{
-    .m_vertexShader = "shaders/sprite_sequence.vert.spv",
-    .m_fragmentShader = "shaders/sprite_sequence.frag.spv",
-    .m_userHint = static_cast<uint32_t>( Pipeline::eSpriteSequence ),
-    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eSpriteSequence> ),
-    .m_enableBlend = true,
-    .m_topology = PipelineCreateInfo::Topology::eTriangleList,
-    .m_cullMode = PipelineCreateInfo::CullMode::eBack,
-    .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_binding{
-        BindType::eVertexUniform,
-        BindType::eFragmentImage,
-    },
-},
-
-PipelineCreateInfo{
-    .m_vertexShader = "shaders/sprite_sequence.vert.spv",
-    .m_fragmentShader = "shaders/sprite_sequence_rgba.frag.spv",
-    .m_userHint = static_cast<uint32_t>( Pipeline::eSpriteSequenceRGBA ),
-    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eSpriteSequenceRGBA> ),
-    .m_enableBlend = true,
-    .m_topology = PipelineCreateInfo::Topology::eTriangleList,
-    .m_cullMode = PipelineCreateInfo::CullMode::eBack,
-    .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_binding{
-        BindType::eVertexUniform,
-        BindType::eFragmentImage,
-    },
-},
-
-PipelineCreateInfo{
-    .m_vertexShader = "shaders/sprite_sequence_colors.vert.spv",
-    .m_fragmentShader = "shaders/sprite_sequence_colors.frag.spv",
-    .m_userHint = static_cast<uint32_t>( Pipeline::eSpriteSequenceColors ),
-    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eSpriteSequenceColors> ),
-    .m_enableBlend = true,
-    .m_topology = PipelineCreateInfo::Topology::eTriangleList,
-    .m_cullMode = PipelineCreateInfo::CullMode::eBack,
-    .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_binding{
-        BindType::eVertexUniform,
-        BindType::eFragmentImage,
     },
 },
 

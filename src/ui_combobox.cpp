@@ -2,11 +2,12 @@
 
 #include "colors.hpp"
 #include "game_action.hpp"
-#include "game_pipeline.hpp"
 #include "label.hpp"
 #include "linear_atlas.hpp"
 #include "nineslice.hpp"
 #include "spritegen.hpp"
+
+#include <ui/pipeline.hpp>
 #include <ui/property.hpp>
 
 #include <renderer/renderer.hpp>
@@ -111,7 +112,7 @@ void ComboBoxList::render( RenderContext rctx ) const
     rctx.model = math::translate( rctx.model, math::vec3{ pos.x, pos.y, 0.0f } );
 
     PushData pushData{
-        .m_pipeline = g_pipelines[ Pipeline::eSpriteSequenceColors ],
+        .m_pipeline = g_uiProperty.pipelineSpriteSequenceColors(),
         .m_verticeCount = 6u,
         .m_instanceCount = 7u,
     };

@@ -1,6 +1,7 @@
 #include "nineslice.hpp"
 
-#include "game_pipeline.hpp"
+#include <ui/pipeline.hpp>
+#include <ui/property.hpp>
 #include "utils.hpp"
 #include "spritegen.hpp"
 
@@ -36,7 +37,7 @@ void NineSlice::render( RenderContext rctx ) const
     assert( m_atlas );
 
     PushData pushData{
-        .m_pipeline = g_pipelines[ Pipeline::eSpriteSequence ],
+        .m_pipeline = g_uiProperty.pipelineSpriteSequence(),
         .m_verticeCount = 6,
         .m_instanceCount = 9,
     };

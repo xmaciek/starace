@@ -7,6 +7,7 @@
 #include "utils.hpp"
 #include "units.hpp"
 #include <ui/property.hpp>
+#include <ui/pipeline.hpp>
 
 #include <config/config.hpp>
 
@@ -196,12 +197,22 @@ Game::Game( int argc, char** argv )
     m_io->mount( "models.tar" );
     m_io->mount( "textures.tar" );
 
-    for ( auto p : g_pipelineCreateInfo ) {
-        if ( p.m_vertexShader ) p.m_vertexShaderData = m_io->viewWait( p.m_vertexShader );
-        if ( p.m_fragmentShader ) p.m_fragmentShaderData = m_io->viewWait( p.m_fragmentShader );
-        if ( p.m_computeShader ) p.m_computeShaderData = m_io->viewWait( p.m_computeShader );
-        g_pipelines[ static_cast<Pipeline>( p.m_userHint ) ] = m_renderer->createPipeline( p );
+
+    auto setupPipeline = []( auto* renderer, auto* io, auto ci ) -> PipelineSlot
+    {
+        if ( ci.m_vertexShader ) ci.m_vertexShaderData = io->viewWait( ci.m_vertexShader );
+        if ( ci.m_fragmentShader ) ci.m_fragmentShaderData = io->viewWait( ci.m_fragmentShader );
+        if ( ci.m_computeShader ) ci.m_computeShaderData = io->viewWait( ci.m_computeShader );
+        return renderer->createPipeline( ci );
+    };
+
+    for ( const auto& p : g_pipelineCreateInfo ) {
+        g_pipelines[ static_cast<Pipeline>( p.m_userHint ) ] = setupPipeline( m_renderer, m_io, p );
     }
+
+    g_uiProperty.m_pipelineSpriteSequence = setupPipeline( m_renderer, m_io, ui::SPRITE_SEQUENCE );
+    g_uiProperty.m_pipelineSpriteSequenceRGBA = setupPipeline( m_renderer, m_io, ui::SPRITE_SEQUENCE_RGBA );
+    g_uiProperty.m_pipelineSpriteSequenceColors = setupPipeline( m_renderer, m_io, ui::SPRITE_SEQUENCE_COLORS );
 
     changeScreen( Screen::eMainMenu );
 

@@ -1,6 +1,7 @@
 #include "ui_image.hpp"
 
-#include "game_pipeline.hpp"
+#include <ui/pipeline.hpp>
+#include <ui/property.hpp>
 
 #include <renderer/renderer.hpp>
 
@@ -55,7 +56,7 @@ void Image::render( RenderContext rctx ) const
 {
     assert( m_texture );
     PushBuffer pushBuffer{
-        .m_pipeline = g_pipelines[ Pipeline::eSpriteSequenceRGBA ],
+        .m_pipeline = g_uiProperty.pipelineSpriteSequenceRGBA(),
         .m_verticeCount = 6,
     };
     pushBuffer.m_resource[ 1 ].texture = m_texture;

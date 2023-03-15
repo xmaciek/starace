@@ -2,8 +2,10 @@
 
 #include <engine/math.hpp>
 #include <renderer/texture.hpp>
+#include <renderer/pipeline.hpp>
 #include <shared/fixed_map.hpp>
 #include <shared/hash.hpp>
+
 
 #include <cassert>
 #include <memory_resource>
@@ -15,6 +17,7 @@ class LinearAtlas;
 using LocTable = FixedMap<Hash::value_type, std::pmr::u32string, 64>;
 
 namespace ui {
+struct DataModel;
 
 class Property {
     friend Game;
@@ -24,6 +27,10 @@ class Property {
     const LinearAtlas* m_atlas = nullptr;
     const LocTable* m_locTable = nullptr;
     Texture m_atlasTexture{};
+
+    PipelineSlot m_pipelineSpriteSequence{};
+    PipelineSlot m_pipelineSpriteSequenceRGBA{};
+    PipelineSlot m_pipelineSpriteSequenceColors{};
 
     math::vec4 m_colorA{};
 
@@ -43,6 +50,10 @@ public:
     inline const Font* fontSmall() const { return m_fontSmall; }
     inline const Font* fontMedium() const { return m_fontMedium; }
     inline const Font* fontLarge() const { return m_fontLarge; }
+
+    inline PipelineSlot pipelineSpriteSequence() const { return m_pipelineSpriteSequence; }
+    inline PipelineSlot pipelineSpriteSequenceRGBA() const { return m_pipelineSpriteSequenceRGBA; }
+    inline PipelineSlot pipelineSpriteSequenceColors() const { return m_pipelineSpriteSequenceColors; }
 
     inline math::vec4 colorA() const { return m_colorA; }
 

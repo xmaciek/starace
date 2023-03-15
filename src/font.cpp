@@ -1,12 +1,13 @@
 #include "font.hpp"
 
-#include "texture.hpp"
-
+#include <ui/property.hpp>
+#include <ui/pipeline.hpp>
 #include <renderer/renderer.hpp>
+
+#include <Tracy.hpp>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
-#include <Tracy.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -233,7 +234,8 @@ Font::Font( const CreateInfo& fontInfo, uint32_t height )
 
 Font::~Font()
 {
-    destroyTexture( m_texture );
+    // TODO
+    // destroyTexture( m_texture );
 }
 
 uint32_t Font::height() const
@@ -257,17 +259,17 @@ float Font::textLength( std::u32string_view text ) const
 Font::RenderText Font::composeText( const math::vec4& color, std::u32string_view text ) const
 {
     ZoneScoped;
-    assert( text.size() < PushConstant<Pipeline::eSpriteSequence>::INSTANCES );
+    assert( text.size() < ui::PushConstant<ui::Pipeline::eSpriteSequence>::INSTANCES );
     const uint32_t count = static_cast<uint32_t>( text.size() );
 
     PushData pushData{
-        .m_pipeline = g_pipelines[ Pipeline::eSpriteSequence ],
+        .m_pipeline = g_uiProperty.pipelineSpriteSequence(),
         .m_verticeCount = 6,
         .m_instanceCount = count,
     };
     pushData.m_resource[ 1 ].texture = m_texture;
 
-    PushConstant<Pipeline::eSpriteSequence> pushConstant{};
+    ui::PushConstant<ui::Pipeline::eSpriteSequence> pushConstant{};
     pushConstant.m_color = color;
     math::vec2 advance{};
 

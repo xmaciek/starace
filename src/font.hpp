@@ -1,6 +1,6 @@
 #pragma once
 
-#include "game_pipeline.hpp"
+#include <ui/pipeline.hpp>
 
 #include <shared/fixed_map.hpp>
 #include <engine/math.hpp>
@@ -44,6 +44,6 @@ public:
     uint32_t height() const;
     float textLength( std::u32string_view ) const;
     void renderText( RenderContext, const math::vec4& color, double x, double y, std::u32string_view ) const;
-    using RenderText = std::pair<PushBuffer, PushConstant<Pipeline::eSpriteSequence>>;
+    using RenderText = std::pair<PushBuffer, ui::PushConstant<ui::Pipeline::eSpriteSequence>>;
     RenderText composeText( const math::vec4& color, std::u32string_view ) const;
 };
