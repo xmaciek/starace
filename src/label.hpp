@@ -1,9 +1,9 @@
 #pragma once
 
 #include "colors.hpp"
-#include "font.hpp"
 #include "widget.hpp"
 #include <ui/data_model.hpp>
+#include <ui/font.hpp>
 
 #include <engine/math.hpp>
 #include <engine/update_context.hpp>
@@ -30,6 +30,7 @@ private:
     math::vec4 m_color = color::white;
     math::vec2 m_textExtent{};
     DataModel::size_type m_currentIdx = 0;
+    // TODO remove mutable
     mutable Font::RenderText m_renderText{};
 
 public:

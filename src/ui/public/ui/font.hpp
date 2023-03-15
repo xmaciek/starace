@@ -8,15 +8,15 @@
 #include <renderer/texture.hpp>
 #include <renderer/pipeline.hpp>
 
-#include <memory_resource>
 #include <cstdint>
 #include <string_view>
-#include <vector>
 #include <utility>
 #include <span>
 
-
 class Renderer;
+
+namespace ui {
+
 class Font {
 public:
     struct Glyph {
@@ -43,7 +43,9 @@ public:
 
     uint32_t height() const;
     float textLength( std::u32string_view ) const;
-    void renderText( RenderContext, const math::vec4& color, double x, double y, std::u32string_view ) const;
+
     using RenderText = std::pair<PushBuffer, ui::PushConstant<ui::Pipeline::eSpriteSequence>>;
     RenderText composeText( const math::vec4& color, std::u32string_view ) const;
 };
+
+}

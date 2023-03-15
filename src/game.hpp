@@ -5,7 +5,6 @@
 #include "button.hpp"
 #include "enemy.hpp"
 #include "explosion.hpp"
-#include "font.hpp"
 #include "game_options.hpp"
 #include "hud.hpp"
 #include "jet.hpp"
@@ -21,6 +20,7 @@
 #include "ui_rings.hpp"
 #include "ui_screen.hpp"
 #include <ui/var.hpp>
+#include <ui/font.hpp>
 
 #include <config/config.hpp>
 #include <engine/engine.hpp>
@@ -58,9 +58,9 @@ private:
         max,
     };
 
-    UniquePointer<Font> m_fontSmall{};
-    UniquePointer<Font> m_fontMedium{};
-    UniquePointer<Font> m_fontLarge{};
+    UniquePointer<ui::Font> m_fontSmall{};
+    UniquePointer<ui::Font> m_fontMedium{};
+    UniquePointer<ui::Font> m_fontLarge{};
     uint32_t m_currentMission = 0;
     uint32_t m_currentJet = 0;
     uint32_t m_weapon1 = 0;

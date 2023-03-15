@@ -24,8 +24,6 @@ set( STARACE_SOURCES
     enemy.hpp
     explosion.cpp
     explosion.hpp
-    font.cpp
-    font.hpp
     game.cpp
     game.hpp
     game_action.hpp
@@ -104,7 +102,6 @@ target_link_libraries( ${bin_name}
     engine
     extra
     ui
-    Freetype::Freetype
     SDL2::SDL2
     SDL2::main
     Threads::Threads

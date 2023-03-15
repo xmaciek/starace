@@ -12,12 +12,12 @@
 #include <string>
 
 class Game;
-class Font;
 class LinearAtlas;
 using LocTable = FixedMap<Hash::value_type, std::pmr::u32string, 64>;
 
 namespace ui {
 struct DataModel;
+class Font;
 
 class Property {
     friend Game;

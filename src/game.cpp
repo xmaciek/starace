@@ -346,15 +346,15 @@ void Game::onInit()
         U"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         U" `~'\",./\\?+-*!@#$%^&()[]{};:<>";
         std::sort( charset.begin(), charset.end() );
-        const Font::CreateInfo createInfo{
+        const ui::Font::CreateInfo createInfo{
             .fontFileContent = m_io->viewWait( "misc/DejaVuSans-Bold.ttf" ),
             .renderer = m_renderer,
             .charset = charset,
         };
         auto* alloc = std::pmr::get_default_resource();
-        m_fontSmall = UniquePointer<Font>{ alloc, createInfo, 12 };
-        m_fontMedium = UniquePointer<Font>{ alloc, createInfo, 18 };
-        m_fontLarge = UniquePointer<Font>{ alloc, createInfo, 32 };
+        m_fontSmall = UniquePointer<ui::Font>{ alloc, createInfo, 12 };
+        m_fontMedium = UniquePointer<ui::Font>{ alloc, createInfo, 18 };
+        m_fontLarge = UniquePointer<ui::Font>{ alloc, createInfo, 32 };
         g_uiProperty.m_fontSmall = m_fontSmall.get();
         g_uiProperty.m_fontMedium = m_fontMedium.get();
         g_uiProperty.m_fontLarge = m_fontLarge.get();

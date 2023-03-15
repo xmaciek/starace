@@ -1,4 +1,4 @@
-#include "font.hpp"
+#include <ui/font.hpp>
 
 #include <ui/property.hpp>
 #include <ui/pipeline.hpp>
@@ -14,6 +14,8 @@
 #include <iostream>
 #include <numeric>
 #include <span>
+#include <memory_resource>
+#include <vector>
 
 constexpr static float FONT_SIZE_SCALE = 2.0f;
 constexpr static float FONT_RESOLUTION_SCALE = 64.0f * FONT_SIZE_SCALE;
@@ -142,7 +144,7 @@ struct Atlas {
     }
 };
 
-static std::tuple<Font::Glyph, uint32_t, std::span<uint8_t>> makeGlyph( const FT_Face& face, char32_t ch )
+static std::tuple<ui::Font::Glyph, uint32_t, std::span<uint8_t>> makeGlyph( const FT_Face& face, char32_t ch )
 {
     ZoneScoped;
     const FT_UInt glyphIndex = FT_Get_Char_Index( face, ch );
@@ -157,7 +159,7 @@ static std::tuple<Font::Glyph, uint32_t, std::span<uint8_t>> makeGlyph( const FT
     assert( renderOK == 0 );
     assert( slot->bitmap.pixel_mode == FT_PIXEL_MODE_GRAY );
 
-    Font::Glyph glyph{};
+    ui::Font::Glyph glyph{};
     uint8_t* data = reinterpret_cast<uint8_t*>( slot->bitmap.buffer );
     std::uintptr_t dataSize = static_cast<std::uintptr_t>( slot->bitmap.pitch ) * static_cast<std::uintptr_t>( slot->bitmap.rows );
 
@@ -166,6 +168,8 @@ static std::tuple<Font::Glyph, uint32_t, std::span<uint8_t>> makeGlyph( const FT
     glyph.size = math::vec2{ slot->metrics.width, slot->metrics.height } / FONT_RESOLUTION_SCALE;
     return { glyph, slot->bitmap.pitch, std::span<uint8_t>( data, data + dataSize ) };
 }
+
+namespace ui {
 
 Font::Font( const CreateInfo& fontInfo, uint32_t height )
 : m_height( height )
@@ -284,14 +288,4 @@ Font::RenderText Font::composeText( const math::vec4& color, std::u32string_view
     return { pushData, pushConstant };
 }
 
-void Font::renderText( RenderContext rctx, const math::vec4& color, double x, double y, std::u32string_view text ) const
-{
-    assert( !text.empty() );
-    rctx.model = math::translate( rctx.model, math::vec3{ x, y, 0.0 } );
-
-    auto [ pushBuffer, pushConstant ] = composeText( color, text );
-    pushConstant.m_model = rctx.model;
-    pushConstant.m_view = rctx.view;
-    pushConstant.m_projection = rctx.projection;
-    rctx.renderer->push( pushBuffer, &pushConstant );
 }

@@ -4,14 +4,16 @@ set_cppver( ui 20 )
 target_sources( ui
     PRIVATE
     data_model.cpp
+    font.cpp
     scroll_index.cpp
 
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/data_model.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/font.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/pipeline.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/property.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/scroll_index.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/var.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/pipeline.hpp
 )
 set_vs_directory( ui "libs" )
 
@@ -26,4 +28,5 @@ target_link_libraries( ui
     renderer
     cxx::flags
     Tracy::Client
+    Freetype::Freetype
 )
