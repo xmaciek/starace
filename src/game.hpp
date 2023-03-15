@@ -16,7 +16,7 @@
 #include "space_dust.hpp"
 #include "targeting.hpp"
 #include "texture.hpp"
-#include "ui_data_model.hpp"
+#include <ui/data_model.hpp>
 #include "ui_glow.hpp"
 #include "ui_localize.hpp"
 #include "ui_rings.hpp"

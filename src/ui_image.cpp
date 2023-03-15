@@ -1,7 +1,6 @@
 #include "ui_image.hpp"
 
 #include "game_pipeline.hpp"
-#include "ui_data_model.hpp"
 
 #include <renderer/renderer.hpp>
 

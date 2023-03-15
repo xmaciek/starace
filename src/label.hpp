@@ -3,7 +3,7 @@
 #include "colors.hpp"
 #include "font.hpp"
 #include "widget.hpp"
-#include "ui_data_model.hpp"
+#include <ui/data_model.hpp>
 
 #include <engine/math.hpp>
 #include <engine/update_context.hpp>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ui_data_model.hpp"
+#include <ui/data_model.hpp>
 
 #include <algorithm>
 #include <atomic>

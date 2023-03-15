@@ -5,7 +5,7 @@
 #include "game_action.hpp"
 #include "utils.hpp"
 #include "tab_order.hpp"
-#include "ui_data_model.hpp"
+#include <ui/data_model.hpp>
 
 namespace ui {
 

@@ -3,8 +3,8 @@
 #include "game_action.hpp"
 #include "label.hpp"
 #include "nineslice.hpp"
-#include "ui_data_model.hpp"
 #include "widget.hpp"
+#include <ui/data_model.hpp>
 #include <ui/scroll_index.hpp>
 
 namespace ui {

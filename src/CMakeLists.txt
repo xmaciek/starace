@@ -74,8 +74,6 @@ set( STARACE_SOURCES
     thruster.hpp
     ui_combobox.cpp
     ui_combobox.hpp
-    ui_data_model.cpp
-    ui_data_model.hpp
     ui_glow.cpp
     ui_glow.hpp
     ui_image.cpp
