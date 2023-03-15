@@ -20,7 +20,7 @@
 #include "ui_glow.hpp"
 #include "ui_rings.hpp"
 #include "ui_screen.hpp"
-#include "ui_var.hpp"
+#include <ui/var.hpp>
 
 #include <config/config.hpp>
 #include <engine/engine.hpp>

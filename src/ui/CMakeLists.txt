@@ -10,6 +10,7 @@ target_sources( ui
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/data_model.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/property.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/scroll_index.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/var.hpp
 )
 set_vs_directory( ui "libs" )
 
