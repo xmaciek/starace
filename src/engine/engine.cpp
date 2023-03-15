@@ -289,6 +289,7 @@ void Engine::controllerRemove( int id )
 
 static std::pmr::vector<SDL_DisplayMode> getDisplayModes( uint32_t monitor )
 {
+    ZoneScoped;
     const int displayModeCount = SDL_GetNumDisplayModes( static_cast<int>( monitor ) );
     if ( displayModeCount < 1 ) {
         return {};
@@ -316,6 +317,7 @@ static std::pmr::vector<SDL_DisplayMode> getDisplayModes( uint32_t monitor )
 
 std::pmr::vector<DisplayMode> Engine::displayModes( uint32_t monitor ) const
 {
+    ZoneScoped;
     auto modes = getDisplayModes( monitor );
     std::pmr::vector<DisplayMode> ret{ modes.size() };
     std::transform( modes.begin(), modes.end(), ret.begin(), [monitor]( const auto& it ) -> DisplayMode
@@ -331,6 +333,7 @@ std::pmr::vector<DisplayMode> Engine::displayModes( uint32_t monitor ) const
 
 void Engine::setDisplayMode( const DisplayMode& displayMode )
 {
+    ZoneScoped;
     auto modes = getDisplayModes( displayMode.monitor );
     auto cmp = [ displayMode ]( const auto& a, const auto& b )
     {
