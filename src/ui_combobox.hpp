@@ -1,21 +1,17 @@
 #pragma once
 
-#include "chase.hpp"
 #include "game_action.hpp"
 #include "label.hpp"
 #include "nineslice.hpp"
-#include "tab_order.hpp"
 #include "ui_data_model.hpp"
-#include "ui_property.hpp"
-#include "utils.hpp"
 #include "widget.hpp"
+#include "ui_scroll_index.hpp"
 
 namespace ui {
 
 class ComboBox : public NineSlice {
     [[maybe_unused]]
     DataModel* m_model = nullptr;
-    Chase<float> m_anim{ 0.0f, 0.0f, 5.618f };
     Label m_label{};
     Label m_value{};
 
@@ -38,12 +34,13 @@ public:
 
 class ComboBoxList : public Widget {
     DataModel* m_model = nullptr;
-    DataModel::size_type m_highlightIndex = 0;
+    ScrollIndex m_index{};
     float m_lineHeight = 0.0f;
     float m_topPadding = 0.0f;
     float m_botHeight = 8.0f;
 
     DataModel::size_type visibleCount() const;
+    DataModel::size_type selectedIndex() const;
 
 public:
     struct CreateInfo {

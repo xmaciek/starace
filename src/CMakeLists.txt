@@ -71,6 +71,8 @@ set( STARACE_SOURCES
     texture.hpp
     thruster.cpp
     thruster.hpp
+    ui_combobox.cpp
+    ui_combobox.hpp
     ui_data_model.cpp
     ui_data_model.hpp
     ui_glow.cpp
@@ -84,10 +86,10 @@ set( STARACE_SOURCES
     ui_rings.hpp
     ui_screen.cpp
     ui_screen.hpp
+    ui_scroll_index.cpp
+    ui_scroll_index.hpp
     ui_spinbox.cpp
     ui_spinbox.hpp
-    ui_combobox.cpp
-    ui_combobox.hpp
     ui_var.hpp
     units.hpp
     utils.cpp

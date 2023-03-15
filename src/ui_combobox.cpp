@@ -56,8 +56,6 @@ bool ComboBox::onAction( Action a )
 void ComboBox::update( const UpdateContext& uctx )
 {
     m_value.update( uctx );
-    m_anim.setTarget( isFocused() ? 1.0f : 0.0f );
-    m_anim.update( uctx.deltaTime );
 }
 
 MouseEvent::Processing ComboBox::onMouseEvent( const MouseEvent& event )
@@ -78,7 +76,7 @@ MouseEvent::Processing ComboBox::onMouseEvent( const MouseEvent& event )
 
 void ComboBox::render( RenderContext rctx ) const
 {
-    rctx.colorMain = math::lerp( rctx.colorMain, rctx.colorFocus, m_anim.value() );
+    rctx.colorMain = isFocused() ? rctx.colorFocus : rctx.colorMain;
     NineSlice::render( rctx );
     const math::vec2 pos = position() + offsetByAnchor();
 
@@ -99,7 +97,7 @@ ComboBoxList::ComboBoxList( const ComboBoxList::CreateInfo& ci ) noexcept
     float fSize = static_cast<float>( g_uiProperty.fontSmall()->height() );
     m_lineHeight = fSize + 4.0f;
     m_topPadding = fSize * 0.5f;
-    m_highlightIndex = m_model->current() + 1;
+    m_index = ScrollIndex{ m_model->current(), m_model->size() };
     auto count = visibleCount();
     float midHeight = m_topPadding + m_lineHeight * static_cast<float>( count );
 
@@ -115,7 +113,7 @@ void ComboBoxList::render( RenderContext rctx ) const
     PushData pushData{
         .m_pipeline = g_pipelines[ Pipeline::eSpriteSequenceColors ],
         .m_verticeCount = 6u,
-        .m_instanceCount = 6u + ( m_highlightIndex > 0 ),
+        .m_instanceCount = 7u,
     };
     pushData.m_resource[ 1 ].texture = g_uiProperty.atlasTexture();
     PushConstant<Pipeline::eSpriteSequenceColors> pushConstant{
@@ -146,13 +144,11 @@ void ComboBoxList::render( RenderContext rctx ) const
     std::tie( pushConstant.m_sprites[ 3 ], pushConstant.m_sprites[ 4 ], pushConstant.m_sprites[ 5 ] )
         = gibLine( yOffset, width, m_botHeight, rctx.colorMain, ui::AtlasSprite::eBotLeft2, ui::AtlasSprite::eBot, ui::AtlasSprite::eBotRight2 );
 
-    if ( m_highlightIndex ) {
-        pushConstant.m_sprites[ 6 ] = {
-            .m_color = rctx.colorFocus,
-            .m_xywh{ 12.0f, m_topPadding + m_lineHeight * static_cast<float>( m_highlightIndex - 1 ), width - 24.0f, m_lineHeight },
-            .m_uvwh = g_uiProperty.atlas()->sliceUV( ui::AtlasSprite::eMid ),
-        };
-    }
+    pushConstant.m_sprites[ 6 ] = {
+        .m_color = rctx.colorFocus,
+        .m_xywh{ 12.0f, m_topPadding + m_lineHeight * static_cast<float>( m_index.currentVisible() ), width - 24.0f, m_lineHeight },
+        .m_uvwh = g_uiProperty.atlas()->sliceUV( ui::AtlasSprite::eMid ),
+    };
     rctx.renderer->push( pushData, &pushConstant );
 
     Label::CreateInfo ci{
@@ -161,7 +157,7 @@ void ComboBoxList::render( RenderContext rctx ) const
         .anchor = Anchor::fRight | Anchor::fTop,
     };
     for ( decltype( count ) i = 0; i < count; ++i ) {
-        auto txt = m_model->at( i );
+        auto txt = m_model->at( i + m_index.offset() );
         ci.text = txt;
         Label{ ci }.render( rctx );
         ci.position.y += m_lineHeight;
@@ -194,11 +190,14 @@ MouseEvent::Processing ComboBoxList::onMouseEvent( const MouseEvent& event )
     }
 
     pos.y += m_topPadding;
-    m_highlightIndex = pointToIndex( p, pos, s.x, m_lineHeight, visibleCount() );
+    auto idx = pointToIndex( p, pos, s.x, m_lineHeight, visibleCount() );
+    if ( idx ) {
+        m_index.selectVisible( idx - 1 );
+    }
 
     switch ( event.type ) {
     case MouseEvent::eClick:
-        if ( m_highlightIndex > 0 ) m_model->select( m_highlightIndex - 1 );
+        if ( idx ) m_model->select( m_index.current() );
         return MouseEvent::eStop;
 
     case MouseEvent::eMove:
@@ -216,15 +215,15 @@ bool ComboBoxList::onAction( Action a )
     if ( !a.digital ) { return false; }
     switch ( a.toA<GameAction>() ) {
     case GameAction::eMenuConfirm:
-        if ( m_highlightIndex > 0 ) m_model->select( m_highlightIndex - 1 );
+        m_model->select( m_index.current() );
         return true;
     case GameAction::eMenuCancel:
         return true;
     case GameAction::eMenuDown:
-        m_highlightIndex = std::min( static_cast<decltype(m_highlightIndex)>( m_highlightIndex + 1 ), visibleCount() );
+        m_index.increase();
         return false;
     case GameAction::eMenuUp:
-        m_highlightIndex = m_highlightIndex ? ( m_highlightIndex - 1 ) : 0;
+        m_index.decrease();
         return false;
     default:
         return false;
@@ -234,7 +233,7 @@ bool ComboBoxList::onAction( Action a )
 
 DataModel::size_type ComboBoxList::visibleCount() const
 {
-    return m_model->size();
+    return std::min( m_model->size(), m_index.maxVisible() );
 }
 
 }
