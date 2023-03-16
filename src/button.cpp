@@ -85,13 +85,11 @@ MouseEvent::Processing Button::onMouseEvent( const MouseEvent& event )
     }
 }
 
-bool Button::onAction( Action a )
+bool Button::onAction( ui::Action action )
 {
-    if ( !a.digital ) {
-        return false;
-    }
-    switch ( a.toA<GameAction>() ) {
-    case GameAction::eMenuConfirm:
+    if ( action.value == 0 ) { return false; }
+    switch ( action.a ) {
+    case ui::Action::eMenuConfirm:
         trigger();
         return true;
     default:

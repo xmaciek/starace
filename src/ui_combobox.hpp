@@ -1,6 +1,5 @@
 #pragma once
 
-#include "game_action.hpp"
 #include "label.hpp"
 #include "nineslice.hpp"
 #include "widget.hpp"
@@ -28,7 +27,7 @@ public:
     virtual void render( RenderContext ) const override;
     virtual void update( const UpdateContext& ) override;
     virtual MouseEvent::Processing onMouseEvent( const MouseEvent& ) override;
-    virtual bool onAction( Action ) override;
+    virtual bool onAction( ui::Action ) override;
 };
 
 
@@ -57,7 +56,7 @@ public:
 
     virtual void render( RenderContext ) const override;
     virtual MouseEvent::Processing onMouseEvent( const MouseEvent& ) override;
-    virtual bool onAction( Action ) override;
+    virtual bool onAction( ui::Action ) override;
 };
 
 }

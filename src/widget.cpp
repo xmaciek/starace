@@ -111,7 +111,7 @@ math::vec2 Widget::offsetByAnchor() const
     return ret;
 }
 
-bool Widget::onAction( Action )
+bool Widget::onAction( ui::Action )
 {
     return false;
 }

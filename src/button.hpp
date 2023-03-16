@@ -4,6 +4,7 @@
 #include "label.hpp"
 #include "nineslice.hpp"
 
+#include <ui/input.hpp>
 #include <renderer/texture.hpp>
 
 #include <array>
@@ -28,7 +29,7 @@ public:
 
     virtual MouseEvent::Processing onMouseEvent( const MouseEvent& ) override;
     virtual void render( RenderContext ) const override;
-    virtual bool onAction( Action ) override;
+    virtual bool onAction( ui::Action ) override;
 
     void setTrigger( std::function<void()> );
     void trigger() const;

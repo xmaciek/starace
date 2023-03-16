@@ -6,7 +6,7 @@
 #include <engine/math.hpp>
 #include <engine/update_context.hpp>
 #include <engine/mouse_event.hpp>
-#include <engine/action.hpp>
+#include <ui/input.hpp>
 #include <shared/pmr_pointer.hpp>
 
 #include <vector>
@@ -42,7 +42,7 @@ public:
     Screen& operator = ( Screen&& ) noexcept = default;
     Screen& operator = ( const Screen& ) = delete;
 
-    void onAction( Action );
+    void onAction( ui::Action );
     void onMouseEvent( const MouseEvent& );
     void update( const UpdateContext& );
     void render( const RenderContext& ) const;

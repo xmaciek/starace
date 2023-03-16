@@ -148,21 +148,21 @@ DataModel::size_type SpinBox::value() const
     return *m_index;
 }
 
-bool SpinBox::onAction( Action a )
+bool SpinBox::onAction( ui::Action action )
 {
-    if ( !a.digital ) { return false; }
-    switch ( a.toA<GameAction>() ) {
-    case GameAction::eMenuLeft:
+    if ( action.value == 0 ) { return false; }
+    switch ( action.a ) {
+    case ui::Action::eMenuLeft:
         m_animL = 0.0f;
         m_index--;
         m_model->select( value() );
         break;
-    case GameAction::eMenuRight:
+    case ui::Action::eMenuRight:
         m_animR = 0.0f;
         m_index++;
         m_model->select( value() );
         break;
-    case GameAction::eMenuConfirm:
+    case ui::Action::eMenuConfirm:
         m_model->activate( value() );
         break;
     default:

@@ -42,11 +42,10 @@ ComboBox::ComboBox( const ComboBox::CreateInfo& ci ) noexcept
     assert( ci.model );
 }
 
-bool ComboBox::onAction( Action a )
+bool ComboBox::onAction( ui::Action action )
 {
-    if ( !a.digital ) { return false; }
-    switch ( a.toA<GameAction>() ) {
-    case GameAction::eMenuConfirm:
+    switch ( action.a ) {
+    case ui::Action::eMenuConfirm:
         g_uiProperty.requestModalComboBox( position() + offsetByAnchor(), size(), m_value.dataModel() );
         return true;
     default:
@@ -211,19 +210,19 @@ MouseEvent::Processing ComboBoxList::onMouseEvent( const MouseEvent& event )
 
 }
 
-bool ComboBoxList::onAction( Action a )
+bool ComboBoxList::onAction( ui::Action action )
 {
-    if ( !a.digital ) { return false; }
-    switch ( a.toA<GameAction>() ) {
-    case GameAction::eMenuConfirm:
+    if ( action.value == 0 ) { return false; }
+    switch ( action.a ) {
+    case ui::Action::eMenuConfirm:
         m_model->select( m_index.current() );
         return true;
-    case GameAction::eMenuCancel:
+    case ui::Action::eMenuCancel:
         return true;
-    case GameAction::eMenuDown:
+    case ui::Action::eMenuDown:
         m_index.increase();
         return false;
-    case GameAction::eMenuUp:
+    case ui::Action::eMenuUp:
         m_index.decrease();
         return false;
     default:

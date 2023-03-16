@@ -2,7 +2,6 @@
 
 #include "button.hpp"
 #include "colors.hpp"
-#include "game_action.hpp"
 #include "game_callbacks.hpp"
 #include "label.hpp"
 #include "nineslice.hpp"
@@ -295,23 +294,25 @@ void Screen::changeFocus( uint16_t from, uint16_t to )
     if ( wgt ) { wgt->setFocused( true ); }
 }
 
-void Screen::onAction( Action a )
+void Screen::onAction( ui::Action action )
 {
     ZoneScoped;
+    if ( action.value == 0 ) { return; }
+
     if ( m_comboBoxList ) {
-        if ( m_comboBoxList->onAction( a ) ) {
+        if ( m_comboBoxList->onAction( action ) ) {
             m_comboBoxList = {};
         }
         return;
     }
-    if ( !a.digital ) { return; }
+
     const uint16_t prevIndex = *m_tabOrder;
-    switch ( a.toA<GameAction>() ) {
-    case GameAction::eMenuUp: changeFocus( prevIndex, *--m_tabOrder ); break;
-    case GameAction::eMenuDown: changeFocus( prevIndex, *++m_tabOrder ); break;
+    switch ( action.a ) {
+    case ui::Action::eMenuUp: changeFocus( prevIndex, *--m_tabOrder ); break;
+    case ui::Action::eMenuDown: changeFocus( prevIndex, *++m_tabOrder ); break;
     default:
         if ( Widget* wgt = findWidgetByTabOrder( *m_tabOrder ) ) {
-            wgt->onAction( a );
+            wgt->onAction( action );
         }
         break;
     }

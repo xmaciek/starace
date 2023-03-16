@@ -2,7 +2,6 @@
 
 #include "widget.hpp"
 #include "label.hpp"
-#include "game_action.hpp"
 #include "utils.hpp"
 #include "tab_order.hpp"
 #include <ui/data_model.hpp>
@@ -32,7 +31,7 @@ public:
     virtual void render( RenderContext ) const override;
     virtual void update( const UpdateContext& ) override;
     virtual MouseEvent::Processing onMouseEvent( const MouseEvent& ) override;
-    virtual bool onAction( Action ) override;
+    virtual bool onAction( ui::Action ) override;
 };
 
 } // namespace ui

@@ -10,6 +10,7 @@ target_sources( ui
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/data_model.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/font.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/input.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/pipeline.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/property.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/scroll_index.hpp

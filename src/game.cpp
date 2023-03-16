@@ -67,22 +67,25 @@ constexpr std::tuple<GameAction, Actuator> inputActions[] = {
     { GameAction::eJetTarget, SDL_CONTROLLER_BUTTON_Y },
     { GameAction::eJetTarget, SDL_SCANCODE_I },
     { GameAction::eJetYaw, SDL_CONTROLLER_AXIS_LEFTX },
-    { GameAction::eMenuCancel, SDL_CONTROLLER_BUTTON_B },
-    { GameAction::eMenuCancel, SDL_SCANCODE_ESCAPE },
-    { GameAction::eMenuConfirm, SDL_CONTROLLER_BUTTON_A },
-    { GameAction::eMenuConfirm, SDL_SCANCODE_RETURN },
-    { GameAction::eMenuDown, SDL_CONTROLLER_BUTTON_DPAD_DOWN },
-    { GameAction::eMenuDown, SDL_SCANCODE_DOWN },
-    { GameAction::eMenuDown, SDL_SCANCODE_S },
-    { GameAction::eMenuLeft, SDL_CONTROLLER_BUTTON_DPAD_LEFT },
-    { GameAction::eMenuLeft, SDL_SCANCODE_A },
-    { GameAction::eMenuLeft, SDL_SCANCODE_LEFT },
-    { GameAction::eMenuRight, SDL_CONTROLLER_BUTTON_DPAD_RIGHT },
-    { GameAction::eMenuRight, SDL_SCANCODE_D },
-    { GameAction::eMenuRight, SDL_SCANCODE_RIGHT },
-    { GameAction::eMenuUp, SDL_CONTROLLER_BUTTON_DPAD_UP },
-    { GameAction::eMenuUp, SDL_SCANCODE_UP },
-    { GameAction::eMenuUp, SDL_SCANCODE_W },
+};
+
+constexpr std::tuple<ui::Action::Enum, Actuator> UI_INPUT[] = {
+    { ui::Action::eMenuCancel, SDL_CONTROLLER_BUTTON_B },
+    { ui::Action::eMenuCancel, SDL_SCANCODE_ESCAPE },
+    { ui::Action::eMenuConfirm, SDL_CONTROLLER_BUTTON_A },
+    { ui::Action::eMenuConfirm, SDL_SCANCODE_RETURN },
+    { ui::Action::eMenuDown, SDL_CONTROLLER_BUTTON_DPAD_DOWN },
+    { ui::Action::eMenuDown, SDL_SCANCODE_DOWN },
+    { ui::Action::eMenuDown, SDL_SCANCODE_S },
+    { ui::Action::eMenuLeft, SDL_CONTROLLER_BUTTON_DPAD_LEFT },
+    { ui::Action::eMenuLeft, SDL_SCANCODE_A },
+    { ui::Action::eMenuLeft, SDL_SCANCODE_LEFT },
+    { ui::Action::eMenuRight, SDL_CONTROLLER_BUTTON_DPAD_RIGHT },
+    { ui::Action::eMenuRight, SDL_SCANCODE_D },
+    { ui::Action::eMenuRight, SDL_SCANCODE_RIGHT },
+    { ui::Action::eMenuUp, SDL_CONTROLLER_BUTTON_DPAD_UP },
+    { ui::Action::eMenuUp, SDL_SCANCODE_UP },
+    { ui::Action::eMenuUp, SDL_SCANCODE_W },
 };
 
 constexpr std::tuple<GameAction, Actuator, Actuator> inputActions2[] = {
@@ -252,6 +255,9 @@ void Game::onInit()
 {
     ZoneScoped;
     for ( auto [ eid, act ] : inputActions ) {
+        m_actionStateTracker.add( static_cast<Action::Enum>( eid ), act );
+    }
+    for ( auto [ eid, act ] : UI_INPUT ) {
         m_actionStateTracker.add( static_cast<Action::Enum>( eid ), act );
     }
     for ( auto [ eid, min, max ] : inputActions2 ) {
@@ -852,9 +858,15 @@ void Game::onAction( Action a )
     }
 
     ui::Screen* screen = currentScreen();
-    if ( screen ) {
-        screen->onAction( a );
-    }
+    do {
+        if ( !screen ) break;
+        if ( !a.digital ) break;
+        auto guiInput = a.toA<ui::Action::Enum>();
+        if ( guiInput > ui::Action::base ) break;
+        if ( guiInput < ui::Action::end ) break;
+        screen->onAction( ui::Action{ .a = guiInput, .value = 1 } );
+    } while ( 0 );
+
     if ( m_currentScreen == Screen::eGame ) {
         switch ( action ) {
         case GameAction::eJetTarget:
