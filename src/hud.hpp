@@ -1,7 +1,6 @@
 #pragma once
 
-#include "widget.hpp"
-#include "label.hpp"
+#include <ui/label.hpp>
 #include "hudbar.hpp"
 #include "speed_meter.hpp"
 
@@ -23,16 +22,16 @@ class Hud {
     const HudData* m_displayData = nullptr;
     HudData m_lastData{};
 
-    Label m_score{};
-    Label m_scoreValue{};
-    Label m_shots{};
-    Label m_shotsValue{};
-    Label m_pool{};
-    Label m_poolValue{};
-    Label m_fps{};
-    Label m_fpsValue{};
-    Label m_calc{};
-    Label m_calcValue{};
+    ui::Label m_score{};
+    ui::Label m_scoreValue{};
+    ui::Label m_shots{};
+    ui::Label m_shotsValue{};
+    ui::Label m_pool{};
+    ui::Label m_poolValue{};
+    ui::Label m_fps{};
+    ui::Label m_fpsValue{};
+    ui::Label m_calc{};
+    ui::Label m_calcValue{};
     SpeedMeter m_speedMeter{};
     HudBar m_hp{};
 

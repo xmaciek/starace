@@ -1,10 +1,10 @@
 #pragma once
 
-#include "widget.hpp"
-#include "label.hpp"
+#include <ui/widget.hpp>
+#include <ui/label.hpp>
 
-class HudBar : public Widget {
-    Label m_label{};
+class HudBar : public ui::Widget {
+    ui::Label m_label{};
     float m_value = 0.0f;
 
 public:

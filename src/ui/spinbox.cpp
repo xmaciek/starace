@@ -1,10 +1,9 @@
-#include "ui_spinbox.hpp"
+#include <ui/spinbox.hpp>
 
 #include <ui/property.hpp>
 #include <ui/pipeline.hpp>
-#include "spritegen.hpp"
-#include "linear_atlas.hpp"
-#include "colors.hpp"
+#include <ui/spritegen.hpp>
+#include <ui/linear_atlas.hpp>
 
 #include <renderer/renderer.hpp>
 
@@ -28,7 +27,7 @@ SpinBox::SpinBox( DataModel* dataModel ) noexcept
 : Widget{ {}, { 240.0f, 48.0f } }
 , m_index{ dataModel->current(), 0, dataModel->size() }
 , m_model{ dataModel }
-, m_label{ Label::CreateInfo{ .dataModel = dataModel, .font = g_uiProperty.fontSmall(), .color = color::white, .anchor = Anchor::fCenter | Anchor::fMiddle, } }
+, m_label{ Label::CreateInfo{ .dataModel = dataModel, .font = g_uiProperty.fontSmall(), .anchor = Anchor::fCenter | Anchor::fMiddle, } }
 {
 }
 
@@ -70,7 +69,7 @@ void SpinBox::render( RenderContext rctx ) const
     pushConstant.m_sprites[ 1 ].m_uvwh = g_uiProperty.atlas()->sliceUV( ui::AtlasSprite::eArrowRight );
 
     auto color = isFocused() ? rctx.colorFocus : rctx.colorMain;
-    spritegen::NineSlice2 gen{ mid, g_uiProperty.atlas(), c_slices };
+    NineSlice2 gen{ mid, g_uiProperty.atlas(), c_slices };
     for ( auto i = 0u; i < 9u; ++i ) {
         auto& sprite = pushConstant.m_sprites[ i + 2u ];
         sprite.m_color = color;

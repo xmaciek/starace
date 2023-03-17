@@ -5,9 +5,9 @@
 #include <array>
 #include <cstdint>
 
-class LinearAtlas;
+namespace ui {
 
-namespace spritegen {
+class LinearAtlas;
 
 struct NineSliceComposer {
     const LinearAtlas* m_atlas = nullptr;

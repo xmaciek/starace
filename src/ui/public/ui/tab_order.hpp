@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <limits>
 
+namespace ui {
+
 template <typename T = uint16_t, T TInvalid = std::numeric_limits<T>::max()>
 class TabOrder {
     T m_min = 0;
@@ -94,3 +96,4 @@ public:
 
 };
 
+}

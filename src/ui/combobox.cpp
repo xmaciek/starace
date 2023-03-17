@@ -1,12 +1,7 @@
-#include "ui_combobox.hpp"
+#include <ui/combobox.hpp>
 
-#include "colors.hpp"
-#include "game_action.hpp"
-#include "label.hpp"
-#include "linear_atlas.hpp"
-#include "nineslice.hpp"
-#include "spritegen.hpp"
-
+#include <ui/linear_atlas.hpp>
+#include <ui/spritegen.hpp>
 #include <ui/pipeline.hpp>
 #include <ui/property.hpp>
 
@@ -32,14 +27,12 @@ static constexpr std::array<uint32_t, 9> SLICES = {
 
 ComboBox::ComboBox( const ComboBox::CreateInfo& ci ) noexcept
 : NineSlice{ ci.position, ci.size, Anchor::fTop| Anchor::fLeft, g_uiProperty.atlas(), SLICES, g_uiProperty.atlasTexture() }
-, m_model{ ci.model }
 , m_label{ Label::CreateInfo{ .text = ci.text, .font = g_uiProperty.fontMedium(), .anchor = Anchor::fLeft | Anchor::fMiddle, } }
 , m_value{ Label::CreateInfo{ .dataModel = ci.model, .font = g_uiProperty.fontMedium(), .anchor = Anchor::fRight | Anchor::fMiddle, } }
 {
     math::vec2 s = size();
     m_label.setPosition( math::vec2{ 16.0f, s.y * 0.5f } );
     m_value.setPosition( math::vec2{ s.x - 16.0f, s.y * 0.5f } );
-    assert( ci.model );
 }
 
 bool ComboBox::onAction( ui::Action action )
@@ -85,7 +78,6 @@ void ComboBox::render( RenderContext rctx ) const
     m_label.render( rctx );
     m_value.render( rctx );
 }
-
 
 ComboBoxList::ComboBoxList( const ComboBoxList::CreateInfo& ci ) noexcept
 : Widget{}

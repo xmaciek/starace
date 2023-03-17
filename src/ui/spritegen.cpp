@@ -1,10 +1,9 @@
-#include "spritegen.hpp"
-#include "linear_atlas.hpp"
-
+#include <ui/spritegen.hpp>
+#include <ui/linear_atlas.hpp>
 
 #include <cassert>
 
-namespace spritegen {
+namespace ui {
 
 static math::vec4 xyuvForVertice6( const math::vec4& xywh, const math::vec4& uvwh, uint32_t vert )
 {

@@ -1,9 +1,9 @@
-#include "nineslice.hpp"
+#include <ui/nineslice.hpp>
 
+#include <ui/linear_atlas.hpp>
 #include <ui/pipeline.hpp>
 #include <ui/property.hpp>
-#include "utils.hpp"
-#include "spritegen.hpp"
+#include <ui/spritegen.hpp>
 
 #include <renderer/renderer.hpp>
 
@@ -54,7 +54,7 @@ void NineSlice::render( RenderContext rctx ) const
         .m_color = rctx.colorMain,
     };
 
-    spritegen::NineSlice2 gen{ mid, m_atlas, m_spriteIds };
+    NineSlice2 gen{ mid, m_atlas, m_spriteIds };
     for ( auto i = 0u; i < 9u; ++i ) {
         auto& sprite = pushConstant.m_sprites[ i ];
         sprite.m_xywh = gen( i );

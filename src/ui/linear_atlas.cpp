@@ -1,6 +1,9 @@
-#include "linear_atlas.hpp"
+#include <ui/linear_atlas.hpp>
 
+#include <algorithm>
 #include <cassert>
+
+namespace ui {
 
 LinearAtlas::LinearAtlas( std::span<const Sprite> data, uint16_t width, uint16_t height ) noexcept
 : m_width{ width }
@@ -31,4 +34,6 @@ math::vec4 LinearAtlas::sliceUV( uint32_t s ) const
     const float w = static_cast<float>( sprite[ 2 ] ) / wh.x;
     const float h = static_cast<float>( sprite[ 3 ] ) / wh.y;
     return math::vec4{ x, y, w, h };
+}
+
 }

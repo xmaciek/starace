@@ -1,10 +1,9 @@
 #pragma once
 
-#include "widget.hpp"
-#include "label.hpp"
-#include "utils.hpp"
-#include "tab_order.hpp"
 #include <ui/data_model.hpp>
+#include <ui/label.hpp>
+#include <ui/tab_order.hpp>
+#include <ui/widget.hpp>
 
 namespace ui {
 

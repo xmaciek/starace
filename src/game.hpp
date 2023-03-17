@@ -2,25 +2,20 @@
 
 #include "action_state_tracker.hpp"
 #include "bullet.hpp"
-#include "button.hpp"
 #include "enemy.hpp"
 #include "explosion.hpp"
 #include "game_options.hpp"
 #include "hud.hpp"
 #include "jet.hpp"
-#include "linear_atlas.hpp"
 #include "map_create_info.hpp"
 #include "model_proto.hpp"
 #include "skybox.hpp"
 #include "space_dust.hpp"
 #include "targeting.hpp"
 #include "texture.hpp"
-#include <ui/data_model.hpp>
 #include "ui_glow.hpp"
 #include "ui_rings.hpp"
 #include "ui_screen.hpp"
-#include <ui/var.hpp>
-#include <ui/font.hpp>
 
 #include <config/config.hpp>
 #include <engine/engine.hpp>
@@ -30,6 +25,10 @@
 #include <renderer/texture.hpp>
 #include <shared/hash.hpp>
 #include <shared/pool.hpp>
+#include <ui/data_model.hpp>
+#include <ui/font.hpp>
+#include <ui/linear_atlas.hpp>
+#include <ui/var.hpp>
 
 #include <SDL.h>
 
@@ -68,7 +67,7 @@ private:
     Model m_enemyModel{};
     Jet m_jet{};
     Skybox m_skybox{};
-    LinearAtlas m_atlasUi{};
+    ui::LinearAtlas m_atlasUi{};
 
     Audio::Slot m_blaster{};
     Audio::Slot m_click{};

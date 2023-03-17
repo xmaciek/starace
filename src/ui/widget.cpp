@@ -1,4 +1,4 @@
-#include "widget.hpp"
+#include <ui/widget.hpp>
 
 namespace ui {
 

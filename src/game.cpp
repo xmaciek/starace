@@ -33,7 +33,7 @@ static constexpr const char* chunk1[] = {
 // TODO: move to asset file
 static constexpr auto c_spritesUi = []()
 {
-    std::array<Sprite, ui::AtlasSprite::count> ret{};
+    std::array<ui::Sprite, ui::AtlasSprite::count> ret{};
 
     ret[ ui::AtlasSprite::eBackground ] = { 84, 0, 8, 8 };
     ret[ ui::AtlasSprite::eArrowRight ] = { 0, 0, 24, 48 };
@@ -862,8 +862,8 @@ void Game::onAction( Action a )
         if ( !screen ) break;
         if ( !a.digital ) break;
         auto guiInput = a.toA<ui::Action::Enum>();
-        if ( guiInput > ui::Action::base ) break;
-        if ( guiInput < ui::Action::end ) break;
+        if ( guiInput <= ui::Action::base ) break;
+        if ( guiInput >= ui::Action::end ) break;
         screen->onAction( ui::Action{ .a = guiInput, .value = 1 } );
     } while ( 0 );
 

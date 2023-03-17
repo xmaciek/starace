@@ -1,9 +1,6 @@
-#include "button.hpp"
+#include <ui/button.hpp>
 
-#include "colors.hpp"
 #include <ui/property.hpp>
-#include "game_action.hpp"
-
 #include <engine/math.hpp>
 
 static constexpr auto c_defaultAnchor = Anchor::fCenter | Anchor::fMiddle;

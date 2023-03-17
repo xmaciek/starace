@@ -1,8 +1,8 @@
 #pragma once
 
-#include "widget.hpp"
+#include <ui/widget.hpp>
 
-class Glow : public Widget {
+class Glow : public ui::Widget {
 public:
     virtual ~Glow() noexcept override = default;
     Glow() noexcept = default;

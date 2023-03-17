@@ -9,10 +9,10 @@
 #include <string_view>
 #include <unordered_map>
 
-
 namespace ui {
 
-struct DataModel {
+class DataModel {
+public:
     using size_type = uint16_t;
 
     virtual ~DataModel() noexcept = default;
@@ -27,7 +27,8 @@ struct DataModel {
     virtual void select( size_type );
 };
 
-struct GenericDataModel : public DataModel {
+class GenericDataModel : public DataModel {
+public:
     std::function<size_type()> m_size{};
     std::function<std::pmr::u32string(size_type)> m_at{};
     std::function<void(size_type)> m_activate{};

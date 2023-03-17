@@ -1,12 +1,12 @@
 #pragma once
 
-#include "widget.hpp"
-#include "linear_atlas.hpp"
+#include <ui/widget.hpp>
 
 #include <engine/math.hpp>
 #include <renderer/texture.hpp>
 
 namespace ui {
+class LinearAtlas;
 
 class NineSlice : public Widget {
 protected:

@@ -1,8 +1,7 @@
 #pragma once
 
-#include "widget.hpp"
-#include "colors.hpp"
 #include <ui/data_model.hpp>
+#include <ui/widget.hpp>
 
 #include <engine/math.hpp>
 #include <engine/update_context.hpp>
@@ -13,7 +12,7 @@ namespace ui {
 class Image : public Widget {
     DataModel* m_dataModel = nullptr;
     DataModel::size_type m_current = 0;
-    math::vec4 m_color = color::white;
+    math::vec4 m_color = math::vec4{ 1.0f, 1.0f, 1.0f, 1.0f };
     Texture m_texture{};
 
 public:
@@ -32,4 +31,4 @@ public:
 };
 }
 
-using UIImage = ui::Image;
+using UIImage = ui::Image; // TODO remove

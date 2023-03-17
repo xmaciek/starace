@@ -11,12 +11,9 @@ add_subdirectory( ui )
 set( STARACE_SOURCES
     action_state_tracker.cpp
     action_state_tracker.hpp
-    anchor.hpp
     autoaim.hpp
     bullet.cpp
     bullet.hpp
-    button.cpp
-    button.hpp
     chase.hpp
     circle.hpp
     colors.hpp
@@ -36,10 +33,6 @@ set( STARACE_SOURCES
     hudbar.hpp
     jet.cpp
     jet.hpp
-    label.cpp
-    label.hpp
-    linear_atlas.cpp
-    linear_atlas.hpp
     main.cpp
     map_create_info.hpp
     mesh.cpp
@@ -47,8 +40,6 @@ set( STARACE_SOURCES
     model.cpp
     model.hpp
     model_proto.hpp
-    nineslice.cpp
-    nineslice.hpp
     progressbar.cpp
     progressbar.hpp
     saobject.cpp
@@ -61,33 +52,22 @@ set( STARACE_SOURCES
     space_dust.hpp
     speed_meter.cpp
     speed_meter.hpp
-    spritegen.cpp
-    spritegen.hpp
-    tab_order.hpp
     targeting.cpp
     targeting.hpp
     texture.cpp
     texture.hpp
     thruster.cpp
     thruster.hpp
-    ui_combobox.cpp
-    ui_combobox.hpp
     ui_glow.cpp
     ui_glow.hpp
-    ui_image.cpp
-    ui_image.hpp
     ui_options_models.hpp
     ui_rings.cpp
     ui_rings.hpp
     ui_screen.cpp
     ui_screen.hpp
-    ui_spinbox.cpp
-    ui_spinbox.hpp
     units.hpp
     utils.cpp
     utils.hpp
-    widget.cpp
-    widget.hpp
 )
 
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )

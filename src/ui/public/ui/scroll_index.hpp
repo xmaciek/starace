@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+
 namespace ui {
 
 class ScrollIndex {

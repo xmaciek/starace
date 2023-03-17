@@ -1,14 +1,14 @@
 #include "ui_screen.hpp"
 
-#include "button.hpp"
 #include "colors.hpp"
 #include "game_callbacks.hpp"
-#include "label.hpp"
-#include "nineslice.hpp"
-#include "ui_combobox.hpp"
-#include "ui_image.hpp"
+#include <ui/button.hpp>
+#include <ui/combobox.hpp>
+#include <ui/image.hpp>
+#include <ui/label.hpp>
+#include <ui/nineslice.hpp>
 #include <ui/property.hpp>
-#include "ui_spinbox.hpp"
+#include <ui/spinbox.hpp>
 
 #include <Tracy.hpp>
 

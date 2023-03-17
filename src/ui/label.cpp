@@ -1,6 +1,4 @@
-#include "label.hpp"
-
-#include "colors.hpp"
+#include <ui/label.hpp>
 
 #include <renderer/renderer.hpp>
 

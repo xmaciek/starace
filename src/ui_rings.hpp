@@ -1,13 +1,13 @@
 #pragma once
 
-#include "widget.hpp"
+#include <ui/widget.hpp>
 
 #include <renderer/texture.hpp>
 #include <engine/update_context.hpp>
 
 #include <array>
 
-class UIRings : public Widget {
+class UIRings : public ui::Widget {
     std::array<Texture, 3> m_texture{};
     std::array<float, 3> m_angle{};
 

@@ -6,17 +6,16 @@
 #include <shared/fixed_map.hpp>
 #include <shared/hash.hpp>
 
-
 #include <cassert>
 #include <memory_resource>
 #include <string>
 
 class Game;
-class LinearAtlas;
 using LocTable = FixedMap<Hash::value_type, std::pmr::u32string, 64>;
 
 namespace ui {
-struct DataModel;
+class DataModel;
+class LinearAtlas;
 class Font;
 
 class Property {

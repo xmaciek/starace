@@ -1,18 +1,11 @@
 #pragma once
 
-#include "colors.hpp"
-#include "label.hpp"
-#include "nineslice.hpp"
+#include <ui/label.hpp>
+#include <ui/nineslice.hpp>
 
-#include <ui/input.hpp>
-#include <renderer/texture.hpp>
-
-#include <array>
-#include <cstdint>
 #include <functional>
 #include <string_view>
 
-class Font;
 namespace ui {
 
 class Button : public NineSlice {

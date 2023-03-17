@@ -1,4 +1,4 @@
-#include "ui_image.hpp"
+#include <ui/image.hpp>
 
 #include <ui/pipeline.hpp>
 #include <ui/property.hpp>

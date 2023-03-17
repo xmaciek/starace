@@ -1,8 +1,8 @@
 #pragma once
 
-#include "widget.hpp"
+#include <ui/widget.hpp>
 
-class ProgressBar : public Widget {
+class ProgressBar : public ui::Widget {
     math::vec4 m_colorA{};
     math::vec4 m_colorB{};
     math::vec2 m_axis{};

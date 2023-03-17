@@ -2,11 +2,11 @@
 
 #include <engine/math.hpp>
 
-#include <algorithm>
 #include <array>
 #include <cstdint>
 #include <span>
 
+namespace ui {
 using Sprite = std::array<uint16_t, 4>; // x, y, w, h
 
 class LinearAtlas {
@@ -26,3 +26,5 @@ public:
     Sprite sprite( uint32_t ) const;
 
 };
+
+}

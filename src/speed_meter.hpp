@@ -1,10 +1,11 @@
 #pragma once
 
-#include "label.hpp"
+#include <ui/label.hpp>
+#include <ui/widget.hpp>
 
-class SpeedMeter : public Widget {
-    Label m_speed{};
-    Label m_speedValue{};
+class SpeedMeter : public ui::Widget {
+    ui::Label m_speed{};
+    ui::Label m_speedValue{};
 
     float m_speedFan = 0.0f;
     float m_speedFanAngle = 0.0f;

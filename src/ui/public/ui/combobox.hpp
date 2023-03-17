@@ -1,16 +1,15 @@
 #pragma once
 
-#include "label.hpp"
-#include "nineslice.hpp"
-#include "widget.hpp"
-#include <ui/data_model.hpp>
+#include <ui/label.hpp>
+#include <ui/nineslice.hpp>
 #include <ui/scroll_index.hpp>
+#include <ui/widget.hpp>
 
 namespace ui {
 
+class DataModel;
+
 class ComboBox : public NineSlice {
-    [[maybe_unused]]
-    DataModel* m_model = nullptr;
     Label m_label{};
     Label m_value{};
 

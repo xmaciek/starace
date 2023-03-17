@@ -3,18 +3,39 @@ set_cppver( ui 20 )
 
 target_sources( ui
     PRIVATE
+    button.cpp
+    combobox.cpp
     data_model.cpp
     font.cpp
+    image.cpp
+    label.cpp
+    linear_atlas.cpp
+    nineslice.cpp
     scroll_index.cpp
+    spinbox.cpp
+    spritegen.cpp
+    widget.cpp
 
     PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/anchor.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/button.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/combobox.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/data_model.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/font.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/image.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/input.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/label.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/linear_atlas.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/nineslice.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/pipeline.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/property.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/scroll_index.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/spinbox.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/spritegen.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/tab_order.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/var.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/widget.hpp
+
 )
 set_vs_directory( ui "libs" )
 
