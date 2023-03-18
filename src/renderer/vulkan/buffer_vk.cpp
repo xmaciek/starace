@@ -10,6 +10,7 @@
 
 BufferVK::~BufferVK() noexcept
 {
+    ZoneScoped;
     destroy<vkDestroyBuffer>( m_device, m_buffer );
 }
 

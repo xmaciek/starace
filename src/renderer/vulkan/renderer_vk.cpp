@@ -463,10 +463,11 @@ Buffer RendererVK::createBuffer( std::span<const float> vec )
         .pCommandBuffers = &cmd,
     };
 
-    auto [ queue, bottleneck ] = m_queueTransfer;
-    assert( queue );
-    assert( bottleneck );
     {
+        ZoneScopedN( "queue submit" );
+        auto [ queue, bottleneck ] = m_queueTransfer;
+        assert( queue );
+        assert( bottleneck );
         Bottleneck lock{ *bottleneck };
         vkQueueSubmit( queue, 1, &submitInfo, VK_NULL_HANDLE );
         vkQueueWaitIdle( queue );
@@ -520,6 +521,7 @@ Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::span<const
     };
 
     {
+        ZoneScopedN( "queue submit" );
         auto [ queue, bottleneck ] = m_queueTransfer;
         assert( queue );
         assert( bottleneck );
@@ -534,6 +536,7 @@ Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::span<const
     [[maybe_unused]]
     TextureVK* oldTex = m_textureSlots[ idx ].exchange( tex );
     assert( !oldTex );
+
     return idx + 1;
 }
 
