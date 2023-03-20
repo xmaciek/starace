@@ -19,4 +19,5 @@ target_sources( tests
     test_config.cpp
     test_fixed_map.cpp
     test_bit_index_iterator.cpp
+    test_hash.cpp
 )
