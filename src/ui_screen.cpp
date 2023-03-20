@@ -44,22 +44,20 @@ static UniquePointer<Widget> makeButton( std::pmr::memory_resource* alloc, const
     };
 
     Hash hash{};
-    for ( const auto& it : entry ) {
-        switch ( auto h = hash( *it ) ) {
-        case "text"_hash:
-            text = g_uiProperty.localize( it.toString() );
-            ci.text = text;
-            continue;
-        case "x"_hash: ci.position.x = it.toFloat(); continue;
-        case "y"_hash: ci.position.y = it.toFloat(); continue;
-        case "width"_hash: ci.size.x = it.toFloat(); continue;
-        case "height"_hash: ci.size.y = it.toFloat(); continue;
-        case "trigger"_hash: ci.trigger = fnKeyToFunction( it.toString() ); continue;
+    for ( const auto& property : entry ) {
+        switch ( hash( *property ) ) {
+        case "height"_hash: ci.size.y = property.toFloat(); continue;
+        case "text"_hash: text = g_uiProperty.localize( property.toString() ); continue;
+        case "trigger"_hash: ci.trigger = fnKeyToFunction( property.toString() ); continue;
+        case "width"_hash: ci.size.x = property.toFloat(); continue;
+        case "x"_hash: ci.position.x = property.toFloat(); continue;
+        case "y"_hash: ci.position.y = property.toFloat(); continue;
         default:
             assert( !"unhandled Button element" );
             continue;
         }
     }
+    ci.text = text;
     return UniquePointer<Button>{ alloc, ci };
 }
 
@@ -71,11 +69,11 @@ static UniquePointer<Widget> makeImage( std::pmr::memory_resource* alloc, const 
     Hash hash{};
     for ( const auto& property : entry ) {
         switch ( hash( *property ) ) {
+        case "data"_hash: ci.model = dataKeyToModel( property.toString() ); continue;
+        case "height"_hash: ci.size.y = property.toFloat(); continue;
+        case "width"_hash: ci.size.x = property.toFloat(); continue;
         case "x"_hash: ci.position.x = property.toFloat(); continue;
         case "y"_hash: ci.position.y = property.toFloat(); continue;
-        case "width"_hash: ci.size.x = property.toFloat(); continue;
-        case "height"_hash: ci.size.y = property.toFloat(); continue;
-        case "data"_hash: ci.model = dataKeyToModel( property.toString() ); continue;
         default:
             assert( !"unhandled Image property" );
             continue;
@@ -101,13 +99,17 @@ static UniquePointer<Widget> makeNineSlice( std::pmr::memory_resource* alloc, co
     math::vec2 position{};
     math::vec2 extent{};
 
+    Hash hash{};
     for ( const auto& property : entry ) {
-        auto propName = *property;
-        if ( propName == "x"sv ) { position.x = property.toFloat(); continue; }
-        if ( propName == "y"sv ) { position.y = property.toFloat(); continue; }
-        if ( propName == "width"sv ) { extent.x = property.toFloat(); continue; }
-        if ( propName == "height"sv ) { extent.y = property.toFloat(); continue; }
-        assert( !"unhandled NineSlice property" );
+        switch ( hash( *property ) ) {
+        case "height"_hash: extent.y = property.toFloat(); continue;
+        case "width"_hash: extent.x = property.toFloat(); continue;
+        case "x"_hash: position.x = property.toFloat(); continue;
+        case "y"_hash: position.y = property.toFloat(); continue;
+        default:
+            assert( !"unhandled NineSlice property" );
+            continue;
+        }
     }
 
     return UniquePointer<NineSlice>{ alloc
@@ -127,13 +129,17 @@ static UniquePointer<Widget> makeLabel( std::pmr::memory_resource* alloc, const 
         .font = g_uiProperty.fontMedium(),
     };
     std::u32string text{};
-    for ( const auto& it : entry ) {
-        auto propName = *it;
-        if ( propName == "text"sv ) { text = g_uiProperty.localize( it.toString() ); continue; }
-        if ( propName == "x"sv ) { ci.position.x = it.toFloat(); continue; }
-        if ( propName == "y"sv ) { ci.position.y = it.toFloat(); continue; }
-        if ( propName == "data"sv ) { ci.dataModel = dataKeyToModel( it.toString() ); continue; }
-        assert( !"unhandled Label property" );
+    Hash hash{};
+    for ( const auto& property : entry ) {
+        switch ( hash( *property ) ) {
+        case "data"_hash: ci.dataModel = dataKeyToModel( property.toString() ); continue;
+        case "text"_hash: text = g_uiProperty.localize( property.toString() ); continue;
+        case "x"_hash: ci.position.x = property.toFloat(); continue;
+        case "y"_hash: ci.position.y = property.toFloat(); continue;
+        default:
+            assert( !"unhandled Label property" );
+            continue;
+        }
     }
     ci.text = text;
     return UniquePointer<Label>{ alloc, ci };
@@ -145,14 +151,18 @@ static UniquePointer<Widget> makeSpinBox( std::pmr::memory_resource* alloc, cons
     math::vec2 pos{};
     math::vec2 size{};
     DataModel* dataModel = nullptr;
-    for ( const auto& it : entry ) {
-        auto propName = *it;
-        if ( propName == "x"sv ) { pos.x = it.toFloat(); continue; }
-        if ( propName == "y"sv ) { pos.y = it.toFloat(); continue; }
-        if ( propName == "width"sv ) { size.x = it.toFloat(); continue; }
-        if ( propName == "height"sv ) { size.y = it.toFloat(); continue; }
-        if ( propName == "data"sv ) { dataModel = dataKeyToModel( it.toString() ); continue; }
-        assert( !"unhandled SpinBox element" );
+    Hash hash{};
+    for ( const auto& property : entry ) {
+        switch ( hash( *property ) ) {
+        case "data"_hash: dataModel = dataKeyToModel( property.toString() ); continue;
+        case "height"_hash: size.y = property.toFloat(); continue;
+        case "width"_hash: size.x = property.toFloat(); continue;
+        case "x"_hash: pos.x = property.toFloat(); continue;
+        case "y"_hash: pos.y = property.toFloat(); continue;
+        default:
+            assert( !"unhandled SpinBox element" );
+            continue;
+        }
     }
 
     assert( dataModel );
@@ -169,14 +179,14 @@ static UniquePointer<Widget> makeComboBox( std::pmr::memory_resource* alloc, con
     assert( alloc );
     ComboBox::CreateInfo ci{};
     Hash hash{};
-    for ( const auto& it : entry ) {
-        switch ( auto h = hash( *it ) ) {
-        case "x"_hash: ci.position.x = it.toFloat(); continue;
-        case "y"_hash: ci.position.y = it.toFloat(); continue;
-        case "width"_hash: ci.size.x = it.toFloat(); continue;
-        case "height"_hash: ci.size.y = it.toFloat(); continue;
-        case "data"_hash: ci.model = dataKeyToModel( it.toString() ); continue;
-        case "text"_hash: ci.text = g_uiProperty.localize( it.toString() ); continue;
+    for ( const auto& property : entry ) {
+        switch ( auto h = hash( *property ) ) {
+        case "data"_hash: ci.model = dataKeyToModel( property.toString() ); continue;
+        case "height"_hash: ci.size.y = property.toFloat(); continue;
+        case "text"_hash: ci.text = g_uiProperty.localize( property.toString() ); continue;
+        case "width"_hash: ci.size.x = property.toFloat(); continue;
+        case "x"_hash: ci.position.x = property.toFloat(); continue;
+        case "y"_hash: ci.position.y = property.toFloat(); continue;
         default:
             assert( !"unhandled Entry element" );
             continue;
@@ -195,17 +205,21 @@ Screen::Screen( const cfg::Entry& entry ) noexcept
     std::pmr::memory_resource* alloc = std::pmr::get_default_resource();
     uint16_t tabOrderCount = 0;
 
-    for ( const auto& it : entry ) {
-        auto str = *it;
-        if ( str == "width"sv ) { m_extent.x = it.toFloat(); continue; }
-        if ( str == "height"sv ) { m_extent.y = it.toFloat(); continue; }
-        if ( str == "Label"sv ) { m_widgets.emplace_back( makeLabel( alloc, it ) ); continue; }
-        if ( str == "Button"sv ) { m_widgets.emplace_back( makeButton( alloc, it, tabOrderCount++ ) ); continue; }
-        if ( str == "SpinBox"sv ) { m_widgets.emplace_back( makeSpinBox( alloc, it, tabOrderCount++ ) ); continue; }
-        if ( str == "NineSlice"sv ) { m_widgets.emplace_back( makeNineSlice( alloc, it ) ); continue; }
-        if ( str == "ComboBox"sv ) { m_widgets.emplace_back( makeComboBox( alloc, it, tabOrderCount++ ) ); continue; }
-        if ( str == "Image"sv ) { m_widgets.emplace_back( makeImage( alloc, it ) ); continue; }
-        assert( !"unhandled ui element" );
+    Hash hash{};
+    for ( const auto& property : entry ) {
+        switch ( hash( * property ) ) {
+        case "Button"_hash: m_widgets.emplace_back( makeButton( alloc, property, tabOrderCount++ ) ); continue;
+        case "ComboBox"_hash: m_widgets.emplace_back( makeComboBox( alloc, property, tabOrderCount++ ) ); continue;
+        case "Image"_hash: m_widgets.emplace_back( makeImage( alloc, property ) ); continue;
+        case "Label"_hash: m_widgets.emplace_back( makeLabel( alloc, property ) ); continue;
+        case "NineSlice"_hash: m_widgets.emplace_back( makeNineSlice( alloc, property ) ); continue;
+        case "SpinBox"_hash: m_widgets.emplace_back( makeSpinBox( alloc, property, tabOrderCount++ ) ); continue;
+        case "height"_hash: m_extent.y = property.toFloat(); continue;
+        case "width"_hash: m_extent.x = property.toFloat(); continue;
+        default:
+            assert( !"unhandled ui element" );
+            continue;
+        }
     }
     if ( tabOrderCount == 0 ) { return; }
     m_tabOrder = TabOrder<>{ 0, 0, tabOrderCount };
