@@ -16,13 +16,17 @@ class Image : public Widget {
     Texture m_texture{};
 
 public:
-    Image() = default;
-    Image( Texture t );
-    Image( Texture t, math::vec4 color );
-    Image( math::vec2 position, math::vec2 extent, math::vec4 color, Texture );
-    Image( Anchor a, math::vec2 extent, math::vec4 color, Texture );
-    Image( Anchor );
-    Image( math::vec2 position, math::vec2 extent, DataModel* );
+    struct CreateInfo {
+        DataModel* model = nullptr;
+        Texture texture{};
+        math::vec2 position{};
+        math::vec2 size{};
+        math::vec4 color = math::vec4{ 1.0f, 1.0f, 1.0f, 1.0f };
+        Anchor anchor = Anchor::fTop | Anchor::fLeft;
+    };
+    ~Image() noexcept = default;
+    Image() noexcept = default;
+    Image( const CreateInfo& ) noexcept;
 
     virtual void render( RenderContext ) const override;
     virtual void update( const UpdateContext& ) override;

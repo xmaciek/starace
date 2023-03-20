@@ -66,19 +66,22 @@ static UniquePointer<Widget> makeButton( std::pmr::memory_resource* alloc, const
 static UniquePointer<Widget> makeImage( std::pmr::memory_resource* alloc, const cfg::Entry& entry )
 {
     assert( alloc );
-    math::vec2 position{};
-    math::vec2 extent{};
-    DataModel* model = nullptr;
+    Image::CreateInfo ci{};
+
+    Hash hash{};
     for ( const auto& property : entry ) {
-        auto propName = *property;
-        if ( propName == "x"sv ) { position.x = property.toFloat(); continue; }
-        if ( propName == "y"sv ) { position.y = property.toFloat(); continue; }
-        if ( propName == "width"sv ) { extent.x = property.toFloat(); continue; }
-        if ( propName == "height"sv ) { extent.y = property.toFloat(); continue; }
-        if ( propName == "data"sv ) { model = dataKeyToModel( property.toString() ); continue; }
-        assert( !"unhandled Image property" );
+        switch ( hash( *property ) ) {
+        case "x"_hash: ci.position.x = property.toFloat(); continue;
+        case "y"_hash: ci.position.y = property.toFloat(); continue;
+        case "width"_hash: ci.size.x = property.toFloat(); continue;
+        case "height"_hash: ci.size.y = property.toFloat(); continue;
+        case "data"_hash: ci.model = dataKeyToModel( property.toString() ); continue;
+        default:
+            assert( !"unhandled Image property" );
+            continue;
+        }
     }
-    return UniquePointer<Image>{ alloc, position, extent, model };
+    return UniquePointer<Image>{ alloc, ci };
 }
 
 static UniquePointer<Widget> makeNineSlice( std::pmr::memory_resource* alloc, const cfg::Entry& entry )

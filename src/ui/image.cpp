@@ -9,48 +9,17 @@
 
 namespace ui {
 
-Image::Image( Texture t )
-: m_texture{ t }
+Image::Image( const CreateInfo& ci ) noexcept
+: Widget{ ci.position, ci.size }
+, m_dataModel{ ci.model }
+, m_color{ ci.color }
+, m_texture{ ci.texture }
 {
-    assert( t );
+    if ( m_dataModel ) {
+        m_current = m_dataModel->current();
+        setTexture( m_dataModel->texture( m_current ) );
+    }
 };
-
-Image::Image( Texture t, math::vec4 color )
-: m_color{ color }
-, m_texture{ t }
-{
-    assert( t );
-};
-
-Image::Image( math::vec2 position, math::vec2 extent, math::vec4 color, Texture t )
-: Widget{ position, extent }
-, m_color{ color }
-, m_texture{ t }
-{
-    assert( t );
-}
-
-Image::Image( Anchor a, math::vec2 extent, math::vec4 color, Texture t )
-: Widget{ {}, extent, a }
-, m_color{ color }
-, m_texture{ t }
-{
-    assert( t );
-}
-
-Image::Image( Anchor a )
-: Widget{ a }
-{
-}
-
-Image::Image( math::vec2 position, math::vec2 extent, DataModel* dataModel )
-: Widget{ position, extent }
-, m_dataModel{ dataModel }
-{
-    assert( dataModel );
-    m_current = m_dataModel->current();
-    setTexture( dataModel->texture( m_current ) );
-}
 
 void Image::render( RenderContext rctx ) const
 {
