@@ -202,8 +202,8 @@ Screen::Screen( const cfg::Entry& entry ) noexcept
         if ( str == "Image"sv ) { m_widgets.emplace_back( makeImage( alloc, it ) ); continue; }
         assert( !"unhandled ui element" );
     }
-    m_tabOrder = TabOrder<>{ 0, 0, tabOrderCount };
     if ( tabOrderCount == 0 ) { return; }
+    m_tabOrder = TabOrder<>{ 0, 0, tabOrderCount };
     changeFocus( Widget::c_invalidTabOrder, 0 );
 }
 
