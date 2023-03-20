@@ -55,8 +55,9 @@ public:
 
     virtual std::pmr::u32string at( size_type ) const override
     {
-        auto str = std::to_string( m_value );
-        return std::pmr::u32string{ str.begin(), str.end() };
+        char tmp[ 21 ]{};
+        auto str = std::to_chars( std::begin( tmp ), std::end( tmp ), m_value );
+        return std::pmr::u32string{ std::begin( tmp ), str.ptr };
     }
 
 };
