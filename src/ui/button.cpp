@@ -3,7 +3,7 @@
 #include <ui/property.hpp>
 #include <engine/math.hpp>
 
-static constexpr auto c_defaultAnchor = Anchor::fCenter | Anchor::fMiddle;
+static constexpr auto c_defaultAnchor = Anchor::fTop | Anchor::fLeft;
 std::array<uint32_t, 9> c_slices = {
     ui::AtlasSprite::eTopLeft,
     ui::AtlasSprite::eTop,
@@ -18,25 +18,12 @@ std::array<uint32_t, 9> c_slices = {
 
 namespace ui {
 
-Button::Button( std::u32string_view txt, std::function<void()>&& onTrigger )
-: NineSlice{ {}, { 192.0f, 48.0f }, c_defaultAnchor, g_uiProperty.atlas(), c_slices, g_uiProperty.atlasTexture() }
-, m_label{ Label::CreateInfo{ .text = txt, .font = g_uiProperty.fontSmall(), .anchor = Anchor::fCenter | Anchor::fMiddle } }
-, m_onTrigger{ onTrigger }
+Button::Button( const CreateInfo& ci ) noexcept
+: NineSlice{ ci.position, ci.size, c_defaultAnchor, g_uiProperty.atlas(), c_slices, g_uiProperty.atlasTexture() }
+, m_label{ Label::CreateInfo{ .text = ci.text, .font = g_uiProperty.fontSmall(), .anchor = Anchor::fCenter | Anchor::fMiddle } }
+, m_onTrigger{ ci.trigger }
 {
-}
-
-Button::Button( std::u32string_view txt, Anchor a, std::function<void()>&& onTrigger )
-: NineSlice{ {}, { 192.0f, 48.0f }, a, g_uiProperty.atlas(), c_slices, g_uiProperty.atlasTexture() }
-, m_label{ Label::CreateInfo{ .text = txt, .font = g_uiProperty.fontSmall(), .anchor = Anchor::fCenter | Anchor::fMiddle } }
-, m_onTrigger{ onTrigger }
-{
-}
-
-Button::Button( std::function<void()>&& onTrigger )
-: NineSlice{ {}, { 192.0f, 48.0f }, c_defaultAnchor, g_uiProperty.atlas(), c_slices, g_uiProperty.atlasTexture() }
-, m_label{ Label::CreateInfo{ .font = g_uiProperty.fontSmall(), .anchor = Anchor::fCenter | Anchor::fMiddle } }
-, m_onTrigger{ onTrigger }
-{
+    setTabOrder( ci.tabOrder );
 }
 
 void Button::render( RenderContext rctx ) const

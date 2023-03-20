@@ -39,26 +39,28 @@ static UniquePointer<Widget> makeButton( std::pmr::memory_resource* alloc, const
 {
     assert( alloc );
     std::pmr::u32string text{};
-    auto button = UniquePointer<Button>{ alloc, [](){} };
-    button->setAnchor( Anchor::fTop | Anchor::fLeft );
-    button->setTabOrder( tabOrder );
+    Button::CreateInfo ci{
+        .tabOrder = tabOrder,
+    };
 
-    math::vec2 pos = button->position();
-    math::vec2 size = button->size();
+    Hash hash{};
     for ( const auto& it : entry ) {
-        auto propName = *it;
-        if ( propName == "text"sv ) { text = g_uiProperty.localize( it.toString() ); continue; }
-        if ( propName == "x"sv ) { pos.x = it.toFloat(); continue; }
-        if ( propName == "y"sv ) { pos.y = it.toFloat(); continue; }
-        if ( propName == "width"sv ) { size.x = it.toFloat(); continue; }
-        if ( propName == "height"sv ) { size.y = it.toFloat(); continue; }
-        if ( propName == "trigger"sv ) { button->setTrigger( fnKeyToFunction( it.toString() ) ); continue; }
-        assert( !"unhandled Button element" );
+        switch ( auto h = hash( *it ) ) {
+        case "text"_hash:
+            text = g_uiProperty.localize( it.toString() );
+            ci.text = text;
+            continue;
+        case "x"_hash: ci.position.x = it.toFloat(); continue;
+        case "y"_hash: ci.position.y = it.toFloat(); continue;
+        case "width"_hash: ci.size.x = it.toFloat(); continue;
+        case "height"_hash: ci.size.y = it.toFloat(); continue;
+        case "trigger"_hash: ci.trigger = fnKeyToFunction( it.toString() ); continue;
+        default:
+            assert( !"unhandled Button element" );
+            continue;
+        }
     }
-    button->setText( text );
-    button->setPosition( pos );
-    button->setSize( size );
-    return button;
+    return UniquePointer<Button>{ alloc, ci };
 }
 
 static UniquePointer<Widget> makeImage( std::pmr::memory_resource* alloc, const cfg::Entry& entry )

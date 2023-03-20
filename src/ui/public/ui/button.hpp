@@ -14,11 +14,16 @@ private:
     std::function<void()> m_onTrigger{};
 
 public:
-    ~Button() = default;
-    Button() = default;
-    Button( std::u32string_view, std::function<void()>&& onTrigger );
-    Button( std::u32string_view, Anchor, std::function<void()>&& onTrigger );
-    Button( std::function<void()>&& onTrigger );
+    struct CreateInfo {
+        std::u32string_view text{};
+        math::vec2 position{};
+        math::vec2 size{};
+        std::function<void()> trigger{};
+        uint16_t tabOrder = 0;
+    };
+    ~Button() noexcept = default;
+    Button() noexcept = default;
+    Button( const CreateInfo& ) noexcept;
 
     virtual MouseEvent::Processing onMouseEvent( const MouseEvent& ) override;
     virtual void render( RenderContext ) const override;
