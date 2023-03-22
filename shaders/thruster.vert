@@ -1,7 +1,5 @@
 #version 450
 
-#extension GL_ARB_separate_shader_objects : enable
-
 struct Afterglow {
     vec4 color;
     vec4 xyzs;
