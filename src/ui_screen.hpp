@@ -47,7 +47,7 @@ public:
     void render( const RenderContext& ) const;
     void resize( math::vec2 );
 
-    void show();
+    void show( math::vec2 size );
 };
 
 }

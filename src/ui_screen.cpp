@@ -348,8 +348,9 @@ void Screen::resize( math::vec2 s )
     m_offset = ( m_viewport - m_extent ) * 0.5f;
 }
 
-void Screen::show()
+void Screen::show( math::vec2 size )
 {
+    resize( size );
     m_anim = 0.0f;
 }
 

@@ -241,12 +241,9 @@ void Game::onResize( uint32_t w, uint32_t h )
 {
     ZoneScoped;
     m_glow.setSize( { w, h } );
-    m_screenTitle.resize( { w, h } );
-    m_screenCustomize.resize( { w, h } );
-    m_screenSettings.resize( { w, h } );
-    m_screenPause.resize( { w, h } );
-    m_screenMissionSelect.resize( { w, h } );
-    m_screenMissionResult.resize( { w, h } );
+    if ( auto* screen = currentScreen() ) {
+        screen->resize( { w, h } );
+    }
     m_hud.resize( { w, h } );
     m_uiRings.setSize( { w, h } );
 }
@@ -472,7 +469,7 @@ void Game::onRender( RenderContext rctx )
     rctx.camera3d = projection * view;
     rctx.viewport = { width, height };
 
-    ui::RenderContext r{
+    const ui::RenderContext r{
         .renderer = rctx.renderer,
         .model = rctx.model,
         .view = rctx.view,
@@ -487,11 +484,6 @@ void Game::onRender( RenderContext rctx )
         break;
 
     case Screen::eGamePaused:
-        renderGameScreen( rctx, r );
-        m_uiRings.render( r );
-        m_glow.render( r );
-        break;
-
     case Screen::eDead:
     case Screen::eWin:
         renderGameScreen( rctx, r );
@@ -535,12 +527,12 @@ void Game::onUpdate( const UpdateContext& uctx )
     switch ( m_currentScreen ) {
     case Screen::eGame:
         updateGame( uctx );
-        return;
+        break;
     default:
+        m_dustUi.update( uctx );
+        m_uiRings.update( uctx );
         break;
     }
-    m_dustUi.update( uctx );
-    m_uiRings.update( uctx );
 
     ui::Screen* screen = currentScreen();
     if ( screen ) {
@@ -746,13 +738,6 @@ void Game::changeScreen( Screen scr, Audio::Slot sound )
     }
     SDL_ShowCursor( scr != Screen::eGame );
 
-    m_screenCustomize.show();
-    m_screenMissionResult.show();
-    m_screenMissionSelect.show();
-    m_screenPause.show();
-    m_screenSettings.show();
-    m_screenTitle.show();
-
     switch ( scr ) {
     case Screen::eMainMenu:
     case Screen::eSettings:
@@ -793,6 +778,11 @@ void Game::changeScreen( Screen scr, Audio::Slot sound )
     default:
         assert( !"unhandled enum" );
         break;
+    }
+
+    if ( ui::Screen* screen = currentScreen() ) {
+        auto [ w, h, a ] = viewport();
+        screen->show( { w, h } );
     }
 }
 
