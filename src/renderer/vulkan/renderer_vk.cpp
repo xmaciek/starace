@@ -820,8 +820,7 @@ void RendererVK::present()
             .width = static_cast<uint32_t>( packedResolution >> 32 ),
             .height = static_cast<uint32_t>( packedResolution & 0xFFFF'FFFFull ),
         };
-        if ( !res.width ) break;
-        if ( !res.height ) break;
+        assert( res.width && res.height );
         const VkExtent2D currentRes = m_frames[ 0 ].m_renderTarget.extent();
         if ( currentRes == res ) break;
         recreateRenderTargets( res );
