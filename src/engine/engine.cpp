@@ -43,12 +43,13 @@ Engine::Engine( int, char** ) noexcept
             , SDL_WINDOWPOS_CENTERED
             , width
             , height
-            , Renderer::windowFlag()
+            , Renderer::windowFlag
                 | SDL_WINDOW_RESIZABLE
         );
         assert( m_window );
     }
 
+    assert( Renderer::create );
     m_renderer = Renderer::create( { .window = m_window, .vsync = VSync::eOn } );
     m_rendererPtr = std::unique_ptr<Renderer>( m_renderer );
 

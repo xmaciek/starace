@@ -16,6 +16,19 @@ bool dllLoad();
 void dllUnload();
 }
 
+static class RendererSetup {
+public:
+    RendererSetup()
+    {
+        Renderer::windowFlag = SDL_WINDOW_VULKAN;
+        Renderer::create = []( const Renderer::CreateInfo& ci ) -> Renderer*
+        {
+            return new RendererVK{ ci };
+        };
+    }
+} setup{};
+
+
 static Renderer* g_instance = nullptr;
 
 static constexpr std::array REQUIRED_DEVICE_EXTENSIONS = {
@@ -28,7 +41,7 @@ constexpr std::size_t operator ""_MiB( unsigned long long v ) noexcept
 }
 
 template <typename T>
-struct Wishlist{
+struct Wishlist {
     std::pmr::vector<T>* m_checklist = nullptr;
     std::pmr::vector<const char*>* m_ret = nullptr;
 
@@ -151,16 +164,6 @@ Renderer* Renderer::instance()
 {
     assert( g_instance );
     return g_instance;
-}
-
-SDL_WindowFlags Renderer::windowFlag()
-{
-    return SDL_WINDOW_VULKAN;
-}
-
-Renderer* Renderer::create( const Renderer::CreateInfo& createInfo )
-{
-    return new RendererVK( createInfo );
 }
 
 RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )

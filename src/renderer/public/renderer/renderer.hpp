@@ -44,13 +44,16 @@ public:
 
 protected:
     friend class Engine;
+    friend class RendererSetup;
 
     struct CreateInfo{
         SDL_Window* window = nullptr;
         VSync vsync = {};
     };
-    static Renderer* create( const CreateInfo& );
-    static SDL_WindowFlags windowFlag();
+
+    using FNCreate = Renderer*(const Renderer::CreateInfo&);
+    static inline constinit FNCreate* create = nullptr;
+    static inline constinit SDL_WindowFlags windowFlag{};
 
     virtual void beginFrame() = 0;
     virtual void endFrame() = 0;
