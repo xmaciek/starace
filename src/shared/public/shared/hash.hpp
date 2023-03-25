@@ -3,14 +3,16 @@
 #include <bit>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <string_view>
 
 struct Hash {
     using value_type = uint64_t;
+    static inline constexpr uint32_t DEFAULT_SEED = 0xd76aa478u;
 
     // NOTE: 64 still good enough - ascii chars are going to be part of hashed strings anyway,
     // also too lazy to fill all the indexes, copy-pasta from md5
-    static constexpr uint32_t c_crc32Table[ 64 ] = {
+    static inline constexpr uint32_t CRC32TABLE[ 64 ] = {
         0xd76aa478u, 0xe8c7b756u, 0x242070dbu, 0xc1bdceeeu, 0xf57c0fafu, 0x4787c62au, 0xa8304613u, 0xfd469501u,
         0x698098d8u, 0x8b44f7afu, 0xffff5bb1u, 0x895cd7beu, 0x6b901122u, 0xfd987193u, 0xa679438eu, 0x49b40821u,
         0xf61e2562u, 0xc040b340u, 0x265e5a51u, 0xe9b6c7aau, 0xd62f105du, 0x02441453u, 0xd8a1e681u, 0xe7d3fbc8u,
@@ -21,18 +23,18 @@ struct Hash {
         0x6fa87e4fu, 0xfe2ce6e0u, 0xa3014314u, 0x4e0811a1u, 0xf7537e82u, 0xbd3af235u, 0x2ad7d2bbu, 0xeb86d391u,
     };
 
-    static constexpr uint32_t crc32( const char* str, std::size_t len, uint32_t seed = 0xd76aa478u ) noexcept
+    static constexpr uint32_t crc32( const char* str, std::size_t len, uint32_t seed = DEFAULT_SEED ) noexcept
     {
         uint32_t ret = seed;
         const char* end = str + len;
         while ( str != end ) {
             const uint32_t index = ( ret ^ (uint32_t)*str++ ) & 0xffu;
-            ret = ( ret >> 8 ) ^ c_crc32Table[ index % 64 ];
+            ret = ( ret >> 8 ) ^ CRC32TABLE[ index % 64 ];
         }
         return ~ret;
     }
 
-    static constexpr uint32_t murmur3( const char* str, std::size_t len, uint32_t seed = 0xd76aa478u ) noexcept
+    static constexpr uint32_t murmur3( const char* str, std::size_t len, uint32_t seed = DEFAULT_SEED ) noexcept
     {
         auto scramble = []( uint32_t k ) -> uint32_t
         {
@@ -44,11 +46,18 @@ struct Hash {
 
         auto fetch4 = []( const char* str ) -> uint32_t
         {
-            const uint32_t a = (uint32_t)str[ 0 ];
-            const uint32_t b = (uint32_t)str[ 1 ];
-            const uint32_t c = (uint32_t)str[ 2 ];
-            const uint32_t d = (uint32_t)str[ 3 ];
-            return a | ( b << 8 ) | ( c << 16 ) | ( d << 24 );
+            if ( std::is_constant_evaluated() ) {
+                const uint32_t a = (uint32_t)str[ 0 ];
+                const uint32_t b = (uint32_t)str[ 1 ];
+                const uint32_t c = (uint32_t)str[ 2 ];
+                const uint32_t d = (uint32_t)str[ 3 ];
+                return a | ( b << 8 ) | ( c << 16 ) | ( d << 24 );
+            }
+            else {
+                uint32_t ret = 0;
+                std::memcpy( &ret, str, sizeof( ret ) );
+                return ret;
+            }
         };
 
         uint32_t h = seed;
@@ -82,16 +91,28 @@ struct Hash {
     static constexpr value_type calc( const char* str, std::size_t len ) noexcept
     {
         // NOTE: what are the odds that 2 different hash algorithms are going to collide silmutanously for same data?
-        value_type ret = crc32( str, len );
-        ret <<= 32;
-        ret |= murmur3( str, len );
-        return ret;
+        value_type h1 = crc32( str, len );
+        value_type h2 = murmur3( str, len );
+        return ( h1 << 32 ) | h2;
     }
 
     constexpr value_type operator () ( std::string_view str ) const noexcept
     {
         return calc( str.data(), str.size() );
     }
+
+    template<std::size_t TSize>
+    struct TStr {
+        char data[ TSize - 1 ]{};
+        std::size_t size = TSize - 1;
+        consteval TStr ( const char (&str)[ TSize ] ) noexcept
+        {
+            for ( auto i = 0u; i < size; ++i ) data[ i ] = str[ i ];
+        }
+    };
+
+    template <TStr T>
+    static inline constexpr value_type v = calc( T.data, T.size );
 };
 
 constexpr Hash::value_type operator ""_hash( const char* str, std::size_t len ) noexcept

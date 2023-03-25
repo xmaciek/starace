@@ -8,12 +8,24 @@
 static constexpr auto TEST = "test"_hash;
 static constexpr auto TEXT = "text"_hash;
 
-TEST( Hash, suffix_equality )
+TEST( Hash, value_equality )
 {
     Hash hash{};
+    EXPECT_EQ( TEST, "test"_hash );
     EXPECT_EQ( TEST, hash( "test" ) );
+    EXPECT_EQ( hash( "test" ), "test"_hash );
+    EXPECT_EQ( Hash::v<"test">, TEST );
+    EXPECT_EQ( Hash::v<"test">, hash( "test" ) );
+    EXPECT_EQ( Hash::v<"test">, "test"_hash );
+
+    volatile Hash::value_type h1 = "test"_hash;
+    volatile Hash::value_type h2 = hash( "test" );
+    EXPECT_EQ( h1, h2 );
+    EXPECT_EQ( h1, Hash::v<"test"> );
+
     EXPECT_EQ( TEXT, hash( "text" ) );
     EXPECT_NE( TEST, TEXT );
+
 }
 
 TEST( Hash, partial_memory_read )
