@@ -26,6 +26,10 @@ TEST( Hash, value_equality )
     EXPECT_EQ( TEXT, hash( "text" ) );
     EXPECT_NE( TEST, TEXT );
 
+    EXPECT_EQ( Hash::v<"wololo">, "wololo"_hash );
+    volatile Hash::value_type h3 = hash( "wololo" );
+    EXPECT_EQ( Hash::v<"wololo">, h3 );
+
 }
 
 TEST( Hash, partial_memory_read )
