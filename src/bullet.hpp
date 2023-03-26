@@ -29,7 +29,8 @@ private:
     math::vec4 m_color1{};
     math::vec4 m_color2{};
     Texture m_texture{};
-    float m_range = 0.0;
+    float m_range = 0.0f;
+    float m_size = 0.0f;
     uint16_t m_score = 0;
     uint8_t m_damage = 0;
     Type m_type{};
@@ -56,6 +57,7 @@ struct WeaponCreateInfo {
     Texture texture{};
     float delay = 0.0f;
     float speed = 0.0f;
+    float size = 2.6_m;
     uint16_t score_per_hit = 0;
     uint8_t damage = 0;
     Bullet::Type type{};

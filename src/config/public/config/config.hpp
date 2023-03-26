@@ -24,6 +24,14 @@ public:
     std::string_view toString() const;
     std::pmr::u32string toString32() const;
     int toInt() const;
+
+    template <typename T>
+    requires std::is_integral_v<T>
+    T toInt() const
+    {
+        return static_cast<T>( toInt() );
+    }
+
     float toFloat() const;
 
     std::string_view operator * () const;

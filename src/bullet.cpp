@@ -17,6 +17,7 @@ Bullet::Bullet( const WeaponCreateInfo& bp, const math::vec3& position )
 : m_color1{ bp.color1 }
 , m_color2{ bp.color2 }
 , m_texture{ bp.texture }
+, m_size{ bp.size }
 , m_score{ bp.score_per_hit }
 , m_damage{ bp.damage }
 , m_type{ bp.type }
@@ -62,7 +63,7 @@ void Bullet::renderAll( const RenderContext& rctx, std::span<const UniquePointer
                 .m_color = color,
             };
         };
-        const float size = 2.6_m;
+        const float size = bullet.m_size;
         pushConstant.m_particles[ idx++ ] = makeParticle( bullet.m_position, size, bullet.m_color1 );
         pushConstant.m_particles[ idx++ ] = makeParticle( bullet.m_tail[ 0 ], size * 0.8f, bullet.m_color2 );
         pushConstant.m_particles[ idx++ ] = makeParticle( bullet.m_tail[ 1 ], size * 0.6f, bullet.m_color2 );

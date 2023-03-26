@@ -149,43 +149,65 @@ static std::pmr::vector<MapCreateInfo> loadMaps( std::pmr::vector<uint8_t>&& dat
 static std::tuple<WeaponCreateInfo, bool> parseWeapon( const cfg::Entry& entry, Texture t )
 {
     using std::literals::string_view_literals::operator""sv;
-    static const auto& colorMap = []() -> const FixedMap<std::string_view, math::vec4, 6>&
+    auto makeType = []( std::string_view sv )
     {
-        static FixedMap<std::string_view, math::vec4, 6> ret{};
-        ret.insert( "white"sv, color::white );
-        ret.insert( "orchid"sv, color::orchid );
-        ret.insert( "dodgerBlue"sv, color::dodgerBlue );
-        ret.insert( "blaster"sv, color::blaster );
-        ret.insert( "yellow"sv, color::yellow );
-        ret.insert( "yellowBlaster"sv, color::yellowBlaster );
-        return ret;
-    }();
-    static const auto& typeMap = []() -> const FixedMap<std::string_view, Bullet::Type, 2>&
-    {
-        static FixedMap<std::string_view, Bullet::Type, 2> ret{};
-        ret.insert( "blaster"sv, Bullet::Type::eBlaster );
-        ret.insert( "torpedo"sv, Bullet::Type::eTorpedo );
-        return ret;
-    }();
+        using TypeMap = FixedMap<std::string_view, Bullet::Type, 2>;
+        static const auto& typeMap = []() -> const TypeMap&
+        {
+            static TypeMap ret{};
+            ret.pushBack( "blaster"sv, Bullet::Type::eBlaster );
+            ret.pushBack( "torpedo"sv, Bullet::Type::eTorpedo );
+            return ret;
+        }();
 
-    const math::vec4* color1 = colorMap[ entry[ "color1"sv ].toString() ];
-    const math::vec4* color2 = colorMap[ entry[ "color2"sv ].toString() ];
-    const Bullet::Type* type = typeMap[ entry[ "type"sv ].toString() ];
-    std::string_view loc = entry[ "loc"sv ].toString();
-    return {
-        WeaponCreateInfo{
-            .color1 = color1 ? *color1 : color::orchid,
-            .color2 = color2 ? *color2 : color::orchid,
-            .texture = t,
-            .delay = entry[ "delay"sv ].toFloat(),
-            .speed = entry[ "kmph"sv ].toFloat() * (float)kmph,
-            .score_per_hit = static_cast<uint16_t>( entry[ "score"sv ].toInt() ),
-            .damage = static_cast<uint8_t>( entry[ "damage"sv ].toInt() ),
-            .type = type ? *type : Bullet::Type::eBlaster,
-            .displayName = Hash{}( loc ),
-        },
-        !!entry[ "hidden"sv ].toInt()
+        const auto* ret = typeMap[ sv ];
+        return ret ? *ret : Bullet::Type::eBlaster;
     };
+
+    auto makeColor = []( std::string_view sv )
+    {
+        using ColorMap = FixedMap<std::string_view, math::vec4, 7>;
+        static const auto& colorMap = []() -> const ColorMap&
+        {
+            static ColorMap ret{};
+            ret.pushBack( "blaster"sv, color::blaster );
+            ret.pushBack( "dodgerBlue"sv, color::dodgerBlue );
+            ret.pushBack( "orchid"sv, color::orchid );
+            ret.pushBack( "red"sv, color::crimson );
+            ret.pushBack( "white"sv, color::white );
+            ret.pushBack( "yellow"sv, color::yellow );
+            ret.pushBack( "yellowBlaster"sv, color::yellowBlaster );
+            return ret;
+        }();
+        const math::vec4* ret = colorMap[ sv ];
+        return ret ? *ret : color::orchid;
+    };
+
+    Hash hash{};
+    WeaponCreateInfo weap{
+        .texture = t,
+    };
+    bool isHidden = false;
+    for ( const auto& property : entry ) {
+        switch ( hash( *property ) ) {
+        case "color1"_hash: weap.color1 = makeColor( property.toString() ); continue;
+        case "color2"_hash: weap.color2 = makeColor( property.toString() ); continue;
+        case "damage"_hash: weap.damage = property.toInt<uint8_t>(); continue;
+        case "delay"_hash: weap.delay = property.toFloat(); continue;
+        case "hidden"_hash: isHidden = property.toInt<bool>(); continue;
+        case "kmph"_hash: weap.speed = property.toFloat() * (float)kmph; continue;
+        case "loc"_hash: weap.displayName = hash( property.toString() ); continue;
+        case "score"_hash: weap.score_per_hit = property.toInt<uint16_t>(); continue;
+        case "size"_hash: weap.size = property.toFloat() * (float)meter; continue;
+        case "type"_hash: weap.type = makeType( property.toString() ); continue;
+        case "sound"_hash: continue; // TODO
+        case "texture"_hash: continue; // TODO
+        default:
+            assert( !"unknown weapon property" );
+            continue;
+        }
+    }
+    return { weap, isHidden };
 }
 
 Game::Game( int argc, char** argv )
