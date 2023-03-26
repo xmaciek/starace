@@ -181,9 +181,16 @@ void Jet::setWeapon( const WeaponCreateInfo& w, uint32_t id )
     m_weapon[ id ] = w;
 }
 
-bool Jet::isWeaponReady( uint32_t weaponNum ) const
+std::span<UniquePointer<Bullet>> Jet::shoot( std::pmr::memory_resource* alloc, std::pmr::vector<UniquePointer<Bullet>>* vec )
 {
-    return m_weaponCooldown[ weaponNum ] >= m_weapon[ weaponNum ].delay;
+    auto begin = vec->size();
+    for ( auto i : { 0u, 1u, 2u } ) {
+        if ( m_weaponCooldown[ i ] < m_weapon[ i ].delay ) continue;
+        if ( !isShooting( i ) ) continue;
+        vec->emplace_back( weapon( i, alloc ) );
+    }
+    std::span<UniquePointer<Bullet>> ret = *vec;
+    return ret.subspan( begin );
 }
 
 math::quat Jet::quat() const

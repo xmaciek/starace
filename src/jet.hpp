@@ -14,6 +14,7 @@
 
 #include <vector>
 #include <memory_resource>
+#include <span>
 
 class Renderer;
 class Jet : public SAObject {
@@ -74,18 +75,19 @@ private:
     Input m_input{};
     bool m_vectorThrust = true;
 
+    math::vec3 weaponPoint( uint32_t );
+    bool isShooting( uint32_t ) const;
+    UniquePointer<Bullet> weapon( uint32_t, std::pmr::memory_resource* );
+
 public:
     virtual ~Jet() noexcept override = default;
     Jet() noexcept = default;
     Jet( const CreateInfo& ) noexcept;
 
-    UniquePointer<Bullet> weapon( uint32_t weaponNum, std::pmr::memory_resource* );
-    bool isShooting( uint32_t weaponNum ) const;
-    bool isWeaponReady( uint32_t weaponNum ) const;
+    std::span<UniquePointer<Bullet>> shoot( std::pmr::memory_resource*, std::pmr::vector<UniquePointer<Bullet>>* );
 
     math::quat quat() const;
     math::quat rotation() const;
-    math::vec3 weaponPoint( uint32_t weaponNum );
     virtual void render( RenderContext ) const override;
     virtual void update( const UpdateContext& ) override;
     void lockTarget( SAObject* );

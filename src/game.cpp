@@ -585,11 +585,8 @@ void Game::updateGame( const UpdateContext& updateContext )
         changeScreen( Screen::eWin );
     }
 
-    for ( auto i : { 0u, 1u, 2u } ) {
-        if ( m_jet.isShooting( i ) ) {
-            addBullet( i );
-        }
-    }
+    auto added = m_jet.shoot( &m_poolBullets, &m_bullets );
+    playSounds( added );
 
     m_jet.update( updateContext );
     m_dustGame.setCenter( m_jet.position() );
@@ -662,23 +659,16 @@ void Game::updateGame( const UpdateContext& updateContext )
     m_hud.update( updateContext );
 }
 
-void Game::addBullet( uint32_t wID )
+void Game::playSounds( std::span<UniquePointer<Bullet>> bullets )
 {
     ZoneScoped;
     assert( m_audio );
-    if ( !m_jet.isWeaponReady( wID ) ) {
-        return;
-    }
-    const auto& bullet = m_bullets.emplace_back( m_jet.weapon( wID, &m_poolBullets ) );
-
-    m_hudData.shots++;
-    switch ( bullet->type() ) {
-    case Bullet::Type::eBlaster:
-        m_audio->play( m_blaster );
-        break;
-    case Bullet::Type::eTorpedo:
-        m_audio->play( m_torpedo );
-        break;
+    m_hudData.shots += bullets.size();
+    for ( const auto& it : bullets ) {
+        switch ( it->type() ) {
+        case Bullet::Type::eBlaster: m_audio->play( m_blaster ); break;
+        case Bullet::Type::eTorpedo: m_audio->play( m_torpedo ); break;
+        }
     }
 }
 

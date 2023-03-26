@@ -124,7 +124,7 @@ private:
     uint32_t viewportHeight() const;
     uint32_t viewportWidth() const;
     float viewportAspect() const;
-    void addBullet( uint32_t wID );
+    void playSounds( std::span<UniquePointer<Bullet>> );
     void changeScreen( Screen, Audio::Slot sound = {} );
     void clearMapData();
     void createMapData( const MapCreateInfo&, const ModelProto& );
