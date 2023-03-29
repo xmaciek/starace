@@ -23,6 +23,11 @@ struct RenderContext {
     math::vec4 colorFocus{};
 };
 
+enum class EventProcessing : uint32_t {
+    eStop,
+    eContinue,
+};
+
 class Widget {
 public:
     static constexpr uint16_t c_invalidTabOrder = 0xFFFF;
@@ -59,7 +64,8 @@ public:
 
     virtual void update( const UpdateContext& );
     virtual void render( RenderContext ) const = 0;
-    virtual MouseEvent::Processing onMouseEvent( const MouseEvent& );
+    virtual EventProcessing onMouseEvent( const MouseEvent& );
+    virtual EventProcessing onAction( ui::Action );
 
     virtual bool isEnabled() const;
     virtual void setEnabled( bool );
@@ -78,7 +84,6 @@ public:
 
     void setAnchor( Anchor );
 
-    virtual bool onAction( ui::Action );
 };
 
 }

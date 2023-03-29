@@ -25,9 +25,9 @@ public:
     Button() noexcept = default;
     Button( const CreateInfo& ) noexcept;
 
-    virtual MouseEvent::Processing onMouseEvent( const MouseEvent& ) override;
     virtual void render( RenderContext ) const override;
-    virtual bool onAction( ui::Action ) override;
+    virtual EventProcessing onMouseEvent( const MouseEvent& ) override;
+    virtual EventProcessing onAction( ui::Action ) override;
 
     void setTrigger( std::function<void()> );
     void trigger() const;

@@ -274,7 +274,7 @@ void Screen::onMouseEvent( const MouseEvent& e )
     event.position -= m_offset;
     if ( m_comboBoxList ) {
         auto mouseProcessing = m_comboBoxList->onMouseEvent( event );
-        if ( mouseProcessing == MouseEvent::eStop ) {
+        if ( mouseProcessing == EventProcessing::eStop ) {
             m_comboBoxList = {};
         }
         return;
@@ -283,7 +283,7 @@ void Screen::onMouseEvent( const MouseEvent& e )
     m_tabOrder.invalidate();
     for ( const auto& it : m_widgets ) {
         auto mouseProcessing = it->onMouseEvent( event );
-        if ( mouseProcessing == MouseEvent::eContinue ) continue;
+        if ( mouseProcessing == EventProcessing::eContinue ) continue;
         m_tabOrder = it->tabOrder();
         changeFocus( prevWidget, *m_tabOrder );
         return;
@@ -319,7 +319,8 @@ void Screen::onAction( ui::Action action )
     if ( action.value == 0 ) { return; }
 
     if ( m_comboBoxList ) {
-        if ( m_comboBoxList->onAction( action ) ) {
+        auto actionProcessing = m_comboBoxList->onAction( action );
+        if ( actionProcessing == EventProcessing::eStop ) {
             m_comboBoxList = {};
         }
         return;

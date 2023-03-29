@@ -35,14 +35,14 @@ ComboBox::ComboBox( const ComboBox::CreateInfo& ci ) noexcept
     m_value.setPosition( math::vec2{ s.x - 16.0f, s.y * 0.5f } );
 }
 
-bool ComboBox::onAction( ui::Action action )
+EventProcessing ComboBox::onAction( ui::Action action )
 {
     switch ( action.a ) {
     case ui::Action::eMenuConfirm:
         g_uiProperty.requestModalComboBox( position() + offsetByAnchor(), size(), m_value.dataModel() );
-        return true;
+        return EventProcessing::eStop;
     default:
-        return false;
+        return EventProcessing::eContinue;
     }
 }
 
@@ -51,20 +51,20 @@ void ComboBox::update( const UpdateContext& uctx )
     m_value.update( uctx );
 }
 
-MouseEvent::Processing ComboBox::onMouseEvent( const MouseEvent& event )
+EventProcessing ComboBox::onMouseEvent( const MouseEvent& event )
 {
     const math::vec2 p = event.position;
     const math::vec2 pos = position() + offsetByAnchor();
     const math::vec2 s = size();
     setFocused( testRect( p, pos, s ) );
     if ( !isFocused() ) {
-        return MouseEvent::eContinue;
+        return EventProcessing::eContinue;
     }
     if ( event.type == MouseEvent::eClick ) {
         g_uiProperty.requestModalComboBox( pos, s, m_value.dataModel() );
     }
 
-    return MouseEvent::eStop;
+    return EventProcessing::eStop;
 }
 
 void ComboBox::render( RenderContext rctx ) const
@@ -167,7 +167,7 @@ static auto pointToIndex( math::vec2 p, math::vec2 xy, float width, float lineHe
     return ( idx >= count ) ? 0 : ( idx + 1 );
 }
 
-MouseEvent::Processing ComboBoxList::onMouseEvent( const MouseEvent& event )
+EventProcessing ComboBoxList::onMouseEvent( const MouseEvent& event )
 {
     const math::vec2 p = event.position;
     math::vec2 pos = position() + offsetByAnchor();
@@ -176,8 +176,8 @@ MouseEvent::Processing ComboBoxList::onMouseEvent( const MouseEvent& event )
     if ( !hitTest ){
         switch ( event.type ) {
         default: assert( !"unhandled mouse event" );
-        case MouseEvent::eClick: return MouseEvent::eStop;
-        case MouseEvent::eMove: return MouseEvent::eContinue;
+        case MouseEvent::eClick: return EventProcessing::eStop;
+        case MouseEvent::eMove: return EventProcessing::eContinue;
         }
     }
 
@@ -190,35 +190,38 @@ MouseEvent::Processing ComboBoxList::onMouseEvent( const MouseEvent& event )
     switch ( event.type ) {
     case MouseEvent::eClick:
         if ( idx ) m_model->select( m_index.current() );
-        return MouseEvent::eStop;
+        return EventProcessing::eStop;
 
     case MouseEvent::eMove:
-        return MouseEvent::eContinue;
+        return EventProcessing::eContinue;
 
     default:
         assert( !"unhandled mouse event" );
-        return MouseEvent::eStop;
+        return EventProcessing::eStop;
     }
 
 }
 
-bool ComboBoxList::onAction( ui::Action action )
+EventProcessing ComboBoxList::onAction( ui::Action action )
 {
-    if ( action.value == 0 ) { return false; }
+    if ( action.value == 0 ) { return EventProcessing::eContinue; }
     switch ( action.a ) {
     case ui::Action::eMenuConfirm:
         m_model->select( m_index.current() );
-        return true;
+        [[fallthrough]];
     case ui::Action::eMenuCancel:
-        return true;
+        return EventProcessing::eStop;
+
     case ui::Action::eMenuDown:
         m_index.increase();
-        return false;
+        return EventProcessing::eContinue;
+
     case ui::Action::eMenuUp:
         m_index.decrease();
-        return false;
+        return EventProcessing::eContinue;
+
     default:
-        return false;
+        return EventProcessing::eContinue;
     }
 }
 

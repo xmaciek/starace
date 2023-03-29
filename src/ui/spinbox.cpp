@@ -83,7 +83,7 @@ void SpinBox::render( RenderContext rctx ) const
     m_label.render( rctx );
 }
 
-MouseEvent::Processing SpinBox::onMouseEvent( const MouseEvent& event )
+EventProcessing SpinBox::onMouseEvent( const MouseEvent& event )
 {
     const math::vec2 p = event.position;
     const math::vec2 pos = position() + offsetByAnchor();
@@ -92,7 +92,7 @@ MouseEvent::Processing SpinBox::onMouseEvent( const MouseEvent& event )
     if ( !isFocused() ) {
         m_focusL = false;
         m_focusR = false;
-        return MouseEvent::eContinue;
+        return EventProcessing::eContinue;
     }
 
 
@@ -122,7 +122,7 @@ MouseEvent::Processing SpinBox::onMouseEvent( const MouseEvent& event )
         break;
     }
 
-    return MouseEvent::eStop;
+    return EventProcessing::eStop;
 }
 
 math::vec4 SpinBox::arrowLeft() const
@@ -147,9 +147,9 @@ DataModel::size_type SpinBox::value() const
     return *m_index;
 }
 
-bool SpinBox::onAction( ui::Action action )
+EventProcessing SpinBox::onAction( ui::Action action )
 {
-    if ( action.value == 0 ) { return false; }
+    if ( action.value == 0 ) { return EventProcessing::eContinue; }
     switch ( action.a ) {
     case ui::Action::eMenuLeft:
         m_animL = 0.0f;
@@ -165,10 +165,10 @@ bool SpinBox::onAction( ui::Action action )
         m_model->activate( value() );
         break;
     default:
-        return false;
+        return EventProcessing::eContinue;
     }
     m_label.setText( m_model->at( value() ) );
-    return true;
+    return EventProcessing::eStop;
 }
 
 void SpinBox::update( const UpdateContext& uctx )

@@ -53,31 +53,31 @@ void Button::setText( std::u32string_view txt )
     m_label.setText( txt );
 }
 
-MouseEvent::Processing Button::onMouseEvent( const MouseEvent& event )
+EventProcessing Button::onMouseEvent( const MouseEvent& event )
 {
     switch ( event.type ) {
     case MouseEvent::eMove:
         setFocused( testRect( event.position ) );
-        return m_focused ? MouseEvent::eStop : MouseEvent::eContinue;
+        return m_focused ? EventProcessing::eStop : EventProcessing::eContinue;
     case MouseEvent::eClick:
-        if ( !m_enabled ) { return MouseEvent::eContinue; }
-        if ( !testRect( event.position ) ) { return MouseEvent::eContinue; }
+        if ( !m_enabled ) { return EventProcessing::eContinue; }
+        if ( !testRect( event.position ) ) { return EventProcessing::eContinue; }
         trigger();
-        return MouseEvent::eStop;
+        return EventProcessing::eStop;
     default:
-        return MouseEvent::eContinue;
+        return EventProcessing::eContinue;
     }
 }
 
-bool Button::onAction( ui::Action action )
+EventProcessing Button::onAction( ui::Action action )
 {
-    if ( action.value == 0 ) { return false; }
+    if ( action.value == 0 ) { return EventProcessing::eContinue; }
     switch ( action.a ) {
     case ui::Action::eMenuConfirm:
         trigger();
-        return true;
+        return EventProcessing::eStop;
     default:
-        return false;
+        return EventProcessing::eContinue;
     }
 }
 

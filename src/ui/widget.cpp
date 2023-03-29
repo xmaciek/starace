@@ -37,9 +37,9 @@ void Widget::setTabOrder( uint16_t v )
     m_tabOrder = v;
 }
 
-MouseEvent::Processing Widget::onMouseEvent( const MouseEvent& )
+EventProcessing Widget::onMouseEvent( const MouseEvent& )
 {
-    return MouseEvent::eContinue;
+    return EventProcessing::eContinue;
 }
 
 void Widget::update( const UpdateContext& )
@@ -111,9 +111,9 @@ math::vec2 Widget::offsetByAnchor() const
     return ret;
 }
 
-bool Widget::onAction( ui::Action )
+EventProcessing Widget::onAction( ui::Action )
 {
-    return false;
+    return EventProcessing::eContinue;
 }
 
 }

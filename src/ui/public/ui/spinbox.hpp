@@ -29,8 +29,8 @@ public:
 
     virtual void render( RenderContext ) const override;
     virtual void update( const UpdateContext& ) override;
-    virtual MouseEvent::Processing onMouseEvent( const MouseEvent& ) override;
-    virtual bool onAction( ui::Action ) override;
+    virtual EventProcessing onMouseEvent( const MouseEvent& ) override;
+    virtual EventProcessing onAction( ui::Action ) override;
 };
 
 } // namespace ui
