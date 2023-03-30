@@ -151,36 +151,31 @@ static std::tuple<WeaponCreateInfo, bool> parseWeapon( const cfg::Entry& entry, 
     using std::literals::string_view_literals::operator""sv;
     auto makeType = []( std::string_view sv )
     {
-        using TypeMap = FixedMap<std::string_view, Bullet::Type, 2>;
-        static const auto& typeMap = []() -> const TypeMap&
-        {
-            static TypeMap ret{};
-            ret.pushBack( "blaster"sv, Bullet::Type::eBlaster );
-            ret.pushBack( "torpedo"sv, Bullet::Type::eTorpedo );
-            return ret;
-        }();
-
-        const auto* ret = typeMap[ sv ];
-        return ret ? *ret : Bullet::Type::eBlaster;
+        Hash hash{};
+        switch ( hash( sv ) ) {
+        default:
+            assert( !"unknown type" );
+            [[fallthrough]];
+        case "blaster"_hash: return Bullet::Type::eBlaster;
+        case "torpedo"_hash: return Bullet::Type::eTorpedo;
+        }
     };
 
     auto makeColor = []( std::string_view sv )
     {
-        using ColorMap = FixedMap<std::string_view, math::vec4, 7>;
-        static const auto& colorMap = []() -> const ColorMap&
-        {
-            static ColorMap ret{};
-            ret.pushBack( "blaster"sv, color::blaster );
-            ret.pushBack( "dodgerBlue"sv, color::dodgerBlue );
-            ret.pushBack( "orchid"sv, color::orchid );
-            ret.pushBack( "red"sv, color::crimson );
-            ret.pushBack( "white"sv, color::white );
-            ret.pushBack( "yellow"sv, color::yellow );
-            ret.pushBack( "yellowBlaster"sv, color::yellowBlaster );
-            return ret;
-        }();
-        const math::vec4* ret = colorMap[ sv ];
-        return ret ? *ret : color::orchid;
+        Hash hash{};
+        switch ( hash( sv ) ) {
+        case "blaster"_hash: return color::blaster;
+        case "dodgerBlue"_hash: return color::dodgerBlue;
+        case "orchid"_hash: return color::orchid;
+        case "red"_hash: return color::crimson;
+        case "white"_hash: return color::white;
+        case "yellow"_hash: return color::yellow;
+        case "yellowBlaster"_hash: return color::yellowBlaster;
+        default:
+            assert( !"unknown color" );
+            return color::orchid;
+        }
     };
 
     Hash hash{};
