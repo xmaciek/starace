@@ -285,8 +285,9 @@ void Game::onInit()
     g_gameCallbacks[ "$function:goto_missionBriefing" ] = [this](){ changeScreen( Screen::eGameBriefing, m_click ); };
     g_gameCallbacks[ "$function:goto_newgame" ] = [this](){ changeScreen( Screen::eMissionSelection, m_click ); };
     g_gameCallbacks[ "$function:goto_customize" ] = [this](){ changeScreen( Screen::eCustomize, m_click ); };
-    g_gameCallbacks[ "$function:goto_settings" ] = [this](){ changeScreen( Screen::eSettings, m_click ); };
     g_gameCallbacks[ "$function:goto_titlemenu" ] = [this](){ changeScreen( Screen::eMainMenu, m_click ); };
+    g_gameCallbacks[ "$function:goto_settings" ] = [this](){ changeScreen( Screen::eSettings, m_click ); };
+    g_gameCallbacks[ "$function:goto_settings_display" ] = [this](){ changeScreen( Screen::eSettingsDisplay, m_click ); };
     g_gameCallbacks[ "$function:quit" ] = [this](){ quit(); };
     g_gameCallbacks[ "$function:resume" ] = [this]{ changeScreen( Screen::eGame, m_click ); };
     g_gameCallbacks[ "$function:applyGFX" ] = [this]
@@ -441,9 +442,10 @@ void Game::onInit()
     m_screenTitle =         cfg::Entry::fromData( TODO_makeViewable( "ui/mainmenu.ui" ) );
     m_screenMissionSelect = cfg::Entry::fromData( TODO_makeViewable( "ui/missionselect.ui" ) );
     m_screenCustomize =     cfg::Entry::fromData( TODO_makeViewable( "ui/customize.ui" ) );
-    m_screenSettings =      cfg::Entry::fromData( TODO_makeViewable( "ui/settings.ui" ) );
     m_screenPause =         cfg::Entry::fromData( TODO_makeViewable( "ui/pause.ui" ) );
     m_screenMissionResult = cfg::Entry::fromData( TODO_makeViewable( "ui/result.ui" ) );
+    m_screenSettings =      cfg::Entry::fromData( TODO_makeViewable( "ui/settings.ui" ) );
+    m_screenSettingsDisplay = cfg::Entry::fromData( TODO_makeViewable( "ui/settings_display.ui" ) );
 
     m_enemyModel = Model{ m_meshes[ "models/a2.objc" ], m_textures[ "textures/a2.dds" ], 0.45f };
 
@@ -466,11 +468,14 @@ ui::Screen* Game::currentScreen()
     case Screen::eMainMenu:
         return &m_screenTitle;
 
+    case Screen::eCustomize:
+        return &m_screenCustomize;
+
     case Screen::eSettings:
         return &m_screenSettings;
 
-    case Screen::eCustomize:
-        return &m_screenCustomize;
+    case Screen::eSettingsDisplay:
+        return &m_screenSettingsDisplay;
 
     default:
         return nullptr;
@@ -509,9 +514,10 @@ void Game::onRender( RenderContext rctx )
         break;
 
     case Screen::eMissionSelection:
+    case Screen::eCustomize:
     case Screen::eMainMenu:
     case Screen::eSettings:
-    case Screen::eCustomize:
+    case Screen::eSettingsDisplay:
         renderMenuScreen( rctx, r );
         break;
 
@@ -747,8 +753,9 @@ void Game::changeScreen( Screen scr, Audio::Slot sound )
 
     switch ( scr ) {
     case Screen::eMainMenu:
-    case Screen::eSettings:
     case Screen::eCustomize:
+    case Screen::eSettings:
+    case Screen::eSettingsDisplay:
         m_currentScreen = scr;
         break;
 

@@ -7,57 +7,11 @@ Label = {
     y = 50
 }
 
-ComboBox = {
-    text = vsync
-    data = $data:vsync
+Button = {
+    text = display
+    trigger = $function:goto_settings_display
     x = 48
     y = 150
-    width = 400
-    height = 48
-}
-
-SpinBox = {
-    data = $data:fullscreen
-    x = 48
-    y = 200
-    width = 320
-    height = 48
-}
-
-Label = {
-    text = fullscreen
-    x = 370
-    y = 200
-}
-
-ComboBox = {
-    text = resolution
-    data = $data:resolution
-    x = 48
-    y = 250
-    width = 400
-    height = 48
-}
-
-SpinBox = {
-    data = $data:gammaCorrection
-    x = 48
-    y = 300
-    width = 320
-    height = 48
-}
-
-Label = {
-    text = gammaCorrection
-    x = 370
-    y = 300
-}
-
-Button = {
-    text = apply
-    trigger = $function:applyGFX
-    x = 48
-    y = 400
     width = 320
     height = 48
 }

@@ -52,8 +52,9 @@ private:
         eDead,
         eWin,
         eCustomize,
-        eSettings,
         eMainMenu,
+        eSettings,
+        eSettingsDisplay,
         max,
     };
 
@@ -100,10 +101,11 @@ private:
     SpaceDust m_dustUi{};
     ui::Screen m_screenTitle{};
     ui::Screen m_screenCustomize{};
-    ui::Screen m_screenSettings{};
     ui::Screen m_screenMissionSelect{};
     ui::Screen m_screenMissionResult{};
     ui::Screen m_screenPause{};
+    ui::Screen m_screenSettings{};
+    ui::Screen m_screenSettingsDisplay{};
 
     Targeting m_targeting{};
 
