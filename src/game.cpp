@@ -429,7 +429,6 @@ void Game::onInit()
             m_weapons.emplace_back( weapon );
         }
     }
-    assert( m_weapons.size() == 2 );
     loadMapProto();
 
     m_jetsContainer = loadJets( TODO_makeViewable( "misc/jets.cfg" ) );
