@@ -7,12 +7,12 @@
 
 #include <cstring>
 
-Mesh::Mesh( std::pmr::vector<uint8_t>&& data, Renderer* renderer ) noexcept
+Mesh::Mesh( std::span<const uint8_t> data, Renderer* renderer ) noexcept
 : m_renderer{ renderer }
 {
     using std::literals::string_view_literals::operator""sv;
     ZoneScoped;
-    uint8_t* ptr = data.data();
+    const uint8_t* ptr = data.data();
     [[maybe_unused]]
     const uint8_t* end = ptr + data.size();
 

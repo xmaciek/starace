@@ -11,6 +11,7 @@ namespace cfg {
 class Entry {
 public:
     static Entry fromData( std::span<const char> );
+    static Entry fromData( std::span<const uint8_t> );
     static Entry fromData( std::pmr::vector<uint8_t>&& );
 
     std::pmr::string name{};

@@ -5,12 +5,11 @@
 
 #include <array>
 #include <cstdint>
-#include <functional>
 #include <memory_resource>
 #include <string>
 #include <string_view>
 #include <unordered_map>
-#include <vector>
+#include <span>
 
 class Renderer;
 
@@ -25,7 +24,7 @@ public:
 
     ~Mesh() noexcept;
     Mesh() noexcept = default;
-    Mesh( std::pmr::vector<uint8_t>&&, Renderer* ) noexcept;
+    Mesh( std::span<const uint8_t>, Renderer* ) noexcept;
 
     Mesh( const Mesh& ) = delete;
     Mesh& operator = ( const Mesh& ) = delete;

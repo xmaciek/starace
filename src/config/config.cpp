@@ -60,6 +60,12 @@ Entry Entry::fromData( std::pmr::vector<uint8_t>&& data )
     return fromData( std::span<const char>{ begin, begin + data.size() } );
 }
 
+Entry Entry::fromData( std::span<const uint8_t> data )
+{
+    const char* begin = reinterpret_cast<const char*>( data.data() );
+    return fromData( std::span<const char>{ begin, begin + data.size() } );
+}
+
 Entry Entry::fromData( std::span<const char> data )
 {
     using std::literals::string_view_literals::operator""sv;

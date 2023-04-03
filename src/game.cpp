@@ -97,10 +97,10 @@ constexpr std::tuple<GameAction, Actuator, Actuator> inputActions2[] = {
 };
 
 
-static std::pmr::vector<ModelProto> loadJets( std::pmr::vector<uint8_t>&& data )
+static std::pmr::vector<ModelProto> loadJets( std::span<const uint8_t> data )
 {
     ZoneScoped;
-    cfg::Entry entry = cfg::Entry::fromData( std::move( data ) );
+    cfg::Entry entry = cfg::Entry::fromData( data );
 
     std::pmr::vector<ModelProto> jets;
     jets.reserve( 4 );
@@ -119,10 +119,10 @@ static std::pmr::vector<ModelProto> loadJets( std::pmr::vector<uint8_t>&& data )
     return jets;
 }
 
-static std::pmr::vector<MapCreateInfo> loadMaps( std::pmr::vector<uint8_t>&& data )
+static std::pmr::vector<MapCreateInfo> loadMaps( std::span<const uint8_t> data )
 {
     ZoneScoped;
-    cfg::Entry entry = cfg::Entry::fromData( std::move( data ) );
+    cfg::Entry entry = cfg::Entry::fromData( data );
 
     std::pmr::vector<MapCreateInfo> levels;
     levels.reserve( 5 );
@@ -381,15 +381,9 @@ void Game::onInit()
         g_uiProperty.m_fontLarge = m_fontLarge.get();
     }
 
-    auto TODO_makeViewable = [io = m_io]( const auto& path )
-    {
-        auto view = io->viewWait( path );
-        return std::pmr::vector<uint8_t>{ view.begin(), view.end() };
-    };
     {
         ZoneScopedN( "HashMap" );
-        // TODO make viewable
-        auto loc = cfg::Entry::fromData( TODO_makeViewable( "lang/en.txt" ) );
+        auto loc = cfg::Entry::fromData( m_io->viewWait( "lang/en.txt" ) );
         Hash hash{};
         for ( const auto& it : loc ) {
             m_localizationMap.insert( hash( *it ), it.toString32() );
@@ -419,7 +413,7 @@ void Game::onInit()
 
     m_plasma = m_textures[ "textures/plasma.dds" ];
 
-    cfg::Entry weapons = cfg::Entry::fromData( TODO_makeViewable( "misc/weapons.cfg" ) );
+    cfg::Entry weapons = cfg::Entry::fromData( m_io->viewWait( "misc/weapons.cfg" ) );
     for ( const auto& it : weapons ) {
         auto [ weapon, isHidden ] = parseWeapon( it, m_plasma );
         if ( isHidden ) {
@@ -431,20 +425,20 @@ void Game::onInit()
     }
     loadMapProto();
 
-    m_jetsContainer = loadJets( TODO_makeViewable( "misc/jets.cfg" ) );
+    m_jetsContainer = loadJets( m_io->viewWait( "misc/jets.cfg" ) );
     assert( !m_jetsContainer.empty() );
     for ( auto& it : m_jetsContainer ) {
-        m_meshes[ it.model_file ] = Mesh{ TODO_makeViewable( it.model_file ), m_renderer };
+        m_meshes[ it.model_file ] = Mesh{ m_io->viewWait( it.model_file ), m_renderer };
         it.model = Model( m_meshes[ it.model_file ], m_textures[ it.model_texture ], it.scale );
     }
 
-    m_screenTitle =         cfg::Entry::fromData( TODO_makeViewable( "ui/mainmenu.ui" ) );
-    m_screenMissionSelect = cfg::Entry::fromData( TODO_makeViewable( "ui/missionselect.ui" ) );
-    m_screenCustomize =     cfg::Entry::fromData( TODO_makeViewable( "ui/customize.ui" ) );
-    m_screenPause =         cfg::Entry::fromData( TODO_makeViewable( "ui/pause.ui" ) );
-    m_screenMissionResult = cfg::Entry::fromData( TODO_makeViewable( "ui/result.ui" ) );
-    m_screenSettings =      cfg::Entry::fromData( TODO_makeViewable( "ui/settings.ui" ) );
-    m_screenSettingsDisplay = cfg::Entry::fromData( TODO_makeViewable( "ui/settings_display.ui" ) );
+    m_screenTitle =         cfg::Entry::fromData( m_io->viewWait( "ui/mainmenu.ui" ) );
+    m_screenMissionSelect = cfg::Entry::fromData( m_io->viewWait( "ui/missionselect.ui" ) );
+    m_screenCustomize =     cfg::Entry::fromData( m_io->viewWait( "ui/customize.ui" ) );
+    m_screenPause =         cfg::Entry::fromData( m_io->viewWait( "ui/pause.ui" ) );
+    m_screenMissionResult = cfg::Entry::fromData( m_io->viewWait( "ui/result.ui" ) );
+    m_screenSettings =      cfg::Entry::fromData( m_io->viewWait( "ui/settings.ui" ) );
+    m_screenSettingsDisplay = cfg::Entry::fromData( m_io->viewWait( "ui/settings_display.ui" ) );
 
     m_enemyModel = Model{ m_meshes[ "models/a2.objc" ], m_textures[ "textures/a2.dds" ], 0.45f };
 
@@ -803,9 +797,7 @@ void Game::loadMapProto()
 {
     ZoneScoped;
     assert( m_mapsContainer.empty() );
-    // TODO make viewable
-    auto view = m_io->viewWait( "misc/maps.cfg" );
-    m_mapsContainer = loadMaps( { view.begin(), view.end() } );
+    m_mapsContainer = loadMaps( m_io->viewWait( "misc/maps.cfg" ) );
     assert( !m_mapsContainer.empty() );
 
     std::pmr::set<std::filesystem::path> uniqueTextures;
