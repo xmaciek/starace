@@ -16,9 +16,9 @@ static constexpr float c_tailChunkLength = 5.0_m;
 Bullet::Bullet( const WeaponCreateInfo& bp, const math::vec3& position )
 : m_color1{ bp.color1 }
 , m_color2{ bp.color2 }
-, m_texture{ bp.texture }
 , m_size{ bp.size }
 , m_score{ bp.score_per_hit }
+, m_uvid{ bp.uvid }
 , m_damage{ bp.damage }
 , m_type{ bp.type }
 {
@@ -33,7 +33,7 @@ void Bullet::render( RenderContext ) const
     assert( !"deleted function" );
 }
 
-void Bullet::renderAll( const RenderContext& rctx, std::span<const UniquePointer<Bullet>> span )
+void Bullet::renderAll( const RenderContext& rctx, std::span<const UniquePointer<Bullet>> span, Texture texture )
 {
     if ( span.empty() ) return;
 
@@ -42,7 +42,7 @@ void Bullet::renderAll( const RenderContext& rctx, std::span<const UniquePointer
         .m_pipeline = g_pipelines[ Pipeline::eParticleBlob ],
         .m_verticeCount = 6,
     };
-    pushBuffer.m_resource[ 1 ].texture = span[ 0 ]->m_texture;
+    pushBuffer.m_resource[ 1 ].texture = texture;
 
     ParticleBlob pushConstant{
         .m_view = rctx.view,
@@ -55,20 +55,21 @@ void Bullet::renderAll( const RenderContext& rctx, std::span<const UniquePointer
     {
         assert( ( idx + 5 ) <= ParticleBlob::INSTANCES );
 
-        auto makeParticle = []( const math::vec3& pos, float size, const math::vec4& color ) -> ParticleBlob::Particle
+        auto makeParticle = []( const math::vec3& pos, float size, uint16_t uvid, const math::vec4& color ) -> ParticleBlob::Particle
         {
             return {
                 .m_position = math::vec4{ pos.x, pos.y, pos.z, size },
-                .m_uvxywh = math::makeUVxywh<1, 1>( 0, 0 ),
+                .m_uvxywh = math::makeUVxywh<1, 1>( uvid & 0xff, uvid >> 8 ),
                 .m_color = color,
             };
         };
         const float size = bullet.m_size;
-        pushConstant.m_particles[ idx++ ] = makeParticle( bullet.m_position, size, bullet.m_color1 );
-        pushConstant.m_particles[ idx++ ] = makeParticle( bullet.m_tail[ 0 ], size * 0.8f, bullet.m_color2 );
-        pushConstant.m_particles[ idx++ ] = makeParticle( bullet.m_tail[ 1 ], size * 0.6f, bullet.m_color2 );
-        pushConstant.m_particles[ idx++ ] = makeParticle( bullet.m_tail[ 2 ], size * 0.4f, bullet.m_color2 );
-        pushConstant.m_particles[ idx++ ] = makeParticle( bullet.m_tail[ 3 ], size * 0.2f, bullet.m_color2 );
+        const uint16_t uvid = bullet.m_uvid;
+        pushConstant.m_particles[ idx++ ] = makeParticle( bullet.m_position, size, uvid, bullet.m_color1 );
+        pushConstant.m_particles[ idx++ ] = makeParticle( bullet.m_tail[ 0 ], size * 0.8f, uvid, bullet.m_color2 );
+        pushConstant.m_particles[ idx++ ] = makeParticle( bullet.m_tail[ 1 ], size * 0.6f, uvid, bullet.m_color2 );
+        pushConstant.m_particles[ idx++ ] = makeParticle( bullet.m_tail[ 2 ], size * 0.4f, uvid, bullet.m_color2 );
+        pushConstant.m_particles[ idx++ ] = makeParticle( bullet.m_tail[ 3 ], size * 0.2f, uvid, bullet.m_color2 );
         return idx;
     };
 
@@ -149,4 +150,9 @@ Bullet::Type Bullet::type() const
 math::vec3 Bullet::prevPosition() const
 {
     return m_prevPosition;
+}
+
+math::vec4 Bullet::color() const
+{
+    return m_color1;
 }

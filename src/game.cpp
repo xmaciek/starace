@@ -146,7 +146,7 @@ static std::pmr::vector<MapCreateInfo> loadMaps( std::span<const uint8_t> data )
     return levels;
 }
 
-static std::tuple<WeaponCreateInfo, bool> parseWeapon( const cfg::Entry& entry, Texture t )
+static std::tuple<WeaponCreateInfo, bool> parseWeapon( const cfg::Entry& entry )
 {
     using std::literals::string_view_literals::operator""sv;
     auto makeType = []( std::string_view sv )
@@ -179,9 +179,7 @@ static std::tuple<WeaponCreateInfo, bool> parseWeapon( const cfg::Entry& entry, 
     };
 
     Hash hash{};
-    WeaponCreateInfo weap{
-        .texture = t,
-    };
+    WeaponCreateInfo weap{};
     bool isHidden = false;
     for ( const auto& property : entry ) {
         switch ( hash( *property ) ) {
@@ -415,7 +413,7 @@ void Game::onInit()
 
     cfg::Entry weapons = cfg::Entry::fromData( m_io->viewWait( "misc/weapons.cfg" ) );
     for ( const auto& it : weapons ) {
-        auto [ weapon, isHidden ] = parseWeapon( it, m_plasma );
+        auto [ weapon, isHidden ] = parseWeapon( it );
         if ( isHidden ) {
             m_enemyWeapon = weapon;
         }
@@ -609,7 +607,20 @@ void Game::updateGame( const UpdateContext& updateContext )
                 break;
             }
         }
-        m_bullets.erase( std::remove_if( m_bullets.begin(), m_bullets.end(), isDead ), m_bullets.end() );
+        auto bulletsToRemove = std::remove_if( m_bullets.begin(), m_bullets.end(), isDead );
+        auto makeExplosion = [plasma = m_plasma]( const auto& ptr ) -> Explosion
+        {
+            assert( ptr );
+            return Explosion{
+                .m_position = ptr->position(),
+                .m_velocity = ptr->velocity() * 0.1f,
+                .m_color = ptr->color(),
+                .m_texture = plasma,
+                .m_size = 16.0_m,
+            };
+        };
+        std::transform( bulletsToRemove, m_bullets.end(), std::back_inserter( m_explosions ), makeExplosion );
+        m_bullets.erase( bulletsToRemove, m_bullets.end() );
     }
 
     {
@@ -629,7 +640,7 @@ void Game::updateGame( const UpdateContext& updateContext )
             e->update( updateContext );
             if ( isDead( e ) ) {
                 m_jet.untarget( e.get() );
-                m_explosions.push_back( Explosion{ e->position(), e->velocity(), m_plasma, 0.0f } );
+                m_explosions.push_back( Explosion{ e->position(), e->velocity(), color::yellowBlaster, m_plasma } );
                 continue;
             }
             if ( e->isWeaponReady() ) {
@@ -915,13 +926,11 @@ void Game::render3D( RenderContext rctx )
     std::tie( rctx.cameraPosition, rctx.cameraUp, std::ignore ) = getCamera();
 
     m_skybox.render( rctx );
-    for ( const Explosion& it : m_explosions ) {
-        it.render( rctx );
-    }
+    Explosion::renderAll( rctx, m_explosions, m_plasma );
     m_dustGame.render( rctx );
     Enemy::renderAll( rctx, m_enemies );
-    Bullet::renderAll( rctx, m_bullets );
-    Bullet::renderAll( rctx, m_enemyBullets );
+    Bullet::renderAll( rctx, m_bullets, m_plasma );
+    Bullet::renderAll( rctx, m_enemyBullets, m_plasma );
     m_jet.render( rctx );
 }
 

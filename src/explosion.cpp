@@ -2,9 +2,10 @@
 
 #include "colors.hpp"
 #include "game_pipeline.hpp"
-#include "units.hpp"
 
 #include <renderer/renderer.hpp>
+
+#include <algorithm>
 
 bool Explosion::isInvalid( const Explosion& e ) noexcept
 {
@@ -17,28 +18,46 @@ void Explosion::update( const UpdateContext& uctx )
     m_position += m_velocity * uctx.deltaTime;
 }
 
-void Explosion::render( const RenderContext& rctx ) const
+void Explosion::renderAll( const RenderContext& rctx, std::span<const Explosion> explosions, Texture texture )
 {
-    PushBuffer pushBuffer{};
-    pushBuffer.m_verticeCount = 4;
-    pushBuffer.m_pipeline = g_pipelines[ Pipeline::eSprite3D ];
-    pushBuffer.m_resource[ 1 ].texture = m_texture;
+    if ( explosions.empty() ) return;
 
-    PushConstant<Pipeline::eSprite3D> pushConstant{};
+    using ParticleBlob = PushConstant<Pipeline::eParticleBlob>;
+    PushBuffer pushBuffer{
+        .m_pipeline = g_pipelines[ Pipeline::eParticleBlob ],
+        .m_verticeCount = 6,
+    };
+    pushBuffer.m_resource[ 1 ].texture = texture;
 
-    pushConstant.m_model = math::billboard( m_position, rctx.cameraPosition, rctx.cameraUp );
-    pushConstant.m_view = rctx.view;
-    pushConstant.m_projection = rctx.projection;
-    pushConstant.m_color = math::lerp( color::yellowBlaster, color::crimson, m_state );
-    pushConstant.m_color.a = 1.0f - m_state;
-    const float size = std::lerp( 0.0f, 64.0_m, m_state );
-    pushConstant.m_vertices[ 0 ] = { -size, -size, 0, 0 };
-    pushConstant.m_vertices[ 1 ] = { -size, size, 0, 0 };
-    pushConstant.m_vertices[ 2 ] = { size, size, 0, 0 };
-    pushConstant.m_vertices[ 3 ] = { size, -size, 0, 0 };
-    pushConstant.m_uv[ 0 ] = { 0.0f, 0.0f, 0.0f, 0.0f };
-    pushConstant.m_uv[ 1 ] = { 0.0f, 1.0f, 0.0f, 0.0f };
-    pushConstant.m_uv[ 2 ] = { 1.0f, 1.0f, 0.0f, 0.0f };
-    pushConstant.m_uv[ 3 ] = { 1.0f, 0.0f, 0.0f, 0.0f };
-    rctx.renderer->push( pushBuffer, &pushConstant );
+    ParticleBlob pushConstant{
+        .m_view = rctx.view,
+        .m_projection = rctx.projection,
+        .m_cameraPosition = rctx.cameraPosition,
+        .m_cameraUp = rctx.cameraUp,
+    };
+
+    auto makeParticle = []( const Explosion& expl ) -> ParticleBlob::Particle
+    {
+        static const math::vec4 COLOR_OUT = color::crimson * math::vec4{ 1.0f, 1.0f, 1.0f, 0.0f };
+        const auto& pos = expl.m_position;
+        return {
+            .m_position = math::vec4{ pos.x, pos.y, pos.z, math::lerp( 0.0f, expl.m_size, expl.m_state ) },
+            .m_uvxywh = math::makeUVxywh<1, 1>( 0, 0 ),
+            .m_color = math::lerp( expl.m_color, COLOR_OUT, expl.m_state ),
+        };
+    };
+
+    auto it = explosions.begin();
+    uint32_t count = std::min( static_cast<uint32_t>( std::distance( it, explosions.end() ) ), ParticleBlob::INSTANCES );
+    while ( count > 0 ) {
+        auto end = it;
+        std::advance( end, count );
+        std::transform( it, end, pushConstant.m_particles.begin(), makeParticle );
+        pushBuffer.m_instanceCount = count;
+        rctx.renderer->push( pushBuffer, &pushConstant );
+
+        it = end;
+        count = std::min( static_cast<uint32_t>( std::distance( it, explosions.end() ) ), ParticleBlob::INSTANCES );
+    }
+
 }
