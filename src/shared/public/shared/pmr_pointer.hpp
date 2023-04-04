@@ -51,7 +51,25 @@ public:
         );
     }
 
-    template <typename U = T>
+
+    UniquePointer( UniquePointer&& rhs ) noexcept
+    {
+        std::swap( m_ptr, rhs.m_ptr );
+        std::swap( m_allocator, rhs.m_allocator );
+        std::swap( m_bytes, rhs.m_bytes );
+        std::swap( m_align, rhs.m_align );
+    }
+
+    UniquePointer& operator = ( UniquePointer&& rhs ) noexcept
+    {
+        std::swap( m_ptr, rhs.m_ptr );
+        std::swap( m_allocator, rhs.m_allocator );
+        std::swap( m_bytes, rhs.m_bytes );
+        std::swap( m_align, rhs.m_align );
+        return *this;
+    }
+
+    template <typename U>
     requires ( std::is_base_of_v<T, U> )
     UniquePointer( UniquePointer<U>&& rhs ) noexcept
     {
@@ -61,7 +79,7 @@ public:
         m_align = std::exchange( rhs.m_align, {} );
     }
 
-    template <typename U = T>
+    template <typename U>
     requires ( std::is_base_of_v<T, U> )
     UniquePointer& operator = ( UniquePointer<U>&& rhs ) noexcept
     {
@@ -84,9 +102,11 @@ public:
 
     template <typename U = T>
     UniquePointer( const UniquePointer<U>& ) = delete;
+    UniquePointer( const UniquePointer& ) = delete;
 
     template <typename U = T>
     UniquePointer& operator = ( const UniquePointer<U>& ) = delete;
+    UniquePointer& operator = ( const UniquePointer& ) = delete;
 
 
     operator bool () const noexcept
