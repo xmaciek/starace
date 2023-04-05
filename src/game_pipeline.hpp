@@ -13,7 +13,6 @@ enum class Pipeline : PipelineSlot {
     eGlow,
     eBackground,
     eAlbedo,
-    eSprite3D,
     eSpaceDust,
     eParticleBlob,
     eThruster,
@@ -128,17 +127,6 @@ struct PushConstant<Pipeline::eAlbedo> {
     math::mat4 m_model{};
     math::mat4 m_view{};
     math::mat4 m_projection{};
-};
-
-
-template <>
-struct PushConstant<Pipeline::eSprite3D> {
-    math::mat4 m_model{};
-    math::mat4 m_view{};
-    math::mat4 m_projection{};
-    math::vec4 m_color{};
-    std::array<math::vec4, 4> m_vertices{};
-    std::array<math::vec4, 4> m_uv{};
 };
 
 template <>
@@ -350,25 +338,8 @@ PipelineCreateInfo{
 },
 
 PipelineCreateInfo{
-    .m_vertexShader = "shaders/sprite3d.vert.spv",
-    .m_fragmentShader = "shaders/sprite3d.frag.spv",
-    .m_userHint = static_cast<uint32_t>( Pipeline::eSprite3D ),
-    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eSprite3D> ),
-    .m_enableBlend = true,
-    .m_enableDepthTest = true,
-    .m_enableDepthWrite = false,
-    .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
-    .m_cullMode = PipelineCreateInfo::CullMode::eBack,
-    .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_binding{
-        BindType::eVertexUniform,
-        BindType::eFragmentImage,
-    },
-},
-
-PipelineCreateInfo{
     .m_vertexShader = "shaders/particles_blob.vert.spv",
-    .m_fragmentShader = "shaders/sprite3d.frag.spv",
+    .m_fragmentShader = "shaders/particles_blob.frag.spv",
     .m_userHint = static_cast<uint32_t>( Pipeline::eParticleBlob ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eParticleBlob> ),
     .m_enableBlend = true,
