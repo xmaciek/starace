@@ -45,3 +45,18 @@ TEST( Hash, partial_memory_read )
     EXPECT_EQ( x, hash( sv ) );
 
 }
+
+TEST( Hash, weird_msvc_switch_suffix_operator_bug__maybe )
+{
+    Hash hash{};
+    std::string txt = "testx";
+    auto volatile h = hash( txt );
+    switch ( h ) {
+    case "testx"_hash:
+        EXPECT_EQ( h, "testx"_hash );
+        break;
+    default:
+        EXPECT_EQ( "bug", "exists" );
+        break;
+    }
+}
