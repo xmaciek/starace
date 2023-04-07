@@ -1,5 +1,7 @@
 #include <engine/engine.hpp>
 
+#include "controller_state.hpp"
+
 #include <SDL.h>
 #include <Tracy.hpp>
 
@@ -108,33 +110,7 @@ void Engine::gameThread()
 
 void Engine::processEvents()
 {
-
-    static constexpr auto clampDeadZone = []( int16_t value ) -> int16_t
-    {
-        static constexpr int16_t dzone = 8000;
-        const int16_t sub = std::clamp<short>( value, -dzone, dzone );
-        const int16_t div = SDL_JOYSTICK_AXIS_MAX - dzone;
-        const float norm = static_cast<float>( value - sub ) / static_cast<float>( div );
-        return static_cast<int16_t>( norm * SDL_JOYSTICK_AXIS_MAX );
-    };
-
-    struct Axis {
-        int16_t x = 0;
-        int16_t y = 0;
-        int16_t dx = 0;
-        int16_t dy = 0;
-        void update()
-        {
-            float a = x;
-            float b = y;
-            a /= x > 0 ? SDL_JOYSTICK_AXIS_MAX : SDL_JOYSTICK_AXIS_MIN;
-            b /= y > 0 ? SDL_JOYSTICK_AXIS_MAX : SDL_JOYSTICK_AXIS_MIN;
-            float magnitude = math::sqrt( a * a + b * b );
-            static constexpr float dzone = 8000.0f / SDL_JOYSTICK_AXIS_MAX;
-            dx = magnitude < dzone ? 0 : x;
-            dy = magnitude < dzone ? 0 : y;
-        }
-    };
+    static ControllerState state{};
 
     std::pmr::vector<SDL_Event> events{};
     {
@@ -187,41 +163,49 @@ void Engine::processEvents()
             [[maybe_unused]]
             static auto tid = std::this_thread::get_id();
             assert( tid == std::this_thread::get_id() );
-            thread_local std::array<int16_t, SDL_CONTROLLER_AXIS_MAX> axisState{};
-            thread_local Axis left{};
-            thread_local Axis right{};
+            static std::array<int16_t, SDL_CONTROLLER_AXIS_MAX> axisState{};
+
             switch ( event.caxis.axis ) {
-            case SDL_CONTROLLER_AXIS_LEFTX: left.x = event.caxis.value; break;
-            case SDL_CONTROLLER_AXIS_LEFTY: left.y = event.caxis.value; break;
-            case SDL_CONTROLLER_AXIS_RIGHTX: right.x = event.caxis.value; break;
-            case SDL_CONTROLLER_AXIS_RIGHTY: right.y = event.caxis.value; break;
+            case SDL_CONTROLLER_AXIS_LEFTX: state.lx = event.caxis.value; break;
+            case SDL_CONTROLLER_AXIS_LEFTY: state.ly = event.caxis.value; break;
+            case SDL_CONTROLLER_AXIS_RIGHTX: state.rx = event.caxis.value; break;
+            case SDL_CONTROLLER_AXIS_RIGHTY: state.ry = event.caxis.value; break;
+            case SDL_CONTROLLER_AXIS_TRIGGERLEFT: state.lt = event.caxis.value; break;
+            case SDL_CONTROLLER_AXIS_TRIGGERRIGHT: state.rt = event.caxis.value; break;
             }
             switch ( event.caxis.axis ) {
             case SDL_CONTROLLER_AXIS_LEFTX:
             case SDL_CONTROLLER_AXIS_LEFTY: {
-                left.update();
-                onActuator( Actuator{ static_cast<Actuator::Axiscode>( SDL_CONTROLLER_AXIS_LEFTX ), left.dx } );
-                onActuator( Actuator{ static_cast<Actuator::Axiscode>( SDL_CONTROLLER_AXIS_LEFTY ), left.dy } );
-                continue;
-            }
+                int16_t x = state.lx_dzone();
+                int16_t y = state.ly_dzone();
+                int16_t ox = std::exchange( axisState[ SDL_CONTROLLER_AXIS_LEFTX ], x );
+                int16_t oy = std::exchange( axisState[ SDL_CONTROLLER_AXIS_LEFTY ], y );
+                if ( x != ox ) onActuator( Actuator{ static_cast<Actuator::Axiscode>( SDL_CONTROLLER_AXIS_LEFTX ), x } );
+                if ( y != oy ) onActuator( Actuator{ static_cast<Actuator::Axiscode>( SDL_CONTROLLER_AXIS_LEFTY ), y } );
+            } continue;
+
             case SDL_CONTROLLER_AXIS_RIGHTX:
             case SDL_CONTROLLER_AXIS_RIGHTY: {
-                right.update();
-                onActuator( Actuator{ static_cast<Actuator::Axiscode>( SDL_CONTROLLER_AXIS_RIGHTX ), right.dx } );
-                onActuator( Actuator{ static_cast<Actuator::Axiscode>( SDL_CONTROLLER_AXIS_RIGHTY ), right.dy } );
-                continue;
-            }
+                int16_t x = state.rx_dzone();
+                int16_t y = state.ry_dzone();
+                int16_t ox = std::exchange( axisState[ SDL_CONTROLLER_AXIS_RIGHTX ], x );
+                int16_t oy = std::exchange( axisState[ SDL_CONTROLLER_AXIS_RIGHTY ], y );
+                if ( x != ox ) onActuator( Actuator{ static_cast<Actuator::Axiscode>( SDL_CONTROLLER_AXIS_RIGHTX ), x } );
+                if ( y != oy ) onActuator( Actuator{ static_cast<Actuator::Axiscode>( SDL_CONTROLLER_AXIS_RIGHTY ), y } );
+            } continue;
+
+            case SDL_CONTROLLER_AXIS_TRIGGERLEFT: {
+                int16_t t = state.lt_dzone();
+                int16_t ot = std::exchange( axisState[ event.caxis.axis ], t );
+                if ( t != ot ) onActuator( Actuator{ static_cast<Actuator::Axiscode>( event.caxis.axis ), t } );
+            } continue;
+            case SDL_CONTROLLER_AXIS_TRIGGERRIGHT: {
+                int16_t t = state.rt_dzone();
+                int16_t ot = std::exchange( axisState[ event.caxis.axis ], t );
+                if ( t != ot ) onActuator( Actuator{ static_cast<Actuator::Axiscode>( event.caxis.axis ), t } );
+            } continue;
             }
 
-            const int16_t newState = clampDeadZone( event.caxis.value );
-            const int16_t oldState = std::exchange( axisState[ event.caxis.axis ], newState );
-            if ( oldState == newState ) {
-                break;
-            }
-
-            Actuator a{ static_cast<Actuator::Axiscode>( event.caxis.axis ) };
-            a.value = newState;
-            onActuator( a );
         } break;
 
         case SDL_KEYDOWN:

@@ -4,9 +4,9 @@ set_cppver( engine 20 )
 target_sources( engine
     PRIVATE
     async_io.cpp
-    async_io.cpp
     engine.cpp
     fps_meter.cpp
+    controller_state.hpp
 
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/public/engine/action.hpp
