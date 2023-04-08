@@ -40,8 +40,6 @@ private:
     std::mutex m_eventsBottleneck{};
     std::pmr::vector<SDL_Event> m_events{};
 
-    std::pmr::vector<SDL_GameController*> m_controllers{};
-
 protected:
     AsyncIO* m_io = nullptr;
     Audio* m_audio = nullptr;

@@ -11,6 +11,12 @@
 #include <utility>
 #include <thread>
 
+static std::array<ControllerState, 4> g_controllers{};
+using AxisState = std::array<int16_t, SDL_CONTROLLER_AXIS_MAX>;
+static std::array<AxisState, 4> g_axisStates{};
+static std::array<bool, SDL_NUM_SCANCODES> g_keyboardState{};
+
+
 Engine::~Engine() noexcept
 {
     ZoneScoped;
@@ -110,7 +116,6 @@ void Engine::gameThread()
 
 void Engine::processEvents()
 {
-    static ControllerState state{};
 
     std::pmr::vector<SDL_Event> events{};
     {
@@ -160,10 +165,13 @@ void Engine::processEvents()
 
         case SDL_CONTROLLERAXISMOTION:
         {
-            [[maybe_unused]]
-            static auto tid = std::this_thread::get_id();
-            assert( tid == std::this_thread::get_id() );
-            static std::array<int16_t, SDL_CONTROLLER_AXIS_MAX> axisState{};
+            auto it = std::find( g_controllers.begin(), g_controllers.end(), static_cast<SDL_JoystickID>( event.caxis.which ) );
+            if ( it == g_controllers.end() ) {
+                assert( !"controller not found" );
+                break;
+            }
+            auto& state = *it;
+            auto& axes = g_axisStates[ (uint32_t)std::distance( g_controllers.begin(), it ) ];
 
             switch ( event.caxis.axis ) {
             case SDL_CONTROLLER_AXIS_LEFTX: state.lx = event.caxis.value; break;
@@ -178,8 +186,8 @@ void Engine::processEvents()
             case SDL_CONTROLLER_AXIS_LEFTY: {
                 int16_t x = state.lx_dzone();
                 int16_t y = state.ly_dzone();
-                int16_t ox = std::exchange( axisState[ SDL_CONTROLLER_AXIS_LEFTX ], x );
-                int16_t oy = std::exchange( axisState[ SDL_CONTROLLER_AXIS_LEFTY ], y );
+                int16_t ox = std::exchange( axes[ SDL_CONTROLLER_AXIS_LEFTX ], x );
+                int16_t oy = std::exchange( axes[ SDL_CONTROLLER_AXIS_LEFTY ], y );
                 if ( x != ox ) onActuator( Actuator{ static_cast<Actuator::Axiscode>( SDL_CONTROLLER_AXIS_LEFTX ), x } );
                 if ( y != oy ) onActuator( Actuator{ static_cast<Actuator::Axiscode>( SDL_CONTROLLER_AXIS_LEFTY ), y } );
             } continue;
@@ -188,20 +196,20 @@ void Engine::processEvents()
             case SDL_CONTROLLER_AXIS_RIGHTY: {
                 int16_t x = state.rx_dzone();
                 int16_t y = state.ry_dzone();
-                int16_t ox = std::exchange( axisState[ SDL_CONTROLLER_AXIS_RIGHTX ], x );
-                int16_t oy = std::exchange( axisState[ SDL_CONTROLLER_AXIS_RIGHTY ], y );
+                int16_t ox = std::exchange( axes[ SDL_CONTROLLER_AXIS_RIGHTX ], x );
+                int16_t oy = std::exchange( axes[ SDL_CONTROLLER_AXIS_RIGHTY ], y );
                 if ( x != ox ) onActuator( Actuator{ static_cast<Actuator::Axiscode>( SDL_CONTROLLER_AXIS_RIGHTX ), x } );
                 if ( y != oy ) onActuator( Actuator{ static_cast<Actuator::Axiscode>( SDL_CONTROLLER_AXIS_RIGHTY ), y } );
             } continue;
 
             case SDL_CONTROLLER_AXIS_TRIGGERLEFT: {
                 int16_t t = state.lt_dzone();
-                int16_t ot = std::exchange( axisState[ event.caxis.axis ], t );
+                int16_t ot = std::exchange( axes[ event.caxis.axis ], t );
                 if ( t != ot ) onActuator( Actuator{ static_cast<Actuator::Axiscode>( event.caxis.axis ), t } );
             } continue;
             case SDL_CONTROLLER_AXIS_TRIGGERRIGHT: {
                 int16_t t = state.rt_dzone();
-                int16_t ot = std::exchange( axisState[ event.caxis.axis ], t );
+                int16_t ot = std::exchange( axes[ event.caxis.axis ], t );
                 if ( t != ot ) onActuator( Actuator{ static_cast<Actuator::Axiscode>( event.caxis.axis ), t } );
             } continue;
             }
@@ -211,12 +219,8 @@ void Engine::processEvents()
         case SDL_KEYDOWN:
         case SDL_KEYUP:
         {
-            [[maybe_unused]]
-            static auto tid = std::this_thread::get_id();
-            assert( tid == std::this_thread::get_id() );
-            thread_local std::array<bool, SDL_NUM_SCANCODES> keyboardState{};
             const bool newState = event.key.state == SDL_PRESSED;
-            const bool oldState = std::exchange( keyboardState[ event.key.keysym.scancode ], newState );
+            const bool oldState = std::exchange( g_keyboardState[ event.key.keysym.scancode ], newState );
             if ( oldState == newState ) {
                 break;
             }
@@ -260,15 +264,28 @@ void Engine::controllerAdd( int idx )
     if ( SDL_GameControllerTypeForIndex( idx ) == SDL_CONTROLLER_TYPE_VIRTUAL ) {
         return;
     }
-    SDL_GameController* controller = SDL_GameControllerOpen( idx );
-    assert( controller );
-    m_controllers.emplace_back( controller );
+    auto it = std::find( g_controllers.begin(), g_controllers.end(), nullptr );
+    if ( it == g_controllers.end() ) {
+        // controllers full
+        return;
+    }
+
+    it->controller = SDL_GameControllerOpen( idx );
+    it->id = SDL_JoystickGetDeviceInstanceID( idx );
+    assert( it->controller );
+    assert( it->id > -1 );
 }
 
 void Engine::controllerRemove( int id )
 {
-    SDL_GameController* controller = SDL_GameControllerFromInstanceID( id );
-    std::erase( m_controllers, controller );
+    auto it = std::find( g_controllers.begin(), g_controllers.end(), static_cast<SDL_JoystickID>( id ) );
+    if ( it == g_controllers.end() ) {
+        assert( !"controller to remove not found" );
+        return;
+    }
+    g_axisStates[ (uint32_t)std::distance( g_controllers.begin(), it ) ] = {};
+    auto controller = it->controller;
+    *it = {};
     SDL_GameControllerClose( controller );
 }
 

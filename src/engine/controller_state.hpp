@@ -7,6 +7,7 @@
 #include <cstdint>
 
 struct ControllerState {
+    SDL_GameController* controller = nullptr;
     SDL_JoystickID id = -1;
     uint32_t btns = 0;
     int16_t lx = 0;
@@ -34,9 +35,19 @@ struct ControllerState {
         return !!( btns & ( 1u << btn ) );
     }
 
-    inline bool operator < ( SDL_JoystickID rhs ) const noexcept
+    inline bool operator == ( std::nullptr_t ) const noexcept
     {
-        return id < rhs;
+        return !controller;
+    }
+
+    inline bool operator == ( SDL_GameController* rhs ) const noexcept
+    {
+        return controller == rhs;
+    }
+
+    inline bool operator == ( SDL_JoystickID rhs ) const noexcept
+    {
+        return id == rhs;
     }
 
     inline static int16_t ret_magnitude( int16_t x, int16_t y, int16_t ret, int16_t dzone ) noexcept
