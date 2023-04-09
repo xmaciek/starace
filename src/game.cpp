@@ -205,7 +205,7 @@ static std::tuple<WeaponCreateInfo, bool> parseWeapon( const cfg::Entry& entry )
 
 Game::Game( int argc, char** argv )
 : Engine{ argc, argv }
-, m_atlasUi{ c_spritesUi, 96, 48 }
+, m_atlasUi{ c_spritesUi, 128, 128 }
 {
     ZoneScoped;
     m_io->mount( "shaders.tar" );
