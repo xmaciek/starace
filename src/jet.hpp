@@ -97,6 +97,7 @@ public:
     void untarget( const SAObject* );
     void setInput( const Input& );
 
+    float targetingState() const;
     math::vec3 cameraPosition() const;
     math::vec3 cameraDirection() const;
 };

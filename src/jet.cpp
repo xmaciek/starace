@@ -126,6 +126,13 @@ void Jet::update( const UpdateContext& updateContext )
     }
 }
 
+float Jet::targetingState() const
+{
+    if ( !m_target ) return 0.0f;
+
+    return AutoAim{}.matches( position(), direction(), m_target->position() ) ? 1.0f : 0.0f;
+}
+
 bool Jet::isShooting( uint32_t weaponNum ) const
 {
     switch ( weaponNum ) {

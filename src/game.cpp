@@ -656,6 +656,8 @@ void Game::updateGame( const UpdateContext& updateContext )
         m_targeting.hide();
     }
 
+    m_targeting.update( updateContext );
+    m_targeting.setState( m_jet.targetingState() );
     m_hudData.calc = static_cast<uint32_t>( m_fpsMeter.calculated() );
     m_hudData.fps = static_cast<uint32_t>( m_fpsMeter.fps() );
     m_hudData.pool = static_cast<uint32_t>( m_poolBullets.allocCount() );
