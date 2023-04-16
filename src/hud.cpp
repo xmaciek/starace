@@ -17,7 +17,6 @@ Hud::Hud( const HudData* displayData ) noexcept
 , m_calc{ Label::CreateInfo{ .text = U"Calculated: ", .font = g_uiProperty.fontSmall(), .color = color::winScreen } }
 , m_calcValue{ Label::CreateInfo{ .text = U"0", .font = g_uiProperty.fontSmall(), .color = color::winScreen } }
 , m_speedMeter{ nullptr }
-, m_hp{ U"HP" }
 {
     Widget* arr[] = {
         &m_score,
@@ -57,7 +56,6 @@ void Hud::render( ui::RenderContext rctx ) const
         it->render( rctx );
     }
     m_speedMeter.render( rctx );
-    m_hp.render( rctx );
 }
 
 void Hud::update( const UpdateContext& uctx )
@@ -75,7 +73,6 @@ void Hud::update( const UpdateContext& uctx )
     setIf( m_displayData->calc, m_lastData.calc, &m_calcValue );
     m_speedMeter.setSpeed( m_displayData->speed );
     m_speedMeter.update( uctx );
-    m_hp.setValue( m_displayData->hp );
 
     m_lastData = *m_displayData;
 }
@@ -83,9 +80,4 @@ void Hud::update( const UpdateContext& uctx )
 void Hud::resize( math::vec2 s )
 {
     m_speedMeter.setPosition( math::vec2{ 32.0f, 0.0f } + s * math::vec2{ 0.0f, 0.5f } );
-
-    Widget* bars[] = {
-        &m_hp,
-    };
-    Layout{ { 4.0f, s.y - 4.0f }, Layout::eHorizontal }( bars );
 }

@@ -20,8 +20,11 @@ public:
 
     virtual size_type current() const;
     virtual size_type size() const;
+
+    // TODO unionize
     virtual std::pmr::u32string at( size_type ) const;
     virtual Texture texture( size_type ) const;
+    virtual float atF( size_type ) const;
 
     virtual void activate( size_type );
     virtual void select( size_type );

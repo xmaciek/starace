@@ -1,7 +1,6 @@
 #pragma once
 
 #include <ui/label.hpp>
-#include "hudbar.hpp"
 #include "speed_meter.hpp"
 
 #include <engine/math.hpp>
@@ -33,7 +32,6 @@ class Hud {
     ui::Label m_calc{};
     ui::Label m_calcValue{};
     SpeedMeter m_speedMeter{};
-    HudBar m_hp{};
 
 public:
     Hud() noexcept = default;

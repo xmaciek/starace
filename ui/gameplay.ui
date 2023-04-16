@@ -1,0 +1,8 @@
+width = 1280
+height = 720
+
+Progressbar = {
+    x = 48
+    y = 48
+    data = $var:playerHP
+}

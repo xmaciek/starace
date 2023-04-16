@@ -99,13 +99,14 @@ private:
     Glow m_glow{};
     SpaceDust m_dustGame{};
     SpaceDust m_dustUi{};
-    ui::Screen m_screenTitle{};
     ui::Screen m_screenCustomize{};
-    ui::Screen m_screenMissionSelect{};
+    ui::Screen m_screenGameplay{};
     ui::Screen m_screenMissionResult{};
+    ui::Screen m_screenMissionSelect{};
     ui::Screen m_screenPause{};
-    ui::Screen m_screenSettings{};
     ui::Screen m_screenSettingsDisplay{};
+    ui::Screen m_screenSettings{};
+    ui::Screen m_screenTitle{};
 
     Targeting m_targeting{};
 
@@ -119,6 +120,8 @@ private:
 
     ui::Var<std::pmr::u32string> m_uiMissionResult{ "$var:missionResult", U"BUG ME" };
     ui::Var<std::pmr::u32string> m_uiMissionScore{ "$var:missionScore", U"BUG ME" };
+    ui::Var<float> m_uiPlayerHP{ "$var:playerHP", 0.0f };
+
     LocTable m_localizationMap{};
 
     ActionStateTracker m_actionStateTracker{};

@@ -8,6 +8,7 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <type_traits>
 
 namespace ui {
 
@@ -42,11 +43,13 @@ public:
 
     Var& operator = ( T value ) noexcept
     {
+        if ( value == m_value ) {
+            return *this;
+        }
         m_value = std::forward<T>( value );
         m_current.fetch_add( 1 );
         return *this;
     }
-
 
     virtual size_type current() const override
     {
@@ -55,17 +58,24 @@ public:
 
     virtual std::pmr::u32string at( size_type ) const override
     {
-        char tmp[ 21 ]{};
-        auto str = std::to_chars( std::begin( tmp ), std::end( tmp ), m_value );
-        return std::pmr::u32string{ std::begin( tmp ), str.ptr };
+        if constexpr ( std::is_same_v<T, std::pmr::u32string> ) {
+            return m_value;
+        }
+        else {
+            char tmp[ 21 ]{};
+            auto str = std::to_chars( std::begin( tmp ), std::end( tmp ), m_value );
+            return std::pmr::u32string{ std::begin( tmp ), str.ptr };
+        }
+    }
+
+    virtual float atF( size_type ) const override
+    {
+        if constexpr ( std::is_same_v<T, float> ) {
+            return m_value;
+        }
+        else return {};
     }
 
 };
-
-template <>
-inline std::pmr::u32string Var<std::pmr::u32string>::at( size_type ) const
-{
-    return m_value;
-}
 
 }

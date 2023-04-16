@@ -9,7 +9,6 @@ enum class Pipeline : PipelineSlot {
     eLine3dStripColor,
     eTriangleFan3dColor,
     eTriangleFan3dTexture,
-    eProgressBar,
     eGlow,
     eBackground,
     eAlbedo,
@@ -88,16 +87,6 @@ struct PushConstant<Pipeline::eTriangleFan3dColor> {
     math::mat4 m_projection{};
     std::array<math::vec4, 48> m_vertices{};
     std::array<math::vec4, 48> m_colors{};
-};
-
-template <>
-struct PushConstant<Pipeline::eProgressBar> {
-    math::mat4 m_model{};
-    math::mat4 m_view{};
-    math::mat4 m_projection{};
-    math::vec4 m_vertices[ 4 ]{};
-    math::vec4 m_color[ 2 ]{};
-    math::vec4 m_axis{};
 };
 
 template <>
@@ -292,20 +281,6 @@ PipelineCreateInfo{
     .m_binding{
         BindType::eVertexUniform,
         BindType::eFragmentImage,
-    },
-},
-
-PipelineCreateInfo{
-    .m_vertexShader = "shaders/progressbar.vert.spv",
-    .m_fragmentShader = "shaders/progressbar.frag.spv",
-    .m_userHint = static_cast<uint32_t>( Pipeline::eProgressBar ),
-    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eProgressBar> ),
-    .m_enableBlend = true,
-    .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
-    .m_cullMode = PipelineCreateInfo::CullMode::eBack,
-    .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_binding{
-        BindType::eVertexUniform,
     },
 },
 

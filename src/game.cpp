@@ -430,13 +430,14 @@ void Game::onInit()
         it.model = Model( m_meshes[ it.model_file ], m_textures[ it.model_texture ], it.scale );
     }
 
-    m_screenTitle =         cfg::Entry::fromData( m_io->viewWait( "ui/mainmenu.ui" ) );
-    m_screenMissionSelect = cfg::Entry::fromData( m_io->viewWait( "ui/missionselect.ui" ) );
     m_screenCustomize =     cfg::Entry::fromData( m_io->viewWait( "ui/customize.ui" ) );
-    m_screenPause =         cfg::Entry::fromData( m_io->viewWait( "ui/pause.ui" ) );
+    m_screenGameplay =      cfg::Entry::fromData( m_io->viewWait( "ui/gameplay.ui" ) );
     m_screenMissionResult = cfg::Entry::fromData( m_io->viewWait( "ui/result.ui" ) );
+    m_screenMissionSelect = cfg::Entry::fromData( m_io->viewWait( "ui/missionselect.ui" ) );
+    m_screenPause =         cfg::Entry::fromData( m_io->viewWait( "ui/pause.ui" ) );
     m_screenSettings =      cfg::Entry::fromData( m_io->viewWait( "ui/settings.ui" ) );
     m_screenSettingsDisplay = cfg::Entry::fromData( m_io->viewWait( "ui/settings_display.ui" ) );
+    m_screenTitle =         cfg::Entry::fromData( m_io->viewWait( "ui/mainmenu.ui" ) );
 
     m_enemyModel = Model{ m_meshes[ "models/a2.objc" ], m_textures[ "textures/a2.dds" ], 0.45f };
 
@@ -446,6 +447,9 @@ void Game::onInit()
 ui::Screen* Game::currentScreen()
 {
     switch ( m_currentScreen ) {
+    case Screen::eGame:
+        return &m_screenGameplay;
+
     case Screen::eGamePaused:
         return &m_screenPause;
 
@@ -662,7 +666,7 @@ void Game::updateGame( const UpdateContext& updateContext )
     m_hudData.fps = static_cast<uint32_t>( m_fpsMeter.fps() );
     m_hudData.pool = static_cast<uint32_t>( m_poolBullets.allocCount() );
     m_hudData.speed = m_jet.speed();
-    m_hudData.hp = static_cast<float>( m_jet.health() ) / 100.0f;
+    m_uiPlayerHP = static_cast<float>( m_jet.health() ) / 100.0f;
     m_hud.update( updateContext );
 }
 

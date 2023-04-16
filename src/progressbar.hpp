@@ -1,19 +1,24 @@
 #pragma once
 
 #include <ui/widget.hpp>
+#include <ui/data_model.hpp>
 
-class ProgressBar : public ui::Widget {
-    math::vec4 m_colorA{};
-    math::vec4 m_colorB{};
-    math::vec2 m_axis{};
+class Progressbar : public ui::Widget {
+    ui::DataModel* m_dataModel = nullptr;
+    ui::DataModel::size_type m_current = 0;
     float m_value = 0.0f;
 
 public:
-    virtual ~ProgressBar() noexcept override = default;
-    ProgressBar() noexcept = default;
-    ProgressBar( math::vec2 pos, math::vec2 size, math::vec2 axis, const math::vec4 colorA, const math::vec4 colorB ) noexcept;
+    struct CreateInfo {
+        ui::DataModel* model = nullptr;
+        math::vec2 position{};
+    };
 
-    void setValue( float );
+    virtual ~Progressbar() noexcept override = default;
+    Progressbar() noexcept = default;
+    Progressbar( const CreateInfo& ) noexcept;
 
     virtual void render( ui::RenderContext ) const override;
+    virtual void update( const UpdateContext& ) override;
+
 };

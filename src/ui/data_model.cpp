@@ -19,6 +19,11 @@ std::pmr::u32string DataModel::at( size_type ) const
     return {};
 }
 
+float DataModel::atF( size_type ) const
+{
+    return {};
+}
+
 Texture DataModel::texture( size_type ) const
 {
     return {};

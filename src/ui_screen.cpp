@@ -2,6 +2,8 @@
 
 #include "colors.hpp"
 #include "game_callbacks.hpp"
+#include "progressbar.hpp"
+
 #include <ui/button.hpp>
 #include <ui/combobox.hpp>
 #include <ui/image.hpp>
@@ -199,6 +201,26 @@ static UniquePointer<Widget> makeComboBox( std::pmr::memory_resource* alloc, con
     return ptr;
 }
 
+static UniquePointer<Widget> makeProgressbar( std::pmr::memory_resource* alloc, const cfg::Entry& entry )
+{
+    assert( alloc );
+    Progressbar::CreateInfo ci{};
+    Hash hash{};
+    for ( const auto& property : entry ) {
+        switch ( auto h = hash( *property ) ) {
+        case "data"_hash: ci.model = dataKeyToModel( property.toString() ); continue;
+        case "x"_hash: ci.position.x = property.toFloat(); continue;
+        case "y"_hash: ci.position.y = property.toFloat(); continue;
+        default:
+            assert( !"unhandled Entry element" );
+            continue;
+        }
+    }
+
+    assert( ci.model );
+    return UniquePointer<Progressbar>{ alloc, ci };
+}
+
 Screen::Screen( const cfg::Entry& entry ) noexcept
 {
     ZoneScoped;
@@ -213,6 +235,7 @@ Screen::Screen( const cfg::Entry& entry ) noexcept
         case "Image"_hash: m_widgets.emplace_back( makeImage( alloc, property ) ); continue;
         case "Label"_hash: m_widgets.emplace_back( makeLabel( alloc, property ) ); continue;
         case "NineSlice"_hash: m_widgets.emplace_back( makeNineSlice( alloc, property ) ); continue;
+        case "Progressbar"_hash: m_widgets.emplace_back( makeProgressbar( alloc, property ) ); continue;
         case "SpinBox"_hash: m_widgets.emplace_back( makeSpinBox( alloc, property, tabOrderCount++ ) ); continue;
         case "height"_hash: m_extent.y = property.toFloat(); continue;
         case "width"_hash: m_extent.x = property.toFloat(); continue;
