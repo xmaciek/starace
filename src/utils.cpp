@@ -58,8 +58,9 @@ bool intersectLineSphere( const math::vec3& p1, const math::vec3& p2, const math
 math::vec3 interceptTarget( const math::vec3& dir, const math::vec3& pos, const math::vec3& tgtPos, float turnrate ) noexcept
 {
     const math::vec3 tgtDir = math::normalize( pos - tgtPos );
-    const float tmp = (float)std::tan( std::atan( math::dot( dir, tgtDir ) - turnrate ) );
+    const float angle = math::atan( math::dot( dir, tgtDir ) );
+    const float arc = math::tan( angle - turnrate );
     math::vec3 ret = math::cross( tgtDir, math::cross( dir, tgtDir ) );
-    ret += tgtDir * math::vec3( tmp );
+    ret += tgtDir * math::vec3( arc );
     return math::normalize( ret );
 }

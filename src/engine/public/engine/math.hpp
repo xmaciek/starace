@@ -32,6 +32,11 @@ inline auto acos( const auto& t )
     return glm::acos( t );
 };
 
+inline float atan( float f )
+{
+    return static_cast<float>( std::atan( f ) );
+}
+
 inline auto billboard( const vec3& position, const vec3& cameraPosition, const vec3& cameraUp )
 {
     const vec3 direction = glm::normalize( cameraPosition - position );
@@ -160,6 +165,11 @@ inline auto radians( auto t )
 inline auto rotate( const auto& TMat, const auto& TVec )
 {
     return glm::rotate( TMat, TVec );
+}
+
+inline float tan( float f )
+{
+    return static_cast<float>( std::tan( f ) );
 }
 
 inline auto rotate( const auto& TMat, float f, const auto& TVec )
