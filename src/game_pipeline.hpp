@@ -329,8 +329,9 @@ PipelineCreateInfo{
     .m_userHint = static_cast<uint32_t>( Pipeline::eThruster ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eThruster> ),
     .m_enableBlend = true,
+    .m_enableDepthTest = true,
     .m_topology = PipelineCreateInfo::Topology::eTriangleList,
-    .m_cullMode = PipelineCreateInfo::CullMode::eBack,
+    .m_cullMode = PipelineCreateInfo::CullMode::eNone,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
     .m_binding{
         BindType::eVertexUniform,
