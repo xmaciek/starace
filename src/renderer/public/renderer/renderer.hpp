@@ -27,6 +27,7 @@ public:
     virtual std::pmr::memory_resource* allocator() = 0;
 
     virtual void setVSync( VSync ) = 0;
+    virtual bool supportedVSync( VSync ) const = 0;
     virtual PipelineSlot createPipeline( const PipelineCreateInfo& ) = 0;
 
     virtual Buffer createBuffer( std::pmr::vector<float>&& ) = 0;

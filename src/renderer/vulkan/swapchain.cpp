@@ -97,16 +97,15 @@ std::array<bool, 3> Swapchain::supportedVSyncs( VkPhysicalDevice device, VkSurfa
     std::pmr::vector<VkPresentModeKHR> presentModes( presentModeCount );
     vkGetPhysicalDeviceSurfacePresentModesKHR( device, surface, &presentModeCount, presentModes.data() );
 
-    static constexpr VSync vsyncs[] = {
-        VSync::eOff,
-        VSync::eOn,
-        VSync::eMailbox,
-    };
     std::array<bool, 3> ret{};
 
-    for ( uint32_t i = 0; i < std::size( vsyncs ); ++i ) {
-        const auto found = std::find( presentModes.cbegin(), presentModes.cend(), mapVSync( vsyncs[ i ] ) );
-        ret[ i ] = found != presentModes.cend();
+    for ( const VkPresentModeKHR presentMode : presentModes ) {
+        switch ( presentMode ) {
+        case VK_PRESENT_MODE_IMMEDIATE_KHR: ret[ (uint32_t)VSync::eOff ] = true; continue;
+        case VK_PRESENT_MODE_FIFO_KHR: ret[ (uint32_t)VSync::eOn ] = true; continue;
+        case VK_PRESENT_MODE_MAILBOX_KHR: ret[ (uint32_t)VSync::eMailbox ] = true; continue;
+        default: continue;
+        }
     }
     return ret;
 }

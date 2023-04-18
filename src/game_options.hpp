@@ -6,10 +6,7 @@
 struct OptionsGFX {
     ui::Option<DisplayMode> m_resolution{};
     ui::Option<bool> m_fullscreen{ 0 };
-    ui::Option<VSync> m_vsync{ 1
-        , { VSync::eOff, VSync::eOn, VSync::eMailbox }
-        , { "off"_hash, "on"_hash, "mailbox"_hash }
-    };
+    ui::Option<VSync> m_vsync{};
 
     ui::Option<float> m_gamma{ 18,
         std::pmr::vector<float>{ 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f

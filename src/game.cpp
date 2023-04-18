@@ -304,6 +304,17 @@ void Game::onInit()
     m_optionsGFX.m_resolution = ui::Option<DisplayMode>{ 0, displayModes(),
         []( const auto& dm ) { return intToUTF32( dm.width ) + U" x " + intToUTF32( dm.height ); }
     };
+
+    {
+        std::pmr::vector<VSync> v{ VSync::eOff, VSync::eOn };
+        std::pmr::vector<Hash::value_type> h{ "off"_hash, "on"_hash };
+        if ( m_renderer->supportedVSync( VSync::eMailbox ) ) {
+            v.emplace_back( VSync::eMailbox );
+            h.emplace_back( "mailbox"_hash );
+        }
+        m_optionsGFX.m_vsync = ui::Option<VSync>{ 1, std::move( v ), std::move( h ) };
+    };
+
     g_gameUiDataModels[ "$data:resolution" ] = &m_optionsGFX.m_resolution;
     g_gameUiDataModels[ "$data:fullscreen" ] = &m_optionsGFX.m_fullscreen;
     g_gameUiDataModels[ "$data:vsync" ] = &m_optionsGFX.m_vsync;
