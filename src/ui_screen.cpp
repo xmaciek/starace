@@ -87,16 +87,16 @@ static UniquePointer<Widget> makeImage( std::pmr::memory_resource* alloc, const 
 static UniquePointer<Widget> makeNineSlice( std::pmr::memory_resource* alloc, const cfg::Entry& entry )
 {
     assert( alloc );
-    static constexpr std::array<uint32_t, 9> c_slices = {
-        ui::AtlasSprite::eTopLeft,
-        ui::AtlasSprite::eTop,
-        ui::AtlasSprite::eTopRight,
-        ui::AtlasSprite::eLeft,
-        ui::AtlasSprite::eMid,
-        ui::AtlasSprite::eRight,
-        ui::AtlasSprite::eBotLeft2,
-        ui::AtlasSprite::eBot,
-        ui::AtlasSprite::eBotRight2,
+    static constexpr std::array<ui::Atlas::hash_type, 9> SLICES = {
+        "topLeft"_hash,
+        "top"_hash,
+        "topRight"_hash,
+        "left"_hash,
+        "mid"_hash,
+        "right"_hash,
+        "botLeft"_hash,
+        "bot"_hash,
+        "botRight"_hash,
     };
     math::vec2 position{};
     math::vec2 extent{};
@@ -118,9 +118,7 @@ static UniquePointer<Widget> makeNineSlice( std::pmr::memory_resource* alloc, co
         , position
         , extent
         , Anchor::fTop | Anchor::fLeft
-        , g_uiProperty.atlas()
-        , c_slices
-        , g_uiProperty.atlasTexture()
+        , SLICES
     };
 }
 

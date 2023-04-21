@@ -25,9 +25,9 @@
 #include <renderer/texture.hpp>
 #include <shared/hash.hpp>
 #include <shared/pool.hpp>
+#include <ui/atlas.hpp>
 #include <ui/data_model.hpp>
 #include <ui/font.hpp>
-#include <ui/linear_atlas.hpp>
 #include <ui/var.hpp>
 
 #include <SDL.h>
@@ -68,7 +68,7 @@ private:
     Model m_enemyModel{};
     Jet m_jet{};
     Skybox m_skybox{};
-    ui::LinearAtlas m_atlasUi{};
+    ui::Atlas m_uiAtlas{};
 
     Audio::Slot m_blaster{};
     Audio::Slot m_click{};

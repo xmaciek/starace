@@ -15,7 +15,7 @@ using LocTable = FixedMap<Hash::value_type, std::pmr::u32string, 64>;
 
 namespace ui {
 class DataModel;
-class LinearAtlas;
+class Atlas;
 class Font;
 
 class Property {
@@ -23,7 +23,7 @@ class Property {
     const Font* m_fontSmall = nullptr;
     const Font* m_fontMedium = nullptr;
     const Font* m_fontLarge = nullptr;
-    const LinearAtlas* m_atlas = nullptr;
+    const Atlas* m_atlas = nullptr;
     const LocTable* m_locTable = nullptr;
     Texture m_atlasTexture{};
 
@@ -44,7 +44,7 @@ public:
     PendingComboBox m_pendingComboBox{};
 
     inline Texture atlasTexture() const { return m_atlasTexture; }
-    inline const LinearAtlas* atlas() const { return m_atlas; }
+    inline const Atlas* atlas() const { return m_atlas; }
 
     inline const Font* fontSmall() const { return m_fontSmall; }
     inline const Font* fontMedium() const { return m_fontMedium; }
@@ -83,27 +83,6 @@ public:
     {
         return m_pendingComboBox;
     }
-};
-
-
-struct AtlasSprite {
-    enum : uint32_t {
-        eBackground,
-        eArrowRight,
-        eArrowLeft,
-        eTopLeft,
-        eTop,
-        eTopRight,
-        eLeft,
-        eMid,
-        eRight,
-        eBotLeft,
-        eBot,
-        eBotRight,
-        eBotLeft2,
-        eBotRight2,
-        count
-    };
 };
 
 } // namespace ui

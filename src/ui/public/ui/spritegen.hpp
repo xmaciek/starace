@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ui/atlas.hpp>
+
 #include <engine/math.hpp>
 
 #include <array>
@@ -7,30 +9,16 @@
 
 namespace ui {
 
-class LinearAtlas;
-
-struct NineSliceComposer {
-    const LinearAtlas* m_atlas = nullptr;
-    std::array<uint32_t, 9> m_spriteIds{};
-    uint32_t m_currentVert = 0;
-    math::vec4 m_xyBegin{};
-    math::vec4 m_xyOffset{};
-    math::vec2 m_midStretch{};
-
-    static constexpr uint32_t count() noexcept { return 54u; }
-    math::vec4 operator () () noexcept;
-};
-
 struct NineSlice2 {
     math::vec2 m_xy{};
-    const LinearAtlas* m_atlas = nullptr;
-    std::array<uint32_t, 9> m_spriteIds{};
+    const Atlas* m_atlas = nullptr;
+    std::array<Atlas::hash_type, 9> m_spriteIds{};
 
     uint32_t m_currentVert = 0;
     std::array<float, 3> m_w{};
     std::array<float, 3> m_h{};
 
-    NineSlice2( const math::vec4& xywh, const LinearAtlas*, const std::array<uint32_t, 9>& ) noexcept;
+    NineSlice2( const math::vec4& xywh, const Atlas*, const std::array<Atlas::hash_type, 9>& ) noexcept;
     static constexpr uint32_t count() noexcept { return 54u; }
     math::vec4 operator () () noexcept;
     math::vec4 operator () ( uint32_t spriteId ) const noexcept;

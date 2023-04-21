@@ -3,8 +3,6 @@
 
 #include <cassert>
 
-namespace ui {
-
 static math::vec4 xyuvForVertice6( const math::vec4& xywh, const math::vec4& uvwh, uint32_t vert )
 {
     switch ( vert ) {
@@ -21,53 +19,26 @@ static math::vec4 xyuvForVertice6( const math::vec4& xywh, const math::vec4& uvw
     }
 }
 
-math::vec4 NineSliceComposer::operator () () noexcept
-{
-    assert( m_atlas );
-    assert( m_currentVert < count() );
+namespace ui {
 
-    const uint32_t currentVert = m_currentVert++;
-    const uint32_t spriteId = currentVert / 6u;
-    const uint32_t vertId = currentVert % 6u;
-    const uint32_t row = spriteId / 3u;
-    const uint32_t column = spriteId % 3u;
-
-    const Sprite sprite = m_atlas->sprite( m_spriteIds[ spriteId ] );
-    const math::vec4 uvwh = m_atlas->sliceUV( m_spriteIds[ spriteId ] );
-    const float w = ( column == 1u ) ? m_midStretch.x : static_cast<float>( sprite[ 2u ] );
-    const float h = ( row == 1u )    ? m_midStretch.y : static_cast<float>( sprite[ 3u ] );
-    const math::vec4 xywh = m_xyBegin + m_xyOffset + math::vec4{ 0.0f, 0.0f, w, h };
-
-    if ( vertId == 5u ) {
-        if ( spriteId % 3u == 2u ) {
-            m_xyOffset.x = 0.0f;
-            m_xyOffset.y += h;
-        }
-        else {
-            m_xyOffset.x += w;
-        }
-    }
-
-    return xyuvForVertice6( xywh, uvwh, vertId );
-
-}
-
-NineSlice2::NineSlice2( const math::vec4& xywh, const LinearAtlas* atlas, const std::array<uint32_t, 9>& ids ) noexcept
+NineSlice2::NineSlice2( const math::vec4& xywh, const Atlas* atlas, const std::array<Atlas::hash_type, 9>& ids ) noexcept
 : m_xy{ xywh.x, xywh.y }
 , m_atlas{ atlas }
 , m_spriteIds{ ids }
 {
-    Sprite s0 = atlas->sprite( m_spriteIds[ 0u ] );
-    Sprite s2 = atlas->sprite( m_spriteIds[ 2u ] );
-    Sprite s6 = atlas->sprite( m_spriteIds[ 6u ] );
+    assert( atlas );
+    const Atlas& atlasRef = *atlas;
+    auto s0 = atlasRef[ m_spriteIds[ 0u ] ];
+    auto s2 = atlasRef[ m_spriteIds[ 2u ] ];
+    auto s6 = atlasRef[ m_spriteIds[ 6u ] ];
 
-    m_w[ 0 ] = s0[ 2 ];
-    m_w[ 1 ] = xywh.z - ( s0[ 2 ] + s2[ 2 ] );
-    m_w[ 2 ] = s2[ 2 ];
+    m_w[ 0 ] = s0.w;
+    m_w[ 1 ] = xywh.z - ( s0.w + s2.w );
+    m_w[ 2 ] = s2.w;
 
-    m_h[ 0 ] = s0[ 3 ];
-    m_h[ 1 ] = xywh.w - ( s0[ 3 ] + s6[ 3 ] );
-    m_h[ 2 ] = s6[ 3 ];
+    m_h[ 0 ] = s0.h;
+    m_h[ 1 ] = xywh.w - ( s0.h + s6.h );
+    m_h[ 2 ] = s6.h;
 }
 
 math::vec4 NineSlice2::operator () () noexcept
@@ -79,7 +50,7 @@ math::vec4 NineSlice2::operator () () noexcept
     const uint32_t spriteId = currentVert / 6u;
     const uint32_t vertId = currentVert % 6u;
 
-    const math::vec4 uvwh = m_atlas->sliceUV( m_spriteIds[ spriteId ] );
+    const math::vec4 uvwh = (*m_atlas)[ m_spriteIds[ spriteId ] ] / m_atlas->extent();
 
     math::vec4 xywh = (*this)( spriteId );
 

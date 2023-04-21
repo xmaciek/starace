@@ -97,7 +97,7 @@ struct BlitIterator {
     }
 };
 
-struct Atlas {
+struct AtlasComposer {
     using value_type = uint8_t;
     using pointer = value_type*;
 
@@ -206,7 +206,7 @@ Font::Font( const CreateInfo& fontInfo, uint32_t height )
     const uint32_t textureSize = dstPitch * dstPitch;
     std::pmr::vector<uint8_t> texture( textureSize, fontInfo.renderer->allocator() );
 
-    Atlas atlas {
+    AtlasComposer atlas{
         .m_begin = texture.data(),
         .m_end = texture.data() + texture.size(),
         .m_width = dstPitch,

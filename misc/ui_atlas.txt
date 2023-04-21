@@ -1,0 +1,17 @@
+width = 128
+height = 128
+
+arrowLeft  = { x = 24  y = 0   w = 24  h = 48  }
+arrowRight = { x = 0   y = 0   w = 24  h = 48  }
+background = { x = 84  y = 0   w = 8   h = 8   }
+bot        = { x = 60  y = 24  w = 8   h = 8   }
+botLeft    = { x = 48  y = 24  w = 8   h = 8   }
+botLeft2   = { x = 84  y = 12  w = 8   h = 8   }
+botRight   = { x = 72  y = 24  w = 8   h = 8   }
+botRight2  = { x = 84  y = 24  w = 8   h = 8   }
+left       = { x = 48  y = 12  w = 8   h = 8   }
+mid        = { x = 60  y = 12  w = 8   h = 8   }
+right      = { x = 72  y = 12  w = 8   h = 8   }
+top        = { x = 60  y = 0   w = 8   h = 8   }
+topLeft    = { x = 48  y = 0   w = 8   h = 8   }
+topRight   = { x = 72  y = 0   w = 8   h = 8   }

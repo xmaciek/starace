@@ -30,29 +30,6 @@ static constexpr const char* chunk1[] = {
     "textures/plasma.dds",
 };
 
-// TODO: move to asset file
-static constexpr auto c_spritesUi = []()
-{
-    std::array<ui::Sprite, ui::AtlasSprite::count> ret{};
-
-    ret[ ui::AtlasSprite::eBackground ] = { 84, 0, 8, 8 };
-    ret[ ui::AtlasSprite::eArrowRight ] = { 0, 0, 24, 48 };
-    ret[ ui::AtlasSprite::eArrowLeft ]  = { 24, 0, 24, 48 };
-    ret[ ui::AtlasSprite::eTopLeft ]    = { 48, 0, 8, 8 };
-    ret[ ui::AtlasSprite::eTop ]        = { 60, 0, 8, 8 };
-    ret[ ui::AtlasSprite::eTopRight ]   = { 72, 0, 8, 8 };
-    ret[ ui::AtlasSprite::eLeft ]       = { 48, 12, 8, 8 };
-    ret[ ui::AtlasSprite::eMid ]        = { 60, 12, 8, 8 };
-    ret[ ui::AtlasSprite::eRight ]      = { 72, 12, 8, 8 };
-    ret[ ui::AtlasSprite::eBotLeft ]    = { 48, 24, 8, 8 };
-    ret[ ui::AtlasSprite::eBot ]        = { 60, 24, 8, 8 };
-    ret[ ui::AtlasSprite::eBotRight ]   = { 72, 24, 8, 8 };
-    ret[ ui::AtlasSprite::eBotLeft2 ]   = { 84, 12, 8, 8 };
-    ret[ ui::AtlasSprite::eBotRight2 ]  = { 84, 24, 8, 8 };
-    return ret;
-
-}();
-
 constexpr std::tuple<GameAction, Actuator> inputActions[] = {
     { GameAction::eGamePause, SDL_CONTROLLER_BUTTON_START },
     { GameAction::eGamePause, SDL_SCANCODE_ESCAPE },
@@ -146,6 +123,50 @@ static std::pmr::vector<MapCreateInfo> loadMaps( std::span<const uint8_t> data )
     return levels;
 }
 
+static ui::Atlas loadUIAtlas( std::span<const uint8_t> span )
+{
+    ZoneScoped;
+    cfg::Entry entry = cfg::Entry::fromData( span );
+    uint16_t width = 0;
+    uint16_t height = 0;
+    Hash hash{};
+    auto gibSprite = []( const auto& entry )
+    {
+        Hash hash{};
+        ui::Atlas::Sprite sprite{};
+        for ( auto&& it : entry ) {
+            switch ( hash( *it ) ) {
+            case "x"_hash: sprite.x = it.template toInt<uint16_t>(); continue;
+            case "y"_hash: sprite.y = it.template toInt<uint16_t>(); continue;
+            case "w"_hash: sprite.w = it.template toInt<uint16_t>(); continue;
+            case "h"_hash: sprite.h = it.template toInt<uint16_t>(); continue;
+            default:
+                assert( !"unhandled property" );
+                continue;
+            }
+        }
+        assert( sprite.w );
+        assert( sprite.h );
+        return sprite;
+    };
+
+    std::pmr::vector<ui::Atlas::SpritePack> sprites{};
+    for ( auto&& it : entry ) {
+        switch ( auto h = hash( *it ) ) {
+        case "width"_hash: width = it.template toInt<uint16_t>(); continue;
+        case "height"_hash: height = it.template toInt<uint16_t>(); continue;
+        default:
+            sprites.emplace_back( std::make_tuple( h, gibSprite( it ) ) );
+            continue;
+        }
+    }
+    assert( !sprites.empty() );
+    assert( width );
+    assert( height );
+    std::sort( sprites.begin(), sprites.end(), &ui::Atlas::sortCmp );
+    return ui::Atlas{ sprites, width, height };
+}
+
 static std::tuple<WeaponCreateInfo, bool> parseWeapon( const cfg::Entry& entry )
 {
     using std::literals::string_view_literals::operator""sv;
@@ -205,7 +226,6 @@ static std::tuple<WeaponCreateInfo, bool> parseWeapon( const cfg::Entry& entry )
 
 Game::Game( int argc, char** argv )
 : Engine{ argc, argv }
-, m_atlasUi{ c_spritesUi, 128, 128 }
 {
     ZoneScoped;
     m_io->mount( "shaders.tar" );
@@ -276,6 +296,7 @@ void Game::onInit()
         m_actionStateTracker.add( static_cast<Action::Enum>( eid ), min, max );
     }
 
+    m_uiAtlas = loadUIAtlas( m_io->viewWait( "misc/ui_atlas.txt" ) );
     m_dustUi.setVelocity(  math::vec3{ 0.0f, 0.0f, 26.0_m }  );
     m_dustUi.setCenter( {} );
     m_dustUi.setLineWidth( 2.0f );
@@ -413,7 +434,7 @@ void Game::onInit()
 
     m_textures[ "textures/atlas_ui.dds" ] = parseTexture( m_io->viewWait( "textures/atlas_ui.dds" ) );
     g_uiProperty.m_atlasTexture = m_textures[ "textures/atlas_ui.dds" ];
-    g_uiProperty.m_atlas = &m_atlasUi;
+    g_uiProperty.m_atlas = &m_uiAtlas;
 
 
     for ( const char* it : chunk1 ) {
@@ -955,7 +976,7 @@ void Game::renderBackground( ui::RenderContext rctx ) const
 {
     [[maybe_unused]]
     const auto [ w, h, a ] = viewport();
-    const math::vec2 uv = math::vec2{ w, h } / m_atlasUi.extent();
+    const math::vec2 uv = math::vec2{ w, h } / m_uiAtlas.extent();
 
     PushBuffer pushBuffer{
         .m_pipeline = g_pipelines[ Pipeline::eBackground ],
@@ -968,7 +989,7 @@ void Game::renderBackground( ui::RenderContext rctx ) const
         .m_view = rctx.view,
         .m_projection = rctx.projection,
         .m_color = rctx.colorMain,
-        .m_uvSlice = m_atlasUi.sliceUV( ui::AtlasSprite::eBackground ),
+        .m_uvSlice = m_uiAtlas[ "background"_hash ] / m_uiAtlas.extent(),
         .m_xyuv{
             math::vec4{ 0, 0, 0, 0 },
             math::vec4{ 0, h, 0, uv.y },

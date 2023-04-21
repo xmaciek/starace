@@ -38,6 +38,8 @@ class FixedMap {
     auto valueEnd() noexcept { return valueBegin() + m_currentSize; }
 
 public:
+    static constexpr inline auto CAPACITY = TCapacity;
+
     ~FixedMap() noexcept
     {
         if constexpr ( !isTrivial<TValue>() ) { std::destroy( valueBegin(), valueEnd() ); }

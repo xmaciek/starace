@@ -12,21 +12,20 @@
 #include <string_view>
 
 namespace ui {
-
-static constexpr std::array<uint32_t, 9> SLICES = {
-    ui::AtlasSprite::eTopLeft,
-    ui::AtlasSprite::eTop,
-    ui::AtlasSprite::eTopRight,
-    ui::AtlasSprite::eLeft,
-    ui::AtlasSprite::eMid,
-    ui::AtlasSprite::eRight,
-    ui::AtlasSprite::eBotLeft,
-    ui::AtlasSprite::eBot,
-    ui::AtlasSprite::eBotRight,
+static constexpr std::array<ui::Atlas::hash_type, 9> SLICES = {
+    "topLeft"_hash,
+    "top"_hash,
+    "topRight"_hash,
+    "left"_hash,
+    "mid"_hash,
+    "right"_hash,
+    "botLeft"_hash,
+    "bot"_hash,
+    "botRight"_hash,
 };
 
 ComboBox::ComboBox( const ComboBox::CreateInfo& ci ) noexcept
-: NineSlice{ ci.position, ci.size, Anchor::fTop| Anchor::fLeft, g_uiProperty.atlas(), SLICES, g_uiProperty.atlasTexture() }
+: NineSlice{ ci.position, ci.size, Anchor::fTop| Anchor::fLeft, SLICES }
 , m_label{ Label::CreateInfo{ .text = ci.text, .font = g_uiProperty.fontMedium(), .anchor = Anchor::fLeft | Anchor::fMiddle, } }
 , m_value{ Label::CreateInfo{ .dataModel = ci.model, .font = g_uiProperty.fontMedium(), .anchor = Anchor::fRight | Anchor::fMiddle, } }
 {
@@ -120,26 +119,30 @@ void ComboBoxList::render( RenderContext rctx ) const
     using S = PushConstant<Pipeline::eSpriteSequenceColors>::Sprite;
     auto gibLine = []( float y, float w, float h, auto color, auto left, auto mid, auto right ) -> std::tuple<S,S,S>
     {
+        const Atlas& atlasRef = *g_uiProperty.atlas();
+        math::vec2 atlasExtent = atlasRef.extent();
         return {
-            { .m_color = color, .m_xywh{ 4.0f, y, 8.0f, h },        .m_uvwh = g_uiProperty.atlas()->sliceUV( left ) },
-            { .m_color = color, .m_xywh{ 12.0f, y, w - 24.0f, h },  .m_uvwh = g_uiProperty.atlas()->sliceUV( mid ) },
-            { .m_color = color, .m_xywh{ w - 12.0f, y, 8.0f, h },   .m_uvwh = g_uiProperty.atlas()->sliceUV( right ) },
+            { .m_color = color, .m_xywh{ 4.0f, y, 8.0f, h },        .m_uvwh = atlasRef[ left ] / atlasExtent },
+            { .m_color = color, .m_xywh{ 12.0f, y, w - 24.0f, h },  .m_uvwh = atlasRef[ mid ] / atlasExtent },
+            { .m_color = color, .m_xywh{ w - 12.0f, y, 8.0f, h },   .m_uvwh = atlasRef[ right ] / atlasExtent },
         };
     };
 
 
     float yOffset = 0.0f;
     std::tie( pushConstant.m_sprites[ 0 ], pushConstant.m_sprites[ 1 ], pushConstant.m_sprites[ 2 ] )
-        = gibLine( yOffset, width, midSize, rctx.colorMain, ui::AtlasSprite::eLeft, ui::AtlasSprite::eMid, ui::AtlasSprite::eRight );
+        = gibLine( yOffset, width, midSize, rctx.colorMain, "left"_hash, "mid"_hash, "right"_hash );
     yOffset += midSize;
 
     std::tie( pushConstant.m_sprites[ 3 ], pushConstant.m_sprites[ 4 ], pushConstant.m_sprites[ 5 ] )
-        = gibLine( yOffset, width, m_botHeight, rctx.colorMain, ui::AtlasSprite::eBotLeft2, ui::AtlasSprite::eBot, ui::AtlasSprite::eBotRight2 );
+        = gibLine( yOffset, width, m_botHeight, rctx.colorMain, "botLeft2"_hash, "bot"_hash, "botRight2"_hash );
 
+    const Atlas& atlasRef = *g_uiProperty.atlas();
+    math::vec2 atlasExtent = atlasRef.extent();
     pushConstant.m_sprites[ 6 ] = {
         .m_color = rctx.colorFocus,
         .m_xywh{ 12.0f, m_topPadding + m_lineHeight * static_cast<float>( m_index.currentVisible() ), width - 24.0f, m_lineHeight },
-        .m_uvwh = g_uiProperty.atlas()->sliceUV( ui::AtlasSprite::eMid ),
+        .m_uvwh = atlasRef[ "mid"_hash ] / atlasExtent,
     };
     rctx.renderer->push( pushData, &pushConstant );
 

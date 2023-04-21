@@ -3,6 +3,7 @@ set_cppver( ui 20 )
 
 target_sources( ui
     PRIVATE
+    atlas.cpp
     button.cpp
     combobox.cpp
     data_model.cpp
@@ -18,6 +19,7 @@ target_sources( ui
 
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/anchor.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/atlas.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/button.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/combobox.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/data_model.hpp

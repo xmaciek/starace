@@ -1,6 +1,6 @@
 #include <ui/nineslice.hpp>
 
-#include <ui/linear_atlas.hpp>
+#include <ui/atlas.hpp>
 #include <ui/pipeline.hpp>
 #include <ui/property.hpp>
 #include <ui/spritegen.hpp>
@@ -17,13 +17,9 @@ NineSlice::NineSlice(
     math::vec2 position
     , math::vec2 extent
     , Anchor a
-    , const LinearAtlas* atlas
-    , std::array<uint32_t, 9> ns
-    , Texture t
+    , SpriteArray ns
 ) noexcept
 : Widget{ position, extent, a }
-, m_atlas{ atlas }
-, m_texture{ t }
 , m_spriteIds{ ns }
 {
 }
@@ -33,15 +29,12 @@ void NineSlice::render( RenderContext rctx ) const
 {
     ZoneScoped;
 
-    assert( m_texture );
-    assert( m_atlas );
-
     PushData pushData{
         .m_pipeline = g_uiProperty.pipelineSpriteSequence(),
         .m_verticeCount = 6,
         .m_instanceCount = 9,
     };
-    pushData.m_resource[ 1 ].texture = m_texture;
+    pushData.m_resource[ 1 ].texture = g_uiProperty.atlasTexture();
 
     const math::vec2 pos = position() + offsetByAnchor();
     const math::vec2 s = size();
@@ -54,11 +47,14 @@ void NineSlice::render( RenderContext rctx ) const
         .m_color = rctx.colorMain,
     };
 
-    NineSlice2 gen{ mid, m_atlas, m_spriteIds };
+    const auto& atlasRef = *g_uiProperty.atlas();
+    math::vec2 atlasExtent = atlasRef.extent();
+    NineSlice2 gen{ mid, g_uiProperty.atlas(), m_spriteIds };
+
     for ( auto i = 0u; i < 9u; ++i ) {
         auto& sprite = pushConstant.m_sprites[ i ];
         sprite.m_xywh = gen( i );
-        sprite.m_uvwh = m_atlas->sliceUV( m_spriteIds[ i ] );
+        sprite.m_uvwh = atlasRef[ m_spriteIds[ i ] ] / atlasExtent;
     }
     rctx.renderer->push( pushData, &pushConstant );
 }

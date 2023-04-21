@@ -18,16 +18,12 @@ std::pmr::u32string Entry::toString32() const
     return std::pmr::u32string{ sv.begin(), sv.end() };
 }
 
-int Entry::toInt() const
-{
-    char** e = nullptr;
-    return std::strtol( value.c_str(), e, 10 );
-}
 
 float Entry::toFloat() const
 {
-    char** e = nullptr;
-    return std::strtof( value.c_str(), e );
+    float f = 0.0f;
+    std::from_chars( value.c_str(), value.c_str() + value.size(), f );
+    return f;
 }
 
 const Entry* Entry::begin() const

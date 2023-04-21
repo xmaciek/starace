@@ -1,5 +1,6 @@
 #pragma once
 
+#include <charconv>
 #include <memory_resource>
 #include <span>
 #include <string>
@@ -24,13 +25,20 @@ public:
 
     std::string_view toString() const;
     std::pmr::u32string toString32() const;
-    int toInt() const;
 
-    template <typename T>
+    template <typename T = int>
     requires std::is_integral_v<T>
     T toInt() const
     {
-        return static_cast<T>( toInt() );
+        T t = 0;
+        std::from_chars( value.c_str(), value.c_str() + value.size(), t );
+        return t;
+    }
+
+    template <>
+    bool toInt() const
+    {
+        return toInt<int>() != 0;
     }
 
     float toFloat() const;
