@@ -1,6 +1,6 @@
 #pragma once
 
-#include "chase.hpp"
+#include "autolerp.hpp"
 
 #include <engine/math.hpp>
 #include <engine/render_context.hpp>
@@ -10,7 +10,7 @@
 
 class Targeting {
     std::optional<math::vec3> m_pos{};
-    Chase<float> m_state{ 0.0f, 1.0f, 4.0f };
+    AutoLerp<float> m_state{ 0.0f, 1.0f, 4.0f };
 
 public:
     Targeting() noexcept = default;

@@ -1,12 +1,12 @@
 #pragma once
 
+#include "autolerp.hpp"
 #include "bullet.hpp"
 #include "model.hpp"
 #include "model_proto.hpp"
 #include "saobject.hpp"
 #include "thruster.hpp"
 #include "units.hpp"
-#include "chase.hpp"
 
 #include <shared/pmr_pointer.hpp>
 
@@ -49,8 +49,8 @@ public:
 
 private:
     Thruster m_thruster[ 2 ]{};
-    Chase<math::vec4> m_thrusterAngles{ {}, {}, 20.0_deg };
-    Chase<math::vec2> m_thrusterLength{ { 10.0_m, 10.0_m }, { 10.0_m, 10.0_m }, 10.0_m };
+    AutoLerp<math::vec4> m_thrusterAngles{ {}, {}, 20.0_deg };
+    AutoLerp<math::vec2> m_thrusterLength{ { 10.0_m, 10.0_m }, { 10.0_m, 10.0_m }, 10.0_m };
 
     Model m_model{};
 
@@ -62,15 +62,15 @@ private:
     // pitch yaw roll controls
     math::vec3 m_pyrLimits{};
 
-    Chase<math::vec3> m_camOffset{ { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0.2f };
-    Chase<math::vec3, math::vec3> m_angleState{};
+    AutoLerp<math::vec3> m_camOffset{ { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0.2f };
+    AutoLerp<math::vec3, math::vec3> m_angleState{};
 
     float m_speedMax = 1800_kmph;
     float m_speedMin = 192_kmph;
     float m_speedNorm = 600_kmph;
     float m_accell = 256_kmph;
     float m_deaccell = 256_kmph;
-    Chase<> m_speedTarget{ 600_kmph, 600_kmph, 256_kmph };
+    AutoLerp<> m_speedTarget{ 600_kmph, 600_kmph, 256_kmph };
 
     PointInfo m_points{};
     Input m_input{};

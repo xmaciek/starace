@@ -3,7 +3,7 @@
 #include <engine/math.hpp>
 
 template <typename T = float, typename TVelocity = float>
-class Chase {
+class AutoLerp {
 public:
     T m_state{};
     T m_target{};

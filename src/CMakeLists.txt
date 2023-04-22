@@ -12,9 +12,9 @@ set( STARACE_SOURCES
     action_state_tracker.cpp
     action_state_tracker.hpp
     autoaim.hpp
+    autolerp.hpp
     bullet.cpp
     bullet.hpp
-    chase.hpp
     circle.hpp
     colors.hpp
     enemy.cpp

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "action_state_tracker.hpp"
+#include "autolerp.hpp"
 #include "bullet.hpp"
 #include "enemy.hpp"
 #include "explosion.hpp"
@@ -109,7 +110,7 @@ private:
     ui::Screen m_screenTitle{};
 
     Targeting m_targeting{};
-    Chase<float> m_lookAtTarget{ 0.0f, 1.0f, 3.0f };
+    AutoLerp<float> m_lookAtTarget{ 0.0f, 1.0f, 3.0f };
 
     Jet::Input m_jetInput{};
     Screen m_currentScreen = Screen::eGame;
