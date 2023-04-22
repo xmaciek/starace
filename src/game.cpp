@@ -37,11 +37,12 @@ constexpr std::tuple<GameAction, Actuator> inputActions[] = {
     { GameAction::eJetRoll, SDL_CONTROLLER_AXIS_RIGHTX },
     { GameAction::eJetShoot1, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER },
     { GameAction::eJetShoot1, SDL_SCANCODE_J },
-    { GameAction::eJetShoot2, SDL_CONTROLLER_BUTTON_LEFTSHOULDER },
+    { GameAction::eJetShoot2, SDL_CONTROLLER_BUTTON_X },
     { GameAction::eJetShoot2, SDL_SCANCODE_K },
     { GameAction::eJetShoot3, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER },
     { GameAction::eJetShoot3, SDL_SCANCODE_L },
     { GameAction::eJetTarget, SDL_CONTROLLER_BUTTON_Y },
+    { GameAction::eJetLookAt, SDL_CONTROLLER_BUTTON_LEFTSHOULDER },
     { GameAction::eJetTarget, SDL_SCANCODE_I },
     { GameAction::eJetYaw, SDL_CONTROLLER_AXIS_LEFTX },
 };
@@ -616,6 +617,8 @@ void Game::updateGame( const UpdateContext& updateContext )
     auto added = m_jet.shoot( &m_poolBullets, &m_bullets );
     playSounds( added );
 
+    m_lookAtTarget.setTarget( m_jetInput.lookAt ? 1.0f : 0.0f );
+    m_lookAtTarget.update( updateContext.deltaTime );
     m_jet.update( updateContext );
     m_dustGame.setCenter( m_jet.position() );
     m_dustGame.setVelocity( m_jet.velocity() * -0.5f );
@@ -898,6 +901,7 @@ void Game::onAction( Action a )
     case GameAction::eJetShoot2: m_jetInput.shoot2 = a.digital; break;
     case GameAction::eJetShoot3: m_jetInput.shoot3 = a.digital; break;
     case GameAction::eJetSpeed: m_jetInput.speed = a.analog; break;
+    case GameAction::eJetLookAt: m_jetInput.lookAt = a.digital; break;
     default: break;
     }
 
@@ -943,10 +947,18 @@ void Game::renderGameScreen( RenderContext rctx, ui::RenderContext r )
 
 std::tuple<math::vec3, math::vec3, math::vec3> Game::getCamera() const
 {
-    math::vec3 cameraPos = m_jet.position() + m_jet.cameraPosition() * m_jet.rotation();
-    math::vec3 cameraUp = math::vec3{ 0, 1, 0 } * m_jet.rotation();
-    math::vec3 cameraTgt = cameraPos + m_jet.cameraDirection();
-    return { cameraPos, cameraUp, cameraTgt };
+    math::vec3 jetPos = m_jet.position();
+    math::vec3 jetCamPos = jetPos + m_jet.cameraPosition() * m_jet.rotation();
+    math::vec3 jetCamUp = math::vec3{ 0, 1, 0 } * m_jet.rotation();
+    math::vec3 jetCamTgt = jetCamPos + m_jet.cameraDirection();
+
+    math::vec3 lookAtTgt = m_targeting.target() ? *m_targeting.target() : jetCamTgt;
+    math::vec3 lookAtPos = math::vec3{ 0.0f, -20.0_m, 0.0f } * m_jet.rotation() + jetPos - math::normalize( lookAtTgt - jetPos ) * 42.8_m;
+
+    math::vec3 retPos = math::nonlerp( jetCamPos, lookAtPos, m_lookAtTarget.value() );
+    math::vec3 retTgt = math::nonlerp( jetCamTgt, lookAtTgt, m_lookAtTarget.value() );
+
+    return { retPos, jetCamUp, retTgt };
 }
 
 std::tuple<math::mat4, math::mat4> Game::getCameraMatrix() const

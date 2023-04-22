@@ -27,6 +27,7 @@ public:
         bool shoot1 = false;
         bool shoot2 = false;
         bool shoot3 = false;
+        bool lookAt = false;
     };
     struct PointInfo {
         uint8_t hp = 0;

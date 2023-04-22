@@ -103,7 +103,7 @@ inline auto length( const auto& t )
 template <typename T = float>
 inline auto lerp( const T& a, const T&b, float n ) -> T
 {
-    return std::lerp( a, b, n );
+    return glm::mix( a, b, n );
 }
 
 template <>

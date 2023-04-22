@@ -80,3 +80,8 @@ void Targeting::setState( float f )
 {
     m_state.setTarget( f );
 }
+
+const math::vec3* Targeting::target() const
+{
+    return m_pos ? &*m_pos : nullptr;
+}

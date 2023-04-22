@@ -21,5 +21,6 @@ public:
     void hide();
     void update( const UpdateContext& );
     void setState( float );
+    const math::vec3* target() const;
 
 };

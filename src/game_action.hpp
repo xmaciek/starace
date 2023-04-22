@@ -12,4 +12,5 @@ enum class GameAction : Action::Enum {
     eJetShoot3,
     eJetTarget,
     eJetSpeed,
+    eJetLookAt,
 };
