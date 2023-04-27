@@ -279,8 +279,6 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
 
     vkGetDeviceQueue( m_device, m_queueFamilyPresent, 0, &m_queuePresent );
 
-    m_commandPool = CommandPool{ m_device, 1 + m_swapchain.imageCount() * 3, m_queueFamilyGraphics };
-
     {
         vkGetDeviceQueue( m_device, m_queueFamilyGraphics, 0u, &std::get<VkQueue>( m_queueGraphics ) );
         std::get<std::mutex*>( m_queueGraphics ) = &m_cmdBottleneck[ 0 ];
@@ -308,14 +306,17 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
         assert( renderOK == VK_SUCCESS );
     }
 
-    uint32_t i = 1;
+    m_transferCommandPool = CommandPool{ m_device, 1, m_queueFamilyGraphics };
+    m_transferCmd = m_transferCommandPool[ 0 ];
+
     m_frames.resize( m_swapchain.imageCount() );
 
     for ( auto& it : m_frames ) {
+        it.m_commandPool = CommandPool{ m_device, 3, m_queueFamilyGraphics };
         it.m_uniformBuffer = Uniform{ m_physicalDevice, m_device, 2_MiB, physicalProperties.limits.minUniformBufferOffsetAlignment };
-        it.m_cmdTransfer = m_commandPool[ i++ ];
-        it.m_cmdDepthPrepass = m_commandPool[ i++ ];
-        it.m_cmdRender = m_commandPool[ i++ ];
+        it.m_cmdTransfer = it.m_commandPool[ 0 ];
+        it.m_cmdDepthPrepass = it.m_commandPool[ 1 ];
+        it.m_cmdRender = it.m_commandPool[ 2 ];
     }
     recreateRenderTargets( m_swapchain.extent() );
 }
@@ -376,7 +377,7 @@ RendererVK::~RendererVK()
     for ( auto& it : m_frames ) {
         it = {};
     }
-    m_commandPool = {};
+    m_transferCommandPool = {};
 
     for ( const auto& it : m_textureSlots ) {
         delete it.load();
@@ -424,21 +425,29 @@ bool RendererVK::supportedVSync( VSync v ) const
     return vsyncs[ static_cast<uint32_t>( v ) ];
 }
 
-VkCommandBuffer RendererVK::flushUniforms()
+static void beginRecording( VkCommandBuffer cmd )
 {
-    ZoneScoped;
     static constexpr VkCommandBufferBeginInfo beginInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
         .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
     };
 
-    Frame& fr = m_frames[ m_currentFrame ];
-    VkCommandBuffer cmd = fr.m_cmdTransfer;
+    [[maybe_unused]]
+    const VkResult resetOK = vkResetCommandBuffer( cmd, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT );
+    assert( resetOK == VK_SUCCESS );
 
     [[maybe_unused]]
-    const VkResult beginOK = vkBeginCommandBuffer( cmd, &beginInfo );
-    assert( beginOK == VK_SUCCESS );
+    const VkResult cmdOK = vkBeginCommandBuffer( cmd, &beginInfo );
+    assert( cmdOK == VK_SUCCESS );
+}
 
+VkCommandBuffer RendererVK::flushUniforms()
+{
+    ZoneScoped;
+
+    Frame& fr = m_frames[ m_currentFrame ];
+    VkCommandBuffer cmd = fr.m_cmdTransfer;
+    beginRecording( cmd );
     fr.m_uniformBuffer.transfer( cmd );
 
     [[maybe_unused]]
@@ -456,19 +465,11 @@ Buffer RendererVK::createBuffer( std::span<const float> vec )
 
     BufferVK* buff = new BufferVK{ m_physicalDevice, m_device, BufferVK::DEVICE_LOCAL, staging.sizeInBytes() };
 
-    static constexpr VkCommandBufferBeginInfo beginInfo{
-        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-        .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
-    };
     const VkBufferCopy copyRegion{
         .size = staging.sizeInBytes(),
     };
 
-    VkCommandBuffer cmd = m_commandPool[ 0 ];
-    vkBeginCommandBuffer( cmd, &beginInfo );
-    vkCmdCopyBuffer( cmd, staging, *buff, 1, &copyRegion );
-    vkEndCommandBuffer( cmd );
-
+    VkCommandBuffer cmd = m_transferCmd;
     const VkSubmitInfo submitInfo{
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
         .commandBufferCount = 1,
@@ -481,7 +482,15 @@ Buffer RendererVK::createBuffer( std::span<const float> vec )
         assert( queue );
         assert( bottleneck );
         Bottleneck lock{ *bottleneck };
-        vkQueueSubmit( queue, 1, &submitInfo, VK_NULL_HANDLE );
+
+        m_transferCommandPool.reset();
+        beginRecording( cmd );
+        vkCmdCopyBuffer( cmd, staging, *buff, 1, &copyRegion );
+        vkEndCommandBuffer( cmd );
+
+        [[maybe_unused]]
+        const VkResult submitOK = vkQueueSubmit( queue, 1, &submitInfo, VK_NULL_HANDLE );
+        assert( submitOK == VK_SUCCESS );
         vkQueueWaitIdle( queue );
     }
 
@@ -516,16 +525,7 @@ Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::span<const
 
     TextureVK* tex = new TextureVK{ tci, m_physicalDevice, m_device };
 
-    static constexpr VkCommandBufferBeginInfo beginInfo{
-        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-        .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
-    };
-
-    VkCommandBuffer cmd = m_commandPool[ 0 ];
-    vkBeginCommandBuffer( cmd, &beginInfo );
-    tex->transferFrom( cmd, staging, tci.mip0ByteCount );
-    vkEndCommandBuffer( cmd );
-
+    VkCommandBuffer cmd = m_transferCmd;
     const VkSubmitInfo submitInfo{
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
         .commandBufferCount = 1,
@@ -538,6 +538,12 @@ Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::span<const
         assert( queue );
         assert( bottleneck );
         Bottleneck lock{ *bottleneck };
+
+        m_transferCommandPool.reset();
+        beginRecording( cmd );
+        tex->transferFrom( cmd, staging, tci.mip0ByteCount );
+        vkEndCommandBuffer( cmd );
+
         [[maybe_unused]]
         const VkResult submitOK = vkQueueSubmit( queue, 1, &submitInfo, VK_NULL_HANDLE );
         assert( submitOK == VK_SUCCESS );
@@ -556,23 +562,6 @@ Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::pmr::vecto
 {
     return createTexture( tci, static_cast<std::span<const uint8_t>>( data ) );
 }
-
-static void beginRecording( VkCommandBuffer cmd )
-{
-    constexpr static VkCommandBufferBeginInfo beginInfo{
-        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-    };
-
-    [[maybe_unused]]
-    const VkResult resetOK = vkResetCommandBuffer( cmd, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT );
-    assert( resetOK == VK_SUCCESS );
-
-    [[maybe_unused]]
-    const VkResult cmdOK = vkBeginCommandBuffer( cmd, &beginInfo );
-    assert( cmdOK == VK_SUCCESS );
-
-}
-
 
 void RendererVK::beginFrame()
 {
@@ -598,6 +587,7 @@ void RendererVK::beginFrame()
     Frame& fr = m_frames[ imageIndex ];
     fr.m_state = Frame::State::eNone;
     fr.m_uniformBuffer.reset();
+    fr.m_commandPool.reset();
     for ( auto& set : fr.m_descriptorSets ) {
         set.reset();
     }
@@ -707,9 +697,7 @@ void RendererVK::endFrame()
         m_mainPass.end( fr.m_cmdRender );
         break;
     case Frame::State::eCompute:
-        break;
-    default:
-        assert( !"here be manticores" );
+    [[unlikely]] default:
         break;
     }
 

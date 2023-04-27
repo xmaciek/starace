@@ -70,3 +70,10 @@ VkCommandBuffer CommandPool::operator [] ( uint32_t idx )
     assert( idx < m_buffers.size() );
     return m_buffers[ idx ];
 }
+
+void CommandPool::reset()
+{
+    [[maybe_unused]]
+    const VkResult result = vkResetCommandPool( m_device, m_pool, VK_COMMAND_POOL_RESET_RELEASE_RESOURCES_BIT );
+    assert( result == VK_SUCCESS );
+}

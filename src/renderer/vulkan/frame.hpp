@@ -20,4 +20,5 @@ struct Frame
     RenderTarget m_renderTargetTmp{};
     Uniform m_uniformBuffer{};
     std::array<DescriptorSet, 32> m_descriptorSets{};
+    CommandPool m_commandPool{};
 };

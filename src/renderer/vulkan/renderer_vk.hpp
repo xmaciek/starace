@@ -48,8 +48,9 @@ class RendererVK : public Renderer {
     std::array<std::mutex, 2> m_cmdBottleneck{};
     std::tuple<VkQueue, std::mutex*> m_queueGraphics{};
     std::tuple<VkQueue, std::mutex*> m_queueTransfer{};
+    CommandPool m_transferCommandPool{};
+    VkCommandBuffer m_transferCmd{};
 
-    CommandPool m_commandPool{};
     Swapchain m_swapchain{};
 
     VkSemaphore m_semaphoreAvailableImage = VK_NULL_HANDLE;

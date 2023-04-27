@@ -25,4 +25,5 @@ public:
     CommandPool& operator = ( CommandPool&& ) noexcept;
 
     VkCommandBuffer operator [] ( uint32_t );
+    void reset();
 };
