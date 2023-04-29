@@ -7,18 +7,14 @@
 #include <cassert>
 #include <cstring>
 
-void Uniform::destroyResources() noexcept
+
+Uniform::~Uniform() noexcept
 {
     if ( m_device && m_memoryStaging ) {
         vkUnmapMemory( m_device, m_memoryStaging );
     }
     destroy<vkDestroyBuffer>( m_device, m_buffer );
     destroy<vkDestroyBuffer>( m_device, m_staging );
-}
-
-Uniform::~Uniform() noexcept
-{
-    destroyResources();
 }
 
 Uniform::Uniform( Uniform&& rhs ) noexcept
@@ -31,23 +27,20 @@ Uniform::Uniform( Uniform&& rhs ) noexcept
     std::swap( m_mapped, rhs.m_mapped );
     std::swap( m_currentOffset, rhs.m_currentOffset );
     std::swap( m_minAlign, rhs.m_minAlign );
-    std::swap( m_transferSize, rhs.m_transferSize );
     std::swap( m_size, rhs.m_size );
 }
 
 Uniform& Uniform::operator = ( Uniform&& rhs ) noexcept
 {
-    destroyResources();
-    m_device = std::exchange( rhs.m_device, {} );
-    m_memoryStaging = std::exchange( rhs.m_memoryStaging, {} );
-    m_memoryDeviceLocal = std::exchange( rhs.m_memoryDeviceLocal, {} );
-    m_staging = std::exchange( rhs.m_staging, {} );
-    m_buffer = std::exchange( rhs.m_buffer, {} );
-    m_mapped = std::exchange( rhs.m_mapped, {} );
-    m_currentOffset = std::exchange( rhs.m_currentOffset, {} );
-    m_minAlign = std::exchange( rhs.m_minAlign, {} );
-    m_transferSize = std::exchange( rhs.m_transferSize, {} );
-    m_size = std::exchange( rhs.m_size, {} );
+    std::swap( m_device, rhs.m_device );
+    std::swap( m_memoryStaging, rhs.m_memoryStaging );
+    std::swap( m_memoryDeviceLocal, rhs.m_memoryDeviceLocal );
+    std::swap( m_staging, rhs.m_staging );
+    std::swap( m_buffer, rhs.m_buffer );
+    std::swap( m_mapped, rhs.m_mapped );
+    std::swap( m_currentOffset, rhs.m_currentOffset );
+    std::swap( m_minAlign, rhs.m_minAlign );
+    std::swap( m_size, rhs.m_size );
 
     return *this;
 }
@@ -102,8 +95,7 @@ VkDescriptorBufferInfo Uniform::copy( const void* data, std::size_t size ) noexc
 {
     const std::uintptr_t offset = align( m_currentOffset, m_minAlign );
     m_currentOffset = offset + size;
-    m_transferSize = offset + size;
-    assert( m_transferSize <= m_size );
+    assert( m_currentOffset <= m_size );
     auto* ptr = reinterpret_cast<std::byte*>( m_mapped ) + offset;
     std::memcpy( ptr, data, size );
 
@@ -116,18 +108,16 @@ VkDescriptorBufferInfo Uniform::copy( const void* data, std::size_t size ) noexc
 
 void Uniform::reset()
 {
-    const std::uintptr_t m = reinterpret_cast<std::uintptr_t>( m_mapped );
-    m_currentOffset = align( m, m_minAlign ) - m;
-    m_transferSize = 0;
+    m_currentOffset = 0;
 }
 
 void Uniform::transfer( VkCommandBuffer cmd )
 {
-    if ( m_transferSize == 0 ) {
+    if ( m_currentOffset == 0 ) {
         return;
     }
     const VkBufferCopy copyRegion{
-        .size = m_transferSize,
+        .size = m_currentOffset,
     };
     vkCmdCopyBuffer( cmd, m_staging, m_buffer, 1, &copyRegion );
 }

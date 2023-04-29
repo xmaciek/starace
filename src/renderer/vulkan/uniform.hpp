@@ -15,10 +15,7 @@ class Uniform {
     void* m_mapped = nullptr;
     std::uintptr_t m_currentOffset = 0;
     std::size_t m_minAlign = 0;
-    std::size_t m_transferSize = 0;
     std::size_t m_size = 0;
-
-    void destroyResources() noexcept;
 
 public:
     ~Uniform() noexcept;
