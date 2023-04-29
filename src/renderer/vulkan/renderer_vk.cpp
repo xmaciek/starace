@@ -741,7 +741,8 @@ void RendererVK::endFrame()
     std::array cmds{
         flushUniforms()
         , fr.m_cmdDepthPrepass
-        , cmd };
+        , cmd
+    };
 
     const VkSubmitInfo submitInfo{
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -752,7 +753,6 @@ void RendererVK::endFrame()
         .signalSemaphoreCount = 1,
         .pSignalSemaphores = renderSemaphores,
     };
-
 
     {
         auto [ queue, bottleneck ] = m_queueGraphics;
@@ -765,24 +765,21 @@ void RendererVK::endFrame()
         vkQueueWaitIdle( queue );
     }
 
-    decltype( m_bufferPendingDelete ) bufDel;
+    auto release = []( auto& vec, auto& bottleneck )
     {
-        Bottleneck bottleneck{ m_bufferBottleneck };
-        std::swap( m_bufferPendingDelete, bufDel );
-    }
-    for ( auto* it : bufDel ) {
-        delete it;
-    }
+        std::remove_reference_t<decltype(vec)> tmp{ vec.get_allocator() };
+        {
+            Bottleneck lock{ bottleneck };
+            std::swap( tmp, vec );
+        }
+        for ( auto* it : tmp ) {
+            assert( it );
+            delete it;
+        }
+    };
 
-    decltype( m_texturePendingDelete ) texDel;
-    {
-        Bottleneck bottleneck{ m_textureBottleneck };
-        std::swap( m_texturePendingDelete, texDel );
-    }
-    for ( auto* it : texDel ) {
-        delete it;
-    }
-
+    release( m_bufferPendingDelete, m_bufferBottleneck );
+    release( m_texturePendingDelete, m_textureBottleneck );
 }
 
 void RendererVK::present()
