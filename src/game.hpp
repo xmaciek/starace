@@ -45,6 +45,7 @@ public:
 
 private:
     enum class Screen : uint32_t {
+        eInit,
         eGame,
         eGameBriefing,
         eGamePaused,
@@ -113,7 +114,7 @@ private:
     AutoLerp<float> m_lookAtTarget{ 0.0f, 1.0f, 3.0f };
 
     Jet::Input m_jetInput{};
-    Screen m_currentScreen = Screen::eGame;
+    std::atomic<Screen> m_currentScreen = Screen::eInit;
 
     ui::GenericDataModel m_dataMissionSelect{};
 

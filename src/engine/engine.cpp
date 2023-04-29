@@ -68,7 +68,7 @@ Engine::Engine( int, char** ) noexcept
 
 int Engine::run()
 {
-    onInit();
+    std::thread asyncInit{ &Engine::onInit, this };
     std::thread gameThread{ &Engine::gameThread, this };
     SDL_Event event{};
     while ( m_isRunning.load() ) {
@@ -79,9 +79,11 @@ int Engine::run()
         std::this_thread::sleep_for( std::chrono::milliseconds( 10 ) );
     }
 
-    if ( gameThread.joinable() ) {
-        gameThread.join();
-    }
+    auto wait = []( auto& thread ) {
+        if ( thread.joinable() ) thread.join();
+    };
+    wait( asyncInit );
+    wait( gameThread );
 
     onExit();
     return 0;

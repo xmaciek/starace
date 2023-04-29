@@ -229,38 +229,6 @@ Game::Game( int argc, char** argv )
 : Engine{ argc, argv }
 {
     ZoneScoped;
-    m_io->mount( "shaders.tar" );
-    m_io->mount( "misc.tar" );
-    m_io->mount( "ui.tar" );
-    m_io->mount( "sounds.tar" );
-    m_io->mount( "models.tar" );
-    m_io->mount( "textures.tar" );
-
-
-    auto setupPipeline = []( auto* renderer, auto* io, auto ci ) -> PipelineSlot
-    {
-        if ( ci.m_vertexShader ) ci.m_vertexShaderData = io->viewWait( ci.m_vertexShader );
-        if ( ci.m_fragmentShader ) ci.m_fragmentShaderData = io->viewWait( ci.m_fragmentShader );
-        if ( ci.m_computeShader ) ci.m_computeShaderData = io->viewWait( ci.m_computeShader );
-        return renderer->createPipeline( ci );
-    };
-
-    for ( const auto& p : g_pipelineCreateInfo ) {
-        g_pipelines[ static_cast<Pipeline>( p.m_userHint ) ] = setupPipeline( m_renderer, m_io, p );
-    }
-
-    g_uiProperty.m_pipelineSpriteSequence = setupPipeline( m_renderer, m_io, ui::SPRITE_SEQUENCE );
-    g_uiProperty.m_pipelineSpriteSequenceRGBA = setupPipeline( m_renderer, m_io, ui::SPRITE_SEQUENCE_RGBA );
-    g_uiProperty.m_pipelineSpriteSequenceColors = setupPipeline( m_renderer, m_io, ui::SPRITE_SEQUENCE_COLORS );
-
-    changeScreen( Screen::eMainMenu );
-
-    m_enemies.reserve( 100 );
-    m_explosions.reserve( 100 );
-    m_bullets.reserve( 500 );
-    m_enemyBullets.reserve( 1000 );
-    m_jetsContainer.reserve( 5 );
-    m_mapsContainer.reserve( 5 );
 }
 
 Game::~Game()
@@ -287,6 +255,36 @@ void Game::onResize( uint32_t w, uint32_t h )
 void Game::onInit()
 {
     ZoneScoped;
+    m_io->mount( "shaders.tar" );
+    m_io->mount( "misc.tar" );
+    m_io->mount( "ui.tar" );
+    m_io->mount( "sounds.tar" );
+    m_io->mount( "models.tar" );
+    m_io->mount( "textures.tar" );
+
+
+    auto setupPipeline = []( auto* renderer, auto* io, auto ci ) -> PipelineSlot
+    {
+        if ( ci.m_vertexShader ) ci.m_vertexShaderData = io->viewWait( ci.m_vertexShader );
+        if ( ci.m_fragmentShader ) ci.m_fragmentShaderData = io->viewWait( ci.m_fragmentShader );
+        if ( ci.m_computeShader ) ci.m_computeShaderData = io->viewWait( ci.m_computeShader );
+        return renderer->createPipeline( ci );
+    };
+
+    for ( const auto& p : g_pipelineCreateInfo ) {
+        g_pipelines[ static_cast<Pipeline>( p.m_userHint ) ] = setupPipeline( m_renderer, m_io, p );
+    }
+
+    g_uiProperty.m_pipelineSpriteSequence = setupPipeline( m_renderer, m_io, ui::SPRITE_SEQUENCE );
+    g_uiProperty.m_pipelineSpriteSequenceRGBA = setupPipeline( m_renderer, m_io, ui::SPRITE_SEQUENCE_RGBA );
+    g_uiProperty.m_pipelineSpriteSequenceColors = setupPipeline( m_renderer, m_io, ui::SPRITE_SEQUENCE_COLORS );
+
+    m_enemies.reserve( 100 );
+    m_explosions.reserve( 100 );
+    m_bullets.reserve( 500 );
+    m_enemyBullets.reserve( 1000 );
+    m_jetsContainer.reserve( 5 );
+    m_mapsContainer.reserve( 5 );
     for ( auto [ eid, act ] : inputActions ) {
         m_actionStateTracker.add( static_cast<Action::Enum>( eid ), act );
     }
@@ -475,6 +473,8 @@ void Game::onInit()
     m_enemyModel = Model{ m_meshes[ "models/a2.objc" ], m_textures[ "textures/a2.dds" ], 0.45f };
 
     onResize( viewportWidth(), viewportHeight() );
+
+    changeScreen( Screen::eMainMenu );
 }
 
 ui::Screen* Game::currentScreen()
@@ -513,6 +513,10 @@ ui::Screen* Game::currentScreen()
 void Game::onRender( RenderContext rctx )
 {
     ZoneScoped;
+    if ( m_currentScreen.load() == Screen::eInit ) [[unlikely]] {
+        return;
+    }
+
     const auto [ width, height, aspect ] = viewport();
     const auto [ view, projection ] = getCameraMatrix();
     rctx.projection = math::ortho( 0.0f, static_cast<float>( width ), 0.0f, static_cast<float>( height ), -100.0f, 100.0f );
@@ -576,6 +580,9 @@ void Game::onUpdate( const UpdateContext& uctx )
     ZoneScoped;
 
     switch ( m_currentScreen ) {
+    [[unlikely]] case Screen::eInit:
+        return;
+
     case Screen::eGame:
         updateGame( uctx );
         break;
