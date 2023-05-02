@@ -650,7 +650,7 @@ void RendererVK::recreateRenderTargets( const VkExtent2D& resolution )
     ZoneScoped;
     for ( auto& it : m_frames ) {
         it.m_renderDepthTarget = RenderTarget{
-            RenderTarget::c_depth
+            RenderTarget::DEPTH
             , m_physicalDevice
             , m_device
             , m_depthPrepass
@@ -659,7 +659,7 @@ void RendererVK::recreateRenderTargets( const VkExtent2D& resolution )
             , nullptr
         };
         it.m_renderTarget = RenderTarget{
-            RenderTarget::c_color
+            RenderTarget::COLOR
             , m_physicalDevice
             , m_device
             , m_mainPass
@@ -668,7 +668,7 @@ void RendererVK::recreateRenderTargets( const VkExtent2D& resolution )
             , it.m_renderDepthTarget.view()
         };
         it.m_renderTargetTmp = RenderTarget{
-            RenderTarget::c_color
+            RenderTarget::COLOR
             , m_physicalDevice
             , m_device
             , m_mainPass

@@ -14,7 +14,7 @@ RenderTarget::~RenderTarget() noexcept
 }
 
 RenderTarget::RenderTarget(
-    Purpose purpose
+    const Purpose& purpose
     , VkPhysicalDevice pdevice
     , VkDevice device
     , VkRenderPass renderPass
@@ -23,9 +23,9 @@ RenderTarget::RenderTarget(
     , VkImageView extraView
 ) noexcept
 : Image{ pdevice, device, extent, depthFormat, 1
-    , std::get<0>( purpose )
-    , std::get<1>( purpose )
-    , std::get<2>( purpose )
+    , purpose.usage
+    , purpose.memoryFlags
+    , purpose.aspectFlags
 }
 {
     ZoneScoped;
