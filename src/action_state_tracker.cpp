@@ -18,21 +18,22 @@ void ActionStateTracker::add( Action::Enum e, Actuator a1, Actuator a2 )
 
 Action ActionStateTracker::DigitalToAnalog::makeAction( Actuator a )
 {
-    using enum Actuator::Type;
-    switch ( a.type ) {
-    case eScancode:
-    case eButtoncode: {
+    switch ( a.typed.type ) {
+    case Actuator::SCANCODE:
+    case Actuator::BUTTONCODE: {
         if ( m_minA <=> a == 0 ) { m_minD = !!a.value; }
         else if ( m_maxA <=> a == 0 ) { m_maxD = !!a.value; }
         const float ret = ( m_minD == m_maxD ) ? 0.0f : m_minD ? -1.0f : 1.0f;
         return { .analog = ret, .userEnum = m_eid };
     }
 
-    case eAxiscode: {
+    case Actuator::AXISCODE: {
         if ( m_minA <=> a == 0 ) { m_minF = a.value; }
         else if ( m_maxA <=> a == 0 ) { m_maxF = a.value; }
         const int16_t diff = m_maxF - m_minF;
-        const float ret = static_cast<float>( diff ) / static_cast<float>( 0x7FFFu );
+        const float ret = diff > 0
+            ? static_cast<float>( diff ) / static_cast<float>( Actuator::MAX )
+            : -static_cast<float>( diff ) / static_cast<float>( Actuator::MIN );
         return { .analog = ret, .userEnum = m_eid, };
     }
 
@@ -51,19 +52,17 @@ std::pmr::vector<Action> ActionStateTracker::updateAndResolve( Actuator a )
     auto it = std::transform( begin1, end1, actions.begin(),
         [ a ]( Action::Enum e ) -> Action
         {
-            using enum Actuator::Type;
-            switch ( a.type ) {
-            case eScancode:
-            case eButtoncode:
-                return {
-                    .digital = !!a.value,
-                    .userEnum = e,
-                };
-            case eAxiscode:
-                return {
-                    .analog = static_cast<float>( a.value ) / 0x7FFFu,
-                    .userEnum = e,
-                };
+            switch ( a.typed.type ) {
+            case Actuator::SCANCODE:
+            case Actuator::BUTTONCODE:
+                return { .digital = !!a.value, .userEnum = e, };
+
+            case Actuator::AXISCODE: {
+                const float v = a.value > 0
+                    ? static_cast<float>( a.value ) / static_cast<float>( Actuator::MAX )
+                    : -static_cast<float>( a.value ) / static_cast<float>( Actuator::MIN );
+                return { .analog = v, .userEnum = e, };
+            }
             default:
                 assert( !"invalid actuator" );
                 return {};

@@ -5,6 +5,7 @@
 
 #include <compare>
 #include <cstdint>
+#include <limits>
 
 struct Actuator {
     // TODO: use custom unified enum, while for now i'll keep these
@@ -15,38 +16,43 @@ struct Actuator {
     using Buttoncode = SDL_GameControllerButton;
     using Axiscode = SDL_GameControllerAxis;
 
-    enum class Type : uint16_t {
-        eNone,
-        eScancode,
-        eButtoncode,
-        eAxiscode,
+    static constexpr inline uint16_t SCANCODE = 1;
+    static constexpr inline uint16_t BUTTONCODE = 2;
+    static constexpr inline uint16_t AXISCODE = 3;
+
+    using Limits = std::numeric_limits<int16_t>;
+    static constexpr inline int16_t MAX = Limits::max();
+    static constexpr inline int16_t MIN = Limits::min();
+    static constexpr inline int16_t NOMINAL = 0;
+
+    struct Typed {
+        uint16_t type : 2;
+        uint16_t id : 14;
     };
+
     union {
-        Scancode scancode{};
-        Buttoncode buttoncode;
-        Axiscode axiscode;
+        uint16_t raw = 0;
+        Typed typed;
     };
-    Type type{};
-    int16_t value{};
+    int16_t value = 0;
 
     constexpr Actuator() noexcept = default;
-    constexpr Actuator( Scancode s ) noexcept : scancode{ s }, type{ Type::eScancode } {};
-    constexpr Actuator( Buttoncode s ) noexcept : buttoncode{ s }, type{ Type::eButtoncode } {};
-    constexpr Actuator( Axiscode s, int16_t v = 0 ) noexcept : axiscode{ s }, type{ Type::eAxiscode }, value{ v } {};
+    constexpr Actuator( Scancode s, bool v = false ) noexcept
+    : typed{ .type = SCANCODE, .id = (uint16_t)s }, value{ v ? MAX : NOMINAL } {};
+
+    constexpr Actuator( Buttoncode b, bool v = false ) noexcept
+    : typed{ .type = BUTTONCODE, .id = (uint16_t)b }, value{ v ? MAX : NOMINAL } {};
+
+    constexpr Actuator( Axiscode a, int16_t v = 0 ) noexcept
+    : typed{ .type = AXISCODE, .id = (uint16_t)a }, value{ v } {};
 
     constexpr std::strong_ordering operator <=> ( const Actuator& rhs ) const noexcept
     {
-        if ( type != rhs.type ) { return type <=> rhs.type; }
-        switch ( type ) {
-        default: return std::strong_ordering::equivalent;
-        case Type::eScancode: return scancode <=> rhs.scancode;
-        case Type::eButtoncode: return buttoncode <=> rhs.buttoncode;
-        case Type::eAxiscode: return axiscode <=> rhs.axiscode;
-        };
+        return raw <=> rhs.raw;
     }
 };
-static_assert( sizeof( Actuator ) == 8 );
-static_assert( alignof( Actuator ) == 4 );
+static_assert( sizeof( Actuator ) == 4 );
+static_assert( alignof( Actuator ) == 2 );
 
 struct Action {
     using Enum = uint16_t;
