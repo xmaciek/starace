@@ -178,6 +178,8 @@ Swapchain::Swapchain( VkPhysicalDevice physicalDevice, VkDevice device, VkSurfac
     const VkResult swapchainOK = vkCreateSwapchainKHR( m_device, &createInfo, nullptr, &m_swapchain );
     assert( swapchainOK == VK_SUCCESS );
 
+    destroy<vkDestroySwapchainKHR, VkSwapchainKHR>( m_device, oldSwapchain );
+
     uint32_t imageCount = 0;
     vkGetSwapchainImagesKHR( m_device, m_swapchain, &imageCount, nullptr );
     assert( imageCount > 0 );
