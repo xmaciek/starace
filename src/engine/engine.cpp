@@ -161,7 +161,7 @@ void Engine::processEvents()
         {
             const bool state = event.cbutton.state == SDL_PRESSED;
             Actuator a{ static_cast<Actuator::Buttoncode>( event.cbutton.button ) };
-            a.value = state;
+            a.value = state ? Actuator::MAX : Actuator::NOMINAL;
             onActuator( a );
         } break;
 
@@ -228,7 +228,7 @@ void Engine::processEvents()
             }
 
             Actuator a{ static_cast<Actuator::Scancode>( event.key.keysym.scancode ) };
-            a.value = newState;
+            a.value = newState ? Actuator::MAX : Actuator::NOMINAL;
             onActuator( a );
         } break;
 

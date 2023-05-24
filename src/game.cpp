@@ -901,34 +901,32 @@ void Game::onAction( Action a )
     ZoneScoped;
     const GameAction action = a.toA<GameAction>();
     switch ( action ) {
-    case GameAction::eJetPitch: m_jetInput.pitch = -a.analog; break;
-    case GameAction::eJetYaw: m_jetInput.yaw = -a.analog; break;
-    case GameAction::eJetRoll: m_jetInput.roll = a.analog; break;
-    case GameAction::eJetShoot1: m_jetInput.shoot1 = a.digital; break;
-    case GameAction::eJetShoot2: m_jetInput.shoot2 = a.digital; break;
-    case GameAction::eJetShoot3: m_jetInput.shoot3 = a.digital; break;
-    case GameAction::eJetSpeed: m_jetInput.speed = a.analog; break;
-    case GameAction::eJetLookAt: m_jetInput.lookAt = a.digital; break;
+    case GameAction::eJetPitch: m_jetInput.pitch = -a.analog(); break;
+    case GameAction::eJetYaw: m_jetInput.yaw = -a.analog(); break;
+    case GameAction::eJetRoll: m_jetInput.roll = a.analog(); break;
+    case GameAction::eJetShoot1: m_jetInput.shoot1 = a.digital(); break;
+    case GameAction::eJetShoot2: m_jetInput.shoot2 = a.digital(); break;
+    case GameAction::eJetShoot3: m_jetInput.shoot3 = a.digital(); break;
+    case GameAction::eJetSpeed: m_jetInput.speed = a.analog(); break;
+    case GameAction::eJetLookAt: m_jetInput.lookAt = a.digital(); break;
     default: break;
     }
 
     ui::Screen* screen = currentScreen();
     do {
         if ( !screen ) break;
-        if ( !a.digital ) break;
-        auto guiInput = a.toA<ui::Action::Enum>();
-        if ( guiInput <= ui::Action::base ) break;
-        if ( guiInput >= ui::Action::end ) break;
-        screen->onAction( ui::Action{ .a = guiInput, .value = 1 } );
+        if ( !a.digital() ) break;
+        if ( !a.testEnumRange<(Action::Enum)ui::Action::base, (Action::Enum)ui::Action::end>() ) break;
+        screen->onAction( ui::Action{ .a = a.toA<ui::Action::Enum>(), .value = 1 } );
     } while ( 0 );
 
     if ( m_currentScreen == Screen::eGame ) {
         switch ( action ) {
         case GameAction::eJetTarget:
-            if ( a.digital ) { retarget(); }
+            if ( a.digital() ) { retarget(); }
             return;
         case GameAction::eGamePause:
-            if ( a.digital ) { pause(); }
+            if ( a.digital() ) { pause(); }
             return;
         default:
             return;

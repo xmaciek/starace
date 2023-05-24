@@ -12,24 +12,18 @@
 
 class ActionStateTracker {
 
-    struct DigitalToAnalog {
-        Actuator m_minA{};
-        Actuator m_maxA{};
-        Action::Enum m_eid{};
-        bool m_minD : 1 = false;
-        bool m_maxD : 1 = false;
-        int16_t m_minF = 0;
-        int16_t m_maxF = 0;
+    struct Pair {
+        Actuator m_min{};
+        Actuator m_max{};
+        Action::Enum m_userEnum{};
 
-        Action makeAction( Actuator a );
+        int16_t m_maxF = 0;
+        int16_t m_minF = 0;
+
+        Action makeAction() const;
     };
 
-    FixedMap<Actuator, Action::Enum, 32> m_actionMap{};
-
-    static constexpr uint64_t c_analogCount = 16;
-    std::array<DigitalToAnalog, c_analogCount> m_analogActionsArray{};
-    Indexer<c_analogCount> m_indexer{};
-    FixedMap<Actuator, uint16_t, c_analogCount> m_analogActionsMap{};
+    std::pmr::vector<Pair> m_data{};
 
 public:
     void add( Action::Enum, Actuator );

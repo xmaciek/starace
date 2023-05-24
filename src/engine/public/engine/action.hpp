@@ -9,9 +9,6 @@
 
 struct Actuator {
     // TODO: use custom unified enum, while for now i'll keep these
-    static_assert( sizeof( SDL_Scancode ) == 4 );
-    static_assert( sizeof( SDL_GameControllerButton ) == 4 );
-    static_assert( sizeof( SDL_GameControllerAxis ) == 4 );
     using Scancode = SDL_Scancode;
     using Buttoncode = SDL_GameControllerButton;
     using Axiscode = SDL_GameControllerAxis;
@@ -20,7 +17,8 @@ struct Actuator {
     static constexpr inline uint16_t BUTTONCODE = 2;
     static constexpr inline uint16_t AXISCODE = 3;
 
-    using Limits = std::numeric_limits<int16_t>;
+    using value_type = int16_t;
+    using Limits = std::numeric_limits<value_type>;
     static constexpr inline int16_t MAX = Limits::max();
     static constexpr inline int16_t MIN = Limits::min();
     static constexpr inline int16_t NOMINAL = 0;
@@ -28,13 +26,17 @@ struct Actuator {
     struct Typed {
         uint16_t type : 2;
         uint16_t id : 14;
+        static constexpr inline auto MAXID = 0x3FFF;
+        static_assert( SDL_NUM_SCANCODES <= MAXID );
+        static_assert( SDL_CONTROLLER_BUTTON_MAX <= MAXID );
+        static_assert( SDL_CONTROLLER_AXIS_MAX <= MAXID );
     };
 
     union {
         uint16_t raw = 0;
         Typed typed;
     };
-    int16_t value = 0;
+    value_type value = 0;
 
     constexpr Actuator() noexcept = default;
     constexpr Actuator( Scancode s, bool v = false ) noexcept
@@ -43,12 +45,12 @@ struct Actuator {
     constexpr Actuator( Buttoncode b, bool v = false ) noexcept
     : typed{ .type = BUTTONCODE, .id = (uint16_t)b }, value{ v ? MAX : NOMINAL } {};
 
-    constexpr Actuator( Axiscode a, int16_t v = 0 ) noexcept
+    constexpr Actuator( Axiscode a, value_type v = 0 ) noexcept
     : typed{ .type = AXISCODE, .id = (uint16_t)a }, value{ v } {};
 
-    constexpr std::strong_ordering operator <=> ( const Actuator& rhs ) const noexcept
+    constexpr bool operator == ( const Actuator& rhs ) const noexcept
     {
-        return raw <=> rhs.raw;
+        return raw == rhs.raw;
     }
 };
 static_assert( sizeof( Actuator ) == 4 );
@@ -56,16 +58,32 @@ static_assert( alignof( Actuator ) == 2 );
 
 struct Action {
     using Enum = uint16_t;
-    union {
-        float analog = 0.0f;
-        bool digital;
-    };
     Enum userEnum{};
-    template  <typename T>
-    T toA() const noexcept
+    Actuator::value_type value{};
+
+    template <Enum TMin, Enum TMax>
+    inline bool testEnumRange() const
+    {
+        return userEnum >= TMin && userEnum < TMax;
+    }
+
+    template <typename T>
+    inline T toA() const noexcept
     {
         return static_cast<T>( userEnum );
     }
+
+    inline bool digital() const
+    {
+        return value != 0;
+    }
+
+    inline float analog() const
+    {
+        return value > 0
+            ? static_cast<float>( value ) / static_cast<float>( Actuator::MAX )
+            : -static_cast<float>( value ) / static_cast<float>( Actuator::MIN );
+    }
 };
-static_assert( sizeof( Action ) == 8 );
-static_assert( alignof( Action ) == 4 );
+static_assert( sizeof( Action ) == 4 );
+static_assert( alignof( Action ) == 2 );
