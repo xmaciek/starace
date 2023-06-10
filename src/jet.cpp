@@ -22,6 +22,7 @@ static math::vec3 pointMult( uint8_t a, uint8_t b, uint8_t c )
 Jet::Jet( const CreateInfo& ci ) noexcept
 : m_thruster{ { ci.modelScale, ci.modelScale * 0.04285f }, { ci.modelScale, ci.modelScale * 0.04285f } }
 , m_model{ ci.model }
+, m_weapons{ ci.weapons }
 , m_pyrLimits{ defaultPyrLimits }
 , m_angleState{ {}, {}, defaultPyrSpeed * pointMult( ci.points.pitch, ci.points.yaw, ci.points.roll ) }
 , m_points{ ci.points }
@@ -32,6 +33,9 @@ Jet::Jet( const CreateInfo& ci ) noexcept
     m_speed = 600_kmph;
     m_vectorThrust = ci.vectorThrust && m_model.thrusters().size() == 2;
     setStatus( Status::eAlive );
+
+    std::transform( m_weapons.begin(), m_weapons.end(), m_weaponsCooldown.begin(),
+        [](const auto& w ) { return WeaponCooldown{ .ready = w.delay, }; } );
 
 };
 
@@ -110,9 +114,8 @@ void Jet::update( const UpdateContext& updateContext )
     m_thruster[ 0 ].setLength( thrusterLength.x );
     m_thruster[ 1 ].setLength( thrusterLength.y );
 
-    for ( auto i : { 0, 1, 2 } ) {
-        if ( m_weaponCooldown[ i ] >= m_weapon[ i ].delay ) continue;
-        m_weaponCooldown[ i ] += updateContext.deltaTime;
+    for ( auto& wc : m_weaponsCooldown ) {
+        wc.current = std::min( wc.current + updateContext.deltaTime, wc.ready );
     }
 
     m_position += velocity() * updateContext.deltaTime;
@@ -139,7 +142,10 @@ bool Jet::isShooting( uint32_t weaponNum ) const
     case 0: return m_input.shoot1;
     case 1: return m_input.shoot2;
     case 2: return m_input.shoot3;
-    default: return false;
+    [[unlikely]]
+    default:
+        assert( !"weapon index out of range" );
+        return false;
     }
 }
 
@@ -152,10 +158,10 @@ math::vec3 Jet::weaponPoint( uint32_t weaponNum )
 
 UniquePointer<Bullet> Jet::weapon( uint32_t weaponNum, std::pmr::memory_resource* alloc )
 {
-    assert( weaponNum < std::size( m_weapon ) );
+    assert( weaponNum < std::size( m_weapons ) );
     assert( alloc );
-    m_weaponCooldown[ weaponNum ] = 0.0f;
-    UniquePointer<Bullet> b{ alloc, m_weapon[ weaponNum ], math::rotate( quat(), m_model.weapon( weaponNum ) ) + position() };
+    m_weaponsCooldown[ weaponNum ].current = 0.0f;
+    UniquePointer<Bullet> b{ alloc, m_weapons[ weaponNum ], math::rotate( quat(), m_model.weapon( weaponNum ) ) + position() };
     assert( b->status() != Status::eDead );
 
     b->setDirection( direction() );
@@ -183,16 +189,12 @@ UniquePointer<Bullet> Jet::weapon( uint32_t weaponNum, std::pmr::memory_resource
     return b;
 }
 
-void Jet::setWeapon( const WeaponCreateInfo& w, uint32_t id )
-{
-    m_weapon[ id ] = w;
-}
-
 std::span<UniquePointer<Bullet>> Jet::shoot( std::pmr::memory_resource* alloc, std::pmr::vector<UniquePointer<Bullet>>* vec )
 {
     auto begin = vec->size();
     for ( auto i : { 0u, 1u, 2u } ) {
-        if ( m_weaponCooldown[ i ] < m_weapon[ i ].delay ) continue;
+        const auto& wc = m_weaponsCooldown[ i ];
+        if ( wc.current < wc.ready ) continue;
         if ( !isShooting( i ) ) continue;
         vec->emplace_back( weapon( i, alloc ) );
     }

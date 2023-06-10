@@ -19,6 +19,8 @@
 class Renderer;
 class Jet : public SAObject {
 public:
+    static constexpr inline uint32_t MAX_SUPPORTED_WEAPON_COUNT = 3;
+
     struct Input {
         float pitch = 0.0f;
         float yaw = 0.0f;
@@ -45,6 +47,7 @@ public:
         float modelScale = 1.0f;
         bool vectorThrust = false;
         PointInfo points{};
+        std::array<WeaponCreateInfo, MAX_SUPPORTED_WEAPON_COUNT> weapons{};
     };
 
 private:
@@ -54,8 +57,13 @@ private:
 
     Model m_model{};
 
-    WeaponCreateInfo m_weapon[ 3 ]{};
-    float m_weaponCooldown[ 3 ]{};
+    struct WeaponCooldown {
+        float current;
+        float ready;
+    };
+
+    std::array<WeaponCooldown, MAX_SUPPORTED_WEAPON_COUNT> m_weaponsCooldown{};
+    std::array<WeaponCreateInfo, MAX_SUPPORTED_WEAPON_COUNT> m_weapons{};
 
     math::quat m_quaternion{ math::vec3{} };
 
@@ -94,7 +102,6 @@ public:
     void lockTarget( SAObject* );
     void processCollision( std::vector<Bullet*>& );
     void setModel( Model* );
-    void setWeapon( const WeaponCreateInfo&, uint32_t id );
     void untarget( const SAObject* );
     void setInput( const Input& );
 
