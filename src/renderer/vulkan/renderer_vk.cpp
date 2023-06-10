@@ -28,6 +28,28 @@ public:
     }
 } setup{};
 
+// arbitrary values
+static constexpr uint32_t INVALID_INDEX = 0xFFFF'FFFFu;
+static constexpr uint32_t BUFFER_ID_CHECK = 0x10FF'0000u;
+static constexpr uint32_t TEXTURE_ID_CHECK = 0x20FF'0000u;
+
+template <uint32_t TMask>
+requires ( TMask > 0 && ( TMask & 0xFFFFu ) == 0 )
+static constexpr uint32_t index2Id( uint32_t index ) { return index | TMask; }
+
+template <uint32_t TMask>
+requires ( TMask > 0 && ( TMask & 0xFFFFu ) == 0 )
+static uint32_t id2Index( uint32_t id )
+{
+    if ( ( id & ~0xFFFFu ) == TMask ) [[likely]]
+        return id & 0xFFFFu;
+    return INVALID_INDEX;
+}
+
+static constexpr auto& bufferIndexToId = index2Id<BUFFER_ID_CHECK>;
+static constexpr auto& bufferIdToIndex = id2Index<BUFFER_ID_CHECK>;
+static constexpr auto& textureIndexToId = index2Id<TEXTURE_ID_CHECK>;
+static constexpr auto& textureIdToIndex = id2Index<TEXTURE_ID_CHECK>;
 
 static Renderer* g_instance = nullptr;
 
@@ -498,7 +520,7 @@ Buffer RendererVK::createBuffer( std::span<const float> vec )
     [[maybe_unused]]
     BufferVK* oldBuff = m_bufferSlots[ idx ].exchange( buff );
     assert( !oldBuff );
-    return idx + 1;
+    return bufferIndexToId( idx );
 }
 
 Buffer RendererVK::createBuffer( std::pmr::vector<float>&& vec )
@@ -555,7 +577,7 @@ Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::span<const
     TextureVK* oldTex = m_textureSlots[ idx ].exchange( tex );
     assert( !oldTex );
 
-    return idx + 1;
+    return textureIndexToId( idx );
 }
 
 Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::pmr::vector<uint8_t>&& data )
@@ -599,11 +621,11 @@ void RendererVK::beginFrame()
 void RendererVK::deleteBuffer( Buffer b )
 {
     ZoneScoped;
-    assert( b != 0 );
-    b--;
-    BufferVK* buff = m_bufferSlots[ b ].exchange( nullptr );
+    const uint32_t bufferIndex = bufferIdToIndex( b );
+    assert( bufferIndex != INVALID_INDEX );
+    BufferVK* buff = m_bufferSlots[ bufferIndex ].exchange( nullptr );
     assert( buff );
-    m_bufferIndexer.release( b );
+    m_bufferIndexer.release( bufferIndex );
     Bottleneck bottleneck{ m_bufferBottleneck };
     m_bufferPendingDelete.push_back( buff );
 }
@@ -611,11 +633,12 @@ void RendererVK::deleteBuffer( Buffer b )
 void RendererVK::deleteTexture( Texture t )
 {
     ZoneScoped;
-    assert( t != 0 );
-    t--;
-    TextureVK* tex = m_textureSlots[ t ].exchange( nullptr );
+    const uint32_t textureIndex = textureIdToIndex( t );
+    assert( textureIndex != INVALID_INDEX );
+
+    TextureVK* tex = m_textureSlots[ textureIndex ].exchange( nullptr );
     assert( tex );
-    m_textureIndexer.release( t );
+    m_textureIndexer.release( textureIndex );
     Bottleneck bottleneck{ m_textureBottleneck };
     m_texturePendingDelete.push_back( tex );
 }
@@ -887,9 +910,9 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
             break;
 
         case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER: {
-            const Texture texId = pushBuffer.m_resource[ i ].texture;
-            assert( texId > 0 );
-            const TextureVK* texture = m_textureSlots[ texId - 1 ];
+            const uint32_t texIdx = textureIdToIndex( pushBuffer.m_resource[ i ].texture );
+            assert( texIdx != INVALID_INDEX );
+            const TextureVK* texture = m_textureSlots[ texIdx ];
             assert( texture );
             bindInfo[ i ].imageInfo = texture->imageInfo();
             descriptorWrites[ i ].pImageInfo = &bindInfo[ i ].imageInfo;
@@ -911,7 +934,9 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
     }
 
     if ( bindBuffer ) {
-        const BufferVK* b = m_bufferSlots[ pushBuffer.m_vertice - 1 ];
+        const uint32_t bufferIndex = bufferIdToIndex( pushBuffer.m_vertice );
+        assert( bufferIndex != INVALID_INDEX );
+        const BufferVK* b = m_bufferSlots[ bufferIndex ];
         assert( b );
         std::array<VkBuffer, 1> buffers{ *b };
         const std::array<VkDeviceSize, 1> offsets{ 0 };
