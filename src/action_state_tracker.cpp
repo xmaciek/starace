@@ -31,7 +31,7 @@ std::pmr::vector<Action> ActionStateTracker::updateAndResolve( Actuator a )
 Action ActionStateTracker::Pair::makeAction() const
 {
     int32_t vmax = m_maxF;
-    int32_t vmin = ( m_minF && m_min.typed.type != Actuator::AXISCODE ) ? Actuator::MIN : m_minF;
+    int32_t vmin = -(int32_t)m_minF;
     int32_t value = std::clamp<int32_t>( vmax + vmin, Actuator::MIN, Actuator::MAX );
     return Action{ .userEnum = m_userEnum, .value = static_cast<Actuator::value_type>( value ) };
 }
