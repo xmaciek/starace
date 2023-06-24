@@ -12,6 +12,7 @@
 #include <cassert>
 #include <memory_resource>
 #include <string_view>
+#include <string>
 #include <vector>
 
 constexpr unsigned long long operator""_Hz( unsigned long long hz ) noexcept
