@@ -64,6 +64,7 @@ Engine::Engine( int, char** ) noexcept
     m_audio = Audio::create();
     m_audioPtr = std::unique_ptr<Audio>( m_audio );
 
+    setTargetFPS( 144, FpsLimiter::eSpinLock );
 }
 
 int Engine::run()
@@ -91,28 +92,64 @@ int Engine::run()
 
 void Engine::gameThread()
 {
-    UpdateContext updateContext{ .deltaTime = 0.0166f };
+    UpdateContext updateContext{};
     RenderContext renderContext{
         .renderer = m_renderer,
     };
 
+    using clock = FpsLimiter::Clock;
+
+    clock::duration averagePresentDuration{};
+    clock::duration averageSleepOverhead{};
+    auto lastUpdate = clock::now();
+
     while ( m_isRunning.load() ) {
         FrameMark;
-        const std::chrono::time_point tp = std::chrono::steady_clock::now();
+        const auto targetFrameEnd = clock::now() + m_targetFrameDuration - averagePresentDuration - averageSleepOverhead;
 
         m_fpsMeter.frameBegin();
+
         processEvents();
+        auto now = clock::now();
+        const auto dt = std::chrono::duration_cast<std::chrono::nanoseconds>( now - lastUpdate );
+        lastUpdate = now;
+        updateContext.deltaTime = (float)dt.count() / 1'000'000'000ull;
         onUpdate( updateContext );
+
         m_renderer->beginFrame();
         onRender( renderContext );
         m_renderer->endFrame();
-        m_fpsMeter.frameEnd();
 
+        {
+            ZoneScopedN( "Frame Limiter & Pacer" );
+            FpsLimiter::Mode limiterMode = m_fpsLimiterMode;
+            now = clock::now();
+            while ( now < targetFrameEnd ) {
+                switch ( limiterMode ) {
+                case FpsLimiter::eOff:
+                    now = targetFrameEnd;
+                    break;
+                case FpsLimiter::eSleep:
+                    std::this_thread::sleep_until( targetFrameEnd );
+                    now = clock::now();
+                    averageSleepOverhead += now - targetFrameEnd;
+                    averageSleepOverhead /= 2;
+                    now = std::max( targetFrameEnd, now );
+                    break;
+                case FpsLimiter::eSpinLock:
+                    averageSleepOverhead = {};
+                    now = clock::now();
+                    break;
+                }
+            }
+        }
+
+        auto presentBegin = clock::now();
         m_renderer->present();
-
-        const std::chrono::time_point now = std::chrono::steady_clock::now();
-        const auto dt = std::chrono::duration_cast<std::chrono::microseconds>( now - tp );
-        updateContext.deltaTime = (float)dt.count() / 1'000'000;
+        m_fpsMeter.frameEnd();
+        auto presentEnd = clock::now();
+        averagePresentDuration += presentEnd - presentBegin;
+        averagePresentDuration /= 2;
     }
 }
 
@@ -241,6 +278,12 @@ void Engine::processEvents()
 void Engine::quit()
 {
     m_isRunning.store( false );
+}
+
+void Engine::setTargetFPS( uint32_t fps, FpsLimiter::Mode mode )
+{
+    m_targetFrameDuration = std::chrono::nanoseconds( 1'000'000'000ull / fps );
+    m_fpsLimiterMode = mode;
 }
 
 void Engine::setViewport( uint32_t w, uint32_t h )

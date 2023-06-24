@@ -2,6 +2,7 @@
 
 #include <engine/action.hpp>
 #include <engine/async_io.hpp>
+#include <engine/fps_limiter.hpp>
 #include <engine/fps_meter.hpp>
 #include <engine/update_context.hpp>
 #include <engine/render_context.hpp>
@@ -30,6 +31,9 @@ private:
 #endif
 
     std::atomic<bool> m_isRunning = true;
+
+    FpsLimiter::Mode m_fpsLimiterMode = FpsLimiter::eSleep;
+    FpsLimiter::Clock::duration m_targetFrameDuration = std::chrono::nanoseconds( 1'000'000'000ull / 100ull ); // 1s / 100fps
 
     SDL_Window* m_window = nullptr;
     std::tuple<uint32_t, uint32_t, float> m_viewport{};
@@ -67,6 +71,7 @@ protected:
 
     std::pmr::vector<DisplayMode> displayModes( uint32_t monitor = 0 ) const;
     void setDisplayMode( const DisplayMode& );
+    void setTargetFPS( uint32_t, FpsLimiter::Mode );
 
 private:
     void gameThread();
