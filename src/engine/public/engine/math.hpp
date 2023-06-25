@@ -11,6 +11,7 @@
 
 #include <cmath>
 #include <numbers>
+#include <utility>
 
 namespace math {
 
@@ -101,20 +102,15 @@ inline auto length( const auto& t )
 };
 
 template <typename T = float>
-inline auto lerp( const T& a, const T&b, float n ) -> T
+inline auto lerp( T a, T b, float n ) -> T
 {
-    return glm::mix( a, b, n );
+    return a + ( b - a ) * n;
 }
 
-template <>
-inline auto lerp<math::vec4>( const math::vec4& a, const math::vec4& b, float n ) -> math::vec4
+template <typename T = float>
+inline auto curve( T a, T b, T c, float n ) -> T
 {
-    return math::vec4{
-        lerp( a.x, b.x, n ),
-        lerp( a.y, b.y, n ),
-        lerp( a.z, b.z, n ),
-        lerp( a.w, b.w, n )
-    };
+    return lerp( lerp( a, b, n ), lerp( b, c, n ), n );
 }
 
 inline auto lookAt( const auto& cameraPosition, const auto& target, const auto& cameraUp )
@@ -129,7 +125,6 @@ inline T nonlerp( const T& a, const T& b, float n )
     const float n2 = 0.5f + 0.5f * -math::cos( n * math::pi );
     return math::lerp( a, b, n2 );
 }
-
 
 inline float normalize( float f )
 {

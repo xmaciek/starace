@@ -13,9 +13,9 @@ static constexpr math::vec3 defaultPyrSpeed{ 60.0_deg, 40.0_deg, 200.0_deg };
 static math::vec3 pointMult( uint8_t a, uint8_t b, uint8_t c )
 {
     return math::vec3{
-        1.0f + SAObject::pointsToMultiplier( a ),
-        1.0f + SAObject::pointsToMultiplier( b ),
-        1.0f + SAObject::pointsToMultiplier( c )
+        SAObject::pointsToMultiplier( a ),
+        SAObject::pointsToMultiplier( b ),
+        SAObject::pointsToMultiplier( c )
     };
 };
 
@@ -28,9 +28,10 @@ Jet::Jet( const CreateInfo& ci ) noexcept
 , m_points{ ci.points }
 {
     m_direction.z = -1;
-    m_health = static_cast<uint8_t>( 100.0f * ( 1.0f + pointsToMultiplier( m_points.hp ) ) );
-    m_speedMax *= 1.0f + pointsToMultiplier( m_points.speedMax );
-    m_speed = 600_kmph;
+    m_health = static_cast<uint8_t>( 100.0f * pointsToMultiplier( m_points.hp ) );
+    m_speedCurveMax *= pointsToMultiplier( m_points.speedMax );
+    m_speed = math::curve( m_speedCurveMin, m_speedCurveNorm, m_speedCurveMax, 0.5f );
+    m_speedTarget = { m_speed, m_speed, m_accell };
     m_vectorThrust = ci.vectorThrust && m_model.thrusters().size() == 2;
     setStatus( Status::eAlive );
 
@@ -75,15 +76,18 @@ void Jet::update( const UpdateContext& updateContext )
     m_angleState.setTarget( pyrTarget );
     m_angleState.update( updateContext.deltaTime );
 
-    const bool accell = m_input.speed >= 0.0f;
-    const float speedTarget = accell
-        ? std::lerp( m_speedNorm, m_speedMax, m_input.speed )
-        : std::lerp( m_speedMin, m_speedNorm, 1.0f + m_input.speed );
-    const float accellMultiplier = 1.0f + pointsToMultiplier( accell ? m_points.accell : m_points.deaccell );
-    m_speedTarget.setTarget( speedTarget );
-    m_speedTarget.setVelocity( ( accell ? m_accell : m_deaccell ) * accellMultiplier );
-    m_speedTarget.update( updateContext.deltaTime + updateContext.deltaTime * updateContext.deltaTime );
-    m_speed = m_speedTarget.value();
+    {
+        const float speedPos = ( 1.0f + m_input.speed ) * 0.5f;
+        m_speedTarget.setTarget( math::curve( m_speedCurveMin, m_speedCurveNorm, m_speedCurveMax, speedPos ) );
+
+        const uint8_t accell = m_input.speed > 0.01f;
+        const uint8_t deaccell = m_input.speed < -0.01f;
+        const uint8_t accellPoints[ 3 ]{ 0, m_points.accell, m_points.deaccell };
+        const float accellMultiplier = pointsToMultiplier( accellPoints[ accell + deaccell * 2 ] );
+        m_speedTarget.setVelocity( ( accell ? m_accell : m_deaccell ) * accellMultiplier );
+        m_speedTarget.update( updateContext.deltaTime + updateContext.deltaTime * updateContext.deltaTime );
+        m_speed = m_speedTarget.value();
+    }
 
     m_quaternion *= math::quat{ m_angleState.value() * updateContext.deltaTime };
     m_direction = math::normalize( math::rotate( m_quaternion, math::vec3{ 0.0f, 0.0f, -1.0f } ) );

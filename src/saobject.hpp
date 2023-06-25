@@ -36,7 +36,7 @@ public:
     static inline float pointsToMultiplier( uint8_t point ) noexcept
     {
         const float p = static_cast<float>( point ) * 0.05f;
-        return p / ( 1.0f + p );
+        return 1.0f + p / ( 1.0f + p );
     }
 protected:
     SAObject* m_target = nullptr;

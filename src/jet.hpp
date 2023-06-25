@@ -73,12 +73,12 @@ private:
     AutoLerp<math::vec3> m_camOffset{ { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0.2f };
     AutoLerp<math::vec3, math::vec3> m_angleState{};
 
-    float m_speedMax = 1800_kmph;
-    float m_speedMin = 192_kmph;
-    float m_speedNorm = 600_kmph;
+    float m_speedCurveMax = 1600_kmph;
+    float m_speedCurveNorm = 300_kmph;
+    float m_speedCurveMin = 200_kmph;
     float m_accell = 256_kmph;
     float m_deaccell = 256_kmph;
-    AutoLerp<> m_speedTarget{ 600_kmph, 600_kmph, 256_kmph };
+    AutoLerp<> m_speedTarget{};
 
     PointInfo m_points{};
     Input m_input{};
