@@ -9,6 +9,80 @@
 #include <type_traits>
 #include <utility>
 #include <tuple>
+#include <span>
+
+template <typename TKey, typename TValue>
+class FixedMapView {
+    using difference_type = std::intptr_t;
+
+    std::span<TKey> m_keys{};
+    std::span<TValue> m_values{};
+
+public:
+    ~FixedMapView() noexcept = default;
+    FixedMapView() noexcept = default;
+    FixedMapView( std::span<TKey> keys, std::span<TValue> values ) noexcept
+    : m_keys{ keys }
+    , m_values{ values }
+    {
+        assert( std::is_sorted( m_keys.begin(), m_keys.end() ) );
+        assert( m_keys.size() == m_values.size() );
+    }
+
+    const TValue* find( const TKey& k ) const noexcept
+    {
+        auto begin = m_keys.begin();
+        auto end = m_keys.end();
+        assert( std::is_sorted( begin, end ) );
+        auto it = std::lower_bound( begin, end, k );
+        if ( it == end ) [[unlikely]] { return nullptr; }
+        if ( *it != k ) [[unlikely]] { return nullptr; }
+        const difference_type dist = it - begin;
+        auto ptr = &*m_values.begin();
+        return ptr + dist;
+    }
+
+    TValue* find( const TKey& k ) noexcept
+    {
+        auto begin = m_keys.begin();
+        auto end = m_keys.end();
+        assert( std::is_sorted( begin, end ) );
+        auto it = std::lower_bound( begin, end, k );
+        if ( it == end ) [[unlikely]] { return nullptr; }
+        if ( *it != k ) [[unlikely]] { return nullptr; }
+        const difference_type dist = it - begin;
+        auto ptr = &*m_values.begin();
+        return ptr + dist;
+    }
+
+    std::tuple<const TValue*, const TValue*> equalRange( const TKey& k ) const noexcept
+    {
+        auto begin = m_keys.begin();
+        auto end = m_keys.end();
+        assert( std::is_sorted( begin, end ) );
+        auto [ b, e ] = std::equal_range( begin, end, k );
+        if ( b == e || b == end ) [[unlikely]] { return {}; }
+        const difference_type diffBegin = b - begin;
+        const difference_type diffEnd = e - begin;
+        auto ptr = &*m_values.begin();
+        return std::make_tuple<const TValue*, const TValue*>( ptr + diffBegin, ptr + diffEnd );
+    }
+
+
+    std::tuple<TValue*, TValue*> equalRange( const TKey& k ) noexcept
+    {
+        auto begin = m_keys.begin();
+        auto end = m_keys.end();
+        assert( std::is_sorted( begin, end ) );
+        auto [ b, e ] = std::equal_range( begin, end, k );
+        if ( b == e || b == end ) [[unlikely]] { return {}; }
+        const difference_type diffBegin = b - begin;
+        const difference_type diffEnd = e - begin;
+        auto ptr = &*m_values.begin();
+        return std::make_tuple<TValue*, TValue*>( ptr + diffBegin, ptr + diffEnd );
+    }
+
+};
 
 template <typename TKey, typename TValue, size_t TCapacity>
 class FixedMap {
@@ -50,6 +124,17 @@ public:
 
     FixedMap( const FixedMap& ) noexcept requires ( isTrivial<TKey>() && isTrivial<TValue>() ) = default;
     FixedMap& operator = ( const FixedMap& ) noexcept requires ( isTrivial<TKey>() && isTrivial<TValue>() ) = default;
+
+
+    FixedMapView<TKey, TValue> makeView()
+    {
+        return { std::span<TKey>{ keyBegin(), keyEnd() }, std::span<TValue>{ valueBegin(), valueEnd() } };
+    }
+
+    FixedMapView<const TKey, const TValue> makeView() const
+    {
+        return { std::span<TKey>{ keyBegin(), keyEnd() }, std::span<TValue>{ valueBegin(), valueEnd() } };
+    }
 
     size_type size() const noexcept
     {
@@ -147,4 +232,5 @@ public:
         std::rotate( valueBegin() + dist, valueEnd() - 1, valueEnd() );
         assert( std::is_sorted( keyBegin(), keyEnd() ) );
     }
+
 };
