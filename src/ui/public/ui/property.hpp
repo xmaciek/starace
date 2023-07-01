@@ -11,12 +11,12 @@
 #include <string>
 
 class Game;
-using LocTable = FixedMap<Hash::value_type, std::pmr::u32string, 64>;
 
 namespace ui {
 class DataModel;
 class Atlas;
 class Font;
+using LocTable = FixedMapView<Hash::value_type, std::pmr::u32string>;
 
 class Property {
     friend Game;
@@ -24,7 +24,7 @@ class Property {
     const Font* m_fontMedium = nullptr;
     const Font* m_fontLarge = nullptr;
     const Atlas* m_atlas = nullptr;
-    const LocTable* m_locTable = nullptr;
+    LocTable m_locTable{};
     Texture m_atlasTexture{};
 
     PipelineSlot m_pipelineSpriteSequence{};
@@ -58,20 +58,18 @@ public:
 
     inline std::pmr::u32string localize( Hash::value_type key ) const
     {
-        assert( m_locTable );
-        const auto* value = (*m_locTable)[ key ];
+        const auto* value = m_locTable.find( key );
         if ( value ) {
             return *value;
         }
-        assert( !"missing loc key" );
+        //assert( !"missing loc key" );
         return U"<BUG:Missing loc key>";
     }
 
     inline std::pmr::u32string localize( std::string_view key ) const
     {
-        assert( m_locTable );
         Hash hash{};
-        const auto* value = (*m_locTable)[ hash( key ) ];
+        const auto* value = m_locTable.find( hash( key ) );
         return value ? *value : ( U"LOC:" + std::pmr::u32string{ key.begin(), key.end() } );
     }
 

@@ -295,6 +295,16 @@ void Game::onInit()
         m_actionStateTracker.add( static_cast<Action::Enum>( eid ), min, max );
     }
 
+    {
+        ZoneScopedN( "HashMap" );
+        auto loc = cfg::Entry::fromData( m_io->viewWait( "lang/en.txt" ) );
+        Hash hash{};
+        for ( const auto& it : loc ) {
+            m_localizationMap.insert( hash( *it ), it.toString32() );
+        }
+        g_uiProperty.m_locTable = m_localizationMap.makeView();
+    }
+
     m_uiAtlas = loadUIAtlas( m_io->viewWait( "misc/ui_atlas.txt" ) );
     m_dustUi.setVelocity(  math::vec3{ 0.0f, 0.0f, 26.0_m }  );
     m_dustUi.setCenter( {} );
@@ -317,7 +327,6 @@ void Game::onInit()
     };
 
     g_uiProperty.m_colorA = color::dodgerBlue;
-    g_uiProperty.m_locTable = &m_localizationMap;
 
     g_gameUiDataModels[ "$data:gammaCorrection" ] = &m_optionsGFX.m_gamma;
 
@@ -410,14 +419,6 @@ void Game::onInit()
         g_uiProperty.m_fontLarge = m_fontLarge.get();
     }
 
-    {
-        ZoneScopedN( "HashMap" );
-        auto loc = cfg::Entry::fromData( m_io->viewWait( "lang/en.txt" ) );
-        Hash hash{};
-        for ( const auto& it : loc ) {
-            m_localizationMap.insert( hash( *it ), it.toString32() );
-        }
-    }
     m_hud = Hud{ &m_hudData };
 
     m_blaster = m_audio->load( m_io->viewWait( "sounds/blaster.wav" ) );

@@ -125,7 +125,7 @@ private:
     ui::Var<std::pmr::u32string> m_uiMissionScore{ "$var:missionScore", U"BUG ME" };
     ui::Var<float> m_uiPlayerHP{ "$var:playerHP", 0.0f };
 
-    LocTable m_localizationMap{};
+    FixedMap<Hash::value_type, std::pmr::u32string, 64> m_localizationMap{};
 
     ActionStateTracker m_actionStateTracker{};
 
