@@ -16,7 +16,7 @@
 
 #define HACK_SIZE * 0.5f
 
-static std::tuple<math::vec4, math::vec4> composeSprite( const ui::Font::Glyph* glyph, math::vec2 extent, math::vec2 surfacePos, math::vec2 originPointHack )
+static std::tuple<math::vec4, math::vec4> composeSprite( const fnta::Glyph* glyph, math::vec2 extent, math::vec2 surfacePos, math::vec2 originPointHack )
 {
     math::vec2 position{ glyph->position[ 0 ], glyph->position[ 1 ] };
     math::vec2 padding = math::vec2{ glyph->padding[ 0 ], glyph->padding[ 1 ] } HACK_SIZE;
@@ -36,16 +36,6 @@ static std::tuple<math::vec4, math::vec4> composeSprite( const ui::Font::Glyph* 
     );
 }
 
-struct FontAtlasHeader {
-    static constexpr inline uint32_t MAGIC = 'ATNF';
-    static constexpr inline uint32_t VERSION = 'ATNF';
-    uint32_t magic = MAGIC;
-    uint32_t version = VERSION;
-    uint32_t count = 0;
-    uint32_t width = 0;
-    uint32_t height = 0;
-};
-
 namespace ui {
 
 Font::Font( const CreateInfo& ci )
@@ -57,18 +47,41 @@ Font::Font( const CreateInfo& ci )
     assert( ci.lineHeight > 0 );
     assert( ci.texture );
 
+    using Header = fnta::Header;
     const uint8_t* ptr = ci.fontAtlas.data();
-    FontAtlasHeader header{};
+    if ( ci.fontAtlas.size() < sizeof( Header ) ) {
+        assert( !"buffer size too small for font atlas" );
+        return;
+    }
+
+    Header header{};
     std::memcpy( &header, ptr, sizeof( header ) );
     std::advance( ptr, sizeof( header ) );
 
+    if ( header.magic != header.MAGIC ) {
+        assert( !"invalid font atlas .magic field" );
+        return;
+    }
+
+    if ( header.version != header.VERSION ) {
+        assert( !"font atlas has incorrect version" );
+        return;
+    }
+    size_t esitmatedBufferSize = sizeof( header );
+    esitmatedBufferSize += sizeof( char32_t ) * header.count;
+    esitmatedBufferSize += sizeof( fnta::Glyph ) * header.count;
+    if ( ci.fontAtlas.size() < esitmatedBufferSize ) {
+        assert( !"not enough data in font atlas resource to load" );
+        return;
+    }
+
     const char32_t* charsBegin = reinterpret_cast<const char32_t*>( ptr );
     const char32_t* charsEnd = charsBegin + header.count;
-    const Glyph* glyphsBegin = reinterpret_cast<const Glyph*>( charsEnd );
-    const Glyph* glyphsEnd = glyphsBegin + header.count;
+    const fnta::Glyph* glyphsBegin = reinterpret_cast<const fnta::Glyph*>( charsEnd );
+    const fnta::Glyph* glyphsEnd = glyphsBegin + header.count;
 
     std::span<const char32_t> charSpan{ charsBegin, charsEnd };
-    std::span<const Glyph> glyphSpan{ glyphsBegin, glyphsEnd };
+    std::span<const fnta::Glyph> glyphSpan{ glyphsBegin, glyphsEnd };
     m_width = header.width;
     m_height = header.height;
     m_glyphMap = GlyphMap{ charSpan, glyphSpan };
@@ -85,7 +98,7 @@ float Font::textLength( std::u32string_view text ) const
     float ret = 0.0f;
     const auto sum = [this]( auto ch ) -> float
     {
-        const Glyph* glyph = m_glyphMap.find( ch );
+        const fnta::Glyph* glyph = m_glyphMap.find( ch );
         assert( glyph );
         return static_cast<float>( glyph->advance[ 0 ] ) HACK_SIZE;
     };
@@ -113,7 +126,7 @@ Font::RenderText Font::composeText( const math::vec4& color, std::u32string_view
 
     for ( uint32_t i = 0; i < count; ++i ) {
         char32_t chr = text[ i ];
-        const Glyph* glyph = m_glyphMap.find( chr );
+        const fnta::Glyph* glyph = m_glyphMap.find( chr );
         assert( glyph );
         auto& sprite = pushConstant.m_sprites[ i ];
         std::tie( sprite.m_xywh, sprite.m_uvwh ) = composeSprite( glyph, extent, surfacePos, { 0.0f, m_lineHeight } );

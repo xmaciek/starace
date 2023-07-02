@@ -1,19 +1,20 @@
 #include <extra/dds.hpp>
+#include <extra/fnta.hpp>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
 #include <algorithm>
 #include <cassert>
-#include <cstdint>
-#include <span>
-#include <tuple>
-#include <iostream>
-#include <string_view>
-#include <vector>
-#include <fstream>
 #include <charconv>
+#include <cstdint>
+#include <fstream>
+#include <iostream>
 #include <numeric>
+#include <span>
+#include <string_view>
+#include <tuple>
+#include <vector>
 
 #define RED "\x1b[31m"
 #define DEFAULT "\x1b[0m"
@@ -139,22 +140,15 @@ struct AtlasComposer {
     }
 };
 
-struct Glyph {
-    uint16_t position[ 2 ];
-    uint16_t size[ 2 ];
-    int16_t advance[ 2 ];
-    int16_t padding[ 2 ];
-};
-
 struct Slot {
-    Glyph glyph{};
+    fnta::Glyph glyph{};
     char32_t ch{};
     uint32_t pitch{};
     uint32_t rows{};
     std::vector<uint8_t> bitmap{};
 };
 
-static Glyph getGlyphMetrics( FT_GlyphSlot slot )
+static fnta::Glyph getGlyphMetrics( FT_GlyphSlot slot )
 {
     assert( slot );
     auto metrics = slot->metrics;
@@ -166,7 +160,7 @@ static Glyph getGlyphMetrics( FT_GlyphSlot slot )
     metrics.vertAdvance /= FONT_RESOLUTION_SCALE;
     metrics.horiBearingX /= FONT_RESOLUTION_SCALE;
     metrics.horiBearingY /= FONT_RESOLUTION_SCALE;
-    Glyph glyph{};
+    fnta::Glyph glyph{};
     glyph.size[ 0 ] = static_cast<uint16_t>( metrics.width );
     glyph.size[ 1 ] = static_cast<uint16_t>( metrics.height );
     glyph.advance[ 0 ] = static_cast<int16_t>( metrics.horiAdvance );
@@ -193,12 +187,12 @@ static std::vector<FT_Byte> loadFontFile( std::string_view path )
 
 int main( int argc, char** argv )
 {
-    if ( argc < 5 ) {
+    if ( argc != 5 ) {
         std::cout << FAIL <<
-            "Insufficient number of arguments, expected: "
+            "Incorrect number of arguments, expected: "
             "<size> "
             "<src/font/file/path.ext> "
-            "<dst/font/atlas.font> "
+            "<dst/font/atlas.fnta> "
             "<dst/font/image.dds>"
             << std::endl;
             return 1;
@@ -305,7 +299,7 @@ int main( int argc, char** argv )
     uint32_t surfExtent = 4;
     while ( surfExtent * surfExtent < surfaceSizeNeeded ) surfExtent <<= 1;
 
-    std::pmr::vector<uint8_t> texture( surfExtent * surfExtent );
+    std::vector<uint8_t> texture( surfExtent * surfExtent );
     AtlasComposer atlas{
         .m_begin = texture.data(),
         .m_end = texture.data() + texture.size(),
@@ -357,7 +351,7 @@ int main( int argc, char** argv )
     ofs.write( (const char*)texture.data(), static_cast<std::streamsize>( texture.size() ) );
     ofs.close();
 
-    FontHeader fontHeader{
+    fnta::Header fntaHeader{
         .count = (uint32_t)charset.size(),
         .width = surfExtent,
         .height = surfExtent,
@@ -367,7 +361,7 @@ int main( int argc, char** argv )
         std::cout << FAIL << "Cannot open font atlas to write: " << argsDstFont << std::endl;
         return 1;
     }
-    ofs.write( (const char*)&fontHeader, sizeof( fontHeader ) );
+    ofs.write( (const char*)&fntaHeader, sizeof( fntaHeader ) );
     ofs.write( (const char*)charset.data(), (std::streamsize)charset.size() * 4 );
     for ( auto&& slot : slots ) {
         ofs.write( (const char*)&slot.glyph, sizeof( slot.glyph ) );

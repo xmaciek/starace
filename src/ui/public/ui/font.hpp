@@ -2,6 +2,7 @@
 
 #include <ui/pipeline.hpp>
 
+#include <extra/fnta.hpp>
 #include <engine/math.hpp>
 #include <engine/render_context.hpp>
 #include <renderer/pipeline.hpp>
@@ -18,20 +19,11 @@ class Renderer;
 namespace ui {
 
 class Font {
-public:
-    struct Glyph {
-        uint16_t position[ 2 ]{};
-        uint16_t size[ 2 ]{};
-        int16_t advance[ 2 ]{};
-        int16_t padding[ 2 ]{};
-    };
-
-private:
     uint32_t m_width = 0;
     uint32_t m_height = 0;
     uint32_t m_lineHeight = 0;
     Texture m_texture{};
-    using GlyphMap = FixedMapView<const char32_t, const Glyph>;
+    using GlyphMap = FixedMapView<const char32_t, const fnta::Glyph>;
     GlyphMap m_glyphMap{};
 
 public:
