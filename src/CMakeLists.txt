@@ -97,3 +97,8 @@ set_cppver( cooker_dds 20 )
 target_sources( cooker_tar PRIVATE cooker_tar.cpp )
 target_link_libraries( cooker_tar cxx::flags extra )
 set_cppver( cooker_tar 20 )
+
+target_sources( cooker_font PRIVATE cooker_font.cpp )
+target_link_libraries( cooker_font cxx::flags extra Freetype::Freetype )
+set_cppver( cooker_font 20 )
+
