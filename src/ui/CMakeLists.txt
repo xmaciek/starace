@@ -52,5 +52,4 @@ target_link_libraries( ui
     renderer
     cxx::flags
     Tracy::Client
-    Freetype::Freetype
 )

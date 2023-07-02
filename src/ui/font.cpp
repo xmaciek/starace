@@ -6,9 +6,6 @@
 
 #include <Tracy.hpp>
 
-#include <ft2build.h>
-#include FT_FREETYPE_H
-
 #include <algorithm>
 #include <cassert>
 #include <iostream>
@@ -17,234 +14,70 @@
 #include <memory_resource>
 #include <vector>
 
-constexpr static float FONT_SIZE_SCALE = 2.0f;
-constexpr static float FONT_RESOLUTION_SCALE = 64.0f * FONT_SIZE_SCALE;
-constexpr static uint32_t TILE_COUNT = 10;
-constexpr static uint32_t TILE_PADDING = 2;
+#define HACK_SIZE * 0.5f
 
-static std::tuple<math::vec4, math::vec4> composeSprite( math::vec4 uv, math::vec2 advance, math::vec2 size, math::vec2 padding, math::vec2 originPointHack )
+static std::tuple<math::vec4, math::vec4> composeSprite( const ui::Font::Glyph* glyph, math::vec2 extent, math::vec2 surfacePos, math::vec2 originPointHack )
 {
-    padding *= math::vec2{ 1.0f, -1.0f };
+    math::vec2 position{ glyph->position[ 0 ], glyph->position[ 1 ] };
+    math::vec2 padding = math::vec2{ glyph->padding[ 0 ], glyph->padding[ 1 ] } HACK_SIZE;
+    math::vec2 size{ glyph->size[ 0 ], glyph->size[ 1 ] };
+    math::vec2 uv1 = position / extent;
+    math::vec2 uv2 = size / extent;
+
+    // HACK: also hack for sizing
+    size *= 0.5f;
+    padding.y *= -1.0f;
     padding += originPointHack; // top vs bottom
-    const math::vec2 topLeft = advance + padding;
+    math::vec2 topLeft = surfacePos + padding;
+
     return std::make_tuple(
         math::vec4{ topLeft.x, topLeft.y, size.x, size.y },
-        math::vec4{ uv.x, uv.y, uv.z - uv.x, uv.w - uv.y }
+        math::vec4{ uv1.x, uv1.y, uv2.x, uv2.y }
     );
 }
 
-struct BlitIterator {
-    using value_type = uint8_t;
-    using size_type = uint32_t;
-    using reference = value_type&;
-    using pointer = value_type*;
-    using difference_type = std::ptrdiff_t;
-    using iterator_category = std::bidirectional_iterator_tag;
-
-    pointer m_data = nullptr;
-    pointer m_end = nullptr;
-    size_type m_dstPitch = 0;
-    size_type m_dstX = 0;
-    size_type m_dstY = 0;
-    size_type m_srcWidth = 0;
-    size_type m_i = 0;
-
-    BlitIterator() noexcept = default;
-    BlitIterator( pointer p, pointer end, size_type dstPitch, size_type dstX, size_type dstY, size_type srcWidth ) noexcept
-    : m_data{ p }
-    , m_end{ end }
-    , m_dstPitch{ dstPitch }
-    , m_dstX{ dstX }
-    , m_dstY{ dstY }
-    , m_srcWidth{ srcWidth }
-    {
-        assert( p < end );
-    }
-
-    reference operator * () const
-    {
-        assert( m_data );
-        assert( m_dstPitch );
-        assert( m_srcWidth );
-        const difference_type begin = m_dstPitch * m_dstY + m_dstX;
-        const difference_type offset = m_dstPitch * ( m_i / m_srcWidth ) + ( m_i % m_srcWidth );
-        pointer address = m_data + begin + offset;
-        assert( address < m_end );
-        return *address;
-    }
-
-    BlitIterator& operator ++ ()
-    {
-        ++m_i;
-        return *this;
-    }
-    BlitIterator& operator -- ()
-    {
-        --m_i;
-        return *this;
-    }
-    BlitIterator operator ++ ( int )
-    {
-        auto ret = *this;
-        ++m_i;
-        return ret;
-    }
-    BlitIterator operator -- ( int )
-    {
-        auto ret = *this;
-        --m_i;
-        return ret;
-    }
+struct FontAtlasHeader {
+    static constexpr inline uint32_t MAGIC = 'ATNF';
+    static constexpr inline uint32_t VERSION = 'ATNF';
+    uint32_t magic = MAGIC;
+    uint32_t version = VERSION;
+    uint32_t count = 0;
+    uint32_t width = 0;
+    uint32_t height = 0;
 };
-
-struct AtlasComposer {
-    using value_type = uint8_t;
-    using pointer = value_type*;
-
-    pointer m_begin = nullptr;
-    pointer m_end = nullptr;
-    uint32_t m_width = 0u;
-    uint32_t m_height = 0u;
-    uint32_t m_currentX = 0u;
-    uint32_t m_currentY = 0u;
-    uint32_t m_nextY = 0;
-
-    std::tuple<uint32_t, uint32_t> coords( uint32_t width, uint32_t height, uint32_t padding )
-    {
-        assert( width <= m_width );
-        assert( height <= m_height );
-        assert( m_currentY + height < m_height );
-
-        if ( ( m_currentX + width ) > m_width ) {
-            m_currentX = 0u;
-            m_currentY = m_nextY;
-        }
-
-        uint32_t retX = m_currentX;
-        m_nextY = std::max( m_currentY + height + padding, m_nextY );
-        m_currentX += width + padding;
-        assert( m_currentY < m_height );
-        return { retX, m_currentY };
-    }
-
-    std::tuple<BlitIterator, math::vec4> findPlace( uint32_t width, uint32_t height, uint32_t padding )
-    {
-        const auto [ x, y ] = coords( width, height, padding );
-        const float fx = static_cast<float>( x ) / static_cast<float>( m_width );
-        const float fy = static_cast<float>( y ) / static_cast<float>( m_height );
-        math::vec4 xyxy{ fx, fy,
-            fx + static_cast<float>( width ) / static_cast<float>( m_width ),
-            fy + static_cast<float>( height ) / static_cast<float>( m_height ),
-        };
-        return {
-            BlitIterator{ m_begin, m_end, m_width, x, y, width },
-            xyxy,
-        };
-
-    }
-};
-
-static std::tuple<ui::Font::Glyph, uint32_t, std::span<uint8_t>> makeGlyph( const FT_Face& face, char32_t ch )
-{
-    ZoneScoped;
-    const FT_UInt glyphIndex = FT_Get_Char_Index( face, ch );
-
-    [[maybe_unused]]
-    const FT_Error loadOK = FT_Load_Glyph( face, glyphIndex, FT_LOAD_DEFAULT );
-    assert( loadOK == 0 );
-
-    FT_GlyphSlot slot = face->glyph;
-    [[maybe_unused]]
-    const FT_Error renderOK = FT_Render_Glyph( slot, FT_RENDER_MODE_NORMAL );
-    assert( renderOK == 0 );
-    assert( slot->bitmap.pixel_mode == FT_PIXEL_MODE_GRAY );
-
-    ui::Font::Glyph glyph{};
-    uint8_t* data = reinterpret_cast<uint8_t*>( slot->bitmap.buffer );
-    std::uintptr_t dataSize = static_cast<std::uintptr_t>( slot->bitmap.pitch ) * static_cast<std::uintptr_t>( slot->bitmap.rows );
-
-    glyph.advance = math::vec2{ slot->metrics.horiAdvance, slot->metrics.vertAdvance } / FONT_RESOLUTION_SCALE;
-    glyph.padding = math::vec2{ slot->metrics.horiBearingX, slot->metrics.horiBearingY } / FONT_RESOLUTION_SCALE;
-    glyph.size = math::vec2{ slot->metrics.width, slot->metrics.height } / FONT_RESOLUTION_SCALE;
-    return { glyph, slot->bitmap.pitch, std::span<uint8_t>( data, data + dataSize ) };
-}
 
 namespace ui {
 
-Font::Font( const CreateInfo& fontInfo, uint32_t height )
-: m_height( height )
+Font::Font( const CreateInfo& ci )
+: m_lineHeight{ ci.lineHeight }
+, m_texture{ ci.texture }
 {
     ZoneScoped;
-    assert( !fontInfo.fontFileContent.empty() );
-    assert( fontInfo.renderer );
-    assert( !fontInfo.charset.empty() );
-    assert( std::is_sorted( fontInfo.charset.begin(), fontInfo.charset.end() ) );
-    assert( height > 0 );
+    assert( !ci.fontAtlas.empty() );
+    assert( ci.lineHeight > 0 );
+    assert( ci.texture );
 
-    FT_Library library{};
-    [[maybe_unused]]
-    const FT_Error freetypeInitErr = FT_Init_FreeType( &library );
-    assert( !freetypeInitErr );
+    const uint8_t* ptr = ci.fontAtlas.data();
+    FontAtlasHeader header{};
+    std::memcpy( &header, ptr, sizeof( header ) );
+    std::advance( ptr, sizeof( header ) );
 
-    const FT_Open_Args openArgs{
-        .flags = FT_OPEN_MEMORY,
-        .memory_base = reinterpret_cast<const FT_Byte*>( fontInfo.fontFileContent.data() ),
-        .memory_size = static_cast<FT_Long>( fontInfo.fontFileContent.size() ),
-    };
+    const char32_t* charsBegin = reinterpret_cast<const char32_t*>( ptr );
+    const char32_t* charsEnd = charsBegin + header.count;
+    const Glyph* glyphsBegin = reinterpret_cast<const Glyph*>( charsEnd );
+    const Glyph* glyphsEnd = glyphsBegin + header.count;
 
-    FT_Face face{};
-    [[maybe_unused]]
-    const FT_Error newFaceErr = FT_Open_Face( library, &openArgs, 0, &face );
-    assert( !newFaceErr );
+    std::span<const char32_t> charSpan{ charsBegin, charsEnd };
+    std::span<const Glyph> glyphSpan{ glyphsBegin, glyphsEnd };
+    m_width = header.width;
+    m_height = header.height;
+    m_glyphMap = GlyphMap{ charSpan, glyphSpan };
 
-    const FT_UInt pixelSize = static_cast<FT_UInt>( FONT_SIZE_SCALE * (float)height );
-    [[maybe_unused]]
-    const FT_Error pixelSizeErr = FT_Set_Pixel_Sizes( face, 0, pixelSize );
-    assert( !pixelSizeErr );
-
-    const uint32_t dstPitch = static_cast<uint32_t>( FONT_SIZE_SCALE * (float)( height + TILE_PADDING ) * TILE_COUNT );
-    const uint32_t textureSize = dstPitch * dstPitch;
-    std::pmr::vector<uint8_t> texture( textureSize, fontInfo.renderer->allocator() );
-
-    AtlasComposer atlas{
-        .m_begin = texture.data(),
-        .m_end = texture.data() + texture.size(),
-        .m_width = dstPitch,
-        .m_height = dstPitch,
-    };
-    for ( char32_t ch : fontInfo.charset ) {
-        auto [ glyph, pitch, data ] = makeGlyph( face, ch );
-        BlitIterator dst;
-        const math::vec2 size = glyph.size * FONT_SIZE_SCALE;
-        std::tie( dst, glyph.uv ) = atlas.findPlace( static_cast<uint32_t>( size.x ), static_cast<uint32_t>( size.y ), TILE_PADDING );
-        m_glyphs.pushBack( ch, glyph );
-        if ( pitch == 0 ) {
-            continue;
-        }
-        std::copy( data.begin(), data.end(), dst );
-    }
-
-    FT_Done_FreeType( library );
-
-    const TextureCreateInfo tci{
-        .width = static_cast<uint16_t>( dstPitch ),
-        .height = static_cast<uint16_t>( dstPitch ),
-        .mip0ByteCount = static_cast<uint32_t>( texture.size() ),
-        .mips = 1,
-        .format = TextureFormat::eR,
-    };
-    m_texture = fontInfo.renderer->createTexture( tci, std::move( texture ) );
-}
-
-Font::~Font()
-{
-    // TODO
-    // destroyTexture( m_texture );
 }
 
 uint32_t Font::height() const
 {
-    return m_height;
+    return m_lineHeight;
 }
 
 float Font::textLength( std::u32string_view text ) const
@@ -252,9 +85,9 @@ float Font::textLength( std::u32string_view text ) const
     float ret = 0.0f;
     const auto sum = [this]( auto ch ) -> float
     {
-        const Glyph* glyph = m_glyphs[ ch ];
+        const Glyph* glyph = m_glyphMap.find( ch );
         assert( glyph );
-        return glyph->advance.x;
+        return static_cast<float>( glyph->advance[ 0 ] ) HACK_SIZE;
     };
     for ( auto ch : text ) { ret += sum( ch ); }
     return ret;
@@ -275,15 +108,16 @@ Font::RenderText Font::composeText( const math::vec4& color, std::u32string_view
 
     ui::PushConstant<ui::Pipeline::eSpriteSequence> pushConstant{};
     pushConstant.m_color = color;
-    math::vec2 advance{};
+    math::vec2 surfacePos{};
+    math::vec2 extent{ m_width, m_height };
 
     for ( uint32_t i = 0; i < count; ++i ) {
         char32_t chr = text[ i ];
-        const Glyph* glyph = m_glyphs[ chr ];
+        const Glyph* glyph = m_glyphMap.find( chr );
         assert( glyph );
         auto& sprite = pushConstant.m_sprites[ i ];
-        std::tie( sprite.m_xywh, sprite.m_uvwh ) = composeSprite( glyph->uv, advance, glyph->size, glyph->padding, { 0.0f, m_height } );
-        advance.x += glyph->advance.x;
+        std::tie( sprite.m_xywh, sprite.m_uvwh ) = composeSprite( glyph, extent, surfacePos, { 0.0f, m_lineHeight } );
+        surfacePos.x += (float)glyph->advance[ 0 ] HACK_SIZE;
     }
     return { pushData, pushConstant };
 }

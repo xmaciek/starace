@@ -256,6 +256,7 @@ void Game::onInit()
 {
     ZoneScoped;
     m_io->mount( "shaders.tar" );
+    m_io->mount( "fonts.tar" );
     m_io->mount( "misc.tar" );
     m_io->mount( "ui.tar" );
     m_io->mount( "sounds.tar" );
@@ -400,20 +401,25 @@ void Game::onInit()
     g_gameUiDataModels[ "$data:missionSelect" ] = &m_dataMissionSelect;
 
     {
-        std::pmr::u32string charset = U"0123456789"
-        U"abcdefghijklmnopqrstuvwxyz"
-        U"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        U" `~'\",./\\?+-*!@#$%^&()[]{};:<>";
-        std::sort( charset.begin(), charset.end() );
-        const ui::Font::CreateInfo createInfo{
-            .fontFileContent = m_io->viewWait( "misc/DejaVuSans-Bold.ttf" ),
-            .renderer = m_renderer,
-            .charset = charset,
+        ui::Font::CreateInfo dejavu12{
+            .fontAtlas = m_io->viewWait( "fonts/dejavu_24.fnta" ),
+            .texture = parseTexture( m_io->viewWait( "fonts/dejavu_24.dds" ) ),
+            .lineHeight = 12,
+        };
+        ui::Font::CreateInfo dejavu18{
+            .fontAtlas = m_io->viewWait( "fonts/dejavu_36.fnta" ),
+            .texture = parseTexture( m_io->viewWait( "fonts/dejavu_36.dds" ) ),
+            .lineHeight = 18,
+        };
+        ui::Font::CreateInfo dejavu32{
+            .fontAtlas = m_io->viewWait( "fonts/dejavu_64.fnta" ),
+            .texture = parseTexture( m_io->viewWait( "fonts/dejavu_64.dds" ) ),
+            .lineHeight = 32,
         };
         auto* alloc = std::pmr::get_default_resource();
-        m_fontSmall = UniquePointer<ui::Font>{ alloc, createInfo, 12 };
-        m_fontMedium = UniquePointer<ui::Font>{ alloc, createInfo, 18 };
-        m_fontLarge = UniquePointer<ui::Font>{ alloc, createInfo, 32 };
+        m_fontSmall = UniquePointer<ui::Font>{ alloc, dejavu12 };
+        m_fontMedium = UniquePointer<ui::Font>{ alloc, dejavu18 };
+        m_fontLarge = UniquePointer<ui::Font>{ alloc, dejavu32 };
         g_uiProperty.m_fontSmall = m_fontSmall.get();
         g_uiProperty.m_fontMedium = m_fontMedium.get();
         g_uiProperty.m_fontLarge = m_fontLarge.get();

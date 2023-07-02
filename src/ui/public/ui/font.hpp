@@ -20,26 +20,29 @@ namespace ui {
 class Font {
 public:
     struct Glyph {
-        math::vec4 uv{};
-        math::vec2 size{};
-        math::vec2 advance{};
-        math::vec2 padding{};
+        uint16_t position[ 2 ]{};
+        uint16_t size[ 2 ]{};
+        int16_t advance[ 2 ]{};
+        int16_t padding[ 2 ]{};
     };
 
 private:
-    Texture m_texture{};
+    uint32_t m_width = 0;
     uint32_t m_height = 0;
-    FixedMap<char32_t, Glyph, 128> m_glyphs{};
+    uint32_t m_lineHeight = 0;
+    Texture m_texture{};
+    using GlyphMap = FixedMapView<const char32_t, const Glyph>;
+    GlyphMap m_glyphMap{};
 
 public:
-    ~Font();
-
     struct CreateInfo {
-        std::span<const uint8_t> fontFileContent{};
-        Renderer* renderer = nullptr;
-        std::u32string_view charset{};
+        std::span<const uint8_t> fontAtlas{};
+        Texture texture{};
+        uint32_t lineHeight = 0;
     };
-    Font( const CreateInfo&, uint32_t height );
+
+    ~Font() = default;
+    Font( const CreateInfo& );
 
     uint32_t height() const;
     float textLength( std::u32string_view ) const;
