@@ -15,11 +15,14 @@
 #include <string_view>
 #include <tuple>
 #include <vector>
+#include <deque>
 
 #define RED "\x1b[31m"
+#define YELLOW "\x1b[33m"
 #define DEFAULT "\x1b[0m"
 
 static constexpr char FAIL[] = "[ " RED "FAIL" DEFAULT " ] ";
+static constexpr char WARN[] = "[ " YELLOW "WARN" DEFAULT " ] ";
 
 struct FontHeader {
     uint32_t magic = 'ATNF';
@@ -104,7 +107,7 @@ struct AtlasComposer {
     using value_type = uint8_t;
     using pointer = value_type*;
 
-    static constexpr uint32_t TILE_PADDING = 2u;
+    static constexpr uint32_t TILE_PADDING = 1u;
 
     pointer m_begin = nullptr;
     pointer m_end = nullptr;
@@ -259,7 +262,9 @@ int main( int argc, char** argv )
     auto renderSlot = [&face]( char32_t ch ) -> Slot
     {
         const FT_UInt glyphIndex = FT_Get_Char_Index( face, ch );
-
+        if ( glyphIndex == 0 ) {
+            std::cout << WARN << "charcode not present in font: 0x" << std::hex << (uint32_t)ch << std::endl;
+        }
         const FT_Error loadOK = FT_Load_Glyph( face, glyphIndex, FT_LOAD_DEFAULT );
         exitOnFailed( loadOK );
 
@@ -281,23 +286,42 @@ int main( int argc, char** argv )
         ret.bitmap = std::vector( begin, end );
         return ret;
     };
-    std::vector<Slot> slots( charset.size() );
+    std::deque<Slot> slots( charset.size() );
     std::transform( charset.begin(), charset.end(), slots.begin(), renderSlot );
 
     std::sort( slots.begin(), slots.end(), []( const auto& lhs, const auto& rhs )
     {
-        if ( lhs.pitch != rhs.pitch ) return lhs.pitch > rhs.pitch;
         if ( lhs.rows != rhs.rows ) return lhs.rows > rhs.rows;
+        if ( lhs.pitch != rhs.pitch ) return lhs.pitch > rhs.pitch;
         return lhs.ch < rhs.ch;
     });
+
     uint32_t surfaceSizeNeeded = 0u;
     for ( auto&& slot : slots ) {
         surfaceSizeNeeded += ( slot.pitch + AtlasComposer::TILE_PADDING ) * ( slot.rows + AtlasComposer::TILE_PADDING );
     }
-    surfaceSizeNeeded = (uint32_t)((double)surfaceSizeNeeded * 1.618 ); // add extra slack
-
-    uint32_t surfExtent = 4;
+    float extraSlack = 1.0f; // TODO: if crash, extraSlack = (max of glyph area) / (average of glyph area)
+    surfaceSizeNeeded = (uint32_t)((double)surfaceSizeNeeded * extraSlack );
+    uint32_t surfExtent = 64;
     while ( surfExtent * surfExtent < surfaceSizeNeeded ) surfExtent <<= 1;
+
+    std::deque<Slot> tightSlots{};
+    while ( !slots.empty() ) {
+        uint32_t width = surfExtent;
+        tightSlots.push_back( slots.front() );
+        slots.pop_front();
+        width -= tightSlots.back().pitch + AtlasComposer::TILE_PADDING;
+    retry:
+        auto cmp = [width]( const Slot& g ) { return width >= g.pitch + AtlasComposer::TILE_PADDING; };
+        auto it = std::find_if( slots.begin(), slots.end(), cmp );
+        if ( it == slots.end() ) continue;
+
+        width -= it->pitch + AtlasComposer::TILE_PADDING;
+        tightSlots.push_back( *it );
+        slots.erase( it );
+        goto retry;
+    }
+    slots = std::move( tightSlots );
 
     std::vector<uint8_t> texture( surfExtent * surfExtent );
     AtlasComposer atlas{
