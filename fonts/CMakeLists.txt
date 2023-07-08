@@ -25,7 +25,11 @@ function( cook_font )
     add_custom_command(
         OUTPUT "${out.dds}" "${out.font}"
         DEPENDS cooker_font "${COOK_FONT_SRC}"
-        COMMAND cooker_font "${COOK_FONT_SIZE}" "${COOK_FONT_SRC}" "${CMAKE_CURRENT_BINARY_DIR}/${out.font}" "${CMAKE_CURRENT_BINARY_DIR}/${out.dds}"
+        COMMAND cooker_font
+            --px "${COOK_FONT_SIZE}"
+            --src "${COOK_FONT_SRC}"
+            --out "${CMAKE_CURRENT_BINARY_DIR}/${out.font}"
+            --dds "${CMAKE_CURRENT_BINARY_DIR}/${out.dds}"
     )
     add_dependencies( font font.${tgt} )
     set( font_list "${font_list}" "${CMAKE_CURRENT_BINARY_DIR}/${out.font}" "${CMAKE_CURRENT_BINARY_DIR}/${out.dds}" PARENT_SCOPE )

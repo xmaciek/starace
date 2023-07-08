@@ -1,5 +1,6 @@
 #include <extra/dds.hpp>
 #include <extra/fnta.hpp>
+#include <extra/args.hpp>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -23,14 +24,6 @@
 
 static constexpr char FAIL[] = "[ " RED "FAIL" DEFAULT " ] ";
 static constexpr char WARN[] = "[ " YELLOW "WARN" DEFAULT " ] ";
-
-struct FontHeader {
-    uint32_t magic = 'ATNF';
-    uint32_t version = 1;
-    uint32_t count = 0;
-    uint32_t width = 0;
-    uint32_t height = 0;
-};
 
 static void exitOnFailed( FT_Error ec )
 {
@@ -178,7 +171,7 @@ static std::vector<FT_Byte> loadFontFile( std::string_view path )
     std::ifstream ifs( (std::string)path, std::ios::binary | std::ios::ate );
     if ( !ifs.is_open() ) {
         std::cout << FAIL << "Font file cannot be open: " << path << std::endl;
-        return {};
+        std::exit( 1 );
     }
     auto size = ifs.tellg();
     ifs.seekg( 0 );
@@ -188,38 +181,38 @@ static std::vector<FT_Byte> loadFontFile( std::string_view path )
     return data;
 }
 
-int main( int argc, char** argv )
+int main( int argc, const char** argv )
 {
-    if ( argc != 5 ) {
-        std::cout << FAIL <<
-            "Incorrect number of arguments, expected: "
-            "<size> "
-            "<src/font/file/path.ext> "
-            "<dst/font/atlas.fnta> "
-            "<dst/font/image.dds>"
-            << std::endl;
-            return 1;
+    Args args{ argc, argv };
+    if ( args.read( "-h" ) || args.read( "--help" ) ) {
+        std::cout <<
+            "Required arguments:\n"
+            "\t--px \"unsigned integer\" > 0\n"
+            "\t--src \"src/font/file/path.ext\"\n"
+            "\t--out \"dst/font/atlas.fnta\"\n"
+            "\t--dds \"dst/font/image.dds\"\n"
+            "\nOptional Arguments:\n"
+            "\t-h --help \u2012 prints this message and exit\n"
+            ;
+        return 0;
     }
-
-    std::string_view argsSize = argv[ 1 ];
-    std::string_view argsSrcFont = argv[ 2 ];
-    std::string_view argsDstFont = argv[ 3 ];
-    std::string_view argsDstDDS = argv[ 4 ];
-
     uint32_t size = 0;
-    if ( auto ret = std::from_chars( argsSize.begin(), argsSize.end(), size ); ret.ec != std::errc{} ) {
-        std::cout << FAIL << "Failed to convert size value to uint32 from " << argsSize << std::endl;
-        return 1;
-    }
-    if ( size == 0 ) {
-        std::cout << FAIL << "Font size cannot be 0" << std::endl;
-        return 1;
-    }
+    std::string_view argsSrcFont{};
+    std::string_view argsDstFont{};
+    std::string_view argsDstDDS{};
+
+    auto err = []( auto&& msg ) -> bool
+    {
+        std::cout << FAIL << msg << std::endl;
+        std::exit( 1 );
+    };
+
+    ( args.read( "--px", size ) && ( size > 0 ) ) || err( "--px \"unsigned integer\" > 0 \u2012 argument not specified or invalid" );
+    args.read( "--src", argsSrcFont ) || err( "--src \"src/font/file/path.ext\" \u2012 argument not specified" );
+    args.read( "--out", argsDstFont ) || err( "--out \"dst/font/atlas.fnta\" \u2012 argument not specified" );
+    args.read( "--dds", argsDstDDS ) || err( "--dds \"dst/font/image.dds\" \u2012 argument not specified" );
 
     auto fontData = loadFontFile( argsSrcFont );
-    if ( fontData.empty() ) {
-        return 1;
-    }
 
     struct DestroyOnExit {
         FT_Library library{};
