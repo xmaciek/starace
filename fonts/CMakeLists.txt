@@ -21,7 +21,7 @@ function( cook_font )
     add_custom_target( font.${tgt}
         DEPENDS "${out.dds}" "${out.font}"
     )
-    set_vs_directory( font.${tgt} "font" )
+    set_vs_directory( font.${tgt} "fonts" )
     add_custom_command(
         OUTPUT "${out.dds}" "${out.font}"
         DEPENDS cooker_font "${COOK_FONT_SRC}"

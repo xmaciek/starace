@@ -1,5 +1,6 @@
 #include <extra/dds.hpp>
 #include <extra/tga.hpp>
+#include <extra/args.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -11,6 +12,11 @@
 #include <string>
 #include <tuple>
 #include <vector>
+
+#define RED "\x1b[31m"
+#define DEFAULT "\x1b[0m"
+
+static constexpr char FAIL[] = "[ " RED "FAIL" DEFAULT " ] ";
 
 std::tuple<dds::dxgi::Format, tga::Header, std::pmr::vector<uint8_t>> convertTga( const std::filesystem::path& srcFile )
 {
@@ -192,37 +198,39 @@ struct MipGen {
 };
 
 
-int main( int argc, char** argv )
+int main( int argc, const char** argv )
 {
-    if ( argc < 3 ) {
-        std::cout << "[ FAIL ] invalid number of arguments, expected >= 2, got " << argc - 1 << std::endl;
-        return 1;
+    Args args{ argc, argv };
+    if ( !args || args.read( "-h" ) || args.read( "--help" ) ) {
+        std::cout <<
+            "Required arguments:\n"
+            "\t--src \"<file/path.tga>\" \u2012 specifies source image to cook\n"
+            "\t--dst \"<file/path.dds>\" \u2012 specifies destination of cooked image\n"
+            "\nOptional arguments:\n"
+            "\t-h --help \u2012 prints this message and exits\n"
+            "\t--mipgen \u2012 generate mipmaps when cooking\n"
+            ;
+        return !args;
     }
+    std::string_view argSrc{};
+    std::string_view argDst{};
 
-    std::filesystem::path src{ argv[ 1 ] };
-    std::filesystem::path dst{ argv[ 2 ] };
+    auto err = []( auto msg ) -> bool
+    {
+        std::cout << FAIL << msg << std::endl;
+        std::exit( 1 );
+    };
+    args.read( "--src", argSrc ) || err( "--src <file/path.tga> \u2012 argument not specified" );
+    args.read( "--dst", argDst ) || err( "--dst <file/path.dds> \u2012 argument not specified" );
+    bool argMipgen = args.read( "--mipgen" );
 
-    if ( std::filesystem::exists( dst ) ) {
-        const std::filesystem::file_status dstStat = std::filesystem::status( dst );
-        const std::filesystem::perms perm = dstStat.permissions();
-        if ( ( perm & std::filesystem::perms::owner_write ) == std::filesystem::perms::none ) {
-            std::cout << "[ FAIL ] file not writable " << dst << std::endl;
-            return 1;
-        }
-    }
-
+    std::filesystem::path src = argSrc;
+    std::filesystem::path dst = argDst;
     auto [ format, tgaHeader, pixels ] = convertTga( src );
 
     if ( format == dds::dxgi::Format::UNKNOWN ) { return 1; }
 
-    auto findParam = []( int argc, char** argv, const char* value )
-    {
-        char** end = argv + argc;
-        char** ret = std::find_if( argv, end, [value](const char* v) { return std::strcmp( v, value ) == 0; } );
-        return ret != end ? ret : nullptr;
-    };
-
-    std::pmr::vector<std::pmr::vector<uint32_t>> mips = findParam( argc - 3, argv + 3, "mipgen" )
+    std::pmr::vector<std::pmr::vector<uint32_t>> mips = argMipgen
         ? MipGen::genMips( tgaHeader.width, tgaHeader.height, reinterpret_cast<const uint32_t*>( pixels.data() ) )
         : std::pmr::vector<std::pmr::vector<uint32_t>>();
 

@@ -184,17 +184,17 @@ static std::vector<FT_Byte> loadFontFile( std::string_view path )
 int main( int argc, const char** argv )
 {
     Args args{ argc, argv };
-    if ( args.read( "-h" ) || args.read( "--help" ) ) {
+    if ( !args || args.read( "-h" ) || args.read( "--help" ) ) {
         std::cout <<
             "Required arguments:\n"
-            "\t--px \"unsigned integer\" > 0\n"
-            "\t--src \"src/font/file/path.ext\"\n"
-            "\t--out \"dst/font/atlas.fnta\"\n"
-            "\t--dds \"dst/font/image.dds\"\n"
+            "\t--px \"unsigned integer\" \u2012 glyph size in pixels, value must be > 0\n"
+            "\t--src \"src/font/file/path.ext\" \u2012 source font file\n"
+            "\t--out \"dst/font/atlas.fnta\" \u2012 destination of cooked atlas dataset\n"
+            "\t--dds \"dst/font/image.dds\" \u2012 destination of cooked atlas image\n"
             "\nOptional Arguments:\n"
             "\t-h --help \u2012 prints this message and exit\n"
             ;
-        return 0;
+        return !args;
     }
     uint32_t size = 0;
     std::string_view argsSrcFont{};

@@ -23,6 +23,11 @@ public:
     , m_argv{ argv }
     {}
 
+    operator bool () const
+    {
+        return m_argc > 1;
+    }
+
     [[nodiscard]]
     bool read( std::string_view name ) const
     {
