@@ -6,6 +6,7 @@ target_sources( extra
     obj.cpp
 
     PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/extra/args.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/extra/dds.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/extra/fnta.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/extra/obj.hpp
