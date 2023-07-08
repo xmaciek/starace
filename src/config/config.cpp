@@ -2,6 +2,7 @@
 
 #include "cfg.hpp"
 
+#include <bit>
 #include <stack>
 #include <cstring>
 
@@ -13,9 +14,88 @@ std::string_view Entry::toString() const
 
 std::pmr::u32string Entry::toString32() const
 {
-    auto sv = toString();
-    // TODO transcode to utf32
-    return std::pmr::u32string{ sv.begin(), sv.end() };
+    auto utf8length = []( auto begin, auto end ) noexcept -> uint32_t
+    {
+        auto countCharsUTF8 = []( char c )
+        {
+            assert( c != '\0' );
+            switch ( std::countl_one( (unsigned char)c ) ) {
+            [[likely]]
+            case 0: return 1;
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 1;
+            case 4: return 1;
+            [[unlikely]]
+            default:
+                assert( !"broken UTF-8 encoding" );
+                return 0;
+            }
+        };
+
+        uint32_t ret = 0;
+        while ( begin != end ) ret += countCharsUTF8( *(begin++) );
+        return ret;
+    };
+
+    auto gibUTF32 = [ptr = value.begin()]() mutable noexcept -> char32_t
+    {
+        auto countBytesUTF8 = []( char c )
+        {
+            assert( c != '\0' );
+            switch ( std::countl_one( (unsigned char)c ) ) {
+            [[likely]]
+            case 0: return 1;
+            case 1: return 0;
+            case 2: return 2;
+            case 3: return 3;
+            case 4: return 4;
+            [[unlikely]]
+            default:
+                assert( !"broken UTF-8 encoding" );
+                return 0;
+            }
+        };
+
+        uint32_t count = countBytesUTF8( *ptr );
+        char32_t ret = '\0';
+        auto extract = []( char32_t& v, auto& ptr, char mask )
+        {
+            v = ( v << 6 ) | ( *(ptr++) & mask );
+        };
+        switch ( count ) {
+        [[likely]]
+        case 1:
+            ret = *(ptr++);
+            break;
+        case 2:
+            extract( ret, ptr, 0b00011111 );
+            extract( ret, ptr, 0b00111111 );
+            break;
+        case 3:
+            extract( ret, ptr, 0b00001111 );
+            extract( ret, ptr, 0b00111111 );
+            extract( ret, ptr, 0b00111111 );
+            break;
+        case 4:
+            extract( ret, ptr, 0b00000111 );
+            extract( ret, ptr, 0b00111111 );
+            extract( ret, ptr, 0b00111111 );
+            extract( ret, ptr, 0b00111111 );
+            break;
+        [[unlikely]]
+        default:
+            assert( !"broken UTF-8 encoding" );
+            return 0;
+        }
+        return ret;
+    };
+
+    auto count = utf8length( value.begin(), value.end() );
+    std::pmr::u32string ret;
+    ret.resize( count );
+    std::generate( ret.begin(), ret.end(), gibUTF32 );
+    return ret;
 }
 
 
