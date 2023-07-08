@@ -3,7 +3,7 @@ add_library( cxx::flags INTERFACE IMPORTED )
 if ( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" )
 target_compile_options( cxx::flags INTERFACE
     -Wall
-    -Wconversion
+    #-Wconversion # disabled because bit-field narrowing conversion
     -Werror
     -Wextra
     -Wno-multichar

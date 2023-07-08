@@ -180,7 +180,7 @@ static UniquePointer<Widget> makeComboBox( std::pmr::memory_resource* alloc, con
     ComboBox::CreateInfo ci{};
     Hash hash{};
     for ( const auto& property : entry ) {
-        switch ( auto h = hash( *property ) ) {
+        switch ( hash( *property ) ) {
         case "data"_hash: ci.model = dataKeyToModel( property.toString() ); continue;
         case "height"_hash: ci.size.y = property.toFloat(); continue;
         case "text"_hash: ci.text = g_uiProperty.localize( property.toString() ); continue;
@@ -205,7 +205,7 @@ static UniquePointer<Widget> makeProgressbar( std::pmr::memory_resource* alloc, 
     Progressbar::CreateInfo ci{};
     Hash hash{};
     for ( const auto& property : entry ) {
-        switch ( auto h = hash( *property ) ) {
+        switch ( hash( *property ) ) {
         case "data"_hash: ci.model = dataKeyToModel( property.toString() ); continue;
         case "x"_hash: ci.position.x = property.toFloat(); continue;
         case "y"_hash: ci.position.y = property.toFloat(); continue;

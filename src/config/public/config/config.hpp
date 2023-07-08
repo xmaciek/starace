@@ -30,15 +30,14 @@ public:
     requires std::is_integral_v<T>
     T toInt() const
     {
-        T t = 0;
-        std::from_chars( value.c_str(), value.c_str() + value.size(), t );
-        return t;
-    }
-
-    template <>
-    bool toInt() const
-    {
-        return toInt<int>() != 0;
+        if constexpr ( std::is_same_v<T, bool> ) {
+            return toInt<int>() != 0;
+        }
+        else {
+            T t{};
+            std::from_chars( value.c_str(), value.c_str() + value.size(), t );
+            return t;
+        }
     }
 
     float toFloat() const;
