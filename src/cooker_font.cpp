@@ -144,7 +144,7 @@ struct Slot {
     std::vector<uint8_t> bitmap{};
 };
 
-static fnta::Glyph getGlyphMetrics( FT_GlyphSlot slot )
+static fnta::Glyph getGlyphMetrics( FT_GlyphSlot slot, uint32_t lineHeight )
 {
     assert( slot );
     auto metrics = slot->metrics;
@@ -156,6 +156,8 @@ static fnta::Glyph getGlyphMetrics( FT_GlyphSlot slot )
     metrics.vertAdvance /= FONT_RESOLUTION_SCALE;
     metrics.horiBearingX /= FONT_RESOLUTION_SCALE;
     metrics.horiBearingY /= FONT_RESOLUTION_SCALE;
+    metrics.horiBearingY = lineHeight - metrics.horiBearingY;
+
     fnta::Glyph glyph{};
     glyph.size[ 0 ] = static_cast<uint16_t>( metrics.width );
     glyph.size[ 1 ] = static_cast<uint16_t>( metrics.height );
@@ -252,7 +254,7 @@ int main( int argc, const char** argv )
     genRange( charset, 0xA1, 0x100 ); // latin supplement
     genRange( charset, 0x100, 0x180 ); // latin extended-A
 
-    auto renderSlot = [&face]( char32_t ch ) -> Slot
+    auto renderSlot = [&face, size]( char32_t ch ) -> Slot
     {
         const FT_UInt glyphIndex = FT_Get_Char_Index( face, ch );
         if ( glyphIndex == 0 ) {
@@ -271,7 +273,7 @@ int main( int argc, const char** argv )
 
         Slot ret{};
         ret.ch = ch;
-        ret.glyph = getGlyphMetrics( slot );
+        ret.glyph = getGlyphMetrics( slot, size );
         ret.pitch = (uint32_t)slot->bitmap.pitch;
         ret.rows = slot->bitmap.rows;
         auto* begin = reinterpret_cast<const uint8_t*>( slot->bitmap.buffer );

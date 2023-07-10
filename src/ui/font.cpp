@@ -16,7 +16,7 @@
 
 #define HACK_SIZE * 0.5f
 
-static std::tuple<math::vec4, math::vec4> composeSprite( const fnta::Glyph* glyph, math::vec2 extent, math::vec2 surfacePos, math::vec2 originPointHack )
+static std::tuple<math::vec4, math::vec4> composeSprite( const fnta::Glyph* glyph, math::vec2 extent, math::vec2 surfacePos )
 {
     math::vec2 position{ glyph->position[ 0 ], glyph->position[ 1 ] };
     math::vec2 padding = math::vec2{ glyph->padding[ 0 ], glyph->padding[ 1 ] } HACK_SIZE;
@@ -24,10 +24,7 @@ static std::tuple<math::vec4, math::vec4> composeSprite( const fnta::Glyph* glyp
     math::vec2 uv1 = position / extent;
     math::vec2 uv2 = size / extent;
 
-    // HACK: also hack for sizing
-    size *= 0.5f;
-    padding.y *= -1.0f;
-    padding += originPointHack; // top vs bottom
+    size = size HACK_SIZE;
     math::vec2 topLeft = surfacePos + padding;
 
     return std::make_tuple(
@@ -129,7 +126,7 @@ Font::RenderText Font::composeText( const math::vec4& color, std::u32string_view
         const fnta::Glyph* glyph = m_glyphMap.find( chr );
         assert( glyph );
         auto& sprite = pushConstant.m_sprites[ i ];
-        std::tie( sprite.m_xywh, sprite.m_uvwh ) = composeSprite( glyph, extent, surfacePos, { 0.0f, m_lineHeight } );
+        std::tie( sprite.m_xywh, sprite.m_uvwh ) = composeSprite( glyph, extent, surfacePos );
         surfacePos.x += (float)glyph->advance[ 0 ] HACK_SIZE;
     }
     return { pushData, pushConstant };
