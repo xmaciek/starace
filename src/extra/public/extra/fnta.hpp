@@ -6,12 +6,13 @@ namespace fnta {
 
 struct Header {
     static constexpr inline uint32_t MAGIC = 'ATNF';
-    static constexpr inline uint32_t VERSION = 1;
+    static constexpr inline uint32_t VERSION = 2;
     uint32_t magic = MAGIC;
     uint32_t version = VERSION;
     uint32_t count = 0;
     uint32_t width = 0;
     uint32_t height = 0;
+    uint32_t lineHeight = 0;
 };
 
 struct Glyph {

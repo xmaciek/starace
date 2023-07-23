@@ -14,17 +14,15 @@
 #include <memory_resource>
 #include <vector>
 
-#define HACK_SIZE * 0.5f
-
-static std::tuple<math::vec4, math::vec4> composeSprite( const fnta::Glyph* glyph, math::vec2 extent, math::vec2 surfacePos )
+static std::tuple<math::vec4, math::vec4> composeSprite( const fnta::Glyph* glyph, math::vec2 extent, math::vec2 surfacePos, float scale )
 {
     math::vec2 position{ glyph->position[ 0 ], glyph->position[ 1 ] };
-    math::vec2 padding = math::vec2{ glyph->padding[ 0 ], glyph->padding[ 1 ] } HACK_SIZE;
+    math::vec2 padding = math::vec2{ glyph->padding[ 0 ], glyph->padding[ 1 ] } * scale;
     math::vec2 size{ glyph->size[ 0 ], glyph->size[ 1 ] };
     math::vec2 uv1 = position / extent;
     math::vec2 uv2 = size / extent;
 
-    size = size HACK_SIZE;
+    size *= scale;
     math::vec2 topLeft = surfacePos + padding;
 
     return std::make_tuple(
@@ -36,12 +34,12 @@ static std::tuple<math::vec4, math::vec4> composeSprite( const fnta::Glyph* glyp
 namespace ui {
 
 Font::Font( const CreateInfo& ci )
-: m_lineHeight{ ci.lineHeight }
+: m_scale{ ci.scale }
 , m_texture{ ci.texture }
 {
     ZoneScoped;
     assert( !ci.fontAtlas.empty() );
-    assert( ci.lineHeight > 0 );
+    assert( ci.scale > 0.0f );
     assert( ci.texture );
 
     using Header = fnta::Header;
@@ -81,13 +79,14 @@ Font::Font( const CreateInfo& ci )
     std::span<const fnta::Glyph> glyphSpan{ glyphsBegin, glyphsEnd };
     m_width = header.width;
     m_height = header.height;
+    m_lineHeight = header.lineHeight;
     m_glyphMap = GlyphMap{ charSpan, glyphSpan };
 
 }
 
-uint32_t Font::height() const
+float Font::height() const
 {
-    return m_lineHeight;
+    return static_cast<float>( m_lineHeight ) * m_scale;
 }
 
 float Font::textLength( std::u32string_view text ) const
@@ -97,7 +96,7 @@ float Font::textLength( std::u32string_view text ) const
     {
         const fnta::Glyph* glyph = m_glyphMap.find( ch );
         assert( glyph );
-        return static_cast<float>( glyph->advance[ 0 ] ) HACK_SIZE;
+        return static_cast<float>( glyph->advance[ 0 ] ) * m_scale;
     };
     for ( auto ch : text ) { ret += sum( ch ); }
     return ret;
@@ -126,8 +125,8 @@ Font::RenderText Font::composeText( const math::vec4& color, std::u32string_view
         const fnta::Glyph* glyph = m_glyphMap.find( chr );
         assert( glyph );
         auto& sprite = pushConstant.m_sprites[ i ];
-        std::tie( sprite.m_xywh, sprite.m_uvwh ) = composeSprite( glyph, extent, surfacePos );
-        surfacePos.x += (float)glyph->advance[ 0 ] HACK_SIZE;
+        std::tie( sprite.m_xywh, sprite.m_uvwh ) = composeSprite( glyph, extent, surfacePos, m_scale );
+        surfacePos.x += static_cast<float>( glyph->advance[ 0 ] ) * m_scale;
     }
     return { pushData, pushConstant };
 }

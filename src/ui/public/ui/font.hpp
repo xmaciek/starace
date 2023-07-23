@@ -22,6 +22,7 @@ class Font {
     uint32_t m_width = 0;
     uint32_t m_height = 0;
     uint32_t m_lineHeight = 0;
+    float m_scale = 1.0f;
     Texture m_texture{};
     using GlyphMap = FixedMapView<const char32_t, const fnta::Glyph>;
     GlyphMap m_glyphMap{};
@@ -30,13 +31,13 @@ public:
     struct CreateInfo {
         std::span<const uint8_t> fontAtlas{};
         Texture texture{};
-        uint32_t lineHeight = 0;
+        float scale = 1.0f;
     };
 
     ~Font() = default;
     Font( const CreateInfo& );
 
-    uint32_t height() const;
+    float height() const;
     float textLength( std::u32string_view ) const;
 
     using RenderText = std::pair<PushBuffer, ui::PushConstant<ui::Pipeline::eSpriteSequence>>;

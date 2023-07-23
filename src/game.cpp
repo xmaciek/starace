@@ -404,17 +404,17 @@ void Game::onInit()
         ui::Font::CreateInfo dejavu12{
             .fontAtlas = m_io->viewWait( "fonts/dejavu_24.fnta" ),
             .texture = parseTexture( m_io->viewWait( "fonts/dejavu_24.dds" ) ),
-            .lineHeight = 12,
+            .scale = 0.5f,
         };
         ui::Font::CreateInfo dejavu18{
             .fontAtlas = m_io->viewWait( "fonts/dejavu_36.fnta" ),
             .texture = parseTexture( m_io->viewWait( "fonts/dejavu_36.dds" ) ),
-            .lineHeight = 18,
+            .scale = 0.5f,
         };
         ui::Font::CreateInfo dejavu32{
             .fontAtlas = m_io->viewWait( "fonts/dejavu_64.fnta" ),
             .texture = parseTexture( m_io->viewWait( "fonts/dejavu_64.dds" ) ),
-            .lineHeight = 32,
+            .scale = 0.5f,
         };
         auto* alloc = std::pmr::get_default_resource();
         m_fontSmall = UniquePointer<ui::Font>{ alloc, dejavu12 };

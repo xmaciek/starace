@@ -374,6 +374,7 @@ int main( int argc, const char** argv )
         .count = (uint32_t)charset.size(),
         .width = surfExtent,
         .height = surfExtent,
+        .lineHeight = size,
     };
     ofs = std::ofstream( (std::string)argsDstFont, std::ios::binary );
     if ( !ofs.is_open() ) {
