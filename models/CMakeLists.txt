@@ -20,4 +20,4 @@ cook_obj( a3 )
 cook_obj( a4 )
 cook_obj( a5 )
 
-pack_tar( ARCHIVE "models.tar" FILES "${model_list}" )
+pack( ARCHIVE "models" FILES "${model_list}" )

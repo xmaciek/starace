@@ -46,4 +46,4 @@ compileShader( trianglefan_color.vert )
 compileShader( trianglefan_texture.frag )
 compileShader( trianglefan_texture.vert )
 
-pack_tar( ARCHIVE "shaders.tar" FILES "${shader_list}" )
+pack( ARCHIVE "shaders" FILES "${shader_list}" )

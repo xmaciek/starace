@@ -45,4 +45,4 @@ cook_dds( SRC nebula1.tga       DST nebula1.dds     MIPGEN )
 cook_dds( SRC plasma.tga        DST plasma.dds      MIPGEN )
 cook_dds( SRC star_field.tga    DST star_field.dds  MIPGEN )
 
-pack_tar( ARCHIVE "textures.tar" FILES "${texture_list}" )
+pack( ARCHIVE "textures" FILES "${texture_list}" )

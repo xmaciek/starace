@@ -10,7 +10,7 @@ target_sources( extra
     ${CMAKE_CURRENT_SOURCE_DIR}/public/extra/dds.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/extra/fnta.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/extra/obj.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/public/extra/tar.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/extra/pak.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/extra/tga.hpp
 )
 set_vs_directory( extra "libs" )

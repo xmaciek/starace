@@ -18,42 +18,43 @@ function( set_vs_directory tgt dirname )
     )
 endfunction()
 
-function( pack_tar )
+function( pack )
     set( oneValueArgs ARCHIVE )
     set( multiValueArgs FILES )
-    cmake_parse_arguments( PACK_TAR "" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
-    if ( NOT DEFINED PACK_TAR_ARCHIVE )
+    cmake_parse_arguments( PACK "" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
+    if ( NOT DEFINED PACK_ARCHIVE )
         message( FATAL_ERROR "ARCHIVE file not provided" )
     endif()
 
-    if ( NOT DEFINED PACK_TAR_FILES )
+    if ( NOT DEFINED PACK_FILES )
         message( FATAL_ERROR "FILES list not provided" )
     endif()
 
-    add_custom_target( pack.${PACK_TAR_ARCHIVE} DEPENDS "${CMAKE_BINARY_DIR}/${PACK_TAR_ARCHIVE}" )
-    set_vs_directory( pack.${PACK_TAR_ARCHIVE} "pack" )
+    set( PACK_TARGET "pack.${PACK_ARCHIVE}" )
+    set( PACK_TARGET_FILE "${CMAKE_BINARY_DIR}/${PACK_ARCHIVE}.pak" )
+    add_custom_target( "${PACK_TARGET}" DEPENDS "${PACK_TARGET_FILE}" )
+    set_vs_directory( ${PACK_TARGET} "pack" )
     add_custom_command(
-        OUTPUT "${CMAKE_BINARY_DIR}/${PACK_TAR_ARCHIVE}"
-        DEPENDS cooker_tar "${PACK_TAR_FILES}"
-        COMMAND cooker_tar "${CMAKE_BINARY_DIR}/${PACK_TAR_ARCHIVE}" "\"${PACK_TAR_FILES}\""
+        OUTPUT "${PACK_TARGET_FILE}"
+        DEPENDS cooker_pak "${PACK_FILES}"
+        COMMAND cooker_pak "${PACK_TARGET_FILE}" "\"${PACK_FILES}\""
     )
-    add_dependencies( cook pack.${PACK_TAR_ARCHIVE} )
+    add_dependencies( cook pack.${PACK_ARCHIVE} )
 endfunction()
 
 add_custom_target( cook ALL )
 
-add_executable( cooker_obj )
-set_vs_directory( cooker_obj cooker )
+function( declare_cooker name )
+    add_executable( ${name} )
+    target_link_libraries( ${name} cxx::flags extra )
+    set_cppver( ${name} 20 )
+    set_vs_directory( ${name} cooker )
+endfunction()
 
-add_executable( cooker_dds )
-set_vs_directory( cooker_dds cooker )
-
-add_executable( cooker_tar )
-set_vs_directory( cooker_tar cooker )
-
-add_executable( cooker_font )
-set_vs_directory( cooker_font cooker )
-
+declare_cooker( cooker_dds )
+declare_cooker( cooker_font )
+declare_cooker( cooker_obj )
+declare_cooker( cooker_pak )
 
 find_package( Vulkan REQUIRED )
 add_subdirectory( sdk )
@@ -75,4 +76,4 @@ list( APPEND misc_list "${CMAKE_CURRENT_SOURCE_DIR}/misc/maps.cfg" )
 list( APPEND misc_list "${CMAKE_CURRENT_SOURCE_DIR}/misc/weapons.cfg" )
 list( APPEND misc_list "${CMAKE_CURRENT_SOURCE_DIR}/misc/ui_atlas.txt" )
 list( APPEND misc_list "${CMAKE_CURRENT_SOURCE_DIR}/lang/en.txt" )
-pack_tar( ARCHIVE "misc.tar" FILES "${misc_list}" )
+pack( ARCHIVE "misc" FILES "${misc_list}" )

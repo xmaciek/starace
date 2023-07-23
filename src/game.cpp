@@ -255,13 +255,13 @@ void Game::onResize( uint32_t w, uint32_t h )
 void Game::onInit()
 {
     ZoneScoped;
-    m_io->mount( "shaders.tar" );
-    m_io->mount( "fonts.tar" );
-    m_io->mount( "misc.tar" );
-    m_io->mount( "ui.tar" );
-    m_io->mount( "sounds.tar" );
-    m_io->mount( "models.tar" );
-    m_io->mount( "textures.tar" );
+    m_io->mount( "shaders.pak" );
+    m_io->mount( "fonts.pak" );
+    m_io->mount( "misc.pak" );
+    m_io->mount( "ui.pak" );
+    m_io->mount( "sounds.pak" );
+    m_io->mount( "models.pak" );
+    m_io->mount( "textures.pak" );
 
 
     auto setupPipeline = []( auto* renderer, auto* io, auto ci ) -> PipelineSlot
