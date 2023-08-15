@@ -9,6 +9,18 @@
 #include <vector>
 #include <memory_resource>
 
+#define RED "\x1b[31m"
+#define DEFAULT "\x1b[0m"
+
+static constexpr char FAIL[] = "[ " RED "FAIL" DEFAULT " ] ";
+
+[[noreturn]]
+static bool exitOnFailed( std::string_view msg, auto arg )
+{
+    std::cout << FAIL << msg << " " << arg << std::endl;
+    std::exit( 1 );
+}
+
 struct Vec2{ float data[ 2 ]; };
 struct Vec3{ float data[ 3 ]; };
 struct Face {
@@ -19,28 +31,13 @@ struct Face {
 
 int main( int argc, char** argv )
 {
-    if ( argc != 3 ) {
-        std::cout << "[ FAIL ] invalid number of arguments" << std::endl;
-        return 1;
-    }
+    ( argc == 3 ) || exitOnFailed( "expected 2 arguments: <src.obj> <dst.objc>", "" );
 
     std::filesystem::path src{ argv[ 1 ] };
     std::filesystem::path dst{ argv[ 2 ] };
 
-    if ( std::filesystem::exists( dst ) ) {
-        const std::filesystem::file_status dstStat = std::filesystem::status( dst );
-        const std::filesystem::perms perm = dstStat.permissions();
-        if ( ( perm & std::filesystem::perms::owner_write ) == std::filesystem::perms::none ) {
-            std::cout << "[ FAIL ] file not writable " << dst << std::endl;
-            return 1;
-        }
-    }
-
     std::ifstream ifs( src );
-    if ( !ifs.is_open() ) {
-        std::cout << "[ FAIL ] failed to open file " << src << std::endl;
-        return 1;
-    }
+    ifs.is_open() || exitOnFailed( "failed to open file:", src );
 
     decltype( obj::load( {} ) ) dataOut{};
     decltype( dataOut )::value_type* chunk = nullptr;
@@ -59,10 +56,7 @@ int main( int argc, char** argv )
         if ( line.size() < 3 ) { continue; }
         const std::string_view sv{ line.c_str(), 2 };
         if ( sv == "o " ) {
-            if ( line.size() > sizeof( obj::Chunk::name ) + 2 ) {
-                std::cout << "[ FAIL ] chunk name too long" << std::endl;
-                return 1;
-            }
+            ( line.size() <= sizeof( obj::Chunk::name ) + 2 ) || exitOnFailed( "object name too long to fit into Chunk.name field", "" );
             dataOut.emplace_back();
             chunk = &dataOut.back();
             std::copy_n( line.c_str() + 2, line.size() - 2, chunk->first.name );
@@ -86,7 +80,7 @@ int main( int argc, char** argv )
             case obj::DataType::vtn:
                 break;
             default:
-                std::cout << "[ FAIL ] data type misamtch" << std::endl;
+                exitOnFailed( "datas type mismatch", "" );
                 return 1;
             }
             chunk->first.dataType = obj::DataType::vtn;
@@ -101,23 +95,14 @@ int main( int argc, char** argv )
             f[ 1 ].vert--; f[ 1 ].uv--; f[ 1 ].norm--;
             f[ 2 ].vert--; f[ 2 ].uv--; f[ 2 ].norm--;
             for ( auto ff : f ) {
-                if ( ff.vert >= vertices.size() ) {
-                    std::cout << "[ FAIL ] requested index out of vertice range: index " << ff.vert + 1 << std::endl;
-                    return 1;
-                }
+                ( ff.vert < vertices.size() ) || exitOnFailed( "requested index out of vertice range: index", ff.vert + 1 );
                 chunk->second.push_back( vertices[ ff.vert ].data[ 0 ] );
                 chunk->second.push_back( vertices[ ff.vert ].data[ 1 ] );
                 chunk->second.push_back( vertices[ ff.vert ].data[ 2 ] );
-                if ( ff.uv >= uv.size() ) {
-                    std::cout << "[ FAIL ] requested index out of uv range: index " << ff.uv + 1 << std::endl;
-                    return 1;
-                }
+                ( ff.uv < uv.size() ) || exitOnFailed( "requested index out of uv range: index", ff.uv + 1 );
                 chunk->second.push_back( uv[ ff.uv ].data[ 0 ] );
                 chunk->second.push_back( uv[ ff.uv ].data[ 1 ] );
-                if ( ff.norm >= normals.size() ) {
-                    std::cout << "[ FAIL ] requested index out of normal range: index " << ff.norm + 1 << std::endl;
-                    return 1;
-                }
+                ( ff.norm < normals.size() ) || exitOnFailed( "requested index out of normal range: index", ff.norm + 1 );
                 chunk->second.push_back( normals[ ff.norm ].data[ 0 ] );
                 chunk->second.push_back( normals[ ff.norm ].data[ 1 ] );
                 chunk->second.push_back( normals[ ff.norm ].data[ 2 ] );
@@ -129,8 +114,7 @@ int main( int argc, char** argv )
             case obj::DataType::v:
                 break;
             default:
-                std::cout << "[ FAIL ] data type misamtch" << std::endl;
-                return 1;
+                exitOnFailed( "data type misamtch", "" );
             }
             chunk->first.dataType = obj::DataType::v;
 
@@ -145,10 +129,8 @@ int main( int argc, char** argv )
     ifs.close();
 
     for ( auto& it : dataOut ) {
-        if ( it.second.size() > std::numeric_limits<uint32_t>::max() ) {
-            std::cout << "[ FAIL ] float count too large, number exceeds max of uint32_t" << std::endl;
-            return 1;
-        }
+        ( it.second.size() <= std::numeric_limits<uint32_t>::max() )
+            || exitOnFailed( "float count too large, number exceeds max of uint32_t:", it.second.size() );
         it.first.floatCount = static_cast<uint32_t>( it.second.size() );
     }
 
@@ -156,10 +138,7 @@ int main( int argc, char** argv )
     header.chunkCount = static_cast<uint32_t>( dataOut.size() );
 
     std::ofstream ofs( dst, std::ios::binary );
-    if ( !ofs.is_open() ) {
-        std::cout << "[ FAIL ] failed to open " << dst << std::endl;
-        return 1;
-    }
+    ofs.is_open() || exitOnFailed( "failed to open:", dst );
 
     ofs.write( reinterpret_cast<const char*>( &header ), sizeof( header ) );
     for ( const auto& it : dataOut ) {

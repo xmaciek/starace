@@ -18,6 +18,13 @@
 
 static constexpr char FAIL[] = "[ " RED "FAIL" DEFAULT " ] ";
 
+[[noreturn]]
+static bool exitOnFailed( std::string_view msg, const auto& arg )
+{
+    std::cout << FAIL << msg << " " << arg << std::endl;
+    std::exit( 1 );
+}
+
 std::tuple<dds::dxgi::Format, tga::Header, std::pmr::vector<uint8_t>> convertTga( const std::filesystem::path& srcFile )
 {
     using B = uint8_t;
@@ -25,16 +32,10 @@ std::tuple<dds::dxgi::Format, tga::Header, std::pmr::vector<uint8_t>> convertTga
     struct BGRA { uint8_t b, g, r, a; };
 
     std::ifstream ifs( srcFile, std::ios::binary | std::ios::ate );
-    if ( !ifs.is_open() ) {
-        std::cout << "[ FAIL ] failed to open file " << srcFile << std::endl;
-        return { {}, {}, {} };
-    }
+    ifs.is_open() || exitOnFailed( "cannot open file:", srcFile );
 
     size_t fileSize = static_cast<size_t>( ifs.tellg() );
-    if ( fileSize < sizeof( tga::Header ) ) {
-        std::cout << "[ FAIL ] invalid file " << srcFile << std::endl;
-        return { {}, {}, {} };
-    }
+    ( fileSize >= sizeof( tga::Header ) ) || exitOnFailed( "file too short", srcFile );
 
     tga::Header header{};
     ifs.seekg( 0 );
@@ -88,8 +89,7 @@ std::tuple<dds::dxgi::Format, tga::Header, std::pmr::vector<uint8_t>> convertTga
             return { dds::dxgi::Format::B8G8R8A8_UNORM, header, ret };
 
         default:
-            std::cout << "[ FAIL ] unhandled colormap bpp (" << (int)header.colorMap[ 4 ] << ") " << srcFile << std::endl;
-            return { {}, {}, {} };
+            exitOnFailed( "unhandled colormap bpp", srcFile );
         }
     }
 
@@ -120,14 +120,12 @@ std::tuple<dds::dxgi::Format, tga::Header, std::pmr::vector<uint8_t>> convertTga
             return { dds::dxgi::Format::B8G8R8A8_UNORM, header, ret };
         }
         default:
-            std::cout << "[ FAIL ] unknown pixel format: todo maybe later: " << srcFile << std::endl;
-            return { {}, {}, {} };
+            exitOnFailed( "unknown pixel format, todo maybe later:", srcFile );
         }
     }
 
     default:
-        std::cout << "[ FAIL ] unhandled image type (" << (int)header.imageType << "), todo maybe later: " << srcFile << std::endl;
-        return { {}, {}, {} };
+        exitOnFailed( "unhandled image type:", srcFile );
     }
 }
 
@@ -249,10 +247,7 @@ int main( int argc, const char** argv )
         .dimension = dds::dxgi::Dimension::eTexture2D,
     };
     std::ofstream ofs( dst, std::ios::binary );
-    if ( !ofs.is_open() ) {
-        std::cout << "[ FAIL ] failed to open " << dst << std::endl;
-        return 1;
-    }
+    ofs.is_open() || exitOnFailed( "cannot open file:", dst );
 
     ofs.write( reinterpret_cast<const char*>( &header ), static_cast<std::streamsize>( sizeof( header ) ) );
     ofs.write( reinterpret_cast<const char*>( &dxgiHeader ), static_cast<std::streamsize>( sizeof( dxgiHeader ) ) );
