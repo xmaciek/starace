@@ -968,8 +968,8 @@ std::tuple<math::vec3, math::vec3, math::vec3> Game::getCamera() const
     math::vec3 lookAtTgt = m_targeting.target() ? *m_targeting.target() : jetCamTgt;
     math::vec3 lookAtPos = math::vec3{ 0.0f, -20.0_m, 0.0f } * m_jet.rotation() + jetPos - math::normalize( lookAtTgt - jetPos ) * 42.8_m;
 
-    math::vec3 retPos = math::nonlerp( jetCamPos, lookAtPos, m_lookAtTarget.value() );
-    math::vec3 retTgt = math::nonlerp( jetCamTgt, lookAtTgt, m_lookAtTarget.value() );
+    math::vec3 retPos = math::slerp( jetCamPos, lookAtPos, m_lookAtTarget.value() );
+    math::vec3 retTgt = math::slerp( jetCamTgt, lookAtTgt, m_lookAtTarget.value() );
 
     return { retPos, jetCamUp, retTgt };
 }

@@ -108,6 +108,12 @@ inline auto lerp( T a, T b, float n ) -> T
 }
 
 template <typename T = float>
+inline auto slerp( T a, T b, float n ) -> T
+{
+    return ( 1.0f - n ) * a + n * b;
+}
+
+template <typename T = float>
 inline auto curve( T a, T b, T c, float n ) -> T
 {
     return lerp( lerp( a, b, n ), lerp( b, c, n ), n );
