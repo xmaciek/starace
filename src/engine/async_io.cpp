@@ -85,5 +85,7 @@ void AsyncIO::mount( const std::filesystem::path& path )
     }
     std::scoped_lock<std::mutex> sl( m_bottleneck );
     m_blobs.emplace_back() = std::move( blob );
-    m_blobView.merge( std::move( map ) );
+    // NOTE: new entries should overwrite existing entries, but .merge does not do that, hence do the merge the other way
+    map.merge( std::move( m_blobView ) );
+    m_blobView = std::move( map );
 }
