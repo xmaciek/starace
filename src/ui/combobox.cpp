@@ -32,6 +32,7 @@ ComboBox::ComboBox( const ComboBox::CreateInfo& ci ) noexcept
     math::vec2 s = size();
     m_label.setPosition( math::vec2{ 16.0f, s.y * 0.5f } );
     m_value.setPosition( math::vec2{ s.x - 16.0f, s.y * 0.5f } );
+    setTabOrder( ci.tabOrder );
 }
 
 EventProcessing ComboBox::onAction( ui::Action action )

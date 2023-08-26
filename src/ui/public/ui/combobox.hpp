@@ -19,6 +19,7 @@ public:
         std::u32string text{};
         math::vec2 position{};
         math::vec2 size{};
+        uint16_t tabOrder = 0;
     };
     ~ComboBox() noexcept = default;
     ComboBox( const CreateInfo& ) noexcept;

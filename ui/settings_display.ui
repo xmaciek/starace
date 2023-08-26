@@ -7,50 +7,18 @@ Label = {
     y = 50
 }
 
-ComboBox = {
-    text = vsync
-    data = $data:vsync
+List = {
     x = 48
     y = 150
-    width = 400
-    height = 48
-}
-
-SpinBox = {
-    data = $data:fullscreen
-    x = 48
-    y = 200
-    width = 320
-    height = 48
-}
-
-Label = {
-    text = fullscreen
-    x = 370
-    y = 200
-}
-
-ComboBox = {
-    text = resolution
-    data = $data:resolution
-    x = 48
-    y = 250
-    width = 400
-    height = 48
-}
-
-SpinBox = {
-    data = $data:gammaCorrection
-    x = 48
-    y = 300
-    width = 320
-    height = 48
-}
-
-Label = {
-    text = gammaCorrection
-    x = 370
-    y = 300
+    spacing = 2
+    elementWidth = 400
+    elementHeight = 48
+    entries = {
+        ComboBox = { text = vsync       data = $data:vsync }
+        ComboBox = { text = fullscreen  data = $data:fullscreen }
+        ComboBox = { text = resolution  data = $data:resolution }
+        ComboBox = { text = gammaCorrection  data = $data:gammaCorrection }
+    }
 }
 
 Button = {

@@ -34,7 +34,6 @@ static auto dataKeyToModel( std::string_view strv )
     return it != g_gameUiDataModels.end() ? it->second : nullptr;
 }
 
-
 namespace ui {
 
 static UniquePointer<Widget> makeButton( std::pmr::memory_resource* alloc, const cfg::Entry& entry, uint16_t tabOrder )
@@ -219,6 +218,86 @@ static UniquePointer<Widget> makeProgressbar( std::pmr::memory_resource* alloc, 
     return UniquePointer<Progressbar>{ alloc, ci };
 }
 
+static void makeList( std::pmr::memory_resource* alloc, const cfg::Entry& entry, std::pmr::vector<UniquePointer<Widget>>& retList, uint16_t& tabOrder )
+{
+    struct Element {
+        enum class Type : uint32_t {
+            invalid = 0,
+            eComboBox,
+        };
+        std::u32string text{};
+        ui::DataModel* model = nullptr;
+        Type type{};
+        uint16_t tabOrder = 0;
+    };
+
+    math::vec2 xy{};
+    math::vec2 elementSize{};
+    float spacing = 0.0f;
+    std::pmr::vector<Element> elements;
+    auto readElement = [&tabOrder]( const cfg::Entry& entry ) -> Element
+    {
+        Element e{};
+        Hash hash{};
+        switch ( hash( *entry ) ) {
+        case "ComboBox"_hash:
+            e.tabOrder = tabOrder++;
+            e.type = Element::Type::eComboBox;
+            for ( auto&& property : entry ) {
+                switch ( hash( *property ) ) {
+                case "text"_hash: e.text = g_uiProperty.localize( property.toString() ); continue;
+                case "data"_hash: e.model = dataKeyToModel( property.toString() ); continue;
+                default: assert( !"unhandled enum when reading List.entries.ComboBox" ); continue;
+                }
+            }
+            break;
+        default:
+            assert( !"unhandled enum when reading List.entries" );
+            break;
+        }
+        return e;
+    };
+
+    Hash hash{};
+    for ( auto&& property : entry ) {
+        switch ( hash( *property ) ) {
+        case "x"_hash: xy.x = property.toFloat(); continue;
+        case "y"_hash: xy.y = property.toFloat(); continue;
+        case "spacing"_hash: spacing = property.toFloat(); continue;
+        case "elementWidth"_hash: elementSize.x = property.toFloat(); continue;
+        case "elementHeight"_hash: elementSize.y = property.toFloat(); continue;
+        case "entries"_hash:
+            for ( auto&& e : property ) {
+                elements.emplace_back( readElement( e ) );
+            }
+            continue;
+        default:
+            assert( !"unhandled enum when reading List" );
+        }
+    }
+
+
+    for ( auto&& it : elements ) {
+        switch ( it.type ) {
+        case Element::Type::eComboBox: {
+            ComboBox::CreateInfo ci{
+                .model = it.model,
+                .text = std::move( it.text ),
+                .position = xy,
+                .size = elementSize,
+                .tabOrder = it.tabOrder
+            };
+            retList.emplace_back( UniquePointer<ComboBox>( alloc, ci ) );
+        } break;
+        default:
+            assert( !"Unhandled elemet type" );
+            continue;
+        }
+        // TODO: more directions than down
+        xy.y += spacing + elementSize.y;
+    }
+}
+
 Screen::Screen( const cfg::Entry& entry ) noexcept
 {
     ZoneScoped;
@@ -227,10 +306,11 @@ Screen::Screen( const cfg::Entry& entry ) noexcept
 
     Hash hash{};
     for ( const auto& property : entry ) {
-        switch ( hash( * property ) ) {
+        switch ( hash( *property ) ) {
         case "Button"_hash: m_widgets.emplace_back( makeButton( alloc, property, tabOrderCount++ ) ); continue;
         case "ComboBox"_hash: m_widgets.emplace_back( makeComboBox( alloc, property, tabOrderCount++ ) ); continue;
         case "Image"_hash: m_widgets.emplace_back( makeImage( alloc, property ) ); continue;
+        case "List"_hash: makeList( alloc, property, m_widgets, tabOrderCount ); continue;
         case "Label"_hash: m_widgets.emplace_back( makeLabel( alloc, property ) ); continue;
         case "NineSlice"_hash: m_widgets.emplace_back( makeNineSlice( alloc, property ) ); continue;
         case "Progressbar"_hash: m_widgets.emplace_back( makeProgressbar( alloc, property ) ); continue;
