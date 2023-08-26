@@ -233,7 +233,10 @@ static void makeList( std::pmr::memory_resource* alloc, const cfg::Entry& entry,
 
     math::vec2 xy{};
     math::vec2 elementSize{};
+    math::vec2 advance{};
     float spacing = 0.0f;
+    Hash::value_type direction = "down"_hash;
+
     std::pmr::vector<Element> elements;
     auto readElement = [&tabOrder]( const cfg::Entry& entry ) -> Element
     {
@@ -266,6 +269,7 @@ static void makeList( std::pmr::memory_resource* alloc, const cfg::Entry& entry,
         case "spacing"_hash: spacing = property.toFloat(); continue;
         case "elementWidth"_hash: elementSize.x = property.toFloat(); continue;
         case "elementHeight"_hash: elementSize.y = property.toFloat(); continue;
+        case "direction"_hash: direction = hash( property.toString() ); continue;
         case "entries"_hash:
             for ( auto&& e : property ) {
                 elements.emplace_back( readElement( e ) );
@@ -275,6 +279,16 @@ static void makeList( std::pmr::memory_resource* alloc, const cfg::Entry& entry,
             assert( !"unhandled enum when reading List" );
         }
     }
+
+    switch ( direction ) {
+        default:
+            assert( !"unhandled enum List.direction" );
+            [[fallthrough]];
+        case "down"_hash: advance = { 0.0f, spacing + elementSize.y }; break;
+        case "up"_hash: advance = { 0.0f, -( spacing + elementSize.y ) }; break;
+        case "left"_hash: advance = { -( spacing + elementSize.x ), 0.0f }; break;
+        case "right"_hash: advance = { spacing + elementSize.x, 0.0f }; break;
+    };
 
 
     for ( auto&& it : elements ) {
@@ -293,8 +307,7 @@ static void makeList( std::pmr::memory_resource* alloc, const cfg::Entry& entry,
             assert( !"Unhandled elemet type" );
             continue;
         }
-        // TODO: more directions than down
-        xy.y += spacing + elementSize.y;
+        xy += advance;
     }
 }
 

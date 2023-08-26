@@ -13,6 +13,7 @@ List = {
     spacing = 2
     elementWidth = 400
     elementHeight = 48
+    direction = down
     entries = {
         ComboBox = { text = vsync       data = $data:vsync }
         ComboBox = { text = fullscreen  data = $data:fullscreen }
