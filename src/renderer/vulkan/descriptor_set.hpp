@@ -16,7 +16,7 @@ class DescriptorSet {
     std::pmr::vector<VkDescriptorSet> m_set;
     uint32_t m_current = 0;
     uint32_t m_imagesCount = 0;
-    bool m_isGraphics = true;
+    VkDescriptorType m_imageType{};
 
     void expandCapacityBy( uint32_t );
 

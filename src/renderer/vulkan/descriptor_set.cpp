@@ -24,7 +24,7 @@ DescriptorSet::DescriptorSet( DescriptorSet&& rhs ) noexcept
     std::swap( m_current, rhs.m_current );
     std::swap( m_pools, rhs.m_pools );
     std::swap( m_imagesCount, rhs.m_imagesCount );
-    std::swap( m_isGraphics, rhs.m_isGraphics );
+    std::swap( m_imageType, rhs.m_imageType );
 }
 
 DescriptorSet& DescriptorSet::operator = ( DescriptorSet&& rhs ) noexcept
@@ -35,8 +35,34 @@ DescriptorSet& DescriptorSet::operator = ( DescriptorSet&& rhs ) noexcept
     std::swap( m_current, rhs.m_current );
     std::swap( m_pools, rhs.m_pools );
     std::swap( m_imagesCount, rhs.m_imagesCount );
-    std::swap( m_isGraphics, rhs.m_isGraphics );
+    std::swap( m_imageType, rhs.m_imageType );
     return *this;
+}
+
+[[maybe_unused]]
+static constexpr bool validateDescriptorTypeIsSupportedImage( VkDescriptorType d )
+{
+    switch ( d ) {
+    case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+    case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
+        return true;
+    default:
+        return false;
+    }
+}
+
+static VkDescriptorType guessImageType( const DescriptorSet::BindingInfo& binding )
+{
+    for ( auto&& it : binding ) {
+        switch ( it ) {
+        case BindType::eComputeImage: return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        case BindType::eFragmentImage: return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        default:
+            continue;
+        }
+    }
+    assert( !"unable to guess desctiptor image type" );
+    return {};
 }
 
 static VkDescriptorSetLayout createLayout( VkDevice device, const DescriptorSet::BindingInfo& binding )
@@ -99,29 +125,22 @@ DescriptorSet::DescriptorSet( VkDevice device, const BindingInfo& binding ) noex
 : m_device{ device }
 {
     m_layout = createLayout( m_device, binding );
-    m_isGraphics = std::find_if( binding.begin(), binding.end(), []( BindType b )
-    {
-        return ( ( b & BindType::fVertex ) == BindType::fVertex )
-            || ( ( b & BindType::fFragment ) == BindType::fFragment );
-    } ) != binding.end();
-
     auto predicate = []( BindType b ) -> bool { return ( b & BindType::fImage ) == BindType::fImage; };
     m_imagesCount = static_cast<uint32_t>( std::count_if( binding.begin(), binding.end(), predicate ) );
-
+    if ( m_imagesCount > 0 ) {
+        m_imageType = guessImageType( binding );
+    }
     expandCapacityBy( 50 );
 }
 
 void DescriptorSet::expandCapacityBy( uint32_t v )
 {
+    assert( m_imagesCount == 0 || validateDescriptorTypeIsSupportedImage( m_imageType ) );
     auto currentCapacity = m_set.size();
-    auto imageType = m_isGraphics
-        ? VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
-        : VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-
     const uint32_t poolSizeCount = 1 + !!m_imagesCount;
     const std::array poolSizes = {
         VkDescriptorPoolSize{ .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, .descriptorCount = v },
-        VkDescriptorPoolSize{ .type = imageType, .descriptorCount = v * m_imagesCount },
+        VkDescriptorPoolSize{ .type = m_imageType, .descriptorCount = v * m_imagesCount },
     };
 
     const VkDescriptorPoolCreateInfo poolInfo{
