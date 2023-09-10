@@ -220,12 +220,15 @@ static UniquePointer<Widget> makeProgressbar( std::pmr::memory_resource* alloc, 
 
 static void makeList( std::pmr::memory_resource* alloc, const cfg::Entry& entry, std::pmr::vector<UniquePointer<Widget>>& retList, uint16_t& tabOrder )
 {
+    ZoneScoped;
     struct Element {
         enum class Type : uint32_t {
             invalid = 0,
+            eButton,
             eComboBox,
         };
         std::u32string text{};
+        std::function<void()> trigger{};
         ui::DataModel* model = nullptr;
         Type type{};
         uint16_t tabOrder = 0;
@@ -253,7 +256,17 @@ static void makeList( std::pmr::memory_resource* alloc, const cfg::Entry& entry,
                 default: assert( !"unhandled enum when reading List.entries.ComboBox" ); continue;
                 }
             }
-            break;
+            return e;
+        case "Button"_hash:
+            e.tabOrder = tabOrder++;
+            e.type = Element::Type::eButton;
+            for ( auto&& property : entry ) {
+                switch ( hash( *property ) ) {
+                case "text"_hash: e.text = g_uiProperty.localize( property.toString() ); continue;
+                case "trigger"_hash: e.trigger = fnKeyToFunction( property.toString() ); continue;
+                }
+            }
+            return e;
         default:
             assert( !"unhandled enum when reading List.entries" );
             break;
@@ -302,6 +315,16 @@ static void makeList( std::pmr::memory_resource* alloc, const cfg::Entry& entry,
                 .tabOrder = it.tabOrder
             };
             retList.emplace_back( UniquePointer<ComboBox>( alloc, ci ) );
+        } break;
+        case Element::Type::eButton: {
+            Button::CreateInfo ci{
+                .text = std::move( it.text ),
+                .position = xy,
+                .size = elementSize,
+                .trigger = std::move( it.trigger ),
+                .tabOrder = it.tabOrder
+            };
+            retList.emplace_back( UniquePointer<Button>( alloc, ci ) );
         } break;
         default:
             assert( !"Unhandled elemet type" );
