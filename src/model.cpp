@@ -1,6 +1,7 @@
 #include "model.hpp"
 
 #include "game_pipeline.hpp"
+#include "units.hpp"
 
 #include <renderer/renderer.hpp>
 
@@ -26,7 +27,7 @@ void Model::render( RenderContext rctx ) const
     ZoneScoped;
     PushConstant<Pipeline::eAlbedo> pushConstant{};
     const float s = m_scale;
-    pushConstant.m_model = math::scale( rctx.model, math::vec3{ s, s, s } );
+    pushConstant.m_model = math::scale( rctx.model, math::vec3{ s, s, s } * (float)meter );
     pushConstant.m_view = rctx.view;
     pushConstant.m_projection = rctx.projection;
 
@@ -49,12 +50,12 @@ std::vector<math::vec3> Model::thrusters() const
     ZoneScoped;
     std::vector<math::vec3> vec = m_thrusters;
     for ( auto& it : vec ) {
-        it *= m_scale;
+        it *= m_scale * (float)meter;
     }
     return vec;
 }
 
 math::vec3 Model::weapon( uint32_t i ) const
 {
-    return m_weapons[ i >= 3 ? 0 : i ] * m_scale;
+    return m_weapons[ i >= 3 ? 0 : i ] * m_scale * (float)meter;
 }

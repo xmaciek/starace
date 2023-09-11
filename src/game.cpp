@@ -477,7 +477,7 @@ void Game::onInit()
     m_screenSettingsDisplay = cfg::Entry::fromData( m_io->viewWait( "ui/settings_display.ui" ) );
     m_screenTitle =         cfg::Entry::fromData( m_io->viewWait( "ui/mainmenu.ui" ) );
 
-    m_enemyModel = Model{ m_meshes[ "models/a2.objc" ], m_textures[ "textures/a2.dds" ], 0.45f };
+    m_enemyModel = Model{ m_meshes[ "models/a2.objc" ], m_textures[ "textures/a2.dds" ], 18.6335403727f /*HACK*/ };
 
     onResize( viewportWidth(), viewportHeight() );
 

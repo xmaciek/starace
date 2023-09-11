@@ -20,7 +20,7 @@ static math::vec3 pointMult( uint8_t a, uint8_t b, uint8_t c )
 };
 
 Jet::Jet( const CreateInfo& ci ) noexcept
-: m_thruster{ { ci.modelScale, ci.modelScale * 0.04285f }, { ci.modelScale, ci.modelScale * 0.04285f } }
+: m_thruster{ { ci.modelScale, ci.modelScale }, { ci.modelScale, ci.modelScale } }
 , m_model{ ci.model }
 , m_weapons{ ci.weapons }
 , m_pyrLimits{ defaultPyrLimits }
