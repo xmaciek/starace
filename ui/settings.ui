@@ -16,11 +16,6 @@ Button = {
     height = 48
 }
 
-Button = {
-    text = return
-    trigger = $function:goto_titlemenu
-    x = 48
-    y = 450
-    width = 320
-    height = 48
+Footer = {
+    Button = { text = return    input = eMenuCancel     trigger = $function:goto_titlemenu }
 }

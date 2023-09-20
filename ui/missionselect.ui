@@ -24,27 +24,21 @@ Button = {
     height = 48
 }
 
-Button = {
-    text = return
-    trigger = $function:goto_titlemenu
-    x = 48
-    y = 350
-    width = 320
-    height = 48
-}
-
-
 NineSlice = {
-    x = 600
+    x = 720
     y = 48
-    width = 600
-    height = 600
+    width = 512
+    height = 512
 }
 
 Image = {
     data = $data:missionSelect
-    x = 624
+    x = 744
     y = 72
-    width = 552
-    height = 552
+    width = 464
+    height = 464
+}
+
+Footer = {
+    Button = { text = return    input = eMenuCancel     trigger = $function:goto_titlemenu }
 }
