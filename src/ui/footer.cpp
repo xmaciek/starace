@@ -7,6 +7,9 @@
 #include <renderer/renderer.hpp>
 
 #include <cassert>
+#include <memory_resource>
+#include <string>
+
 static constexpr std::array<ui::Atlas::hash_type, 9> SLICES = {
     "topLeft"_hash,
     "top"_hash,
@@ -29,34 +32,41 @@ Footer::Footer( const Footer::CreateInfo& ci ) noexcept
         if ( idx == m_actions.size() ) break;
         m_actions[ idx++ ] = ActionInfo{ entry.action, entry.textId, entry.triggerId };
     }
+
+    refreshText();
 }
 
-void Footer::render( RenderContext rctx ) const
+void Footer::refreshText()
 {
-    NineSlice ns{ position(), size(), Anchor::fTop | Anchor::fLeft, SLICES };
-    ns.render( rctx );
-
-    std::u32string text;
-    auto inputToText = []( auto i ) -> std::u32string_view
+    auto inputToText = []( auto i ) -> std::pmr::u32string
     {
         switch ( i ) {
-            case Action::eMenuCancel: return U"[Esc]";
-            case Action::eMenuApply: return U"[Space]";
+            // TODO action to actuator, then localize
+            case Action::eMenuCancel: return g_uiProperty.localize( "input.escape" );
+            case Action::eMenuApply: return g_uiProperty.localize( "input.space" );
+            case Action::eMenuConfirm: return g_uiProperty.localize( "input.enter" );
             default:
                 assert( !"TODO: more input to text" );
                 return U"[]";
         }
     };
+    m_text.clear();
     for ( auto&& action : m_actions ) {
         if ( action.textId == 0 ) continue;
-        text.append( inputToText( action.action ) );
-        text.append( U" " );
-        text.append( g_uiProperty.localize( action.textId ) );
-        text.append( U"    " );
+        m_text.append( inputToText( action.action ) );
+        m_text.append( U" " );
+        m_text.append( g_uiProperty.localize( action.textId ) );
+        m_text.append( U"    " );
     };
-    float textLength = g_uiProperty.fontMedium()->textLength( text );
-    auto [ pushData, pushConstant ] = g_uiProperty.fontMedium()->composeText( math::vec4{ 1.0f, 1.0f, 1.0f, 1.0f }, text );
-    pushConstant.m_model = math::translate( rctx.model, math::vec3{ size().x - textLength, position().y + g_uiProperty.fontMedium()->height() * 0.618f, 0 } );
+    m_textLength = g_uiProperty.fontMedium()->textLength( m_text );
+}
+
+void Footer::render( RenderContext rctx ) const
+{
+    NineSlice{ position(), size(), Anchor::fTop | Anchor::fLeft, SLICES }.render( rctx );
+
+    auto [ pushData, pushConstant ] = g_uiProperty.fontMedium()->composeText( math::vec4{ 1.0f, 1.0f, 1.0f, 1.0f }, m_text );
+    pushConstant.m_model = math::translate( rctx.model, math::vec3{ size().x - m_textLength, position().y + g_uiProperty.fontMedium()->height() * 0.618f, 0 } );
     pushConstant.m_view = rctx.view;
     pushConstant.m_projection = rctx.projection;
     rctx.renderer->push( pushData, &pushConstant );

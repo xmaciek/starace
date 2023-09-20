@@ -4,9 +4,11 @@
 #include <ui/input.hpp>
 #include <shared/hash.hpp>
 
-#include <span>
-#include <cstdint>
 #include <array>
+#include <cstdint>
+#include <memory_resource>
+#include <span>
+#include <string>
 
 namespace ui {
 
@@ -43,7 +45,11 @@ private:
         Hash::value_type textId = 0;
         Hash::value_type triggerId = 0;
     };
-    std::array<ActionInfo, 4> m_actions{};
+    static constexpr uint32_t MAX_ENTRIES = 4;
+    std::array<ActionInfo, MAX_ENTRIES> m_actions{};
+    std::pmr::u32string m_text{};
+    float m_textLength = 0.0f;
+    void refreshText();
 };
 
 
