@@ -27,6 +27,7 @@ class Screen {
     std::pmr::vector<UniquePointer<Widget>> m_widgets{};
 
     UniquePointer<Widget> m_comboBoxList{};
+    UniquePointer<Widget> m_footer{};
 
     void changeFocus( uint16_t from, uint16_t to );
     Widget* findWidgetByTabOrder( uint16_t );

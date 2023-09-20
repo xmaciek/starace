@@ -121,13 +121,15 @@ private:
     OptionsGFX m_optionsGFX{};
     OptionsCustomize m_optionsCustomize{};
 
-    ui::Var<std::pmr::u32string> m_uiMissionResult{ "$var:missionResult", U"BUG ME" };
-    ui::Var<std::pmr::u32string> m_uiMissionScore{ "$var:missionScore", U"BUG ME" };
-    ui::Var<float> m_uiPlayerHP{ "$var:playerHP", 0.0f };
-
-    FixedMap<Hash::value_type, std::pmr::u32string, 64> m_localizationMap{};
+    ui::Var<std::pmr::u32string> m_uiMissionResult{ U"BUG ME" };
+    ui::Var<std::pmr::u32string> m_uiMissionScore{ U"BUG ME" };
+    ui::Var<float> m_uiPlayerHP{ 0.0f };
 
     ActionStateTracker m_actionStateTracker{};
+
+    FixedMap<Hash::value_type, ui::DataModel*, 64> m_gameUiDataModels{};
+    FixedMap<Hash::value_type, std::function<void()>, 64> m_gameCallbacks{};
+    FixedMap<Hash::value_type, std::pmr::u32string, 64> m_localizationMap{};
 
     uint32_t viewportHeight() const;
     uint32_t viewportWidth() const;
@@ -143,6 +145,9 @@ private:
 
     std::tuple<math::vec3, math::vec3, math::vec3> getCamera() const;
     std::tuple<math::mat4, math::mat4> getCameraMatrix() const;
+
+    void setupLocalization();
+    void setupUI();
 
     // purposefully copy argument
     void render3D( RenderContext );

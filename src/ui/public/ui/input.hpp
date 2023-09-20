@@ -12,6 +12,7 @@ struct Action {
         eMenuDown,
         eMenuLeft,
         eMenuRight,
+        eMenuApply,
         eMenuConfirm,
         eMenuCancel,
         end,
@@ -20,6 +21,7 @@ struct Action {
 
     Enum a{};
     int16_t value = 0;
+
 };
 
 }

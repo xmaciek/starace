@@ -8,6 +8,7 @@ target_sources( ui
     combobox.cpp
     data_model.cpp
     font.cpp
+    footer.cpp
     image.cpp
     label.cpp
     linear_atlas.cpp
@@ -24,6 +25,7 @@ target_sources( ui
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/combobox.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/data_model.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/font.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/footer.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/image.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/input.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/label.hpp

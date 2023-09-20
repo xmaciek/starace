@@ -40,7 +40,7 @@ public:
     float height() const;
     float textLength( std::u32string_view ) const;
 
-    using RenderText = std::pair<PushBuffer, ui::PushConstant<ui::Pipeline::eSpriteSequence>>;
+    using RenderText = std::pair<PushData, ui::PushConstant<ui::Pipeline::eSpriteSequence>>;
     RenderText composeText( const math::vec4& color, std::u32string_view ) const;
 };
 

@@ -6,6 +6,7 @@
 
 #include <ui/button.hpp>
 #include <ui/combobox.hpp>
+#include <ui/footer.hpp>
 #include <ui/image.hpp>
 #include <ui/label.hpp>
 #include <ui/nineslice.hpp>
@@ -14,24 +15,21 @@
 
 #include <Tracy.hpp>
 
-#include <unordered_map>
+#include <optional>
 #include <string_view>
 
 using std::literals::string_view_literals::operator""sv;
 
 static auto fnKeyToFunction( std::string_view strv )
 {
-    auto it = g_gameCallbacks.find( strv );
-    assert( it != g_gameCallbacks.end() );
-    return it == g_gameCallbacks.end() ? [](){} : it->second;
+    Hash hash{};
+    return g_uiProperty.gameCallback( hash( strv ) );
 }
 
 static auto dataKeyToModel( std::string_view strv )
 {
-    auto it = g_gameUiDataModels.find( strv );
-    assert( it != g_gameUiDataModels.end() );
-    assert( it->second );
-    return it != g_gameUiDataModels.end() ? it->second : nullptr;
+    Hash hash{};
+    return g_uiProperty.dataModel( hash( strv ) );
 }
 
 namespace ui {
@@ -218,6 +216,42 @@ static UniquePointer<Widget> makeProgressbar( std::pmr::memory_resource* alloc, 
     return UniquePointer<Progressbar>{ alloc, ci };
 }
 
+static UniquePointer<Widget> makeFooter( std::pmr::memory_resource* alloc, const cfg::Entry& entry )
+{
+    ZoneScoped;
+    auto makeInput = []( Hash::value_type h ) -> Action::Enum
+    {
+        switch ( h ) {
+        case "eMenuApply"_hash: return Action::eMenuApply;
+        case "eMenuCancel"_hash: return Action::eMenuCancel;
+        default:
+            assert( !"unknown input action" );
+            return {};
+        }
+    };
+    Hash hash{};
+    std::pmr::vector<Footer::Entry> entries;
+    Footer::CreateInfo ci{};
+    for ( auto&& property : entry ) {
+        switch ( hash( *property ) ) {
+        case "Button"_hash: {
+            auto& button = entries.emplace_back();
+            for ( auto&& props : property ) {
+                switch ( hash( *props ) ) {
+                case "text"_hash: button.textId = hash( props.toString() ); continue;
+                case "input"_hash: button.action = makeInput( hash( props.toString() ) ); continue;
+                case "trigger"_hash: button.triggerId = hash( props.toString() ); continue;
+                default:
+                    assert( !"Footer.Button unhandled property" );
+                    continue;
+                }
+            }
+        }}
+    }
+    ci.entries = entries;
+    return UniquePointer<Footer>{ alloc, ci };
+}
+
 static void makeList( std::pmr::memory_resource* alloc, const cfg::Entry& entry, std::pmr::vector<UniquePointer<Widget>>& retList, uint16_t& tabOrder )
 {
     ZoneScoped;
@@ -345,6 +379,7 @@ Screen::Screen( const cfg::Entry& entry ) noexcept
         switch ( hash( *property ) ) {
         case "Button"_hash: m_widgets.emplace_back( makeButton( alloc, property, tabOrderCount++ ) ); continue;
         case "ComboBox"_hash: m_widgets.emplace_back( makeComboBox( alloc, property, tabOrderCount++ ) ); continue;
+        case "Footer"_hash: m_footer = makeFooter( alloc, property ); continue;
         case "Image"_hash: m_widgets.emplace_back( makeImage( alloc, property ) ); continue;
         case "List"_hash: makeList( alloc, property, m_widgets, tabOrderCount ); continue;
         case "Label"_hash: m_widgets.emplace_back( makeLabel( alloc, property ) ); continue;
@@ -361,6 +396,10 @@ Screen::Screen( const cfg::Entry& entry ) noexcept
     if ( tabOrderCount == 0 ) { return; }
     m_tabOrder = TabOrder<>{ 0, 0, tabOrderCount };
     changeFocus( Widget::c_invalidTabOrder, 0 );
+    if ( m_footer ) {
+        m_footer->setPosition( math::vec2{ 48.0f, m_extent.y - 48.0f * 2.0f } );
+        m_footer->setSize( math::vec2{ m_extent.x - 48.0f * 2.0f, 48.0f } );
+    }
 }
 
 void Screen::render( const RenderContext& rctx ) const
@@ -385,6 +424,7 @@ void Screen::render( const RenderContext& rctx ) const
         it->render( r );
     }
 
+    if ( m_footer ) m_footer->render( r );
     if ( m_comboBoxList ) m_comboBoxList->render( r );
 }
 
@@ -400,7 +440,9 @@ void Screen::update( const UpdateContext& uctx )
     for ( const auto& it : m_widgets ) {
         it->update( uctx );
     }
+    if ( m_footer ) m_footer->update( uctx );
     if ( m_comboBoxList ) m_comboBoxList->update( uctx );
+
 }
 
 void Screen::onMouseEvent( const MouseEvent& e )
@@ -426,6 +468,7 @@ void Screen::onMouseEvent( const MouseEvent& e )
         return;
     }
 
+    if ( m_footer ) m_footer->onMouseEvent( event );
 }
 
 Widget* Screen::findWidgetByTabOrder( uint16_t tabOrder )
@@ -464,15 +507,27 @@ void Screen::onAction( ui::Action action )
     }
 
     const uint16_t prevIndex = *m_tabOrder;
+    std::optional<EventProcessing> eventResult;
     switch ( action.a ) {
-    case ui::Action::eMenuUp: changeFocus( prevIndex, *--m_tabOrder ); break;
-    case ui::Action::eMenuDown: changeFocus( prevIndex, *++m_tabOrder ); break;
+    case ui::Action::eMenuUp:
+        changeFocus( prevIndex, *--m_tabOrder );
+        eventResult = EventProcessing::eStop;
+        break;
+    case ui::Action::eMenuDown:
+        changeFocus( prevIndex, *++m_tabOrder );
+        eventResult = EventProcessing::eStop;
+        break;
     default:
         if ( Widget* wgt = findWidgetByTabOrder( *m_tabOrder ) ) {
-            wgt->onAction( action );
+            eventResult = wgt->onAction( action );
         }
         break;
     }
+    if ( eventResult && ( *eventResult == EventProcessing::eStop ) ) {
+        return;
+    }
+
+    if ( m_footer ) m_footer->onAction( action );
 }
 
 void Screen::resize( math::vec2 s )

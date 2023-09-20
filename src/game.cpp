@@ -22,14 +22,6 @@
 #include <cmath>
 #include <set>
 
-static constexpr const char* chunk1[] = {
-    "textures/a2.dds",
-    "textures/a3.dds",
-    "textures/a4.dds",
-    "textures/a5.dds",
-    "textures/plasma.dds",
-};
-
 constexpr std::tuple<GameAction, Actuator> inputActions[] = {
     { GameAction::eGamePause, SDL_CONTROLLER_BUTTON_START },
     { GameAction::eGamePause, SDL_SCANCODE_ESCAPE },
@@ -42,12 +34,15 @@ constexpr std::tuple<GameAction, Actuator> inputActions[] = {
     { GameAction::eJetShoot3, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER },
     { GameAction::eJetShoot3, SDL_SCANCODE_L },
     { GameAction::eJetTarget, SDL_CONTROLLER_BUTTON_Y },
-    { GameAction::eJetLookAt, SDL_CONTROLLER_BUTTON_LEFTSHOULDER },
     { GameAction::eJetTarget, SDL_SCANCODE_I },
+    { GameAction::eJetLookAt, SDL_CONTROLLER_BUTTON_LEFTSHOULDER },
+    { GameAction::eJetLookAt, SDL_SCANCODE_SPACE },
     { GameAction::eJetYaw, SDL_CONTROLLER_AXIS_LEFTX },
 };
 
 constexpr std::tuple<ui::Action::Enum, Actuator> UI_INPUT[] = {
+    { ui::Action::eMenuApply, SDL_CONTROLLER_BUTTON_START },
+    { ui::Action::eMenuApply, SDL_SCANCODE_SPACE },
     { ui::Action::eMenuCancel, SDL_CONTROLLER_BUTTON_B },
     { ui::Action::eMenuCancel, SDL_SCANCODE_ESCAPE },
     { ui::Action::eMenuConfirm, SDL_CONTROLLER_BUTTON_A },
@@ -296,157 +291,26 @@ void Game::onInit()
         m_actionStateTracker.add( static_cast<Action::Enum>( eid ), min, max );
     }
 
-    {
-        ZoneScopedN( "HashMap" );
-        auto loc = cfg::Entry::fromData( m_io->viewWait( "lang/en.txt" ) );
-        Hash hash{};
-        for ( const auto& it : loc ) {
-            m_localizationMap.insert( hash( *it ), it.toString32() );
-        }
-        g_uiProperty.m_locTable = m_localizationMap.makeView();
-    }
+    setupLocalization();
 
-    m_uiAtlas = loadUIAtlas( m_io->viewWait( "misc/ui_atlas.txt" ) );
-    m_dustUi.setVelocity(  math::vec3{ 0.0f, 0.0f, 26.0_m }  );
+    m_dustUi.setVelocity( math::vec3{ 0.0f, 0.0f, 26.0_m } );
     m_dustUi.setCenter( {} );
     m_dustUi.setLineWidth( 2.0f );
 
-    g_gameCallbacks[ "$function:goto_missionBriefing" ] = [this](){ changeScreen( Screen::eGameBriefing, m_click ); };
-    g_gameCallbacks[ "$function:goto_newgame" ] = [this](){ changeScreen( Screen::eMissionSelection, m_click ); };
-    g_gameCallbacks[ "$function:goto_customize" ] = [this](){ changeScreen( Screen::eCustomize, m_click ); };
-    g_gameCallbacks[ "$function:goto_titlemenu" ] = [this](){ changeScreen( Screen::eMainMenu, m_click ); };
-    g_gameCallbacks[ "$function:goto_settings" ] = [this](){ changeScreen( Screen::eSettings, m_click ); };
-    g_gameCallbacks[ "$function:goto_settings_display" ] = [this](){ changeScreen( Screen::eSettingsDisplay, m_click ); };
-    g_gameCallbacks[ "$function:quit" ] = [this](){ quit(); };
-    g_gameCallbacks[ "$function:resume" ] = [this]{ changeScreen( Screen::eGame, m_click ); };
-    g_gameCallbacks[ "$function:applyGFX" ] = [this]
-    {
-        DisplayMode displayMode = m_optionsGFX.m_resolution.value();
-        displayMode.fullscreen = m_optionsGFX.m_fullscreen.value();
-        setDisplayMode( displayMode );
-        m_renderer->setVSync( m_optionsGFX.m_vsync.value() );
-    };
-
-    g_uiProperty.m_colorA = color::dodgerBlue;
-
-    g_gameUiDataModels[ "$data:gammaCorrection" ] = &m_optionsGFX.m_gamma;
-
-    m_optionsGFX.m_resolution = ui::Option<DisplayMode>{ 0, displayModes(),
-        []( const auto& dm ) { return intToUTF32( dm.width ) + U" x " + intToUTF32( dm.height ); }
-    };
-
-    {
-        std::pmr::vector<VSync> v{ VSync::eOff, VSync::eOn };
-        std::pmr::vector<Hash::value_type> h{ "off"_hash, "on"_hash };
-        if ( m_renderer->supportedVSync( VSync::eMailbox ) ) {
-            v.emplace_back( VSync::eMailbox );
-            h.emplace_back( "mailbox"_hash );
-        }
-        m_optionsGFX.m_vsync = ui::Option<VSync>{ 1, std::move( v ), std::move( h ) };
-    };
-
-    g_gameUiDataModels[ "$data:resolution" ] = &m_optionsGFX.m_resolution;
-    g_gameUiDataModels[ "$data:fullscreen" ] = &m_optionsGFX.m_fullscreen;
-    g_gameUiDataModels[ "$data:vsync" ] = &m_optionsGFX.m_vsync;
-
-    m_optionsCustomize.m_jet.m_size = [this](){ return static_cast<ui::DataModel::size_type>( m_jetsContainer.size() ); };
-    m_optionsCustomize.m_jet.m_at = [this]( auto i )
-    {
-        assert( i < m_jetsContainer.size() );
-        return m_jetsContainer[ i ].name;
-    };
-    m_optionsCustomize.m_jet.m_select = [this]( auto i )
-    {
-        assert( i < m_jetsContainer.size() );
-        m_currentJet = i;
-    };
-    g_gameUiDataModels[ "$data:jet" ] = &m_optionsCustomize.m_jet;
-
-    auto weapNames = [this]( auto i ) -> std::pmr::u32string
-    {
-        assert( i < m_weapons.size() );
-        auto key = m_weapons[ i ].displayName;
-        return g_uiProperty.localize( key );
-    };
-    auto weaponCount = [this](){ return static_cast<ui::DataModel::size_type>( m_weapons.size() ); };
-    m_optionsCustomize.m_weaponPrimary.m_size = weaponCount;
-    m_optionsCustomize.m_weaponPrimary.m_at = weapNames;
-    m_optionsCustomize.m_weaponPrimary.m_select = [this]( auto i ){ m_weapon1 = i; };
-    m_optionsCustomize.m_weaponPrimary.m_current = [this](){ return m_weapon1; };
-    m_optionsCustomize.m_weaponSecondary.m_size = weaponCount;
-    m_optionsCustomize.m_weaponSecondary.m_at = weapNames;
-    m_optionsCustomize.m_weaponSecondary.m_select = [this]( auto i ){ m_weapon2 = i; };
-    m_optionsCustomize.m_weaponSecondary.m_current = [this](){ return m_weapon2; };
-    g_gameUiDataModels[ "$data:weaponPrimary" ] = &m_optionsCustomize.m_weaponPrimary;
-    g_gameUiDataModels[ "$data:weaponSecondary" ] = &m_optionsCustomize.m_weaponSecondary;
-
-
-    m_dataMissionSelect.m_current = [this](){ return m_currentMission; };
-    m_dataMissionSelect.m_size = [this](){ return static_cast<ui::DataModel::size_type>( m_mapsContainer.size() ); };
-    m_dataMissionSelect.m_at = [this]( auto i ) -> std::pmr::u32string
-    {
-        assert( i < m_mapsContainer.size() );
-        return m_mapsContainer[ i ].name;
-    };
-    m_dataMissionSelect.m_select = [this]( auto i )
-    {
-        assert( i < m_mapsContainer.size() );
-        m_currentMission = i;
-    };
-    m_dataMissionSelect.m_texture = [this]( auto i ) -> Texture
-    {
-        assert( i < m_mapsContainer.size() );
-        return m_mapsContainer[ i ].preview;
-    };
-    g_gameUiDataModels[ "$data:missionSelect" ] = &m_dataMissionSelect;
-
-    {
-        ui::Font::CreateInfo dejavu12{
-            .fontAtlas = m_io->viewWait( "fonts/dejavu_24.fnta" ),
-            .texture = parseTexture( m_io->viewWait( "fonts/dejavu_24.dds" ) ),
-            .scale = 0.5f,
-        };
-        ui::Font::CreateInfo dejavu18{
-            .fontAtlas = m_io->viewWait( "fonts/dejavu_36.fnta" ),
-            .texture = parseTexture( m_io->viewWait( "fonts/dejavu_36.dds" ) ),
-            .scale = 0.5f,
-        };
-        ui::Font::CreateInfo dejavu32{
-            .fontAtlas = m_io->viewWait( "fonts/dejavu_64.fnta" ),
-            .texture = parseTexture( m_io->viewWait( "fonts/dejavu_64.dds" ) ),
-            .scale = 0.5f,
-        };
-        auto* alloc = std::pmr::get_default_resource();
-        m_fontSmall = UniquePointer<ui::Font>{ alloc, dejavu12 };
-        m_fontMedium = UniquePointer<ui::Font>{ alloc, dejavu18 };
-        m_fontLarge = UniquePointer<ui::Font>{ alloc, dejavu32 };
-        g_uiProperty.m_fontSmall = m_fontSmall.get();
-        g_uiProperty.m_fontMedium = m_fontMedium.get();
-        g_uiProperty.m_fontLarge = m_fontLarge.get();
-    }
-
-    m_hud = Hud{ &m_hudData };
 
     m_blaster = m_audio->load( m_io->viewWait( "sounds/blaster.wav" ) );
     m_torpedo = m_audio->load( m_io->viewWait( "sounds/torpedo.wav" ) );
     m_click = m_audio->load( m_io->viewWait( "sounds/click.wav" ) );
 
-    const std::array rings = {
-        parseTexture( m_io->viewWait( "textures/cyber_ring1.dds" ) ),
-        parseTexture( m_io->viewWait( "textures/cyber_ring2.dds" ) ),
-        parseTexture( m_io->viewWait( "textures/cyber_ring3.dds" ) ),
+    auto loadTexture = [&tex = m_textures, &io = m_io]( auto path )
+    {
+        tex[ path ] = parseTexture( io->viewWait( path ) );
     };
-    m_uiRings = UIRings{ rings };
-
-    m_textures[ "textures/atlas_ui.dds" ] = parseTexture( m_io->viewWait( "textures/atlas_ui.dds" ) );
-    g_uiProperty.m_atlasTexture = m_textures[ "textures/atlas_ui.dds" ];
-    g_uiProperty.m_atlas = &m_uiAtlas;
-
-
-    for ( const char* it : chunk1 ) {
-        m_textures[ it ] = parseTexture( m_io->viewWait( it ) );
-    }
-
+    loadTexture( "textures/a2.dds" );
+    loadTexture( "textures/a3.dds" );
+    loadTexture( "textures/a4.dds" );
+    loadTexture( "textures/a5.dds" );
+    loadTexture( "textures/plasma.dds" );
     m_plasma = m_textures[ "textures/plasma.dds" ];
 
     cfg::Entry weapons = cfg::Entry::fromData( m_io->viewWait( "misc/weapons.cfg" ) );
@@ -468,20 +332,163 @@ void Game::onInit()
         it.model = Model( m_meshes[ it.model_file ], m_textures[ it.model_texture ], it.scale );
     }
 
-    m_screenCustomize =     cfg::Entry::fromData( m_io->viewWait( "ui/customize.ui" ) );
-    m_screenGameplay =      cfg::Entry::fromData( m_io->viewWait( "ui/gameplay.ui" ) );
-    m_screenMissionResult = cfg::Entry::fromData( m_io->viewWait( "ui/result.ui" ) );
-    m_screenMissionSelect = cfg::Entry::fromData( m_io->viewWait( "ui/missionselect.ui" ) );
-    m_screenPause =         cfg::Entry::fromData( m_io->viewWait( "ui/pause.ui" ) );
-    m_screenSettings =      cfg::Entry::fromData( m_io->viewWait( "ui/settings.ui" ) );
-    m_screenSettingsDisplay = cfg::Entry::fromData( m_io->viewWait( "ui/settings_display.ui" ) );
-    m_screenTitle =         cfg::Entry::fromData( m_io->viewWait( "ui/mainmenu.ui" ) );
-
     m_enemyModel = Model{ m_meshes[ "models/a2.objc" ], m_textures[ "textures/a2.dds" ], 18.6335403727f /*HACK*/ };
 
-    onResize( viewportWidth(), viewportHeight() );
 
+    setupUI();
+    onResize( viewportWidth(), viewportHeight() );
     changeScreen( Screen::eMainMenu );
+}
+
+void Game::setupLocalization()
+{
+    ZoneScoped;
+    auto loc = cfg::Entry::fromData( m_io->viewWait( "lang/en.txt" ) );
+    Hash hash{};
+    for ( const auto& it : loc ) {
+        m_localizationMap.insert( hash( *it ), it.toString32() );
+    }
+    g_uiProperty.m_locTable = m_localizationMap.makeView();
+}
+
+void Game::setupUI()
+{
+    m_uiAtlas = loadUIAtlas( m_io->viewWait( "misc/ui_atlas.txt" ) );
+    g_uiProperty.m_colorA = color::dodgerBlue;
+    ui::Font::CreateInfo dejavu12{
+        .fontAtlas = m_io->viewWait( "fonts/dejavu_24.fnta" ),
+        .texture = parseTexture( m_io->viewWait( "fonts/dejavu_24.dds" ) ),
+        .scale = 0.5f,
+    };
+    ui::Font::CreateInfo dejavu18{
+        .fontAtlas = m_io->viewWait( "fonts/dejavu_36.fnta" ),
+        .texture = parseTexture( m_io->viewWait( "fonts/dejavu_36.dds" ) ),
+        .scale = 0.5f,
+    };
+    ui::Font::CreateInfo dejavu32{
+        .fontAtlas = m_io->viewWait( "fonts/dejavu_64.fnta" ),
+        .texture = parseTexture( m_io->viewWait( "fonts/dejavu_64.dds" ) ),
+        .scale = 0.5f,
+    };
+    auto* alloc = std::pmr::get_default_resource();
+    m_fontSmall = UniquePointer<ui::Font>{ alloc, dejavu12 };
+    m_fontMedium = UniquePointer<ui::Font>{ alloc, dejavu18 };
+    m_fontLarge = UniquePointer<ui::Font>{ alloc, dejavu32 };
+    g_uiProperty.m_fontSmall = m_fontSmall.get();
+    g_uiProperty.m_fontMedium = m_fontMedium.get();
+    g_uiProperty.m_fontLarge = m_fontLarge.get();
+    m_hud = Hud{ &m_hudData }; // TODO: remove
+
+
+    m_optionsCustomize.m_jet.m_size = [this](){ return static_cast<ui::DataModel::size_type>( m_jetsContainer.size() ); };
+    m_optionsCustomize.m_jet.m_at = [this]( auto i )
+    {
+        assert( i < m_jetsContainer.size() );
+        return m_jetsContainer[ i ].name;
+    };
+    m_optionsCustomize.m_jet.m_select = [this]( auto i )
+    {
+        assert( i < m_jetsContainer.size() );
+        m_currentJet = i;
+    };
+
+    auto weapNames = [this]( auto i ) -> std::pmr::u32string
+    {
+        assert( i < m_weapons.size() );
+        auto key = m_weapons[ i ].displayName;
+        return g_uiProperty.localize( key );
+    };
+    auto weaponCount = [this](){ return static_cast<ui::DataModel::size_type>( m_weapons.size() ); };
+    m_optionsCustomize.m_weaponPrimary.m_size = weaponCount;
+    m_optionsCustomize.m_weaponPrimary.m_at = weapNames;
+    m_optionsCustomize.m_weaponPrimary.m_select = [this]( auto i ){ m_weapon1 = i; };
+    m_optionsCustomize.m_weaponPrimary.m_current = [this](){ return m_weapon1; };
+    m_optionsCustomize.m_weaponSecondary.m_size = weaponCount;
+    m_optionsCustomize.m_weaponSecondary.m_at = weapNames;
+    m_optionsCustomize.m_weaponSecondary.m_select = [this]( auto i ){ m_weapon2 = i; };
+    m_optionsCustomize.m_weaponSecondary.m_current = [this](){ return m_weapon2; };
+
+    const std::array rings = {
+        parseTexture( m_io->viewWait( "textures/cyber_ring1.dds" ) ),
+        parseTexture( m_io->viewWait( "textures/cyber_ring2.dds" ) ),
+        parseTexture( m_io->viewWait( "textures/cyber_ring3.dds" ) ),
+    };
+    m_uiRings = UIRings{ rings };
+
+    m_textures[ "textures/atlas_ui.dds" ] = parseTexture( m_io->viewWait( "textures/atlas_ui.dds" ) );
+    g_uiProperty.m_atlasTexture = m_textures[ "textures/atlas_ui.dds" ];
+    g_uiProperty.m_atlas = &m_uiAtlas;
+
+    m_dataMissionSelect.m_current = [this](){ return m_currentMission; };
+    m_dataMissionSelect.m_size = [this](){ return static_cast<ui::DataModel::size_type>( m_mapsContainer.size() ); };
+    m_dataMissionSelect.m_at = [this]( auto i ) -> std::pmr::u32string
+    {
+        assert( i < m_mapsContainer.size() );
+        return m_mapsContainer[ i ].name;
+    };
+    m_dataMissionSelect.m_select = [this]( auto i )
+    {
+        assert( i < m_mapsContainer.size() );
+        m_currentMission = i;
+    };
+    m_dataMissionSelect.m_texture = [this]( auto i ) -> Texture
+    {
+        assert( i < m_mapsContainer.size() );
+        return m_mapsContainer[ i ].preview;
+    };
+
+    m_optionsGFX.m_resolution = ui::Option<DisplayMode>{ 0, displayModes(),
+        []( const auto& dm ) { return intToUTF32( dm.width ) + U" x " + intToUTF32( dm.height ); }
+    };
+
+    {
+        std::pmr::vector<VSync> v{ VSync::eOff, VSync::eOn };
+        std::pmr::vector<Hash::value_type> h{ "off"_hash, "on"_hash };
+        if ( m_renderer->supportedVSync( VSync::eMailbox ) ) {
+            v.emplace_back( VSync::eMailbox );
+            h.emplace_back( "mailbox"_hash );
+        }
+        m_optionsGFX.m_vsync = ui::Option<VSync>{ 1, std::move( v ), std::move( h ) };
+    };
+
+    m_gameUiDataModels.insert( "$data:fullscreen"_hash, &m_optionsGFX.m_fullscreen );
+    m_gameUiDataModels.insert( "$data:gammaCorrection"_hash, &m_optionsGFX.m_gamma );
+    m_gameUiDataModels.insert( "$data:jet"_hash, &m_optionsCustomize.m_jet );
+    m_gameUiDataModels.insert( "$data:missionSelect"_hash, &m_dataMissionSelect );
+    m_gameUiDataModels.insert( "$data:resolution"_hash, &m_optionsGFX.m_resolution );
+    m_gameUiDataModels.insert( "$data:vsync"_hash, &m_optionsGFX.m_vsync );
+    m_gameUiDataModels.insert( "$data:weaponPrimary"_hash, &m_optionsCustomize.m_weaponPrimary );
+    m_gameUiDataModels.insert( "$data:weaponSecondary"_hash, &m_optionsCustomize.m_weaponSecondary );
+    m_gameUiDataModels.insert( "$var:playerHP"_hash, &m_uiPlayerHP );
+    m_gameUiDataModels.insert( "$var:missionResult"_hash, &m_uiMissionResult );
+    m_gameUiDataModels.insert( "$var:missionScore"_hash, &m_uiMissionScore );
+    m_gameCallbacks.insert( "$function:goto_missionBriefing"_hash,  [this](){ changeScreen( Screen::eGameBriefing, m_click ); } );
+    m_gameCallbacks.insert( "$function:goto_newgame"_hash, [this](){ changeScreen( Screen::eMissionSelection, m_click ); } );
+    m_gameCallbacks.insert( "$function:goto_customize"_hash, [this](){ changeScreen( Screen::eCustomize, m_click ); } );
+    m_gameCallbacks.insert( "$function:goto_titlemenu"_hash, [this](){ changeScreen( Screen::eMainMenu, m_click ); } );
+    m_gameCallbacks.insert( "$function:goto_settings"_hash, [this](){ changeScreen( Screen::eSettings, m_click ); } );
+    m_gameCallbacks.insert( "$function:goto_settings_display"_hash, [this](){ changeScreen( Screen::eSettingsDisplay, m_click ); } );
+    m_gameCallbacks.insert( "$function:quit"_hash, [this](){ quit(); } );
+    m_gameCallbacks.insert( "$function:resume"_hash, [this]{ changeScreen( Screen::eGame, m_click ); } );
+    m_gameCallbacks.insert( "$function:applyGFX"_hash, [this]
+    {
+        DisplayMode displayMode = m_optionsGFX.m_resolution.value();
+        displayMode.fullscreen = m_optionsGFX.m_fullscreen.value();
+        setDisplayMode( displayMode );
+        m_renderer->setVSync( m_optionsGFX.m_vsync.value() );
+    });
+
+    g_uiProperty.m_gameCallbacks = m_gameCallbacks.makeView();
+    g_uiProperty.m_dataModels = m_gameUiDataModels.makeView();
+
+    m_screenCustomize = cfg::Entry::fromData( m_io->viewWait( "ui/customize.ui" ) );
+    m_screenGameplay = cfg::Entry::fromData( m_io->viewWait( "ui/gameplay.ui" ) );
+    m_screenMissionResult = cfg::Entry::fromData( m_io->viewWait( "ui/result.ui" ) );
+    m_screenMissionSelect = cfg::Entry::fromData( m_io->viewWait( "ui/missionselect.ui" ) );
+    m_screenPause = cfg::Entry::fromData( m_io->viewWait( "ui/pause.ui" ) );
+    m_screenSettings = cfg::Entry::fromData( m_io->viewWait( "ui/settings.ui" ) );
+    m_screenSettingsDisplay = cfg::Entry::fromData( m_io->viewWait( "ui/settings_display.ui" ) );
+    m_screenTitle = cfg::Entry::fromData( m_io->viewWait( "ui/mainmenu.ui" ) );
 }
 
 ui::Screen* Game::currentScreen()

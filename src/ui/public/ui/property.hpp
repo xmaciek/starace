@@ -7,6 +7,7 @@
 #include <shared/hash.hpp>
 
 #include <cassert>
+#include <functional>
 #include <memory_resource>
 #include <string>
 
@@ -26,6 +27,8 @@ class Property {
     const Atlas* m_atlas = nullptr;
     LocTable m_locTable{};
     Texture m_atlasTexture{};
+    FixedMapView<Hash::value_type, ui::DataModel*> m_dataModels{};
+    FixedMapView<Hash::value_type, std::function<void()>> m_gameCallbacks{};
 
     PipelineSlot m_pipelineSpriteSequence{};
     PipelineSlot m_pipelineSpriteSequenceRGBA{};
@@ -77,9 +80,26 @@ public:
     {
         m_pendingComboBox = { position, size, model };
     }
+
     inline PendingComboBox pendingModalComboBox() const
     {
         return m_pendingComboBox;
+    }
+
+    inline std::function<void()> gameCallback( Hash::value_type h ) const
+    {
+        auto callback = m_gameCallbacks.find( h );
+        assert( callback );
+        assert( *callback );
+        return *callback;
+    }
+
+    inline ui::DataModel* dataModel( Hash::value_type h ) const
+    {
+        auto dataModel = m_dataModels.find( h );
+        assert( dataModel );
+        assert( *dataModel );
+        return *dataModel;
     }
 };
 

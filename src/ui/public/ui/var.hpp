@@ -18,20 +18,12 @@ class Var : public DataModel {
     std::atomic<size_type> m_current{};
 
 public:
-    ~Var() noexcept
-    {
-        auto it = std::find_if( g_gameUiDataModels.begin(), g_gameUiDataModels.end(),
-            [ptr = this]( const auto& pair ) { return pair.second == ptr; } );
-        if ( it != g_gameUiDataModels.end() ) {
-            g_gameUiDataModels.erase( it );
-        }
-    }
+    virtual ~Var() noexcept override = default;
 
     Var() noexcept = default;
-    Var( std::string_view symbol, T&& value ) noexcept
+    Var( T&& value ) noexcept
     : m_value{ std::forward<T&&>( value ) }
     {
-        g_gameUiDataModels.emplace( std::make_pair( symbol, this ) );
     }
 
     Var( const Var& ) = delete;
