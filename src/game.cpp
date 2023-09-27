@@ -952,6 +952,16 @@ void Game::onAction( Action a )
 void Game::onMouseEvent( const MouseEvent& mouseEvent )
 {
     ZoneScoped;
+    switch ( mouseEvent.type ) {
+    case MouseEvent::eClickSecondary:
+        onAction( Action{ .userEnum = (::Action::Enum)ui::Action::eMenuCancel, .value = mouseEvent.value } );
+        return;
+    case MouseEvent::eClickMiddle:
+        return;
+    case MouseEvent::eClick:
+        if ( mouseEvent.value == 0 ) return;
+    case MouseEvent::eMove: break;
+    }
     ui::Screen* screen = currentScreen();
     if ( screen ) {
         screen->onMouseEvent( mouseEvent );

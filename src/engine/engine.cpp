@@ -177,13 +177,24 @@ void Engine::processEvents()
             }
             break;
 
-        case SDL_MOUSEBUTTONDOWN:
-            if ( event.button.button == SDL_BUTTON_LEFT ) {
-                onMouseEvent( MouseEvent{ MouseEvent::eClick, math::vec2{ event.button.x, event.button.y } } );
+        case SDL_MOUSEBUTTONUP:
+        case SDL_MOUSEBUTTONDOWN: {
+            MouseEvent mouse{};
+            switch ( event.button.button ) {
+            case SDL_BUTTON_LEFT: mouse.type = MouseEvent::eClick; break;
+            case SDL_BUTTON_RIGHT: mouse.type = MouseEvent::eClickSecondary; break;
+            case SDL_BUTTON_MIDDLE: mouse.type = MouseEvent::eClickMiddle; break;
+            default: break;
             }
-            break;
+            mouse.value = event.type == SDL_MOUSEBUTTONDOWN ? Actuator::MAX : Actuator::NOMINAL;
+            mouse.position = math::vec2{ static_cast<float>( event.button.x ), static_cast<float>( event.button.y ) };
+            onMouseEvent( mouse );
+        } break;
         case SDL_MOUSEMOTION:
-            onMouseEvent( MouseEvent{ MouseEvent::eMove, math::vec2{ event.motion.x, event.motion.y } } );
+            onMouseEvent( MouseEvent{
+                .type = MouseEvent::eMove,
+                .position = math::vec2{ event.motion.x, event.motion.y },
+            } );
             break;
 
         case SDL_CONTROLLERDEVICEADDED:
