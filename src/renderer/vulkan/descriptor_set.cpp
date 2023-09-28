@@ -67,6 +67,7 @@ static VkDescriptorType guessImageType( const DescriptorSet::BindingInfo& bindin
 
 static VkDescriptorSetLayout createLayout( VkDevice device, const DescriptorSet::BindingInfo& binding )
 {
+    ZoneScoped;
     assert( device );
     auto convert = []( BindType b, uint32_t idx ) -> VkDescriptorSetLayoutBinding
     {
@@ -124,6 +125,7 @@ static VkDescriptorSetLayout createLayout( VkDevice device, const DescriptorSet:
 DescriptorSet::DescriptorSet( VkDevice device, const BindingInfo& binding ) noexcept
 : m_device{ device }
 {
+    ZoneScoped;
     m_layout = createLayout( m_device, binding );
     auto predicate = []( BindType b ) -> bool { return ( b & BindType::fImage ) == BindType::fImage; };
     m_imagesCount = static_cast<uint32_t>( std::count_if( binding.begin(), binding.end(), predicate ) );
@@ -135,6 +137,7 @@ DescriptorSet::DescriptorSet( VkDevice device, const BindingInfo& binding ) noex
 
 void DescriptorSet::expandCapacityBy( uint32_t v )
 {
+    ZoneScoped;
     assert( m_imagesCount == 0 || validateDescriptorTypeIsSupportedImage( m_imageType ) );
     auto currentCapacity = m_set.size();
     const uint32_t poolSizeCount = 1 + !!m_imagesCount;

@@ -1016,6 +1016,7 @@ void Game::render3D( RenderContext rctx )
 
 void Game::renderBackground( ui::RenderContext rctx ) const
 {
+    ZoneScoped;
     [[maybe_unused]]
     const auto [ w, h, a ] = viewport();
     const math::vec2 uv = math::vec2{ w, h } / m_uiAtlas.extent();
