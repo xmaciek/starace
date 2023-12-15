@@ -7,8 +7,8 @@
 #include <algorithm>
 #include <cassert>
 
-static constexpr math::vec3 defaultPyrLimits{ 80.0_deg, 40.0_deg, 120.0_deg };
-static constexpr math::vec3 defaultPyrSpeed{ 60.0_deg, 40.0_deg, 200.0_deg };
+static const math::vec3 defaultPyrLimits{ 80.0_deg, 40.0_deg, 120.0_deg };
+static const math::vec3 defaultPyrSpeed{ 60.0_deg, 40.0_deg, 200.0_deg };
 
 static math::vec3 pointMult( uint8_t a, uint8_t b, uint8_t c )
 {

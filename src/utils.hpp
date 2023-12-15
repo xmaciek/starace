@@ -52,7 +52,7 @@ bool intersectLineSphere( const math::vec3& p1, const math::vec3& p2, const math
 math::vec3 interceptTarget( const math::vec3& dir, const math::vec3& pos, const math::vec3& tgtPos, float turnrate ) noexcept;
 
 namespace axis {
-static constexpr math::vec3 x{ 1.0f, 0.0f, 0.0f };
-static constexpr math::vec3 y{ 0.0f, 1.0f, 0.0f };
-static constexpr math::vec3 z{ 0.0f, 0.0f, 1.0f };
+inline const math::vec3 x{ 1.0f, 0.0f, 0.0f };
+inline const math::vec3 y{ 0.0f, 1.0f, 0.0f };
+inline const math::vec3 z{ 0.0f, 0.0f, 1.0f };
 }

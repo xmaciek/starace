@@ -13,74 +13,74 @@ static constexpr float uvmin = 0.00125f;
 static constexpr float uvmax = 0.99875f;
 static constexpr float size = 1000.0f;
 
-static constexpr std::array<math::vec4, 4> wall1{
+static const std::array<math::vec4, 4> wall1{
     math::vec4{ -size, -size, size, 0.0f },
     math::vec4{  size, -size, size, 0.0f },
     math::vec4{  size,  size, size, 0.0f },
     math::vec4{ -size,  size, size, 0.0f }
 };
-static constexpr std::array<math::vec4, 4> wall2{
+static const std::array<math::vec4, 4> wall2{
     math::vec4{ -size,  size, -size, 0.0f },
     math::vec4{  size,  size, -size, 0.0f },
     math::vec4{  size, -size, -size, 0.0f },
     math::vec4{ -size, -size, -size, 0.0f }
 };
-static constexpr std::array<math::vec4, 4> wall3{
+static const std::array<math::vec4, 4> wall3{
     math::vec4{ -size, -size, -size, 0.0f },
     math::vec4{ -size, -size, size, 0.0f },
     math::vec4{ -size,  size, size, 0.0f },
     math::vec4{ -size,  size, -size, 0.0f }
 };
-static constexpr std::array<math::vec4, 4> wall4{
+static const std::array<math::vec4, 4> wall4{
     math::vec4{  size,  size, -size, 0.0f },
     math::vec4{  size,  size, size, 0.0f },
     math::vec4{  size, -size, size, 0.0f },
     math::vec4{  size, -size, -size, 0.0f }
 };
-static constexpr std::array<math::vec4, 4> wall5{
+static const std::array<math::vec4, 4> wall5{
     math::vec4{ -size,  size, -size, 0.0f },
     math::vec4{ -size,  size, size, 0.0f },
     math::vec4{  size,  size, size, 0.0f },
     math::vec4{  size,  size, -size, 0.0f }
 };
-static constexpr std::array<math::vec4, 4> wall6{
+static const std::array<math::vec4, 4> wall6{
     math::vec4{ -size, -size, -size, 0.0f },
     math::vec4{  size, -size, -size, 0.0f },
     math::vec4{  size, -size, size, 0.0f },
     math::vec4{ -size, -size, size, 0.0f }
 };
 
-static constexpr std::array<math::vec4,4> uv1 {
+static const std::array<math::vec4,4> uv1 {
     math::vec4{ uvmin, uvmin, 0.0f, 0.0f },
     math::vec4{ uvmax, uvmin, 0.0f, 0.0f },
     math::vec4{ uvmax, uvmax, 0.0f, 0.0f },
     math::vec4{ uvmin, uvmax, 0.0f, 0.0f }
 };
-static constexpr std::array<math::vec4,4> uv2 {
+static const std::array<math::vec4,4> uv2 {
     math::vec4{ uvmin, uvmax, 0.0f, 0.0f },
     math::vec4{ uvmax, uvmax, 0.0f, 0.0f },
     math::vec4{ uvmax, uvmin, 0.0f, 0.0f },
     math::vec4{ uvmin, uvmin, 0.0f, 0.0f }
 };
-static constexpr std::array<math::vec4,4> uv3 {
+static const std::array<math::vec4,4> uv3 {
     math::vec4{ uvmin, uvmin, 0.0f, 0.0f },
     math::vec4{ uvmax, uvmin, 0.0f, 0.0f },
     math::vec4{ uvmax, uvmax, 0.0f, 0.0f },
     math::vec4{ uvmin, uvmax, 0.0f, 0.0f }
 };
-static constexpr std::array<math::vec4,4> uv4 {
+static const std::array<math::vec4,4> uv4 {
     math::vec4{ uvmin, uvmax, 0.0f, 0.0f },
     math::vec4{ uvmax, uvmax, 0.0f, 0.0f },
     math::vec4{ uvmax, uvmin, 0.0f, 0.0f },
     math::vec4{ uvmin, uvmin, 0.0f, 0.0f }
 };
-static constexpr std::array<math::vec4,4> uv5 {
+static const std::array<math::vec4,4> uv5 {
     math::vec4{ uvmin, uvmin, 0.0f, 0.0f },
     math::vec4{ uvmax, uvmin, 0.0f, 0.0f },
     math::vec4{ uvmax, uvmax, 0.0f, 0.0f },
     math::vec4{ uvmin, uvmax, 0.0f, 0.0f }
 };
-static constexpr std::array<math::vec4,4> uv6 {
+static const std::array<math::vec4,4> uv6 {
     math::vec4{ uvmin, uvmin, 0.0f, 0.0f },
     math::vec4{ uvmax, uvmin, 0.0f, 0.0f },
     math::vec4{ uvmax, uvmax, 0.0f, 0.0f },

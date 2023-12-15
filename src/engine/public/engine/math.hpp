@@ -21,6 +21,8 @@ using vec4 = glm::vec4;
 using mat4 = glm::mat4;
 using quat = glm::quat;
 
+static_assert( alignof( vec4 ) == 16 );
+
 static constexpr float pi = std::numbers::pi_v<float>;
 
 inline auto abs( const auto& t )

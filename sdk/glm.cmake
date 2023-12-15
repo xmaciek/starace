@@ -12,6 +12,8 @@ function( glmFromDirectory directory )
     )
     target_compile_definitions( xglm INTERFACE
         GLM_FORCE_RADIANS=1
+        GLM_FORCE_INTRINSICS=1
+        GLM_FORCE_DEFAULT_ALIGNED_GENTYPES=1
     )
 endfunction()
 

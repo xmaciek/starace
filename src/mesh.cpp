@@ -31,19 +31,33 @@ Mesh::Mesh( std::span<const uint8_t> data, Renderer* renderer ) noexcept
         std::advance( ptr, sizeof( chunk ) );
 
         assert( chunk.magic == obj::Chunk::c_magic );
-        static_assert( sizeof( math::vec3 ) == sizeof( float ) * 3 );
         // TODO: configure outside mesh file
         if ( chunk.name == "weapons"sv || chunk.name == "hardpoints"sv ) {
             assert( chunk.floatCount == 9 );
-            std::memcpy( m_hardpoints.data(), ptr, sizeof( float ) * 9 );
-            std::advance( ptr, sizeof( float ) * 9 );
+            for ( auto&& it : m_hardpoints ) {
+                std::memcpy( &it, ptr, sizeof( float ) * 3 );
+                std::advance( ptr, sizeof( float ) * 3 );
+            }
             continue;
         }
         if ( chunk.name == "thruster"sv ) {
             assert( chunk.floatCount == 3 || chunk.floatCount == 6 );
             m_thrusterCount = chunk.floatCount / 3;
-            std::memcpy( m_thrusters.data(), ptr, sizeof( float ) * chunk.floatCount );
-            std::advance( ptr, sizeof( float ) * chunk.floatCount );
+            switch ( chunk.floatCount ) {
+            case 6:
+                std::memcpy( &m_thrusters[0], ptr, sizeof( float ) * 3 );
+                std::advance( ptr, sizeof( float ) * 3 );
+                std::memcpy( &m_thrusters[1], ptr, sizeof( float ) * 3 );
+                std::advance( ptr, sizeof( float ) * 3 );
+                break;
+            case 3:
+                std::memcpy( &m_thrusters[0], ptr, sizeof( float ) * 3 );
+                std::advance( ptr, sizeof( float ) * 3 );
+                break;
+            default:
+                assert( !"unexpected number of floats for thrusters points" );
+                break;
+            }
             continue;
         }
 
