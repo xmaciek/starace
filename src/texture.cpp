@@ -49,6 +49,7 @@ static Texture parseTexture( const T& data )
         case BC1_UNORM: tci.format = TextureFormat::eBC1_unorm; break;
         case BC2_UNORM: tci.format = TextureFormat::eBC2_unorm; break;
         case BC3_UNORM: tci.format = TextureFormat::eBC3_unorm; break;
+        case BC4_UNORM: tci.format = TextureFormat::eBC4_unorm; break;
         case B8G8R8A8_UNORM: tci.format = TextureFormat::eBGRA; break;
         case R8_UNORM: tci.format = TextureFormat::eR; break;
         default:

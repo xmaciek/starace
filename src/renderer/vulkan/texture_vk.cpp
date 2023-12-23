@@ -17,6 +17,7 @@ static auto format( const TextureCreateInfo& tci )
     case TextureFormat::eBC1_unorm: return VK_FORMAT_BC1_RGB_UNORM_BLOCK;
     case TextureFormat::eBC2_unorm: return VK_FORMAT_BC2_UNORM_BLOCK;
     case TextureFormat::eBC3_unorm: return VK_FORMAT_BC3_UNORM_BLOCK;
+    case TextureFormat::eBC4_unorm: return VK_FORMAT_BC4_UNORM_BLOCK;
     default:
         assert( !"unsuported format" );
         return VK_FORMAT_UNDEFINED;

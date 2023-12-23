@@ -34,6 +34,10 @@ enum class Format : uint32_t {
     BC3_UNORM = 77,
     BC3_UNORM_SRGB = 78,
 
+    BC4_TYPELESS = 79,
+    BC4_UNORM = 80,
+    BC4_SNORM = 81,
+
     B8G8R8A8_UNORM = 87,
     // TODO: more formats
 };
