@@ -431,7 +431,7 @@ int main( int argc, const char** argv )
     using Flags = dds::Header::Flags;
     using Caps = dds::Header::Caps;
     dds::Header ddsHeader{
-        .flags = (Flags)( Flags::fCaps | Flags::fWidth | Flags::fHeight | Flags::fPixelFormat | Flags::fMipMapCount ),
+        .flags = static_cast<Flags>( Flags::fCaps | Flags::fWidth | Flags::fHeight | Flags::fPixelFormat ),
         .height = surfExtent,
         .width = surfExtent,
         .pitchOrLinearSize = (uint32_t)texture.size() * (uint32_t)sizeof(BC4unorm),
@@ -440,11 +440,12 @@ int main( int argc, const char** argv )
             .flags = dds::PixelFormat::Flags::fFourCC,
             .fourCC = dds::c_dxgi,
         },
-        .caps = (Caps)( Caps::fTexture | Caps::fMipMap ),
+        .caps = Caps::fTexture,
     };
     dds::dxgi::Header dxgiHeader{
         .format = dds::dxgi::Format::BC4_UNORM,
         .dimension = dds::dxgi::Dimension::eTexture2D,
+        .arraySize = 1,
     };
     std::ofstream ofs{ (std::string)argsDstDDS, std::ios::binary };
     if ( !ofs.is_open() ) {

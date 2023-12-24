@@ -12,6 +12,7 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include <type_traits>
 
 #define RED "\x1b[31m"
 #define DEFAULT "\x1b[0m"
@@ -196,6 +197,25 @@ struct MipGen {
 };
 
 
+inline dds::Header::Flags operator | ( dds::Header::Flags a, dds::Header::Flags b )
+{
+    using T = std::underlying_type_t<dds::Header::Flags>;
+    return static_cast<dds::Header::Flags>( static_cast<T>( a ) | static_cast<T>( b ) );
+}
+
+inline dds::Header::Flags& operator |= ( dds::Header::Flags& a, dds::Header::Flags b )
+{
+    a = a | b;
+    return a;
+}
+
+inline dds::Header::Caps& operator |= ( dds::Header::Caps& a, dds::Header::Caps b )
+{
+    using T = std::underlying_type_t<dds::Header::Flags>;
+    a = static_cast<dds::Header::Caps>( static_cast<T>( a ) | static_cast<T>( b ));
+    return a;
+}
+
 int main( int argc, const char** argv )
 {
     Args args{ argc, argv };
@@ -232,20 +252,36 @@ int main( int argc, const char** argv )
         ? MipGen::genMips( tgaHeader.width, tgaHeader.height, reinterpret_cast<const uint32_t*>( pixels.data() ) )
         : std::pmr::vector<std::pmr::vector<uint32_t>>();
 
+    using Flags = dds::Header::Flags;
+    using Caps = dds::Header::Caps;
     dds::Header header{
-        .flags = dds::constants::uncompressed,
+        .flags = Flags::fCaps | Flags::fWidth | Flags::fHeight | Flags::fPixelFormat,
         .height = tgaHeader.height,
         .width = tgaHeader.width,
         .pitchOrLinearSize = static_cast<uint32_t>( pixels.size() ),
         .mipMapCount = static_cast<uint32_t>( mips.size() ) + 1u,
-        .pixelFormat = dds::constants::DXGI,
-        .caps = static_cast<dds::Header::Caps>( dds::Header::Caps::fTexture | dds::Header::Caps::fMipMap ),
+        .pixelFormat{
+            .flags = dds::PixelFormat::Flags::fFourCC,
+            .fourCC = dds::c_dxgi,
+        },
+        .caps = dds::Header::Caps::fTexture,
     };
 
     dds::dxgi::Header dxgiHeader{
         .format = format,
         .dimension = dds::dxgi::Dimension::eTexture2D,
+        .arraySize = 1,
     };
+
+    if ( header.mipMapCount > 1 ) {
+        header.flags |= Flags::fMipMapCount;
+        header.caps |= Caps::fMipMap;
+        header.caps |= Caps::fComplex;
+    }
+
+    if ( dxgiHeader.arraySize > 1 ) {
+        header.caps |= Caps::fComplex;
+    }
     std::ofstream ofs( dst, std::ios::binary );
     ofs.is_open() || exitOnFailed( "cannot open file:", dst );
 
