@@ -8,13 +8,13 @@
 #include <array>
 
 class UIRings : public ui::Widget {
-    std::array<Texture, 3> m_texture{};
+    Texture m_texture{};
     std::array<float, 3> m_angle{};
 
 public:
     ~UIRings() noexcept = default;
     UIRings() noexcept = default;
-    UIRings( std::array<Texture, 3> ) noexcept;
+    UIRings( Texture ) noexcept;
 
     void render( ui::RenderContext ) const override;
     void update( const UpdateContext& ) override;

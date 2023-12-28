@@ -4,7 +4,6 @@
 #include <engine/math.hpp>
 
 enum class Pipeline : PipelineSlot {
-    eGuiTextureColor1,
     eLine3dColor1,
     eLine3dStripColor,
     eTriangleFan3dColor,
@@ -17,6 +16,7 @@ enum class Pipeline : PipelineSlot {
     eThruster,
     eGammaCorrection,
     eScanline,
+    eUiRings,
     count,
 };
 
@@ -39,15 +39,6 @@ struct PushConstant<Pipeline::eTriangleFan3dTexture> {
     math::mat4 m_projection{};
     std::array<math::vec4, 4> m_vertices{};
     std::array<math::vec4, 4> m_uv{};
-};
-
-template <>
-struct PushConstant<Pipeline::eGuiTextureColor1> {
-    math::mat4 m_model{};
-    math::mat4 m_view{};
-    math::mat4 m_projection{};
-    math::vec4 m_color{};
-    std::array<math::vec4, 4> m_vertices{};
 };
 
 template <>
@@ -143,6 +134,15 @@ struct PushConstant<Pipeline::eScanline> {
     math::vec4 m_power{};
 };
 
+template <>
+struct PushConstant<Pipeline::eUiRings> {
+    math::mat4 m_view{};
+    math::mat4 m_projection{};
+    math::vec4 m_xywh{};
+    alignas( 16 ) std::array<math::mat4, 3> m_modelMatrix{};
+    alignas( 16 ) std::array<math::vec4, 3> m_color;
+};
+
 struct PipelineAtlas {
     std::array<PipelineSlot, static_cast<uint32_t>( Pipeline::count )> m_pipes{};
     constexpr PipelineAtlas() noexcept = default;
@@ -156,21 +156,6 @@ inline constinit PipelineAtlas g_pipelines{};
 
 [[maybe_unused]]
 inline constexpr std::array g_pipelineCreateInfo = {
-
-PipelineCreateInfo{
-    .m_vertexShader = "shaders/gui_texture_color.vert.spv",
-    .m_fragmentShader = "shaders/gui_texture_color.frag.spv",
-    .m_userHint = static_cast<uint32_t>( Pipeline::eGuiTextureColor1 ),
-    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eGuiTextureColor1> ),
-    .m_enableBlend = true,
-    .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
-    .m_cullMode = PipelineCreateInfo::CullMode::eBack,
-    .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_binding{
-        BindType::eVertexUniform,
-        BindType::eFragmentImage,
-    },
-},
 
 PipelineCreateInfo{
     .m_vertexShader = "shaders/background.vert.spv",
@@ -352,5 +337,19 @@ PipelineCreateInfo{
     },
 },
 
+PipelineCreateInfo{
+    .m_vertexShader = "shaders/ui_rings.vert.spv",
+    .m_fragmentShader = "shaders/ui_rings.frag.spv",
+    .m_userHint = static_cast<uint32_t>( Pipeline::eUiRings ),
+    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eUiRings> ),
+    .m_enableBlend = true,
+    .m_topology = PipelineCreateInfo::Topology::eTriangleList,
+    .m_cullMode = PipelineCreateInfo::CullMode::eBack,
+    .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
+    .m_binding{
+        BindType::eVertexUniform,
+        BindType::eFragmentImage,
+    },
+},
 
 };

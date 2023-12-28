@@ -408,12 +408,7 @@ void Game::setupUI()
     m_optionsCustomize.m_weaponSecondary.m_select = [this]( auto i ){ m_weapon2 = i; };
     m_optionsCustomize.m_weaponSecondary.m_current = [this](){ return m_weapon2; };
 
-    const std::array rings = {
-        parseTexture( m_io->viewWait( "textures/cyber_ring1.dds" ) ),
-        parseTexture( m_io->viewWait( "textures/cyber_ring2.dds" ) ),
-        parseTexture( m_io->viewWait( "textures/cyber_ring3.dds" ) ),
-    };
-    m_uiRings = UIRings{ rings };
+    m_uiRings = UIRings{ parseTexture( m_io->viewWait( "textures/cyber_ring.dds" ) ) };
 
     m_textures[ "textures/atlas_ui.dds" ] = parseTexture( m_io->viewWait( "textures/atlas_ui.dds" ) );
     g_uiProperty.m_atlasTexture = m_textures[ "textures/atlas_ui.dds" ];

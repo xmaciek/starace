@@ -7,7 +7,7 @@
 #include <renderer/renderer.hpp>
 #include <engine/math.hpp>
 
-UIRings::UIRings( std::array<Texture,3> t ) noexcept
+UIRings::UIRings( Texture t ) noexcept
 : m_texture{ t }
 {
 }
@@ -17,32 +17,32 @@ void UIRings::render( ui::RenderContext rctx ) const
     static const std::array color = {
         math::vec4{ 1.0f, 1.0f, 1.0f, 0.8f },
         math::vec4{ 1.0f, 1.0f, 1.0f, 0.7f },
-        math::vec4{ 1.0f, 1.0f, 1.0f, 0.6f },
+        math::vec4{ 0.0f, 0.0f, 0.0f, 0.6f },
     };
-    const math::vec2 center = m_size * 0.5f;
-    const float mx = std::max( m_size.x, m_size.y );
 
-    rctx.model = math::translate( rctx.model, math::vec3{ center, 0.0f } );
-    PushConstant<Pipeline::eGuiTextureColor1> pushConstant{};
-    pushConstant.m_projection = rctx.projection;
-    pushConstant.m_view = rctx.view;
-    pushConstant.m_vertices[ 0 ] = math::vec4{ 0.0f, 0.0f, 0.0f, 0.0f };
-    pushConstant.m_vertices[ 1 ] = math::vec4{ 0.0f, mx, 0.0f, 1.0f };
-    pushConstant.m_vertices[ 2 ] = math::vec4{ mx, mx, 1.0f, 1.0f };
-    pushConstant.m_vertices[ 3 ] = math::vec4{ mx, 0.0f, 1.0f, 0.0f };
+    const auto [ my, mx ] = std::minmax( m_size.x, m_size.y );
 
-    PushBuffer pushBuffer{
-        .m_pipeline = g_pipelines[ Pipeline::eGuiTextureColor1 ],
-        .m_verticeCount = 4,
+    PushConstant<Pipeline::eUiRings> pushConstant{
+        .m_view = math::translate( rctx.view, math::vec3{ mx * 0.5f, my * 0.5f, 0.0f } ),
+        .m_projection = rctx.projection,
+        .m_xywh{ 0.0f, 0.0f, mx, mx },
     };
-    for ( size_t i = 0; i < 3; i++ ) {
-        assert( m_texture[ i ] );
-        pushBuffer.m_resource[ 1 ].texture = m_texture[ i ];
-        pushConstant.m_model = math::rotate( rctx.model, m_angle[ i ], axis::z );
-        pushConstant.m_model = math::translate( pushConstant.m_model, math::vec3{ mx * -0.5, mx * -0.5, 0.0 } );
-        pushConstant.m_color = color[ i ];
-        rctx.renderer->push( pushBuffer, &pushConstant );
+
+    for ( uint32_t i = 0; i < 3; ++i ) {
+        pushConstant.m_color[ i ] = color[ i ];
+        pushConstant.m_modelMatrix[ i ] = rctx.model;
+        pushConstant.m_modelMatrix[ i ] = math::rotate( pushConstant.m_modelMatrix[ i ], m_angle[ i ], axis::z );
+        pushConstant.m_modelMatrix[ i ] = math::translate( pushConstant.m_modelMatrix[ i ], math::vec3{ mx * -0.5f, mx * -0.5f, 0.0f } );
     }
+
+    PushData pushData{
+        .m_pipeline = g_pipelines[ Pipeline::eUiRings ],
+        .m_verticeCount = 6,
+        .m_instanceCount = 3,
+    };
+    pushData.m_resource[ 1 ].texture = m_texture;
+
+    rctx.renderer->push( pushData, &pushConstant );
 }
 
 void UIRings::update( const UpdateContext& uctx )
