@@ -22,6 +22,7 @@ Image::Image( Image&& img ) noexcept
     std::swap( m_format, img.m_format );
     std::swap( m_currentLocation, img.m_currentLocation );
     std::swap( m_mipCount, img.m_mipCount );
+    std::swap( m_arrayCount, img.m_arrayCount );
 }
 
 Image& Image::operator = ( Image&& img ) noexcept
@@ -34,6 +35,7 @@ Image& Image::operator = ( Image&& img ) noexcept
     std::swap( m_format, img.m_format );
     std::swap( m_currentLocation, img.m_currentLocation );
     std::swap( m_mipCount, img.m_mipCount );
+    std::swap( m_arrayCount, img.m_arrayCount );
     return *this;
 }
 
@@ -60,11 +62,18 @@ uint32_t Image::mipCount() const
     return m_mipCount;
 }
 
+uint32_t Image::arrayCount() const
+{
+    assert( m_arrayCount > 0 );
+    return m_arrayCount;
+}
+
 Image::Image( VkPhysicalDevice physDevice
     , VkDevice device
     , VkExtent2D extent
     , VkFormat format
     , uint32_t mipCount
+    , uint32_t arrayCount
     , VkImageUsageFlags usageFlags
     , VkMemoryPropertyFlags memoryFlags
     , VkImageAspectFlagBits aspectFlags
@@ -73,10 +82,12 @@ Image::Image( VkPhysicalDevice physDevice
 , m_extent{ extent }
 , m_format{ format }
 , m_mipCount{ mipCount }
+, m_arrayCount{ arrayCount }
 {
     ZoneScoped;
 
     assert( mipCount > 0 );
+    assert( arrayCount > 0 );
     const VkImageCreateInfo imageInfo{
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
         .imageType = VK_IMAGE_TYPE_2D,
@@ -87,7 +98,7 @@ Image::Image( VkPhysicalDevice physDevice
             .depth = 1,
         },
         .mipLevels = mipCount,
-        .arrayLayers = 1,
+        .arrayLayers = arrayCount,
         .samples = VK_SAMPLE_COUNT_1_BIT,
         .tiling = VK_IMAGE_TILING_OPTIMAL,
         .usage = usageFlags,
@@ -116,13 +127,13 @@ Image::Image( VkPhysicalDevice physDevice
         .baseMipLevel = 0,
         .levelCount = mipCount,
         .baseArrayLayer = 0,
-        .layerCount = 1,
+        .layerCount = arrayCount == 1 ? 1 : VK_REMAINING_ARRAY_LAYERS,
     };
 
     const VkImageViewCreateInfo imageViewInfo{
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
         .image = m_image,
-        .viewType = VK_IMAGE_VIEW_TYPE_2D,
+        .viewType = arrayCount == 1 ? VK_IMAGE_VIEW_TYPE_2D : VK_IMAGE_VIEW_TYPE_2D_ARRAY,
         .format = m_format,
         .components = components,
         .subresourceRange = subresourceRange,
@@ -138,6 +149,6 @@ void Image::transfer( VkCommandBuffer cmd, const TransferInfo& dst )
     if ( m_currentLocation == dst ) {
         return;
     }
-    transferImage( cmd, m_image, m_currentLocation, dst, m_mipCount );
+    transferImage( cmd, m_image, m_currentLocation, dst, m_mipCount, m_arrayCount );
     m_currentLocation = dst;
 }

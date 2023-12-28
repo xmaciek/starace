@@ -48,6 +48,7 @@ TextureVK::TextureVK( const TextureCreateInfo& tci, VkPhysicalDevice physDevice,
     , { .width = tci.width, .height = tci.height }
     , format( tci )
     , tci.mips
+    , tci.array
     , VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT
     , VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
     , VK_IMAGE_ASPECT_COLOR_BIT
@@ -92,31 +93,40 @@ TextureVK& TextureVK::operator = ( TextureVK&& rhs ) noexcept
 }
 
 struct RegionGenerator {
-    uint32_t byteCount = 0;
-    uint32_t width = 0;
-    uint32_t height = 0;
-    uint32_t offset = 0;
-    uint32_t mipId = 0;
+    uint32_t m_bufferSize = 0;
+    uint32_t m_mipSize = 0;
+    uint32_t m_width = 0;
+    uint32_t m_height = 0;
+    uint32_t m_mips = 0;
+    uint32_t m_arrays = 0;
+
+    uint32_t m_offset = 0;
+    uint32_t m_id = 0;
 
     VkBufferImageCopy operator () ();
 };
 
 VkBufferImageCopy RegionGenerator::operator () ()
 {
-    const uint32_t mipLevel = mipId++;
-    const uint32_t bufferOffset = offset;
-    offset += byteCount;
-    byteCount >>= 2;
+    const uint32_t bufferOffset = m_offset;
+    const uint32_t id = m_id++;
+    const uint32_t mipLevel = id % m_mips;
+    const uint32_t arrayId = id / m_mips;
+    m_offset += m_mipSize >> ( mipLevel * 2 );
+    assert( m_offset <= m_bufferSize );
+    assert( arrayId < m_arrays );
+
     return VkBufferImageCopy{
         .bufferOffset = bufferOffset,
-        .imageSubresource = VkImageSubresourceLayers{
+        .imageSubresource{
             .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
             .mipLevel = mipLevel,
+            .baseArrayLayer = arrayId,
             .layerCount = 1,
         },
         .imageExtent = VkExtent3D{
-            .width = width >> mipLevel,
-            .height = height >> mipLevel,
+            .width = m_width >> mipLevel,
+            .height = m_height >> mipLevel,
             .depth = 1,
         },
     };
@@ -128,11 +138,14 @@ void TextureVK::transferFrom( VkCommandBuffer cmd, const BufferVK& buffer, uint3
     transfer( cmd, constants::copyTo );
 
     RegionGenerator regionGen{
-        .byteCount = mip0ByteCount,
-        .width = m_extent.width,
-        .height = m_extent.height,
+        .m_bufferSize = buffer.sizeInBytes(),
+        .m_mipSize = mip0ByteCount,
+        .m_width = m_extent.width,
+        .m_height = m_extent.height,
+        .m_mips = mipCount(),
+        .m_arrays = arrayCount(),
     };
-    std::pmr::vector<VkBufferImageCopy> regions( mipCount() );
+    std::pmr::vector<VkBufferImageCopy> regions( mipCount() * arrayCount() );
     std::generate( regions.begin(), regions.end(), regionGen );
 
     vkCmdCopyBufferToImage(

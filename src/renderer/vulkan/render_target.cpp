@@ -22,7 +22,7 @@ RenderTarget::RenderTarget(
     , VkFormat depthFormat
     , VkImageView extraView
 ) noexcept
-: Image{ pdevice, device, extent, depthFormat, 1
+: Image{ pdevice, device, extent, depthFormat, 1, 1
     , purpose.usage
     , purpose.memoryFlags
     , purpose.aspectFlags

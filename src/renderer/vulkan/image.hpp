@@ -17,6 +17,7 @@ protected:
 
     TransferInfo m_currentLocation = constants::undefined;
     uint32_t m_mipCount = 0;
+    uint32_t m_arrayCount = 0;
 
 public:
     ~Image() noexcept;
@@ -26,6 +27,7 @@ public:
         , VkExtent2D
         , VkFormat
         , uint32_t mipCount
+        , uint32_t arrayCount
         , VkImageUsageFlags
         , VkMemoryPropertyFlags
         , VkImageAspectFlagBits
@@ -38,6 +40,7 @@ public:
     Image& operator = ( const Image& ) = delete;
 
     uint32_t mipCount() const;
+    uint32_t arrayCount() const;
     VkImage image() const;
     VkImageView view() const;
     VkExtent2D extent() const;

@@ -26,7 +26,7 @@ VkFormat pickSupportedFormat( VkPhysicalDevice physicalDevice, const std::pmr::v
     return {};
 }
 
-void transferImage( VkCommandBuffer cmd, VkImage image, const TransferInfo& src, const TransferInfo& dst, uint32_t mipCount )
+void transferImage( VkCommandBuffer cmd, VkImage image, const TransferInfo& src, const TransferInfo& dst, uint32_t mipCount, uint32_t arrayCount )
 {
     assert( mipCount > 0 );
     const VkImageSubresourceRange imageSubresourceRange{
@@ -34,7 +34,7 @@ void transferImage( VkCommandBuffer cmd, VkImage image, const TransferInfo& src,
         .baseMipLevel = 0,
         .levelCount = mipCount,
         .baseArrayLayer = 0,
-        .layerCount = 1,
+        .layerCount = arrayCount,
     };
 
     assert( cmd );
