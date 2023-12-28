@@ -26,16 +26,32 @@ static Texture parseTexture( const T& data )
         assert( !"dds .size filed not 124" );
         return {};
     }
+
+    using Flags = dds::Header::Flags;
+    if ( ~header.flags & ( Flags::fCaps | Flags::fHeight | Flags::fWidth | Flags::fPixelFormat ) ) {
+        assert( !"dds is missing necessary flags, either [ width, height, caps, pixel_format ]" );
+        return {};
+    }
+
+    using Caps = dds::Header::Caps;
+    if ( ~header.caps & Caps::fTexture ) {
+        assert( !"dds .caps does not contain fTexture flag" );
+        return {};
+    }
+
     dataPtr += sizeof( header );
 
     TextureCreateInfo tci{
-        .width = static_cast<uint16_t>( header.width ),
-        .height = static_cast<uint16_t>( header.height ),
+        .width = header.width,
+        .height = header.height,
         .mip0ByteCount = header.pitchOrLinearSize,
         .dataBeginOffset = sizeof( header ),
-        .mips = static_cast<uint8_t>( std::max( header.mipMapCount, 1u ) ),
     };
 
+    static constexpr auto mipFlags = Caps::fComplex | Caps::fMipMap;
+    if ( auto f = header.caps & mipFlags; f == mipFlags && header.flags & Flags::fMipMapCount ) {
+        tci.mips = std::max( header.mipMapCount, 1u );
+    }
 
     switch ( header.pixelFormat.fourCC ) {
     case dds::c_dxgi: {
@@ -44,6 +60,9 @@ static Texture parseTexture( const T& data )
         dataPtr += sizeof( dxgiHeader );
         tci.dataBeginOffset += sizeof( dxgiHeader );
         assert( tci.dataBeginOffset == 148 );
+        if ( header.caps & Caps::fComplex ) {
+            tci.array = std::max( dxgiHeader.arraySize, 1u );
+        }
         using enum dds::dxgi::Format;
         switch ( dxgiHeader.format ) {
         case BC1_UNORM: tci.format = TextureFormat::eBC1_unorm; break;

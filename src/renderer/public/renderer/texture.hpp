@@ -24,11 +24,12 @@ enum class TextureAddressMode : uint8_t {
 };
 
 struct TextureCreateInfo {
-    uint16_t width = 0;
-    uint16_t height = 0;
+    uint32_t width = 0;
+    uint32_t height = 0;
     uint32_t mip0ByteCount = 0;
     uint32_t dataBeginOffset = 0;
-    uint8_t mips = 1;
+    uint32_t mips = 1;
+    uint32_t array = 1;
     TextureFormat format{};
     TextureAddressMode u{};
     TextureAddressMode v{};
