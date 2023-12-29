@@ -119,16 +119,4 @@ struct Header {
 };
 static_assert( sizeof( Header ) == 128 );
 
-namespace constants {
-
-using enum Header::Flags;
-inline constexpr Header::Flags uncompressed = static_cast<Header::Flags>( fCaps | fWidth | fHeight | fPixelFormat | fMipMapCount );
-
-inline constexpr PixelFormat DXGI{
-    .flags = PixelFormat::Flags::fFourCC,
-    .fourCC = c_dxgi,
-};
-
-} // namespace constants
-
 } // namespace dds
