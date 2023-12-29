@@ -89,8 +89,10 @@ static std::pmr::vector<const char*> enabledLayers()
     [[maybe_unused]]
     Wishlist<VkLayerProperties> wishlist{ &layerList, &ret };
 
+#if ENABLE_VULKAN_VALIDATION
     wishlist( "VK_LAYER_KHRONOS_validation" );
     // wishlist( "VK_LAYER_RENDERDOC_Capture" );
+#endif
     return ret;
 }
 
@@ -107,8 +109,9 @@ static std::pmr::vector<const char*> enabledExtensions( SDL_Window* window )
 
     [[maybe_unused]]
     Wishlist<VkExtensionProperties> wishlist{ &extensionList, &ret };
+#if ENABLE_VULKAN_VALIDATION
     wishlist( VK_EXT_DEBUG_UTILS_EXTENSION_NAME );
-
+#endif
     return ret;
 }
 

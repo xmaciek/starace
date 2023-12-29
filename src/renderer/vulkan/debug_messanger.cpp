@@ -1,5 +1,7 @@
 #include "debug_messanger.hpp"
 
+#if ENABLE_VULKAN_VALIDATION
+
 #include <cassert>
 #include <iostream>
 #include <utility>
@@ -77,3 +79,4 @@ DebugMsg& DebugMsg::operator = ( DebugMsg&& rhs ) noexcept
     return *this;
 }
 
+#endif

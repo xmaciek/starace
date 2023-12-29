@@ -2,6 +2,7 @@
 
 #include "vk.hpp"
 
+#if ENABLE_VULKAN_VALIDATION
 class DebugMsg {
     VkInstance m_vkInstance = VK_NULL_HANDLE;
     VkDebugUtilsMessengerEXT m_inst = VK_NULL_HANDLE;
@@ -18,3 +19,11 @@ public:
     DebugMsg( DebugMsg&& ) noexcept;
     DebugMsg& operator = ( DebugMsg&& ) noexcept;
 };
+
+#else
+class DebugMsg {
+public:
+    DebugMsg() noexcept = default;
+    inline explicit DebugMsg( VkInstance ) noexcept {};
+}
+#endif

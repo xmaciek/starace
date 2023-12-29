@@ -50,5 +50,7 @@ target_link_libraries( renderer_vk
 
 target_compile_definitions( renderer_vk
     PRIVATE
+    ENABLE_VULKAN_VALIDATION=1
     VK_NO_PROTOTYPES=1
 )
+
