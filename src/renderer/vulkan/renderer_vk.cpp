@@ -344,6 +344,32 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
         it.m_cmdRender = it.m_commandPool[ 2 ];
     }
     recreateRenderTargets( m_swapchain.extent() );
+
+    {
+        static constexpr uint64_t pink = 0x00000000'F81FF81Full;
+        static constexpr uint64_t black = 0ull;
+        static constexpr uint64_t texels[ 64 ]{
+            pink, black, pink, black, pink, black, pink, black,
+            black, pink, black, pink, black, pink, black, pink,
+            pink, black, pink, black, pink, black, pink, black,
+            black, pink, black, pink, black, pink, black, pink,
+            pink, black, pink, black, pink, black, pink, black,
+            black, pink, black, pink, black, pink, black, pink,
+            pink, black, pink, black, pink, black, pink, black,
+            black, pink, black, pink, black, pink, black, pink,
+        };
+        TextureCreateInfo tci{
+            .width = 32,
+            .height = 32,
+            .mip0ByteCount = sizeof( texels ),
+            .format = TextureFormat::eBC1_unorm,
+            .u = TextureAddressMode::eRepeat,
+            .v = TextureAddressMode::eRepeat,
+        };
+        m_defaultTextureId = createTexture( tci, std::span<const uint8_t>{ reinterpret_cast<const uint8_t*>( &texels ), sizeof( texels ) } );
+        m_defaultTexture = m_textureSlots[ textureIdToIndex( m_defaultTextureId ) ];
+        assert( m_defaultTexture );
+    }
 }
 
 PipelineSlot RendererVK::createPipeline( const PipelineCreateInfo& pci )
@@ -914,9 +940,10 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
 
         case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER: {
             const uint32_t texIdx = textureIdToIndex( pushBuffer.m_resource[ i ].texture );
-            assert( texIdx != INVALID_INDEX );
-            const TextureVK* texture = m_textureSlots[ texIdx ];
-            assert( texture );
+            const TextureVK* texture = m_defaultTexture;
+            if ( texIdx != INVALID_INDEX ) [[likely]] {
+                texture = m_textureSlots[ texIdx ];
+            }
             bindInfo[ i ].imageInfo = texture->imageInfo();
             descriptorWrites[ i ].pImageInfo = &bindInfo[ i ].imageInfo;
         } break;

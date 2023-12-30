@@ -14,6 +14,7 @@ static auto format( const TextureCreateInfo& tci )
     case TextureFormat::eR: return VK_FORMAT_R8_UNORM;
     case TextureFormat::eRGBA: return VK_FORMAT_R8G8B8A8_UNORM;
     case TextureFormat::eBGRA: return VK_FORMAT_B8G8R8A8_UNORM;
+    case TextureFormat::eBGR565: return VK_FORMAT_B5G6R5_UNORM_PACK16;
     case TextureFormat::eBC1_unorm: return VK_FORMAT_BC1_RGB_UNORM_BLOCK;
     case TextureFormat::eBC2_unorm: return VK_FORMAT_BC2_UNORM_BLOCK;
     case TextureFormat::eBC3_unorm: return VK_FORMAT_BC3_UNORM_BLOCK;

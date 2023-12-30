@@ -11,6 +11,7 @@ enum class TextureFormat : uint8_t {
     eR,
     eRGBA,
     eBGRA,
+    eBGR565,
     eBC1_unorm,
     eBC2_unorm,
     eBC3_unorm,

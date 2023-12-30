@@ -70,6 +70,8 @@ class RendererVK : public Renderer {
     std::array<PipelineVK, MAX_PIPELINES> m_pipelines{};
     PipelineVK* m_lastPipeline = nullptr;
 
+    Texture m_defaultTextureId{};
+    const TextureVK* m_defaultTexture = nullptr;
     Indexer<64> m_textureIndexer{};
     std::array<std::atomic<TextureVK*>, 64> m_textureSlots{};
     std::mutex m_textureBottleneck{};
