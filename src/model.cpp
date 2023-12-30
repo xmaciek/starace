@@ -9,9 +9,11 @@
 
 #include <cassert>
 #include <algorithm>
+#include <string_view>
+using std::operator ""sv;
 
 Model::Model( const Mesh& mesh, Texture t, float scale ) noexcept
-: m_vertices{ mesh[ "hull" ] }
+: m_vertices{ mesh[ "hull"sv ] }
 , m_texture{ t }
 , m_scale{ scale }
 {

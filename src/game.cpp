@@ -313,6 +313,15 @@ void Game::onInit()
     loadTexture( "textures/plasma.dds" );
     m_plasma = m_textures[ "textures/plasma.dds" ];
 
+    auto loadMesh = [&m = m_meshes, &io = m_io, &r = m_renderer]( auto path )
+    {
+        m[ path ] = Mesh{ io->viewWait( path ), r };
+    };
+    loadMesh( "models/a2.objc" );
+    loadMesh( "models/a3.objc" );
+    loadMesh( "models/a4.objc" );
+    loadMesh( "models/a5.objc" );
+
     cfg::Entry weapons = cfg::Entry::fromData( m_io->viewWait( "misc/weapons.cfg" ) );
     for ( const auto& it : weapons ) {
         auto [ weapon, isHidden ] = parseWeapon( it );
@@ -327,8 +336,8 @@ void Game::onInit()
 
     m_jetsContainer = loadJets( m_io->viewWait( "misc/jets.cfg" ) );
     assert( !m_jetsContainer.empty() );
+
     for ( auto& it : m_jetsContainer ) {
-        m_meshes[ it.model_file ] = Mesh{ m_io->viewWait( it.model_file ), m_renderer };
         it.model = Model( m_meshes[ it.model_file ], m_textures[ it.model_texture ], it.scale );
     }
 
