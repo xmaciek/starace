@@ -17,7 +17,6 @@
 #include <chrono>
 #include <cstdlib>
 #include <fstream>
-#include <iostream>
 #include <random>
 #include <cmath>
 #include <set>
@@ -628,7 +627,6 @@ void Game::unpause()
 void Game::updateGame( const UpdateContext& updateContext )
 {
     ZoneScoped;
-
     m_jet.setInput( m_jetInput );
 
     if ( m_jet.status() == Jet::Status::eDead ) {

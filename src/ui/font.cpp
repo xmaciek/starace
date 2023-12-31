@@ -8,7 +8,6 @@
 
 #include <algorithm>
 #include <cassert>
-#include <iostream>
 #include <numeric>
 #include <span>
 #include <memory_resource>
