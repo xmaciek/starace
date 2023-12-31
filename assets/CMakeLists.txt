@@ -1,0 +1,13 @@
+add_subdirectory( fonts )
+add_subdirectory( models )
+add_subdirectory( shaders )
+add_subdirectory( sounds )
+add_subdirectory( textures )
+add_subdirectory( ui )
+
+list( APPEND misc_list "${CMAKE_CURRENT_SOURCE_DIR}/misc/jets.cfg" )
+list( APPEND misc_list "${CMAKE_CURRENT_SOURCE_DIR}/misc/maps.cfg" )
+list( APPEND misc_list "${CMAKE_CURRENT_SOURCE_DIR}/misc/weapons.cfg" )
+list( APPEND misc_list "${CMAKE_CURRENT_SOURCE_DIR}/misc/ui_atlas.txt" )
+list( APPEND misc_list "${CMAKE_CURRENT_SOURCE_DIR}/lang/en.txt" )
+pack( ARCHIVE "misc" FILES "${misc_list}" )
