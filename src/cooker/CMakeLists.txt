@@ -1,0 +1,18 @@
+
+function( declare_cooker name )
+    add_executable( ${name} )
+    target_link_libraries( ${name} cxx::flags extra )
+    set_cppver( ${name} 20 )
+    set_vs_directory( ${name} cooker )
+endfunction()
+
+declare_cooker( cooker_dds )
+declare_cooker( cooker_font )
+declare_cooker( cooker_obj )
+declare_cooker( cooker_pak )
+
+target_sources( cooker_obj PRIVATE cooker_obj.cpp )
+target_sources( cooker_dds PRIVATE cooker_dds.cpp )
+target_sources( cooker_pak PRIVATE cooker_pak.cpp )
+target_sources( cooker_font PRIVATE cooker_font.cpp )
+target_link_libraries( cooker_font Freetype::Freetype )

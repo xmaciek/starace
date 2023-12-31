@@ -44,18 +44,6 @@ endfunction()
 
 add_custom_target( cook ALL )
 
-function( declare_cooker name )
-    add_executable( ${name} )
-    target_link_libraries( ${name} cxx::flags extra )
-    set_cppver( ${name} 20 )
-    set_vs_directory( ${name} cooker )
-endfunction()
-
-declare_cooker( cooker_dds )
-declare_cooker( cooker_font )
-declare_cooker( cooker_obj )
-declare_cooker( cooker_pak )
-
 find_package( Vulkan REQUIRED )
 add_subdirectory( assets )
 add_subdirectory( sdk )

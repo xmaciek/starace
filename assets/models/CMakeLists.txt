@@ -8,7 +8,7 @@ function( cook_obj file )
         OUTPUT "${file}.objc"
         DEPENDS cooker_obj
         DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${file}.obj"
-        COMMAND "${CMAKE_BINARY_DIR}/cooker_obj" "${CMAKE_CURRENT_SOURCE_DIR}/${file}.obj" "${file}.objc"
+        COMMAND cooker_obj "${CMAKE_CURRENT_SOURCE_DIR}/${file}.obj" "${CMAKE_CURRENT_BINARY_DIR}/${file}.objc"
     )
     add_dependencies( model "model.${file}" )
     set_vs_directory( "model.${file}" "models" )
