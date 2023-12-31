@@ -8,7 +8,8 @@
 #include <engine/math.hpp>
 #include <shared/pmr_pointer.hpp>
 
-#include <memory_resource>
+#include <span>
+#include <vector>
 
 class Enemy : public SAObject {
 private:
@@ -18,14 +19,15 @@ private:
     float m_shotFactor = 0.0f;
 
 public:
+    static constexpr inline uint16_t COLLIDE_ID = 'EN';
     virtual ~Enemy() override = default;
     Enemy( Model* );
 
-    UniquePointer<Bullet> weapon( std::pmr::memory_resource* );
-    bool isWeaponReady() const;
+    void shoot( std::pmr::vector<Bullet>& );
     virtual void render( RenderContext ) const override;
     virtual void update( const UpdateContext& ) override;
     void setWeapon( const WeaponCreateInfo& );
 
     static void renderAll( const RenderContext&, std::span<const UniquePointer<Enemy>> );
+    static void updateAll( const UpdateContext&, std::span<UniquePointer<Enemy>> );
 };

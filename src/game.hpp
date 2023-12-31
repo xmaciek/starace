@@ -76,10 +76,8 @@ private:
     Audio::Slot m_click{};
     Audio::Slot m_torpedo{};
 
-    Pool<Bullet, 1024> m_poolBullets{};
+    std::pmr::vector<Bullet> m_bullets{};
     Pool<Enemy, 100> m_poolEnemies{};
-    std::pmr::vector<UniquePointer<Bullet>> m_bullets{};
-    std::pmr::vector<UniquePointer<Bullet>> m_enemyBullets{};
     std::pmr::vector<UniquePointer<Enemy>> m_enemies{};
     std::pmr::vector<Explosion> m_explosions{};
     std::pmr::vector<MapCreateInfo> m_mapsContainer{};
@@ -134,7 +132,6 @@ private:
     uint32_t viewportHeight() const;
     uint32_t viewportWidth() const;
     float viewportAspect() const;
-    void playSounds( std::span<UniquePointer<Bullet>> );
     void changeScreen( Screen, Audio::Slot sound = {} );
     void clearMapData();
     void createMapData( const MapCreateInfo&, const ModelProto& );

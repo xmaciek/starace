@@ -160,20 +160,16 @@ math::vec3 Jet::weaponPoint( uint32_t weaponNum )
     return w;
 }
 
-UniquePointer<Bullet> Jet::weapon( uint32_t weaponNum, std::pmr::memory_resource* alloc )
+Bullet Jet::weapon( uint32_t weaponNum )
 {
     assert( weaponNum < std::size( m_weapons ) );
-    assert( alloc );
     m_weaponsCooldown[ weaponNum ].current = 0.0f;
-    UniquePointer<Bullet> b{ alloc, m_weapons[ weaponNum ], math::rotate( quat(), m_model.weapon( weaponNum ) ) + position() };
-    assert( b->status() != Status::eDead );
-
-    b->setDirection( direction() );
-
-    switch ( b->type() ) {
+    Bullet b{ m_weapons[ weaponNum ], math::rotate( quat(), m_model.weapon( weaponNum ) ) + position(), direction() };
+    b.m_collideId = COLLIDE_ID;
+    switch ( b.m_type ) {
     case Bullet::Type::eTorpedo:
         if ( m_target && m_target->status() == Status::eAlive ) {
-            b->setTarget( m_target );
+            b.m_target = m_target;
         }
         break;
     case Bullet::Type::eBlaster: {
@@ -185,25 +181,28 @@ UniquePointer<Bullet> Jet::weapon( uint32_t weaponNum, std::pmr::memory_resource
         if ( !autoAim.matches( position(), direction(), m_target->position() ) ) {
             break;
         }
-        b->setDirection( autoAim( b->speed(), b->position(), m_target->position(), m_target->velocity() ) );
+        b.m_direction = autoAim( b.m_speed, b.m_position, m_target->position(), m_target->velocity() );
     } break;
     default:
+        assert( !"unreachable" );
         break;
     }
     return b;
 }
 
-std::span<UniquePointer<Bullet>> Jet::shoot( std::pmr::memory_resource* alloc, std::pmr::vector<UniquePointer<Bullet>>* vec )
+std::array<Bullet::Type, Jet::MAX_SUPPORTED_WEAPON_COUNT> Jet::shoot( std::pmr::vector<Bullet>& vec )
 {
-    auto begin = vec->size();
-    for ( auto i : { 0u, 1u, 2u } ) {
+    std::array<Bullet::Type, MAX_SUPPORTED_WEAPON_COUNT> ret;
+    std::fill( ret.begin(), ret.end(), Bullet::Type::eDead );
+
+    for ( auto i = 0u; i < MAX_SUPPORTED_WEAPON_COUNT; ++i ) {
         const auto& wc = m_weaponsCooldown[ i ];
         if ( wc.current < wc.ready ) continue;
         if ( !isShooting( i ) ) continue;
-        vec->emplace_back( weapon( i, alloc ) );
+        vec.emplace_back( weapon( i ) );
+        ret[ i ] = m_weapons[ i ].type;
     }
-    std::span<UniquePointer<Bullet>> ret = *vec;
-    return ret.subspan( begin );
+    return ret;
 }
 
 math::quat Jet::quat() const

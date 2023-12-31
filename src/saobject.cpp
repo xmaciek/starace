@@ -52,7 +52,7 @@ void SAObject::setDamage( uint8_t d )
     m_pendingDamage += d;
 }
 
-uint8_t SAObject::health() const
+uint16_t SAObject::health() const
 {
     return m_health;
 }

@@ -10,30 +10,24 @@
 #include <cassert>
 #include <random>
 
-static constexpr float c_maxRange = 6000.0_m;
-static constexpr float c_tailChunkLength = 5.0_m;
+static constexpr float MAX_TRAVEL_DISTANCE = 6000.0_m;
+static constexpr float TAIL_CHUNK_LENGTH = 5.0_m;
 
-Bullet::Bullet( const WeaponCreateInfo& bp, const math::vec3& position )
-: m_color1{ bp.color1 }
+Bullet::Bullet( const WeaponCreateInfo& bp, const math::vec3& position, const math::vec3& direction )
+: m_position{ position }
+, m_direction{ direction }
+, m_color1{ bp.color1 }
 , m_color2{ bp.color2 }
+, m_speed{ bp.speed }
 , m_size{ bp.size }
 , m_score{ bp.score_per_hit }
-, m_uvid{ bp.uvid }
 , m_damage{ bp.damage }
 , m_type{ bp.type }
 {
     std::fill( m_tail.begin(), m_tail.end(), position );
-    m_speed = bp.speed;
-    m_position = position;
-    setStatus( Status::eAlive );
 };
 
-void Bullet::render( RenderContext ) const
-{
-    assert( !"deleted function" );
-}
-
-void Bullet::renderAll( const RenderContext& rctx, std::span<const UniquePointer<Bullet>> span, Texture texture )
+void Bullet::renderAll( const RenderContext& rctx, std::span<Bullet> span, Texture texture )
 {
     if ( span.empty() ) return;
 
@@ -54,22 +48,22 @@ void Bullet::renderAll( const RenderContext& rctx, std::span<const UniquePointer
     auto pushBullet = []( auto& pushConstant, uint32_t idx, const Bullet& bullet )
     {
         assert( ( idx + 5 ) <= ParticleBlob::INSTANCES );
+        assert( bullet.m_type != Type::eDead );
 
-        auto makeParticle = []( const math::vec3& pos, float size, uint16_t uvid, const math::vec4& color ) -> ParticleBlob::Particle
+        auto makeParticle = []( const math::vec3& pos, float size, const math::vec4& color ) -> ParticleBlob::Particle
         {
             return {
                 .m_position = math::vec4{ pos.x, pos.y, pos.z, size },
-                .m_uvxywh = math::makeUVxywh<1, 1>( uvid & 0xff, uvid >> 8 ),
+                .m_uvxywh = math::vec4{ 0.0f, 0.0f, 1.0f, 1.0f },
                 .m_color = color,
             };
         };
         const float size = bullet.m_size;
-        const uint16_t uvid = bullet.m_uvid;
-        pushConstant.m_particles[ idx++ ] = makeParticle( bullet.m_position, size, uvid, bullet.m_color1 );
-        pushConstant.m_particles[ idx++ ] = makeParticle( bullet.m_tail[ 0 ], size * 0.8f, uvid, bullet.m_color2 );
-        pushConstant.m_particles[ idx++ ] = makeParticle( bullet.m_tail[ 1 ], size * 0.6f, uvid, bullet.m_color2 );
-        pushConstant.m_particles[ idx++ ] = makeParticle( bullet.m_tail[ 2 ], size * 0.4f, uvid, bullet.m_color2 );
-        pushConstant.m_particles[ idx++ ] = makeParticle( bullet.m_tail[ 3 ], size * 0.2f, uvid, bullet.m_color2 );
+        pushConstant.m_particles[ idx++ ] = makeParticle( bullet.m_position, size, bullet.m_color1 );
+        pushConstant.m_particles[ idx++ ] = makeParticle( bullet.m_tail[ 0 ], size * 0.8f, bullet.m_color2 );
+        pushConstant.m_particles[ idx++ ] = makeParticle( bullet.m_tail[ 1 ], size * 0.6f, bullet.m_color2 );
+        pushConstant.m_particles[ idx++ ] = makeParticle( bullet.m_tail[ 2 ], size * 0.4f, bullet.m_color2 );
+        pushConstant.m_particles[ idx++ ] = makeParticle( bullet.m_tail[ 3 ], size * 0.2f, bullet.m_color2 );
         return idx;
     };
 
@@ -77,11 +71,10 @@ void Bullet::renderAll( const RenderContext& rctx, std::span<const UniquePointer
 
     uint32_t idx = 0;
     for ( const auto& it : span ) {
-        assert( it );
-        if ( !isOnScreen( mvp, it->m_position, rctx.viewport ) ) {
+        if ( !isOnScreen( mvp, it.m_position, rctx.viewport ) ) {
             continue;
         }
-        idx = pushBullet( pushConstant, idx, *it );
+        idx = pushBullet( pushConstant, idx, it );
         if ( ParticleBlob::INSTANCES - idx < 5 ) {
             pushBuffer.m_instanceCount = idx;
             rctx.renderer->push( pushBuffer, &pushConstant );
@@ -94,65 +87,37 @@ void Bullet::renderAll( const RenderContext& rctx, std::span<const UniquePointer
     }
 }
 
-void Bullet::update( const UpdateContext& updateContext )
+void Bullet::updateAll( const UpdateContext& updateContext, std::span<Bullet> span )
 {
-    assert( status() != Status::eDead );
-
-    if ( m_range > c_maxRange ) {
-        setStatus( Status::eDead );
-        return;
-    }
-
-    switch ( m_type ) {
-    case Type::eTorpedo:
-        if ( m_target && m_target->status() != Status::eDead ) {
-            m_direction = interceptTarget( m_direction, m_position, m_target->position(), 160.0_deg * updateContext.deltaTime );
-        }
-        [[fallthrough]];
-
-    case Type::eBlaster:
-        m_prevPosition = m_position;
-        m_position += velocity() * updateContext.deltaTime;
-        {
-            math::vec3 pos = m_position;
-            for ( auto& it : m_tail ) {
-                if ( math::distance( it, pos ) > c_tailChunkLength ) {
-                    it = pos + math::normalize( it - pos ) * c_tailChunkLength;
-                }
-                pos = it;
+    auto update = [dt = updateContext.deltaTime]( auto& bullet )
+    {
+        switch ( bullet.m_type ) {
+        case Type::eTorpedo:
+            if ( bullet.m_target ) {
+                bullet.m_direction = interceptTarget( bullet.m_direction, bullet.m_position, bullet.m_target->position(), 160.0_deg * dt );
             }
+            [[fallthrough]];
+
+        case Type::eBlaster:
+            bullet.m_prevPosition = bullet.m_position;
+            bullet.m_position += bullet.m_direction * bullet.m_speed * dt;
+            bullet.m_travelDistance += bullet.m_speed * dt;
+            if ( bullet.m_travelDistance >= TAIL_CHUNK_LENGTH ) [[likely]]
+            {
+                math::vec3 pos = bullet.m_position;
+                for ( auto& it : bullet.m_tail ) {
+                    it = pos + math::normalize( it - pos ) * TAIL_CHUNK_LENGTH;
+                    pos = it;
+                }
+            }
+            break;
+
+        case Type::eDead:
+            return;
         }
-        m_range += m_speed * updateContext.deltaTime;
-        break;
-    }
+        if ( bullet.m_travelDistance >= MAX_TRAVEL_DISTANCE ) {
+            bullet.m_type = Bullet::Type::eDead;
+        }
+    };
+    std::for_each( span.begin(), span.end(), update );
 };
-
-void Bullet::setDirection( const math::vec3& v )
-{
-    m_direction = math::normalize( v );
-}
-
-uint16_t Bullet::score() const
-{
-    return m_score;
-}
-
-uint8_t Bullet::damage() const
-{
-    return m_damage;
-}
-
-Bullet::Type Bullet::type() const
-{
-    return m_type;
-}
-
-math::vec3 Bullet::prevPosition() const
-{
-    return m_prevPosition;
-}
-
-math::vec4 Bullet::color() const
-{
-    return m_color1;
-}

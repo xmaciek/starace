@@ -26,28 +26,20 @@ Enemy::Enemy( Model* m )
 void Enemy::setWeapon( const WeaponCreateInfo& w )
 {
     m_weapon = w;
-    m_shotFactor = randomRange( 0, m_weapon.delay );
 }
 
-UniquePointer<Bullet> Enemy::weapon( std::pmr::memory_resource* alloc )
-{
-    assert( alloc );
-    UniquePointer<Bullet> bullet{ alloc, m_weapon, position() };
-    bullet->setDirection( direction() );
-    bullet->setTarget( m_target );
-    m_shotFactor = 0;
-    return bullet;
-}
-
-
-bool Enemy::isWeaponReady() const
+void Enemy::shoot( std::pmr::vector<Bullet>& vec )
 {
     if ( m_shotFactor < m_weapon.delay ) {
-        return false;
+        return;
     }
-    return AutoAim{}.matches( position(), direction(), m_target->position() );
+    if ( !AutoAim{}.matches( position(), direction(), m_target->position() ) ) {
+        return;
+    }
+    m_shotFactor = 0;
+    auto& b = vec.emplace_back( m_weapon, position(), direction() );
+    b.m_collideId = COLLIDE_ID;
 }
-
 
 void Enemy::renderAll( const RenderContext& rctx, std::span<const UniquePointer<Enemy>> span )
 {
@@ -72,16 +64,25 @@ void Enemy::render( RenderContext ) const
     assert( !"not callable" );
 }
 
-void Enemy::update( const UpdateContext& updateContext )
+void Enemy::update( const UpdateContext& )
 {
-    assert( status() != Status::eDead );
-    SAObject::update( updateContext );
-    if ( status() == Status::eDead ) {
-        return;
-    }
+    assert( !"not callable" );
+}
 
-    m_shotFactor = std::min( m_weapon.delay, m_shotFactor + updateContext.deltaTime );
-    m_direction = interceptTarget( m_direction, m_position, m_target->position(), 30.0_deg * updateContext.deltaTime );
-    m_position += velocity() * updateContext.deltaTime;
+void Enemy::updateAll( const UpdateContext& uctx, std::span<UniquePointer<Enemy>> e )
+{
+    auto update = [&uctx]( auto& p )
+    {
+        assert( p->status() != Status::eDead );
+        p->m_shotFactor = std::min( p->m_weapon.delay, p->m_shotFactor + uctx.deltaTime );
+        p->m_direction = interceptTarget( p->m_direction, p->m_position, p->m_target->position(), 30.0_deg * uctx.deltaTime );
+        p->m_position += p->velocity() * uctx.deltaTime;
+        p->m_health -= std::min( p->m_health, p->m_pendingDamage );
+        p->m_pendingDamage = 0;
+        if ( p->m_health == 0 ) {
+            p->m_status = Status::eDead;
+        }
+    };
+    std::for_each( e.begin(), e.end(), update );
 }
 

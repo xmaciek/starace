@@ -16,40 +16,34 @@
 
 struct WeaponCreateInfo;
 
-class Bullet : public SAObject {
+struct Bullet {
 public:
     enum class Type : uint8_t {
-        eBlaster,
         eTorpedo,
+        eBlaster,
+        eDead,
     };
 
-private:
+    math::vec3 m_position{};
+    math::vec3 m_direction{};
     math::vec3 m_prevPosition{};
     std::array<math::vec3, 4> m_tail{};
     math::vec4 m_color1{};
     math::vec4 m_color2{};
-    float m_range = 0.0f;
+    const SAObject* m_target = nullptr;
+    float m_speed = 0.0f;
+    float m_travelDistance = 0.0f;
     float m_size = 0.0f;
     uint16_t m_score = 0;
-    uint16_t m_uvid{};
+    uint16_t m_collideId = 0;
     uint8_t m_damage = 0;
     Type m_type{};
 
-public:
-    virtual ~Bullet() override = default;
-    explicit Bullet( const WeaponCreateInfo&, const math::vec3& position );
+    Bullet() noexcept = default;
+    Bullet( const WeaponCreateInfo&, const math::vec3& position, const math::vec3& direction );
 
-    uint8_t damage() const;
-    Type type() const;
-    virtual void render( RenderContext ) const override;
-    virtual void update( const UpdateContext& ) override;
-    void setDirection( const math::vec3& );
-
-    math::vec4 color() const;
-    math::vec3 prevPosition() const;
-    uint16_t score() const;
-
-    static void renderAll( const RenderContext&, std::span<const UniquePointer<Bullet>>, Texture );
+    static void updateAll( const UpdateContext&, std::span<Bullet> );
+    static void renderAll( const RenderContext&, std::span<Bullet>, Texture );
 };
 
 struct WeaponCreateInfo {

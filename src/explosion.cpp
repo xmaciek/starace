@@ -9,16 +9,10 @@
 
 bool Explosion::isInvalid( const Explosion& e ) noexcept
 {
-    return e.m_state > 1.0f;
+    return e.m_state >= 1.0f;
 }
 
-void Explosion::update( const UpdateContext& uctx )
-{
-    m_state += uctx.deltaTime;
-    m_position += m_velocity * uctx.deltaTime;
-}
-
-void Explosion::renderAll( const RenderContext& rctx, std::span<const Explosion> explosions, Texture texture )
+void Explosion::renderAll( const RenderContext& rctx, const std::pmr::vector<Explosion>& explosions, Texture texture )
 {
     if ( explosions.empty() ) return;
 
@@ -60,4 +54,10 @@ void Explosion::renderAll( const RenderContext& rctx, std::span<const Explosion>
         count = std::min( static_cast<uint32_t>( std::distance( it, explosions.end() ) ), ParticleBlob::INSTANCES );
     }
 
+}
+
+void Explosion::updateAll( const UpdateContext& uctx, std::pmr::vector<Explosion>& vec )
+{
+    std::for_each( vec.begin(), vec.end(), [dt=uctx.deltaTime]( auto& e ) { e.m_state += dt; e.m_position += e.m_velocity * dt; } );
+    std::erase_if( vec, &isInvalid );
 }

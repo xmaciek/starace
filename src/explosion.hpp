@@ -7,7 +7,8 @@
 #include <engine/update_context.hpp>
 #include <renderer/texture.hpp>
 
-#include <span>
+#include <vector>
+#include <memory_resource>
 
 struct Explosion {
     math::vec3 m_position{};
@@ -18,6 +19,6 @@ struct Explosion {
     float m_state = 0.0f;
 
     static bool isInvalid( const Explosion& ) noexcept;
-    void update( const UpdateContext& );
-    static void renderAll( const RenderContext&, std::span<const Explosion>, Texture );
+    static void renderAll( const RenderContext&, const std::pmr::vector<Explosion>&, Texture );
+    static void updateAll( const UpdateContext&, std::pmr::vector<Explosion>& );
 };

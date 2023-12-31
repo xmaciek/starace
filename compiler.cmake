@@ -6,9 +6,9 @@ target_compile_options( cxx::flags INTERFACE
     #-Wconversion # disabled because bit-field narrowing conversion
     -Werror
     -Wextra
-    -Wno-multichar
     -Wno-interference-size
     -Wno-missing-field-initializers
+    -Wno-multichar
     -Wpedantic
     -fno-exceptions
     -fno-rtti
@@ -21,6 +21,7 @@ target_compile_options( cxx::flags INTERFACE
     -Werror
     -Wextra
     -Wno-missing-field-initializers
+    -Wno-multichar
     -Wno-string-conversion
     -Wpedantic
     -fno-exceptions

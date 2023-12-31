@@ -19,7 +19,7 @@ public:
     SAObject() = default;
 
     Status status() const;
-    uint8_t health() const;
+    uint16_t health() const;
     float speed() const;
     math::vec3 direction() const;
     math::vec3 position() const;
@@ -39,13 +39,12 @@ public:
         return 1.0f + p / ( 1.0f + p );
     }
 protected:
-    SAObject* m_target = nullptr;
     math::vec3 m_direction{};
     math::vec3 m_position{};
+    SAObject* m_target = nullptr;
     float m_speed = 0.0f;
-    uint32_t m_score = 0;
     uint16_t m_pendingDamage = 0;
-    uint8_t m_health = 0;
+    uint16_t m_health = 0;
     Status m_status = Status::eDead;
 
 };

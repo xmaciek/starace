@@ -277,8 +277,7 @@ void Game::onInit()
 
     m_enemies.reserve( 100 );
     m_explosions.reserve( 100 );
-    m_bullets.reserve( 500 );
-    m_enemyBullets.reserve( 1000 );
+    m_bullets.reserve( 2000 );
     m_jetsContainer.reserve( 5 );
     m_mapsContainer.reserve( 5 );
     for ( auto [ eid, act ] : inputActions ) {
@@ -639,79 +638,86 @@ void Game::updateGame( const UpdateContext& updateContext )
         changeScreen( Screen::eWin );
     }
 
-    auto added = m_jet.shoot( &m_poolBullets, &m_bullets );
-    playSounds( added );
 
     m_lookAtTarget.setTarget( m_jetInput.lookAt ? 1.0f : 0.0f );
     m_lookAtTarget.update( updateContext.deltaTime );
     m_jet.update( updateContext );
+    Bullet::updateAll( updateContext, m_bullets );
+    Enemy::updateAll( updateContext, m_enemies );
+    Explosion::updateAll( updateContext, m_explosions );
+
     m_dustGame.setCenter( m_jet.position() );
     m_dustGame.setVelocity( m_jet.velocity() * -0.5f );
     m_dustGame.update( updateContext );
 
-    for ( Explosion& it : m_explosions ) {
-        it.update( updateContext );
-    }
-    m_explosions.erase( std::remove_if( m_explosions.begin(), m_explosions.end(), &Explosion::isInvalid ), m_explosions.end() );
-
-    auto isDead = []( const auto& it ) -> bool { return it->status() == SAObject::Status::eDead; };
     {
-        for ( auto& b : m_bullets ) {
-            assert( b );
-            b->update( updateContext );
-            if ( isDead( b ) ) { continue; }
-            for ( auto& e : m_enemies ) {
-                assert( e );
-                if ( !intersectLineSphere( b->position(), b->prevPosition(), e->position(), 15.0_m ) ) {
-                    continue;
-                }
-                e->setDamage( b->damage() );
-                m_hudData.score += b->score();
-                b->kill();
-                break;
+        auto soundsToPlay = m_jet.shoot( m_bullets );
+        for ( auto&& i : soundsToPlay ) {
+            switch ( i ) {
+            case Bullet::Type::eBlaster: m_audio->play( m_blaster ); m_hudData.shots++; break;
+            case Bullet::Type::eTorpedo: m_audio->play( m_torpedo ); m_hudData.shots++; break;
+            default: break;
             }
         }
-        auto bulletsToRemove = std::remove_if( m_bullets.begin(), m_bullets.end(), isDead );
-        auto makeExplosion = [plasma = m_plasma]( const auto& ptr ) -> Explosion
-        {
-            assert( ptr );
-            return Explosion{
-                .m_position = ptr->position(),
-                .m_velocity = ptr->velocity() * 0.1f,
-                .m_color = ptr->color(),
-                .m_texture = plasma,
-                .m_size = 16.0_m,
-            };
-        };
-        std::transform( bulletsToRemove, m_bullets.end(), std::back_inserter( m_explosions ), makeExplosion );
-        m_bullets.erase( bulletsToRemove, m_bullets.end() );
+        for ( auto&& e : m_enemies ) {
+            e->shoot( m_bullets );
+        }
     }
 
     {
         const math::vec3 jetPos = m_jet.position();
-        for ( auto& b : m_enemyBullets ) {
-            b->update( updateContext );
-            if ( isDead( b ) ) { continue; }
-            if ( intersectLineSphere( b->position(), b->prevPosition(), jetPos, 15.0_m ) ) {
-                m_jet.setDamage( b->damage() );
-                b->kill();
+        auto makeExplosion = [plasma = m_plasma]( const Bullet& b ) -> Explosion
+        {
+            return Explosion{
+                .m_position = b.m_position,
+                .m_velocity = b.m_direction * b.m_speed * 0.1f,
+                .m_color = b.m_color1,
+                .m_texture = plasma,
+                .m_size = 16.0_m,
+            };
+        };
+
+        for ( auto& b : m_bullets ) {
+            if ( b.m_type == Bullet::Type::eDead ) continue;
+            switch ( b.m_collideId ) {
+            case Enemy::COLLIDE_ID:
+                if ( !intersectLineSphere( b.m_position, b.m_prevPosition, jetPos, 15.0_m ) ) continue;
+                m_jet.setDamage( b.m_damage );
+                b.m_type = Bullet::Type::eDead;
+                m_explosions.emplace_back( makeExplosion( b ) );
+                break;
+
+            case Jet::COLLIDE_ID:
+                for ( auto& e : m_enemies ) {
+                    assert( e );
+                    if ( !intersectLineSphere( b.m_position, b.m_prevPosition, e->position(), 15.0_m ) ) continue;
+                    e->setDamage( b.m_damage );
+                    m_hudData.score += b.m_score;
+                    b.m_type = Bullet::Type::eDead;
+                    m_explosions.emplace_back( makeExplosion( b ) );
+                    break;
+                }
+                break;
+            default:
+                assert( !"unreachable" );
+                b.m_type = Bullet::Type::eDead;
+                break;
             }
         }
-        m_enemyBullets.erase( std::remove_if( m_enemyBullets.begin(), m_enemyBullets.end(), isDead ), m_enemyBullets.end() );
+
+        std::erase_if( m_bullets, []( const Bullet& b ) { return b.m_type == Bullet::Type::eDead; } );
     }
+
     {
+        auto isDead = []( const auto& it ) -> bool { return it->status() == SAObject::Status::eDead; };
         for ( auto& e : m_enemies ) {
-            e->update( updateContext );
             if ( isDead( e ) ) {
                 m_jet.untarget( e.get() );
-                m_explosions.push_back( Explosion{ e->position(), e->velocity(), color::yellowBlaster, m_plasma } );
+                m_explosions.emplace_back( e->position(), e->velocity(), color::yellowBlaster, m_plasma, 64.0_m, 0.0f );
                 continue;
             }
-            if ( e->isWeaponReady() ) {
-                m_enemyBullets.push_back( e->weapon( &m_poolBullets ) );
-            }
         }
-        m_enemies.erase( std::remove_if( m_enemies.begin(), m_enemies.end(), isDead ), m_enemies.end() );
+        std::erase_if( m_enemies, isDead );
     }
     const SAObject* tgt = m_jet.target();
     if ( tgt ) {
@@ -724,23 +730,11 @@ void Game::updateGame( const UpdateContext& updateContext )
     m_targeting.setState( m_jet.targetingState() );
     m_hudData.calc = static_cast<uint32_t>( m_fpsMeter.calculated() );
     m_hudData.fps = static_cast<uint32_t>( m_fpsMeter.fps() );
-    m_hudData.pool = static_cast<uint32_t>( m_poolBullets.allocCount() );
+    m_hudData.pool = static_cast<uint32_t>( m_bullets.size() );
     m_hudData.speed = m_jet.speed();
     m_uiPlayerHP = static_cast<float>( m_jet.health() ) / 100.0f;
     m_hud.update( updateContext );
-}
 
-void Game::playSounds( std::span<UniquePointer<Bullet>> bullets )
-{
-    ZoneScoped;
-    assert( m_audio );
-    m_hudData.shots += bullets.size();
-    for ( const auto& it : bullets ) {
-        switch ( it->type() ) {
-        case Bullet::Type::eBlaster: m_audio->play( m_blaster ); break;
-        case Bullet::Type::eTorpedo: m_audio->play( m_torpedo ); break;
-        }
-    }
 }
 
 void Game::retarget()
@@ -778,7 +772,6 @@ void Game::clearMapData()
     ZoneScoped;
     m_enemies.clear();
     m_bullets.clear();
-    m_enemyBullets.clear();
 }
 
 void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelData )
@@ -1014,7 +1007,6 @@ void Game::render3D( RenderContext rctx )
     m_dustGame.render( rctx );
     Enemy::renderAll( rctx, m_enemies );
     Bullet::renderAll( rctx, m_bullets, m_plasma );
-    Bullet::renderAll( rctx, m_enemyBullets, m_plasma );
     m_jet.render( rctx );
 }
 
