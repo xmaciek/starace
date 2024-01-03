@@ -5,6 +5,7 @@
 #include <Tracy.hpp>
 
 #include <cassert>
+#include <utility>
 
 CommandPool::~CommandPool() noexcept
 {

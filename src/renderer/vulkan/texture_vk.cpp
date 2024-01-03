@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <cassert>
 #include <utility>
+#include <vector>
+#include <memory_resource>
 
 static auto format( const TextureCreateInfo& tci )
 {

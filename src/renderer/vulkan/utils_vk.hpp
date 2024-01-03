@@ -2,13 +2,6 @@
 
 #include "vk.hpp"
 
-#include <memory_resource>
-#include <vector>
-#include <utility>
-#include <type_traits>
-
-VkFormat pickSupportedFormat( VkPhysicalDevice, const std::pmr::vector<VkFormat>&, VkImageTiling, VkFormatFeatureFlags );
-
 template <const auto& pfnDestroy, typename T>
 void destroy( VkDevice device, T t ) noexcept
 {

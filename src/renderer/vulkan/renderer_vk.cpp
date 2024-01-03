@@ -185,6 +185,36 @@ static std::tuple<QueueCount, QueueCount> queueFamilies( VkPhysicalDevice device
     return pickDifferentValues<QueueCount>( graphicsCandidate, presentCandidate );
 }
 
+struct FormatSupportTest {
+    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+
+    struct Info {
+        VkFormat format{};
+        VkImageTiling tiling{};
+        VkFormatFeatureFlags flags{};
+    };
+
+    bool operator ()( const Info& fi ) const
+    {
+        VkFormatProperties props{};
+        vkGetPhysicalDeviceFormatProperties( physicalDevice, fi.format, &props );
+        switch ( fi.tiling ) {
+        case VK_IMAGE_TILING_LINEAR: return ( props.linearTilingFeatures & fi.flags ) == fi.flags;
+        case VK_IMAGE_TILING_OPTIMAL: return ( props.optimalTilingFeatures & fi.flags ) == fi.flags;
+        default: assert( !"wrong tiling requested" ); return false;
+        }
+    }
+
+    static VkFormat pick( std::span<const Info> table, VkPhysicalDevice physicalDevice )
+    {
+        auto it = std::find_if( table.begin(), table.end(), FormatSupportTest{ physicalDevice } );
+        assert( it != table.end() );
+        assert( it->format != VK_FORMAT_UNDEFINED );
+        return it->format;
+    };
+};
+
+
 Renderer* Renderer::instance()
 {
     assert( g_instance );
@@ -246,14 +276,24 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
     m_physicalDevice = selectPhysicalDevice( m_instance, &physicalProperties );
     assert( m_physicalDevice );
 
-    m_depthFormat = pickSupportedFormat(
-        m_physicalDevice,
-        { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
-        VK_IMAGE_TILING_OPTIMAL,
-        VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
-    );
+    {
+        using Info = FormatSupportTest::Info;
 
+        static constexpr std::array colorFormatWishlist{
+            Info{ VK_FORMAT_B10G11R11_UFLOAT_PACK32,  VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT },
+            Info{ VK_FORMAT_R16G16B16A16_UNORM,       VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT },
+            Info{ VK_FORMAT_B8G8R8A8_UNORM,           VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT },
+            Info{ VK_FORMAT_R8G8B8A8_UNORM,           VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT },
+        };
+        static constexpr std::array depthFormatWishlist{
+            Info{ VK_FORMAT_D24_UNORM_S8_UINT,    VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT },
+            Info{ VK_FORMAT_D32_SFLOAT,           VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT },
+            Info{ VK_FORMAT_D32_SFLOAT_S8_UINT,   VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT },
+        };
 
+        m_colorFormat = FormatSupportTest::pick( colorFormatWishlist, m_physicalDevice );
+        m_depthFormat = FormatSupportTest::pick( depthFormatWishlist, m_physicalDevice );
+    }
 
     const auto [ queueGraphics, queuePresent ] = queueFamilies( m_physicalDevice, m_surface );
     m_queueFamilyGraphics = queueGraphics.queue;

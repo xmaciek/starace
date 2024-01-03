@@ -9,6 +9,7 @@
 #include <memory_resource>
 #include <optional>
 #include <vector>
+#include <utility>
 
 constexpr static bool operator == ( const VkSurfaceFormatKHR& lhs, const VkSurfaceFormatKHR& rhs ) noexcept
 {

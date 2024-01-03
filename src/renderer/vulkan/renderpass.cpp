@@ -11,6 +11,8 @@
 RenderPass::RenderPass( VkDevice device, VkFormat format, VkFormat depthFormat ) noexcept
 : m_device{ device }
 {
+    assert( format != VK_FORMAT_UNDEFINED );
+    assert( depthFormat != VK_FORMAT_UNDEFINED );
     ZoneScoped;
     static constexpr VkAttachmentReference colorAttachmentRef{
         .attachment = 0,
@@ -86,6 +88,7 @@ RenderPass::RenderPass( VkDevice device, VkFormat depthFormat ) noexcept
 : m_device{ device }
 , m_depthOnly{ true }
 {
+    assert( depthFormat != VK_FORMAT_UNDEFINED );
     ZoneScoped;
     static constexpr VkAttachmentReference depthAttachmentRef{
         .attachment = 0,

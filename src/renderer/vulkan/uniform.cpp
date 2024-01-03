@@ -6,6 +6,8 @@
 
 #include <cassert>
 #include <cstring>
+#include <utility>
+#include <bit>
 
 
 Uniform::~Uniform() noexcept
