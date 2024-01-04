@@ -92,7 +92,7 @@ private:
     UIRings m_uiRings{};
 
 
-    Texture m_cyberRingTexture[ 3 ]{};
+    Texture m_cyberRingTexture{};
     Texture m_plasma{};
     std::pmr::map<std::filesystem::path, Texture> m_textures{};
 
