@@ -3,6 +3,7 @@
 #include "autoaim.hpp"
 #include "texture.hpp"
 #include "utils.hpp"
+#include "game_pipeline.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -51,17 +52,38 @@ void Jet::render( RenderContext rctx ) const
         for ( const math::vec3& it : thrusters ) {
             m_thruster[ 0 ].renderAt( rctx, it );
         }
-        return;
     }
-    const math::mat4 model = rctx.model;
-    const math::vec4 tangle = m_thrusterAngles.value();
+    else {
+        const math::vec4 tangle = m_thrusterAngles.value();
+        const math::mat4 model = rctx.model;
 
-    rctx.model = math::rotate( model, tangle.x + tangle.y, axis::x );
-    m_thruster[ 0 ].renderAt( rctx, thrusters[ 0 ] );
+        rctx.model = math::rotate( model, tangle.x + tangle.y, axis::x );
+        m_thruster[ 0 ].renderAt( rctx, thrusters[ 0 ] );
 
-    rctx.model = math::rotate( model, tangle.z + tangle.w, axis::x );
-    m_thruster[ 1 ].renderAt( rctx, thrusters[ 1 ] );
+        rctx.model = math::rotate( model, tangle.z + tangle.w, axis::x );
+        m_thruster[ 1 ].renderAt( rctx, thrusters[ 1 ] );
 
+        rctx.model = model;
+    }
+
+    for ( uint32_t i = 0; i < MAX_SUPPORTED_WEAPON_COUNT; ++i ) {
+        if ( m_weapons[ i ].type != Bullet::Type::eLaser ) continue;
+        if ( !isShooting( i ) ) continue;
+        PushConstant<Pipeline::eBeam> bc{
+            .m_model = rctx.model,
+            .m_view = rctx.view,
+            .m_projection = rctx.projection,
+            .m_position = m_model.weapon( i ),
+            .m_displacement{ 1.0_m, 1.0_m, -1000.0_m },
+            .m_color1 = m_weapons[ i ].color1,
+            .m_color2 = m_weapons[ i ].color2,
+        };
+        PushData bd{
+            .m_pipeline = g_pipelines[ Pipeline::eBeam ],
+            .m_verticeCount = 12,
+        };
+        rctx.renderer->push( bd, &bc );
+    }
 }
 
 void Jet::update( const UpdateContext& updateContext )
@@ -167,6 +189,8 @@ Bullet Jet::weapon( uint32_t weaponNum )
     Bullet b{ m_weapons[ weaponNum ], math::rotate( quat(), m_model.weapon( weaponNum ) ) + position(), direction() };
     b.m_collideId = COLLIDE_ID;
     switch ( b.m_type ) {
+    case Bullet::Type::eLaser:
+        break;
     case Bullet::Type::eTorpedo:
         if ( m_target && m_target->status() == Status::eAlive ) {
             b.m_target = m_target;

@@ -21,6 +21,7 @@ public:
     enum class Type : uint8_t {
         eTorpedo,
         eBlaster,
+        eLaser,
         eDead,
     };
 
@@ -33,6 +34,7 @@ public:
     const SAObject* m_target = nullptr;
     float m_speed = 0.0f;
     float m_travelDistance = 0.0f;
+    float m_maxDistance = 0.0f;
     float m_size = 0.0f;
     uint16_t m_score = 0;
     uint16_t m_collideId = 0;
@@ -51,6 +53,7 @@ struct WeaponCreateInfo {
     math::vec4 color2{};
     float delay = 0.0f;
     float speed = 0.0f;
+    float distance = 0.0;
     float size = 2.6_m;
     uint16_t score_per_hit = 0;
     uint16_t uvid{};

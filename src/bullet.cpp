@@ -10,7 +10,6 @@
 #include <cassert>
 #include <random>
 
-static constexpr float MAX_TRAVEL_DISTANCE = 6000.0_m;
 static constexpr float TAIL_CHUNK_LENGTH = 5.0_m;
 
 Bullet::Bullet( const WeaponCreateInfo& bp, const math::vec3& position, const math::vec3& direction )
@@ -19,6 +18,7 @@ Bullet::Bullet( const WeaponCreateInfo& bp, const math::vec3& position, const ma
 , m_color1{ bp.color1 }
 , m_color2{ bp.color2 }
 , m_speed{ bp.speed }
+, m_maxDistance{ bp.distance }
 , m_size{ bp.size }
 , m_score{ bp.score_per_hit }
 , m_damage{ bp.damage }
@@ -71,9 +71,8 @@ void Bullet::renderAll( const RenderContext& rctx, std::span<Bullet> span, Textu
 
     uint32_t idx = 0;
     for ( const auto& it : span ) {
-        if ( !isOnScreen( mvp, it.m_position, rctx.viewport ) ) {
-            continue;
-        }
+        if ( it.m_type == Type::eLaser ) continue;
+        if ( !isOnScreen( mvp, it.m_position, rctx.viewport ) ) continue;
         idx = pushBullet( pushConstant, idx, it );
         if ( ParticleBlob::INSTANCES - idx < 5 ) {
             pushBuffer.m_instanceCount = idx;
@@ -98,6 +97,7 @@ void Bullet::updateAll( const UpdateContext& updateContext, std::span<Bullet> sp
             }
             [[fallthrough]];
 
+        case Type::eLaser:
         case Type::eBlaster:
             bullet.m_prevPosition = bullet.m_position;
             bullet.m_position += bullet.m_direction * bullet.m_speed * dt;
@@ -113,9 +113,9 @@ void Bullet::updateAll( const UpdateContext& updateContext, std::span<Bullet> sp
             break;
 
         case Type::eDead:
-            return;
+            break;
         }
-        if ( bullet.m_travelDistance >= MAX_TRAVEL_DISTANCE ) {
+        if ( bullet.m_travelDistance >= bullet.m_maxDistance ) {
             bullet.m_type = Bullet::Type::eDead;
         }
     };

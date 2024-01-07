@@ -174,6 +174,7 @@ static std::tuple<WeaponCreateInfo, bool> parseWeapon( const cfg::Entry& entry )
             [[fallthrough]];
         case "blaster"_hash: return Bullet::Type::eBlaster;
         case "torpedo"_hash: return Bullet::Type::eTorpedo;
+        case "laser"_hash: return Bullet::Type::eLaser;
         }
     };
 
@@ -204,7 +205,8 @@ static std::tuple<WeaponCreateInfo, bool> parseWeapon( const cfg::Entry& entry )
         case "damage"_hash: weap.damage = property.toInt<uint8_t>(); continue;
         case "delay"_hash: weap.delay = property.toFloat(); continue;
         case "hidden"_hash: isHidden = property.toInt<bool>(); continue;
-        case "kmph"_hash: weap.speed = property.toFloat() * (float)kmph; continue;
+        case "speed"_hash: weap.speed = property.toFloat() * (float)meter; continue;
+        case "distance"_hash: weap.distance = property.toFloat() * (float)meter; continue;
         case "loc"_hash: weap.displayName = hash( property.toString() ); continue;
         case "score"_hash: weap.score_per_hit = property.toInt<uint16_t>(); continue;
         case "size"_hash: weap.size = property.toFloat() * (float)meter; continue;
@@ -664,10 +666,10 @@ void Game::updateGame( const UpdateContext& updateContext )
 
     {
         const math::vec3 jetPos = m_jet.position();
-        auto makeExplosion = [plasma = m_plasma]( const Bullet& b ) -> Explosion
+        auto makeExplosion = [plasma = m_plasma]( const Bullet& b, const math::vec3& p ) -> Explosion
         {
             return Explosion{
-                .m_position = b.m_position,
+                .m_position = p + ( b.m_position - p ) * 15.0_m,
                 .m_velocity = b.m_direction * b.m_speed * 0.1f,
                 .m_color = b.m_color1,
                 .m_texture = plasma,
@@ -682,7 +684,7 @@ void Game::updateGame( const UpdateContext& updateContext )
                 if ( !intersectLineSphere( b.m_position, b.m_prevPosition, jetPos, 15.0_m ) ) continue;
                 m_jet.setDamage( b.m_damage );
                 b.m_type = Bullet::Type::eDead;
-                m_explosions.emplace_back( makeExplosion( b ) );
+                m_explosions.emplace_back( makeExplosion( b, jetPos ) );
                 break;
 
             case Jet::COLLIDE_ID:
@@ -692,7 +694,7 @@ void Game::updateGame( const UpdateContext& updateContext )
                     e->setDamage( b.m_damage );
                     m_hudData.score += b.m_score;
                     b.m_type = Bullet::Type::eDead;
-                    m_explosions.emplace_back( makeExplosion( b ) );
+                    m_explosions.emplace_back( makeExplosion( b, e->position() ) );
                     break;
                 }
                 break;

@@ -45,5 +45,7 @@ compileShader( trianglefan_texture.frag )
 compileShader( trianglefan_texture.vert )
 compileShader( ui_rings.frag )
 compileShader( ui_rings.vert )
+compileShader( beam.frag )
+compileShader( beam.vert )
 
 pack( ARCHIVE "shaders" FILES "${shader_list}" )

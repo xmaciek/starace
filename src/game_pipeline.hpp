@@ -17,6 +17,7 @@ enum class Pipeline : PipelineSlot {
     eGammaCorrection,
     eScanline,
     eUiRings,
+    eBeam,
     count,
 };
 
@@ -141,6 +142,17 @@ struct PushConstant<Pipeline::eUiRings> {
     math::vec4 m_xywh{};
     alignas( 16 ) std::array<math::mat4, 3> m_modelMatrix{};
     alignas( 16 ) std::array<math::vec4, 3> m_color;
+};
+
+template <>
+struct PushConstant<Pipeline::eBeam> {
+    math::mat4 m_model{};
+    math::mat4 m_view{};
+    math::mat4 m_projection{};
+    alignas( 16 ) math::vec3 m_position{};
+    alignas( 16 ) math::vec3 m_displacement{};
+    alignas( 16 ) math::vec4 m_color1{};
+    alignas( 16 ) math::vec4 m_color2{};
 };
 
 struct PipelineAtlas {
@@ -349,6 +361,21 @@ PipelineCreateInfo{
     .m_binding{
         BindType::eVertexUniform,
         BindType::eFragmentImage,
+    },
+},
+
+PipelineCreateInfo{
+    .m_vertexShader = "shaders/beam.vert.spv",
+    .m_fragmentShader = "shaders/beam.frag.spv",
+    .m_userHint = static_cast<uint32_t>( Pipeline::eBeam ),
+    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eBeam> ),
+    .m_enableBlend = true,
+    .m_enableDepthTest = true,
+    .m_topology = PipelineCreateInfo::Topology::eTriangleList,
+    .m_cullMode = PipelineCreateInfo::CullMode::eNone,
+    .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
+    .m_binding{
+        BindType::eVertexUniform,
     },
 },
 
