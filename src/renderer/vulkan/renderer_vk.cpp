@@ -944,7 +944,7 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
     const bool rebindPipeline = m_lastPipeline != &currentPipeline;
     const bool depthWrite = currentPipeline.depthWrite();
     const bool updateLineWidth = currentPipeline.useLines() && pushBuffer.m_lineWidth != m_lastLineWidth;
-    const bool bindBuffer = pushBuffer.m_vertice;
+    const bool bindBuffer = pushBuffer.m_vertexBuffer;
     uint32_t verticeCount = pushBuffer.m_verticeCount;
 
     auto& descriptorPool = fr.m_descriptorSets[ currentPipeline.descriptorSetId() ];
@@ -1004,7 +1004,7 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
     }
 
     if ( bindBuffer ) {
-        const uint32_t bufferIndex = bufferIdToIndex( pushBuffer.m_vertice );
+        const uint32_t bufferIndex = bufferIdToIndex( pushBuffer.m_vertexBuffer );
         assert( bufferIndex != INVALID_INDEX );
         const BufferVK* b = m_bufferSlots[ bufferIndex ];
         assert( b );
