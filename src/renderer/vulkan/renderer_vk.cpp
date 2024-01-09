@@ -246,7 +246,7 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
             .applicationVersion = VK_MAKE_VERSION( 1, 0, 0 ),
             .pEngineName = "Starace",
             .engineVersion = VK_MAKE_VERSION( 1, 0, 0 ),
-            .apiVersion = VK_API_VERSION_1_1,
+            .apiVersion = VK_API_VERSION_1_3,
         };
 
 

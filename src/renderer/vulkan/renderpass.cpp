@@ -57,7 +57,7 @@ RenderPass::RenderPass( VkDevice device, VkFormat format, VkFormat depthFormat )
         .format = depthFormat,
         .samples = VK_SAMPLE_COUNT_1_BIT,
         .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
-        .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+        .storeOp = VK_ATTACHMENT_STORE_OP_NONE,
         .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
         .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
         .initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,
