@@ -25,6 +25,8 @@ target_sources( renderer_vk
     renderer_vk.hpp
     renderpass.cpp
     renderpass.hpp
+    instance.cpp
+    instance.hpp
     shader.cpp
     shader.hpp
     swapchain.cpp
@@ -36,7 +38,6 @@ target_sources( renderer_vk
     utils_vk.cpp
     utils_vk.hpp
     vk.hpp
-    vk.cpp
     vk.def
 )
 

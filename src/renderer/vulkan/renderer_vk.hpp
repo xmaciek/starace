@@ -5,6 +5,7 @@
 #include "command_pool.hpp"
 #include "debug_messanger.hpp"
 #include "frame.hpp"
+#include "instance.hpp"
 #include "pipeline_vk.hpp"
 #include "render_target.hpp"
 #include "renderpass.hpp"
@@ -23,16 +24,10 @@
 #include <optional>
 
 class RendererVK : public Renderer {
-    struct Unloader {
-        using Fn = void();
-        Fn* fn = nullptr;
-        ~Unloader() { if ( fn ) fn(); };
-    };
-    Unloader m_unloader{};
+    Instance m_instance{};
 
     SDL_Window* m_window = nullptr;
 
-    VkInstance m_instance = VK_NULL_HANDLE;
     [[no_unique_address]]
     DebugMsg m_debugMsg{};
 

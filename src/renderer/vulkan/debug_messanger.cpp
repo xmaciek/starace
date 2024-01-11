@@ -31,8 +31,8 @@ static VkBool32 callback(
     return VK_FALSE;
 }
 
-DebugMsg::DebugMsg( VkInstance instance ) noexcept
-: m_vkInstance{ instance }
+DebugMsg::DebugMsg( const Instance& instance ) noexcept
+: m_vkInstance( instance )
 {
     assert( instance );
     static constexpr VkDebugUtilsMessengerCreateInfoEXT debugMsg{
@@ -47,9 +47,9 @@ DebugMsg::DebugMsg( VkInstance instance ) noexcept
             | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
         .pfnUserCallback = &callback,
     };
-    const PFN_vkCreateDebugUtilsMessengerEXT create = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>( vkGetInstanceProcAddr( instance, "vkCreateDebugUtilsMessengerEXT" ) );
+    const auto create = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>( instance.procAddr( "vkCreateDebugUtilsMessengerEXT" ) );
     assert( create );
-    m_destroy = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>( vkGetInstanceProcAddr( instance, "vkDestroyDebugUtilsMessengerEXT" ) );
+    m_destroy = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>( instance.procAddr( "vkDestroyDebugUtilsMessengerEXT" ) );
     assert( m_destroy );
 
     [[maybe_unused]]

@@ -11,11 +11,6 @@
 #include <cstring>
 #include <iostream>
 
-namespace vk {
-bool dllLoad();
-void dllUnload();
-}
-
 static class RendererSetup {
 public:
     RendererSetup()
@@ -78,40 +73,13 @@ struct Wishlist {
     }
 };
 
-static std::pmr::vector<const char*> enabledLayers()
-{
-    uint32_t count = 0;
-    vkEnumerateInstanceLayerProperties( &count, nullptr );
-    std::pmr::vector<VkLayerProperties> layerList( count );
-    vkEnumerateInstanceLayerProperties( &count, layerList.data() );
 
-    std::pmr::vector<const char*> ret;
-    [[maybe_unused]]
-    Wishlist<VkLayerProperties> wishlist{ &layerList, &ret };
-
-#if ENABLE_VULKAN_VALIDATION
-    wishlist( "VK_LAYER_KHRONOS_validation" );
-    // wishlist( "VK_LAYER_RENDERDOC_Capture" );
-#endif
-    return ret;
-}
-
-static std::pmr::vector<const char*> enabledExtensions( SDL_Window* window )
+static std::pmr::vector<const char*> windowExtensions( SDL_Window* window )
 {
     uint32_t count = 0;
     SDL_Vulkan_GetInstanceExtensions( window, &count, nullptr );
     std::pmr::vector<const char*> ret( count );
     SDL_Vulkan_GetInstanceExtensions( window, &count, ret.data() );
-
-    vkEnumerateInstanceExtensionProperties( nullptr, &count, nullptr );
-    std::pmr::vector<VkExtensionProperties> extensionList( count );
-    vkEnumerateInstanceExtensionProperties( nullptr, &count, extensionList.data() );
-
-    [[maybe_unused]]
-    Wishlist<VkExtensionProperties> wishlist{ &extensionList, &ret };
-#if ENABLE_VULKAN_VALIDATION
-    wishlist( VK_EXT_DEBUG_UTILS_EXTENSION_NAME );
-#endif
     return ret;
 }
 
@@ -222,47 +190,13 @@ Renderer* Renderer::instance()
 }
 
 RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
-: m_unloader{ .fn = &vk::dllUnload }
-, m_window( createInfo.window )
+: m_window{ createInfo.window }
 {
     ZoneScoped;
     assert( !g_instance );
     g_instance = this;
 
-    if ( !vk::dllLoad() ) {
-        assert( !"Failed to load vulkan library" );
-        std::cout << "Failed to load vulkan library" << std::endl;
-        std::abort();
-    }
-
-    const std::pmr::vector<const char*> layers = enabledLayers();
-    const std::pmr::vector<const char*> extensions = enabledExtensions( m_window );
-
-    {
-        ZoneScopedN( "create instance" );
-        const VkApplicationInfo appInfo{
-            .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-            .pApplicationName = "Starace",
-            .applicationVersion = VK_MAKE_VERSION( 1, 0, 0 ),
-            .pEngineName = "Starace",
-            .engineVersion = VK_MAKE_VERSION( 1, 0, 0 ),
-            .apiVersion = VK_API_VERSION_1_3,
-        };
-
-
-        const VkInstanceCreateInfo instanceCreateInfo{
-            .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-            .pApplicationInfo = &appInfo,
-            .enabledLayerCount = static_cast<uint32_t>( layers.size() ),
-            .ppEnabledLayerNames = layers.data(),
-            .enabledExtensionCount = static_cast<uint32_t>( extensions.size() ),
-            .ppEnabledExtensionNames = extensions.data(),
-        };
-
-        [[maybe_unused]]
-        const VkResult instanceOK = vkCreateInstance( &instanceCreateInfo, nullptr, &m_instance );
-        assert( instanceOK == VK_SUCCESS );
-    }
+    m_instance = Instance{ windowExtensions( createInfo.window ) };
 
     if ( !SDL_Vulkan_CreateSurface( m_window, m_instance, &m_surface ) ) {
         assert( !"Failed to create sdl vulkan surface" );
@@ -320,6 +254,7 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
             .wideLines = VK_TRUE,
             .samplerAnisotropy = VK_TRUE,
         };
+        auto layers = m_instance.layers();
         const VkDeviceCreateInfo createInfo{
             .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
             .queueCreateInfoCount = std::size( queueCreateInfo ),
@@ -495,10 +430,6 @@ RendererVK::~RendererVK()
     }
     if ( m_device ) {
         vkDestroyDevice( m_device, nullptr );
-    }
-    m_debugMsg = {};
-    if ( m_instance ) {
-        vkDestroyInstance( m_instance, nullptr );
     }
 }
 

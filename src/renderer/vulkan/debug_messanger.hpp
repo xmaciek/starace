@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vk.hpp"
+#include "instance.hpp"
 
 #if ENABLE_VULKAN_VALIDATION
 class DebugMsg {
@@ -10,7 +11,7 @@ class DebugMsg {
 
 public:
     ~DebugMsg() noexcept;
-    explicit DebugMsg( VkInstance ) noexcept;
+    DebugMsg( const Instance& ) noexcept;
     DebugMsg() noexcept = default;
 
     DebugMsg( const DebugMsg& ) = delete;
@@ -24,6 +25,6 @@ public:
 class DebugMsg {
 public:
     DebugMsg() noexcept = default;
-    inline explicit DebugMsg( VkInstance ) noexcept {};
-}
+    inline DebugMsg( const Instance& ) noexcept {};
+};
 #endif
