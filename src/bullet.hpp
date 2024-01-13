@@ -2,6 +2,7 @@
 
 #include "saobject.hpp"
 #include "units.hpp"
+#include "explosion.hpp"
 
 #include <engine/math.hpp>
 #include <renderer/texture.hpp>
@@ -27,8 +28,8 @@ public:
 
     math::vec3 m_position{};
     math::vec3 m_direction{};
+    math::quat m_quat{};
     math::vec3 m_prevPosition{};
-    std::array<math::vec3, 4> m_tail{};
     math::vec4 m_color1{};
     math::vec4 m_color2{};
     const SAObject* m_target = nullptr;
@@ -44,7 +45,7 @@ public:
     Bullet() noexcept = default;
     Bullet( const WeaponCreateInfo&, const math::vec3& position, const math::vec3& direction );
 
-    static void updateAll( const UpdateContext&, std::span<Bullet> );
+    static void updateAll( const UpdateContext&, std::span<Bullet>, std::pmr::vector<Explosion>&, Texture );
     static void renderAll( const RenderContext&, std::span<Bullet>, Texture );
 };
 

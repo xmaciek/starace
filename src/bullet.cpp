@@ -8,13 +8,11 @@
 
 #include <algorithm>
 #include <cassert>
-#include <random>
-
-static constexpr float TAIL_CHUNK_LENGTH = 5.0_m;
 
 Bullet::Bullet( const WeaponCreateInfo& bp, const math::vec3& position, const math::vec3& direction )
 : m_position{ position }
 , m_direction{ direction }
+, m_prevPosition{ position }
 , m_color1{ bp.color1 }
 , m_color2{ bp.color2 }
 , m_speed{ bp.speed }
@@ -24,77 +22,65 @@ Bullet::Bullet( const WeaponCreateInfo& bp, const math::vec3& position, const ma
 , m_damage{ bp.damage }
 , m_type{ bp.type }
 {
-    std::fill( m_tail.begin(), m_tail.end(), position );
 };
 
-void Bullet::renderAll( const RenderContext& rctx, std::span<Bullet> span, Texture texture )
+void Bullet::renderAll( const RenderContext& rctx, std::span<Bullet> span, Texture )
 {
     if ( span.empty() ) return;
 
-    using ParticleBlob = PushConstant<Pipeline::eParticleBlob>;
-    PushBuffer pushBuffer{
-        .m_pipeline = g_pipelines[ Pipeline::eParticleBlob ],
-        .m_verticeCount = 6,
+    PushData bd{
+        .m_pipeline = g_pipelines[ Pipeline::eBeamBlob ],
+        .m_verticeCount = 12,
     };
-    pushBuffer.m_resource[ 1 ].texture = texture;
-
-    ParticleBlob pushConstant{
+    using PushConstant = PushConstant<Pipeline::eBeamBlob>;
+    PushConstant bc{
+        .m_model = rctx.model,
         .m_view = rctx.view,
         .m_projection = rctx.projection,
-        .m_cameraPosition = rctx.cameraPosition,
-        .m_cameraUp = rctx.cameraUp,
-    };
-
-    auto pushBullet = []( auto& pushConstant, uint32_t idx, const Bullet& bullet )
-    {
-        assert( ( idx + 5 ) <= ParticleBlob::INSTANCES );
-        assert( bullet.m_type != Type::eDead );
-
-        auto makeParticle = []( const math::vec3& pos, float size, const math::vec4& color ) -> ParticleBlob::Particle
-        {
-            return {
-                .m_position = math::vec4{ pos.x, pos.y, pos.z, size },
-                .m_uvxywh = math::vec4{ 0.0f, 0.0f, 1.0f, 1.0f },
-                .m_color = color,
-            };
-        };
-        const float size = bullet.m_size;
-        pushConstant.m_particles[ idx++ ] = makeParticle( bullet.m_position, size, bullet.m_color1 );
-        pushConstant.m_particles[ idx++ ] = makeParticle( bullet.m_tail[ 0 ], size * 0.8f, bullet.m_color2 );
-        pushConstant.m_particles[ idx++ ] = makeParticle( bullet.m_tail[ 1 ], size * 0.6f, bullet.m_color2 );
-        pushConstant.m_particles[ idx++ ] = makeParticle( bullet.m_tail[ 2 ], size * 0.4f, bullet.m_color2 );
-        pushConstant.m_particles[ idx++ ] = makeParticle( bullet.m_tail[ 3 ], size * 0.2f, bullet.m_color2 );
-        return idx;
     };
 
     const math::mat4 mvp = rctx.projection * rctx.view * rctx.model;
 
     uint32_t idx = 0;
-    for ( const auto& it : span ) {
-        if ( it.m_type == Type::eLaser ) continue;
-        if ( !isOnScreen( mvp, it.m_position, rctx.viewport ) ) continue;
-        idx = pushBullet( pushConstant, idx, it );
-        if ( ParticleBlob::INSTANCES - idx < 5 ) {
-            pushBuffer.m_instanceCount = idx;
-            rctx.renderer->push( pushBuffer, &pushConstant );
+    for ( auto&& bullet : span ) {
+        if ( bullet.m_type == Type::eLaser ) continue;
+        if ( !isOnScreen( mvp, bullet.m_position, rctx.viewport ) ) continue;
+        bc.m_beams[ idx++ ] = PushConstant::Beam{
+            .m_position = bullet.m_position,
+            .m_quat = bullet.m_quat,
+            .m_displacement{ bullet.m_size, bullet.m_size, bullet.m_speed * 0.01618f },
+            .m_color1 = bullet.m_color1,
+            .m_color2 = bullet.m_color2,
+        };
+        if ( idx == PushConstant::INSTANCES ) {
+            bd.m_instanceCount = idx;
+            rctx.renderer->push( bd, &bc );
             idx = 0;
         }
     }
     if ( idx != 0 ) {
-        pushBuffer.m_instanceCount = idx;
-        rctx.renderer->push( pushBuffer, &pushConstant );
+        bd.m_instanceCount = idx;
+        rctx.renderer->push( bd, &bc );
     }
 }
 
-void Bullet::updateAll( const UpdateContext& updateContext, std::span<Bullet> span )
+void Bullet::updateAll( const UpdateContext& updateContext, std::span<Bullet> span, std::pmr::vector<Explosion>& explosions, Texture texture )
 {
-    auto update = [dt = updateContext.deltaTime]( auto& bullet )
+    auto update = [dt = updateContext.deltaTime, &explosions, texture]( auto& bullet )
     {
         switch ( bullet.m_type ) {
         case Type::eTorpedo:
             if ( bullet.m_target ) {
                 bullet.m_direction = interceptTarget( bullet.m_direction, bullet.m_position, bullet.m_target->position(), 160.0_deg * dt );
             }
+            bullet.m_quat = math::quatLookAt( bullet.m_direction, { 0.0f, 1.0f, 0.0f } );
+            explosions.emplace_back() = Explosion{
+                .m_position = bullet.m_position,
+                .m_velocity = bullet.m_direction * bullet.m_speed * 0.1f,
+                .m_color = bullet.m_color1,
+                .m_texture = texture,
+                .m_size = 2.0_m,
+            };
             [[fallthrough]];
 
         case Type::eLaser:
@@ -102,14 +88,6 @@ void Bullet::updateAll( const UpdateContext& updateContext, std::span<Bullet> sp
             bullet.m_prevPosition = bullet.m_position;
             bullet.m_position += bullet.m_direction * bullet.m_speed * dt;
             bullet.m_travelDistance += bullet.m_speed * dt;
-            if ( bullet.m_travelDistance >= TAIL_CHUNK_LENGTH ) [[likely]]
-            {
-                math::vec3 pos = bullet.m_position;
-                for ( auto& it : bullet.m_tail ) {
-                    it = pos + math::normalize( it - pos ) * TAIL_CHUNK_LENGTH;
-                    pos = it;
-                }
-            }
             break;
 
         case Type::eDead:

@@ -18,6 +18,7 @@ enum class Pipeline : PipelineSlot {
     eScanline,
     eUiRings,
     eBeam,
+    eBeamBlob,
     count,
 };
 
@@ -153,6 +154,22 @@ struct PushConstant<Pipeline::eBeam> {
     alignas( 16 ) math::vec3 m_displacement{};
     alignas( 16 ) math::vec4 m_color1{};
     alignas( 16 ) math::vec4 m_color2{};
+};
+
+template <>
+struct PushConstant<Pipeline::eBeamBlob> {
+    static constexpr uint32_t INSTANCES = 320;
+    struct Beam {
+        alignas( 16 ) math::vec3 m_position{};
+        alignas( 16 ) math::quat m_quat{};
+        alignas( 16 ) math::vec3 m_displacement{};
+        alignas( 16 ) math::vec4 m_color1{};
+        alignas( 16 ) math::vec4 m_color2{};
+    };
+    math::mat4 m_model{};
+    math::mat4 m_view{};
+    math::mat4 m_projection{};
+    std::array<Beam, INSTANCES> m_beams{};
 };
 
 struct PipelineAtlas {
@@ -369,6 +386,22 @@ PipelineCreateInfo{
     .m_fragmentShader = "shaders/beam.frag.spv",
     .m_userHint = static_cast<uint32_t>( Pipeline::eBeam ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eBeam> ),
+    .m_enableBlend = true,
+    .m_enableDepthTest = true,
+    .m_topology = PipelineCreateInfo::Topology::eTriangleList,
+    .m_cullMode = PipelineCreateInfo::CullMode::eNone,
+    .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
+    .m_binding{
+        BindType::eVertexUniform,
+    },
+},
+
+
+PipelineCreateInfo{
+    .m_vertexShader = "shaders/beam_blob.vert.spv",
+    .m_fragmentShader = "shaders/beam_blob.frag.spv",
+    .m_userHint = static_cast<uint32_t>( Pipeline::eBeamBlob ),
+    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eBeamBlob> ),
     .m_enableBlend = true,
     .m_enableDepthTest = true,
     .m_topology = PipelineCreateInfo::Topology::eTriangleList,

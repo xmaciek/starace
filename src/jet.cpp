@@ -211,6 +211,7 @@ Bullet Jet::weapon( uint32_t weaponNum )
         assert( !"unreachable" );
         break;
     }
+    b.m_quat = math::quatLookAt( b.m_direction, math::rotate( quat(), math::vec3{ 0.0f, 1.0f, 0.0f } ) );
     return b;
 }
 

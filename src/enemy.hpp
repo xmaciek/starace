@@ -18,6 +18,8 @@ private:
     Model m_model{};
     float m_shotFactor = 0.0f;
 
+    math::quat quat() const;
+
 public:
     static constexpr inline uint16_t COLLIDE_ID = 'EN';
     virtual ~Enemy() override = default;

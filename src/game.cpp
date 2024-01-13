@@ -277,7 +277,7 @@ void Game::onInit()
     g_uiProperty.m_pipelineSpriteSequenceColors = setupPipeline( m_renderer, m_io, ui::SPRITE_SEQUENCE_COLORS );
 
     m_enemies.reserve( 100 );
-    m_explosions.reserve( 100 );
+    m_explosions.reserve( 500 );
     m_bullets.reserve( 2000 );
     m_jetsContainer.reserve( 5 );
     m_mapsContainer.reserve( 5 );
@@ -642,7 +642,7 @@ void Game::updateGame( const UpdateContext& updateContext )
     m_lookAtTarget.setTarget( m_jetInput.lookAt ? 1.0f : 0.0f );
     m_lookAtTarget.update( updateContext.deltaTime );
     m_jet.update( updateContext );
-    Bullet::updateAll( updateContext, m_bullets );
+    Bullet::updateAll( updateContext, m_bullets, m_explosions, m_plasma );
     Enemy::updateAll( updateContext, m_enemies );
     Explosion::updateAll( updateContext, m_explosions );
 

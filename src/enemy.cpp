@@ -28,6 +28,11 @@ void Enemy::setWeapon( const WeaponCreateInfo& w )
     m_weapon = w;
 }
 
+math::quat Enemy::quat() const
+{
+    return math::quatLookAt( m_direction, { 0.0f, 1.0f, 0.0f } );
+}
+
 void Enemy::shoot( std::pmr::vector<Bullet>& vec )
 {
     if ( m_shotFactor < m_weapon.delay ) {
@@ -39,6 +44,7 @@ void Enemy::shoot( std::pmr::vector<Bullet>& vec )
     m_shotFactor = 0;
     auto& b = vec.emplace_back( m_weapon, position(), direction() );
     b.m_collideId = COLLIDE_ID;
+    b.m_quat = quat();
 }
 
 void Enemy::renderAll( const RenderContext& rctx, std::span<const UniquePointer<Enemy>> span )
@@ -50,8 +56,7 @@ void Enemy::renderAll( const RenderContext& rctx, std::span<const UniquePointer<
         const math::vec3 screenPos = project3dTo2d( rctx.camera3d, ptr->m_position, rctx.viewport );
         if ( !isOnScreen( screenPos, rctx.viewport ) ) { continue; }
 
-        const math::quat quat = math::quatLookAt( ptr->m_direction, { 0.0f, 1.0f, 0.0f } );
-        r.model = math::translate( rctx.model, ptr->m_position ) * math::toMat4( quat );
+        r.model = math::translate( rctx.model, ptr->m_position ) * math::toMat4( ptr->quat() );
         ptr->m_model.render( r );
         for ( auto it : ptr->m_model.thrusters() ) {
             ptr->m_thruster.renderAt( r, it );
