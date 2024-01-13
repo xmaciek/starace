@@ -85,7 +85,7 @@ private:
     Input m_input{};
     bool m_vectorThrust = true;
 
-    math::vec3 weaponPoint( uint32_t );
+    math::vec3 weaponPoint( uint32_t ) const;
     bool isShooting( uint32_t ) const;
     Bullet weapon( uint32_t );
 

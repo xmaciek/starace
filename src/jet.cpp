@@ -43,6 +43,7 @@ Jet::Jet( const CreateInfo& ci ) noexcept
 
 void Jet::render( RenderContext rctx ) const
 {
+    auto model = rctx.model;
     rctx.model = math::translate( rctx.model, position() );
     rctx.model *= math::toMat4( quat() );
 
@@ -66,22 +67,28 @@ void Jet::render( RenderContext rctx ) const
         rctx.model = model;
     }
 
+    PushData bd{
+        .m_pipeline = g_pipelines[ Pipeline::eBeamBlob ],
+        .m_verticeCount = 12,
+        .m_instanceCount = 0,
+    };
+    PushConstant<Pipeline::eBeamBlob> bc{
+        .m_model = model,
+        .m_view = rctx.view,
+        .m_projection = rctx.projection,
+    };
     for ( uint32_t i = 0; i < MAX_SUPPORTED_WEAPON_COUNT; ++i ) {
         if ( m_weapons[ i ].type != Bullet::Type::eLaser ) continue;
         if ( !isShooting( i ) ) continue;
-        PushConstant<Pipeline::eBeam> bc{
-            .m_model = rctx.model,
-            .m_view = rctx.view,
-            .m_projection = rctx.projection,
-            .m_position = m_model.weapon( i ),
-            .m_displacement{ 1.0_m, 1.0_m, -1000.0_m },
+        bc.m_beams[ bd.m_instanceCount++ ] = PushConstant<Pipeline::eBeamBlob>::Beam{
+            .m_position = weaponPoint( i ),
+            .m_quat = quat(),
+            .m_displacement{ 1.0_m, 1.0_m, 1000.0_m },
             .m_color1 = m_weapons[ i ].color1,
             .m_color2 = m_weapons[ i ].color2,
         };
-        PushData bd{
-            .m_pipeline = g_pipelines[ Pipeline::eBeam ],
-            .m_verticeCount = 12,
-        };
+    }
+    if ( bd.m_instanceCount ) {
         rctx.renderer->push( bd, &bc );
     }
 }
@@ -175,7 +182,7 @@ bool Jet::isShooting( uint32_t weaponNum ) const
     }
 }
 
-math::vec3 Jet::weaponPoint( uint32_t weaponNum )
+math::vec3 Jet::weaponPoint( uint32_t weaponNum ) const
 {
     math::vec3 w = math::rotate( quat(), m_model.weapon( weaponNum ) );
     w += position();
