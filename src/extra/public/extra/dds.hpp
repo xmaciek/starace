@@ -8,15 +8,7 @@
 
 #include <cstdint>
 
-namespace dds {
-
-inline constexpr uint32_t c_magic = ' SDD';
-inline constexpr uint32_t c_dxt1 = '1TXD';
-inline constexpr uint32_t c_dxt3 = '3TXD';
-inline constexpr uint32_t c_dxt5 = '5TXD';
-inline constexpr uint32_t c_dxgi = '01XD';
-
-namespace dxgi {
+namespace dds::dxgi {
 enum class Format : uint32_t {
     UNKNOWN = 0,
 
@@ -38,6 +30,12 @@ enum class Format : uint32_t {
     BC4_UNORM = 80,
     BC4_SNORM = 81,
 
+    BC5_TYPELESS = 82,
+    BC5_UNORM = 83,
+    BC5_SNORM = 84,
+
+    B5G6R5_UNORM = 85,
+    B5G5R5A1_UNORM = 86,
     B8G8R8A8_UNORM = 87,
     // TODO: more formats
 };
@@ -59,7 +57,22 @@ struct Header {
 };
 static_assert( sizeof( Header ) == 20 );
 
-}
+} // namespace dds::dxgi
+
+
+namespace dds {
+
+inline constexpr uint32_t MAGIC = ' SDD';
+enum FourCC : uint32_t {
+    ATI1 = '1ITA',
+    ATI2 = '2ITA',
+    BC4U = 'U4CB',
+    BC5U = 'U5CB',
+    DXGI = '01XD',
+    DXT1 = '1TXD',
+    DXT3 = '3TXD',
+    DXT5 = '5TXD',
+};
 
 struct PixelFormat {
     enum Flags : uint32_t {
@@ -100,7 +113,7 @@ struct Header {
         fTexture = 0x1000,
     };
 
-    uint32_t magic = c_magic;
+    uint32_t magic = MAGIC;
     uint32_t size = 124;
     Flags flags = {};
     uint32_t height = 0;

@@ -18,7 +18,7 @@ static Texture parseTexture( const T& data )
     const uint8_t* dataPtr = data.data();
     dds::Header header{};
     std::memcpy( &header, dataPtr, sizeof( header ) );
-    if ( header.magic != dds::c_magic ) {
+    if ( header.magic != dds::MAGIC ) {
         assert( !"dds .magic field mismatch" );
         return {};
     }
@@ -53,8 +53,9 @@ static Texture parseTexture( const T& data )
         tci.mips = std::max( header.mipMapCount, 1u );
     }
 
+    using enum dds::FourCC;
     switch ( header.pixelFormat.fourCC ) {
-    case dds::c_dxgi: {
+    case dds::DXGI: {
         dds::dxgi::Header dxgiHeader{};
         std::memcpy( &dxgiHeader, dataPtr, sizeof( dxgiHeader ) );
         dataPtr += sizeof( dxgiHeader );
@@ -76,9 +77,13 @@ static Texture parseTexture( const T& data )
             return {};
         }
     } break;
-    case dds::c_dxt1: tci.format = TextureFormat::eBC1_unorm; break;
-    case dds::c_dxt3: tci.format = TextureFormat::eBC2_unorm; break;
-    case dds::c_dxt5: tci.format = TextureFormat::eBC3_unorm; break;
+    case DXT1: tci.format = TextureFormat::eBC1_unorm; break;
+    case DXT3: tci.format = TextureFormat::eBC2_unorm; break;
+    case DXT5: tci.format = TextureFormat::eBC3_unorm; break;
+    case ATI1: [[fallthrough]];
+    case BC4U: tci.format = TextureFormat::eBC4_unorm; break;
+    case ATI2: [[fallthrough]];
+    case BC5U: tci.format = TextureFormat::eBC5_unorm; break;
     default:
         assert( !"unhandled format, here be dragons" );
         return {};

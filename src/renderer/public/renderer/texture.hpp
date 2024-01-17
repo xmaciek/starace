@@ -16,6 +16,7 @@ enum class TextureFormat : uint8_t {
     eBC2_unorm,
     eBC3_unorm,
     eBC4_unorm,
+    eBC5_unorm,
 };
 
 enum class TextureAddressMode : uint8_t {

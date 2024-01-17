@@ -438,7 +438,7 @@ int main( int argc, const char** argv )
         .mipMapCount = 1,
         .pixelFormat{
             .flags = dds::PixelFormat::Flags::fFourCC,
-            .fourCC = dds::c_dxgi,
+            .fourCC = dds::DXGI,
         },
         .caps = Caps::fTexture,
     };
