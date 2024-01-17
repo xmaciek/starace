@@ -71,7 +71,10 @@ void Bullet::updateAll( const UpdateContext& updateContext, std::span<Bullet> sp
         switch ( bullet.m_type ) {
         case Type::eTorpedo:
             if ( bullet.m_target ) {
-                bullet.m_direction = interceptTarget( bullet.m_direction, bullet.m_position, bullet.m_target->position(), 160.0_deg * dt );
+                const math::vec3 tgtDir = math::normalize( bullet.m_target->position() - bullet.m_position );
+                const float angle = math::angle( bullet.m_direction, tgtDir );
+                const float anglePerUpdate = std::min( angle, 160.0_deg * dt );
+                bullet.m_direction = math::normalize( math::slerp( bullet.m_direction, tgtDir, anglePerUpdate / angle ) );
             }
             bullet.m_quat = math::quatLookAt( bullet.m_direction, { 0.0f, 1.0f, 0.0f } );
             explosions.emplace_back() = Explosion{
