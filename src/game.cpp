@@ -927,9 +927,8 @@ void Game::onAction( Action a )
     ui::Screen* screen = currentScreen();
     do {
         if ( !screen ) break;
-        if ( !a.digital() ) break;
         if ( !a.testEnumRange<(Action::Enum)ui::Action::base, (Action::Enum)ui::Action::end>() ) break;
-        screen->onAction( ui::Action{ .a = a.toA<ui::Action::Enum>(), .value = 1 } );
+        screen->onAction( ui::Action{ .a = a.toA<ui::Action::Enum>(), .value = a.value } );
     } while ( 0 );
 
     if ( m_currentScreen == Screen::eGame ) {

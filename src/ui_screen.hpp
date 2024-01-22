@@ -29,8 +29,21 @@ class Screen {
     UniquePointer<Widget> m_comboBoxList{};
     UniquePointer<Widget> m_footer{};
 
+    enum class RepeatDirection : uint32_t {
+        none,
+        eUp,
+        eDown,
+        eRight,
+        eLeft,
+    };
+    using enum RepeatDirection;
+    RepeatDirection m_repeatDirection = none;
+    float m_inputRepeatDelay = 0.0f;
+
     void changeFocus( uint16_t from, uint16_t to );
     Widget* findWidgetByTabOrder( uint16_t );
+
+    void updateInputRepeat( float );
 
 public:
     ~Screen() noexcept = default;

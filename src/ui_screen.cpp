@@ -428,6 +428,21 @@ void Screen::render( const RenderContext& rctx ) const
     if ( m_comboBoxList ) m_comboBoxList->render( r );
 }
 
+void Screen::updateInputRepeat( float dt )
+{
+    if ( m_repeatDirection == none ) return;
+    m_inputRepeatDelay -= dt;
+    if ( m_inputRepeatDelay > 0.0f ) return;
+    m_inputRepeatDelay = 0.1618f;
+    switch ( m_repeatDirection ) {
+    case eUp: onAction( ui::Action{ .a = ui::Action::eMenuUp, .value = 0x7FFF } ); break;
+    case eDown: onAction( ui::Action{ .a = ui::Action::eMenuDown, .value = 0x7FFF } ); break;
+    case eLeft: onAction( ui::Action{ .a = ui::Action::eMenuLeft, .value = 0x7FFF } ); break;
+    case eRight: onAction( ui::Action{ .a = ui::Action::eMenuRight, .value = 0x7FFF } ); break;
+    default: break;
+    }
+}
+
 void Screen::update( const UpdateContext& uctx )
 {
     ZoneScoped;
@@ -443,6 +458,7 @@ void Screen::update( const UpdateContext& uctx )
     if ( m_footer ) m_footer->update( uctx );
     if ( m_comboBoxList ) m_comboBoxList->update( uctx );
 
+    updateInputRepeat( uctx.deltaTime );
 }
 
 void Screen::onMouseEvent( const MouseEvent& e )
@@ -496,6 +512,18 @@ void Screen::changeFocus( uint16_t from, uint16_t to )
 void Screen::onAction( ui::Action action )
 {
     ZoneScoped;
+    auto testRepeat = []( int16_t value, RepeatDirection& e, RepeatDirection eConst, float& delay )
+    {
+        if ( e != eConst && value != 0 ) delay = 0.4f;
+        e = ( value != 0 ) ? eConst : RepeatDirection::none;
+    };
+    switch ( action.a ) {
+    case ui::Action::eMenuUp: testRepeat( action.value, m_repeatDirection, eUp, m_inputRepeatDelay ); break;
+    case ui::Action::eMenuDown: testRepeat( action.value, m_repeatDirection, eDown, m_inputRepeatDelay ); break;
+    case ui::Action::eMenuLeft: testRepeat( action.value, m_repeatDirection, eLeft, m_inputRepeatDelay ); break;
+    case ui::Action::eMenuRight: testRepeat( action.value, m_repeatDirection, eRight, m_inputRepeatDelay ); break;
+    default: break;
+    }
     if ( action.value == 0 ) { return; }
 
     if ( m_comboBoxList ) {
