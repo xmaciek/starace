@@ -126,12 +126,17 @@ inline auto lookAt( const auto& cameraPosition, const auto& target, const auto& 
    return glm::lookAt( cameraPosition, target, cameraUp );
 }
 
+inline float smoothstep( float a, float b, float n )
+{
+    auto t = clamp( ( n - a ) / ( b - a ), 0.0f, 1.0f );
+    return t * t * ( 3.0f - 2.0f * t );
+}
+
 // non-linear interpolate
 template <typename T>
 inline T nonlerp( const T& a, const T& b, float n )
 {
-    const float n2 = 0.5f + 0.5f * -math::cos( n * math::pi );
-    return math::lerp( a, b, n2 );
+    return math::lerp( a, b, smoothstep( 0.0f, 1.0f, n ) );
 }
 
 inline float normalize( float f )

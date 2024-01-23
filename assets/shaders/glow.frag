@@ -7,8 +7,6 @@ layout( location = 0 ) out vec4 outColor;
 
 void main()
 {
-    vec2 center = vec2( 0.5, 0.5 );
-    vec2 a = abs( uv - center );
-    float dist = sqrt( dot( a, a ) );
+    float dist = distance( vec2( 0.5, 0.5 ), uv );
     outColor = vec4( color.rgb, dist * 0.618 );
 }
