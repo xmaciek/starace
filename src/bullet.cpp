@@ -79,7 +79,7 @@ void Bullet::updateAll( const UpdateContext& updateContext, std::span<Bullet> sp
             bullet.m_quat = math::quatLookAt( bullet.m_direction, { 0.0f, 1.0f, 0.0f } );
             explosions.emplace_back() = Explosion{
                 .m_position = bullet.m_position,
-                .m_velocity = bullet.m_direction * bullet.m_speed * 0.1f,
+                .m_velocity = -bullet.m_direction * bullet.m_speed * 0.1f,
                 .m_color = bullet.m_color1,
                 .m_texture = texture,
                 .m_size = 2.0_m,

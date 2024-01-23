@@ -13,7 +13,7 @@ public:
     ) const
     {
         const math::vec3 directionToTgt = math::normalize( tgtPosition - position );
-        const float angleToTarget = math::abs( math::acos( math::dot( direction, directionToTgt ) ) );
+        const float angleToTarget = math::angle( direction, directionToTgt );
         return angleToTarget <= m_angle;
     }
 
