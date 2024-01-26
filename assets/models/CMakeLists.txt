@@ -1,23 +1,18 @@
-add_custom_target( model )
-set_vs_directory( model "models" )
-add_dependencies( cook model )
-
 function( cook_obj file )
-    add_custom_target( "model.${file}" DEPENDS "${file}.objc" )
+    set( file_out "${CMAKE_CURRENT_BINARY_DIR}/${file}.objc" )
+    add_custom_target( "model.${file}" DEPENDS "${file_out}" )
     add_custom_command(
-        OUTPUT "${file}.objc"
+        OUTPUT "${file_out}"
         DEPENDS cooker_obj
         DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${file}.obj"
-        COMMAND cooker_obj "${CMAKE_CURRENT_SOURCE_DIR}/${file}.obj" "${CMAKE_CURRENT_BINARY_DIR}/${file}.objc"
+        COMMAND cooker_obj "${CMAKE_CURRENT_SOURCE_DIR}/${file}.obj" "${file_out}"
     )
-    add_dependencies( model "model.${file}" )
     set_vs_directory( "model.${file}" "models" )
-    set( model_list "${model_list}" "${CMAKE_CURRENT_BINARY_DIR}/${file}.objc" PARENT_SCOPE )
+    target_sources( models PRIVATE "${file_out}" )
+    add_dependencies( models "model.${file}" )
 endfunction()
 
 cook_obj( a2 )
 cook_obj( a3 )
 cook_obj( a4 )
 cook_obj( a5 )
-
-pack( ARCHIVE "models" FILES "${model_list}" )

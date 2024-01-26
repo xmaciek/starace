@@ -1,7 +1,3 @@
-add_custom_target( font )
-set_vs_directory( font "fonts" )
-add_dependencies( cook font )
-
 function( cook_font )
     set( oneValueArgs TARGET SRC SIZE )
     cmake_parse_arguments( COOK_FONT "" "${oneValueArgs}" "" ${ARGN} )
@@ -22,6 +18,12 @@ function( cook_font )
         DEPENDS "${out.dds}" "${out.font}"
     )
     set_vs_directory( font.${tgt} "fonts" )
+    target_sources( fonts PRIVATE
+        "${CMAKE_CURRENT_BINARY_DIR}/${out.font}"
+        "${CMAKE_CURRENT_BINARY_DIR}/${out.dds}"
+    )
+    add_dependencies( fonts font.${tgt} )
+
     add_custom_command(
         OUTPUT "${out.dds}" "${out.font}"
         DEPENDS cooker_font "${COOK_FONT_SRC}"
@@ -31,11 +33,8 @@ function( cook_font )
             --out "${CMAKE_CURRENT_BINARY_DIR}/${out.font}"
             --dds "${CMAKE_CURRENT_BINARY_DIR}/${out.dds}"
     )
-    add_dependencies( font font.${tgt} )
-    set( font_list "${font_list}" "${CMAKE_CURRENT_BINARY_DIR}/${out.font}" "${CMAKE_CURRENT_BINARY_DIR}/${out.dds}" PARENT_SCOPE )
 endfunction()
 
 cook_font( SRC "${CMAKE_CURRENT_SOURCE_DIR}/DejaVuSans-Bold.ttf" TARGET dejavu SIZE 24 )
 cook_font( SRC "${CMAKE_CURRENT_SOURCE_DIR}/DejaVuSans-Bold.ttf" TARGET dejavu SIZE 36 )
 cook_font( SRC "${CMAKE_CURRENT_SOURCE_DIR}/DejaVuSans-Bold.ttf" TARGET dejavu SIZE 64 )
-pack( ARCHIVE "fonts" FILES "${font_list}" )

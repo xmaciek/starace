@@ -1,20 +1,17 @@
-add_custom_target( shader )
-set_vs_directory( shader "shaders" )
-add_dependencies( cook shader )
-
 function( compileShader file )
     #set( OPTIMIZE_LEVEL "-O0" "-g" ) # debug
     set( OPTIMIZE_LEVEL "-O" ) # optimized
 
-    add_custom_target( "shader.${file}" DEPENDS "${file}.spv" )
+    set( file_out "${CMAKE_CURRENT_BINARY_DIR}/${file}.spv" )
+    add_custom_target( "shader.${file}" DEPENDS "${file_out}" )
     add_custom_command(
-        OUTPUT "${file}.spv"
+        OUTPUT "${file_out}"
         DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${file}"
-        COMMAND Vulkan::glslc ${OPTIMIZE_LEVEL} "${CMAKE_CURRENT_SOURCE_DIR}/${file}" -o "${file}.spv"
+        COMMAND Vulkan::glslc ${OPTIMIZE_LEVEL} "${CMAKE_CURRENT_SOURCE_DIR}/${file}" -o "${file_out}"
     )
-    add_dependencies( shader "shader.${file}" )
     set_vs_directory( "shader.${file}" "shaders" )
-    set( shader_list "${shader_list}" "${CMAKE_CURRENT_BINARY_DIR}/${file}.spv" PARENT_SCOPE )
+    target_sources( shaders PRIVATE "${file_out}" )
+    add_dependencies( shaders "shader.${file}" )
 endfunction()
 
 compileShader( albedo.frag )
@@ -47,5 +44,3 @@ compileShader( ui_rings.frag )
 compileShader( ui_rings.vert )
 compileShader( beam_blob.frag )
 compileShader( beam_blob.vert )
-
-pack( ARCHIVE "shaders" FILES "${shader_list}" )

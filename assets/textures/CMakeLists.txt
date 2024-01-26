@@ -1,7 +1,3 @@
-add_custom_target( texture )
-set_vs_directory( texture "textures" )
-add_dependencies( cook texture )
-
 function( cook_dds )
     cmake_parse_arguments( COOK_DDS "MIPGEN" "DST" "SRC" ${ARGN} )
     if ( COOK_DDS_MIPGEN )
@@ -12,7 +8,8 @@ function( cook_dds )
     elseif( NOT COOK_DDS_DST )
         message( FATAL_ERROR "DST argument not specified" )
     endif()
-    add_custom_target( "texture.${COOK_DDS_DST}" DEPENDS "${COOK_DDS_DST}" )
+    set( file_out "${CMAKE_CURRENT_BINARY_DIR}/${COOK_DDS_DST}" )
+    add_custom_target( "texture.${COOK_DDS_DST}" DEPENDS "${file_out}" )
 
     set( expaned_src )
     foreach ( src ${COOK_DDS_SRC} )
@@ -21,18 +18,17 @@ function( cook_dds )
     list( JOIN expaned_src "," srcArg )
 
     add_custom_command(
-        OUTPUT "${COOK_DDS_DST}"
+        OUTPUT "${file_out}"
         DEPENDS cooker_dds
         DEPENDS "${expaned_src}"
         COMMAND cooker_dds
             --src "${srcArg}"
-            --dst "${COOK_DDS_DST}"
+            --dst "${file_out}"
             ${COOK_DDS_MIPGEN}
     )
-    add_dependencies( texture "texture.${COOK_DDS_DST}" )
     set_vs_directory( "texture.${COOK_DDS_DST}" "textures" )
-
-    set( texture_list "${texture_list}" "${CMAKE_CURRENT_BINARY_DIR}/${COOK_DDS_DST}" PARENT_SCOPE )
+    target_sources( textures PRIVATE "${file_out}" )
+    add_dependencies( textures "texture.${COOK_DDS_DST}" )
 endfunction()
 
 
@@ -49,5 +45,3 @@ cook_dds( SRC horizon_top.tga   DST horizon_top.dds MIPGEN )
 cook_dds( SRC nebula1.tga       DST nebula1.dds     MIPGEN )
 cook_dds( SRC plasma.tga        DST plasma.dds      MIPGEN )
 cook_dds( SRC star_field.tga    DST star_field.dds  MIPGEN )
-
-pack( ARCHIVE "textures" FILES "${texture_list}" )

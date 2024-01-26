@@ -7,4 +7,4 @@ list( APPEND ui_list "${CMAKE_CURRENT_SOURCE_DIR}/result.ui" )
 list( APPEND ui_list "${CMAKE_CURRENT_SOURCE_DIR}/settings.ui" )
 list( APPEND ui_list "${CMAKE_CURRENT_SOURCE_DIR}/settings_display.ui" )
 
-pack( ARCHIVE "ui" FILES "${ui_list}" )
+target_sources( uis PRIVATE "${ui_list}" )

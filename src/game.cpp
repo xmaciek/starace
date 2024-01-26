@@ -254,7 +254,7 @@ void Game::onInit()
     m_io->mount( "shaders.pak" );
     m_io->mount( "fonts.pak" );
     m_io->mount( "misc.pak" );
-    m_io->mount( "ui.pak" );
+    m_io->mount( "uis.pak" );
     m_io->mount( "sounds.pak" );
     m_io->mount( "models.pak" );
     m_io->mount( "textures.pak" );
