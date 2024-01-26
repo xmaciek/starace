@@ -1,5 +1,4 @@
 add_library( extra STATIC )
-set_cppver( extra 20 )
 
 target_sources( extra
     PRIVATE

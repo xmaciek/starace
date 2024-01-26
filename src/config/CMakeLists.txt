@@ -1,5 +1,4 @@
 add_library( config STATIC )
-set_cppver( config 20 )
 
 target_sources( config
     PRIVATE

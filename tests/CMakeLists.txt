@@ -4,7 +4,6 @@ if ( NOT GTest_FOUND )
 endif()
 
 add_executable( tests )
-set_cppver( tests 20 )
 
 target_link_libraries( tests
     cxx::flags

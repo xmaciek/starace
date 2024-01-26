@@ -1,5 +1,4 @@
 add_library( ui STATIC )
-set_cppver( ui 20 )
 
 target_sources( ui
     PRIVATE

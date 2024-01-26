@@ -1,5 +1,4 @@
 add_library( audio STATIC )
-set_cppver( audio 20 )
 
 target_sources( audio
     PRIVATE

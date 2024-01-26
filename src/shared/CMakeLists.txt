@@ -1,5 +1,4 @@
 add_library( shared INTERFACE )
-set_cppver( shared 20 )
 
 target_sources( shared
     PUBLIC

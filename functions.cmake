@@ -1,10 +1,3 @@
-function( set_cppver tgt cppver )
-    set_target_properties( ${tgt} PROPERTIES
-        CXX_STANDARD ${cppver}
-        CXX_STANDARD_REQUIRED ${cppver}
-    )
-endfunction()
-
 function( set_vs_directory tgt dirname )
     set_target_properties( ${tgt} PROPERTIES
         FOLDER "${dirname}"

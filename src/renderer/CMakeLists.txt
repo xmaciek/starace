@@ -1,5 +1,4 @@
 add_library( renderer INTERFACE )
-set_cppver( renderer 20 )
 
 target_sources( renderer
     INTERFACE

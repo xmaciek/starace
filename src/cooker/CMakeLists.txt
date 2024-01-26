@@ -1,8 +1,6 @@
-
 function( declare_cooker name )
     add_executable( ${name} )
     target_link_libraries( ${name} cxx::flags extra )
-    set_cppver( ${name} 20 )
     set_vs_directory( ${name} cooker )
 endfunction()
 

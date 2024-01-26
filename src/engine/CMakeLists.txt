@@ -1,5 +1,4 @@
 add_library( engine STATIC )
-set_cppver( engine 20 )
 
 target_sources( engine
     PRIVATE
