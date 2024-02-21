@@ -8,8 +8,7 @@ function( cook_obj file )
         COMMAND cooker_obj "${CMAKE_CURRENT_SOURCE_DIR}/${file}.obj" "${file_out}"
     )
     set_vs_directory( "model.${file}" "models" )
-    target_sources( models PRIVATE "${file_out}" )
-    add_dependencies( models "model.${file}" )
+    pak_file_cooked( data "${file_out}" "model.${file}" )
 endfunction()
 
 cook_obj( a2 )

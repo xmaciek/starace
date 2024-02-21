@@ -18,11 +18,8 @@ function( cook_font )
         DEPENDS "${out.dds}" "${out.font}"
     )
     set_vs_directory( font.${tgt} "fonts" )
-    target_sources( fonts PRIVATE
-        "${CMAKE_CURRENT_BINARY_DIR}/${out.font}"
-        "${CMAKE_CURRENT_BINARY_DIR}/${out.dds}"
-    )
-    add_dependencies( fonts font.${tgt} )
+    pak_file_cooked( data "${CMAKE_CURRENT_BINARY_DIR}/${out.font}" font.${tgt} )
+    pak_file_cooked( data "${CMAKE_CURRENT_BINARY_DIR}/${out.dds}" font.${tgt} )
 
     add_custom_command(
         OUTPUT "${out.dds}" "${out.font}"

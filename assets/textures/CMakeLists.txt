@@ -27,8 +27,7 @@ function( cook_dds )
             ${COOK_DDS_MIPGEN}
     )
     set_vs_directory( "texture.${COOK_DDS_DST}" "textures" )
-    target_sources( textures PRIVATE "${file_out}" )
-    add_dependencies( textures "texture.${COOK_DDS_DST}" )
+    pak_file_cooked( data "${file_out}" "texture.${COOK_DDS_DST}" )
 endfunction()
 
 

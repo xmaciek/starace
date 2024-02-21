@@ -1,6 +1,4 @@
-list( APPEND sounds_list "${CMAKE_CURRENT_SOURCE_DIR}/blaster.wav" )
-list( APPEND sounds_list "${CMAKE_CURRENT_SOURCE_DIR}/laser.wav" )
-list( APPEND sounds_list "${CMAKE_CURRENT_SOURCE_DIR}/torpedo.wav" )
-list( APPEND sounds_list "${CMAKE_CURRENT_SOURCE_DIR}/click.wav" )
-
-target_sources( sounds PRIVATE "${sounds_list}" )
+pak_file( data "${CMAKE_CURRENT_SOURCE_DIR}/blaster.wav" )
+pak_file( data "${CMAKE_CURRENT_SOURCE_DIR}/laser.wav" )
+pak_file( data "${CMAKE_CURRENT_SOURCE_DIR}/torpedo.wav" )
+pak_file( data "${CMAKE_CURRENT_SOURCE_DIR}/click.wav" )
