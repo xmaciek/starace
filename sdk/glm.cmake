@@ -14,17 +14,14 @@ function( glmFromDirectory directory )
         GLM_FORCE_RADIANS=1
         GLM_FORCE_INTRINSICS=1
         GLM_FORCE_DEFAULT_ALIGNED_GENTYPES=1
+        GLM_ENABLE_EXPERIMENTAL=1
     )
 endfunction()
 
 glmFromDirectory( "${CMAKE_CURRENT_SOURCE_DIR}" )
 glmFromDirectory( "$ENV{VK_SDK_PATH}/Third-Party/Include" )
 glmFromDirectory( "$ENV{VK_SDK_PATH}/Include" )
-
-if ( NOT TARGET glm::glm AND UNIX )
-    find_package( glm REQUIRED )
-    glmFromDirectory( "${GLM_INCLUDE_DIRS}" )
-endif()
+glmFromDirectory( "/usr/include" )
 
 if ( NOT TARGET glm::glm )
     message( FATAL_ERROR "GLM not found" )
