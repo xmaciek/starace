@@ -270,7 +270,6 @@ void Game::onInit()
     g_uiProperty.m_pipelineSpriteSequenceColors = setupPipeline( m_renderer, m_io, ui::SPRITE_SEQUENCE_COLORS );
 
     m_enemies.reserve( 100 );
-    m_explosions.reserve( 500 );
     m_bullets.reserve( 2000 );
     m_jetsContainer.reserve( 5 );
     m_mapsContainer.reserve( 5 );
@@ -635,13 +634,9 @@ void Game::updateGame( const UpdateContext& updateContext )
     m_lookAtTarget.setTarget( m_jetInput.lookAt ? 1.0f : 0.0f );
     m_lookAtTarget.update( updateContext.deltaTime );
     m_jet.update( updateContext );
-    Bullet::updateAll( updateContext, m_bullets, m_explosions, m_plasma );
+    Bullet::updateAll( updateContext, m_bullets, m_gameScene.explosions(), m_plasma );
     Enemy::updateAll( updateContext, m_enemies );
-    Explosion::updateAll( updateContext, m_explosions );
-
-    m_dustGame.setCenter( m_jet.position() );
-    m_dustGame.setVelocity( m_jet.velocity() * -0.5f );
-    m_dustGame.update( updateContext );
+    m_gameScene.update( updateContext, m_jet.position(), m_jet.velocity() );
 
     {
         auto soundsToPlay = m_jet.shoot( m_bullets );
@@ -677,7 +672,7 @@ void Game::updateGame( const UpdateContext& updateContext )
                 if ( !intersectLineSphere( b.m_position, b.m_prevPosition, jetPos, 15.0_m ) ) continue;
                 m_jet.setDamage( b.m_damage );
                 b.m_type = Bullet::Type::eDead;
-                m_explosions.emplace_back( makeExplosion( b, jetPos ) );
+                m_gameScene.explosions().emplace_back( makeExplosion( b, jetPos ) );
                 break;
 
             case Jet::COLLIDE_ID:
@@ -687,7 +682,7 @@ void Game::updateGame( const UpdateContext& updateContext )
                     e->setDamage( b.m_damage );
                     m_hudData.score += b.m_score;
                     b.m_type = Bullet::Type::eDead;
-                    m_explosions.emplace_back( makeExplosion( b, e->position() ) );
+                    m_gameScene.explosions().emplace_back( makeExplosion( b, e->position() ) );
                     break;
                 }
                 break;
@@ -706,7 +701,7 @@ void Game::updateGame( const UpdateContext& updateContext )
         for ( auto& e : m_enemies ) {
             if ( isDead( e ) ) {
                 m_jet.untarget( e.get() );
-                m_explosions.emplace_back( e->position(), e->velocity(), color::yellowBlaster, m_plasma, 64.0_m, 0.0f );
+                m_gameScene.explosions().emplace_back( e->position(), e->velocity(), color::yellowBlaster, m_plasma, 64.0_m, 0.0f );
                 continue;
             }
         }
@@ -773,11 +768,7 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
     m_hudData = HudData{
         .hp = 1.0f,
     };
-    m_skybox = Skybox{ mapInfo.texture };
-    m_explosions.clear();
-    m_dustGame.setVelocity( math::vec3{ 0.0f, 0.0f, 26.0_m } );
-    m_dustGame.setCenter( {} );
-    m_dustGame.setLineWidth( 2.0f );
+    m_gameScene = GameScene{ mapInfo.texture };
 
     const auto& w1 = m_weapons[ m_weapon1 ];
     const auto& w2 = m_weapons[ m_weapon2 ];
@@ -813,14 +804,8 @@ void Game::changeScreen( Screen scr, Audio::Slot sound )
     case Screen::eCustomize:
     case Screen::eSettings:
     case Screen::eSettingsDisplay:
-        m_currentScreen = scr;
-        break;
-
     case Screen::eGame:
     case Screen::eGamePaused:
-        m_dustGame.setVelocity( m_jet.velocity() * -0.5f );
-        m_dustGame.setCenter( m_jet.position() );
-        m_dustGame.setLineWidth( 1.618f );
         m_currentScreen = scr;
         break;
 
@@ -994,9 +979,7 @@ void Game::render3D( RenderContext rctx )
     std::tie( rctx.view, rctx.projection ) = getCameraMatrix();
     std::tie( rctx.cameraPosition, rctx.cameraUp, std::ignore ) = getCamera();
 
-    m_skybox.render( rctx );
-    Explosion::renderAll( rctx, m_explosions, m_plasma );
-    m_dustGame.render( rctx );
+    m_gameScene.render( rctx );
     Enemy::renderAll( rctx, m_enemies );
     Bullet::renderAll( rctx, m_bullets, m_plasma );
     m_jet.render( rctx );

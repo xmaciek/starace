@@ -19,6 +19,6 @@ struct Explosion {
     float m_state = 0.0f;
 
     static bool isInvalid( const Explosion& ) noexcept;
-    static void renderAll( const RenderContext&, const std::pmr::vector<Explosion>&, Texture );
+    static void renderAll( const RenderContext&, const std::pmr::vector<Explosion>& );
     static void updateAll( const UpdateContext&, std::pmr::vector<Explosion>& );
 };

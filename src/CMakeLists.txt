@@ -29,6 +29,8 @@ set( STARACE_SOURCES
     game_callbacks.hpp
     game_options.hpp
     game_pipeline.hpp
+    game_scene.hpp
+    game_scene.cpp
     hud.cpp
     hud.hpp
     jet.cpp

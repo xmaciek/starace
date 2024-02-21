@@ -4,13 +4,12 @@
 #include "autolerp.hpp"
 #include "bullet.hpp"
 #include "enemy.hpp"
-#include "explosion.hpp"
 #include "game_options.hpp"
+#include "game_scene.hpp"
 #include "hud.hpp"
 #include "jet.hpp"
 #include "map_create_info.hpp"
 #include "model_proto.hpp"
-#include "skybox.hpp"
 #include "space_dust.hpp"
 #include "targeting.hpp"
 #include "texture.hpp"
@@ -69,7 +68,7 @@ private:
     uint32_t m_weapon2 = 1;
     Model m_enemyModel{};
     Jet m_jet{};
-    Skybox m_skybox{};
+    GameScene m_gameScene{};
     ui::Atlas m_uiAtlas{};
 
     Audio::Slot m_blaster{};
@@ -79,7 +78,6 @@ private:
     std::pmr::vector<Bullet> m_bullets{};
     Pool<Enemy, 100> m_poolEnemies{};
     std::pmr::vector<UniquePointer<Enemy>> m_enemies{};
-    std::pmr::vector<Explosion> m_explosions{};
     std::pmr::vector<MapCreateInfo> m_mapsContainer{};
     std::pmr::vector<ModelProto> m_jetsContainer{};
     std::pmr::map<std::filesystem::path, Mesh> m_meshes{};
@@ -97,7 +95,6 @@ private:
     std::pmr::map<std::filesystem::path, Texture> m_textures{};
 
     Glow m_glow{};
-    SpaceDust m_dustGame{};
     SpaceDust m_dustUi{};
     ui::Screen m_screenCustomize{};
     ui::Screen m_screenGameplay{};
