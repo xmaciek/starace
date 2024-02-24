@@ -69,6 +69,7 @@ static UniquePointer<Widget> makeImage( std::pmr::memory_resource* alloc, const 
     for ( const auto& property : entry ) {
         switch ( hash( *property ) ) {
         case "data"_hash: ci.model = dataKeyToModel( property.toString() ); continue;
+        case "sprite"_hash: ci.sprite = hash( property.toString() ); continue;
         case "height"_hash: ci.size.y = property.toFloat(); continue;
         case "width"_hash: ci.size.x = property.toFloat(); continue;
         case "x"_hash: ci.position.x = property.toFloat(); continue;
