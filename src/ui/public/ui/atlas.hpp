@@ -29,7 +29,7 @@ public:
 private:
     uint16_t m_width = 0;
     uint16_t m_height = 0;
-    FixedMap<hash_type, Sprite, 16> m_map{};
+    FixedMap<hash_type, Sprite, 64> m_map{};
 
 public:
     Atlas() noexcept = default;
