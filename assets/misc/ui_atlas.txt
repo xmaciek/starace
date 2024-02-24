@@ -15,3 +15,8 @@ right      = { x = 72  y = 12  w = 8   h = 8   }
 top        = { x = 60  y = 0   w = 8   h = 8   }
 topLeft    = { x = 48  y = 0   w = 8   h = 8   }
 topRight   = { x = 72  y = 0   w = 8   h = 8   }
+icon.hp    = { x = 96  y = 0   w = 32  h = 32  }
+icon.laser = { x = 64  y = 32  w = 16  h = 32  }
+icon.cannon = { x = 80  y = 32  w = 16  h = 32  }
+icon.blaster = { x = 96  y = 32  w = 16  h = 32  }
+icon.rocket = { x = 112 y = 32  w = 16  h = 32  }
