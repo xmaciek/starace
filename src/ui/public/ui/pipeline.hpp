@@ -7,11 +7,12 @@
 
 namespace ui {
 
-enum Pipeline {
+enum class Pipeline : uint32_t {
     eSpriteSequence,
     eSpriteSequenceRGBA,
     eSpriteSequenceColors,
 };
+using enum Pipeline;
 
 template <Pipeline P>
 struct PushConstant;
