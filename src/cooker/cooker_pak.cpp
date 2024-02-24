@@ -100,6 +100,7 @@ int main( int argc, const char** argv )
     ofs <<= header;
 
     std::vector<char> tmp;
+    char padding[ 16 ]{};
     for ( auto&& [ src, dst ] : fileList ) {
         auto& entry = entries.emplace_back();
         strcpyIntoBuffer( dst, entry.name ) || exitOnFailed( "path too long to fit into .name field", dst );
@@ -107,15 +108,19 @@ int main( int argc, const char** argv )
         std::ifstream ifs( src, std::ios::binary | std::ios::ate );
         ifs.is_open() || exitOnFailed( "cannot open file for reading:", src );
 
-        std::streamsize size = ifs.tellg();
-        ifs.seekg( 0 );
+        const std::streamsize size = ifs.tellg();
         tmp.resize( static_cast<std::vector<char>::size_type>( size ) );
+        ifs.seekg( 0 );
         ifs.read( tmp.data(), size );
         ifs.close();
-        ofs <<= tmp;
-        entry.offset = header.offset;
+
+        const uint32_t paddingPos = static_cast<uint32_t>( ofs.tellp() );
+        ofs.write( padding, static_cast<std::streamsize>( ( ( paddingPos + 15ul ) & ~15ul ) - paddingPos ) );
+
+        entry.offset = static_cast<uint32_t>( ofs.tellp() );
         entry.size = static_cast<uint32_t>( size );
-        header.offset += static_cast<uint32_t>( size );
+        ofs <<= tmp;
+        header.offset = static_cast<uint32_t>( ofs.tellp() );
     }
     ofs <<= entries;
     ofs.seekp( 0 );
