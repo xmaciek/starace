@@ -74,6 +74,11 @@ static UniquePointer<Widget> makeImage( std::pmr::memory_resource* alloc, const 
         case "width"_hash: ci.size.x = property.toFloat(); continue;
         case "x"_hash: ci.position.x = property.toFloat(); continue;
         case "y"_hash: ci.position.y = property.toFloat(); continue;
+        case "color"_hash:
+            switch ( hash( property.toString() ) ) {
+            case "green"_hash: ci.color = color::winScreen; continue;
+            default: assert( !"unknown color" ); continue;
+            }
         default:
             assert( !"unhandled Image property" );
             continue;
