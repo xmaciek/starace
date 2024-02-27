@@ -16,7 +16,7 @@ struct Header {
 };
 static_assert( sizeof( Header ) == 12 );
 
-struct Entry {
+struct alignas( 64 ) Entry {
     char name[ 56 ]{};
     uint32_t offset = 0;
     uint32_t size = 0;

@@ -22,18 +22,18 @@ static bool exitOnFailed( std::string_view msg, std::string_view arg )
     std::exit( 1 );
 }
 
-static std::string preparePakPath( const std::string& str, int skipCount )
+static std::string preparePakPath( const std::string& str, int includeDirectoryCount )
 {
     auto stat = std::filesystem::status( str );
     std::filesystem::exists( stat ) || exitOnFailed( "path don't exists:", str );
     std::filesystem::is_regular_file( stat ) || exitOnFailed( "path is not file:", str );
 
-    auto rit = std::find_if( str.rbegin(), str.rend(), [skipCount]( char c ) mutable
+    auto rit = std::find_if( str.rbegin(), str.rend(), [includeDirectoryCount]( char c ) mutable
     {
         switch ( c ) {
         case '/':
         case '\\': // TODO test pathing on windows
-        return skipCount-- == 0;
+        return includeDirectoryCount-- == 0;
         default: return false;
         }
     } );
@@ -86,6 +86,14 @@ bool strcpyIntoBuffer( const auto& src, auto& dst )
     return true;
 }
 
+std::ofstream& align( std::ofstream& o, size_t a )
+{
+    uint64_t pos = static_cast<uint64_t>( o.tellp() );
+    pos = ( pos + ( a - 1 ) ) & ~( a - 1 );
+    o.seekp( static_cast<std::streamoff>( pos ) );
+    return o;
+}
+
 int main( int argc, const char** argv )
 {
     ( argc == 3 ) || exitOnFailed( "expected 2 arguments: archive.pak \"semi;colon;separated;list;of;files\"", "" );
@@ -100,7 +108,6 @@ int main( int argc, const char** argv )
     ofs <<= header;
 
     std::vector<char> tmp;
-    char padding[ 16 ]{};
     for ( auto&& [ src, dst ] : fileList ) {
         auto& entry = entries.emplace_back();
         strcpyIntoBuffer( dst, entry.name ) || exitOnFailed( "path too long to fit into .name field", dst );
@@ -114,14 +121,14 @@ int main( int argc, const char** argv )
         ifs.read( tmp.data(), size );
         ifs.close();
 
-        const uint32_t paddingPos = static_cast<uint32_t>( ofs.tellp() );
-        ofs.write( padding, static_cast<std::streamsize>( ( ( paddingPos + 15ul ) & ~15ul ) - paddingPos ) );
+        align( ofs, 16 );
 
         entry.offset = static_cast<uint32_t>( ofs.tellp() );
         entry.size = static_cast<uint32_t>( size );
         ofs <<= tmp;
-        header.offset = static_cast<uint32_t>( ofs.tellp() );
     }
+    align( ofs, 64 );
+    header.offset = static_cast<uint32_t>( ofs.tellp() );
     ofs <<= entries;
     ofs.seekp( 0 );
     header.size = static_cast<uint32_t>( entries.size() * sizeof( pak::Entry ) );
