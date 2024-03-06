@@ -15,7 +15,7 @@ class Image : public Widget {
     math::vec4 m_color = math::vec4{ 1.0f, 1.0f, 1.0f, 1.0f };
     math::vec4 m_uvwh = math::vec4{ 0.0f, 0.0f, 1.0f, 1.0f };
     Texture m_texture{};
-    ui::Pipeline m_pipeline{};
+    int m_sampleRGBA = 0;
     PipelineSlot m_pipelineSlot{};
     DataModel* m_dataModel = nullptr;
     DataModel::size_type m_current = 0;

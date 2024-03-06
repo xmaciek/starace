@@ -266,7 +266,6 @@ void Game::onInit()
     }
 
     g_uiProperty.m_pipelineSpriteSequence = setupPipeline( m_renderer, m_io, ui::SPRITE_SEQUENCE );
-    g_uiProperty.m_pipelineSpriteSequenceRGBA = setupPipeline( m_renderer, m_io, ui::SPRITE_SEQUENCE_RGBA );
     g_uiProperty.m_pipelineSpriteSequenceColors = setupPipeline( m_renderer, m_io, ui::SPRITE_SEQUENCE_COLORS );
 
     m_enemies.reserve( 100 );

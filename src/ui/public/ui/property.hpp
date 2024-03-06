@@ -10,6 +10,7 @@
 #include <functional>
 #include <memory_resource>
 #include <string>
+#include <tuple>
 
 class Game;
 
@@ -31,7 +32,6 @@ class Property {
     FixedMapView<Hash::value_type, std::function<void()>> m_gameCallbacks{};
 
     PipelineSlot m_pipelineSpriteSequence{};
-    PipelineSlot m_pipelineSpriteSequenceRGBA{};
     PipelineSlot m_pipelineSpriteSequenceColors{};
 
     math::vec4 m_colorA{};
@@ -54,7 +54,6 @@ public:
     inline const Font* fontLarge() const { return m_fontLarge; }
 
     inline PipelineSlot pipelineSpriteSequence() const { return m_pipelineSpriteSequence; }
-    inline PipelineSlot pipelineSpriteSequenceRGBA() const { return m_pipelineSpriteSequenceRGBA; }
     inline PipelineSlot pipelineSpriteSequenceColors() const { return m_pipelineSpriteSequenceColors; }
 
     inline math::vec4 colorA() const { return m_colorA; }
@@ -101,6 +100,9 @@ public:
         assert( *dataModel );
         return *dataModel;
     }
+
+    std::tuple<math::vec4, uint16_t, uint16_t, Texture> sprite( Hash::value_type ) const;
+
 };
 
 } // namespace ui

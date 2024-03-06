@@ -12,6 +12,7 @@ target_sources( ui
     label.cpp
     linear_atlas.cpp
     nineslice.cpp
+    property.cpp
     scroll_index.cpp
     spinbox.cpp
     spritegen.cpp

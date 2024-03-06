@@ -21,11 +21,13 @@ layout( binding = 0 ) uniform ubo {
     mat4 viewMatrix;
     mat4 projectionMatrix;
     vec4 color;
+    int  sampleRGBA;
     Sprite sprites[ INSTANCES ];
 };
 
 layout( location = 0 ) out vec4 outColor;
 layout( location = 1 ) out vec2 outUV;
+layout( location = 2 ) out flat int outSampleRGBA;
 
 void main()
 {
@@ -37,4 +39,5 @@ void main()
         * modelMatrix
         * vec4( vertPos, 0.0, 1.0 );
     outUV = uvPos;
+    outSampleRGBA = sampleRGBA;
 }
