@@ -9,6 +9,9 @@ function( decl_pak name )
 endfunction()
 
 function( make_pak name )
+    if ( NOT TARGET ${name} )
+        message( FATAL_ERROR "archive ${name} not declared, check name typos" )
+    endif()
     get_target_property( src ${name} SOURCES )
     add_custom_command( OUTPUT "${CMAKE_BINARY_DIR}/${name}.pak"
         DEPENDS cooker_pak "${src}"
