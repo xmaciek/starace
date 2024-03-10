@@ -484,6 +484,11 @@ void Game::setupUI()
     m_screenSettings = cfg::Entry::fromData( m_io->viewWait( "ui/settings.ui" ) );
     m_screenSettingsDisplay = cfg::Entry::fromData( m_io->viewWait( "ui/settings_display.ui" ) );
     m_screenTitle = cfg::Entry::fromData( m_io->viewWait( "ui/mainmenu.ui" ) );
+
+    Targeting::CreateInfo tci{
+        .reticleSprites{ "reticleTopLeft"_hash, "reticleTopRight"_hash, "reticleBotLeft"_hash, "reticleBotRight"_hash },
+    };
+    m_targeting = Targeting{ tci };
 }
 
 ui::Screen* Game::currentScreen()

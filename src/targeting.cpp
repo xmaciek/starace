@@ -5,11 +5,20 @@
 #include "utils.hpp"
 #include "units.hpp"
 
+#include <renderer/renderer.hpp>
+#include <ui/atlas.hpp>
 #include <ui/pipeline.hpp>
 #include <ui/property.hpp>
-#include <renderer/renderer.hpp>
 
 #include <array>
+
+Targeting::Targeting( const Targeting::CreateInfo& ci )
+{
+    m_texture = g_uiProperty.atlasTexture();
+    for ( uint32_t i = 0; i < 4; ++i ) {
+        std::tie( m_xyuv[ i ], std::ignore, std::ignore, m_texture ) = g_uiProperty.sprite( ci.reticleSprites[ i ] );
+    }
+}
 
 void Targeting::render( const RenderContext& rctx ) const
 {
@@ -25,7 +34,7 @@ void Targeting::render( const RenderContext& rctx ) const
         .m_verticeCount = 6,
         .m_instanceCount = 4,
     };
-    pushData.m_resource[ 1 ].texture = g_uiProperty.atlasTexture();
+    pushData.m_resource[ 1 ].texture = m_texture;
 
     const float rotAngle = math::lerp( 0.0f, 45.0_deg, m_state.value() );
     math::mat4 modelMat = rctx.model;
@@ -53,10 +62,11 @@ void Targeting::render( const RenderContext& rctx ) const
         math::vec4{  52.0f,  52.0f, 16.0f, 16.0f },
     };
     using Sprite = ui::PushConstant<ui::Pipeline::eSpriteSequence>::Sprite;
-    pushConstant.m_sprites[ 0 ] = Sprite{ .m_xywh = math::lerp( a[ 0 ], b[ 0 ], m_state.value() ), .m_uvwh = math::makeUVxywh<8, 8>( 0, 3 ) };
-    pushConstant.m_sprites[ 1 ] = Sprite{ .m_xywh = math::lerp( a[ 1 ], b[ 1 ], m_state.value() ), .m_uvwh = math::makeUVxywh<8, 8>( 1, 3 ) };
-    pushConstant.m_sprites[ 2 ] = Sprite{ .m_xywh = math::lerp( a[ 2 ], b[ 2 ], m_state.value() ), .m_uvwh = math::makeUVxywh<8, 8>( 0, 4 ) };
-    pushConstant.m_sprites[ 3 ] = Sprite{ .m_xywh = math::lerp( a[ 3 ], b[ 3 ], m_state.value() ), .m_uvwh = math::makeUVxywh<8, 8>( 1, 4 ) };
+    const float value = m_state.value();
+    pushConstant.m_sprites[ 0 ] = Sprite{ .m_xywh = math::lerp( a[ 0 ], b[ 0 ], value ), .m_uvwh = m_xyuv[ 0 ] };
+    pushConstant.m_sprites[ 1 ] = Sprite{ .m_xywh = math::lerp( a[ 1 ], b[ 1 ], value ), .m_uvwh = m_xyuv[ 1 ] };
+    pushConstant.m_sprites[ 2 ] = Sprite{ .m_xywh = math::lerp( a[ 2 ], b[ 2 ], value ), .m_uvwh = m_xyuv[ 2 ] };
+    pushConstant.m_sprites[ 3 ] = Sprite{ .m_xywh = math::lerp( a[ 3 ], b[ 3 ], value ), .m_uvwh = m_xyuv[ 3 ] };
 
     rctx.renderer->push( pushData, &pushConstant );
 }
