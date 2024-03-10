@@ -41,13 +41,13 @@ void Footer::refreshText()
     auto inputToText = []( auto i ) -> std::pmr::u32string
     {
         switch ( i ) {
-            // TODO action to actuator, then localize
-            case Action::eMenuCancel: return g_uiProperty.localize( "input.escape" );
-            case Action::eMenuApply: return g_uiProperty.localize( "input.space" );
-            case Action::eMenuConfirm: return g_uiProperty.localize( "input.enter" );
-            default:
-                assert( !"TODO: more input to text" );
-                return U"[]";
+        // TODO action to actuator, then localize
+        case Action::eMenuCancel: return g_uiProperty.localize( "input.escape" );
+        case Action::eMenuApply: return g_uiProperty.localize( "input.space" );
+        case Action::eMenuConfirm: return g_uiProperty.localize( "input.enter" );
+        default:
+            assert( !"TODO: more input to text" );
+            return U"[]";
         }
     };
     m_text.clear();
