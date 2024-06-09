@@ -19,19 +19,23 @@ static const std::array<math::vec4, 5> c_fan{
     math::vec4{ -3.0f, 0.0f, 0.0f, 0.0f }
 };
 
+[[maybe_unused]]
 static math::vec2 rightOf( const Label& w )
 {
     return w.position() + math::vec2{ w.size().x, 0.0f };
 };
 
 SpeedMeter::SpeedMeter( std::nullptr_t ) noexcept
+/*
 : m_speed{ Label::CreateInfo{ .text = U"Speed: ", .font = g_uiProperty.fontSmall(), .position{ 38, 0 }, .color = color::winScreen, .anchor = Anchor::fBottom | Anchor::fLeft, } }
 , m_speedValue{ Label::CreateInfo{ .text = U"0", .font = g_uiProperty.fontSmall(), .position = rightOf( m_speed ), .color = color::winScreen, .anchor = Anchor::fBottom | Anchor::fLeft, } }
+*/
 {
 }
 
-void SpeedMeter::render( ui::RenderContext rctx ) const
+void SpeedMeter::render( ui::RenderContext ) const
 {
+    /*
     rctx.model = math::translate( rctx.model, math::vec3{ position(), 0.0f } );
     m_speed.render( rctx );
     m_speedValue.render( rctx );
@@ -68,19 +72,24 @@ void SpeedMeter::render( ui::RenderContext rctx ) const
         pushConstant.m_model = math::rotate( pushConstant.m_model, 180.0_deg, axis::z );
         rctx.renderer->push( pushBuffer, &pushConstant );
     }
+    */
 }
 
-void SpeedMeter::update( const UpdateContext& uctx )
+void SpeedMeter::update( const UpdateContext& )
 {
+    /*
     m_speedFanAngle += math::radians( m_speedFan ) * uctx.deltaTime;
+    */
 }
 
-void SpeedMeter::setSpeed( float f )
+void SpeedMeter::setSpeed( float )
 {
+    /*
     f = value2kmph( f );
     const uint32_t s = static_cast<uint32_t>( f );
     if ( s != static_cast<uint32_t>( m_speedFan ) ) {
         m_speedValue.setText( intToUTF32( s ) + U" km/h" );
     }
     m_speedFan = f;
+    */
 }
