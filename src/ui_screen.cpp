@@ -34,6 +34,63 @@ static auto dataKeyToModel( std::string_view strv )
 
 namespace ui {
 
+template <typename T> void setX( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->position.x = e.toFloat(); };
+template <typename T> void setY( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->position.y = e.toFloat(); };
+template <typename T> void setW( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->size.x = e.toFloat(); };
+template <typename T> void setH( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->size.y = e.toFloat(); };
+template <typename T> void setData( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->data = Hash{}( e.toString() ); };
+template <typename T> void setSpriteId( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->spriteId = Hash{}( e.toString() ); };
+template <typename T> void setSpriteSpacing( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->spriteSpacing = e.toFloat(); };
+template <typename T> void setColor( void* ci, const cfg::Entry& e )
+{
+    auto& color = reinterpret_cast<typename T::CreateInfo*>( ci )->color;
+    switch ( Hash{}( e.toString() ) ) {
+    case "green"_hash: color = color::winScreen; break;
+    default: assert( !"unknown color" ); break;
+    }
+}
+
+using F = std::tuple<Hash::value_type, void(*)( void*, const cfg::Entry& )>;
+using W = std::tuple<Hash::value_type, UniquePointer<Widget>(*)( std::pmr::memory_resource*, const cfg::Entry&, std::span<const F> ),std::span<const F>>;
+
+template <typename T>
+UniquePointer<Widget> makeWidget( std::pmr::memory_resource* allocator, const cfg::Entry& entry, std::span<const F> fields )
+{
+    typename T::CreateInfo ci{};
+    Hash hash{};
+    for ( auto&& property : entry ) {
+        const auto h = hash( *property );
+        for ( auto&& [ hh, set ] : fields ) {
+            if ( hh != h ) continue;
+            set( &ci, property );
+        }
+    }
+    return UniquePointer<T>{ allocator, ci };
+}
+
+inline constexpr std::array PROGRESSBAR_FIELDS = {
+    F{ "x"_hash, &setX<Progressbar> },
+    F{ "y"_hash, &setY<Progressbar> },
+    F{ "data"_hash, &setData<Progressbar> },
+    F{ "spriteId"_hash, &setSpriteId<Progressbar> },
+    F{ "spriteSpacing"_hash, &setSpriteSpacing<Progressbar> },
+};
+
+inline constexpr std::array IMAGE_FIELDS = {
+    F{ "data"_hash, &setData<Image> },
+    F{ "sprite"_hash, &setSpriteId<Image> },
+    F{ "width"_hash, &setW<Image> },
+    F{ "height"_hash, &setH<Image> },
+    F{ "x"_hash, &setX<Image> },
+    F{ "y"_hash, &setY<Image> },
+    F{ "color"_hash, &setColor<Image> },
+};
+
+inline constexpr std::array WIDGETS = {
+    W{ "Progressbar"_hash, &makeWidget<Progressbar>, PROGRESSBAR_FIELDS },
+    W{ "Image"_hash, &makeWidget<Image>, IMAGE_FIELDS },
+};
+
 static UniquePointer<Widget> makeButton( std::pmr::memory_resource* alloc, const cfg::Entry& entry, uint16_t tabOrder )
 {
     assert( alloc );
@@ -58,33 +115,6 @@ static UniquePointer<Widget> makeButton( std::pmr::memory_resource* alloc, const
     }
     ci.text = text;
     return UniquePointer<Button>{ alloc, ci };
-}
-
-static UniquePointer<Widget> makeImage( std::pmr::memory_resource* alloc, const cfg::Entry& entry )
-{
-    assert( alloc );
-    Image::CreateInfo ci{};
-
-    Hash hash{};
-    for ( const auto& property : entry ) {
-        switch ( hash( *property ) ) {
-        case "data"_hash: ci.model = dataKeyToModel( property.toString() ); continue;
-        case "sprite"_hash: ci.sprite = hash( property.toString() ); continue;
-        case "height"_hash: ci.size.y = property.toFloat(); continue;
-        case "width"_hash: ci.size.x = property.toFloat(); continue;
-        case "x"_hash: ci.position.x = property.toFloat(); continue;
-        case "y"_hash: ci.position.y = property.toFloat(); continue;
-        case "color"_hash:
-            switch ( hash( property.toString() ) ) {
-            case "green"_hash: ci.color = color::winScreen; continue;
-            default: assert( !"unknown color" ); continue;
-            }
-        default:
-            assert( !"unhandled Image property" );
-            continue;
-        }
-    }
-    return UniquePointer<Image>{ alloc, ci };
 }
 
 static UniquePointer<Widget> makeNineSlice( std::pmr::memory_resource* alloc, const cfg::Entry& entry )
@@ -200,28 +230,6 @@ static UniquePointer<Widget> makeComboBox( std::pmr::memory_resource* alloc, con
     UniquePointer<ComboBox> ptr{ alloc, ci };
     ptr->setTabOrder( tabOrder );
     return ptr;
-}
-
-static UniquePointer<Widget> makeProgressbar( std::pmr::memory_resource* alloc, const cfg::Entry& entry )
-{
-    assert( alloc );
-    Progressbar::CreateInfo ci{};
-    Hash hash{};
-    for ( const auto& property : entry ) {
-        switch ( hash( *property ) ) {
-        case "data"_hash: ci.model = dataKeyToModel( property.toString() ); continue;
-        case "x"_hash: ci.position.x = property.toFloat(); continue;
-        case "y"_hash: ci.position.y = property.toFloat(); continue;
-        case "spriteId"_hash: ci.spriteId = hash( property.toString() ); continue;
-        case "spriteSpacing"_hash: ci.spacing = property.toFloat(); continue;
-        default:
-            assert( !"unhandled Entry element" );
-            continue;
-        }
-    }
-
-    assert( ci.model );
-    return UniquePointer<Progressbar>{ alloc, ci };
 }
 
 static UniquePointer<Widget> makeFooter( std::pmr::memory_resource* alloc, const cfg::Entry& entry )
@@ -384,21 +392,23 @@ Screen::Screen( const cfg::Entry& entry ) noexcept
 
     Hash hash{};
     for ( const auto& property : entry ) {
-        switch ( hash( *property ) ) {
+        const auto h = hash( *property );
+        switch ( h ) {
         case "Button"_hash: m_widgets.emplace_back( makeButton( alloc, property, tabOrderCount++ ) ); continue;
         case "ComboBox"_hash: m_widgets.emplace_back( makeComboBox( alloc, property, tabOrderCount++ ) ); continue;
         case "Footer"_hash: m_footer = makeFooter( alloc, property ); continue;
-        case "Image"_hash: m_widgets.emplace_back( makeImage( alloc, property ) ); continue;
         case "List"_hash: makeList( alloc, property, m_widgets, tabOrderCount ); continue;
         case "Label"_hash: m_widgets.emplace_back( makeLabel( alloc, property ) ); continue;
         case "NineSlice"_hash: m_widgets.emplace_back( makeNineSlice( alloc, property ) ); continue;
-        case "Progressbar"_hash: m_widgets.emplace_back( makeProgressbar( alloc, property ) ); continue;
         case "SpinBox"_hash: m_widgets.emplace_back( makeSpinBox( alloc, property, tabOrderCount++ ) ); continue;
         case "height"_hash: m_extent.y = property.toFloat(); continue;
         case "width"_hash: m_extent.x = property.toFloat(); continue;
         default:
-            assert( !"unhandled ui element" );
-            continue;
+            break;
+        }
+        for ( auto&& [ hh, makeWgt, fields ] : WIDGETS ) {
+            if ( h != hh ) continue;
+            m_widgets.emplace_back( makeWgt( alloc, property, fields ) );
         }
     }
     if ( tabOrderCount == 0 ) { return; }

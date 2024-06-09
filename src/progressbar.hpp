@@ -19,10 +19,10 @@ class Progressbar : public ui::Widget {
 
 public:
     struct CreateInfo {
-        ui::DataModel* model = nullptr;
         math::vec2 position{};
+        Hash::value_type data{};
         Hash::value_type spriteId{};
-        float spacing{};
+        float spriteSpacing{};
     };
 
     virtual ~Progressbar() noexcept override = default;

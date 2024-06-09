@@ -10,9 +10,9 @@
 
 Progressbar::Progressbar( const Progressbar::CreateInfo& ci ) noexcept
 : Widget{ ci.position, {} }
-, m_dataModel{ ci.model }
-, m_spacing{ ci.spacing }
+, m_spacing{ ci.spriteSpacing }
 {
+    m_dataModel = g_uiProperty.dataModel( ci.data );
     std::tie( m_uvwh, m_w, m_h, m_texture ) = g_uiProperty.sprite( ci.spriteId );
     m_texture = g_uiProperty.atlasTexture();
 }

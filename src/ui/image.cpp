@@ -13,18 +13,17 @@ namespace ui {
 Image::Image( const CreateInfo& ci ) noexcept
 : Widget{ ci.position, ci.size }
 , m_color{ ci.color }
-, m_texture{ ci.texture }
-, m_dataModel{ ci.model }
 {
     m_pipelineSlot = g_uiProperty.pipelineSpriteSequence();
-    if ( m_dataModel ) {
+    if ( ci.data ) {
         m_sampleRGBA = 1;
+        m_dataModel = g_uiProperty.dataModel( ci.data );
         m_current = m_dataModel->current();
         setTexture( m_dataModel->texture( m_current ) );
     }
-    else if ( ci.sprite ) {
+    else if ( ci.spriteId ) {
         m_sampleRGBA = 0;
-        std::tie( m_uvwh, std::ignore, std::ignore, m_texture ) = g_uiProperty.sprite( ci.sprite );
+        std::tie( m_uvwh, std::ignore, std::ignore, m_texture ) = g_uiProperty.sprite( ci.spriteId );
     }
     else {
         assert( !"expected data model or sprite id when creating image" );

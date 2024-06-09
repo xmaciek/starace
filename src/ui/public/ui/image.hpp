@@ -22,9 +22,9 @@ class Image : public Widget {
 
 public:
     struct CreateInfo {
-        DataModel* model = nullptr;
         Texture texture{};
-        Hash::value_type sprite{};
+        Hash::value_type data{};
+        Hash::value_type spriteId{};
         math::vec2 position{};
         math::vec2 size{};
         math::vec4 color = math::vec4{ 1.0f, 1.0f, 1.0f, 1.0f };
