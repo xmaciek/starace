@@ -106,52 +106,22 @@ inline constexpr std::array BUTTON_FIELDS = {
     F{ "y"_hash, &setY<Button> },
 };
 
+inline constexpr std::array NINESLICE_FIELDS = {
+    F{ "height"_hash, &setH<NineSlice> },
+    F{ "width"_hash, &setW<NineSlice> },
+    F{ "x"_hash, &setX<NineSlice> },
+    F{ "y"_hash, &setY<NineSlice> },
+};
+
 inline constexpr std::array WIDGETS = {
     W{ "Button"_hash, &makeWidget<Button>, BUTTON_FIELDS },
     W{ "ComboBox"_hash, &makeWidget<ComboBox>, COMBOBOX_FIELDS },
     W{ "Image"_hash, &makeWidget<Image>, IMAGE_FIELDS },
     W{ "Label"_hash, &makeWidget<Label>, LABEL_FIELDS },
+    W{ "NineSlice"_hash, &makeWidget<NineSlice>, NINESLICE_FIELDS },
     W{ "Progressbar"_hash, &makeWidget<Progressbar>, PROGRESSBAR_FIELDS },
     W{ "SpinBox"_hash, &makeWidget<SpinBox>, SPINBOX_FIELDS },
 };
-
-static UniquePointer<Widget> makeNineSlice( std::pmr::memory_resource* alloc, const cfg::Entry& entry )
-{
-    assert( alloc );
-    static constexpr std::array<ui::Atlas::hash_type, 9> SLICES = {
-        "topLeft"_hash,
-        "top"_hash,
-        "topRight"_hash,
-        "left"_hash,
-        "mid"_hash,
-        "right"_hash,
-        "botLeft"_hash,
-        "bot"_hash,
-        "botRight"_hash,
-    };
-    math::vec2 position{};
-    math::vec2 extent{};
-
-    Hash hash{};
-    for ( const auto& property : entry ) {
-        switch ( hash( *property ) ) {
-        case "height"_hash: extent.y = property.toFloat(); continue;
-        case "width"_hash: extent.x = property.toFloat(); continue;
-        case "x"_hash: position.x = property.toFloat(); continue;
-        case "y"_hash: position.y = property.toFloat(); continue;
-        default:
-            assert( !"unhandled NineSlice property" );
-            continue;
-        }
-    }
-
-    return UniquePointer<NineSlice>{ alloc
-        , position
-        , extent
-        , Anchor::fTop | Anchor::fLeft
-        , SLICES
-    };
-}
 
 static UniquePointer<Widget> makeFooter( std::pmr::memory_resource* alloc, const cfg::Entry& entry )
 {
@@ -317,7 +287,6 @@ Screen::Screen( const cfg::Entry& entry ) noexcept
         switch ( h ) {
         case "Footer"_hash: m_footer = makeFooter( alloc, property ); continue;
         case "List"_hash: makeList( alloc, property, m_widgets, tabOrderCount ); continue;
-        case "NineSlice"_hash: m_widgets.emplace_back( makeNineSlice( alloc, property ) ); continue;
         case "height"_hash: m_extent.y = property.toFloat(); continue;
         case "width"_hash: m_extent.x = property.toFloat(); continue;
         default:

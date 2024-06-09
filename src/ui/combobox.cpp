@@ -12,20 +12,9 @@
 #include <string_view>
 
 namespace ui {
-static constexpr std::array<ui::Atlas::hash_type, 9> SLICES = {
-    "topLeft"_hash,
-    "top"_hash,
-    "topRight"_hash,
-    "left"_hash,
-    "mid"_hash,
-    "right"_hash,
-    "botLeft"_hash,
-    "bot"_hash,
-    "botRight"_hash,
-};
 
 ComboBox::ComboBox( const ComboBox::CreateInfo& ci ) noexcept
-: NineSlice{ ci.position, ci.size, Anchor::fTop| Anchor::fLeft, SLICES }
+: NineSlice{ NineSlice::CreateInfo{ .position = ci.position, .size = ci.size, .anchor = Anchor::fTop| Anchor::fLeft } }
 , m_label{ Label::CreateInfo{ .text = ci.text, .font = "medium"_hash, .anchor = Anchor::fLeft | Anchor::fMiddle, } }
 , m_value{ Label::CreateInfo{ .data = ci.data, .font = "medium"_hash, .anchor = Anchor::fRight | Anchor::fMiddle, } }
 {

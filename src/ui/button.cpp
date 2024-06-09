@@ -3,7 +3,6 @@
 #include <ui/property.hpp>
 #include <engine/math.hpp>
 
-static constexpr auto c_defaultAnchor = Anchor::fTop | Anchor::fLeft;
 static constexpr std::array<ui::Atlas::hash_type, 9> SLICES = {
     "topLeft"_hash,
     "top"_hash,
@@ -19,7 +18,7 @@ static constexpr std::array<ui::Atlas::hash_type, 9> SLICES = {
 namespace ui {
 
 Button::Button( const CreateInfo& ci ) noexcept
-: NineSlice{ ci.position, ci.size, c_defaultAnchor, SLICES }
+: NineSlice{ NineSlice::CreateInfo{ .position = ci.position, .size = ci.size, .spriteArray = SLICES, .anchor = Anchor::fTop | Anchor::fLeft } }
 , m_label{ Label::CreateInfo{ .text = ci.text, .font = "small"_hash, .anchor = Anchor::fCenter | Anchor::fMiddle } }
 , m_onTrigger{ g_uiProperty.gameCallback( ci.trigger ) }
 {

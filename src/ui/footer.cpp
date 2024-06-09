@@ -63,7 +63,7 @@ void Footer::refreshText()
 
 void Footer::render( RenderContext rctx ) const
 {
-    NineSlice{ position(), size(), Anchor::fTop | Anchor::fLeft, SLICES }.render( rctx );
+    NineSlice{ NineSlice::CreateInfo{ position(), size(), SLICES, Anchor::fTop | Anchor::fLeft } }.render( rctx );
 
     auto [ pushData, pushConstant ] = g_uiProperty.fontMedium()->composeText( math::vec4{ 1.0f, 1.0f, 1.0f, 1.0f }, m_text );
     pushConstant.m_model = math::translate( rctx.model, math::vec3{ size().x - m_textLength, position().y + g_uiProperty.fontMedium()->height() * 0.618f, 0 } );

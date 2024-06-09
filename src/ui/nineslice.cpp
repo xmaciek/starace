@@ -13,14 +13,9 @@
 
 namespace ui {
 
-NineSlice::NineSlice(
-    math::vec2 position
-    , math::vec2 extent
-    , Anchor a
-    , SpriteArray ns
-) noexcept
-: Widget{ position, extent, a }
-, m_spriteIds{ ns }
+NineSlice::NineSlice( const CreateInfo& ci ) noexcept
+: Widget{ ci.position, ci.size, ci.anchor }
+, m_spriteIds{ ci.spriteArray }
 {
 }
 
