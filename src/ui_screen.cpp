@@ -212,6 +212,8 @@ static UniquePointer<Widget> makeProgressbar( std::pmr::memory_resource* alloc, 
         case "data"_hash: ci.model = dataKeyToModel( property.toString() ); continue;
         case "x"_hash: ci.position.x = property.toFloat(); continue;
         case "y"_hash: ci.position.y = property.toFloat(); continue;
+        case "spriteId"_hash: ci.spriteId = hash( property.toString() ); continue;
+        case "spriteSpacing"_hash: ci.spacing = property.toFloat(); continue;
         default:
             assert( !"unhandled Entry element" );
             continue;

@@ -2,16 +2,27 @@
 
 #include <ui/widget.hpp>
 #include <ui/data_model.hpp>
+#include <renderer/texture.hpp>
+#include <shared/hash.hpp>
+
+#include <cstdint>
 
 class Progressbar : public ui::Widget {
     ui::DataModel* m_dataModel = nullptr;
     ui::DataModel::size_type m_current = 0;
+    math::vec4 m_uvwh{};
+    Texture m_texture{};
     float m_value = 0.0f;
+    float m_spacing = 0.0f;
+    uint16_t m_w = 0;
+    uint16_t m_h = 0;
 
 public:
     struct CreateInfo {
         ui::DataModel* model = nullptr;
         math::vec2 position{};
+        Hash::value_type spriteId{};
+        float spacing{};
     };
 
     virtual ~Progressbar() noexcept override = default;

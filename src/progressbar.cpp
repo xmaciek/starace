@@ -11,7 +11,10 @@
 Progressbar::Progressbar( const Progressbar::CreateInfo& ci ) noexcept
 : Widget{ ci.position, {} }
 , m_dataModel{ ci.model }
+, m_spacing{ ci.spacing }
 {
+    std::tie( m_uvwh, m_w, m_h, m_texture ) = g_uiProperty.sprite( ci.spriteId );
+    m_texture = g_uiProperty.atlasTexture();
 }
 
 void Progressbar::render( ui::RenderContext rctx ) const
@@ -22,7 +25,7 @@ void Progressbar::render( ui::RenderContext rctx ) const
         .m_verticeCount = 6u,
         .m_instanceCount = INSTANCES,
     };
-    pushData.m_resource[ 1 ].texture = g_uiProperty.atlasTexture();
+    pushData.m_resource[ 1 ].texture = m_texture;
 
     using PushConstant = ui::PushConstant<ui::Pipeline::eSpriteSequenceColors>;
     PushConstant pushConstant{
@@ -32,13 +35,14 @@ void Progressbar::render( ui::RenderContext rctx ) const
     };
 
     math::vec2 pos = position() + offsetByAnchor();
-    auto Gen = [pos, i = 0u, value = m_value]() mutable
+    const float xOffset = (float)m_w + m_spacing;
+    auto Gen = [this, pos, i = 0u, value = m_value, xOffset]() mutable
     {
         auto j = i++;
         return PushConstant::Sprite{
             .m_color = (float)j < ( value * (float)INSTANCES ) ? color::winScreen : color::crimson,
-            .m_xywh{ pos.x + ( j * 10.0f ), pos.y, 16.0f, 16.0f },
-            .m_uvwh = math::makeUVxywh<8, 8>( 2, 3 ),
+            .m_xywh{ pos.x + ( j * xOffset ), pos.y, m_w, m_h },
+            .m_uvwh = m_uvwh,
         };
     };
     std::generate_n( pushConstant.m_sprites.begin(), INSTANCES, Gen );

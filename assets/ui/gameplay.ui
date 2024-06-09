@@ -4,6 +4,8 @@ height = 720
 Progressbar = {
     x = 80
     y = 80
+    spriteId = "barBackslash"
+    spriteSpacing = -6.0
     data = $var:playerHP
 }
 
