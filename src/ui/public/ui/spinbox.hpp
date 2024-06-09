@@ -9,8 +9,8 @@ namespace ui {
 
 class SpinBox : public Widget {
 protected:
-    TabOrder<DataModel::size_type> m_index{}; // TODO: replace with something more fitting
     DataModel* m_model = nullptr;
+    TabOrder<DataModel::size_type> m_index{}; // TODO: replace with something more fitting
     float m_animL = 1.0f;
     float m_animR = 1.0f;
     bool m_focusL : 1 = false;
@@ -21,9 +21,18 @@ protected:
     math::vec4 arrowRight() const;
 
 public:
+    static constexpr inline bool TAB_ORDERING = true;
+
+    struct CreateInfo {
+        Hash::value_type data;
+        math::vec2 position{};
+        math::vec2 size{};
+        uint16_t tabOrder{};
+    };
+
     ~SpinBox() noexcept = default;
     SpinBox() noexcept = default;
-    SpinBox( DataModel* ) noexcept;
+    SpinBox( const CreateInfo& ) noexcept;
 
     DataModel::size_type value() const;
 
@@ -32,5 +41,7 @@ public:
     virtual EventProcessing onMouseEvent( const MouseEvent& ) override;
     virtual EventProcessing onAction( ui::Action ) override;
 };
+
+template <> struct TabOrdering<SpinBox> : public std::true_type {};
 
 } // namespace ui

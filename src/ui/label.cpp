@@ -1,5 +1,7 @@
 #include <ui/label.hpp>
 
+#include <ui/property.hpp>
+
 #include <renderer/renderer.hpp>
 
 #include <cassert>
@@ -8,17 +10,17 @@ namespace ui {
 
 Label::Label( const Label::CreateInfo& ci )
 : Widget{ ci.position, {}, ci.anchor }
-, m_dataModel{ ci.dataModel }
-, m_font{ ci.font }
-, m_color{ ci.color }
+, m_dataModel{ ci.data ? g_uiProperty.dataModel( ci.data ) : nullptr }
+, m_font{ g_uiProperty.font( ci.font ) }
+, m_color{ g_uiProperty.color( ci.color ) }
 {
     assert( ci.font );
-    if ( ci.dataModel ) {
+    if ( m_dataModel ) {
         m_currentIdx = m_dataModel->current();
         setText( m_dataModel->at( m_currentIdx ) );
     }
-    else {
-        setText( ci.text );
+    else if ( ci.text ) {
+        setText( g_uiProperty.localize( ci.text ) );
     }
 }
 

@@ -25,9 +25,9 @@ public:
         Texture texture{};
         Hash::value_type data{};
         Hash::value_type spriteId{};
+        Hash::value_type color = "white"_hash;
         math::vec2 position{};
         math::vec2 size{};
-        math::vec4 color = math::vec4{ 1.0f, 1.0f, 1.0f, 1.0f };
         Anchor anchor = Anchor::fTop | Anchor::fLeft;
     };
     ~Image() noexcept = default;

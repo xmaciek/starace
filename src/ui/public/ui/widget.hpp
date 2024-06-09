@@ -86,6 +86,9 @@ public:
 
 };
 
+template <typename T>
+struct TabOrdering : public std::false_type {};
+
 }
 
 using Widget = ui::Widget;

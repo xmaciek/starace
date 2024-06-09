@@ -12,7 +12,7 @@ namespace ui {
 
 Image::Image( const CreateInfo& ci ) noexcept
 : Widget{ ci.position, ci.size }
-, m_color{ ci.color }
+, m_color{ g_uiProperty.color( ci.color ) }
 {
     m_pipelineSlot = g_uiProperty.pipelineSpriteSequence();
     if ( ci.data ) {

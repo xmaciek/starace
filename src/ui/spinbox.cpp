@@ -23,12 +23,13 @@ static constexpr std::array<ui::Atlas::hash_type, 9> SLICES = {
 
 namespace ui {
 
-SpinBox::SpinBox( DataModel* dataModel ) noexcept
-: Widget{ {}, { 240.0f, 48.0f } }
-, m_index{ dataModel->current(), 0, dataModel->size() }
-, m_model{ dataModel }
-, m_label{ Label::CreateInfo{ .dataModel = dataModel, .font = g_uiProperty.fontSmall(), .anchor = Anchor::fCenter | Anchor::fMiddle, } }
+SpinBox::SpinBox( const CreateInfo& ci ) noexcept
+: Widget{ ci.position, ci.size }
+, m_model{ g_uiProperty.dataModel( ci.data ) }
+, m_index{ m_model->current(), 0, m_model->size() }
+, m_label{ Label::CreateInfo{ .data = ci.data, .font = "small"_hash, .anchor = Anchor::fCenter | Anchor::fMiddle, } }
 {
+    setTabOrder( ci.tabOrder );
 }
 
 void SpinBox::render( RenderContext rctx ) const

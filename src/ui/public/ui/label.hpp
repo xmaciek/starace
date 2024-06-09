@@ -4,6 +4,7 @@
 #include <ui/font.hpp>
 #include <ui/widget.hpp>
 
+#include <shared/hash.hpp>
 #include <engine/math.hpp>
 #include <engine/update_context.hpp>
 
@@ -17,13 +18,14 @@ class DataModel;
 class Label : public Widget {
 public:
     struct CreateInfo {
-        DataModel* dataModel = nullptr;
-        std::u32string_view text{};
-        const Font* font = nullptr;
+        Hash::value_type data{};
+        Hash::value_type text{};
+        Hash::value_type font = "small"_hash;
+        Hash::value_type color = "white"_hash;
         math::vec2 position{};
-        math::vec4 color = math::vec4{ 1.0f, 1.0f, 1.0f, 1.0f };
         Anchor anchor = Anchor::fLeft | Anchor::fTop;
     };
+
 private:
     DataModel* m_dataModel = nullptr;
     const Font* m_font = nullptr;

@@ -101,6 +101,25 @@ public:
         return *dataModel;
     }
 
+    inline const ui::Font* font( Hash::value_type h ) const
+    {
+        switch ( h ) {
+        case "small"_hash: return m_fontSmall;
+        default: assert( !"font not found" ); [[fallthrough]];
+        case "medium"_hash: return m_fontMedium;
+        case "large"_hash: return m_fontLarge;
+        }
+    }
+
+    inline math::vec4 color( Hash::value_type h ) const
+    {
+        switch ( h ) {
+        case "green"_hash: return { 0.0275f, 1.0f, 0.075f, 1.0f };
+        default: assert( !"unknown color" ); [[fallthrough]];
+        case "white"_hash: return { 1.0f, 1.0f, 1.0f, 1.0f };
+        }
+    }
+
     std::tuple<math::vec4, uint16_t, uint16_t, Texture> sprite( Hash::value_type ) const;
 
 };

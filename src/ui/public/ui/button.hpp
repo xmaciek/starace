@@ -15,11 +15,11 @@ private:
 
 public:
     struct CreateInfo {
-        std::u32string_view text{};
+        Hash::value_type text{};
+        Hash::value_type trigger{};
         math::vec2 position{};
         math::vec2 size{};
-        std::function<void()> trigger{};
-        uint16_t tabOrder = 0;
+        uint16_t tabOrder{};
     };
     ~Button() noexcept = default;
     Button() noexcept = default;
@@ -34,6 +34,8 @@ public:
     void setText( std::u32string_view );
 
 };
+
+template <> struct TabOrdering<Button> : public std::true_type {};
 
 }
 

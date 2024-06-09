@@ -26,8 +26,8 @@ static constexpr std::array<ui::Atlas::hash_type, 9> SLICES = {
 
 ComboBox::ComboBox( const ComboBox::CreateInfo& ci ) noexcept
 : NineSlice{ ci.position, ci.size, Anchor::fTop| Anchor::fLeft, SLICES }
-, m_label{ Label::CreateInfo{ .text = ci.text, .font = g_uiProperty.fontMedium(), .anchor = Anchor::fLeft | Anchor::fMiddle, } }
-, m_value{ Label::CreateInfo{ .dataModel = ci.model, .font = g_uiProperty.fontMedium(), .anchor = Anchor::fRight | Anchor::fMiddle, } }
+, m_label{ Label::CreateInfo{ .text = ci.text, .font = "medium"_hash, .anchor = Anchor::fLeft | Anchor::fMiddle, } }
+, m_value{ Label::CreateInfo{ .data = ci.data, .font = "medium"_hash, .anchor = Anchor::fRight | Anchor::fMiddle, } }
 {
     math::vec2 s = size();
     m_label.setPosition( math::vec2{ 16.0f, s.y * 0.5f } );
@@ -148,14 +148,14 @@ void ComboBoxList::render( RenderContext rctx ) const
     rctx.renderer->push( pushData, &pushConstant );
 
     Label::CreateInfo ci{
-        .font = g_uiProperty.fontSmall(),
+        .font = "small"_hash,
         .position{ width - 16.0f, m_topPadding },
         .anchor = Anchor::fRight | Anchor::fTop,
     };
     for ( decltype( count ) i = 0; i < count; ++i ) {
-        auto txt = m_model->at( i + m_index.offset() );
-        ci.text = txt;
-        Label{ ci }.render( rctx );
+        Label l{ ci };
+        l.setText( m_model->at( i + m_index.offset() ) );
+        l.render( rctx );
         ci.position.y += m_lineHeight;
     }
 }

@@ -18,20 +18,6 @@
 #include <optional>
 #include <string_view>
 
-using std::literals::string_view_literals::operator""sv;
-
-static auto fnKeyToFunction( std::string_view strv )
-{
-    Hash hash{};
-    return g_uiProperty.gameCallback( hash( strv ) );
-}
-
-static auto dataKeyToModel( std::string_view strv )
-{
-    Hash hash{};
-    return g_uiProperty.dataModel( hash( strv ) );
-}
-
 namespace ui {
 
 template <typename T> void setX( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->position.x = e.toFloat(); };
@@ -39,25 +25,25 @@ template <typename T> void setY( void* ci, const cfg::Entry& e ) { reinterpret_c
 template <typename T> void setW( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->size.x = e.toFloat(); };
 template <typename T> void setH( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->size.y = e.toFloat(); };
 template <typename T> void setData( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->data = Hash{}( e.toString() ); };
+template <typename T> void setText( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->text = Hash{}( e.toString() ); };
+template <typename T> void setFont( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->font = Hash{}( e.toString() ); };
 template <typename T> void setSpriteId( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->spriteId = Hash{}( e.toString() ); };
 template <typename T> void setSpriteSpacing( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->spriteSpacing = e.toFloat(); };
-template <typename T> void setColor( void* ci, const cfg::Entry& e )
-{
-    auto& color = reinterpret_cast<typename T::CreateInfo*>( ci )->color;
-    switch ( Hash{}( e.toString() ) ) {
-    case "green"_hash: color = color::winScreen; break;
-    default: assert( !"unknown color" ); break;
-    }
-}
+template <typename T> void setColor( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->color = Hash{}( e.toString() ); };
+template <typename T> void setTrigger( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->trigger = Hash{}( e.toString() ); };
 
 using F = std::tuple<Hash::value_type, void(*)( void*, const cfg::Entry& )>;
-using W = std::tuple<Hash::value_type, UniquePointer<Widget>(*)( std::pmr::memory_resource*, const cfg::Entry&, std::span<const F> ),std::span<const F>>;
+using W = std::tuple<Hash::value_type, UniquePointer<Widget>(*)( std::pmr::memory_resource*, const cfg::Entry&, std::span<const F>, uint16_t& ),std::span<const F>>;
 
 template <typename T>
-UniquePointer<Widget> makeWidget( std::pmr::memory_resource* allocator, const cfg::Entry& entry, std::span<const F> fields )
+UniquePointer<Widget> makeWidget( std::pmr::memory_resource* allocator, const cfg::Entry& entry, std::span<const F> fields, uint16_t& tabOrder )
 {
     typename T::CreateInfo ci{};
+    if constexpr ( TabOrdering<T>::value ) {
+        ci.tabOrder = tabOrder++;
+    }
     Hash hash{};
+
     for ( auto&& property : entry ) {
         const auto h = hash( *property );
         for ( auto&& [ hh, set ] : fields ) {
@@ -65,6 +51,7 @@ UniquePointer<Widget> makeWidget( std::pmr::memory_resource* allocator, const cf
             set( &ci, property );
         }
     }
+
     return UniquePointer<T>{ allocator, ci };
 }
 
@@ -86,36 +73,47 @@ inline constexpr std::array IMAGE_FIELDS = {
     F{ "color"_hash, &setColor<Image> },
 };
 
-inline constexpr std::array WIDGETS = {
-    W{ "Progressbar"_hash, &makeWidget<Progressbar>, PROGRESSBAR_FIELDS },
-    W{ "Image"_hash, &makeWidget<Image>, IMAGE_FIELDS },
+inline constexpr std::array LABEL_FIELDS = {
+    F{ "data"_hash, &setData<Label> },
+    F{ "text"_hash, &setText<Label> },
+    F{ "x"_hash, &setX<Label> },
+    F{ "y"_hash, &setY<Label> },
 };
 
-static UniquePointer<Widget> makeButton( std::pmr::memory_resource* alloc, const cfg::Entry& entry, uint16_t tabOrder )
-{
-    assert( alloc );
-    std::pmr::u32string text{};
-    Button::CreateInfo ci{
-        .tabOrder = tabOrder,
-    };
+inline constexpr std::array SPINBOX_FIELDS = {
+    F{ "data"_hash, &setData<SpinBox> },
+    F{ "height"_hash, &setH<SpinBox> },
+    F{ "width"_hash, &setW<SpinBox> },
+    F{ "x"_hash, &setX<SpinBox> },
+    F{ "y"_hash, &setY<SpinBox> },
+};
 
-    Hash hash{};
-    for ( const auto& property : entry ) {
-        switch ( hash( *property ) ) {
-        case "height"_hash: ci.size.y = property.toFloat(); continue;
-        case "text"_hash: text = g_uiProperty.localize( property.toString() ); continue;
-        case "trigger"_hash: ci.trigger = fnKeyToFunction( property.toString() ); continue;
-        case "width"_hash: ci.size.x = property.toFloat(); continue;
-        case "x"_hash: ci.position.x = property.toFloat(); continue;
-        case "y"_hash: ci.position.y = property.toFloat(); continue;
-        default:
-            assert( !"unhandled Button element" );
-            continue;
-        }
-    }
-    ci.text = text;
-    return UniquePointer<Button>{ alloc, ci };
-}
+inline constexpr std::array COMBOBOX_FIELDS = {
+    F{ "data"_hash, &setData<ComboBox> },
+    F{ "height"_hash, &setH<ComboBox> },
+    F{ "text"_hash, &setText<ComboBox> },
+    F{ "width"_hash, &setW<ComboBox> },
+    F{ "x"_hash, &setX<ComboBox> },
+    F{ "y"_hash, &setY<ComboBox> },
+};
+
+inline constexpr std::array BUTTON_FIELDS = {
+    F{ "height"_hash, &setH<Button> },
+    F{ "text"_hash, &setText<Button> },
+    F{ "trigger"_hash, &setTrigger<Button> },
+    F{ "width"_hash, &setW<Button> },
+    F{ "x"_hash, &setX<Button> },
+    F{ "y"_hash, &setY<Button> },
+};
+
+inline constexpr std::array WIDGETS = {
+    W{ "Button"_hash, &makeWidget<Button>, BUTTON_FIELDS },
+    W{ "ComboBox"_hash, &makeWidget<ComboBox>, COMBOBOX_FIELDS },
+    W{ "Image"_hash, &makeWidget<Image>, IMAGE_FIELDS },
+    W{ "Label"_hash, &makeWidget<Label>, LABEL_FIELDS },
+    W{ "Progressbar"_hash, &makeWidget<Progressbar>, PROGRESSBAR_FIELDS },
+    W{ "SpinBox"_hash, &makeWidget<SpinBox>, SPINBOX_FIELDS },
+};
 
 static UniquePointer<Widget> makeNineSlice( std::pmr::memory_resource* alloc, const cfg::Entry& entry )
 {
@@ -153,83 +151,6 @@ static UniquePointer<Widget> makeNineSlice( std::pmr::memory_resource* alloc, co
         , Anchor::fTop | Anchor::fLeft
         , SLICES
     };
-}
-
-static UniquePointer<Widget> makeLabel( std::pmr::memory_resource* alloc, const cfg::Entry& entry )
-{
-    assert( alloc );
-    Label::CreateInfo ci{
-        .font = g_uiProperty.fontMedium(),
-    };
-    std::u32string text{};
-    Hash hash{};
-    for ( const auto& property : entry ) {
-        switch ( hash( *property ) ) {
-        case "data"_hash: ci.dataModel = dataKeyToModel( property.toString() ); continue;
-        case "text"_hash: text = g_uiProperty.localize( property.toString() ); continue;
-        case "x"_hash: ci.position.x = property.toFloat(); continue;
-        case "y"_hash: ci.position.y = property.toFloat(); continue;
-        default:
-            assert( !"unhandled Label property" );
-            continue;
-        }
-    }
-    ci.text = text;
-    return UniquePointer<Label>{ alloc, ci };
-}
-
-static UniquePointer<Widget> makeSpinBox( std::pmr::memory_resource* alloc, const cfg::Entry& entry, uint16_t tabOrder )
-{
-    assert( alloc );
-    math::vec2 pos{};
-    math::vec2 size{};
-    DataModel* dataModel = nullptr;
-    Hash hash{};
-    for ( const auto& property : entry ) {
-        switch ( hash( *property ) ) {
-        case "data"_hash: dataModel = dataKeyToModel( property.toString() ); continue;
-        case "height"_hash: size.y = property.toFloat(); continue;
-        case "width"_hash: size.x = property.toFloat(); continue;
-        case "x"_hash: pos.x = property.toFloat(); continue;
-        case "y"_hash: pos.y = property.toFloat(); continue;
-        default:
-            assert( !"unhandled SpinBox element" );
-            continue;
-        }
-    }
-
-    assert( dataModel );
-    UniquePointer<SpinBox> spinbox{ alloc, dataModel };
-    spinbox->setTabOrder( tabOrder );
-    spinbox->setPosition( pos );
-    spinbox->setSize( size );
-    return spinbox;
-}
-
-
-static UniquePointer<Widget> makeComboBox( std::pmr::memory_resource* alloc, const cfg::Entry& entry, uint16_t tabOrder )
-{
-    assert( alloc );
-    ComboBox::CreateInfo ci{};
-    Hash hash{};
-    for ( const auto& property : entry ) {
-        switch ( hash( *property ) ) {
-        case "data"_hash: ci.model = dataKeyToModel( property.toString() ); continue;
-        case "height"_hash: ci.size.y = property.toFloat(); continue;
-        case "text"_hash: ci.text = g_uiProperty.localize( property.toString() ); continue;
-        case "width"_hash: ci.size.x = property.toFloat(); continue;
-        case "x"_hash: ci.position.x = property.toFloat(); continue;
-        case "y"_hash: ci.position.y = property.toFloat(); continue;
-        default:
-            assert( !"unhandled Entry element" );
-            continue;
-        }
-    }
-
-    assert( ci.model );
-    UniquePointer<ComboBox> ptr{ alloc, ci };
-    ptr->setTabOrder( tabOrder );
-    return ptr;
 }
 
 static UniquePointer<Widget> makeFooter( std::pmr::memory_resource* alloc, const cfg::Entry& entry )
@@ -277,9 +198,9 @@ static void makeList( std::pmr::memory_resource* alloc, const cfg::Entry& entry,
             eButton,
             eComboBox,
         };
-        std::u32string text{};
-        std::function<void()> trigger{};
-        ui::DataModel* model = nullptr;
+        Hash::value_type trigger{};
+        Hash::value_type text{};
+        Hash::value_type data{};
         Type type{};
         uint16_t tabOrder = 0;
     };
@@ -301,8 +222,8 @@ static void makeList( std::pmr::memory_resource* alloc, const cfg::Entry& entry,
             e.type = Element::Type::eComboBox;
             for ( auto&& property : entry ) {
                 switch ( hash( *property ) ) {
-                case "text"_hash: e.text = g_uiProperty.localize( property.toString() ); continue;
-                case "data"_hash: e.model = dataKeyToModel( property.toString() ); continue;
+                case "text"_hash: e.text = hash( property.toString() ); continue;
+                case "data"_hash: e.data = hash( property.toString() ); continue;
                 default: assert( !"unhandled enum when reading List.entries.ComboBox" ); continue;
                 }
             }
@@ -312,8 +233,8 @@ static void makeList( std::pmr::memory_resource* alloc, const cfg::Entry& entry,
             e.type = Element::Type::eButton;
             for ( auto&& property : entry ) {
                 switch ( hash( *property ) ) {
-                case "text"_hash: e.text = g_uiProperty.localize( property.toString() ); continue;
-                case "trigger"_hash: e.trigger = fnKeyToFunction( property.toString() ); continue;
+                case "text"_hash: e.text = hash( property.toString() ); continue;
+                case "trigger"_hash: e.trigger = hash( property.toString() ); continue;
                 }
             }
             return e;
@@ -358,8 +279,8 @@ static void makeList( std::pmr::memory_resource* alloc, const cfg::Entry& entry,
         switch ( it.type ) {
         case Element::Type::eComboBox: {
             ComboBox::CreateInfo ci{
-                .model = it.model,
-                .text = std::move( it.text ),
+                .data = it.data,
+                .text = it.text,
                 .position = xy,
                 .size = elementSize,
                 .tabOrder = it.tabOrder
@@ -368,10 +289,10 @@ static void makeList( std::pmr::memory_resource* alloc, const cfg::Entry& entry,
         } break;
         case Element::Type::eButton: {
             Button::CreateInfo ci{
-                .text = std::move( it.text ),
+                .text = it.text,
+                .trigger = it.trigger,
                 .position = xy,
                 .size = elementSize,
-                .trigger = std::move( it.trigger ),
                 .tabOrder = it.tabOrder
             };
             retList.emplace_back( UniquePointer<Button>( alloc, ci ) );
@@ -394,13 +315,9 @@ Screen::Screen( const cfg::Entry& entry ) noexcept
     for ( const auto& property : entry ) {
         const auto h = hash( *property );
         switch ( h ) {
-        case "Button"_hash: m_widgets.emplace_back( makeButton( alloc, property, tabOrderCount++ ) ); continue;
-        case "ComboBox"_hash: m_widgets.emplace_back( makeComboBox( alloc, property, tabOrderCount++ ) ); continue;
         case "Footer"_hash: m_footer = makeFooter( alloc, property ); continue;
         case "List"_hash: makeList( alloc, property, m_widgets, tabOrderCount ); continue;
-        case "Label"_hash: m_widgets.emplace_back( makeLabel( alloc, property ) ); continue;
         case "NineSlice"_hash: m_widgets.emplace_back( makeNineSlice( alloc, property ) ); continue;
-        case "SpinBox"_hash: m_widgets.emplace_back( makeSpinBox( alloc, property, tabOrderCount++ ) ); continue;
         case "height"_hash: m_extent.y = property.toFloat(); continue;
         case "width"_hash: m_extent.x = property.toFloat(); continue;
         default:
@@ -408,7 +325,7 @@ Screen::Screen( const cfg::Entry& entry ) noexcept
         }
         for ( auto&& [ hh, makeWgt, fields ] : WIDGETS ) {
             if ( h != hh ) continue;
-            m_widgets.emplace_back( makeWgt( alloc, property, fields ) );
+            m_widgets.emplace_back( makeWgt( alloc, property, fields, tabOrderCount ) );
         }
     }
     if ( tabOrderCount == 0 ) { return; }

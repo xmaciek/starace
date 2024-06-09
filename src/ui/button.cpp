@@ -20,8 +20,8 @@ namespace ui {
 
 Button::Button( const CreateInfo& ci ) noexcept
 : NineSlice{ ci.position, ci.size, c_defaultAnchor, SLICES }
-, m_label{ Label::CreateInfo{ .text = ci.text, .font = g_uiProperty.fontSmall(), .anchor = Anchor::fCenter | Anchor::fMiddle } }
-, m_onTrigger{ ci.trigger }
+, m_label{ Label::CreateInfo{ .text = ci.text, .font = "small"_hash, .anchor = Anchor::fCenter | Anchor::fMiddle } }
+, m_onTrigger{ g_uiProperty.gameCallback( ci.trigger ) }
 {
     setTabOrder( ci.tabOrder );
 }
