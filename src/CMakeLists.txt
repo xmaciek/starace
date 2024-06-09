@@ -31,8 +31,6 @@ set( STARACE_SOURCES
     game_pipeline.hpp
     game_scene.hpp
     game_scene.cpp
-    hud.cpp
-    hud.hpp
     jet.cpp
     jet.hpp
     main.cpp

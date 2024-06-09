@@ -6,7 +6,6 @@
 #include "enemy.hpp"
 #include "game_options.hpp"
 #include "game_scene.hpp"
-#include "hud.hpp"
 #include "jet.hpp"
 #include "map_create_info.hpp"
 #include "model_proto.hpp"
@@ -66,6 +65,7 @@ private:
     uint32_t m_currentJet = 0;
     uint32_t m_weapon1 = 0;
     uint32_t m_weapon2 = 1;
+    uint32_t m_score = 0;
     Model m_enemyModel{};
     Jet m_jet{};
     GameScene m_gameScene{};
@@ -84,9 +84,6 @@ private:
 
     std::pmr::vector<WeaponCreateInfo> m_weapons{};
     WeaponCreateInfo m_enemyWeapon{};
-
-    HudData m_hudData{};
-    Hud m_hud{};
     UIRings m_uiRings{};
 
 
@@ -146,7 +143,7 @@ private:
     // purposefully copy argument
     void render3D( RenderContext );
     void renderBackground( ui::RenderContext ) const;
-    void renderGameScreen( RenderContext, ui::RenderContext );
+    void renderGameScreen( RenderContext );
     void renderMenuScreen( RenderContext, ui::RenderContext ) const;
 
     void retarget();

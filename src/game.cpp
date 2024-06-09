@@ -244,7 +244,6 @@ void Game::onResize( uint32_t w, uint32_t h )
     if ( auto* screen = currentScreen() ) {
         screen->resize( { w, h } );
     }
-    m_hud.resize( { w, h } );
     m_uiRings.setSize( { w, h } );
 }
 
@@ -377,8 +376,6 @@ void Game::setupUI()
     g_uiProperty.m_fontSmall = m_fontSmall.get();
     g_uiProperty.m_fontMedium = m_fontMedium.get();
     g_uiProperty.m_fontLarge = m_fontLarge.get();
-    m_hud = Hud{ &m_hudData }; // TODO: remove
-
 
     m_optionsCustomize.m_jet.m_size = [this](){ return static_cast<ui::DataModel::size_type>( m_jetsContainer.size() ); };
     m_optionsCustomize.m_jet.m_at = [this]( auto i )
@@ -548,13 +545,13 @@ void Game::onRender( RenderContext rctx )
 
     switch ( m_currentScreen ) {
     case Screen::eGame:
-        renderGameScreen( rctx, r );
+        renderGameScreen( rctx );
         break;
 
     case Screen::eGamePaused:
     case Screen::eDead:
     case Screen::eWin:
-        renderGameScreen( rctx, r );
+        renderGameScreen( rctx );
         m_uiRings.render( r );
         m_glow.render( r );
         break;
@@ -646,8 +643,8 @@ void Game::updateGame( const UpdateContext& updateContext )
         auto soundsToPlay = m_jet.shoot( m_bullets );
         for ( auto&& i : soundsToPlay ) {
             switch ( i ) {
-            case Bullet::Type::eBlaster: m_audio->play( m_blaster ); m_hudData.shots++; break;
-            case Bullet::Type::eTorpedo: m_audio->play( m_torpedo ); m_hudData.shots++; break;
+            case Bullet::Type::eBlaster: m_audio->play( m_blaster ); break;
+            case Bullet::Type::eTorpedo: m_audio->play( m_torpedo ); break;
             default: break;
             }
         }
@@ -684,7 +681,7 @@ void Game::updateGame( const UpdateContext& updateContext )
                     assert( e );
                     if ( !intersectLineSphere( b.m_position, b.m_prevPosition, e->position(), 15.0_m ) ) continue;
                     e->setDamage( b.m_damage );
-                    m_hudData.score += b.m_score;
+                    m_score += b.m_score;
                     b.m_type = Bullet::Type::eDead;
                     m_gameScene.explosions().emplace_back( makeExplosion( b, e->position() ) );
                     break;
@@ -720,12 +717,7 @@ void Game::updateGame( const UpdateContext& updateContext )
 
     m_targeting.update( updateContext );
     m_targeting.setState( m_jet.targetingState() );
-    m_hudData.calc = static_cast<uint32_t>( m_fpsMeter.calculated() );
-    m_hudData.fps = static_cast<uint32_t>( m_fpsMeter.fps() );
-    m_hudData.pool = static_cast<uint32_t>( m_bullets.size() );
-    m_hudData.speed = m_jet.speed();
     m_uiPlayerHP = static_cast<float>( m_jet.health() ) / 100.0f;
-    m_hud.update( updateContext );
 
 }
 
@@ -769,9 +761,7 @@ void Game::clearMapData()
 void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelData )
 {
     ZoneScoped;
-    m_hudData = HudData{
-        .hp = 1.0f,
-    };
+    m_score = 0;
     m_gameScene = GameScene{ mapInfo.texture };
 
     const auto& w1 = m_weapons[ m_weapon1 ];
@@ -815,13 +805,13 @@ void Game::changeScreen( Screen scr, Audio::Slot sound )
 
     case Screen::eDead:
         m_uiMissionResult = g_uiProperty.localize( "missionLost"_hash );
-        m_uiMissionScore = g_uiProperty.localize( "yourScore"_hash ) + intToUTF32( m_hudData.score );
+        m_uiMissionScore = g_uiProperty.localize( "yourScore"_hash ) + intToUTF32( m_score );
         m_currentScreen = scr;
         break;
 
     case Screen::eWin:
         m_uiMissionResult = g_uiProperty.localize( "missionWin"_hash );
-        m_uiMissionScore = g_uiProperty.localize( "yourScore"_hash ) + intToUTF32( m_hudData.score );
+        m_uiMissionScore = g_uiProperty.localize( "yourScore"_hash ) + intToUTF32( m_score );
         m_currentScreen = scr;
         break;
 
@@ -946,10 +936,9 @@ void Game::onMouseEvent( const MouseEvent& mouseEvent )
     }
 }
 
-void Game::renderGameScreen( RenderContext rctx, ui::RenderContext r )
+void Game::renderGameScreen( RenderContext rctx )
 {
     render3D( rctx );
-    m_hud.render( r );
     m_targeting.render( rctx );
 }
 
