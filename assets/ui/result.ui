@@ -3,12 +3,14 @@ height = 720
 
 Label = {
     data = $var:missionResult
+    font = large
     x = 48
     y = 50
 }
 
 Label = {
     data = $var:missionScore
+    font = medium
     x = 48
     y = 100
 }

@@ -112,10 +112,10 @@ private:
 
     OptionsGFX m_optionsGFX{};
     OptionsCustomize m_optionsCustomize{};
+    GameplayUIData m_gameplayUIData{};
 
     ui::Var<std::pmr::u32string> m_uiMissionResult{ U"BUG ME" };
     ui::Var<std::pmr::u32string> m_uiMissionScore{ U"BUG ME" };
-    ui::Var<float> m_uiPlayerHP{ 0.0f };
 
     ActionStateTracker m_actionStateTracker{};
 

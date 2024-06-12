@@ -2,6 +2,7 @@
 
 #include "ui_options_models.hpp"
 
+#include <ui/var.hpp>
 
 struct OptionsGFX {
     ui::Option<DisplayMode> m_resolution{};
@@ -24,4 +25,9 @@ struct OptionsCustomize {
     ui::GenericDataModel m_jet{};
     ui::GenericDataModel m_weaponPrimary{};
     ui::GenericDataModel m_weaponSecondary{};
+};
+
+struct GameplayUIData {
+    ui::Var<float> m_playerHP{ 0.0f };
+    ui::Var<float> m_jetSpeed{ 0.0f };
 };

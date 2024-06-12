@@ -3,6 +3,7 @@ height = 720
 
 Label = {
     text = customize
+    font = large
     x = 48
     y = 50
 }

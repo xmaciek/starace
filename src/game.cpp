@@ -451,7 +451,8 @@ void Game::setupUI()
     m_gameUiDataModels.insert( "$data:vsync"_hash, &m_optionsGFX.m_vsync );
     m_gameUiDataModels.insert( "$data:weaponPrimary"_hash, &m_optionsCustomize.m_weaponPrimary );
     m_gameUiDataModels.insert( "$data:weaponSecondary"_hash, &m_optionsCustomize.m_weaponSecondary );
-    m_gameUiDataModels.insert( "$var:playerHP"_hash, &m_uiPlayerHP );
+    m_gameUiDataModels.insert( "$var:playerHP"_hash, &m_gameplayUIData.m_playerHP );
+    m_gameUiDataModels.insert( "$var:jetSpeed"_hash, &m_gameplayUIData.m_jetSpeed );
     m_gameUiDataModels.insert( "$var:missionResult"_hash, &m_uiMissionResult );
     m_gameUiDataModels.insert( "$var:missionScore"_hash, &m_uiMissionScore );
     m_gameCallbacks.insert( "$function:goto_missionBriefing"_hash,  [this](){ changeScreen( Screen::eGameBriefing, m_click ); } );
@@ -717,7 +718,8 @@ void Game::updateGame( const UpdateContext& updateContext )
 
     m_targeting.update( updateContext );
     m_targeting.setState( m_jet.targetingState() );
-    m_uiPlayerHP = static_cast<float>( m_jet.health() ) / 100.0f;
+    m_gameplayUIData.m_playerHP = static_cast<float>( m_jet.health() ) / 100.0f;
+    m_gameplayUIData.m_jetSpeed = m_jet.speed() / 1600_kmph;
 
 }
 

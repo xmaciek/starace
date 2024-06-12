@@ -1,8 +1,17 @@
 width = 1280
 height = 720
 
+Image = {
+    x = 96
+    y = 80
+    width = 32
+    height = 32
+    spriteId = icon.hp
+    color = green
+}
+
 Progressbar = {
-    x = 80
+    x = 128
     y = 80
     spriteId = "barBackslash"
     spriteSpacing = -6.0
@@ -10,10 +19,19 @@ Progressbar = {
 }
 
 Image = {
-    x = 48
-    y = 80
-    width = 32
+    x = 32
+    y = 300
+    width = 48
     height = 32
-    sprite = icon.hp
+    spriteId = icon.engine
     color = green
+}
+
+Progressbar = {
+    x = 80
+    y = 300
+    spriteId = "barBackslash"
+    spriteSpacing = -6.0
+    color = green
+    data = $var:jetSpeed
 }

@@ -65,7 +65,7 @@ inline constexpr std::array PROGRESSBAR_FIELDS = {
 
 inline constexpr std::array IMAGE_FIELDS = {
     F{ "data"_hash, &setData<Image> },
-    F{ "sprite"_hash, &setSpriteId<Image> },
+    F{ "spriteId"_hash, &setSpriteId<Image> },
     F{ "width"_hash, &setW<Image> },
     F{ "height"_hash, &setH<Image> },
     F{ "x"_hash, &setX<Image> },
@@ -76,6 +76,7 @@ inline constexpr std::array IMAGE_FIELDS = {
 inline constexpr std::array LABEL_FIELDS = {
     F{ "data"_hash, &setData<Label> },
     F{ "text"_hash, &setText<Label> },
+    F{ "font"_hash, &setFont<Label> },
     F{ "x"_hash, &setX<Label> },
     F{ "y"_hash, &setY<Label> },
 };
