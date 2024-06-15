@@ -4,6 +4,7 @@
 #include "game_callbacks.hpp"
 #include "progressbar.hpp"
 
+#include <ui/animframe.hpp>
 #include <ui/button.hpp>
 #include <ui/combobox.hpp>
 #include <ui/footer.hpp>
@@ -31,6 +32,7 @@ template <typename T> void setSpriteId( void* ci, const cfg::Entry& e ) { reinte
 template <typename T> void setSpriteSpacing( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->spriteSpacing = e.toFloat(); };
 template <typename T> void setColor( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->color = Hash{}( e.toString() ); };
 template <typename T> void setTrigger( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->trigger = Hash{}( e.toString() ); };
+template <typename T, size_t Tidx> void setFrame( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->frames[ Tidx ] = Hash{}( e.toString() ); };
 
 using F = std::tuple<Hash::value_type, void(*)( void*, const cfg::Entry& )>;
 using W = std::tuple<Hash::value_type, UniquePointer<Widget>(*)( std::pmr::memory_resource*, const cfg::Entry&, std::span<const F>, uint16_t& ),std::span<const F>>;
@@ -114,6 +116,32 @@ inline constexpr std::array NINESLICE_FIELDS = {
     F{ "y"_hash, &setY<NineSlice> },
 };
 
+inline constexpr std::array ANIMFRAME_FIELDS = {
+    F{ "x"_hash, &setX<AnimFrame> },
+    F{ "y"_hash, &setY<AnimFrame> },
+    F{ "width"_hash, &setW<AnimFrame> },
+    F{ "height"_hash, &setH<AnimFrame> },
+    F{ "data"_hash, &setData<AnimFrame> },
+    F{ "color"_hash, &setColor<AnimFrame> },
+    F{ "frame0"_hash, &setFrame<AnimFrame, 0> },
+    F{ "frame1"_hash, &setFrame<AnimFrame, 1> },
+    F{ "frame2"_hash, &setFrame<AnimFrame, 2> },
+    F{ "frame3"_hash, &setFrame<AnimFrame, 3> },
+    F{ "frame4"_hash, &setFrame<AnimFrame, 4> },
+    F{ "frame5"_hash, &setFrame<AnimFrame, 5> },
+    F{ "frame6"_hash, &setFrame<AnimFrame, 6> },
+    F{ "frame7"_hash, &setFrame<AnimFrame, 7> },
+    F{ "frame8"_hash, &setFrame<AnimFrame, 8> },
+    F{ "frame9"_hash, &setFrame<AnimFrame, 9> },
+    F{ "frame10"_hash, &setFrame<AnimFrame, 10> },
+    F{ "frame11"_hash, &setFrame<AnimFrame, 11> },
+    F{ "frame12"_hash, &setFrame<AnimFrame, 12> },
+    F{ "frame13"_hash, &setFrame<AnimFrame, 13> },
+    F{ "frame14"_hash, &setFrame<AnimFrame, 14> },
+    F{ "frame15"_hash, &setFrame<AnimFrame, 15> },
+};
+
+
 inline constexpr std::array WIDGETS = {
     W{ "Button"_hash, &makeWidget<Button>, BUTTON_FIELDS },
     W{ "ComboBox"_hash, &makeWidget<ComboBox>, COMBOBOX_FIELDS },
@@ -122,6 +150,7 @@ inline constexpr std::array WIDGETS = {
     W{ "NineSlice"_hash, &makeWidget<NineSlice>, NINESLICE_FIELDS },
     W{ "Progressbar"_hash, &makeWidget<Progressbar>, PROGRESSBAR_FIELDS },
     W{ "SpinBox"_hash, &makeWidget<SpinBox>, SPINBOX_FIELDS },
+    W{ "AnimFrame"_hash, &makeWidget<AnimFrame>, ANIMFRAME_FIELDS },
 };
 
 static UniquePointer<Widget> makeFooter( std::pmr::memory_resource* alloc, const cfg::Entry& entry )

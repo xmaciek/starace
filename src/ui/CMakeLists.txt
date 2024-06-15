@@ -2,6 +2,7 @@ add_library( ui STATIC )
 
 target_sources( ui
     PRIVATE
+    animframe.cpp
     atlas.cpp
     button.cpp
     combobox.cpp
@@ -20,6 +21,7 @@ target_sources( ui
 
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/anchor.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/animframe.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/atlas.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/button.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/combobox.hpp
