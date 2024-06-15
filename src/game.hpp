@@ -14,7 +14,6 @@
 #include "texture.hpp"
 #include "ui_glow.hpp"
 #include "ui_rings.hpp"
-#include "ui_screen.hpp"
 
 #include <config/config.hpp>
 #include <engine/engine.hpp>
@@ -28,6 +27,7 @@
 #include <ui/data_model.hpp>
 #include <ui/font.hpp>
 #include <ui/var.hpp>
+#include <ui/screen.hpp>
 
 #include <SDL.h>
 

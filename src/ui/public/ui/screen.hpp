@@ -1,6 +1,5 @@
 #pragma once
 
-#include <config/config.hpp>
 #include <engine/math.hpp>
 #include <engine/mouse_event.hpp>
 #include <engine/update_context.hpp>
@@ -11,6 +10,7 @@
 #include <vector>
 #include <memory>
 #include <memory_resource>
+#include <span>
 
 namespace ui {
 

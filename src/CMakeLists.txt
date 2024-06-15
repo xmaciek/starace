@@ -59,8 +59,6 @@ set( STARACE_SOURCES
     ui_options_models.hpp
     ui_rings.cpp
     ui_rings.hpp
-    ui_screen.cpp
-    ui_screen.hpp
     units.hpp
     utils.cpp
     utils.hpp

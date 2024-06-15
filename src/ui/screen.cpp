@@ -1,4 +1,4 @@
-#include "ui_screen.hpp"
+#include <ui/screen.hpp>
 
 #include <ui/animframe.hpp>
 #include <ui/button.hpp>
@@ -10,6 +10,8 @@
 #include <ui/progressbar.hpp>
 #include <ui/property.hpp>
 #include <ui/spinbox.hpp>
+
+#include <config/config.hpp>
 
 #include <Tracy.hpp>
 
