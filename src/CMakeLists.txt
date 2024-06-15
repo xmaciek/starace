@@ -40,8 +40,6 @@ set( STARACE_SOURCES
     model.cpp
     model.hpp
     model_proto.hpp
-    progressbar.cpp
-    progressbar.hpp
     saobject.cpp
     saobject.hpp
     shield.cpp

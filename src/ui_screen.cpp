@@ -1,9 +1,5 @@
 #include "ui_screen.hpp"
 
-#include "colors.hpp"
-#include "game_callbacks.hpp"
-#include "progressbar.hpp"
-
 #include <ui/animframe.hpp>
 #include <ui/button.hpp>
 #include <ui/combobox.hpp>
@@ -11,6 +7,7 @@
 #include <ui/image.hpp>
 #include <ui/label.hpp>
 #include <ui/nineslice.hpp>
+#include <ui/progressbar.hpp>
 #include <ui/property.hpp>
 #include <ui/spinbox.hpp>
 

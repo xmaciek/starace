@@ -1,12 +1,12 @@
-#include "progressbar.hpp"
-
-#include "colors.hpp"
+#include <ui/progressbar.hpp>
 
 #include <ui/property.hpp>
 #include <ui/pipeline.hpp>
 #include <renderer/renderer.hpp>
 
 #include <algorithm>
+
+namespace ui {
 
 Progressbar::Progressbar( const Progressbar::CreateInfo& ci ) noexcept
 : Widget{ ci.position, {} }
@@ -38,9 +38,11 @@ void Progressbar::render( ui::RenderContext rctx ) const
     const float xOffset = (float)m_w + m_spacing;
     auto Gen = [this, pos, i = 0u, value = m_value, xOffset]() mutable
     {
+        const math::vec4 winScreen{ 0.0275f, 1.0f, 0.075f, 1.0f };
+        const math::vec4 crimson{ 0.863f, 0.078f,  0.234f, 1.0f };
         auto j = i++;
         return PushConstant::Sprite{
-            .m_color = (float)j < ( value * (float)INSTANCES ) ? color::winScreen : color::crimson,
+            .m_color = (float)j < ( value * (float)INSTANCES ) ? winScreen : crimson,
             .m_xywh{ pos.x + ( j * xOffset ), pos.y, m_w, m_h },
             .m_uvwh = m_uvwh,
         };
@@ -57,4 +59,6 @@ void Progressbar::update( const UpdateContext& )
     if ( idx == m_current ) { return; }
     m_current = idx;
     m_value = m_dataModel->atF( idx );
+}
+
 }

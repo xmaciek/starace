@@ -7,7 +7,9 @@
 
 #include <cstdint>
 
-class Progressbar : public ui::Widget {
+namespace ui {
+
+class Progressbar : public Widget {
     ui::DataModel* m_dataModel = nullptr;
     ui::DataModel::size_type m_current = 0;
     math::vec4 m_uvwh{};
@@ -33,3 +35,5 @@ public:
     virtual void update( const UpdateContext& ) override;
 
 };
+
+}
