@@ -302,12 +302,13 @@ static void makeList( std::pmr::memory_resource* alloc, const cfg::Entry& entry,
     }
 }
 
-Screen::Screen( const cfg::Entry& entry ) noexcept
+Screen::Screen( std::span<const uint8_t> fileContent ) noexcept
 {
     ZoneScoped;
     std::pmr::memory_resource* alloc = std::pmr::get_default_resource();
     uint16_t tabOrderCount = 0;
 
+    auto entry = cfg::Entry::fromData( fileContent );
     Hash hash{};
     for ( const auto& property : entry ) {
         const auto h = hash( *property );

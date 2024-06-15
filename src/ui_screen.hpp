@@ -50,7 +50,7 @@ public:
     Screen() noexcept = default;
     Screen( const Screen& ) = delete;
     Screen( Screen&& ) noexcept = default;
-    Screen( const cfg::Entry& ) noexcept;
+    Screen( std::span<const uint8_t> ) noexcept;
 
     Screen& operator = ( Screen&& ) noexcept = default;
     Screen& operator = ( const Screen& ) = delete;

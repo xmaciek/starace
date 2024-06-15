@@ -474,14 +474,14 @@ void Game::setupUI()
     g_uiProperty.m_gameCallbacks = m_gameCallbacks.makeView();
     g_uiProperty.m_dataModels = m_gameUiDataModels.makeView();
 
-    m_screenCustomize = cfg::Entry::fromData( m_io->viewWait( "ui/customize.ui" ) );
-    m_screenGameplay = cfg::Entry::fromData( m_io->viewWait( "ui/gameplay.ui" ) );
-    m_screenMissionResult = cfg::Entry::fromData( m_io->viewWait( "ui/result.ui" ) );
-    m_screenMissionSelect = cfg::Entry::fromData( m_io->viewWait( "ui/missionselect.ui" ) );
-    m_screenPause = cfg::Entry::fromData( m_io->viewWait( "ui/pause.ui" ) );
-    m_screenSettings = cfg::Entry::fromData( m_io->viewWait( "ui/settings.ui" ) );
-    m_screenSettingsDisplay = cfg::Entry::fromData( m_io->viewWait( "ui/settings_display.ui" ) );
-    m_screenTitle = cfg::Entry::fromData( m_io->viewWait( "ui/mainmenu.ui" ) );
+    m_screenCustomize = m_io->viewWait( "ui/customize.ui" );
+    m_screenGameplay = m_io->viewWait( "ui/gameplay.ui" );
+    m_screenMissionResult = m_io->viewWait( "ui/result.ui" );
+    m_screenMissionSelect = m_io->viewWait( "ui/missionselect.ui" );
+    m_screenPause = m_io->viewWait( "ui/pause.ui" );
+    m_screenSettings = m_io->viewWait( "ui/settings.ui" );
+    m_screenSettingsDisplay = m_io->viewWait( "ui/settings_display.ui" );
+    m_screenTitle = m_io->viewWait( "ui/mainmenu.ui" );
 
     Targeting::CreateInfo tci{
         .reticleSprites{ "reticleTopLeft"_hash, "reticleTopRight"_hash, "reticleBotLeft"_hash, "reticleBotRight"_hash },
