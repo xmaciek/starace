@@ -42,9 +42,9 @@ void Footer::refreshText()
     {
         switch ( i ) {
         // TODO action to actuator, then localize
-        case Action::eMenuCancel: return g_uiProperty.localize( "input.escape" );
-        case Action::eMenuApply: return g_uiProperty.localize( "input.space" );
-        case Action::eMenuConfirm: return g_uiProperty.localize( "input.enter" );
+        case Action::eMenuCancel: return g_uiProperty.localize( "input.escape"_hash );
+        case Action::eMenuApply: return g_uiProperty.localize( "input.space"_hash );
+        case Action::eMenuConfirm: return g_uiProperty.localize( "input.enter"_hash );
         default:
             assert( !"TODO: more input to text" );
             return U"[]";

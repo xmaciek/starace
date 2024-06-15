@@ -68,13 +68,6 @@ public:
         return U"<BUG:Missing loc key>";
     }
 
-    inline std::pmr::u32string localize( std::string_view key ) const
-    {
-        Hash hash{};
-        const auto* value = m_locTable.find( hash( key ) );
-        return value ? *value : ( U"LOC:" + std::pmr::u32string{ key.begin(), key.end() } );
-    }
-
     inline void requestModalComboBox( math::vec2 position, math::vec2 size, DataModel* model )
     {
         m_pendingComboBox = { position, size, model };
