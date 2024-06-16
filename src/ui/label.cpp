@@ -45,7 +45,7 @@ void Label::setText( std::pmr::u32string&& str )
 {
     m_text = std::move( str );
     m_renderText = m_font->composeText( m_color, m_text );
-    m_size = { m_font->textLength( m_text ), m_font->height() };
+    m_size = m_font->textGeometry( m_text );
     m_textExtent = m_size;
 }
 

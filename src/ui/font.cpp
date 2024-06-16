@@ -88,17 +88,31 @@ float Font::height() const
     return static_cast<float>( m_lineHeight ) * m_scale;
 }
 
-float Font::textLength( std::u32string_view text ) const
+math::vec2 Font::textGeometry( std::u32string_view text ) const
 {
     float ret = 0.0f;
-    const auto sum = [this]( auto ch ) -> float
-    {
-        const fnta::Glyph* glyph = m_glyphMap.find( ch );
-        assert( glyph );
-        return static_cast<float>( glyph->advance[ 0 ] ) * m_scale;
-    };
-    for ( auto ch : text ) { ret += sum( ch ); }
-    return ret;
+    float retNext = 0.0f;
+    float retY = height();
+    for ( auto chr : text ) {
+        switch ( chr ) {
+        case '\n':
+            retY += height();
+            retNext = std::max( ret, retNext );
+            ret = 0.0f;
+            break;
+        case '\t': {
+            const fnta::Glyph* glyph = m_glyphMap.find( ' ' );
+            assert( glyph );
+            const float tabWidth = 4.0f * glyph->advance[ 0 ] * m_scale;
+            ret = ( std::floor( ret / tabWidth ) + 1.0f ) * tabWidth;
+        } break;
+        [[likely]] default:
+            const fnta::Glyph* glyph = m_glyphMap.find( chr );
+            assert( glyph );
+            ret += static_cast<float>( glyph->advance[ 0 ] ) * m_scale;
+        }
+    }
+    return { std::max( ret, retNext ), retY };
 }
 
 Font::RenderText Font::composeText( const math::vec4& color, std::u32string_view text ) const
@@ -121,11 +135,24 @@ Font::RenderText Font::composeText( const math::vec4& color, std::u32string_view
 
     for ( uint32_t i = 0; i < count; ++i ) {
         char32_t chr = text[ i ];
-        const fnta::Glyph* glyph = m_glyphMap.find( chr );
-        assert( glyph );
-        auto& sprite = pushConstant.m_sprites[ i ];
-        std::tie( sprite.m_xywh, sprite.m_uvwh ) = composeSprite( glyph, extent, surfacePos, m_scale );
-        surfacePos.x += static_cast<float>( glyph->advance[ 0 ] ) * m_scale;
+        switch ( chr ) {
+        case '\n':
+            surfacePos.x = 0.0f;
+            surfacePos.y += (float)m_lineHeight;
+            break;
+        case '\t': {
+            const fnta::Glyph* glyph = m_glyphMap.find( ' ' );
+            assert( glyph );
+            const float tabWidth = 4.0f * glyph->advance[ 0 ] * m_scale;
+            surfacePos.x = ( std::floor( surfacePos.x / tabWidth ) + 1.0f ) * tabWidth;
+        } break;
+        [[likely]] default:
+            const fnta::Glyph* glyph = m_glyphMap.find( chr );
+            assert( glyph );
+            auto& sprite = pushConstant.m_sprites[ i ];
+            std::tie( sprite.m_xywh, sprite.m_uvwh ) = composeSprite( glyph, extent, surfacePos, m_scale );
+            surfacePos.x += static_cast<float>( glyph->advance[ 0 ] ) * m_scale;
+        }
     }
     return { pushData, pushConstant };
 }

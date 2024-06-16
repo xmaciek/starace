@@ -38,7 +38,7 @@ public:
     Font( const CreateInfo& );
 
     float height() const;
-    float textLength( std::u32string_view ) const;
+    math::vec2 textGeometry( std::u32string_view ) const;
 
     using RenderText = std::pair<PushData, ui::PushConstant<ui::Pipeline::eSpriteSequence>>;
     RenderText composeText( const math::vec4& color, std::u32string_view ) const;

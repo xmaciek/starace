@@ -58,7 +58,8 @@ void Footer::refreshText()
         m_text.append( g_uiProperty.localize( action.textId ) );
         m_text.append( U"    " );
     };
-    m_textLength = g_uiProperty.fontMedium()->textLength( m_text );
+    auto geometry = g_uiProperty.fontMedium()->textGeometry( m_text );
+    m_textLength = geometry.x;
 }
 
 void Footer::render( RenderContext rctx ) const
