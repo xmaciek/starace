@@ -24,6 +24,7 @@ template <typename T> void setX( void* ci, const cfg::Entry& e ) { reinterpret_c
 template <typename T> void setY( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->position.y = e.toFloat(); };
 template <typename T> void setW( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->size.x = e.toFloat(); };
 template <typename T> void setH( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->size.y = e.toFloat(); };
+template <typename T> void setCount( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->count = e.toInt<uint32_t>(); };
 template <typename T> void setData( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->data = Hash{}( e.toString() ); };
 template <typename T> void setText( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->text = Hash{}( e.toString() ); };
 template <typename T> void setFont( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->font = Hash{}( e.toString() ); };
@@ -59,9 +60,12 @@ UniquePointer<Widget> makeWidget( std::pmr::memory_resource* allocator, const cf
 inline constexpr std::array PROGRESSBAR_FIELDS = {
     F{ "x"_hash, &setX<Progressbar> },
     F{ "y"_hash, &setY<Progressbar> },
+    F{ "width"_hash, &setW<Progressbar> },
+    F{ "height"_hash, &setH<Progressbar> },
     F{ "data"_hash, &setData<Progressbar> },
     F{ "spriteId"_hash, &setSpriteId<Progressbar> },
     F{ "spriteSpacing"_hash, &setSpriteSpacing<Progressbar> },
+    F{ "count"_hash, &setCount<Progressbar> },
 };
 
 inline constexpr std::array IMAGE_FIELDS = {

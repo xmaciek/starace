@@ -9,21 +9,31 @@
 namespace ui {
 
 Progressbar::Progressbar( const Progressbar::CreateInfo& ci ) noexcept
-: Widget{ ci.position, {} }
+: Widget{ ci.position, ci.size }
 , m_spacing{ ci.spriteSpacing }
+, m_count{ ci.count }
 {
     m_dataModel = g_uiProperty.dataModel( ci.data );
-    std::tie( m_uvwh, m_w, m_h, m_texture ) = g_uiProperty.sprite( ci.spriteId );
-    m_texture = g_uiProperty.atlasTexture();
+    uint16_t w;
+    uint16_t h;
+    std::tie( m_uvwh, w, h, m_texture ) = g_uiProperty.sprite( ci.spriteId );
+    m_spriteSize = { w, h };
+    auto s = size();
+    float aspectRatio = s.y / m_spriteSize.y;
+    m_spriteSize *= aspectRatio;
+    m_spacing *= aspectRatio;
+    if ( ci.count == 0 ) {
+        m_count = (uint16_t)( s.x / ( m_spriteSize.x + m_spacing ) );
+    }
+    assert( m_count );
 }
 
 void Progressbar::render( ui::RenderContext rctx ) const
 {
-    static constexpr uint32_t INSTANCES = 16u;
     PushData pushData{
         .m_pipeline = g_uiProperty.pipelineSpriteSequenceColors(),
         .m_verticeCount = 6u,
-        .m_instanceCount = INSTANCES,
+        .m_instanceCount = m_count,
     };
     pushData.m_resource[ 1 ].texture = m_texture;
 
@@ -35,19 +45,19 @@ void Progressbar::render( ui::RenderContext rctx ) const
     };
 
     math::vec2 pos = position() + offsetByAnchor();
-    const float xOffset = (float)m_w + m_spacing;
+    const float xOffset = m_spriteSize.x + m_spacing;
     auto Gen = [this, pos, i = 0u, value = m_value, xOffset]() mutable
     {
         const math::vec4 winScreen{ 0.0275f, 1.0f, 0.075f, 1.0f };
         const math::vec4 crimson{ 0.863f, 0.078f,  0.234f, 1.0f };
         auto j = i++;
         return PushConstant::Sprite{
-            .m_color = (float)j < ( value * (float)INSTANCES ) ? winScreen : crimson,
-            .m_xywh{ pos.x + ( j * xOffset ), pos.y, m_w, m_h },
+            .m_color = (float)j < ( value * (float)m_count ) ? winScreen : crimson,
+            .m_xywh{ pos.x + ( j * xOffset ), pos.y, m_spriteSize.x, m_spriteSize.y },
             .m_uvwh = m_uvwh,
         };
     };
-    std::generate_n( pushConstant.m_sprites.begin(), INSTANCES, Gen );
+    std::generate_n( pushConstant.m_sprites.begin(), m_count, Gen );
 
     rctx.renderer->push( pushData, &pushConstant );
 }

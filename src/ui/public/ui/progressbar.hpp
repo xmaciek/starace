@@ -10,21 +10,23 @@
 namespace ui {
 
 class Progressbar : public Widget {
+    math::vec4 m_uvwh{};
+    math::vec2 m_spriteSize{};
     ui::DataModel* m_dataModel = nullptr;
     ui::DataModel::size_type m_current = 0;
-    math::vec4 m_uvwh{};
     Texture m_texture{};
     float m_value = 0.0f;
     float m_spacing = 0.0f;
-    uint16_t m_w = 0;
-    uint16_t m_h = 0;
+    uint32_t m_count = 0;
 
 public:
     struct CreateInfo {
         math::vec2 position{};
+        math::vec2 size{ 128.0f, 16.0f };
         Hash::value_type data{};
         Hash::value_type spriteId{};
         float spriteSpacing{};
+        uint32_t count = 0;
     };
 
     virtual ~Progressbar() noexcept override = default;
