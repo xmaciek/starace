@@ -45,10 +45,10 @@ void Image::render( RenderContext rctx ) const
         .m_view = rctx.view,
         .m_projection = rctx.projection,
         .m_color = m_color,
-        .m_sampleRGBA = m_sampleRGBA,
     };
     pushConstant.m_sprites[ 0 ].m_xywh = math::vec4{ pos.x, pos.y, m_size.x, m_size.y };
     pushConstant.m_sprites[ 0 ].m_uvwh = m_uvwh;
+    pushConstant.m_sprites[ 0 ].m_sampleRGBA = m_sampleRGBA;
     rctx.renderer->push( pushBuffer, &pushConstant );
 }
 

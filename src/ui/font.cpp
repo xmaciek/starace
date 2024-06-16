@@ -127,6 +127,7 @@ Font::RenderText Font::composeText( const math::vec4& color, std::u32string_view
         .m_instanceCount = count,
     };
     pushData.m_resource[ 1 ].texture = m_texture;
+    pushData.m_resource[ 2 ].texture = m_texture;
 
     ui::PushConstant<ui::Pipeline::eSpriteSequence> pushConstant{};
     pushConstant.m_color = color;
