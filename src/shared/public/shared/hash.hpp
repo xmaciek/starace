@@ -7,7 +7,7 @@
 #include <string_view>
 
 struct Hash {
-    using value_type = uint64_t;
+    using value_type = uint32_t;
     static inline constexpr uint32_t DEFAULT_SEED = 0xd76aa478u;
 
     // NOTE: 64 still good enough - ascii chars are going to be part of hashed strings anyway,
@@ -91,9 +91,10 @@ struct Hash {
     static constexpr value_type calc( const char* str, std::size_t len ) noexcept
     {
         // NOTE: what are the odds that 2 different hash algorithms are going to collide silmutanously for same data?
-        value_type h1 = crc32( str, len );
+        // value_type h1 = crc32( str, len );
         value_type h2 = murmur3( str, len );
-        return ( h1 << 32 ) | h2;
+        // return ( h1 << 32 ) | h2;
+        return h2;
     }
 
     constexpr value_type operator () ( std::string_view str ) const noexcept
