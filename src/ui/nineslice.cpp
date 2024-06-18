@@ -1,6 +1,6 @@
 #include <ui/nineslice.hpp>
 
-#include <ui/atlas.hpp>
+#include <ui/font.hpp>
 #include <ui/pipeline.hpp>
 #include <ui/property.hpp>
 #include <ui/spritegen.hpp>

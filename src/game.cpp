@@ -118,50 +118,6 @@ static std::pmr::vector<MapCreateInfo> loadMaps( std::span<const uint8_t> data )
     return levels;
 }
 
-static ui::Atlas loadUIAtlas( std::span<const uint8_t> span )
-{
-    ZoneScoped;
-    cfg::Entry entry = cfg::Entry::fromData( span );
-    uint16_t width = 0;
-    uint16_t height = 0;
-    Hash hash{};
-    auto gibSprite = []( const auto& entry )
-    {
-        Hash hash{};
-        ui::Atlas::Sprite sprite{};
-        for ( auto&& it : entry ) {
-            switch ( hash( *it ) ) {
-            case "x"_hash: sprite.x = it.template toInt<uint16_t>(); continue;
-            case "y"_hash: sprite.y = it.template toInt<uint16_t>(); continue;
-            case "w"_hash: sprite.w = it.template toInt<uint16_t>(); continue;
-            case "h"_hash: sprite.h = it.template toInt<uint16_t>(); continue;
-            default:
-                assert( !"unhandled property" );
-                continue;
-            }
-        }
-        assert( sprite.w );
-        assert( sprite.h );
-        return sprite;
-    };
-
-    std::pmr::vector<ui::Atlas::SpritePack> sprites{};
-    for ( auto&& it : entry ) {
-        switch ( auto h = hash( *it ) ) {
-        case "width"_hash: width = it.template toInt<uint16_t>(); continue;
-        case "height"_hash: height = it.template toInt<uint16_t>(); continue;
-        default:
-            sprites.emplace_back( std::make_tuple( h, gibSprite( it ) ) );
-            continue;
-        }
-    }
-    assert( !sprites.empty() );
-    assert( width );
-    assert( height );
-    std::sort( sprites.begin(), sprites.end(), &ui::Atlas::sortCmp );
-    return ui::Atlas{ sprites, width, height };
-}
-
 static std::tuple<WeaponCreateInfo, bool> parseWeapon( const cfg::Entry& entry )
 {
     using std::literals::string_view_literals::operator""sv;
@@ -352,30 +308,38 @@ void Game::setupLocalization()
 
 void Game::setupUI()
 {
-    m_uiAtlas = loadUIAtlas( m_io->viewWait( "misc/ui_atlas.txt" ) );
-    g_uiProperty.m_colorA = color::dodgerBlue;
-    ui::Font::CreateInfo dejavu12{
+    auto getTexture = [this]( std::string_view path )
+    {
+        auto [it, inserted] = m_textures.insert( std::make_pair( path, Texture{} ) );
+        if (inserted) {
+            it->second = parseTexture( m_io->viewWait( path ) );
+        }
+        return it->second;
+    };
+    m_uiAtlas = ui::Font::CreateInfo{
+        .fontAtlas = m_io->viewWait( "misc/ui_atlas.fnta" ),
+        .texture = getTexture( "textures/atlas_ui.dds" ),
+    };
+    m_fontSmall = ui::Font::CreateInfo{
         .fontAtlas = m_io->viewWait( "fonts/dejavu_24.fnta" ),
-        .texture = parseTexture( m_io->viewWait( "fonts/dejavu_24.dds" ) ),
+        .texture = getTexture( "fonts/dejavu_24.dds" ),
         .scale = 0.5f,
     };
-    ui::Font::CreateInfo dejavu18{
+    m_fontMedium = ui::Font::CreateInfo{
         .fontAtlas = m_io->viewWait( "fonts/dejavu_36.fnta" ),
-        .texture = parseTexture( m_io->viewWait( "fonts/dejavu_36.dds" ) ),
+        .texture = getTexture( "fonts/dejavu_36.dds" ),
         .scale = 0.5f,
     };
-    ui::Font::CreateInfo dejavu32{
+    m_fontLarge = ui::Font::CreateInfo{
         .fontAtlas = m_io->viewWait( "fonts/dejavu_64.fnta" ),
-        .texture = parseTexture( m_io->viewWait( "fonts/dejavu_64.dds" ) ),
+        .texture = getTexture( "fonts/dejavu_64.dds" ),
         .scale = 0.5f,
     };
-    auto* alloc = std::pmr::get_default_resource();
-    m_fontSmall = UniquePointer<ui::Font>{ alloc, dejavu12 };
-    m_fontMedium = UniquePointer<ui::Font>{ alloc, dejavu18 };
-    m_fontLarge = UniquePointer<ui::Font>{ alloc, dejavu32 };
-    g_uiProperty.m_fontSmall = m_fontSmall.get();
-    g_uiProperty.m_fontMedium = m_fontMedium.get();
-    g_uiProperty.m_fontLarge = m_fontLarge.get();
+
+    g_uiProperty.m_atlas = &m_uiAtlas;
+    g_uiProperty.m_fontSmall = &m_fontSmall;
+    g_uiProperty.m_fontMedium = &m_fontMedium;
+    g_uiProperty.m_fontLarge = &m_fontLarge;
 
     m_optionsCustomize.m_jet.m_size = [this](){ return static_cast<ui::DataModel::size_type>( m_jetsContainer.size() ); };
     m_optionsCustomize.m_jet.m_at = [this]( auto i )
@@ -407,9 +371,6 @@ void Game::setupUI()
 
     m_uiRings = UIRings{ parseTexture( m_io->viewWait( "textures/cyber_ring.dds" ) ) };
 
-    m_textures[ "textures/atlas_ui.dds" ] = parseTexture( m_io->viewWait( "textures/atlas_ui.dds" ) );
-    g_uiProperty.m_atlasTexture = m_textures[ "textures/atlas_ui.dds" ];
-    g_uiProperty.m_atlas = &m_uiAtlas;
 
     m_dataMissionSelect.m_current = [this](){ return m_currentMission; };
     m_dataMissionSelect.m_size = [this](){ return static_cast<ui::DataModel::size_type>( m_mapsContainer.size() ); };

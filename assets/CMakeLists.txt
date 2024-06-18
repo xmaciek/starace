@@ -4,6 +4,7 @@ add_subdirectory( shaders )
 add_subdirectory( sounds )
 add_subdirectory( textures )
 add_subdirectory( ui )
+add_subdirectory( misc )
 
 pak_file( data "${CMAKE_CURRENT_SOURCE_DIR}/misc/jets.cfg" )
 pak_file( data "${CMAKE_CURRENT_SOURCE_DIR}/misc/maps.cfg" )

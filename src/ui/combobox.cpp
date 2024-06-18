@@ -1,6 +1,6 @@
 #include <ui/combobox.hpp>
 
-#include <ui/linear_atlas.hpp>
+#include <ui/font.hpp>
 #include <ui/spritegen.hpp>
 #include <ui/pipeline.hpp>
 #include <ui/property.hpp>
@@ -109,7 +109,7 @@ void ComboBoxList::render( RenderContext rctx ) const
     using S = PushConstant<Pipeline::eSpriteSequenceColors>::Sprite;
     auto gibLine = []( float y, float w, float h, auto color, auto left, auto mid, auto right ) -> std::tuple<S,S,S>
     {
-        const Atlas& atlasRef = *g_uiProperty.atlas();
+        const Font& atlasRef = *g_uiProperty.atlas();
         math::vec2 atlasExtent = atlasRef.extent();
         return {
             { .m_color = color, .m_xywh{ 4.0f, y, 8.0f, h },        .m_uvwh = atlasRef[ left ] / atlasExtent },
@@ -127,7 +127,7 @@ void ComboBoxList::render( RenderContext rctx ) const
     std::tie( pushConstant.m_sprites[ 3 ], pushConstant.m_sprites[ 4 ], pushConstant.m_sprites[ 5 ] )
         = gibLine( yOffset, width, m_botHeight, rctx.colorMain, "botLeft2"_hash, "bot"_hash, "botRight2"_hash );
 
-    const Atlas& atlasRef = *g_uiProperty.atlas();
+    const Font& atlasRef = *g_uiProperty.atlas();
     math::vec2 atlasExtent = atlasRef.extent();
     pushConstant.m_sprites[ 6 ] = {
         .m_color = rctx.colorFocus,

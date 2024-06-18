@@ -33,7 +33,8 @@ static std::tuple<math::vec4, math::vec4> composeSprite( const fnta::Glyph* glyp
 namespace ui {
 
 Font::Font( const CreateInfo& ci )
-: m_scale{ ci.scale }
+: m_upstream{ ci.upstream }
+, m_scale{ ci.scale }
 , m_texture{ ci.texture }
 {
     ZoneScoped;
@@ -83,9 +84,38 @@ Font::Font( const CreateInfo& ci )
 
 }
 
+Font::Font( Font&& rhs )
+{
+    std::swap( m_upstream, rhs.m_upstream );
+    std::swap( m_width, rhs.m_width );
+    std::swap( m_height, rhs.m_height );
+    std::swap( m_lineHeight, rhs.m_lineHeight );
+    std::swap( m_scale, rhs.m_scale );
+    std::swap( m_texture, rhs.m_texture );
+    std::swap( m_glyphMap, rhs.m_glyphMap );
+}
+
+Font& Font::operator = ( Font&& rhs )
+{
+    std::swap( m_upstream, rhs.m_upstream );
+    std::swap( m_width, rhs.m_width );
+    std::swap( m_height, rhs.m_height );
+    std::swap( m_lineHeight, rhs.m_lineHeight );
+    std::swap( m_scale, rhs.m_scale );
+    std::swap( m_texture, rhs.m_texture );
+    std::swap( m_glyphMap, rhs.m_glyphMap );
+    return *this;
+}
+
+
 float Font::height() const
 {
     return static_cast<float>( m_lineHeight ) * m_scale;
+}
+
+Texture Font::texture() const
+{
+    return m_texture;
 }
 
 math::vec2 Font::textGeometry( std::u32string_view text ) const
@@ -156,6 +186,31 @@ Font::RenderText Font::composeText( const math::vec4& color, std::u32string_view
         }
     }
     return { pushData, pushConstant };
+}
+
+math::vec2 Font::extent() const
+{
+    return math::vec2{ m_width, m_height };
+}
+
+
+Font::Sprite Font::operator [] ( Hash::value_type h ) const
+{
+    const auto* ptr = m_glyphMap.find( h );
+    if ( !ptr ) {
+        return m_upstream ? (*m_upstream)[ h ] : Sprite{};
+    }
+    return Sprite{ ptr->position[ 0 ], ptr->position[ 1 ], ptr->size[ 0 ], ptr->size[ 1 ] };
+}
+
+Font::Sprite::operator math::vec4 () const noexcept
+{
+    return math::vec4{ x, y, w, h };
+}
+
+math::vec4 Font::Sprite::operator / ( const math::vec2& extent ) const noexcept
+{
+    return math::vec4{ x, y, w, h } / math::vec4{ extent.x, extent.y, extent.x, extent.y };
 }
 
 }

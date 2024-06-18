@@ -1,5 +1,4 @@
 #include <ui/spritegen.hpp>
-#include <ui/linear_atlas.hpp>
 
 #include <cassert>
 
@@ -21,13 +20,13 @@ static math::vec4 xyuvForVertice6( const math::vec4& xywh, const math::vec4& uvw
 
 namespace ui {
 
-NineSlice2::NineSlice2( const math::vec4& xywh, const Atlas* atlas, const std::array<Atlas::hash_type, 9>& ids ) noexcept
+NineSlice2::NineSlice2( const math::vec4& xywh, const Font* atlas, const std::array<Hash::value_type, 9>& ids ) noexcept
 : m_xy{ xywh.x, xywh.y }
 , m_atlas{ atlas }
 , m_spriteIds{ ids }
 {
     assert( atlas );
-    const Atlas& atlasRef = *atlas;
+    const auto& atlasRef = *atlas;
     auto s0 = atlasRef[ m_spriteIds[ 0u ] ];
     auto s2 = atlasRef[ m_spriteIds[ 2u ] ];
     auto s6 = atlasRef[ m_spriteIds[ 6u ] ];

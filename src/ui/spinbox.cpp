@@ -3,13 +3,12 @@
 #include <ui/property.hpp>
 #include <ui/pipeline.hpp>
 #include <ui/spritegen.hpp>
-#include <ui/linear_atlas.hpp>
 
 #include <renderer/renderer.hpp>
 
 #include <cassert>
 
-static constexpr std::array<ui::Atlas::hash_type, 9> SLICES = {
+static constexpr std::array<Hash::value_type, 9> SLICES = {
     "topLeft"_hash,
     "top"_hash,
     "topRight"_hash,

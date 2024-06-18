@@ -58,9 +58,11 @@ private:
         max,
     };
 
-    UniquePointer<ui::Font> m_fontSmall{};
-    UniquePointer<ui::Font> m_fontMedium{};
-    UniquePointer<ui::Font> m_fontLarge{};
+    ui::Font m_uiAtlas{};
+    ui::Font m_fontSmall{};
+    ui::Font m_fontMedium{};
+    ui::Font m_fontLarge{};
+
     uint32_t m_currentMission = 0;
     uint32_t m_currentJet = 0;
     uint32_t m_weapon1 = 0;
@@ -69,7 +71,6 @@ private:
     Model m_enemyModel{};
     Jet m_jet{};
     GameScene m_gameScene{};
-    ui::Atlas m_uiAtlas{};
 
     Audio::Slot m_blaster{};
     Audio::Slot m_click{};

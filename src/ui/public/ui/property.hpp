@@ -25,17 +25,13 @@ class Property {
     const Font* m_fontSmall = nullptr;
     const Font* m_fontMedium = nullptr;
     const Font* m_fontLarge = nullptr;
-    const Atlas* m_atlas = nullptr;
+    const Font* m_atlas = nullptr;
     LocTable m_locTable{};
-    Texture m_atlasTexture{};
     FixedMapView<Hash::value_type, ui::DataModel*> m_dataModels{};
     FixedMapView<Hash::value_type, std::function<void()>> m_gameCallbacks{};
 
     PipelineSlot m_pipelineSpriteSequence{};
     PipelineSlot m_pipelineSpriteSequenceColors{};
-
-    math::vec4 m_colorA{};
-
 
 public:
     struct PendingComboBox{
@@ -46,8 +42,7 @@ public:
     };
     PendingComboBox m_pendingComboBox{};
 
-    inline Texture atlasTexture() const { return m_atlasTexture; }
-    inline const Atlas* atlas() const { return m_atlas; }
+    Texture atlasTexture() const;
 
     inline const Font* fontSmall() const { return m_fontSmall; }
     inline const Font* fontMedium() const { return m_fontMedium; }
@@ -55,8 +50,6 @@ public:
 
     inline PipelineSlot pipelineSpriteSequence() const { return m_pipelineSpriteSequence; }
     inline PipelineSlot pipelineSpriteSequenceColors() const { return m_pipelineSpriteSequenceColors; }
-
-    inline math::vec4 colorA() const { return m_colorA; }
 
     inline std::pmr::u32string localize( Hash::value_type key ) const
     {
@@ -94,6 +87,7 @@ public:
         return *dataModel;
     }
 
+    inline const ui::Font* atlas() const { return m_atlas; }
     inline const ui::Font* font( Hash::value_type h ) const
     {
         switch ( h ) {

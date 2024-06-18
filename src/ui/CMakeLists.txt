@@ -3,7 +3,6 @@ add_library( ui STATIC )
 target_sources( ui
     PRIVATE
     animframe.cpp
-    atlas.cpp
     button.cpp
     combobox.cpp
     data_model.cpp
@@ -11,7 +10,6 @@ target_sources( ui
     footer.cpp
     image.cpp
     label.cpp
-    linear_atlas.cpp
     nineslice.cpp
     progressbar.cpp
     property.cpp
@@ -24,7 +22,6 @@ target_sources( ui
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/anchor.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/animframe.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/atlas.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/button.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/combobox.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/data_model.hpp
@@ -33,7 +30,6 @@ target_sources( ui
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/image.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/input.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/label.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/linear_atlas.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/nineslice.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/pipeline.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/progressbar.hpp
