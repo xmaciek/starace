@@ -7,7 +7,7 @@ namespace ui {
 
 struct Action {
     enum class Enum : ::Action::Enum {
-        base = 256,
+        base = 0xE000,
         eMenuUp,
         eMenuDown,
         eMenuLeft,
