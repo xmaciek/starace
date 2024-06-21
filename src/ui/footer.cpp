@@ -38,22 +38,10 @@ Footer::Footer( const Footer::CreateInfo& ci ) noexcept
 
 void Footer::refreshText()
 {
-    auto inputToText = []( auto i ) -> std::pmr::u32string
-    {
-        switch ( i ) {
-        // TODO action to actuator, then localize
-        case Action::eMenuCancel: return g_uiProperty.localize( "input.escape"_hash );
-        case Action::eMenuApply: return g_uiProperty.localize( "input.space"_hash );
-        case Action::eMenuConfirm: return g_uiProperty.localize( "input.enter"_hash );
-        default:
-            assert( !"TODO: more input to text" );
-            return U"[]";
-        }
-    };
     m_text.clear();
     for ( auto&& action : m_actions ) {
         if ( action.textId == 0 ) continue;
-        m_text.append( inputToText( action.action ) );
+        m_text.push_back( (char32_t)action.action );
         m_text.append( U" " );
         m_text.append( g_uiProperty.localize( action.textId ) );
         m_text.append( U"    " );

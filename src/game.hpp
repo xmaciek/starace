@@ -26,8 +26,9 @@
 #include <ui/atlas.hpp>
 #include <ui/data_model.hpp>
 #include <ui/font.hpp>
-#include <ui/var.hpp>
+#include <ui/remapper.hpp>
 #include <ui/screen.hpp>
+#include <ui/var.hpp>
 
 #include <SDL.h>
 
@@ -58,6 +59,7 @@ private:
         max,
     };
 
+    ui::Remapper m_uiRemapper{};
     ui::Font m_uiAtlas{};
     ui::Font m_fontSmall{};
     ui::Font m_fontMedium{};

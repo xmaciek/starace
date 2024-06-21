@@ -20,6 +20,7 @@ struct Glyph {
     uint16_t size[ 2 ]{};
     int16_t advance[ 2 ]{};
     int16_t padding[ 2 ]{};
+    inline operator bool () const { return size[ 0 ] || size[ 1 ]; }
 };
 
 }

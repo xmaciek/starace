@@ -322,16 +322,19 @@ void Game::setupUI()
     };
     m_fontSmall = ui::Font::CreateInfo{
         .fontAtlas = m_io->viewWait( "fonts/dejavu_24.fnta" ),
+        .remapper = &m_uiRemapper,
         .texture = getTexture( "fonts/dejavu_24.dds" ),
         .scale = 0.5f,
     };
     m_fontMedium = ui::Font::CreateInfo{
         .fontAtlas = m_io->viewWait( "fonts/dejavu_36.fnta" ),
+        .remapper = &m_uiRemapper,
         .texture = getTexture( "fonts/dejavu_36.dds" ),
         .scale = 0.5f,
     };
     m_fontLarge = ui::Font::CreateInfo{
         .fontAtlas = m_io->viewWait( "fonts/dejavu_64.fnta" ),
+        .remapper = &m_uiRemapper,
         .texture = getTexture( "fonts/dejavu_64.dds" ),
         .scale = 0.5f,
     };
