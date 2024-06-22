@@ -320,20 +320,27 @@ void Game::setupUI()
         .fontAtlas = m_io->viewWait( "misc/ui_atlas.fnta" ),
         .texture = getTexture( "textures/atlas_ui.dds" ),
     };
+    m_inputXbox = ui::Font::CreateInfo{
+        .fontAtlas = m_io->viewWait( "misc/xbox_atlas.fnta" ),
+        .texture = getTexture( "textures/xbox_atlas.dds" ),
+    };
     m_fontSmall = ui::Font::CreateInfo{
         .fontAtlas = m_io->viewWait( "fonts/dejavu_24.fnta" ),
+        .upstream = &m_inputXbox,
         .remapper = &m_uiRemapper,
         .texture = getTexture( "fonts/dejavu_24.dds" ),
         .scale = 0.5f,
     };
     m_fontMedium = ui::Font::CreateInfo{
         .fontAtlas = m_io->viewWait( "fonts/dejavu_36.fnta" ),
+        .upstream = &m_inputXbox,
         .remapper = &m_uiRemapper,
         .texture = getTexture( "fonts/dejavu_36.dds" ),
         .scale = 0.5f,
     };
     m_fontLarge = ui::Font::CreateInfo{
         .fontAtlas = m_io->viewWait( "fonts/dejavu_64.fnta" ),
+        .upstream = &m_inputXbox,
         .remapper = &m_uiRemapper,
         .texture = getTexture( "fonts/dejavu_64.dds" ),
         .scale = 0.5f,

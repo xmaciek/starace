@@ -4,6 +4,17 @@
 
 namespace fnta {
 
+struct Input {
+    enum Enum : char32_t {
+        base = 0xE100,
+        A = base, B, X, Y,
+        Start, Select, Touch,
+        Up, Down, Left, Right,
+        LB, LT, LX, LY, L,
+        RB, RT, RX, RY, R,
+    };
+};
+
 struct Header {
     static constexpr inline uint32_t MAGIC = 'ATNF';
     static constexpr inline uint32_t VERSION = 2;

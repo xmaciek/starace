@@ -61,6 +61,7 @@ private:
 
     ui::Remapper m_uiRemapper{};
     ui::Font m_uiAtlas{};
+    ui::Font m_inputXbox{};
     ui::Font m_fontSmall{};
     ui::Font m_fontMedium{};
     ui::Font m_fontLarge{};
