@@ -83,12 +83,16 @@ int main( int argc, const char** argv )
         switch ( hh ) {
         case "width"_hash: header.width = it.toInt<uint16_t>(); continue;
         case "height"_hash: header.height = it.toInt<uint16_t>(); continue;
+        case "lineHeight"_hash: header.lineHeight = it.toInt<uint32_t>(); continue;
         }
+
         auto& glyph = glyphs.emplace_back();
         for ( auto&& property : it ) {
             switch ( hash( *property ) ) {
             case "x"_hash: glyph.data.position[ 0 ] = property.toInt<uint16_t>(); continue;
             case "y"_hash: glyph.data.position[ 1 ] = property.toInt<uint16_t>(); continue;
+            case "px"_hash: glyph.data.padding[ 0 ] = property.toInt<int16_t>(); continue;
+            case "py"_hash: glyph.data.padding[ 1 ] = property.toInt<int16_t>(); continue;
             case "w"_hash: glyph.data.size[ 0 ] = property.toInt<uint16_t>(); continue;
             case "h"_hash: glyph.data.size[ 1 ] = property.toInt<uint16_t>(); continue;
             }
@@ -99,8 +103,6 @@ int main( int argc, const char** argv )
     }
     std::sort( glyphs.begin(), glyphs.end(), []( const auto& lhs, const auto& rhs ) { return lhs.ch < rhs.ch; } );
     header.count = (uint32_t)glyphs.size();
-    header.lineHeight = std::accumulate( glyphs.begin(), glyphs.end(), 0u, []( uint32_t r, const auto& g ) { return r + g.data.size[ 1 ]; } );
-    header.lineHeight /= header.count;
 
     std::ofstream ofs{ (std::string)argsDstAtlas, std::ios::binary };
     if ( !ofs.is_open() ) {

@@ -16,15 +16,15 @@
 #include <vector>
 #include <tuple>
 
-static std::tuple<math::vec4, math::vec4> composeSprite( const fnta::Glyph& glyph, math::vec2 extent, math::vec2 surfacePos, float scale )
+static std::tuple<math::vec4, math::vec4> composeSprite( const fnta::Glyph& glyph, math::vec2 extent, math::vec2 surfacePos, float lineHeightMismatch, float scale )
 {
     math::vec2 position{ glyph.position[ 0 ], glyph.position[ 1 ] };
-    math::vec2 padding = math::vec2{ glyph.padding[ 0 ], glyph.padding[ 1 ] } * scale;
+    math::vec2 padding = math::vec2{ glyph.padding[ 0 ], glyph.padding[ 1 ] } * lineHeightMismatch * scale;
     math::vec2 size{ glyph.size[ 0 ], glyph.size[ 1 ] };
     math::vec2 uv1 = position / extent;
     math::vec2 uv2 = size / extent;
 
-    size *= scale;
+    size *= lineHeightMismatch * scale;
     math::vec2 topLeft = surfacePos + padding;
 
     return std::make_tuple(
@@ -137,21 +137,25 @@ math::vec2 Font::textGeometry( std::u32string_view text ) const
             ret = 0.0f;
             break;
         case '\t': {
-            auto [ glyph, _, _2 ] = getGlyph( ' ' );
+            auto [ glyph, _, _2, _3 ] = getGlyph( ' ' );
             assert( glyph );
             const float tabWidth = 4.0f * glyph.advance[ 0 ] * m_scale;
             ret = ( std::floor( ret / tabWidth ) + 1.0f ) * tabWidth;
         } break;
         [[likely]] default:
             if ( chr < (char32_t)Action::Enum::base || chr >= (char32_t)Action::Enum::end ) [[likely]] {
-                auto [ glyph, _, _2 ] = getGlyph( chr );
-                ret += glyph.advance[ 0 ] * m_scale;
+                auto [ glyph, _, _2, lineHeight ] = getGlyph( chr );
+                const float lineHeightMismatch = ( lineHeight && lineHeight != m_lineHeight )
+                    ? (float)m_lineHeight / (float)lineHeight : 1.0f;
+                ret += glyph.advance[ 0 ] * lineHeightMismatch * m_scale;
                 continue;
             }
             remappedCount = m_remapper->apply( chr, remapped );
             for ( uint32_t i = 0; i < remappedCount; ++i ) {
-                auto [ glyph, _, _2 ] = getGlyph( remapped[ i ] );
-                ret += glyph.advance[ 0 ] * m_scale;
+                auto [ glyph, _, _2, lineHeight ] = getGlyph( remapped[ i ] );
+                const float lineHeightMismatch = ( lineHeight && lineHeight != m_lineHeight )
+                    ? (float)m_lineHeight / (float)lineHeight : 1.0f;
+                ret += glyph.advance[ 0 ] * lineHeightMismatch * m_scale;
             }
             break;
         }
@@ -169,8 +173,6 @@ Font::RenderText Font::composeText( const math::vec4& color, std::u32string_view
         .m_verticeCount = 6,
         .m_instanceCount = 0,
     };
-    pushData.m_resource[ 1 ].texture = m_texture;
-    pushData.m_resource[ 2 ].texture = m_texture;
 
     ui::PushConstant<ui::Pipeline::eSpriteSequence> pushConstant{};
     pushConstant.m_color = color;
@@ -186,7 +188,7 @@ Font::RenderText Font::composeText( const math::vec4& color, std::u32string_view
             surfacePos.y += (float)m_lineHeight;
             continue;
         case '\t': {
-            const auto [ glyph, _, _2 ] = getGlyph( ' ' );
+            const auto [ glyph, _, _2, _3 ] = getGlyph( ' ' );
             assert( glyph );
             const float tabWidth = 4.0f * glyph.advance[ 0 ] * m_scale;
             surfacePos.x = ( std::floor( surfacePos.x / tabWidth ) + 1.0f ) * tabWidth;
@@ -209,27 +211,30 @@ Font::RenderText Font::composeText( const math::vec4& color, std::u32string_view
 void Font::appendRenderText( math::vec2& surfacePos, PushData& pushData, ui::PushConstant<ui::Pipeline::eSpriteSequence>& pushConstant, char32_t chr ) const
 {
     assert( pushData.m_instanceCount < pushConstant.INSTANCES );
-    const auto [ glyph, texture, size ] = getGlyph( chr );
+    const auto [ glyph, texture, size, lineHeight ] = getGlyph( chr );
+    const float lineHeightMismatch = ( lineHeight && lineHeight != m_lineHeight ) ? (float)m_lineHeight / (float)lineHeight : 1.0f;
+
     if ( !glyph ) [[unlikely]] {
-        surfacePos.x += static_cast<float>( glyph.advance[ 0 ] ) * m_scale;
+        surfacePos.x += static_cast<float>( glyph.advance[ 0 ] ) * lineHeightMismatch * m_scale;
         return;
     };
 
     auto& sprite = pushConstant.m_sprites[ pushData.m_instanceCount++ ];
-    std::tie( sprite.m_xywh, sprite.m_uvwh ) = composeSprite( glyph, size, surfacePos, m_scale );
-    surfacePos.x += static_cast<float>( glyph.advance[ 0 ] ) * m_scale;
-    auto it = std::find_if( pushData.m_resource.begin(), pushData.m_resource.end(), [texture]( const auto& r ){ return r.texture == texture; } );
+    std::tie( sprite.m_xywh, sprite.m_uvwh ) = composeSprite( glyph, size, surfacePos, lineHeightMismatch, m_scale );
+    surfacePos.x += static_cast<float>( glyph.advance[ 0 ] ) * lineHeightMismatch * m_scale;
+    auto it = std::find_if( pushData.m_resource.begin() + 1, pushData.m_resource.end(), [texture]( const auto& r ){ return r.texture == texture; } );
     if ( it == pushData.m_resource.end() ) {
-        it = std::find_if( pushData.m_resource.begin(), pushData.m_resource.end(), []( const auto& r ) { return r.texture == 0; } );
+        it = std::find_if( pushData.m_resource.begin() + 1, pushData.m_resource.end(), []( const auto& r ) { return r.texture == 0; } );
     }
-    sprite.m_whichAtlas = (uint32_t)std::distance( pushData.m_resource.begin(), it );
+    sprite.m_whichAtlas = (uint32_t)std::distance( pushData.m_resource.begin() + 1, it );
+    pushData.m_resource[ 1 + sprite.m_whichAtlas ].texture = texture;
     return;
 }
 
-std::tuple<Font::Glyph, Texture, math::vec2> Font::getGlyph( char32_t ch ) const
+std::tuple<Font::Glyph, Texture, math::vec2, uint32_t> Font::getGlyph( char32_t ch ) const
 {
     const Glyph* g = m_glyphMap.find( ch );
-    if ( g ) return std::make_tuple( *g, m_texture, extent() );
+    if ( g ) return std::make_tuple( *g, m_texture, extent(), m_lineHeight );
     if ( !m_upstream ) return {};
     return m_upstream->getGlyph( ch );
 }
@@ -242,7 +247,7 @@ math::vec2 Font::extent() const
 
 Font::Sprite Font::operator [] ( Hash::value_type h ) const
 {
-    auto [ g, _, _2 ] = getGlyph( h );
+    auto [ g, _, _2, _3 ] = getGlyph( h );
     return Sprite{ g.position[ 0 ], g.position[ 1 ], g.size[ 0 ], g.size[ 1 ] };
 }
 

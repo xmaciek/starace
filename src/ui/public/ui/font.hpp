@@ -33,7 +33,7 @@ class Font {
     using GlyphMap = FixedMapView<const char32_t, const Glyph>;
     GlyphMap m_glyphMap{};
 
-    std::tuple<Glyph, Texture, math::vec2> getGlyph( char32_t ) const;
+    std::tuple<Glyph, Texture, math::vec2, uint32_t> getGlyph( char32_t ) const;
 
 public:
     struct CreateInfo {
