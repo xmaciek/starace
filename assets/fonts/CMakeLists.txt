@@ -1,5 +1,5 @@
 function( cook_font )
-    set( oneValueArgs TARGET SRC SIZE )
+    set( oneValueArgs TARGET SRC SIZE RANGES )
     cmake_parse_arguments( COOK_FONT "" "${oneValueArgs}" "" ${ARGN} )
     if ( NOT DEFINED COOK_FONT_TARGET )
         message( FATAL_ERROR "TARGET not provided" )
@@ -9,6 +9,9 @@ function( cook_font )
     endif()
     if ( NOT DEFINED COOK_FONT_SIZE )
         message( FATAL_ERROR "SIZE not specified" )
+    endif()
+    if ( NOT DEFINED COOK_FONT_RANGES )
+        message( FATAL_ERROR "RANGES not specified" )
     endif()
 
     set( tgt "${COOK_FONT_TARGET}_${COOK_FONT_SIZE}" )
@@ -29,9 +32,12 @@ function( cook_font )
             --src "${COOK_FONT_SRC}"
             --out "${CMAKE_CURRENT_BINARY_DIR}/${out.font}"
             --dds "${CMAKE_CURRENT_BINARY_DIR}/${out.dds}"
+            --ranges "${COOK_FONT_RANGES}"
     )
 endfunction()
 
-cook_font( SRC "${CMAKE_CURRENT_SOURCE_DIR}/DejaVuSans-Bold.ttf" TARGET dejavu SIZE 24 )
-cook_font( SRC "${CMAKE_CURRENT_SOURCE_DIR}/DejaVuSans-Bold.ttf" TARGET dejavu SIZE 36 )
-cook_font( SRC "${CMAKE_CURRENT_SOURCE_DIR}/DejaVuSans-Bold.ttf" TARGET dejavu SIZE 64 )
+set( LATIN_RANGE "20,7F,A1,180" )
+
+cook_font( SRC "${CMAKE_CURRENT_SOURCE_DIR}/DejaVuSans-Bold.ttf" TARGET dejavu SIZE 24 RANGES ${LATIN_RANGE} )
+cook_font( SRC "${CMAKE_CURRENT_SOURCE_DIR}/DejaVuSans-Bold.ttf" TARGET dejavu SIZE 36 RANGES ${LATIN_RANGE} )
+cook_font( SRC "${CMAKE_CURRENT_SOURCE_DIR}/DejaVuSans-Bold.ttf" TARGET dejavu SIZE 64 RANGES ${LATIN_RANGE} )

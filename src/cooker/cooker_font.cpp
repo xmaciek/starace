@@ -33,11 +33,49 @@ static void exitOnFailed( FT_Error ec )
     std::exit( 1 );
 }
 
+[[noreturn]]
+static bool exitOnFailed( std::string_view msg )
+{
+    std::cout << FAIL << msg << std::endl;
+    std::exit( 1 );
+}
+
 static uint8_t lerp( uint8_t min, uint8_t max, float n )
 {
     return min + (uint8_t)((float)( max - min ) * n );
 }
 
+static std::vector<std::pair<char32_t, char32_t>> splitRanges( std::string_view args )
+{
+    std::vector<std::pair<char32_t, char32_t>> ret;
+    ret.reserve( 4 );
+    auto parse = []( uint32_t pos, std::string_view args ) -> std::tuple<char32_t,char32_t,uint32_t>
+    {
+        const char* begin = args.data() + pos;
+        const char* end = args.data() + args.size();
+        uint32_t v1 = 0;
+        auto res1 = std::from_chars( begin, end, v1, 16 );
+        if ( v1 == 0 || res1.ec != std::errc{} ) exitOnFailed( "cannot parse string as hex number: " + std::string( begin, end ) );
+        if ( res1.ptr == end ) exitOnFailed( "expected a comma separator for range pair: " + std::string( begin, end ) );
+        if ( *res1.ptr != ',' ) exitOnFailed( "expected a comma separator for range pair: " + std::string( begin, end ) );
+
+        uint32_t v2 = 0;
+        begin = res1.ptr + 1;
+        auto res2 = std::from_chars( begin, end, v2, 16 );
+        if ( v2 == 0 || res2.ec != std::errc{} ) exitOnFailed( "cannot parse string as hex number: " + std::string( begin, end ) );
+        if ( res2.ptr != end && *res2.ptr != ',' ) exitOnFailed( "expected a comma separator or end of a string: " + std::string( begin, end ) );
+        return std::make_tuple( (char32_t)v1, (char32_t)v2, (char32_t)std::distance( args.data(), res2.ptr + (res2.ptr != end) ) );
+    };
+
+    uint32_t offset = 0;
+    do {
+        auto [ begin, end, pos ] = parse( offset, args );
+        if ( pos == 0 ) break;
+        ret.emplace_back( begin, end );
+        offset = pos;
+    } while ( offset != args.size() );
+    return ret;
+}
 
 struct BlitIterator {
     using value_type = uint8_t;
@@ -231,6 +269,7 @@ int main( int argc, const char** argv )
             "\t--src \"src/font/file/path.ext\" \u2012 source font file\n"
             "\t--out \"dst/font/atlas.fnta\" \u2012 destination of cooked atlas dataset\n"
             "\t--dds \"dst/font/image.dds\" \u2012 destination of cooked atlas image\n"
+            "\t--ranges \"#begin1,#end1,#begin2,#end2,#beginN,#endN\" \u2012 \"20,7F,A1,180\" \u2012 specifies UTF32 hexadecimal glyph ranges\n"
             "\nOptional Arguments:\n"
             "\t-h --help \u2012 prints this message and exit\n"
             ;
@@ -240,18 +279,15 @@ int main( int argc, const char** argv )
     std::string_view argsSrcFont{};
     std::string_view argsDstFont{};
     std::string_view argsDstDDS{};
+    std::string_view argsRanges{};
 
-    auto err = []( auto&& msg ) -> bool
-    {
-        std::cout << FAIL << msg << std::endl;
-        std::exit( 1 );
-    };
+    ( args.read( "--px", size ) && ( size > 0 ) ) || exitOnFailed( "--px \"unsigned integer\" > 0 \u2012 argument not specified or invalid" );
+    args.read( "--src", argsSrcFont ) || exitOnFailed( "--src \"src/font/file/path.ext\" \u2012 argument not specified" );
+    args.read( "--out", argsDstFont ) || exitOnFailed( "--out \"dst/font/atlas.fnta\" \u2012 argument not specified" );
+    args.read( "--dds", argsDstDDS ) || exitOnFailed( "--dds \"dst/font/image.dds\" \u2012 argument not specified" );
+    args.read( "--ranges", argsRanges ) || exitOnFailed( "--ranges \"#begin1,#end1,#begin2,#end2,#beginN,#endN\" \u2012 20,7F,A1,180 \u2012 argument not specified" );
 
-    ( args.read( "--px", size ) && ( size > 0 ) ) || err( "--px \"unsigned integer\" > 0 \u2012 argument not specified or invalid" );
-    args.read( "--src", argsSrcFont ) || err( "--src \"src/font/file/path.ext\" \u2012 argument not specified" );
-    args.read( "--out", argsDstFont ) || err( "--out \"dst/font/atlas.fnta\" \u2012 argument not specified" );
-    args.read( "--dds", argsDstDDS ) || err( "--dds \"dst/font/image.dds\" \u2012 argument not specified" );
-
+    auto ranges = splitRanges( argsRanges );
     auto fontData = loadFontFile( argsSrcFont );
 
     struct DestroyOnExit {
@@ -288,9 +324,12 @@ int main( int argc, const char** argv )
         std::iota( charset.begin() + (uint32_t)size, charset.end(), begin );
     };
 
-    genRange( charset, 0x20, 0x7F ); // latin basic
-    genRange( charset, 0xA1, 0x100 ); // latin supplement
-    genRange( charset, 0x100, 0x180 ); // latin extended-A
+    for ( auto&& [ begin, end ] : ranges ) {
+        genRange( charset, begin, end );
+    }
+    // genRange( charset, 0x20, 0x7F ); // latin basic
+    // genRange( charset, 0xA1, 0x100 ); // latin supplement
+    // genRange( charset, 0x100, 0x180 ); // latin extended-A
 
     auto renderSlot = [&face, size]( char32_t ch ) -> Slot
     {
@@ -336,12 +375,16 @@ int main( int argc, const char** argv )
     }
     float extraSlack = 1.0f; // TODO: if crash, extraSlack = (max of glyph area) / (average of glyph area)
     surfaceSizeNeeded = (uint32_t)((double)surfaceSizeNeeded * extraSlack );
-    uint32_t surfExtent = 64;
-    while ( surfExtent * surfExtent < surfaceSizeNeeded ) surfExtent <<= 1;
+    uint32_t surfWidth = 64;
+    uint32_t surfHeight = 64;
+    while ( surfWidth * surfHeight < surfaceSizeNeeded ) {
+        if ( surfWidth == surfHeight ) surfHeight <<= 1;
+        else surfWidth <<= 1;
+    }
 
     std::deque<Slot> tightSlots{};
     while ( !slots.empty() ) {
-        uint32_t width = surfExtent;
+        uint32_t width = surfWidth;
         tightSlots.push_back( slots.front() );
         slots.pop_front();
         width -= tightSlots.back().pitch + AtlasComposer::TILE_PADDING;
@@ -357,12 +400,12 @@ int main( int argc, const char** argv )
     }
     slots = std::move( tightSlots );
 
-    std::vector<uint8_t> pixels( surfExtent * surfExtent );
+    std::vector<uint8_t> pixels( surfWidth * surfHeight );
     AtlasComposer atlas{
         .m_begin = pixels.data(),
         .m_end = pixels.data() + pixels.size(),
-        .m_width = surfExtent,
-        .m_height = surfExtent,
+        .m_width = surfWidth,
+        .m_height = surfHeight,
     };
 
     for ( auto& slot : slots ) {
@@ -378,7 +421,7 @@ int main( int argc, const char** argv )
     std::vector<BC4unorm> texture( pixels.size() / 16 );
     {
         std::vector<Swizzler<>::BlockType> blocks( texture.size() );
-        Swizzler<> swizzler{ pixels, surfExtent / 4 };
+        Swizzler<> swizzler{ pixels, surfWidth / 4 };
         std::generate( blocks.begin(), blocks.end(), swizzler );
 
         [[maybe_unused]]
@@ -432,8 +475,8 @@ int main( int argc, const char** argv )
     using Caps = dds::Header::Caps;
     dds::Header ddsHeader{
         .flags = static_cast<Flags>( Flags::fCaps | Flags::fWidth | Flags::fHeight | Flags::fPixelFormat ),
-        .height = surfExtent,
-        .width = surfExtent,
+        .height = surfHeight,
+        .width = surfWidth,
         .pitchOrLinearSize = (uint32_t)texture.size() * (uint32_t)sizeof(BC4unorm),
         .mipMapCount = 1,
         .pixelFormat{
@@ -460,8 +503,8 @@ int main( int argc, const char** argv )
 
     fnta::Header fntaHeader{
         .count = (uint32_t)charset.size(),
-        .width = surfExtent,
-        .height = surfExtent,
+        .width = surfWidth,
+        .height = surfHeight,
         .lineHeight = size,
     };
     ofs = std::ofstream( (std::string)argsDstFont, std::ios::binary );
