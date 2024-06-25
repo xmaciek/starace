@@ -1,3 +1,5 @@
+#include "cooker_dds.hpp"
+
 #include <extra/dds.hpp>
 #include <extra/tga.hpp>
 #include <extra/args.hpp>
@@ -146,6 +148,22 @@ Image convertTga( const std::filesystem::path& srcFile )
     }
 }
 
+void compressToBC4( Image& img )
+{
+    assert( img.format == dds::dxgi::Format::R8_UNORM );
+    assert( !img.pixels.empty() );
+    const uint32_t blockCount = (uint32_t)img.pixels.size() / 16;
+    std::pmr::vector<dds::BC4> imageOut( blockCount );
+    std::pmr::vector<dds::Swizzler<>::BlockType> tmp( blockCount );
+
+    dds::Swizzler<uint8_t> swizzler{ img.pixels, img.width / 4 };
+    std::generate( tmp.begin(), tmp.end(), swizzler );
+    std::transform( tmp.begin(), tmp.end(), imageOut.begin(), &dds::compressor_bc4 );
+    img.pixels.resize( blockCount * sizeof( dds::BC4 ) );
+    std::memcpy( img.pixels.data(), imageOut.data(), blockCount * sizeof( dds::BC4 ) );
+    img.format = dds::dxgi::Format::BC4_UNORM;
+}
+
 namespace mipgen {
 
 template <typename T>
@@ -170,7 +188,6 @@ struct Generator {
         return { n, n + 1u, n + srcWidth, n + srcWidth + 1u };
     }
 
-    [[maybe_unused]]
     static uint32_t average( uint32_t a, uint32_t b, uint32_t c, uint32_t d )
     {
         auto sampler = []( uint32_t a, uint32_t b, uint32_t c, uint32_t d, uint32_t mask, uint32_t shift )
@@ -189,7 +206,6 @@ struct Generator {
             ;
     };
 
-    [[maybe_unused]]
     static uint8_t average( uint8_t a, uint8_t b, uint8_t c, uint8_t d )
     {
         uint32_t r = a;
@@ -211,37 +227,49 @@ struct Generator {
 };
 
 template <typename T>
-static std::pmr::vector<uint8_t> gib( uint32_t srcWidth, uint32_t srcHeight, std::span<const uint8_t> data )
+static Image downscale( const Image& img )
 {
-    assert( srcWidth );
-    assert( srcHeight );
-    assert( !data.empty() );
-    const size_t mipPixelCount = ( srcWidth * srcHeight ) >> 2u;
+    assert( img.width );
+    assert( img.height );
+    assert( !img.pixels.empty() );
+    const size_t mipPixelCount = ( img.width * img.height ) >> 2u;
     std::pmr::vector<uint8_t> ret( sizeof( T ) * mipPixelCount );
 
-    std::span<const T> pixels{ reinterpret_cast<const T*>( data.data() ), data.size() / sizeof( T ) };
+    std::span<const T> pixels{ reinterpret_cast<const T*>( img.pixels.data() ), img.pixels.size() / sizeof( T ) };
     std::span<T> mip{ reinterpret_cast<T*>( ret.data() ), mipPixelCount };
 
-    std::generate( mip.begin(), mip.end(), Generator<T>{ pixels, srcWidth } );
-    return ret;
+    std::generate( mip.begin(), mip.end(), Generator<T>{ pixels, img.width } );
+    return Image{
+        .format = img.format,
+        .width = img.width >> 1,
+        .height = img.height >> 1,
+        .pixels = std::move( ret ),
+    };
 }
 
-static uint32_t genMips( std::pmr::list<std::pmr::vector<uint8_t>>& ret, uint32_t width, uint32_t height, std::span<const uint8_t> pixels, uint32_t pixelSize )
+static uint32_t genMips( std::pmr::list<Image>& ret )
 {
-    assert( width );
-    assert( height );
-    assert( !pixels.empty() );
+    assert( !ret.empty() );
+    assert( ret.back().width );
+    assert( ret.back().height );
+    assert( !ret.back().pixels.empty() );
     uint32_t mipToGen = 0u;
+    uint32_t width = ret.back().width;
+    uint32_t height = ret.back().height;
+    uint32_t pixelSize = 0u;
+    switch ( ret.back().format ) {
+    case dds::dxgi::Format::R8_UNORM: pixelSize = 1u; break;
+    default: pixelSize = 4u; break;
+    }
     auto test = []( uint32_t d ) { return ( d % 8u ) == 0u; };
     while ( test( width >> mipToGen ) && test( height >> mipToGen ) ) {
         mipToGen++;
     }
     for ( uint32_t i = 0u; i < mipToGen; ++i ) {
         switch ( pixelSize ) {
-        case 1: ret.emplace_back() = gib<uint8_t>( width >> i, height >> i, pixels ); break;
-        case 4: ret.emplace_back() = gib<uint32_t>( width >> i, height >> i, pixels ); break;
+        case 1: ret.emplace_back( downscale<uint8_t>( ret.back() ) ); break;
+        case 4: ret.emplace_back( downscale<uint32_t>( ret.back() ) ); break;
         }
-        pixels = ret.back();
     }
     return mipToGen;
 }
@@ -278,6 +306,7 @@ int main( int argc, const char** argv )
             "\nOptional arguments:\n"
             "\t-h --help \u2012 prints this message and exits\n"
             "\t--mipgen \u2012 generate mipmaps when cooking\n"
+            "\t--BC4 \u2012 do BC4 compression if single channel source image, error otherwise\n"
             ;
         return !args;
     }
@@ -286,7 +315,8 @@ int main( int argc, const char** argv )
 
     args.read( "--src", argSrc ) || exitOnFailed( "--src <file/path.tga> \u2012 argument not specified" );
     args.read( "--dst", argDst ) || exitOnFailed( "--dst <file/path.dds> \u2012 argument not specified" );
-    bool argMipgen = args.read( "--mipgen" );
+    const bool argMipgen = args.read( "--mipgen" );
+    const bool argBC4 = args.read( "--BC4" );
 
     auto commaSeparate = []( std::string_view sv ) -> std::pmr::vector<std::filesystem::path>
     {
@@ -312,6 +342,7 @@ int main( int argc, const char** argv )
         for ( auto&& file : src ) {
             images.emplace_back() = convertTga( file );
             if ( images.back().pixels.empty() ) exitOnFailed( "image must have pixels" );
+            if ( argBC4 && images.back().format != dds::dxgi::Format::R8_UNORM ) exitOnFailed( "source image cannot be converted to BC4:", file );
             uint32_t width = std::exchange( pendingWidth, images.back().width );
             uint32_t height = std::exchange( pendingHeight, images.back().height );
             dds::dxgi::Format format = std::exchange( pendingFormat, images.back().format );
@@ -321,30 +352,26 @@ int main( int argc, const char** argv )
             if ( pendingFormat == dds::dxgi::Format::UNKNOWN ) exitOnFailed( "image must have format" );
         }
     }
-
-    std::pmr::list<std::pmr::vector<uint8_t>> mips{};
-    auto formatToPixelSize = []( auto f ) -> uint32_t
-    {
-        switch ( f ) {
-        case dds::dxgi::Format::R8_UNORM: return 1u;
-        default: return 4u;
-        }
-    };
+    const uint32_t arrayCount = static_cast<uint32_t>( images.size() );
+    std::pmr::list<Image> mips{};
     uint32_t mipCount = 0;
     for ( auto&& image : images ) {
-        mips.emplace_back( std::move( image.pixels ) );
+        mips.emplace_back( std::move( image ) );
         if ( argMipgen ) {
-            mipCount = mipgen::genMips( mips, image.width, image.height, mips.back(), formatToPixelSize( image.format ) );
+            mipCount = mipgen::genMips( mips );
         }
     }
+    images.clear();
+
+    if ( argBC4 ) std::for_each( mips.begin(), mips.end(), &compressToBC4 );
 
     using Flags = dds::Header::Flags;
     using Caps = dds::Header::Caps;
     dds::Header header{
         .flags = Flags::fCaps | Flags::fWidth | Flags::fHeight | Flags::fPixelFormat,
-        .height = images.front().height,
-        .width = images.front().width,
-        .pitchOrLinearSize = static_cast<uint32_t>( mips.front().size() ),
+        .height = mips.front().height,
+        .width = mips.front().width,
+        .pitchOrLinearSize = static_cast<uint32_t>( mips.front().pixels.size() ),
         .mipMapCount = mipCount + 1,
         .pixelFormat{
             .flags = dds::PixelFormat::Flags::fFourCC,
@@ -354,9 +381,9 @@ int main( int argc, const char** argv )
     };
 
     dds::dxgi::Header dxgiHeader{
-        .format = images.front().format,
+        .format = mips.front().format,
         .dimension = dds::dxgi::Dimension::eTexture2D,
-        .arraySize = static_cast<uint32_t>( images.size() ),
+        .arraySize = arrayCount,
     };
 
     if ( header.mipMapCount > 1 ) {
@@ -374,7 +401,7 @@ int main( int argc, const char** argv )
     ofs.write( reinterpret_cast<const char*>( &header ), static_cast<std::streamsize>( sizeof( header ) ) );
     ofs.write( reinterpret_cast<const char*>( &dxgiHeader ), static_cast<std::streamsize>( sizeof( dxgiHeader ) ) );
     for ( auto&& mip : mips ) {
-        ofs.write( reinterpret_cast<const char*>( mip.data() ), static_cast<std::streamsize>( mip.size() ) );
+        ofs.write( reinterpret_cast<const char*>( mip.pixels.data() ), static_cast<std::streamsize>( mip.pixels.size() ) );
     }
     return 0;
 }

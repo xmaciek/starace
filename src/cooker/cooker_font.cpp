@@ -1,3 +1,4 @@
+#include "cooker_dds.hpp"
 #include <extra/dds.hpp>
 #include <extra/fnta.hpp>
 #include <extra/args.hpp>
@@ -38,11 +39,6 @@ static bool exitOnFailed( std::string_view msg )
 {
     std::cout << FAIL << msg << std::endl;
     std::exit( 1 );
-}
-
-static uint8_t lerp( uint8_t min, uint8_t max, float n )
-{
-    return min + (uint8_t)((float)( max - min ) * n );
 }
 
 static std::vector<std::pair<char32_t, char32_t>> splitRanges( std::string_view args )
@@ -187,37 +183,6 @@ struct Slot {
     uint32_t pitch{};
     uint32_t rows{};
     std::vector<uint8_t> bitmap{};
-};
-
-struct BC4unorm {
-    uint8_t alpha0;
-    uint8_t alpha1;
-    uint8_t aindexes[ 6 ];
-};
-
-template <typename TPixel = uint8_t>
-struct Swizzler {
-    using PixelType = TPixel;
-    using BlockType = std::array<PixelType, 16>;
-
-    std::span<PixelType> data;
-    uint32_t blocksInRow = 0;
-    uint32_t col = 0;
-
-    BlockType operator () ()
-    {
-        BlockType ret{};
-        std::memcpy( &ret[ 0 ],  &data[ col * 4 + blocksInRow * 4 * 0 ], sizeof( PixelType ) * 4 );
-        std::memcpy( &ret[ 4 ],  &data[ col * 4 + blocksInRow * 4 * 1 ], sizeof( PixelType ) * 4 );
-        std::memcpy( &ret[ 8 ],  &data[ col * 4 + blocksInRow * 4 * 2 ], sizeof( PixelType ) * 4 );
-        std::memcpy( &ret[ 12 ], &data[ col * 4 + blocksInRow * 4 * 3 ], sizeof( PixelType ) * 4 );
-        ++col;
-        if ( col == blocksInRow ) {
-            col = 0;
-            data = data.subspan( blocksInRow * sizeof( BlockType ) );
-        }
-        return ret;
-    }
 };
 
 static fnta::Glyph getGlyphMetrics( FT_GlyphSlot slot, uint32_t lineHeight )
@@ -418,54 +383,12 @@ int main( int argc, const char** argv )
         std::copy( slot.bitmap.begin(), slot.bitmap.end(), dst );
     }
 
-    std::vector<BC4unorm> texture( pixels.size() / 16 );
+    std::vector<dds::BC4> texture( pixels.size() / 16 );
     {
-        std::vector<Swizzler<>::BlockType> blocks( texture.size() );
-        Swizzler<> swizzler{ pixels, surfWidth / 4 };
+        std::vector<dds::Swizzler<>::BlockType> blocks( texture.size() );
+        dds::Swizzler<> swizzler{ pixels, surfWidth / 4 };
         std::generate( blocks.begin(), blocks.end(), swizzler );
-
-        [[maybe_unused]]
-        auto compress = []( const Swizzler<>::BlockType& block ) -> BC4unorm
-        {
-            BC4unorm ret{};
-            auto [ min, max ] = std::minmax_element( block.begin(), block.end() );
-            ret.alpha0 = *max;
-            ret.alpha1 = *min;
-            const std::array<uint8_t, 8> arr1{ ret.alpha0, ret.alpha1,
-                lerp( ret.alpha0, ret.alpha1, 1.0f / 7.0f),
-                lerp( ret.alpha0, ret.alpha1, 2.0f / 7.0f),
-                lerp( ret.alpha0, ret.alpha1, 3.0f / 7.0f),
-                lerp( ret.alpha0, ret.alpha1, 4.0f / 7.0f),
-                lerp( ret.alpha0, ret.alpha1, 5.0f / 7.0f),
-                lerp( ret.alpha0, ret.alpha1, 6.0f / 7.0f),
-            };
-            auto min_element = []( std::span<const uint8_t> alphas, uint8_t ref ) -> uint8_t
-            {
-                int dist = 0xFFFF;
-                uint8_t indice = 0;
-                for ( uint8_t i = 0; i < alphas.size(); ++i ) {
-                    int d = std::abs( (int)ref - (int)alphas[ i ] );
-                    if ( d >= dist ) continue;
-                    dist = d;
-                    indice = i;
-                }
-                return indice;
-            };
-            uint64_t indices = 0;
-            // computing in reverse to preserve 3-bit indice ordering
-            for ( auto it = block.rbegin(); it != block.rend(); ++it ) {
-                indices <<= 3;
-                indices |= min_element( arr1, *it );
-            }
-            ret.aindexes[ 0 ] = (indices >> 0) & 0xFF;
-            ret.aindexes[ 1 ] = (indices >> 8) & 0xFF;
-            ret.aindexes[ 2 ] = (indices >> 16) & 0xFF;
-            ret.aindexes[ 3 ] = (indices >> 24) & 0xFF;
-            ret.aindexes[ 4 ] = (indices >> 32) & 0xFF;
-            ret.aindexes[ 5 ] = (indices >> 40) & 0xFF;
-            return ret;
-        };
-        std::transform( blocks.begin(), blocks.end(), texture.begin(), compress );
+        std::transform( blocks.begin(), blocks.end(), texture.begin(), &dds::compressor_bc4 );
     }
 
 
@@ -477,7 +400,7 @@ int main( int argc, const char** argv )
         .flags = static_cast<Flags>( Flags::fCaps | Flags::fWidth | Flags::fHeight | Flags::fPixelFormat ),
         .height = surfHeight,
         .width = surfWidth,
-        .pitchOrLinearSize = (uint32_t)texture.size() * (uint32_t)sizeof(BC4unorm),
+        .pitchOrLinearSize = (uint32_t)texture.size() * (uint32_t)sizeof(dds::BC4),
         .mipMapCount = 1,
         .pixelFormat{
             .flags = dds::PixelFormat::Flags::fFourCC,
@@ -498,7 +421,7 @@ int main( int argc, const char** argv )
 
     ofs.write( (const char*)&ddsHeader, sizeof( ddsHeader ) );
     ofs.write( (const char*)&dxgiHeader, sizeof( dxgiHeader ) );
-    ofs.write( (const char*)texture.data(), static_cast<std::streamsize>( texture.size() * (uint32_t)sizeof(BC4unorm) ) );
+    ofs.write( (const char*)texture.data(), static_cast<std::streamsize>( texture.size() * (uint32_t)sizeof(dds::BC4) ) );
     ofs.close();
 
     fnta::Header fntaHeader{
