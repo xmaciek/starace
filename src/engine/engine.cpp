@@ -107,8 +107,6 @@ void Engine::gameThread()
         FrameMark;
         const auto targetFrameEnd = clock::now() + m_targetFrameDuration - averagePresentDuration - averageSleepOverhead;
 
-        m_fpsMeter.frameBegin();
-
         processEvents();
         auto now = clock::now();
         const auto dt = std::chrono::duration_cast<std::chrono::nanoseconds>( now - lastUpdate );
@@ -146,7 +144,6 @@ void Engine::gameThread()
 
         auto presentBegin = clock::now();
         m_renderer->present();
-        m_fpsMeter.frameEnd();
         auto presentEnd = clock::now();
         averagePresentDuration += presentEnd - presentBegin;
         averagePresentDuration /= 2;

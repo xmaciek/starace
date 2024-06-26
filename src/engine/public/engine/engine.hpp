@@ -3,7 +3,6 @@
 #include <engine/action.hpp>
 #include <engine/async_io.hpp>
 #include <engine/fps_limiter.hpp>
-#include <engine/fps_meter.hpp>
 #include <engine/update_context.hpp>
 #include <engine/render_context.hpp>
 #include <engine/mouse_event.hpp>
@@ -48,7 +47,6 @@ protected:
     AsyncIO* m_io = nullptr;
     Audio* m_audio = nullptr;
     Renderer* m_renderer = nullptr;
-    FPSMeter m_fpsMeter{};
 
     ~Engine() noexcept;
     Engine( int, char** ) noexcept;
