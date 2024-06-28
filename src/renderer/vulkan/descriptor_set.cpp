@@ -23,6 +23,7 @@ DescriptorSet::DescriptorSet( DescriptorSet&& rhs ) noexcept
     std::swap( m_set, rhs.m_set );
     std::swap( m_current, rhs.m_current );
     std::swap( m_pools, rhs.m_pools );
+    std::swap( m_uniformCount, rhs.m_uniformCount );
     std::swap( m_imagesCount, rhs.m_imagesCount );
     std::swap( m_imageType, rhs.m_imageType );
 }
@@ -34,6 +35,7 @@ DescriptorSet& DescriptorSet::operator = ( DescriptorSet&& rhs ) noexcept
     std::swap( m_set, rhs.m_set );
     std::swap( m_current, rhs.m_current );
     std::swap( m_pools, rhs.m_pools );
+    std::swap( m_uniformCount, rhs.m_uniformCount );
     std::swap( m_imagesCount, rhs.m_imagesCount );
     std::swap( m_imageType, rhs.m_imageType );
     return *this;
@@ -51,63 +53,33 @@ static constexpr bool validateDescriptorTypeIsSupportedImage( VkDescriptorType d
     }
 }
 
-static VkDescriptorType guessImageType( const DescriptorSet::BindingInfo& binding )
-{
-    for ( auto&& it : binding ) {
-        switch ( it ) {
-        case BindType::eComputeImage: return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-        case BindType::eFragmentImage: return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        default:
-            continue;
-        }
-    }
-    assert( !"unable to guess desctiptor image type" );
-    return {};
-}
-
-static VkDescriptorSetLayout createLayout( VkDevice device, const DescriptorSet::BindingInfo& binding )
+static VkDescriptorSetLayout createLayout( VkDevice device, const PipelineCreateInfo& pci )
 {
     ZoneScoped;
     assert( device );
-    auto convert = []( BindType b, uint32_t idx ) -> VkDescriptorSetLayoutBinding
+
+    std::pmr::vector<VkDescriptorSetLayoutBinding> layoutBinding;
+    layoutBinding.reserve( 16 );
+    auto push = [&layoutBinding]( uint8_t bindBits, auto type, auto stage )
     {
-        switch ( b ) {
-        case BindType::eComputeUniform: return {
-            .binding = idx,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-        };
-        case BindType::eComputeImage: return {
-            .binding = idx,
-            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-        };
-        case BindType::eVertexUniform: return {
-            .binding = idx,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-        };
-        case BindType::eFragmentImage: return {
-            .binding = idx,
-            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-        };
-        default:
-            assert( !"todo" );
-            return {};
+        uint32_t idxn = 0;
+        while ( bindBits ) {
+            uint32_t idx = idxn++;
+            uint8_t bit = bindBits & 0b1;
+            bindBits >>= 1;
+            if ( !bit ) continue;
+            layoutBinding.emplace_back( VkDescriptorSetLayoutBinding{
+                .binding = idx,
+                .descriptorType = type,
+                .descriptorCount = 1,
+                .stageFlags = stage,
+            } );
         }
     };
-    std::pmr::vector<VkDescriptorSetLayoutBinding> layoutBinding;
-    layoutBinding.reserve( binding.size() );
-
-    for ( uint32_t i = 0; i < binding.size(); ++i ) {
-        if ( binding[ i ] == BindType::none ) continue;
-        layoutBinding.push_back( convert( binding[ i ], i ) );
-    }
+    push( pci.m_vertexUniform, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT );
+    push( pci.m_fragmentImage, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT );
+    push( pci.m_computeUniform, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT );
+    push( pci.m_computeImage, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT );
 
     const VkDescriptorSetLayoutCreateInfo layoutInfo{
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
@@ -122,15 +94,15 @@ static VkDescriptorSetLayout createLayout( VkDevice device, const DescriptorSet:
     return ret;
 }
 
-DescriptorSet::DescriptorSet( VkDevice device, const BindingInfo& binding ) noexcept
+DescriptorSet::DescriptorSet( VkDevice device, const PipelineCreateInfo& pci ) noexcept
 : m_device{ device }
 {
     ZoneScoped;
-    m_layout = createLayout( m_device, binding );
-    auto predicate = []( BindType b ) -> bool { return ( b & BindType::fImage ) == BindType::fImage; };
-    m_imagesCount = static_cast<uint32_t>( std::count_if( binding.begin(), binding.end(), predicate ) );
+    m_layout = createLayout( m_device, pci );
+    m_uniformCount = (uint32_t)std::popcount( pci.m_vertexUniform ) + (uint32_t)std::popcount( pci.m_computeUniform );
+    m_imagesCount = (uint32_t)std::popcount( pci.m_fragmentImage ) + (uint32_t)std::popcount( pci.m_computeImage );
     if ( m_imagesCount > 0 ) {
-        m_imageType = guessImageType( binding );
+        m_imageType = pci.m_fragmentImage ? VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER : VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
     }
     expandCapacityBy( 50 );
 }
@@ -140,11 +112,11 @@ void DescriptorSet::expandCapacityBy( uint32_t v )
     ZoneScoped;
     assert( m_imagesCount == 0 || validateDescriptorTypeIsSupportedImage( m_imageType ) );
     auto currentCapacity = m_set.size();
-    const uint32_t poolSizeCount = 1 + !!m_imagesCount;
-    const std::array poolSizes = {
-        VkDescriptorPoolSize{ .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, .descriptorCount = v },
-        VkDescriptorPoolSize{ .type = m_imageType, .descriptorCount = v * m_imagesCount },
-    };
+    uint32_t poolSizeCount = 0;
+    std::array<VkDescriptorPoolSize, 2> poolSizes;
+    if ( m_uniformCount ) poolSizes[ poolSizeCount++ ] = VkDescriptorPoolSize{ .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, .descriptorCount = v * m_uniformCount };
+    if ( m_imagesCount ) poolSizes[ poolSizeCount++ ] = VkDescriptorPoolSize{ .type = m_imageType, .descriptorCount = v * m_imagesCount };
+    assert( poolSizeCount != 0 );
 
     const VkDescriptorPoolCreateInfo poolInfo{
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,

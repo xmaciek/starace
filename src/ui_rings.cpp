@@ -40,7 +40,7 @@ void UIRings::render( ui::RenderContext rctx ) const
         .m_verticeCount = 6,
         .m_instanceCount = 3,
     };
-    pushData.m_resource[ 1 ].texture = m_texture;
+    pushData.m_fragmentTexture[ 1 ] = m_texture;
 
     rctx.renderer->push( pushData, &pushConstant );
 }

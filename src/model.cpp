@@ -37,7 +37,7 @@ void Model::render( RenderContext rctx ) const
         .m_pipeline = g_pipelines[ Pipeline::eAlbedo ],
         .m_vertexBuffer = m_vertices,
     };
-    pushBuffer.m_resource[ 1 ].texture = m_texture;
+    pushBuffer.m_fragmentTexture[ 1 ] = m_texture;
 
     rctx.renderer->push( pushBuffer, &pushConstant );
 }

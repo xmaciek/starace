@@ -29,7 +29,7 @@ void NineSlice::render( RenderContext rctx ) const
         .m_verticeCount = 6,
         .m_instanceCount = 9,
     };
-    pushData.m_resource[ 1 ].texture = g_uiProperty.atlasTexture();
+    pushData.m_fragmentTexture[ 1 ] = g_uiProperty.atlasTexture();
 
     const math::vec2 pos = position() + offsetByAnchor();
     const math::vec2 s = size();

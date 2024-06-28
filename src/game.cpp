@@ -962,7 +962,7 @@ void Game::renderBackground( ui::RenderContext rctx ) const
         .m_pipeline = g_pipelines[ Pipeline::eBackground ],
         .m_verticeCount = 4,
     };
-    pushBuffer.m_resource[ 1 ].texture = g_uiProperty.atlasTexture();
+    pushBuffer.m_fragmentTexture[ 1 ] = g_uiProperty.atlasTexture();
 
     PushConstant<Pipeline::eBackground> pushConstant{
         .m_model = rctx.model,

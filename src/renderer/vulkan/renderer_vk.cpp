@@ -348,13 +348,20 @@ PipelineSlot RendererVK::createPipeline( const PipelineCreateInfo& pci )
         return { static_cast<uint32_t>( std::distance( array.begin(), it ) ), true };
     };
 
-    static_assert( sizeof( pci.m_binding ) == sizeof( uint64_t ), "TODO: different method of matching descriptor sets" );
-    uint64_t binding = 0;
-    std::memcpy( &binding, pci.m_binding.data(), sizeof( uint64_t ) );
+    auto createBindingId = []( const PipelineCreateInfo& pci )
+    {
+        uint64_t ret = 0;
+        ret |= pci.m_vertexUniform; ret <<= 8;
+        ret |= pci.m_fragmentImage; ret <<= 8;
+        ret |= pci.m_computeUniform; ret <<= 8;
+        ret |= pci.m_computeImage;
+        return ret;
+    };
+    uint64_t binding = createBindingId( pci );
     auto [ descriptorId, add ] = findOrAddDescriptorId( m_pipelineDescriptorIds, binding );
     if ( add ) {
         for ( auto& fr : m_frames ) {
-            fr.m_descriptorSets[ descriptorId ] = DescriptorSet{ m_device, pci.m_binding };
+            fr.m_descriptorSets[ descriptorId ] = DescriptorSet{ m_device, pci };
         }
     }
 
@@ -884,6 +891,7 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
     std::array<BindInfo, 8> bindInfo{};
     PipelineVK::DescriptorWrites descriptorWrites = currentPipeline.descriptorWrites();
     const uint32_t descriptorWriteCount = currentPipeline.descriptorWriteCount();
+
     for ( uint32_t i = 0; i < descriptorWriteCount; ++i ) {
         descriptorWrites[ i ].dstSet = descriptorSet;
         switch ( descriptorWrites[ i ].descriptorType ) {
@@ -893,7 +901,7 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
             break;
 
         case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER: {
-            const uint32_t texIdx = textureIdToIndex( pushBuffer.m_resource[ i ].texture );
+            const uint32_t texIdx = textureIdToIndex( pushBuffer.m_fragmentTexture[ descriptorWrites[ i ].dstBinding ] );
             const TextureVK* texture = m_defaultTexture;
             if ( texIdx != INVALID_INDEX ) [[likely]] {
                 texture = m_textureSlots[ texIdx ];
@@ -967,7 +975,7 @@ void RendererVK::dispatch( [[maybe_unused]] const DispatchInfo& dispatchInfo, [[
     };
     uint32_t rtgtId = 0;
 
-    std::array<BindInfo, 8> bindInfo{};
+    std::array<BindInfo, 32> bindInfo{};
     PipelineVK::DescriptorWrites descriptorWrites = currentPipeline.descriptorWrites();
     const uint32_t descriptorWriteCount = currentPipeline.descriptorWriteCount();
     for ( uint32_t i = 0; i < descriptorWriteCount; ++i ) {

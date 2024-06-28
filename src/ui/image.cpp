@@ -37,7 +37,7 @@ void Image::render( RenderContext rctx ) const
         .m_pipeline = m_pipelineSlot,
         .m_verticeCount = 6,
     };
-    pushBuffer.m_resource[ 1 ].texture = m_texture;
+    pushBuffer.m_fragmentTexture[ 1 ] = m_texture;
 
     const math::vec2 pos = position() + offsetByAnchor();
     PushConstant<Pipeline::eSpriteSequence> pushConstant{

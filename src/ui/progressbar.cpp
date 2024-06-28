@@ -35,7 +35,7 @@ void Progressbar::render( ui::RenderContext rctx ) const
         .m_verticeCount = 6u,
         .m_instanceCount = m_count,
     };
-    pushData.m_resource[ 1 ].texture = m_texture;
+    pushData.m_fragmentTexture[ 1 ] = m_texture;
 
     using PushConstant = ui::PushConstant<ui::Pipeline::eSpriteSequenceColors>;
     PushConstant pushConstant{

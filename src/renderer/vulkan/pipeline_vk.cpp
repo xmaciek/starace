@@ -132,33 +132,32 @@ static VkPipelineDepthStencilStateCreateInfo depthStencilInfo( bool depthTest, b
     };
 }
 
-static std::tuple<PipelineVK::DescriptorWrites, uint32_t> prepareDescriptorWrites( const auto& arr )
+static std::tuple<PipelineVK::DescriptorWrites, uint32_t> prepareDescriptorWrites( const PipelineCreateInfo& pci )
 {
-    auto descriptorType = []( BindType bp ) -> VkDescriptorType
+    PipelineVK::DescriptorWrites descriptorWrties{};
+    uint32_t count = 0;
+    auto push = [&descriptorWrties, &count]( uint8_t bindBits, auto type )
     {
-        switch ( bp ) {
-        case BindType::eFragmentImage: return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        case BindType::eComputeImage: return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-        case BindType::eComputeUniform: return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        case BindType::eVertexUniform: return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        default:
-            assert( !"TODO" );
-            return {};
+        uint32_t idxn = 0;
+        while ( bindBits ) {
+            uint32_t idx = idxn++;
+            uint8_t bit = bindBits & 0b1;
+            bindBits >>= 1;
+            if ( !bit ) continue;
+            descriptorWrties[ count++ ] = {
+                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                .dstBinding = idx,
+                .dstArrayElement = 0,
+                .descriptorCount = 1,
+                .descriptorType = type,
+            };
         }
     };
-    PipelineVK::DescriptorWrites ret{};
-    uint32_t count = 0;
-    for ( uint32_t i = 0; i < arr.size(); ++i ) {
-        if ( arr[ i ] == BindType::none ) continue;
-        ret[ count++ ] = {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstBinding = i,
-            .dstArrayElement = 0,
-            .descriptorCount = 1,
-            .descriptorType = descriptorType( arr[ i ] ),
-        };
-    }
-    return { ret, count };
+    push( pci.m_vertexUniform, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER );
+    push( pci.m_fragmentImage, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER );
+    push( pci.m_computeUniform, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER );
+    push( pci.m_computeImage, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE );
+    return { descriptorWrties, count };
 }
 
 // graphics
@@ -316,7 +315,7 @@ PipelineVK::PipelineVK(
     assert( pipelineOK == VK_SUCCESS );
     m_pipeline = pipelines[ 0 ];
     m_pipelineDepthPrepass = pipelines[ 1 ];
-    std::tie( m_descriptorWrites, m_descriptorWriteCount ) = prepareDescriptorWrites( pci.m_binding );
+    std::tie( m_descriptorWrites, m_descriptorWriteCount ) = prepareDescriptorWrites( pci );
 }
 
 // compute
@@ -355,7 +354,7 @@ PipelineVK::PipelineVK(
     const VkResult pipelineOK = vkCreateComputePipelines( device, nullptr, 1, &info, nullptr, &m_pipeline );
     assert( pipelineOK == VK_SUCCESS );
 
-    std::tie( m_descriptorWrites, m_descriptorWriteCount ) = prepareDescriptorWrites( pci.m_binding );
+    std::tie( m_descriptorWrites, m_descriptorWriteCount ) = prepareDescriptorWrites( pci );
 }
 
 PipelineVK::operator VkPipeline () const

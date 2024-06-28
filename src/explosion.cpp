@@ -21,7 +21,7 @@ void Explosion::renderAll( const RenderContext& rctx, const std::pmr::vector<Exp
         .m_pipeline = g_pipelines[ Pipeline::eParticleBlob ],
         .m_verticeCount = 6,
     };
-    pushBuffer.m_resource[ 1 ].texture = explosions.front().m_texture; // TODO sort + split by texture
+    pushBuffer.m_fragmentTexture[ 1 ] = explosions.front().m_texture; // TODO sort + split by texture
 
     ParticleBlob pushConstant{
         .m_view = rctx.view,

@@ -56,11 +56,8 @@ PipelineCreateInfo{
     .m_topology = PipelineCreateInfo::Topology::eTriangleList,
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_binding{
-        BindType::eVertexUniform,
-        BindType::eFragmentImage,
-        BindType::eFragmentImage,
-    },
+    .m_vertexUniform = 0b1,
+    .m_fragmentImage = 0b110,
 };
 
 [[maybe_unused]] inline constexpr auto SPRITE_SEQUENCE_COLORS =
@@ -72,10 +69,8 @@ PipelineCreateInfo{
     .m_topology = PipelineCreateInfo::Topology::eTriangleList,
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_binding{
-        BindType::eVertexUniform,
-        BindType::eFragmentImage,
-    },
+    .m_vertexUniform = 0b1,
+    .m_fragmentImage = 0b10,
 };
 
 

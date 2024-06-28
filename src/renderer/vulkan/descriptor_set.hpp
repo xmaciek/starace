@@ -15,17 +15,17 @@ class DescriptorSet {
     std::pmr::vector<VkDescriptorPool> m_pools{};
     std::pmr::vector<VkDescriptorSet> m_set;
     uint32_t m_current = 0;
+    uint32_t m_uniformCount = 0;
     uint32_t m_imagesCount = 0;
     VkDescriptorType m_imageType{};
 
     void expandCapacityBy( uint32_t );
 
 public:
-    using BindingInfo = decltype( PipelineCreateInfo::m_binding );
     ~DescriptorSet() noexcept;
     DescriptorSet() noexcept = default;
 
-    DescriptorSet( VkDevice, const BindingInfo& ) noexcept;
+    DescriptorSet( VkDevice, const PipelineCreateInfo& ) noexcept;
     DescriptorSet( DescriptorSet&& ) noexcept;
 
     DescriptorSet& operator = ( DescriptorSet&& ) noexcept;

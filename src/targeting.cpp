@@ -34,7 +34,7 @@ void Targeting::render( const RenderContext& rctx ) const
         .m_verticeCount = 6,
         .m_instanceCount = 4,
     };
-    pushData.m_resource[ 1 ].texture = m_texture;
+    pushData.m_fragmentTexture[ 1 ] = m_texture;
 
     const float rotAngle = math::lerp( 0.0f, 45.0_deg, m_state.value() );
     math::mat4 modelMat = rctx.model;

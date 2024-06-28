@@ -183,10 +183,8 @@ PipelineCreateInfo{
     .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_binding{
-        BindType::eVertexUniform,
-        BindType::eFragmentImage,
-    },
+    .m_vertexUniform = 0b1,
+    .m_fragmentImage = 0b10,
 },
 
 PipelineCreateInfo{
@@ -198,9 +196,7 @@ PipelineCreateInfo{
     .m_enableDepthTest = true,
     .m_enableDepthWrite = false,
     .m_topology = PipelineCreateInfo::Topology::eLineStrip,
-    .m_binding{
-        BindType::eVertexUniform,
-    },
+    .m_vertexUniform = 0b1,
 },
 
 PipelineCreateInfo{
@@ -214,10 +210,8 @@ PipelineCreateInfo{
     .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_binding{
-        BindType::eVertexUniform,
-        BindType::eFragmentImage,
-    },
+    .m_vertexUniform = 0b1,
+    .m_fragmentImage = 0b10,
 },
 
 PipelineCreateInfo{
@@ -231,9 +225,7 @@ PipelineCreateInfo{
     .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_binding{
-        BindType::eVertexUniform,
-    },
+    .m_vertexUniform = 0b1,
 },
 
 PipelineCreateInfo{
@@ -245,9 +237,7 @@ PipelineCreateInfo{
     .m_enableDepthTest = true,
     .m_enableDepthWrite = false,
     .m_topology = PipelineCreateInfo::Topology::eLineList,
-    .m_binding{
-        BindType::eVertexUniform,
-    },
+    .m_vertexUniform = 0b1,
 },
 
 PipelineCreateInfo{
@@ -258,9 +248,7 @@ PipelineCreateInfo{
     .m_enableBlend = true,
     .m_enableDepthTest = true,
     .m_topology = PipelineCreateInfo::Topology::eLineList,
-    .m_binding{
-        BindType::eVertexUniform,
-    },
+    .m_vertexUniform = 0b1,
 },
 
 PipelineCreateInfo{
@@ -280,10 +268,8 @@ PipelineCreateInfo{
         PipelineCreateInfo::Assembly{ PipelineCreateInfo::InputType::eF2, 1, 12 },
         PipelineCreateInfo::Assembly{ PipelineCreateInfo::InputType::eF3, 2, 20 }
     },
-    .m_binding{
-        BindType::eVertexUniform,
-        BindType::eFragmentImage,
-    },
+    .m_vertexUniform = 0b1,
+    .m_fragmentImage = 0b10,
 },
 
 PipelineCreateInfo{
@@ -295,9 +281,7 @@ PipelineCreateInfo{
     .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_binding{
-        BindType::eVertexUniform,
-    },
+    .m_vertexUniform = 0b1,
 },
 
 PipelineCreateInfo{
@@ -310,9 +294,7 @@ PipelineCreateInfo{
     .m_topology = PipelineCreateInfo::Topology::eTriangleList,
     .m_cullMode = PipelineCreateInfo::CullMode::eNone,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_binding{
-        BindType::eVertexUniform,
-    },
+    .m_vertexUniform = 0b1,
 },
 
 PipelineCreateInfo{
@@ -326,32 +308,24 @@ PipelineCreateInfo{
     .m_topology = PipelineCreateInfo::Topology::eTriangleList,
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_binding{
-        BindType::eVertexUniform,
-        BindType::eFragmentImage,
-    },
+    .m_vertexUniform = 0b1,
+    .m_fragmentImage = 0b10,
 },
 
 PipelineCreateInfo{
     .m_computeShader = "shaders/gamma.comp.spv",
     .m_userHint = static_cast<uint32_t>( Pipeline::eGammaCorrection ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eGammaCorrection> ),
-    .m_binding{
-        BindType::eComputeUniform,
-        BindType::eComputeImage,
-        BindType::eComputeImage,
-    },
+    .m_computeUniform = 0b1,
+    .m_computeImage = 0b110,
 },
 
 PipelineCreateInfo{
     .m_computeShader = "shaders/scanline.comp.spv",
     .m_userHint = static_cast<uint32_t>( Pipeline::eScanline ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eScanline> ),
-    .m_binding{
-        BindType::eComputeUniform,
-        BindType::eComputeImage,
-        BindType::eComputeImage,
-    },
+    .m_computeUniform = 0b1,
+    .m_computeImage = 0b110,
 },
 
 PipelineCreateInfo{
@@ -363,10 +337,8 @@ PipelineCreateInfo{
     .m_topology = PipelineCreateInfo::Topology::eTriangleList,
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_binding{
-        BindType::eVertexUniform,
-        BindType::eFragmentImage,
-    },
+    .m_vertexUniform = 0b1,
+    .m_fragmentImage = 0b10,
 },
 
 PipelineCreateInfo{
@@ -379,9 +351,7 @@ PipelineCreateInfo{
     .m_topology = PipelineCreateInfo::Topology::eTriangleList,
     .m_cullMode = PipelineCreateInfo::CullMode::eNone,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_binding{
-        BindType::eVertexUniform,
-    },
+    .m_vertexUniform = 0b1,
 },
 
 };

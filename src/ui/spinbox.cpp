@@ -38,7 +38,7 @@ void SpinBox::render( RenderContext rctx ) const
         .m_verticeCount = 6u,
         .m_instanceCount = 11u,
     };
-    pushData.m_resource[ 1 ].texture = g_uiProperty.atlasTexture();
+    pushData.m_fragmentTexture[ 1 ] = g_uiProperty.atlasTexture();
 
     PushConstant<Pipeline::eSpriteSequenceColors> pushConstant{
         .m_model = rctx.model,

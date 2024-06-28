@@ -222,12 +222,12 @@ void Font::appendRenderText( math::vec2& surfacePos, PushData& pushData, ui::Pus
     auto& sprite = pushConstant.m_sprites[ pushData.m_instanceCount++ ];
     std::tie( sprite.m_xywh, sprite.m_uvwh ) = composeSprite( glyph, size, surfacePos, lineHeightMismatch, m_scale );
     surfacePos.x += static_cast<float>( glyph.advance[ 0 ] ) * lineHeightMismatch * m_scale;
-    auto it = std::find_if( pushData.m_resource.begin() + 1, pushData.m_resource.end(), [texture]( const auto& r ){ return r.texture == texture; } );
-    if ( it == pushData.m_resource.end() ) {
-        it = std::find_if( pushData.m_resource.begin() + 1, pushData.m_resource.end(), []( const auto& r ) { return r.texture == 0; } );
+    auto it = std::find_if( pushData.m_fragmentTexture.begin() + 1, pushData.m_fragmentTexture.end(), [texture]( const auto& r ){ return r == texture; } );
+    if ( it == pushData.m_fragmentTexture.end() ) {
+        it = std::find_if( pushData.m_fragmentTexture.begin() + 1, pushData.m_fragmentTexture.end(), []( const auto& r ) { return r == 0; } );
     }
-    sprite.m_whichAtlas = (uint32_t)std::distance( pushData.m_resource.begin() + 1, it );
-    pushData.m_resource[ 1 + sprite.m_whichAtlas ].texture = texture;
+    sprite.m_whichAtlas = (uint32_t)std::distance( pushData.m_fragmentTexture.begin() + 1, it );
+    pushData.m_fragmentTexture[ 1 + sprite.m_whichAtlas ] = texture;
     return;
 }
 
