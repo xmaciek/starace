@@ -33,4 +33,6 @@ public:
     VkDescriptorSetLayout layout() const;
     VkDescriptorSet next();
     void reset();
+
+    static uint64_t createBindingID( const PipelineCreateInfo& );
 };

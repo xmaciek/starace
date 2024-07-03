@@ -163,3 +163,14 @@ void DescriptorSet::reset()
 {
     m_current = 0;
 }
+
+uint64_t DescriptorSet::createBindingID( const PipelineCreateInfo& pci )
+{
+    uint64_t ret = 0;
+    ret |= pci.m_vertexUniform; ret <<= 8;
+    ret |= pci.m_fragmentImage; ret <<= 8;
+    ret |= pci.m_computeUniform; ret <<= 8;
+    ret |= pci.m_computeImage;
+    return ret;
+}
+

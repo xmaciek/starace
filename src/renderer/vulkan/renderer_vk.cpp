@@ -348,16 +348,7 @@ PipelineSlot RendererVK::createPipeline( const PipelineCreateInfo& pci )
         return { static_cast<uint32_t>( std::distance( array.begin(), it ) ), true };
     };
 
-    auto createBindingId = []( const PipelineCreateInfo& pci )
-    {
-        uint64_t ret = 0;
-        ret |= pci.m_vertexUniform; ret <<= 8;
-        ret |= pci.m_fragmentImage; ret <<= 8;
-        ret |= pci.m_computeUniform; ret <<= 8;
-        ret |= pci.m_computeImage;
-        return ret;
-    };
-    uint64_t binding = createBindingId( pci );
+    uint64_t binding = DescriptorSet::createBindingID( pci );
     auto [ descriptorId, add ] = findOrAddDescriptorId( m_pipelineDescriptorIds, binding );
     if ( add ) {
         for ( auto& fr : m_frames ) {
