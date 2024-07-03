@@ -41,13 +41,6 @@ public:
         , uint32_t descriptorSetId
     ) noexcept;
 
-    PipelineVK(
-        const PipelineCreateInfo& pci
-        , VkDevice device
-        , VkDescriptorSetLayout layout
-        , uint32_t descriptorSetId
-    ) noexcept;
-
     PipelineVK( PipelineVK&& ) noexcept;
     PipelineVK& operator = ( PipelineVK&& ) noexcept;
 

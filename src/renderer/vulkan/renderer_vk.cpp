@@ -356,23 +356,13 @@ PipelineSlot RendererVK::createPipeline( const PipelineCreateInfo& pci )
         }
     }
 
-    DescriptorSet* descriptorSet = &m_frames[ 0 ].m_descriptorSets[ descriptorId ];
-    if ( pci.m_computeShader ) {
-        m_pipelines[ slot ] = PipelineVK{
-            pci
-            , m_device
-            , descriptorSet->layout()
-            , descriptorId
-        };
-        return slot;
-    }
-
+    VkDescriptorSetLayout layout = m_frames[ 0 ].m_descriptorSets[ descriptorId ].layout();
     m_pipelines[ slot ] = PipelineVK{
         pci
         , m_device
         , m_mainPass
         , m_depthPrepass
-        , descriptorSet->layout()
+        , layout
         , descriptorId
     };
     return slot;
