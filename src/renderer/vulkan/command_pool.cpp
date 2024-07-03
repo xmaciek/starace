@@ -9,15 +9,8 @@
 
 CommandPool::~CommandPool() noexcept
 {
-    destroyResources();
-}
-
-void CommandPool::destroyResources() noexcept
-{
-    m_buffers.clear();
     destroy<vkDestroyCommandPool>( m_device, m_pool );
 }
-
 
 CommandPool::CommandPool( VkDevice device, uint32_t count, uint32_t queueFamily ) noexcept
 : m_device{ device }
@@ -25,7 +18,7 @@ CommandPool::CommandPool( VkDevice device, uint32_t count, uint32_t queueFamily 
     ZoneScoped;
     assert( device );
     assert( count > 0 );
-
+    assert( count <= m_buffers.size() );
 
     const VkCommandPoolCreateInfo poolInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
@@ -37,7 +30,6 @@ CommandPool::CommandPool( VkDevice device, uint32_t count, uint32_t queueFamily 
     const VkResult poolOK = vkCreateCommandPool( m_device, &poolInfo, nullptr, &m_pool );
     assert( poolOK == VK_SUCCESS );
 
-    m_buffers.resize( count );
     const VkCommandBufferAllocateInfo allocInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
         .commandPool = m_pool,
@@ -59,10 +51,9 @@ CommandPool::CommandPool( CommandPool&& rhs ) noexcept
 
 CommandPool& CommandPool::operator = ( CommandPool&& rhs ) noexcept
 {
-    destroyResources();
-    m_device = std::exchange( rhs.m_device, {} );
-    m_pool = std::exchange( rhs.m_pool, {} );
-    m_buffers = std::move( rhs.m_buffers );
+    std::swap( m_device, rhs.m_device );
+    std::swap( m_pool, rhs.m_pool );
+    std::swap( m_buffers, rhs.m_buffers );
     return *this;
 }
 

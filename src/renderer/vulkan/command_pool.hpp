@@ -3,15 +3,12 @@
 #include "vk.hpp"
 
 #include <cstdint>
-#include <memory_resource>
-#include <vector>
+#include <array>
 
 class CommandPool {
     VkDevice m_device = VK_NULL_HANDLE;
     VkCommandPool m_pool = VK_NULL_HANDLE;
-    std::pmr::vector<VkCommandBuffer> m_buffers;
-
-    void destroyResources() noexcept;
+    std::array<VkCommandBuffer, 3> m_buffers{};
 
 public:
     ~CommandPool() noexcept;
