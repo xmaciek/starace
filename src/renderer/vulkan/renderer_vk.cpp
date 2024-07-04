@@ -295,11 +295,11 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
     m_frames.resize( m_swapchain.imageCount() );
 
     for ( auto& it : m_frames ) {
-        it.m_commandPool = CommandPool{ m_device, 3, m_queueFamilyGraphics };
         it.m_uniformBuffer = Uniform{ m_physicalDevice, m_device, 2_MiB, physicalProperties.limits.minUniformBufferOffsetAlignment };
-        it.m_cmdTransfer = it.m_commandPool[ 0 ];
+        it.m_commandPool = CommandPool{ m_device, 3, m_queueFamilyGraphics };
+        it.m_cmdUniform = it.m_commandPool[ 0 ];
         it.m_cmdDepthPrepass = it.m_commandPool[ 1 ];
-        it.m_cmdRender = it.m_commandPool[ 2 ];
+        it.m_cmdColorPass = it.m_commandPool[ 2 ];
     }
     recreateRenderTargets( m_swapchain.extent() );
 
@@ -432,22 +432,6 @@ static void beginRecording( VkCommandBuffer cmd )
     [[maybe_unused]]
     const VkResult cmdOK = vkBeginCommandBuffer( cmd, &beginInfo );
     assert( cmdOK == VK_SUCCESS );
-}
-
-VkCommandBuffer RendererVK::flushUniforms()
-{
-    ZoneScoped;
-
-    Frame& fr = m_frames[ m_currentFrame ];
-    VkCommandBuffer cmd = fr.m_cmdTransfer;
-    beginRecording( cmd );
-    fr.m_uniformBuffer.transfer( cmd );
-
-    [[maybe_unused]]
-    const VkResult endOK = vkEndCommandBuffer( cmd );
-    assert( endOK == VK_SUCCESS );
-    return cmd;
-
 }
 
 Buffer RendererVK::createBuffer( std::span<const float> vec )
@@ -585,7 +569,7 @@ void RendererVK::beginFrame()
         set.reset();
     }
 
-    beginRecording( fr.m_cmdRender );
+    beginRecording( fr.m_cmdColorPass );
     beginRecording( fr.m_cmdDepthPrepass );
 }
 
@@ -688,7 +672,7 @@ void RendererVK::endFrame()
     switch ( fr.m_state ) {
     case Frame::State::eGraphics:
         m_depthPrepass.end( fr.m_cmdDepthPrepass );
-        m_mainPass.end( fr.m_cmdRender );
+        m_mainPass.end( fr.m_cmdColorPass );
         break;
     case Frame::State::eCompute:
     [[unlikely]] default:
@@ -699,9 +683,8 @@ void RendererVK::endFrame()
     const VkResult cmdEndD = vkEndCommandBuffer( fr.m_cmdDepthPrepass );
     assert( cmdEndD == VK_SUCCESS );
 
-    VkCommandBuffer cmd = fr.m_cmdRender;
-    fr.m_renderTarget.transfer( cmd, constants::copyFrom );
-    transferImage( cmd, m_swapchain.image( m_currentFrame ), constants::undefined, constants::copyTo );
+    fr.m_renderTarget.transfer( fr.m_cmdColorPass, constants::copyFrom );
+    transferImage( fr.m_cmdColorPass, m_swapchain.image( m_currentFrame ), constants::undefined, constants::copyTo );
 
     // resize if necessary
     const VkExtent2D srcExtent = fr.m_renderTarget.extent();
@@ -714,7 +697,7 @@ void RendererVK::endFrame()
         .dstSubresource{ .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .layerCount = 1 },
         .dstOffsets{ {}, dstOffset },
     };
-    vkCmdBlitImage( cmd
+    vkCmdBlitImage( fr.m_cmdColorPass
         , fr.m_renderTarget.image()
         , constants::copyFrom.m_layout
         , m_swapchain.image( m_currentFrame )
@@ -723,19 +706,26 @@ void RendererVK::endFrame()
         , &region
         , srcExtent == dstExtent ? VK_FILTER_NEAREST : VK_FILTER_LINEAR
     );
-    transferImage( cmd, m_swapchain.image( m_currentFrame ), constants::copyTo, constants::present );
+    transferImage( fr.m_cmdColorPass, m_swapchain.image( m_currentFrame ), constants::copyTo, constants::present );
 
     [[maybe_unused]]
-    const VkResult cmdEnd = vkEndCommandBuffer( cmd );
+    const VkResult cmdEnd = vkEndCommandBuffer( fr.m_cmdColorPass );
     assert( cmdEnd == VK_SUCCESS );
 
     VkSemaphore renderSemaphores[]{ m_semaphoreRender };
     VkPipelineStageFlags waitStages[]{ VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 
+
+    beginRecording( fr.m_cmdUniform );
+    fr.m_uniformBuffer.transfer( fr.m_cmdUniform  );
+    [[maybe_unused]]
+    const VkResult uniformOK = vkEndCommandBuffer( fr.m_cmdUniform );
+    assert( uniformOK == VK_SUCCESS );
+
     std::array cmds{
-        flushUniforms()
-        , fr.m_cmdDepthPrepass
-        , cmd
+        fr.m_cmdUniform,
+        fr.m_cmdDepthPrepass,
+        fr.m_cmdColorPass,
     };
 
     const VkSubmitInfo submitInfo{
@@ -824,20 +814,20 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
     Frame& fr = m_frames[ m_currentFrame ];
     PipelineVK& currentPipeline = m_pipelines[ pushBuffer.m_pipeline ];
 
-    fr.m_renderTarget.transfer( fr.m_cmdRender, constants::fragmentWrite );
+    fr.m_renderTarget.transfer( fr.m_cmdColorPass, constants::fragmentWrite );
     switch ( fr.m_state ) {
     case Frame::State::eCompute: {
         fr.m_state = Frame::State::eGraphics;
         const VkRect2D rect{ .extent = fr.m_renderDepthTarget.extent() };
         m_depthPrepass.resume( fr.m_cmdDepthPrepass, fr.m_renderDepthTarget.framebuffer(), rect );
-        m_mainPass.resume( fr.m_cmdRender, fr.m_renderTarget.framebuffer(), rect );
+        m_mainPass.resume( fr.m_cmdColorPass, fr.m_renderTarget.framebuffer(), rect );
     } break;
 
     case Frame::State::eNone: {
         fr.m_state = Frame::State::eGraphics;
         const VkRect2D rect{ .extent = fr.m_renderDepthTarget.extent() };
         m_depthPrepass.begin( fr.m_cmdDepthPrepass, fr.m_renderDepthTarget.framebuffer(), rect );
-        m_mainPass.begin( fr.m_cmdRender, fr.m_renderTarget.framebuffer(), rect );
+        m_mainPass.begin( fr.m_cmdColorPass, fr.m_renderTarget.framebuffer(), rect );
     } break;
     default:
         break;
@@ -856,12 +846,11 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
     const VkDescriptorBufferInfo uniformInfo = fr.m_uniformBuffer.copy( constant, currentPipeline.pushConstantSize() );
     const VkDescriptorSet descriptorSet = descriptorPool.next();
     assert( descriptorSet != VK_NULL_HANDLE );
-    VkCommandBuffer cmd = fr.m_cmdRender;
 
 
     if ( rebindPipeline ) {
         if ( depthWrite ) vkCmdBindPipeline( fr.m_cmdDepthPrepass, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline.depthPrepass() );
-        vkCmdBindPipeline( cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline );
+        vkCmdBindPipeline( fr.m_cmdColorPass, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline );
     }
 
     union BindInfo {
@@ -898,12 +887,12 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
     vkUpdateDescriptorSets( m_device, descriptorWriteCount, descriptorWrites.data(), 0, nullptr );
 
     if ( depthWrite ) vkCmdBindDescriptorSets( fr.m_cmdDepthPrepass, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
-    vkCmdBindDescriptorSets( cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
+    vkCmdBindDescriptorSets( fr.m_cmdColorPass, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
 
     if ( updateLineWidth ) {
         m_lastLineWidth = pushBuffer.m_lineWidth;
         if ( depthWrite ) vkCmdSetLineWidth( fr.m_cmdDepthPrepass, pushBuffer.m_lineWidth );
-        vkCmdSetLineWidth( cmd, pushBuffer.m_lineWidth );
+        vkCmdSetLineWidth( fr.m_cmdColorPass, pushBuffer.m_lineWidth );
     }
 
     if ( bindBuffer ) {
@@ -915,11 +904,11 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
         const std::array<VkDeviceSize, 1> offsets{ 0 };
         verticeCount = b->sizeInBytes() / currentPipeline.vertexStride();
         if ( depthWrite ) vkCmdBindVertexBuffers( fr.m_cmdDepthPrepass, 0, 1, buffers.data(), offsets.data() );
-        vkCmdBindVertexBuffers( cmd, 0, 1, buffers.data(), offsets.data() );
+        vkCmdBindVertexBuffers( fr.m_cmdColorPass, 0, 1, buffers.data(), offsets.data() );
     }
 
     if ( depthWrite ) vkCmdDraw( fr.m_cmdDepthPrepass, verticeCount, pushBuffer.m_instanceCount, 0, 0 );
-    vkCmdDraw( cmd, verticeCount, pushBuffer.m_instanceCount, 0, 0 );
+    vkCmdDraw( fr.m_cmdColorPass, verticeCount, pushBuffer.m_instanceCount, 0, 0 );
 }
 
 void RendererVK::dispatch( [[maybe_unused]] const DispatchInfo& dispatchInfo, [[maybe_unused]] const void* constant )
@@ -933,13 +922,12 @@ void RendererVK::dispatch( [[maybe_unused]] const DispatchInfo& dispatchInfo, [[
     case Frame::State::eGraphics:
         fr.m_state = Frame::State::eCompute;
         m_depthPrepass.end( fr.m_cmdDepthPrepass );
-        m_mainPass.end( fr.m_cmdRender );
+        m_mainPass.end( fr.m_cmdColorPass );
         break;
     default:
         break;
     }
 
-    VkCommandBuffer cmd = fr.m_cmdRender;
     auto& descriptorPool = fr.m_descriptorSets[ currentPipeline.descriptorSetId() ];
     const VkDescriptorBufferInfo uniformInfo = fr.m_uniformBuffer.copy( constant, currentPipeline.pushConstantSize() );
     const VkDescriptorSet descriptorSet = descriptorPool.next();
@@ -979,13 +967,13 @@ void RendererVK::dispatch( [[maybe_unused]] const DispatchInfo& dispatchInfo, [[
     }
     vkUpdateDescriptorSets( m_device, descriptorWriteCount, descriptorWrites.data(), 0, nullptr );
 
-    fr.m_renderTarget.transfer( cmd, constants::computeReadWrite );
-    fr.m_renderTargetTmp.transfer( cmd, constants::computeReadWrite );
-    vkCmdBindDescriptorSets( cmd, VK_PIPELINE_BIND_POINT_COMPUTE, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
-    vkCmdBindPipeline( cmd, VK_PIPELINE_BIND_POINT_COMPUTE, currentPipeline );
+    fr.m_renderTarget.transfer( fr.m_cmdColorPass, constants::computeReadWrite );
+    fr.m_renderTargetTmp.transfer( fr.m_cmdColorPass, constants::computeReadWrite );
+    vkCmdBindDescriptorSets( fr.m_cmdColorPass, VK_PIPELINE_BIND_POINT_COMPUTE, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
+    vkCmdBindPipeline( fr.m_cmdColorPass, VK_PIPELINE_BIND_POINT_COMPUTE, currentPipeline );
 
     const VkExtent2D extent = fr.m_renderTarget.extent();
-    vkCmdDispatch( cmd, extent.width / 8, extent.height / 8, 1 );
+    vkCmdDispatch( fr.m_cmdColorPass, extent.width / 8, extent.height / 8, 1 );
 
     std::swap( fr.m_renderTarget, fr.m_renderTargetTmp );
 }

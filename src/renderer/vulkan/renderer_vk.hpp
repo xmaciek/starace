@@ -83,8 +83,6 @@ class RendererVK : public Renderer {
     std::atomic<uint64_t> m_pendingResolutionChange = {};
     std::optional<VSync> m_pendingVSyncChange{};
 
-    [[nodiscard]]
-    VkCommandBuffer flushUniforms();
     void recreateSwapchain();
     void recreateRenderTargets( const VkExtent2D& );
 

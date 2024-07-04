@@ -12,9 +12,9 @@ struct Frame
         eCompute,
     };
     State m_state = State::eNone;
-    VkCommandBuffer m_cmdTransfer{};
+    VkCommandBuffer m_cmdUniform{};
     VkCommandBuffer m_cmdDepthPrepass{};
-    VkCommandBuffer m_cmdRender{};
+    VkCommandBuffer m_cmdColorPass{};
     RenderTarget m_renderDepthTarget{};
     RenderTarget m_renderTarget{};
     RenderTarget m_renderTargetTmp{};
