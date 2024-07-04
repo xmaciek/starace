@@ -16,16 +16,18 @@ target_sources( renderer_vk
     frame.hpp
     image.cpp
     image.hpp
+    instance.cpp
+    instance.hpp
     pipeline_vk.cpp
     pipeline_vk.hpp
+    queue_manager.hpp
+    queue_manager.cpp
     render_target.cpp
     render_target.hpp
     renderer_vk.cpp
     renderer_vk.hpp
     renderpass.cpp
     renderpass.hpp
-    instance.cpp
-    instance.hpp
     shader.cpp
     shader.hpp
     swapchain.cpp
@@ -36,8 +38,8 @@ target_sources( renderer_vk
     uniform.hpp
     utils_vk.cpp
     utils_vk.hpp
-    vk.hpp
     vk.def
+    vk.hpp
 )
 
 target_link_libraries( renderer_vk

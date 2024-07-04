@@ -82,60 +82,6 @@ static VkPhysicalDevice selectPhysicalDevice( VkInstance instance, VkPhysicalDev
     return VK_NULL_HANDLE;
 }
 
-template <typename T>
-static std::tuple<T, T> pickDifferentValues( const std::pmr::vector<T>& a, const std::pmr::vector<T>& b )
-{
-    assert( !a.empty() );
-    assert( !b.empty() );
-    for ( const auto& it : a ) {
-        const auto f = std::find( b.begin(), b.end(), it );
-        if ( f != b.end() ) { continue; }
-        return { it, b.front() };
-    };
-    for ( const auto& it : b ) {
-        const auto f = std::find( a.begin(), a.end(), it );
-        if ( f != a.end() ) { continue; }
-        return { a.front(), it };
-    };
-    assert( !"unable to pick different values" );
-    return {};
-}
-
-struct QueueCount {
-    uint32_t queue = 0;
-    uint32_t count = 0;
-    constexpr QueueCount() noexcept = default;
-    constexpr QueueCount( uint32_t q, uint32_t c ) noexcept : queue{ q }, count{ c } {}
-    constexpr bool operator == ( const QueueCount& rhs ) const
-    {
-        return queue == rhs.queue;
-    }
-};
-
-static std::tuple<QueueCount, QueueCount> queueFamilies( VkPhysicalDevice device, VkSurfaceKHR surface )
-{
-    ZoneScoped;
-    uint32_t count = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties( device, &count, nullptr );
-    std::pmr::vector<VkQueueFamilyProperties> vec( count );
-    std::pmr::vector<QueueCount> graphicsCandidate;
-    std::pmr::vector<QueueCount> presentCandidate;
-    vkGetPhysicalDeviceQueueFamilyProperties( device, &count, vec.data() );
-
-    for ( uint32_t i = 0; i < vec.size(); ++i ) {
-        if ( vec[ i ].queueFlags & VK_QUEUE_GRAPHICS_BIT ) {
-            graphicsCandidate.emplace_back( i, vec[ i ].queueCount );
-        }
-
-        VkBool32 presentSupport = false;
-        vkGetPhysicalDeviceSurfaceSupportKHR( device, i, surface, &presentSupport );
-        if ( presentSupport ) {
-            presentCandidate.emplace_back( i, vec[ i ].queueCount );
-        }
-    }
-    return pickDifferentValues<QueueCount>( graphicsCandidate, presentCandidate );
-}
-
 struct FormatSupportTest {
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 
@@ -212,27 +158,10 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
         m_depthFormat = FormatSupportTest::pick( depthFormatWishlist, m_physicalDevice );
     }
 
-    const auto [ queueGraphics, queuePresent ] = queueFamilies( m_physicalDevice, m_surface );
-    m_queueFamilyGraphics = queueGraphics.queue;
-    m_queueFamilyPresent = queuePresent.queue;
+    m_queueManager = QueueManager{ m_physicalDevice, m_surface };
     {
         ZoneScopedN( "create device" );
-        const std::array queuePriority{ 1.0f, 1.0f };
-        const VkDeviceQueueCreateInfo queueCreateInfo[] {
-            {
-                .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-                .queueFamilyIndex = m_queueFamilyGraphics,
-                .queueCount = std::min( queueGraphics.count, 2u ),
-                .pQueuePriorities = queuePriority.data(),
-            },
-            {
-                .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-                .queueFamilyIndex = m_queueFamilyPresent,
-                .queueCount = 1,
-                .pQueuePriorities = queuePriority.data(),
-            },
-        };
-
+        auto [ qarr, qcount ] = m_queueManager.createInfo();
         VkPhysicalDeviceFeatures deviceFeatures{
             .wideLines = VK_TRUE,
             .samplerAnisotropy = VK_TRUE,
@@ -240,8 +169,8 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
         auto layers = m_instance.layers();
         const VkDeviceCreateInfo createInfo{
             .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-            .queueCreateInfoCount = std::size( queueCreateInfo ),
-            .pQueueCreateInfos = queueCreateInfo,
+            .queueCreateInfoCount = qcount,
+            .pQueueCreateInfos = qarr.data(),
             .enabledLayerCount = static_cast<uint32_t>( layers.size() ),
             .ppEnabledLayerNames = layers.data(),
             .enabledExtensionCount = static_cast<uint32_t>( REQUIRED_DEVICE_EXTENSIONS.size() ),
@@ -253,25 +182,13 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
         assert( deviceOK == VK_SUCCESS );
     }
 
+    m_queueManager.acquire( m_device );
     m_swapchain = Swapchain( m_physicalDevice
         , m_device
         , m_surface
-        , { m_queueFamilyGraphics, m_queueFamilyPresent }
+        , { m_queueManager.graphicsFamily(), m_queueManager.presentFamily() }
         , createInfo.vsync
     );
-
-    vkGetDeviceQueue( m_device, m_queueFamilyPresent, 0, &m_queuePresent );
-
-    {
-        vkGetDeviceQueue( m_device, m_queueFamilyGraphics, 0u, &std::get<VkQueue>( m_queueGraphics ) );
-        std::get<std::mutex*>( m_queueGraphics ) = &m_cmdBottleneck[ 0 ];
-    }
-    {
-        const uint32_t idx = std::min( queueGraphics.count, 2u ) - 1u;
-        assert( idx < m_cmdBottleneck.size() );
-        vkGetDeviceQueue( m_device, m_queueFamilyGraphics, idx, &std::get<VkQueue>( m_queueTransfer ) );
-        std::get<std::mutex*>( m_queueTransfer ) = &m_cmdBottleneck[ idx ];
-    }
 
     m_mainPass = RenderPass{ m_device, m_colorFormat, m_depthFormat };
     m_depthPrepass = RenderPass{ m_device, m_depthFormat };
@@ -289,14 +206,14 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
         assert( renderOK == VK_SUCCESS );
     }
 
-    m_transferCommandPool = CommandPool{ m_device, 1, m_queueFamilyGraphics };
+    m_transferCommandPool = CommandPool{ m_device, 1, m_queueManager.transferFamily() };
     m_transferCmd = m_transferCommandPool[ 0 ];
 
     m_frames.resize( m_swapchain.imageCount() );
 
     for ( auto& it : m_frames ) {
         it.m_uniformBuffer = Uniform{ m_physicalDevice, m_device, 2_MiB, physicalProperties.limits.minUniformBufferOffsetAlignment };
-        it.m_commandPool = CommandPool{ m_device, 3, m_queueFamilyGraphics };
+        it.m_commandPool = CommandPool{ m_device, 3, m_queueManager.graphicsFamily() };
         it.m_cmdUniform = it.m_commandPool[ 0 ];
         it.m_cmdDepthPrepass = it.m_commandPool[ 1 ];
         it.m_cmdColorPass = it.m_commandPool[ 2 ];
@@ -455,7 +372,7 @@ Buffer RendererVK::createBuffer( std::span<const float> vec )
 
     {
         ZoneScopedN( "queue submit" );
-        auto [ queue, bottleneck ] = m_queueTransfer;
+        auto [ queue, bottleneck ] = m_queueManager.transfer();
         assert( queue );
         assert( bottleneck );
         Bottleneck lock{ *bottleneck };
@@ -511,7 +428,7 @@ Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::span<const
 
     {
         ZoneScopedN( "queue submit" );
-        auto [ queue, bottleneck ] = m_queueTransfer;
+        auto [ queue, bottleneck ] = m_queueManager.transfer();
         assert( queue );
         assert( bottleneck );
         Bottleneck lock{ *bottleneck };
@@ -609,7 +526,7 @@ void RendererVK::recreateSwapchain()
     m_swapchain = Swapchain( m_physicalDevice
         , m_device
         , m_surface
-        , { m_queueFamilyGraphics, m_queueFamilyPresent }
+        , { m_queueManager.graphicsFamily(), m_queueManager.presentFamily() }
         , v
         , m_swapchain.steal()
     );
@@ -739,7 +656,7 @@ void RendererVK::endFrame()
     };
 
     {
-        auto [ queue, bottleneck ] = m_queueGraphics;
+        auto [ queue, bottleneck ] = m_queueManager.graphics();
         assert( queue );
         assert( bottleneck );
         Bottleneck lock{ *bottleneck };
@@ -780,7 +697,8 @@ void RendererVK::present()
         .pImageIndices = &m_currentFrame,
     };
 
-    switch ( vkQueuePresentKHR( m_queuePresent, &presentInfo ) ) {
+    auto [ queue, _ ] = m_queueManager.present();
+    switch ( vkQueuePresentKHR( queue, &presentInfo ) ) {
     [[likely]]
     case VK_SUCCESS: break;
     case VK_ERROR_OUT_OF_DATE_KHR:
@@ -803,7 +721,7 @@ void RendererVK::present()
         if ( currentRes == res ) break;
         recreateRenderTargets( res );
     } while ( 0 );
-    vkQueueWaitIdle( m_queuePresent );
+    vkQueueWaitIdle( queue );
 }
 
 void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )

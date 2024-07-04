@@ -7,6 +7,7 @@
 #include "frame.hpp"
 #include "instance.hpp"
 #include "pipeline_vk.hpp"
+#include "queue_manager.hpp"
 #include "render_target.hpp"
 #include "renderpass.hpp"
 #include "swapchain.hpp"
@@ -35,14 +36,8 @@ class RendererVK : public Renderer {
     VkDevice m_device = VK_NULL_HANDLE;
     VkSurfaceKHR m_surface = VK_NULL_HANDLE;
 
-    uint32_t m_queueFamilyGraphics = 0;
-    uint32_t m_queueFamilyPresent = 0;
-    VkQueue m_queuePresent{};
-
     using Bottleneck = std::scoped_lock<std::mutex>;
-    std::array<std::mutex, 2> m_cmdBottleneck{};
-    std::tuple<VkQueue, std::mutex*> m_queueGraphics{};
-    std::tuple<VkQueue, std::mutex*> m_queueTransfer{};
+    QueueManager m_queueManager{};
     CommandPool m_transferCommandPool{};
     VkCommandBuffer m_transferCmd{};
 
