@@ -331,9 +331,10 @@ Screen::Screen( std::span<const uint8_t> fileContent ) noexcept
             m_widgets.emplace_back( makeWgt( alloc, property, fields, tabOrderCount ) );
         }
     }
-    if ( tabOrderCount == 0 ) { return; }
-    m_tabOrder = TabOrder<>{ 0, 0, tabOrderCount };
-    changeFocus( Widget::c_invalidTabOrder, 0 );
+    if ( tabOrderCount != 0 ) {
+        m_tabOrder = TabOrder<>{ 0, 0, tabOrderCount };
+        changeFocus( Widget::c_invalidTabOrder, 0 );
+    }
     if ( m_footer ) {
         m_footer->setPosition( math::vec2{ 48.0f, m_extent.y - 48.0f * 2.0f } );
         m_footer->setSize( math::vec2{ m_extent.x - 48.0f * 2.0f, 48.0f } );
