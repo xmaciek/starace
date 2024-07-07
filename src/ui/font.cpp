@@ -16,7 +16,7 @@
 #include <vector>
 #include <tuple>
 
-static std::tuple<math::vec4, math::vec4> composeSprite( const fnta::Glyph& glyph, math::vec2 extent, math::vec2 surfacePos, float lineHeightMismatch, float scale )
+static std::tuple<math::vec4, math::vec4> composeSprite( const fnta::Glyph& glyph, math::vec2 extent, math::vec2 cursor, float lineHeightMismatch, float scale )
 {
     math::vec2 position{ glyph.position[ 0 ], glyph.position[ 1 ] };
     math::vec2 padding = math::vec2{ glyph.padding[ 0 ], glyph.padding[ 1 ] } * lineHeightMismatch * scale;
@@ -25,7 +25,7 @@ static std::tuple<math::vec4, math::vec4> composeSprite( const fnta::Glyph& glyp
     math::vec2 uv2 = size / extent;
 
     size *= lineHeightMismatch * scale;
-    math::vec2 topLeft = surfacePos + padding;
+    math::vec2 topLeft = cursor + padding;
 
     return std::make_tuple(
         math::vec4{ topLeft.x, topLeft.y, size.x, size.y },
@@ -122,108 +122,143 @@ Texture Font::texture() const
     return m_texture;
 }
 
-math::vec2 Font::textGeometry( std::u32string_view text ) const
-{
-    float ret = 0.0f;
-    float retNext = 0.0f;
-    float retY = height();
-    std::array<char32_t, 20> remapped;
-    uint32_t remappedCount = 0;
-    for ( char32_t chr : text ) {
-        switch ( chr ) {
-        case '\n':
-            retY += height();
-            retNext = std::max( ret, retNext );
-            ret = 0.0f;
-            break;
-        case '\t': {
-            auto [ glyph, _, _2, _3 ] = getGlyph( ' ' );
-            assert( glyph );
-            const float tabWidth = 4.0f * glyph.advance[ 0 ] * m_scale;
-            ret = ( std::floor( ret / tabWidth ) + 1.0f ) * tabWidth;
-        } break;
-        [[likely]] default:
-            if ( chr < (char32_t)Action::Enum::base || chr >= (char32_t)Action::Enum::end ) [[likely]] {
-                auto [ glyph, _, _2, lineHeight ] = getGlyph( chr );
-                const float lineHeightMismatch = ( lineHeight && lineHeight != m_lineHeight )
-                    ? (float)m_lineHeight / (float)lineHeight : 1.0f;
-                ret += glyph.advance[ 0 ] * lineHeightMismatch * m_scale;
-                continue;
-            }
-            remappedCount = m_remapper->apply( chr, remapped );
-            for ( uint32_t i = 0; i < remappedCount; ++i ) {
-                auto [ glyph, _, _2, lineHeight ] = getGlyph( remapped[ i ] );
-                const float lineHeightMismatch = ( lineHeight && lineHeight != m_lineHeight )
-                    ? (float)m_lineHeight / (float)lineHeight : 1.0f;
-                ret += glyph.advance[ 0 ] * lineHeightMismatch * m_scale;
-            }
-            break;
-        }
-    }
-    return { std::max( ret, retNext ), retY };
-}
-
-Font::RenderText Font::composeText( const math::vec4& color, std::u32string_view text ) const
+Font::RenderText Font::composeText( const math::vec4& color, std::u32string_view text, const math::vec2& geometry ) const
 {
     ZoneScoped;
     assert( text.size() < ui::PushConstant<ui::Pipeline::eSpriteSequence>::INSTANCES );
 
-    PushData pushData{
-        .m_pipeline = g_uiProperty.pipelineSpriteSequence(),
-        .m_verticeCount = 6,
-        .m_instanceCount = 0,
+    RenderText ret{
+        .pushData{
+            .m_pipeline = g_uiProperty.pipelineSpriteSequence(),
+            .m_verticeCount = 6,
+            .m_instanceCount = 0,
+        },
+        .pushConstant{
+            .m_color = color,
+        },
+    };
+    if ( text.empty() ) [[unlikely]] return ret;
+
+    math::vec2 cursor{};
+    uint32_t lastBreakPosition = 0;
+    uint32_t lastBreakCursorPos = 0;
+    uint32_t lastInstanceCount = 0;
+
+    auto breakLine = [&ret, &cursor, lineHeight = (float)m_lineHeight * m_scale]()
+    {
+        ret.extent.x = std::max( ret.extent.x, cursor.x );
+        cursor.x = 0.0f;
+        cursor.y += lineHeight;
     };
 
-    ui::PushConstant<ui::Pipeline::eSpriteSequence> pushConstant{};
-    pushConstant.m_color = color;
-    math::vec2 surfacePos{};
-    math::vec2 extent{ m_width, m_height };
-    std::array<char32_t, 20> remapped;
-    uint32_t remappedCount = 0;
+    enum Charset {
+        eUnknown,
+        eLatin,
+        eHiragana,
+        eKatakana,
+        eCJK,
+        ePUA,
+    };
+    auto charset = []( char32_t chr )
+    {
+        if ( chr < 0x180 ) [[likely]] return Charset::eLatin;
+        if ( chr == 0 ) return Charset::eUnknown;
+        if ( chr >= 0xE000 && chr < 0xF900 ) return Charset::ePUA;
+        if ( chr >= 0x3041 && chr < 0x30A0 ) return Charset::eHiragana;
+        if ( chr >= 0x30A0 && chr < 0x3100 ) return Charset::eKatakana;
+        if ( chr >= 0x31F0 && chr < 0x3200 ) return Charset::eKatakana;
+        if ( chr >= 0x4E00 && chr < 0xA000 ) return Charset::eCJK;
+        return Charset::eUnknown;
+    };
 
-    for ( char32_t chr : text ) {
+    auto canWordWrap = [lastChrset = Charset::eLatin, charset]( char32_t chr ) mutable -> bool
+    {
+        const auto chrset = charset( chr );
+        if ( chrset != lastChrset ) [[unlikely]] {
+            lastChrset = chrset;
+            return true;
+        }
+        if ( chrset == Charset::eCJK ) [[unlikely]] return true;
+
+        switch ( chr ) {
+        [[likely]] case ' ':
+        case '\n':
+        case '\r':
+        case '\t':
+        case '+':
+        case '-':
+        case '/':
+        case '\\':
+            return true;
+        }
+        return false;
+    };
+
+    for ( uint32_t i = 0; i < text.size(); ++i ) {
+        char32_t chr = text[ i ];
+        if ( canWordWrap( chr ) ) [[unlikely]] {
+            lastBreakCursorPos = (uint32_t)cursor.x;
+            lastBreakPosition = i;
+            lastInstanceCount = ret.pushData.m_instanceCount;
+        }
         switch ( chr ) {
         case '\n':
-            surfacePos.x = 0.0f;
-            surfacePos.y += (float)m_lineHeight;
+            breakLine();
             continue;
+        case ' ':
         case '\t': {
             const auto [ glyph, _, _2, _3 ] = getGlyph( ' ' );
-            assert( glyph );
-            const float tabWidth = 4.0f * glyph.advance[ 0 ] * m_scale;
-            surfacePos.x = ( std::floor( surfacePos.x / tabWidth ) + 1.0f ) * tabWidth;
+            const float spaceWidth = glyph.advance[ 0 ] * m_scale;
+            if ( chr == ' ' ) [[likely]] {
+                cursor.x += spaceWidth;
+            }
+            else {
+                const float tabWidth = 4.0f * spaceWidth;
+                cursor.x = ( std::floor( cursor.x / tabWidth ) + 1.0f ) * tabWidth;
+            }
         } continue;
-        [[likely]] default:
-            if ( chr < (char32_t)Action::Enum::base || chr >= (char32_t)Action::Enum::end ) [[likely]] {
-                appendRenderText( surfacePos, pushData, pushConstant, chr );
-                continue;
-            }
-            remappedCount = m_remapper->apply( chr, remapped );
+        [[likely]] default: break;
+        }
+
+        if ( chr < (char32_t)Action::Enum::base || chr >= (char32_t)Action::Enum::end ) [[likely]] {
+            appendRenderText( cursor, ret.pushData, ret.pushConstant, chr );
+        }
+        else {
+            std::array<char32_t, 20> remapped;
+            uint32_t remappedCount = m_remapper->apply( chr, remapped );
             for ( uint32_t i = 0; i < remappedCount; ++i ) {
-                appendRenderText( surfacePos, pushData, pushConstant, remapped[ i ] );
+                appendRenderText( cursor, ret.pushData, ret.pushConstant, remapped[ i ] );
             }
-            break;
+        }
+
+        if ( cursor.x > geometry.x && lastBreakCursorPos != 0 ) [[unlikely]] {
+            ret.pushData.m_instanceCount = lastInstanceCount;
+            i = lastBreakPosition;
+            lastBreakCursorPos = 0;
+            breakLine();
         }
     }
-    return { pushData, pushConstant };
+    ret.extent.x = std::max( ret.extent.x, cursor.x );
+    ret.extent.y = cursor.y + (float)m_lineHeight * m_scale;
+    return ret;
 }
 
-void Font::appendRenderText( math::vec2& surfacePos, PushData& pushData, ui::PushConstant<ui::Pipeline::eSpriteSequence>& pushConstant, char32_t chr ) const
+void Font::appendRenderText( math::vec2& cursor, PushData& pushData, ui::PushConstant<ui::Pipeline::eSpriteSequence>& pushConstant, char32_t chr ) const
 {
     assert( pushData.m_instanceCount < pushConstant.INSTANCES );
     const auto [ glyph, texture, size, lineHeight ] = getGlyph( chr );
     const float lineHeightMismatch = ( lineHeight && lineHeight != m_lineHeight ) ? (float)m_lineHeight / (float)lineHeight : 1.0f;
 
     if ( !glyph ) [[unlikely]] {
-        surfacePos.x += static_cast<float>( glyph.advance[ 0 ] ) * lineHeightMismatch * m_scale;
+        cursor.x += static_cast<float>( glyph.advance[ 0 ] ) * lineHeightMismatch * m_scale;
         return;
     };
 
     auto& sprite = pushConstant.m_sprites[ pushData.m_instanceCount++ ];
-    std::tie( sprite.m_xywh, sprite.m_uvwh ) = composeSprite( glyph, size, surfacePos, lineHeightMismatch, m_scale );
-    surfacePos.x += static_cast<float>( glyph.advance[ 0 ] ) * lineHeightMismatch * m_scale;
+    std::tie( sprite.m_xywh, sprite.m_uvwh ) = composeSprite( glyph, size, cursor, lineHeightMismatch, m_scale );
+    cursor.x += static_cast<float>( glyph.advance[ 0 ] ) * lineHeightMismatch * m_scale;
     auto it = std::find_if( pushData.m_fragmentTexture.begin() + 1, pushData.m_fragmentTexture.end(), [texture]( const auto& r ){ return r == texture; } );
-    if ( it == pushData.m_fragmentTexture.end() ) {
+    if ( it == pushData.m_fragmentTexture.end() ) [[unlikely]] {
         it = std::find_if( pushData.m_fragmentTexture.begin() + 1, pushData.m_fragmentTexture.end(), []( const auto& r ) { return r == 0; } );
     }
     sprite.m_whichAtlas = (uint32_t)std::distance( pushData.m_fragmentTexture.begin() + 1, it );
@@ -234,7 +269,7 @@ void Font::appendRenderText( math::vec2& surfacePos, PushData& pushData, ui::Pus
 std::tuple<Font::Glyph, Texture, math::vec2, uint32_t> Font::getGlyph( char32_t ch ) const
 {
     const Glyph* g = m_glyphMap.find( ch );
-    if ( g ) return std::make_tuple( *g, m_texture, extent(), m_lineHeight );
+    if ( g ) [[likely]] return std::make_tuple( *g, m_texture, extent(), m_lineHeight );
     if ( !m_upstream ) return {};
     return m_upstream->getGlyph( ch );
 }

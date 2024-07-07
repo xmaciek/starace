@@ -62,12 +62,15 @@ public:
 
     Texture texture() const;
     float height() const;
-    math::vec2 textGeometry( std::u32string_view ) const;
     math::vec2 extent() const;
     Sprite operator [] ( Hash::value_type ) const;
 
-    using RenderText = std::pair<PushData, ui::PushConstant<ui::Pipeline::eSpriteSequence>>;
-    RenderText composeText( const math::vec4& color, std::u32string_view ) const;
+    struct RenderText {
+        PushData pushData{};
+        ui::PushConstant<ui::Pipeline::eSpriteSequence> pushConstant;
+        math::vec2 extent;
+    };
+    RenderText composeText( const math::vec4& color, std::u32string_view, const math::vec2& geometry = math::vec2{ 320.0f, 100.0f } ) const;
     void appendRenderText( math::vec2&, PushData&, ui::PushConstant<ui::Pipeline::eSpriteSequence>&, char32_t ) const;
 };
 

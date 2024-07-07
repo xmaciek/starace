@@ -14,7 +14,7 @@ Label::Label( const Label::CreateInfo& ci )
 , m_font{ g_uiProperty.font( ci.font ) }
 , m_color{ g_uiProperty.color( ci.color ) }
 {
-    assert( ci.font );
+    assert( m_font );
     if ( m_dataModel ) {
         m_currentIdx = m_dataModel->current();
         setText( m_dataModel->at( m_currentIdx ) );
@@ -26,14 +26,13 @@ Label::Label( const Label::CreateInfo& ci )
 
 void Label::render( RenderContext rctx ) const
 {
-    assert( m_font );
     assert( !m_text.empty() );
     const math::vec3 pos{ position() + offsetByAnchor(), 0.0f };
 
-    m_renderText.second.m_model = math::translate( rctx.model, pos );
-    m_renderText.second.m_view = rctx.view;
-    m_renderText.second.m_projection = rctx.projection;
-    rctx.renderer->push( m_renderText.first, &m_renderText.second );
+    m_renderText.pushConstant.m_model = math::translate( rctx.model, pos );
+    m_renderText.pushConstant.m_view = rctx.view;
+    m_renderText.pushConstant.m_projection = rctx.projection;
+    rctx.renderer->push( m_renderText.pushData, &m_renderText.pushConstant );
 }
 
 void Label::setText( std::u32string_view str )
@@ -43,10 +42,10 @@ void Label::setText( std::u32string_view str )
 
 void Label::setText( std::pmr::u32string&& str )
 {
+    assert( !str.empty() );
     m_text = std::move( str );
     m_renderText = m_font->composeText( m_color, m_text );
-    m_size = m_font->textGeometry( m_text );
-    m_textExtent = m_size;
+    m_size = m_renderText.extent;
 }
 
 void Label::update( const UpdateContext& )

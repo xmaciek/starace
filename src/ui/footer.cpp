@@ -46,8 +46,6 @@ void Footer::refreshText()
         m_text.append( g_uiProperty.localize( action.textId ) );
         m_text.append( U"    " );
     };
-    auto geometry = g_uiProperty.fontMedium()->textGeometry( m_text );
-    m_textLength = geometry.x;
 }
 
 void Footer::render( RenderContext rctx ) const
@@ -55,8 +53,8 @@ void Footer::render( RenderContext rctx ) const
     NineSlice{ NineSlice::CreateInfo{ position(), size(), SLICES, Anchor::fTop | Anchor::fLeft } }.render( rctx );
     const Font* font = g_uiProperty.fontMedium();
     float mid = size().y * 0.5f - font->height() * 0.618f;
-    auto [ pushData, pushConstant ] = font->composeText( math::vec4{ 1.0f, 1.0f, 1.0f, 1.0f }, m_text );
-    pushConstant.m_model = math::translate( rctx.model, math::vec3{ size().x - m_textLength, position().y + mid, 0 } );
+    auto [ pushData, pushConstant, extent ] = font->composeText( math::vec4{ 1.0f, 1.0f, 1.0f, 1.0f }, m_text, size() );
+    pushConstant.m_model = math::translate( rctx.model, math::vec3{ size().x - extent.x, position().y + mid, 0 } );
     pushConstant.m_view = rctx.view;
     pushConstant.m_projection = rctx.projection;
     rctx.renderer->push( pushData, &pushConstant );

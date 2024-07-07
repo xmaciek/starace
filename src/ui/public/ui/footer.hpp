@@ -48,7 +48,7 @@ private:
     static constexpr uint32_t MAX_ENTRIES = 4;
     std::array<ActionInfo, MAX_ENTRIES> m_actions{};
     std::pmr::u32string m_text{};
-    float m_textLength = 0.0f;
+
     void refreshText();
 };
 
