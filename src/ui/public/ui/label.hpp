@@ -23,6 +23,7 @@ public:
         Hash::value_type font = "small"_hash;
         Hash::value_type color = "white"_hash;
         math::vec2 position{};
+        math::vec2 size{ 1000.0f, 32.0f };
         Anchor anchor = Anchor::fLeft | Anchor::fTop;
     };
 

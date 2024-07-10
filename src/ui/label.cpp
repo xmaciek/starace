@@ -9,7 +9,7 @@
 namespace ui {
 
 Label::Label( const Label::CreateInfo& ci )
-: Widget{ ci.position, {}, ci.anchor }
+: Widget{ ci.position, ci.size, ci.anchor }
 , m_dataModel{ ci.data ? g_uiProperty.dataModel( ci.data ) : nullptr }
 , m_font{ g_uiProperty.font( ci.font ) }
 , m_color{ g_uiProperty.color( ci.color ) }
@@ -44,7 +44,7 @@ void Label::setText( std::pmr::u32string&& str )
 {
     assert( !str.empty() );
     m_text = std::move( str );
-    m_renderText = m_font->composeText( m_color, m_text );
+    m_renderText = m_font->composeText( m_color, m_text, m_size );
     m_size = m_renderText.extent;
 }
 
