@@ -32,8 +32,8 @@ std::pmr::vector<std::pair<Chunk, std::pmr::vector<float>>> parse( std::pmr::vec
     std::memcpy( &header, ptr, sizeof( Header ) );
     std::advance( ptr, sizeof( Header ) );
 
-    assert( header.magic == Header::c_magic );
-    assert( header.version == Header::c_currentVersion );
+    assert( header.magic == Header::MAGIC );
+    assert( header.version == Header::VERSION );
 
     std::pmr::vector<std::pair<Chunk, std::pmr::vector<float>>> ret( header.chunkCount );
 
@@ -44,7 +44,7 @@ std::pmr::vector<std::pair<Chunk, std::pmr::vector<float>>> parse( std::pmr::vec
         std::memcpy( &it.first, ptr, sizeof( Chunk ) );
         std::advance( ptr, sizeof( Chunk ) );
 
-        assert( it.first.magic == Chunk::c_magic );
+        assert( it.first.magic == Chunk::MAGIC );
         const size_t bytesToLoad = it.first.floatCount * sizeof( float );
         assert( ptr + bytesToLoad <= end );
         it.second.resize( it.first.floatCount );

@@ -21,8 +21,8 @@ Mesh::Mesh( std::span<const uint8_t> data, Renderer* renderer ) noexcept
     std::memcpy( &header, ptr, sizeof( header ) );
     std::advance( ptr, sizeof( header ) );
 
-    assert( header.magic == obj::Header::c_magic );
-    assert( header.version == obj::Header::c_currentVersion );
+    assert( header.magic == obj::Header::MAGIC );
+    assert( header.version == obj::Header::VERSION );
 
     for ( uint32_t i = 0; i < header.chunkCount; ++i ) {
         obj::Chunk chunk{};
@@ -30,7 +30,7 @@ Mesh::Mesh( std::span<const uint8_t> data, Renderer* renderer ) noexcept
         std::memcpy( &chunk, ptr, sizeof( chunk ) );
         std::advance( ptr, sizeof( chunk ) );
 
-        assert( chunk.magic == obj::Chunk::c_magic );
+        assert( chunk.magic == obj::Chunk::MAGIC );
         // TODO: configure outside mesh file
         if ( chunk.name == "weapons"sv || chunk.name == "hardpoints"sv ) {
             assert( chunk.floatCount == 9 );
