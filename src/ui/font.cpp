@@ -231,9 +231,9 @@ Font::RenderText Font::composeText( const math::vec4& color, std::u32string_view
             }
         }
 
-        if ( cursor.x > geometry.x && lastBreakCursorPos != 0 ) [[unlikely]] {
+        if ( ( cursor.x > geometry.x ) && ( lastBreakCursorPos != 0 ) ) [[unlikely]] {
             ret.pushData.m_instanceCount = lastInstanceCount;
-            i = lastBreakPosition;
+            i = lastBreakPosition - 1;
             lastBreakCursorPos = 0;
             breakLine();
         }
