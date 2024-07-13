@@ -3,6 +3,7 @@
 #include "ui_options_models.hpp"
 
 #include <ui/var.hpp>
+#include <renderer/buffer.hpp>
 
 struct OptionsGFX {
     ui::Option<DisplayMode> m_resolution{};
@@ -20,11 +21,17 @@ struct OptionsGFX {
     };
 };
 
-
+using JetPart = std::pair<Buffer, std::string_view>;
+using PartModel = ui::Option<JetPart>;
 struct OptionsCustomize {
     ui::GenericDataModel m_jet{};
     ui::GenericDataModel m_weaponPrimary{};
     ui::GenericDataModel m_weaponSecondary{};
+    PartModel m_hull{};
+    PartModel m_engines{};
+    PartModel m_wings{};
+    PartModel m_elevators{};
+    PartModel m_fins{};
 };
 
 struct GameplayUIData {

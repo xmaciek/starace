@@ -362,6 +362,7 @@ void Game::setupUI()
         assert( i < m_jetsContainer.size() );
         m_currentJet = i;
     };
+    m_optionsCustomize.m_jet.m_current = [this]() { return m_currentJet; };
 
     auto weapNames = [this]( auto i ) -> std::pmr::u32string
     {
@@ -378,7 +379,46 @@ void Game::setupUI()
     m_optionsCustomize.m_weaponSecondary.m_at = weapNames;
     m_optionsCustomize.m_weaponSecondary.m_select = [this]( auto i ){ m_weapon2 = i; };
     m_optionsCustomize.m_weaponSecondary.m_current = [this](){ return m_weapon2; };
+    {
+        std::pmr::vector<JetPart> hull{
+            JetPart{ 0, "1" },
+            JetPart{ 0, "2" },
+        };
+        std::pmr::vector<JetPart> engines{
+            JetPart{ 0, "Single" },
+            JetPart{ 0, "Dual" },
+        };
+        std::pmr::vector<JetPart> wings{
+            JetPart{ 0, "Forward" },
+            JetPart{ 0, "Backward" },
+        };
+        std::pmr::vector<JetPart> elevators{
+            JetPart{ 0, "None" },
+            JetPart{ 0, "Large" },
+            JetPart{ 0, "Small" },
+        };
+        std::pmr::vector<JetPart> fins{
+            JetPart{ 0, "None" },
+            JetPart{ 0, "Large" },
+            JetPart{ 0, "Small" },
+        };
+        auto toString = []( const JetPart& p )
+        {
+            return std::pmr::u32string{ p.second.begin(), p.second.end() };
+        };
 
+        m_optionsCustomize.m_hull = PartModel{ 0, std::move( hull ), toString };
+        m_optionsCustomize.m_engines = PartModel{ 0, std::move( engines ), toString };
+        m_optionsCustomize.m_wings = PartModel{ 0, std::move( wings ), toString };
+        m_optionsCustomize.m_elevators = PartModel{ 0, std::move( elevators ), toString };
+        m_optionsCustomize.m_fins = PartModel{ 0, std::move( fins ), toString };
+
+        m_gameUiDataModels.insert( "$data:jetPart.hull"_hash, &m_optionsCustomize.m_hull );
+        m_gameUiDataModels.insert( "$data:jetPart.engines"_hash, &m_optionsCustomize.m_engines );
+        m_gameUiDataModels.insert( "$data:jetPart.wings"_hash, &m_optionsCustomize.m_wings );
+        m_gameUiDataModels.insert( "$data:jetPart.elevators"_hash, &m_optionsCustomize.m_elevators );
+        m_gameUiDataModels.insert( "$data:jetPart.fins"_hash, &m_optionsCustomize.m_fins );
+    }
     m_uiRings = UIRings{ parseTexture( m_io->viewWait( "textures/cyber_ring.dds" ) ) };
 
 

@@ -10,7 +10,6 @@ namespace ui {
 class SpinBox : public Widget {
 protected:
     DataModel* m_model = nullptr;
-    TabOrder<DataModel::size_type> m_index{}; // TODO: replace with something more fitting
     float m_animL = 1.0f;
     float m_animR = 1.0f;
     bool m_focusL : 1 = false;
@@ -33,8 +32,6 @@ public:
     ~SpinBox() noexcept = default;
     SpinBox() noexcept = default;
     SpinBox( const CreateInfo& ) noexcept;
-
-    DataModel::size_type value() const;
 
     virtual void render( RenderContext ) const override;
     virtual void update( const UpdateContext& ) override;

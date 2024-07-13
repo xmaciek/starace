@@ -25,7 +25,6 @@ namespace ui {
 SpinBox::SpinBox( const CreateInfo& ci ) noexcept
 : Widget{ ci.position, ci.size }
 , m_model{ g_uiProperty.dataModel( ci.data ) }
-, m_index{ m_model->current(), 0, m_model->size() }
 , m_label{ Label::CreateInfo{ .data = ci.data, .font = "small"_hash, .anchor = Anchor::fCenter | Anchor::fMiddle, } }
 {
     setTabOrder( ci.tabOrder );
@@ -108,17 +107,14 @@ EventProcessing SpinBox::onMouseEvent( const MouseEvent& event )
     case MouseEvent::eClick:
         if ( left ) {
             m_animL = 0.0f;
-            m_index--;
-            m_model->select( value() );
+            m_model->select( ui::overflow( static_cast<DataModel::size_type>( m_model->current() - 1 ), m_model->size() ) );
             break;
         }
         if ( right ) {
             m_animR = 0.0f;
-            m_index++;
-            m_model->select( value() );
+            m_model->select( ui::overflow( static_cast<DataModel::size_type>( m_model->current() + 1 ), m_model->size() ) );
             break;
         }
-        m_model->activate( value() );
         break;
     default:
         break;
@@ -144,35 +140,22 @@ math::vec4 SpinBox::arrowRight() const
     return math::vec4{ pos.x + s.x - static_cast<float>( arrow.w ), pos.y, arrow.w, arrow.h };
 }
 
-DataModel::size_type SpinBox::value() const
-{
-    assert( m_model );
-    assert( *m_index < m_model->size() );
-    return *m_index;
-}
-
 EventProcessing SpinBox::onAction( ui::Action action )
 {
+    assert( m_model );
     if ( action.value == 0 ) { return EventProcessing::eContinue; }
     switch ( action.a ) {
     case ui::Action::eMenuLeft:
         m_animL = 0.0f;
-        m_index--;
-        m_model->select( value() );
-        break;
+        m_model->select( ui::overflow( static_cast<DataModel::size_type>( m_model->current() - 1 ), m_model->size() ) );
+        return EventProcessing::eStop;
     case ui::Action::eMenuRight:
         m_animR = 0.0f;
-        m_index++;
-        m_model->select( value() );
-        break;
-    case ui::Action::eMenuConfirm:
-        m_model->activate( value() );
-        break;
+        m_model->select( ui::overflow( static_cast<DataModel::size_type>( m_model->current() + 1 ), m_model->size() ) );
+        return EventProcessing::eStop;
     default:
         return EventProcessing::eContinue;
     }
-    m_label.setText( m_model->at( value() ) );
-    return EventProcessing::eStop;
 }
 
 void SpinBox::update( const UpdateContext& uctx )

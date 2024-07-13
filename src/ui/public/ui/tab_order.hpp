@@ -6,6 +6,30 @@
 
 namespace ui {
 
+template <typename T>
+constexpr inline T overflow( T a, T b ) noexcept
+{
+    return ( ( a % b ) + b ) % b;
+}
+static_assert( overflow( 8, 3 ) == 2 );
+static_assert( overflow( 7, 3 ) == 1 );
+static_assert( overflow( 6, 3 ) == 0 );
+static_assert( overflow( 5, 3 ) == 2 );
+static_assert( overflow( 4, 3 ) == 1 );
+static_assert( overflow( 3, 3 ) == 0 );
+static_assert( overflow( 2, 3 ) == 2 );
+static_assert( overflow( 1, 3 ) == 1 );
+static_assert( overflow( 0, 3 ) == 0 );
+static_assert( overflow( -1, 3 ) == 2 );
+static_assert( overflow( -2, 3 ) == 1 );
+static_assert( overflow( -3, 3 ) == 0 );
+static_assert( overflow( -4, 3 ) == 2 );
+static_assert( overflow( -5, 3 ) == 1 );
+static_assert( overflow( -6, 3 ) == 0 );
+static_assert( overflow( -7, 3 ) == 2 );
+static_assert( overflow( -8, 3 ) == 1 );
+static_assert( overflow( -9, 3 ) == 0 );
+
 template <typename T = uint16_t, T TInvalid = std::numeric_limits<T>::max()>
 class TabOrder {
     T m_min = 0;
