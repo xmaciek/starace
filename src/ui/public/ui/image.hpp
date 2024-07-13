@@ -18,7 +18,7 @@ class Image : public Widget {
     uint32_t m_sampleRGBA = 0;
     PipelineSlot m_pipelineSlot{};
     DataModel* m_dataModel = nullptr;
-    DataModel::size_type m_current = 0;
+    DataModel::size_type m_revision = 0xFFFF;
 
 public:
     struct CreateInfo {

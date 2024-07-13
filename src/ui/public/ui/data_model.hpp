@@ -18,6 +18,7 @@ public:
     virtual ~DataModel() noexcept = default;
     DataModel() noexcept = default;
 
+    virtual size_type revision() const;
     virtual size_type current() const;
     virtual size_type size() const;
 
@@ -37,12 +38,14 @@ public:
     std::function<void(size_type)> m_activate{};
     std::function<void(size_type)> m_select{};
     std::function<size_type()> m_current{};
+    std::function<size_type()> m_revision{};
     std::function<Texture(size_type)> m_texture{};
 
     ~GenericDataModel() noexcept = default;
     GenericDataModel() noexcept = default;
 
     virtual size_type current() const override;
+    virtual size_type revision() const override;
     virtual size_type size() const override;
     virtual std::pmr::u32string at( size_type ) const override;
     virtual Texture texture( size_type ) const override;

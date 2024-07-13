@@ -11,9 +11,9 @@ namespace ui {
 class AnimFrame : public Widget {
     math::vec4 m_color{ 1.0f, 1.0f, 1.0f, 1.0f };
     std::array<math::vec4, 16> m_uvwh{};
-    ui::DataModel* m_dataModel = nullptr;
+    DataModel* m_dataModel = nullptr;
     Texture m_texture{};
-    uint32_t m_current = 0xFFFF'FFFFu;
+    DataModel::size_type m_revision = 0xFFFF;
     uint32_t m_index{};
     uint32_t m_count{};
 

@@ -32,7 +32,7 @@ private:
     const Font* m_font = nullptr;
     std::pmr::u32string m_text{};
     math::vec4 m_color = math::vec4{ 1.0f, 1.0f, 1.0f, 1.0f };
-    DataModel::size_type m_currentIdx = 0;
+    DataModel::size_type m_revision = 0xFFFF;
     // TODO remove mutable
     mutable Font::RenderText m_renderText{};
 

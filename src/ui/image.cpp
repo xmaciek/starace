@@ -18,8 +18,8 @@ Image::Image( const CreateInfo& ci ) noexcept
     if ( ci.data ) {
         m_sampleRGBA = 1;
         m_dataModel = g_uiProperty.dataModel( ci.data );
-        m_current = m_dataModel->current();
-        setTexture( m_dataModel->texture( m_current ) );
+        m_revision = m_dataModel->revision();
+        setTexture( m_dataModel->texture( m_dataModel->current() ) );
     }
     else if ( ci.spriteId ) {
         m_sampleRGBA = 0;
@@ -57,12 +57,12 @@ void Image::update( const UpdateContext& )
     if ( !m_dataModel ) {
         return;
     }
-    DataModel::size_type idx = m_dataModel->current();
-    if ( idx == m_current ) {
+    DataModel::size_type rev = m_dataModel->revision();
+    if ( rev == m_revision ) {
         return;
     }
-    m_current = idx;
-    setTexture( m_dataModel->texture( m_current ) );
+    m_revision = rev;
+    setTexture( m_dataModel->texture( m_dataModel->current() ) );
 }
 
 void Image::setColor( math::vec4 c )

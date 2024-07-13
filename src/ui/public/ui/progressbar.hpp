@@ -13,7 +13,7 @@ class Progressbar : public Widget {
     math::vec4 m_uvwh{};
     math::vec2 m_spriteSize{};
     ui::DataModel* m_dataModel = nullptr;
-    ui::DataModel::size_type m_current = 0;
+    ui::DataModel::size_type m_revision = 0xFFFF;
     Texture m_texture{};
     float m_value = 0.0f;
     float m_spacing = 0.0f;

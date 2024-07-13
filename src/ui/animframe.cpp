@@ -49,10 +49,10 @@ void AnimFrame::render( ui::RenderContext rctx ) const
 
 void AnimFrame::update( const UpdateContext& )
 {
-    const auto idx = m_dataModel->current();
-    if ( idx == m_current ) { return; }
-    m_current = idx;
-    auto f = static_cast<float>( m_count ) * m_dataModel->atF( idx );
+    const auto rev = m_dataModel->revision();
+    if ( rev == m_revision ) { return; }
+    m_revision = rev;
+    auto f = static_cast<float>( m_count ) * m_dataModel->atF( m_dataModel->current() );
     m_index = std::min<uint32_t>( static_cast<uint32_t>( f ), m_count - 1 );
 }
 

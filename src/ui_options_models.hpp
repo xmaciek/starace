@@ -14,6 +14,7 @@ namespace ui {
 
 template <typename T>
 class OptionsArrayModel : public DataModel {
+    size_type m_revision = 0;
     size_type m_current = 0;
     std::pmr::vector<T> m_values;
 
@@ -37,6 +38,11 @@ public:
         return m_current;
     }
 
+    virtual size_type revision() const override
+    {
+        return m_revision;
+    }
+
     virtual size_type size() const override
     {
         return static_cast<size_type>( m_values.size() );
@@ -51,6 +57,7 @@ public:
     virtual void select( size_type i ) override
     {
         assert( i < m_values.size() );
+        m_revision++;
         m_current = i;
     }
 
@@ -62,6 +69,7 @@ public:
     using FnToString = std::function<std::pmr::u32string(const T&)>;
 
 private:
+    size_type m_revision = 0;
     size_type m_currentIndex = 0;
     std::pmr::vector<T> m_values;
     std::pmr::vector<Hash::value_type> m_locValues;
@@ -107,6 +115,11 @@ public:
         return m_currentIndex;
     }
 
+    virtual size_type revision() const override
+    {
+        return m_revision;
+    }
+
     virtual size_type size() const override
     {
         return static_cast<size_type>( m_values.size() );
@@ -124,6 +137,7 @@ public:
     {
         assert( i < m_values.size() );
         m_currentIndex = i;
+        m_revision++;
     }
 
 };

@@ -3,7 +3,6 @@
 #include <ui/data_model.hpp>
 
 #include <algorithm>
-#include <atomic>
 #include <cstdint>
 #include <string>
 #include <string_view>
@@ -15,7 +14,8 @@ namespace ui {
 template <typename T>
 class Var : public DataModel {
     T m_value{};
-    std::atomic<size_type> m_current{};
+    size_type m_current{};
+    size_type m_revision = 0xFFFF;
 
 public:
     virtual ~Var() noexcept override = default;
@@ -39,13 +39,19 @@ public:
             return *this;
         }
         m_value = std::forward<T>( value );
-        m_current.fetch_add( 1 );
+        m_current++;
+        m_revision++;
         return *this;
     }
 
     virtual size_type current() const override
     {
-        return m_current.load();
+        return m_current;
+    }
+
+    virtual size_type revision() const override
+    {
+        return m_revision;
     }
 
     virtual std::pmr::u32string at( size_type ) const override

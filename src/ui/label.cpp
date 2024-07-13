@@ -16,8 +16,8 @@ Label::Label( const Label::CreateInfo& ci )
 {
     assert( m_font );
     if ( m_dataModel ) {
-        m_currentIdx = m_dataModel->current();
-        setText( m_dataModel->at( m_currentIdx ) );
+        m_revision = m_dataModel->revision();
+        setText( m_dataModel->at( m_dataModel->current() ) );
     }
     else if ( ci.text ) {
         setText( g_uiProperty.localize( ci.text ) );
@@ -51,10 +51,10 @@ void Label::setText( std::pmr::u32string&& str )
 void Label::update( const UpdateContext& )
 {
     if ( !m_dataModel ) { return; }
-    const auto idx = m_dataModel->current();
-    if ( idx == m_currentIdx ) { return; }
-    m_currentIdx = idx;
-    setText( m_dataModel->at( idx ) );
+    const auto rev = m_dataModel->revision();
+    if ( rev == m_revision ) { return; }
+    m_revision = rev;
+    setText( m_dataModel->at( m_dataModel->current() ) );
 }
 
 DataModel* Label::dataModel() const

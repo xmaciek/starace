@@ -65,10 +65,10 @@ void Progressbar::render( ui::RenderContext rctx ) const
 void Progressbar::update( const UpdateContext& )
 {
     if ( !m_dataModel ) { return; }
-    const auto idx = m_dataModel->current();
-    if ( idx == m_current ) { return; }
-    m_current = idx;
-    m_value = m_dataModel->atF( idx );
+    const auto rev = m_dataModel->revision();
+    if ( rev == m_revision ) { return; }
+    m_revision = rev;
+    m_value = m_dataModel->atF( m_dataModel->current() );
 }
 
 }

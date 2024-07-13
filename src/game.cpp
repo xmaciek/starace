@@ -363,6 +363,7 @@ void Game::setupUI()
         m_currentJet = i;
     };
     m_optionsCustomize.m_jet.m_current = [this]() { return m_currentJet; };
+    m_optionsCustomize.m_jet.m_revision = [this]() { return m_currentJet; };
 
     auto weapNames = [this]( auto i ) -> std::pmr::u32string
     {
@@ -375,10 +376,12 @@ void Game::setupUI()
     m_optionsCustomize.m_weaponPrimary.m_at = weapNames;
     m_optionsCustomize.m_weaponPrimary.m_select = [this]( auto i ){ m_weapon1 = i; };
     m_optionsCustomize.m_weaponPrimary.m_current = [this](){ return m_weapon1; };
+    m_optionsCustomize.m_weaponPrimary.m_revision = [this](){ return m_weapon1; };
     m_optionsCustomize.m_weaponSecondary.m_size = weaponCount;
     m_optionsCustomize.m_weaponSecondary.m_at = weapNames;
     m_optionsCustomize.m_weaponSecondary.m_select = [this]( auto i ){ m_weapon2 = i; };
     m_optionsCustomize.m_weaponSecondary.m_current = [this](){ return m_weapon2; };
+    m_optionsCustomize.m_weaponSecondary.m_revision = [this](){ return m_weapon2; };
     {
         std::pmr::vector<JetPart> hull{
             JetPart{ 0, "1" },

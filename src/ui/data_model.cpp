@@ -4,6 +4,11 @@
 
 namespace ui {
 
+DataModel::size_type DataModel::revision() const
+{
+    return {};
+}
+
 DataModel::size_type DataModel::current() const
 {
     return {};
@@ -71,6 +76,11 @@ Texture GenericDataModel::texture( size_type i ) const
 GenericDataModel::size_type GenericDataModel::current() const
 {
     return m_current ? m_current() : 0;
+}
+
+GenericDataModel::size_type GenericDataModel::revision() const
+{
+    return m_revision ? m_revision() : 0;
 }
 
 }
