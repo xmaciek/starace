@@ -28,7 +28,7 @@ public:
 
     math::vec3 weapon( uint32_t ) const;
     std::vector<math::vec3> thrusters() const;
-    void render( RenderContext ) const;
+    void render( const RenderContext& ) const;
     void scale( float scale );
 
 };

@@ -23,7 +23,7 @@ Model::Model( const Mesh& mesh, Texture t, float scale ) noexcept
     std::copy_n( mesh.m_thrusters.begin(), mesh.m_thrusterCount, m_thrusters.begin() );
 }
 
-void Model::render( RenderContext rctx ) const
+void Model::render( const RenderContext& rctx ) const
 {
     assert( m_vertices );
     ZoneScoped;
