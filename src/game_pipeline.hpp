@@ -11,6 +11,7 @@ enum class Pipeline : PipelineSlot {
     eGlow,
     eBackground,
     eAlbedo,
+    eMesh,
     eSpaceDust,
     eParticleBlob,
     eThruster,
@@ -105,6 +106,13 @@ struct PushConstant<Pipeline::eThruster> {
 
 template <>
 struct PushConstant<Pipeline::eAlbedo> {
+    math::mat4 m_model{};
+    math::mat4 m_view{};
+    math::mat4 m_projection{};
+};
+
+template <>
+struct PushConstant<Pipeline::eMesh> {
     math::mat4 m_model{};
     math::mat4 m_view{};
     math::mat4 m_projection{};
@@ -256,6 +264,27 @@ PipelineCreateInfo{
     .m_fragmentShader = "shaders/albedo.frag.spv",
     .m_userHint = static_cast<uint32_t>( Pipeline::eAlbedo ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eAlbedo> ),
+    .m_enableBlend = false,
+    .m_enableDepthTest = true,
+    .m_enableDepthWrite = true,
+    .m_topology = PipelineCreateInfo::Topology::eTriangleList,
+    .m_cullMode = PipelineCreateInfo::CullMode::eBack,
+    .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
+    .m_vertexStride = sizeof( float ) * 8,
+    .m_vertexAssembly{
+        PipelineCreateInfo::Assembly{ PipelineCreateInfo::InputType::eF3, 0, 0 },
+        PipelineCreateInfo::Assembly{ PipelineCreateInfo::InputType::eF2, 1, 12 },
+        PipelineCreateInfo::Assembly{ PipelineCreateInfo::InputType::eF3, 2, 20 }
+    },
+    .m_vertexUniform = 0b1,
+    .m_fragmentImage = 0b10,
+},
+
+PipelineCreateInfo{
+    .m_vertexShader = "shaders/mesh.vert.spv",
+    .m_fragmentShader = "shaders/mesh.frag.spv",
+    .m_userHint = static_cast<uint32_t>( Pipeline::eMesh ),
+    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eMesh> ),
     .m_enableBlend = false,
     .m_enableDepthTest = true,
     .m_enableDepthWrite = true,
