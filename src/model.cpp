@@ -27,14 +27,14 @@ void Model::render( RenderContext rctx ) const
 {
     assert( m_vertices );
     ZoneScoped;
-    PushConstant<Pipeline::eAlbedo> pushConstant{};
+    PushConstant<Pipeline::eMesh> pushConstant{};
     const float s = m_scale;
     pushConstant.m_model = math::scale( rctx.model, math::vec3{ s, s, s } * (float)meter );
     pushConstant.m_view = rctx.view;
     pushConstant.m_projection = rctx.projection;
 
     PushBuffer pushBuffer{
-        .m_pipeline = g_pipelines[ Pipeline::eAlbedo ],
+        .m_pipeline = g_pipelines[ Pipeline::eMesh ],
         .m_vertexBuffer = m_vertices,
     };
     pushBuffer.m_fragmentTexture[ 1 ] = m_texture;
