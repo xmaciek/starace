@@ -25,7 +25,7 @@ namespace ui {
 SpinBox::SpinBox( const CreateInfo& ci ) noexcept
 : Widget{ ci.position, ci.size }
 , m_model{ g_uiProperty.dataModel( ci.data ) }
-, m_label{ Label::CreateInfo{ .data = ci.data, .font = "small"_hash, .anchor = Anchor::fCenter | Anchor::fMiddle, } }
+, m_label{ Label::CreateInfo{ .data = ci.data, .font = "small"_hash, .size = ci.size, .anchor = Anchor::fCenter | Anchor::fMiddle, } }
 {
     setTabOrder( ci.tabOrder );
 }
