@@ -107,12 +107,12 @@ EventProcessing SpinBox::onMouseEvent( const MouseEvent& event )
     case MouseEvent::eClick:
         if ( left ) {
             m_animL = 0.0f;
-            m_model->select( ui::overflow( static_cast<DataModel::size_type>( m_model->current() - 1 ), m_model->size() ) );
+            m_model->select( static_cast<DataModel::size_type>( ui::overflow<int>( m_model->current() - 1, m_model->size() ) ) );
             break;
         }
         if ( right ) {
             m_animR = 0.0f;
-            m_model->select( ui::overflow( static_cast<DataModel::size_type>( m_model->current() + 1 ), m_model->size() ) );
+            m_model->select( static_cast<DataModel::size_type>( ui::overflow<int>( m_model->current() + 1, m_model->size() ) ) );
             break;
         }
         break;
@@ -147,11 +147,11 @@ EventProcessing SpinBox::onAction( ui::Action action )
     switch ( action.a ) {
     case ui::Action::eMenuLeft:
         m_animL = 0.0f;
-        m_model->select( ui::overflow( static_cast<DataModel::size_type>( m_model->current() - 1 ), m_model->size() ) );
+        m_model->select( static_cast<DataModel::size_type>( ui::overflow<int>( m_model->current() - 1, m_model->size() ) ) );
         return EventProcessing::eStop;
     case ui::Action::eMenuRight:
         m_animR = 0.0f;
-        m_model->select( ui::overflow( static_cast<DataModel::size_type>( m_model->current() + 1 ), m_model->size() ) );
+        m_model->select( static_cast<DataModel::size_type>( ui::overflow<int>( m_model->current() + 1, m_model->size() ) ) );
         return EventProcessing::eStop;
     default:
         return EventProcessing::eContinue;

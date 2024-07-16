@@ -61,6 +61,11 @@ public:
         m_current = i;
     }
 
+    virtual void refresh( size_type i = 1 ) override
+    {
+        m_revision += i;
+    }
+
 };
 
 template <typename T>
@@ -76,6 +81,8 @@ private:
     FnToString m_toString{};
 
 public:
+    std::function<void()> m_onSelect{};
+
     virtual ~Option() noexcept = default;
     Option() noexcept = default;
 
@@ -138,8 +145,21 @@ public:
         assert( i < m_values.size() );
         m_currentIndex = i;
         m_revision++;
+        if ( m_onSelect ) m_onSelect();
     }
 
+    virtual void refresh( size_type i = 1 ) override
+    {
+        m_revision += i;
+    }
+
+    void setData( size_type current, std::pmr::vector<T>&& values, std::pmr::vector<Hash::value_type>&& locValues = {} )
+    {
+        m_currentIndex = current;
+        m_values = std::move( values );
+        m_locValues = std::move( locValues );
+        refresh();
+    }
 };
 
 

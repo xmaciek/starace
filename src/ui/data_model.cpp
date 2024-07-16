@@ -42,6 +42,10 @@ void DataModel::select( size_type )
 {
 }
 
+void DataModel::refresh( size_type )
+{
+}
+
 GenericDataModel::size_type GenericDataModel::size() const
 {
     assert( m_size );
@@ -65,6 +69,13 @@ void GenericDataModel::select( size_type i )
 {
     if ( m_select ) {
         m_select( i );
+    }
+}
+
+void GenericDataModel::refresh( size_type i )
+{
+    if ( m_refresh ) {
+        m_refresh( i );
     }
 }
 

@@ -29,6 +29,7 @@ public:
 
     virtual void activate( size_type );
     virtual void select( size_type );
+    virtual void refresh( size_type i = 1 );
 };
 
 class GenericDataModel : public DataModel {
@@ -37,6 +38,7 @@ public:
     std::function<std::pmr::u32string(size_type)> m_at{};
     std::function<void(size_type)> m_activate{};
     std::function<void(size_type)> m_select{};
+    std::function<void(size_type)> m_refresh{};
     std::function<size_type()> m_current{};
     std::function<size_type()> m_revision{};
     std::function<Texture(size_type)> m_texture{};
@@ -52,6 +54,7 @@ public:
 
     virtual void activate( size_type ) override;
     virtual void select( size_type ) override;
+    virtual void refresh( size_type i = 1 ) override;
 };
 
 }

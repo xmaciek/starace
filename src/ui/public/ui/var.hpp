@@ -54,6 +54,11 @@ public:
         return m_revision;
     }
 
+    virtual void refresh( size_type i = 1 ) override
+    {
+        m_revision += i;
+    }
+
     virtual std::pmr::u32string at( size_type ) const override
     {
         if constexpr ( std::is_same_v<T, std::pmr::u32string> ) {
