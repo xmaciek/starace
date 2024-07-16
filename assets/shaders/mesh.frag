@@ -13,12 +13,18 @@ const vec3 LIGHT_POSITION = vec3( 0.0, 1000.0, 0.0 );
 const vec4 LIGHT_COLOR = vec4( 1.0, 1.0, 1.0, 1.0 );
 const vec4 AMBIENT_COLOR = vec4( 0.3, 0.3, 0.3, 1.0 );
 
+float computeLight( vec3 position, vec3 vert, vec3 normal, mat3 matrix )
+{
+    vec3 norm = normalize( matrix * normal );
+    vec3 lightDir = normalize( position - vert );
+    float diff = max( dot( norm, lightDir ), 0.0 );
+    return diff;
+}
+
 void main()
 {
     vec4 albedo = texture( textureSampler, fragUV );
-    vec3 norm = normalize( fragNormalMatrix * fragNormal );
-    vec3 lightDir = normalize( LIGHT_POSITION - fragVert );
-    float diff = max( dot( norm, lightDir ), 0.0 );
+    float diff = computeLight( LIGHT_POSITION, fragVert, fragNormal, fragNormalMatrix );
     vec4 diffuse = diff * LIGHT_COLOR;
     colorOut = ( AMBIENT_COLOR + diffuse ) * albedo;
 
