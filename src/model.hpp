@@ -15,13 +15,17 @@
 
 class Model {
 private:
-    Buffer m_vertices{};
     Texture m_texture{};
     std::vector<math::vec3> m_thrusters{};
     std::array<math::vec3, 3> m_weapons{};
     float m_scale = 1.0f;
 
 public:
+    Buffer m_hull{};
+    Buffer m_engines{};
+    Buffer m_wings{};
+    Buffer m_elevators{};
+    Buffer m_fins{};
     ~Model() = default;
     Model() = default;
     Model( const Mesh&, Texture, float scale = 1.0f ) noexcept;

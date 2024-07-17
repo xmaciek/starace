@@ -5,6 +5,9 @@
 #include <ui/var.hpp>
 #include <renderer/buffer.hpp>
 
+#include <string>
+#include <memory_resource>
+
 struct OptionsGFX {
     ui::Option<DisplayMode> m_resolution{};
     ui::Option<bool> m_fullscreen{ 0 };
@@ -21,7 +24,7 @@ struct OptionsGFX {
     };
 };
 
-using JetPart = std::pair<Buffer, std::string_view>;
+using JetPart = std::pair<Buffer, std::pmr::string>;
 using PartModel = ui::Option<JetPart>;
 struct OptionsCustomize {
     ui::GenericDataModel m_jet{};

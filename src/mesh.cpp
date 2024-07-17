@@ -73,7 +73,7 @@ Mesh::Mesh( std::span<const uint8_t> data, Renderer* renderer ) noexcept
 Buffer Mesh::operator [] ( std::string_view v ) const noexcept
 {
     auto it = m_map.find( std::pmr::string{ v.begin(), v.end() } );
-    assert( it != m_map.end() );
+    // assert( it != m_map.end() );
     return it != m_map.end() ? it->second : Buffer{};
 }
 

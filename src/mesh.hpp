@@ -32,4 +32,6 @@ public:
     Mesh& operator = ( Mesh&& ) noexcept = default;
 
     Buffer operator [] ( std::string_view ) const noexcept;
+    inline auto begin() const { return m_map.begin(); }
+    inline auto end() const { return m_map.end(); }
 };

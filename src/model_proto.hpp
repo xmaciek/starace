@@ -11,4 +11,5 @@ struct ModelProto {
     std::string model_texture{};
     Model model{};
     float scale = 1.0f;
+    bool modular = false;
 };
