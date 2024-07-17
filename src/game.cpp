@@ -84,7 +84,6 @@ static std::pmr::vector<ModelProto> loadJets( std::span<const uint8_t> data )
             .name = std::pmr::u32string{ name.begin(), name.end() },
             .model_file = std::string{ it[ "model"sv ].toString() },
             .model_texture = std::string{ it[ "texture"sv ].toString() },
-            .scale = it[ "scale"sv ].toFloat(),
         } );
     }
 
@@ -120,7 +119,6 @@ static std::pmr::vector<MapCreateInfo> loadMaps( std::span<const uint8_t> data )
 
 static std::tuple<WeaponCreateInfo, bool> parseWeapon( const cfg::Entry& entry )
 {
-    using std::literals::string_view_literals::operator""sv;
     auto makeType = []( std::string_view sv )
     {
         Hash hash{};
@@ -284,11 +282,10 @@ void Game::onInit()
     assert( !m_jetsContainer.empty() );
 
     for ( auto& it : m_jetsContainer ) {
-        it.model = Model( m_meshes[ it.model_file ], m_textures[ it.model_texture ], it.scale );
+        it.model = Model( m_meshes[ it.model_file ], m_textures[ it.model_texture ] );
     }
 
-    m_enemyModel = Model{ m_meshes[ "models/a2.objc" ], m_textures[ "textures/a2.dds" ], 18.6335403727f /*HACK*/ };
-
+    m_enemyModel = Model{ m_meshes[ "models/a2.objc" ], m_textures[ "textures/a2.dds" ] };
 
     setupUI();
     onResize( viewportWidth(), viewportHeight() );
@@ -304,6 +301,54 @@ void Game::setupLocalization()
         m_localizationMap.insert( hash( *it ), it.toString32() );
     }
     g_uiProperty.m_locTable = m_localizationMap.makeView();
+}
+
+void Game::setupJetPartsUiModels()
+{
+    using V = std::pmr::vector<JetPart>;
+    V hull;
+    V engines;
+    V wings;
+    V elevators;
+    V fins;
+    JetPart na{ 0, "N/A" };
+
+    auto& jetData = m_jetsContainer[ m_currentJet ];
+    auto it = m_meshes.find( jetData.model_file );
+    assert( it != m_meshes.end() );
+    auto& [ _, mesh ] = *it;
+    auto testPush = []( auto& container, auto buff, auto& name, std::string_view text )
+    {
+        if ( !name.starts_with( text ) ) return false;
+        container.emplace_back( buff, name.substr( text.size() ) );
+        return true;
+    };
+    for ( auto&& [ name, buff ] : mesh ) {
+        testPush( hull, buff, name, "hull." )
+        || testPush( engines, buff, name, "engines." )
+        || testPush( wings, buff, name, "wings." )
+        || testPush( elevators, buff, name, "elevators." )
+        || testPush( fins, buff, name, "fins." )
+        ;
+    }
+
+    m_optionsCustomize.m_hull.setData( 0, hull.empty() ? V{ na } : std::move( hull ) );
+    m_optionsCustomize.m_engines.setData( 0, engines.empty() ? V{ na } : std::move( engines ) );
+    m_optionsCustomize.m_wings .setData( 0, wings.empty() ? V{ na } : std::move( wings ) );
+    m_optionsCustomize.m_elevators.setData( 0, elevators.empty() ? V{ na } : std::move( elevators ) );
+    m_optionsCustomize.m_fins.setData( 0, fins.empty() ? V{ na } : std::move( fins ) );
+
+    updateJetParts();
+}
+
+void Game::updateJetParts()
+{
+    auto& model = m_jetsContainer[ m_currentJet ].model;
+    if ( auto [ buff, _ ] = m_optionsCustomize.m_hull.value(); buff ) model.m_hull = buff;
+    if ( auto [ buff, _ ] = m_optionsCustomize.m_engines.value(); buff ) model.m_engines = buff;
+    if ( auto [ buff, _ ] = m_optionsCustomize.m_wings.value(); buff ) model.m_wings = buff;
+    if ( auto [ buff, _ ] = m_optionsCustomize.m_elevators.value(); buff ) model.m_elevators = buff;
+    if ( auto [ buff, _ ] = m_optionsCustomize.m_fins.value(); buff ) model.m_fins = buff;
 }
 
 void Game::setupUI()
@@ -361,6 +406,7 @@ void Game::setupUI()
     {
         assert( i < m_jetsContainer.size() );
         m_currentJet = i;
+        setupJetPartsUiModels();
     };
     m_optionsCustomize.m_jet.m_current = [this]() { return m_currentJet; };
     m_optionsCustomize.m_jet.m_revision = [this]() { return m_currentJet; };
@@ -382,46 +428,28 @@ void Game::setupUI()
     m_optionsCustomize.m_weaponSecondary.m_select = [this]( auto i ){ m_weapon2 = i; };
     m_optionsCustomize.m_weaponSecondary.m_current = [this](){ return m_weapon2; };
     m_optionsCustomize.m_weaponSecondary.m_revision = [this](){ return m_weapon2; };
+    auto partToString = []( const auto& it )
     {
-        std::pmr::vector<JetPart> hull{
-            JetPart{ 0, "1" },
-            JetPart{ 0, "2" },
-        };
-        std::pmr::vector<JetPart> engines{
-            JetPart{ 0, "Single" },
-            JetPart{ 0, "Dual" },
-        };
-        std::pmr::vector<JetPart> wings{
-            JetPart{ 0, "Forward" },
-            JetPart{ 0, "Backward" },
-        };
-        std::pmr::vector<JetPart> elevators{
-            JetPart{ 0, "None" },
-            JetPart{ 0, "Large" },
-            JetPart{ 0, "Small" },
-        };
-        std::pmr::vector<JetPart> fins{
-            JetPart{ 0, "None" },
-            JetPart{ 0, "Large" },
-            JetPart{ 0, "Small" },
-        };
-        auto toString = []( const JetPart& p )
-        {
-            return std::pmr::u32string{ p.second.begin(), p.second.end() };
-        };
+        auto&& [ _, name ] = it;
+        return std::pmr::u32string{ name.begin(), name.end() };
+    };
+    m_optionsCustomize.m_hull = PartModel{ 0, {}, partToString };
+    m_optionsCustomize.m_hull.m_onSelect = [this](){ updateJetParts(); };
+    m_optionsCustomize.m_engines = PartModel{ 0, {}, partToString };
+    m_optionsCustomize.m_engines.m_onSelect = [this](){ updateJetParts(); };
+    m_optionsCustomize.m_wings = PartModel{ 0, {}, partToString };
+    m_optionsCustomize.m_wings.m_onSelect = [this](){ updateJetParts(); };
+    m_optionsCustomize.m_elevators = PartModel{ 0, {}, partToString };
+    m_optionsCustomize.m_elevators.m_onSelect = [this](){ updateJetParts(); };
+    m_optionsCustomize.m_fins = PartModel{ 0, {}, partToString };
+    m_optionsCustomize.m_fins.m_onSelect = [this](){ updateJetParts(); };
+    setupJetPartsUiModels();
+    m_gameUiDataModels.insert( "$data:jetPart.hull"_hash, &m_optionsCustomize.m_hull );
+    m_gameUiDataModels.insert( "$data:jetPart.engines"_hash, &m_optionsCustomize.m_engines );
+    m_gameUiDataModels.insert( "$data:jetPart.wings"_hash, &m_optionsCustomize.m_wings );
+    m_gameUiDataModels.insert( "$data:jetPart.elevators"_hash, &m_optionsCustomize.m_elevators );
+    m_gameUiDataModels.insert( "$data:jetPart.fins"_hash, &m_optionsCustomize.m_fins );
 
-        m_optionsCustomize.m_hull = PartModel{ 0, std::move( hull ), toString };
-        m_optionsCustomize.m_engines = PartModel{ 0, std::move( engines ), toString };
-        m_optionsCustomize.m_wings = PartModel{ 0, std::move( wings ), toString };
-        m_optionsCustomize.m_elevators = PartModel{ 0, std::move( elevators ), toString };
-        m_optionsCustomize.m_fins = PartModel{ 0, std::move( fins ), toString };
-
-        m_gameUiDataModels.insert( "$data:jetPart.hull"_hash, &m_optionsCustomize.m_hull );
-        m_gameUiDataModels.insert( "$data:jetPart.engines"_hash, &m_optionsCustomize.m_engines );
-        m_gameUiDataModels.insert( "$data:jetPart.wings"_hash, &m_optionsCustomize.m_wings );
-        m_gameUiDataModels.insert( "$data:jetPart.elevators"_hash, &m_optionsCustomize.m_elevators );
-        m_gameUiDataModels.insert( "$data:jetPart.fins"_hash, &m_optionsCustomize.m_fins );
-    }
     m_uiRings = UIRings{ parseTexture( m_io->viewWait( "textures/cyber_ring.dds" ) ) };
 
 
@@ -784,7 +812,6 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
     const auto& w2 = m_weapons[ m_weapon2 ];
     m_jet = Jet( Jet::CreateInfo{
         .model = modelData.model,
-        .modelScale = modelData.scale,
         .vectorThrust = true,
         .weapons{ w1, w2, w1 },
     } );
