@@ -29,6 +29,12 @@ struct Face {
     uint32_t norm;
 };
 
+static bool testIntegrity( obj::DataType a, obj::DataType expected )
+{
+    if ( a == obj::DataType::invalid ) return true;
+    return a == expected;
+}
+
 int main( int argc, char** argv )
 {
     ( argc == 3 ) || exitOnFailed( "expected 2 arguments: <src.obj> <dst.objc>", "" );
@@ -56,7 +62,7 @@ int main( int argc, char** argv )
         if ( line.size() < 3 ) { continue; }
         const std::string_view sv{ line.c_str(), 2 };
         if ( sv == "o " ) {
-            ( line.size() <= sizeof( obj::Chunk::name ) + 2 ) || exitOnFailed( "object name too long to fit into Chunk.name field", "" );
+            ( line.size() <= sizeof( obj::Chunk::name ) + 2 ) || exitOnFailed( "object name too long to fit into Chunk.name field", line );
             dataOut.emplace_back();
             chunk = &dataOut.back();
             std::copy_n( line.c_str() + 2, line.size() - 2, chunk->first.name );
@@ -75,14 +81,7 @@ int main( int argc, char** argv )
             std::sscanf( line.c_str() + 3, "%f %f %f", v.data, v.data + 1, v.data + 2 );
         }
         else if ( sv == "f " ) {
-            switch ( chunk->first.dataType ) {
-            case obj::DataType::invalid:
-            case obj::DataType::vtn:
-                break;
-            default:
-                exitOnFailed( "datas type mismatch", "" );
-                return 1;
-            }
+            testIntegrity( chunk->first.dataType, obj::DataType::vtn ) || exitOnFailed( "data type mismatch, possibly interleaving f with l", chunk->first.name );
             chunk->first.dataType = obj::DataType::vtn;
 
             std::array<Face, 3> f{};
@@ -94,7 +93,7 @@ int main( int argc, char** argv )
             f[ 0 ].vert--; f[ 0 ].uv--; f[ 0 ].norm--;
             f[ 1 ].vert--; f[ 1 ].uv--; f[ 1 ].norm--;
             f[ 2 ].vert--; f[ 2 ].uv--; f[ 2 ].norm--;
-            for ( auto ff : f ) {
+            for ( auto&& ff : f ) {
                 ( ff.vert < vertices.size() ) || exitOnFailed( "requested index out of vertice range: index", ff.vert + 1 );
                 chunk->second.push_back( vertices[ ff.vert ].data[ 0 ] );
                 chunk->second.push_back( vertices[ ff.vert ].data[ 1 ] );
@@ -108,14 +107,23 @@ int main( int argc, char** argv )
                 chunk->second.push_back( normals[ ff.norm ].data[ 2 ] );
             }
         }
+        else if ( sv == "l " ) {
+            testIntegrity( chunk->first.dataType, obj::DataType::v ) || exitOnFailed( "data type mismatch, possibly interleaving l with f", chunk->first.name );
+            chunk->first.dataType = obj::DataType::v;
+            uint32_t i = 0;
+            uint32_t j = 0;
+            std::sscanf( line.c_str() + 2, "%u %u", &i, &j );
+            i--;
+            j--;
+            chunk->second.push_back( vertices[ i ].data[ 0 ] );
+            chunk->second.push_back( vertices[ i ].data[ 1 ] );
+            chunk->second.push_back( vertices[ i ].data[ 2 ] );
+            chunk->second.push_back( vertices[ j ].data[ 0 ] );
+            chunk->second.push_back( vertices[ j ].data[ 1 ] );
+            chunk->second.push_back( vertices[ j ].data[ 2 ] );
+        }
         else if ( sv == "p " ) {
-            switch ( chunk->first.dataType ) {
-            case obj::DataType::invalid:
-            case obj::DataType::v:
-                break;
-            default:
-                exitOnFailed( "data type misamtch", "" );
-            }
+            testIntegrity( chunk->first.dataType, obj::DataType::v ) || exitOnFailed( "data type mismatch, possibly interleaving p with f", chunk->first.name );
             chunk->first.dataType = obj::DataType::v;
 
             uint32_t idx = 0;
