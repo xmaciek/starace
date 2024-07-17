@@ -254,6 +254,7 @@ void Game::onInit()
     loadTexture( "textures/a3.dds" );
     loadTexture( "textures/a4.dds" );
     loadTexture( "textures/a5.dds" );
+    loadTexture( "textures/material.dds" );
     loadTexture( "textures/plasma.dds" );
     m_plasma = m_textures[ "textures/plasma.dds" ];
 
@@ -265,6 +266,7 @@ void Game::onInit()
     loadMesh( "models/a3.objc" );
     loadMesh( "models/a4.objc" );
     loadMesh( "models/a5.objc" );
+    loadMesh( "models/parts.objc" );
 
     cfg::Entry weapons = cfg::Entry::fromData( m_io->viewWait( "misc/weapons.cfg" ) );
     for ( const auto& it : weapons ) {
