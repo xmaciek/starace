@@ -18,7 +18,6 @@ private:
     Texture m_texture{};
     std::vector<math::vec3> m_thrusters{};
     std::array<math::vec3, 3> m_weapons{};
-    float m_scale = 1.0f;
 
 public:
     Buffer m_hull{};
@@ -28,11 +27,10 @@ public:
     Buffer m_fins{};
     ~Model() = default;
     Model() = default;
-    Model( const Mesh&, Texture, float scale = 1.0f ) noexcept;
+    Model( const Mesh&, Texture ) noexcept;
 
     math::vec3 weapon( uint32_t ) const;
     std::vector<math::vec3> thrusters() const;
     void render( const RenderContext& ) const;
-    void scale( float scale );
 
 };

@@ -12,9 +12,8 @@
 #include <string_view>
 using std::operator ""sv;
 
-Model::Model( const Mesh& mesh, Texture t, float scale ) noexcept
+Model::Model( const Mesh& mesh, Texture t ) noexcept
 : m_texture{ t }
-, m_scale{ scale }
 , m_hull{ mesh[ "hull"sv ] }
 {
     // assert( m_vertices );
@@ -27,9 +26,8 @@ void Model::render( const RenderContext& rctx ) const
 {
     // assert( m_vertices );
     ZoneScoped;
-    const float s = m_scale;
     PushConstant<Pipeline::eMesh> pushConstant{
-        .m_model = math::scale( rctx.model, math::vec3{ s, s, s } * (float)meter ),
+        .m_model = math::scale( rctx.model, math::vec3{ meter, meter, meter } ),
         .m_view = rctx.view,
         .m_projection = rctx.projection,
     };
@@ -52,22 +50,17 @@ void Model::render( const RenderContext& rctx ) const
     testRender( m_hull );
 }
 
-void Model::scale( float scale )
-{
-    m_scale = scale;
-}
-
 std::vector<math::vec3> Model::thrusters() const
 {
     ZoneScoped;
     std::vector<math::vec3> vec = m_thrusters;
     for ( auto& it : vec ) {
-        it *= m_scale * (float)meter;
+        it *= (float)meter;
     }
     return vec;
 }
 
 math::vec3 Model::weapon( uint32_t i ) const
 {
-    return m_weapons[ i >= 3 ? 0 : i ] * m_scale * (float)meter;
+    return m_weapons[ i >= 3 ? 0 : i ] * (float)meter;
 }
