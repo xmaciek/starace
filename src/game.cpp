@@ -248,15 +248,14 @@ void Game::onInit()
 
     auto loadTexture = [&tex = m_textures, &io = m_io]( auto path )
     {
-        tex[ path ] = parseTexture( io->viewWait( path ) );
+        return tex[ path ] = parseTexture( io->viewWait( path ) );
     };
     loadTexture( "textures/a2.dds" );
     loadTexture( "textures/a3.dds" );
     loadTexture( "textures/a4.dds" );
     loadTexture( "textures/a5.dds" );
     loadTexture( "textures/material.dds" );
-    loadTexture( "textures/plasma.dds" );
-    m_plasma = m_textures[ "textures/plasma.dds" ];
+    m_plasma = loadTexture( "textures/plasma.dds" );
 
     auto loadMesh = [&m = m_meshes, &io = m_io, &r = m_renderer]( auto path )
     {
@@ -347,7 +346,15 @@ void Game::updateJetParts()
 {
     auto& model = m_jetsContainer[ m_currentJet ].model;
     if ( auto [ buff, _ ] = m_optionsCustomize.m_hull.value(); buff ) model.m_hull = buff;
-    if ( auto [ buff, _ ] = m_optionsCustomize.m_engines.value(); buff ) model.m_engines = buff;
+    if ( auto [ buff, name ] = m_optionsCustomize.m_engines.value(); buff ) {
+        model.m_engines = buff;
+        auto& jetData = m_jetsContainer[ m_currentJet ];
+        auto it = m_meshes.find( jetData.model_file );
+        assert( it != m_meshes.end() );
+        auto& [ _2, mesh ] = *it;
+        auto buff2 = mesh[ "thruster." + name ];
+        if ( buff2 ) model.m_thruster = buff2;
+    }
     if ( auto [ buff, _ ] = m_optionsCustomize.m_wings.value(); buff ) model.m_wings = buff;
     if ( auto [ buff, _ ] = m_optionsCustomize.m_elevators.value(); buff ) model.m_elevators = buff;
     if ( auto [ buff, _ ] = m_optionsCustomize.m_fins.value(); buff ) model.m_fins = buff;
@@ -456,6 +463,7 @@ void Game::setupUI()
 
 
     m_dataMissionSelect.m_current = [this](){ return m_currentMission; };
+    m_dataMissionSelect.m_revision = [this](){ return m_currentMission; };
     m_dataMissionSelect.m_size = [this](){ return static_cast<ui::DataModel::size_type>( m_mapsContainer.size() ); };
     m_dataMissionSelect.m_at = [this]( auto i ) -> std::pmr::u32string
     {

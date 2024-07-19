@@ -15,6 +15,7 @@ enum class Pipeline : PipelineSlot {
     eSpaceDust,
     eParticleBlob,
     eThruster,
+    eThruster2,
     eGammaCorrection,
     eScanline,
     eUiRings,
@@ -116,6 +117,17 @@ struct PushConstant<Pipeline::eMesh> {
     math::mat4 m_model{};
     math::mat4 m_view{};
     math::mat4 m_projection{};
+};
+
+template <>
+struct PushConstant<Pipeline::eThruster2> {
+    math::mat4 m_model{};
+    math::mat4 m_view{};
+    math::mat4 m_projection{};
+    math::vec4 m_colorInner1{};
+    math::vec4 m_colorInner2{};
+    math::vec4 m_colorOutter1{};
+    math::vec4 m_colorOutter2{};
 };
 
 template <>
@@ -299,6 +311,26 @@ PipelineCreateInfo{
     },
     .m_vertexUniform = 0b1,
     .m_fragmentImage = 0b10,
+},
+
+PipelineCreateInfo{
+    .m_vertexShader = "shaders/thruster2.vert.spv",
+    .m_fragmentShader = "shaders/thruster2.frag.spv",
+    .m_userHint = static_cast<uint32_t>( Pipeline::eThruster2 ),
+    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eThruster2> ),
+    .m_enableBlend = true,
+    .m_enableDepthTest = true,
+    .m_enableDepthWrite = false,
+    .m_topology = PipelineCreateInfo::Topology::eTriangleList,
+    .m_cullMode = PipelineCreateInfo::CullMode::eBack,
+    .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
+    .m_vertexStride = sizeof( float ) * 8,
+    .m_vertexAssembly{
+        PipelineCreateInfo::Assembly{ PipelineCreateInfo::InputType::eF3, 0, 0 },
+        PipelineCreateInfo::Assembly{ PipelineCreateInfo::InputType::eF2, 1, 12 },
+        PipelineCreateInfo::Assembly{ PipelineCreateInfo::InputType::eF3, 2, 20 }
+    },
+    .m_vertexUniform = 0b1,
 },
 
 PipelineCreateInfo{

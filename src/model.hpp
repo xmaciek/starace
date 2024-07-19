@@ -25,6 +25,7 @@ public:
     Buffer m_wings{};
     Buffer m_elevators{};
     Buffer m_fins{};
+    Buffer m_thruster{};
     ~Model() = default;
     Model() = default;
     Model( const Mesh&, Texture ) noexcept;
