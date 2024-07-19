@@ -11,6 +11,8 @@ layout( location = 0 ) out vec4 colorOut;
 
 const vec3 LIGHT_POSITION = vec3( 0.0, 1000.0, 0.0 );
 const vec4 LIGHT_COLOR = vec4( 1.0, 1.0, 1.0, 1.0 );
+const vec3 LIGHT_POSITION2 = vec3( 0.0, -1000.0, 0.0 );
+const vec4 LIGHT_COLOR2 = vec4( 0.6, 0.6, 0.6, 1.0 );
 const vec4 AMBIENT_COLOR = vec4( 0.3, 0.3, 0.3, 1.0 );
 
 float computeLight( vec3 position, vec3 vert, vec3 normal, mat3 matrix )
@@ -25,7 +27,8 @@ void main()
 {
     vec4 albedo = texture( textureSampler, fragUV );
     float diff = computeLight( LIGHT_POSITION, fragVert, fragNormal, fragNormalMatrix );
-    vec4 diffuse = diff * LIGHT_COLOR;
+    float diff2 = computeLight( LIGHT_POSITION2, fragVert, fragNormal, fragNormalMatrix );
+    vec4 diffuse = diff * LIGHT_COLOR + diff2 * LIGHT_COLOR2;
     colorOut = ( AMBIENT_COLOR + diffuse ) * albedo;
 
 }
