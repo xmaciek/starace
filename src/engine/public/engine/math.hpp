@@ -23,21 +23,37 @@ using quat = glm::quat;
 
 static_assert( alignof( vec4 ) == 16 );
 
-static constexpr float pi = std::numbers::pi_v<float>;
+static constexpr inline float pi = std::numbers::pi_v<float>;
 
-inline auto abs( const auto& t )
-{
-    return glm::abs( t );
-};
+using glm::abs;
+using glm::acos;
+using glm::atan;
+using glm::clamp;
+using glm::cos;
+using glm::cross;
+using glm::distance;
+using glm::dot;
+using glm::inverse;
+using glm::length;
+using glm::lookAt;
+using glm::normalize;
+using glm::ortho;
+using glm::perspective;
+using glm::quatLookAt;
+using glm::radians;
+using glm::rotate;
+using glm::scale;
+using glm::sin;
+using glm::smoothstep;
+using glm::sqrt;
+using glm::tan;
+using glm::toMat4;
+using glm::translate;
+using std::fmod;
 
-inline auto acos( const auto& t )
+inline float angle( const auto& a, const auto&b )
 {
-    return glm::acos( t );
-};
-
-inline float atan( float f )
-{
-    return static_cast<float>( std::atan( f ) );
+    return acos( dot( a, b ) );
 }
 
 inline auto billboard( const vec3& position, const vec3& cameraPosition, const vec3& cameraUp )
@@ -53,55 +69,11 @@ inline auto billboard( const vec3& position, const vec3& cameraPosition, const v
     };
 };
 
-inline auto clamp( const auto& Tv, const auto& TMin, const auto& TMax )
-{
-    return glm::clamp( Tv, TMin, TMax );
-};
-
-inline float cos( float f )
-{
-    return glm::cos( f );
-}
-
-inline auto cross( const auto& a, const auto& b )
-{
-    return glm::cross( a, b );
-};
-
-inline float distance( const auto& a, const auto& b )
-{
-    return glm::distance( a, b );
-};
-
-inline float dot( const auto& a, const auto& b )
-{
-    return glm::dot( a, b );
-};
-
-inline float angle( const auto& a, const auto&b )
-{
-    return acos( dot( a, b ) );
-}
-
-inline float fmod( float a, float b )
-{
-    return std::fmod( a, b );
-}
-
-inline auto inverse( const auto& t )
-{
-    return glm::inverse( t );
-};
 
 inline float length( float f )
 {
     return glm::abs( f );
 }
-
-inline auto length( const auto& t )
-{
-    return glm::length( t );
-};
 
 template <typename T = float>
 inline auto lerp( T a, T b, float n ) -> T
@@ -121,16 +93,6 @@ inline auto curve( T a, T b, T c, float n ) -> T
     return lerp( lerp( a, b, n ), lerp( b, c, n ), n );
 }
 
-inline auto lookAt( const auto& cameraPosition, const auto& target, const auto& cameraUp )
-{
-   return glm::lookAt( cameraPosition, target, cameraUp );
-}
-
-inline float smoothstep( float a, float b, float n )
-{
-    auto t = clamp( ( n - a ) / ( b - a ), 0.0f, 1.0f );
-    return t * t * ( 3.0f - 2.0f * t );
-}
 
 // non-linear interpolate
 template <typename T>
@@ -142,77 +104,6 @@ inline T nonlerp( const T& a, const T& b, float n )
 inline float normalize( float f )
 {
     return f < 0.0f ? -1.0f : 1.0f;
-}
-
-inline auto normalize( const auto& t )
-{
-    return glm::normalize( t );
-};
-
-
-inline auto ortho( float a, float b, float c, float d, float e, float f )
-{
-    return glm::ortho( a, b, c, d, e, f );
-};
-
-inline auto perspective( float a, float b, float c, float d )
-{
-    return glm::perspective( a, b, c, d );
-};
-
-inline auto quatLookAt( const auto& TQuat, const math::vec3& TVec )
-{
-    return glm::quatLookAt( TQuat, TVec );
-};
-
-inline auto radians( auto t )
-{
-    return glm::radians( t );
-};
-
-inline auto rotate( const auto& TMat, const auto& TVec )
-{
-    return glm::rotate( TMat, TVec );
-}
-
-inline float tan( float f )
-{
-    return static_cast<float>( std::tan( f ) );
-}
-
-inline auto rotate( const auto& TMat, float f, const auto& TVec )
-{
-    return glm::rotate( TMat, f, TVec );
-}
-
-inline auto toMat4( const auto& t )
-{
-    return glm::toMat4( t );
-};
-
-inline auto translate( const auto& TMat, const auto& TVec )
-{
-    return glm::translate( TMat, TVec );
-};
-
-inline float sin( float f )
-{
-    return std::sin( f );
-}
-
-inline auto sin( const auto& v )
-{
-    return glm::sin( v );
-}
-
-inline auto scale( const auto& TMat, const auto& TVec )
-{
-    return glm::scale( TMat, TVec );
-};
-
-inline float sqrt( float f )
-{
-    return std::sqrt( f );
 }
 
 inline float pointLineDistance( const math::vec3& point, const math::vec3& lineDir, const math::vec3& lineOrg ) noexcept
