@@ -13,10 +13,39 @@
 
 namespace ui {
 
+class ComboBoxList : public Widget {
+    DataModel* m_model = nullptr;
+    ScrollIndex m_index{};
+    float m_lineHeight = 0.0f;
+    float m_topPadding = 0.0f;
+    float m_botHeight = 8.0f;
+
+    DataModel::size_type visibleCount() const;
+    DataModel::size_type selectedIndex() const;
+
+public:
+    struct CreateInfo {
+        DataModel* model = nullptr;
+        math::vec2 position{};
+        math::vec2 size{};
+    };
+
+
+    ~ComboBoxList() noexcept = default;
+    ComboBoxList() noexcept = default;
+    ComboBoxList( const CreateInfo& p ) noexcept;
+
+
+    virtual void render( RenderContext ) const override;
+    virtual EventProcessing onMouseEvent( const MouseEvent& ) override;
+    virtual EventProcessing onAction( ui::Action ) override;
+};
+
 ComboBox::ComboBox( const ComboBox::CreateInfo& ci ) noexcept
 : NineSlice{ NineSlice::CreateInfo{ .position = ci.position, .size = ci.size, .anchor = Anchor::fTop| Anchor::fLeft } }
 , m_label{ Label::CreateInfo{ .text = ci.text, .font = "medium"_hash, .anchor = Anchor::fLeft | Anchor::fMiddle, } }
 , m_value{ Label::CreateInfo{ .data = ci.data, .font = "medium"_hash, .anchor = Anchor::fRight | Anchor::fMiddle, } }
+, m_data{ ci.data }
 {
     math::vec2 s = size();
     m_label.setPosition( math::vec2{ 16.0f, s.y * 0.5f } );
@@ -24,11 +53,23 @@ ComboBox::ComboBox( const ComboBox::CreateInfo& ci ) noexcept
     setTabOrder( ci.tabOrder );
 }
 
+void ComboBox::open()
+{
+    g_uiProperty.requestModalWidget( UniquePointer<ComboBoxList>(
+        std::pmr::get_default_resource(),
+        ComboBoxList::CreateInfo{
+            .model = g_uiProperty.dataModel( m_data ),
+            .position = position() + offsetByAnchor(),
+            .size = size(),
+        }
+    ) );
+}
+
 EventProcessing ComboBox::onAction( ui::Action action )
 {
     switch ( action.a ) {
     case ui::Action::eMenuConfirm:
-        g_uiProperty.requestModalComboBox( position() + offsetByAnchor(), size(), m_value.dataModel() );
+        open();
         return EventProcessing::eStop;
     default:
         return EventProcessing::eContinue;
@@ -50,7 +91,7 @@ EventProcessing ComboBox::onMouseEvent( const MouseEvent& event )
         return EventProcessing::eContinue;
     }
     if ( event.type == MouseEvent::eClick ) {
-        g_uiProperty.requestModalComboBox( pos, s, m_value.dataModel() );
+        open();
     }
 
     return EventProcessing::eStop;

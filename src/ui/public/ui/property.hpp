@@ -1,10 +1,13 @@
 #pragma once
 
+#include <ui/widget.hpp>
+
 #include <engine/math.hpp>
 #include <renderer/texture.hpp>
 #include <renderer/pipeline.hpp>
 #include <shared/fixed_map.hpp>
 #include <shared/hash.hpp>
+#include <shared/pmr_pointer.hpp>
 
 #include <cassert>
 #include <functional>
@@ -22,6 +25,9 @@ using LocTable = FixedMapView<Hash::value_type, std::pmr::u32string>;
 
 class Property {
     friend Game;
+    PipelineSlot m_pipelineSpriteSequence{};
+    PipelineSlot m_pipelineSpriteSequenceColors{};
+
     const Font* m_fontSmall = nullptr;
     const Font* m_fontMedium = nullptr;
     const Font* m_fontLarge = nullptr;
@@ -30,8 +36,8 @@ class Property {
     FixedMapView<Hash::value_type, ui::DataModel*> m_dataModels{};
     FixedMapView<Hash::value_type, std::function<void()>> m_gameCallbacks{};
 
-    PipelineSlot m_pipelineSpriteSequence{};
-    PipelineSlot m_pipelineSpriteSequenceColors{};
+    UniquePointer<Widget> m_pendingModalWidget{};
+
 
 public:
     struct PendingComboBox{
@@ -40,7 +46,6 @@ public:
         DataModel* model = nullptr;
         inline operator bool () const noexcept { return !!model; };
     };
-    PendingComboBox m_pendingComboBox{};
 
     Texture atlasTexture() const;
 
@@ -61,14 +66,14 @@ public:
         return U"<BUG:Missing loc key>";
     }
 
-    inline void requestModalComboBox( math::vec2 position, math::vec2 size, DataModel* model )
+    inline void requestModalWidget( UniquePointer<Widget>&& w )
     {
-        m_pendingComboBox = { position, size, model };
+        m_pendingModalWidget = std::move( w );
     }
 
-    inline PendingComboBox pendingModalComboBox() const
+    inline UniquePointer<Widget> pendingModalWidget()
     {
-        return m_pendingComboBox;
+        return std::move( m_pendingModalWidget );
     }
 
     inline std::function<void()> gameCallback( Hash::value_type h ) const

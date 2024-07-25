@@ -26,7 +26,7 @@ class Screen {
     float m_anim = 0.0f;
     std::pmr::vector<UniquePointer<Widget>> m_widgets{};
 
-    UniquePointer<Widget> m_comboBoxList{};
+    UniquePointer<Widget> m_modalWidget{};
     UniquePointer<Widget> m_footer{};
 
     enum class RepeatDirection : uint32_t {

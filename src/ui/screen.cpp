@@ -366,7 +366,7 @@ void Screen::render( const RenderContext& rctx ) const
     }
 
     if ( m_footer ) m_footer->render( r );
-    if ( m_comboBoxList ) m_comboBoxList->render( r );
+    if ( m_modalWidget ) m_modalWidget->render( r );
 }
 
 void Screen::updateInputRepeat( float dt )
@@ -387,17 +387,15 @@ void Screen::updateInputRepeat( float dt )
 void Screen::update( const UpdateContext& uctx )
 {
     ZoneScoped;
-    if ( auto c = g_uiProperty.pendingModalComboBox(); c.model ) {
-        g_uiProperty.requestModalComboBox( {}, {}, {} );
-        ComboBoxList::CreateInfo ci{ .model = c.model, .position = c.position, .size = c.size };
-        m_comboBoxList = UniquePointer<ComboBoxList>( std::pmr::get_default_resource(), ci );
+    if ( auto w = g_uiProperty.pendingModalWidget(); w ) {
+        m_modalWidget = std::move( w );
     }
     m_anim = std::clamp( m_anim + uctx.deltaTime * 5.0f, 0.0f, 1.0f );
     for ( const auto& it : m_widgets ) {
         it->update( uctx );
     }
     if ( m_footer ) m_footer->update( uctx );
-    if ( m_comboBoxList ) m_comboBoxList->update( uctx );
+    if ( m_modalWidget ) m_modalWidget->update( uctx );
 
     updateInputRepeat( uctx.deltaTime );
 }
@@ -408,10 +406,10 @@ void Screen::onMouseEvent( const MouseEvent& e )
     event.position /= m_resize;
     event.position *= m_viewport;
     event.position -= m_offset;
-    if ( m_comboBoxList ) {
-        auto mouseProcessing = m_comboBoxList->onMouseEvent( event );
+    if ( m_modalWidget ) {
+        auto mouseProcessing = m_modalWidget->onMouseEvent( event );
         if ( mouseProcessing == EventProcessing::eStop ) {
-            m_comboBoxList = {};
+            m_modalWidget = {};
         }
         return;
     }
@@ -467,10 +465,10 @@ void Screen::onAction( ui::Action action )
     }
     if ( action.value == 0 ) { return; }
 
-    if ( m_comboBoxList ) {
-        auto actionProcessing = m_comboBoxList->onAction( action );
+    if ( m_modalWidget ) {
+        auto actionProcessing = m_modalWidget->onAction( action );
         if ( actionProcessing == EventProcessing::eStop ) {
-            m_comboBoxList = {};
+            m_modalWidget = {};
         }
         return;
     }
