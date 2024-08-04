@@ -37,8 +37,10 @@ static bool exitOnFailed( std::string_view msg )
     std::exit( 1 );
 };
 
+using Format = dds::dxgi::Format;
+
 struct Image {
-    dds::dxgi::Format format;
+    Format format;
     uint32_t width = 0;
     uint32_t height = 0;
     std::pmr::vector<uint8_t> pixels;
@@ -88,7 +90,7 @@ Image convertTga( const std::filesystem::path& srcFile )
         case 8:
             ret.resize( header.width * header.height );
             unmap( reinterpret_cast<B*>( colorMap.data() ), indexes, reinterpret_cast<B*>( ret.data() ) );
-            return { .format = dds::dxgi::Format::R8_UNORM, .width = header.width, .height = header.height, .pixels = std::move( ret ) };
+            return { .format = Format::R8_UNORM, .width = header.width, .height = header.height, .pixels = std::move( ret ) };
 
         case 24: {
             std::pmr::vector<uint8_t> tmp;
@@ -105,7 +107,7 @@ Image convertTga( const std::filesystem::path& srcFile )
         case 32:
             ret.resize( sizeof( uint32_t ) * header.width * header.height );
             unmap( reinterpret_cast<BGRA*>( colorMap.data() ), indexes, reinterpret_cast<BGRA*>( ret.data() ) );
-            return { .format = dds::dxgi::Format::B8G8R8A8_UNORM, .width = header.width, .height = header.height, .pixels = std::move( ret ) };
+            return { .format = Format::B8G8R8A8_UNORM, .width = header.width, .height = header.height, .pixels = std::move( ret ) };
 
         default:
             exitOnFailed( "unhandled colormap bpp", srcFile );
@@ -119,12 +121,12 @@ Image convertTga( const std::filesystem::path& srcFile )
         case 8:
             ret.resize( header.width * header.height );
             ifs.read( reinterpret_cast<char*>( ret.data() ), static_cast<std::streamsize>( ret.size() ) );
-            return { .format = dds::dxgi::Format::R8_UNORM, .width = header.width, .height = header.height, .pixels = std::move( ret ) };
+            return { .format = Format::R8_UNORM, .width = header.width, .height = header.height, .pixels = std::move( ret ) };
 
         case 32:
             ret.resize( sizeof( uint32_t ) * header.width * header.height );
             ifs.read( reinterpret_cast<char*>( ret.data() ), static_cast<std::streamsize>( ret.size() ) );
-            return { .format = dds::dxgi::Format::B8G8R8A8_UNORM, .width = header.width, .height = header.height, .pixels = std::move( ret ) };
+            return { .format = Format::B8G8R8A8_UNORM, .width = header.width, .height = header.height, .pixels = std::move( ret ) };
 
         case 24: {
             ret.resize( sizeof( uint32_t ) * header.width * header.height );
@@ -136,7 +138,7 @@ Image convertTga( const std::filesystem::path& srcFile )
             const BGR* srcEnd = srcBegin + header.width * header.height;
             BGRA* dataOut = reinterpret_cast<BGRA*>( ret.data() );
             std::transform( srcBegin, srcEnd, dataOut, []( auto bgr ) { return BGRA{ bgr.b, bgr.g, bgr.r, 255u }; } );
-            return { .format = dds::dxgi::Format::B8G8R8A8_UNORM, .width = header.width, .height = header.height, .pixels = std::move( ret ) };
+            return { .format = Format::B8G8R8A8_UNORM, .width = header.width, .height = header.height, .pixels = std::move( ret ) };
         }
         default:
             exitOnFailed( "unknown pixel format, todo maybe later:", srcFile );
@@ -150,18 +152,18 @@ Image convertTga( const std::filesystem::path& srcFile )
 
 void compressToBC4( Image& img )
 {
-    assert( img.format == dds::dxgi::Format::R8_UNORM );
-    assert( !img.pixels.empty() );
+    if ( img.format != Format::R8_UNORM ) exitOnFailed( "Expected format R8" );
+    if ( img.pixels.empty() ) exitOnFailed( "no pixels to convert" );
+
     const uint32_t blockCount = (uint32_t)img.pixels.size() / 16;
-    std::pmr::vector<dds::BC4> imageOut( blockCount );
+    std::pmr::vector<uint8_t> imageOut( sizeof( dds::BC4 ) * blockCount );
     std::pmr::vector<dds::Swizzler<>::BlockType> tmp( blockCount );
 
     dds::Swizzler<uint8_t> swizzler{ img.pixels, img.width / 4 };
     std::generate( tmp.begin(), tmp.end(), swizzler );
-    std::transform( tmp.begin(), tmp.end(), imageOut.begin(), &dds::compressor_bc4 );
-    img.pixels.resize( blockCount * sizeof( dds::BC4 ) );
-    std::memcpy( img.pixels.data(), imageOut.data(), blockCount * sizeof( dds::BC4 ) );
-    img.format = dds::dxgi::Format::BC4_UNORM;
+    std::transform( tmp.begin(), tmp.end(), reinterpret_cast<dds::BC4*>( imageOut.data() ), &dds::compressor_bc4 );
+    std::swap( img.pixels, imageOut );
+    img.format = Format::BC4_UNORM;
 }
 
 namespace mipgen {
@@ -258,7 +260,7 @@ static uint32_t genMips( std::pmr::list<Image>& ret )
     uint32_t height = ret.back().height;
     uint32_t pixelSize = 0u;
     switch ( ret.back().format ) {
-    case dds::dxgi::Format::R8_UNORM: pixelSize = 1u; break;
+    case Format::R8_UNORM: pixelSize = 1u; break;
     default: pixelSize = 4u; break;
     }
     auto test = []( uint32_t d ) { return ( d % 8u ) == 0u; };
@@ -305,8 +307,8 @@ int main( int argc, const char** argv )
             "\t--dst \"<file/path.dds>\" \u2012 specifies destination of cooked image\n"
             "\nOptional arguments:\n"
             "\t-h --help \u2012 prints this message and exits\n"
-            "\t--mipgen \u2012 generate mipmaps when cooking\n"
-            "\t--BC4 \u2012 do BC4 compression if single channel source image, error otherwise\n"
+            "\t--mipgen \u2012 generate mipmaps\n"
+            "\t--format <value> \u2012 specifiy output image format, supported formats: BC4\n"
             ;
         return !args;
     }
@@ -316,7 +318,13 @@ int main( int argc, const char** argv )
     args.read( "--src", argSrc ) || exitOnFailed( "--src <file/path.tga> \u2012 argument not specified" );
     args.read( "--dst", argDst ) || exitOnFailed( "--dst <file/path.dds> \u2012 argument not specified" );
     const bool argMipgen = args.read( "--mipgen" );
-    const bool argBC4 = args.read( "--BC4" );
+    const Format argsFormat = [&args]()
+    {
+        std::string_view argsFormat{};
+        if ( !args.read( "--format", argsFormat ) ) return Format::UNKNOWN;
+        if ( argsFormat == "BC4" ) return Format::BC4_UNORM;
+        exitOnFailed( "--format has unsupported value \u2012", argsFormat );
+    }();
 
     auto commaSeparate = []( std::string_view sv ) -> std::pmr::vector<std::filesystem::path>
     {
@@ -338,18 +346,17 @@ int main( int argc, const char** argv )
     {
         uint32_t pendingWidth = 0;
         uint32_t pendingHeight = 0;
-        dds::dxgi::Format pendingFormat{};
+        Format pendingFormat{};
         for ( auto&& file : src ) {
             images.emplace_back() = convertTga( file );
             if ( images.back().pixels.empty() ) exitOnFailed( "image must have pixels" );
-            if ( argBC4 && images.back().format != dds::dxgi::Format::R8_UNORM ) exitOnFailed( "source image cannot be converted to BC4:", file );
             uint32_t width = std::exchange( pendingWidth, images.back().width );
             uint32_t height = std::exchange( pendingHeight, images.back().height );
-            dds::dxgi::Format format = std::exchange( pendingFormat, images.back().format );
+            Format format = std::exchange( pendingFormat, images.back().format );
             if ( width && ( width != pendingWidth ) ) exitOnFailed( "images cannot have different width when combining into array" );
             if ( height && ( height != pendingHeight ) ) exitOnFailed( "images cannot have different height when combining into array" );
-            if ( ( format != dds::dxgi::Format::UNKNOWN ) && ( format != pendingFormat ) ) exitOnFailed( "images cannot have different format when combining into array" );
-            if ( pendingFormat == dds::dxgi::Format::UNKNOWN ) exitOnFailed( "image must have format" );
+            if ( ( format != Format::UNKNOWN ) && ( format != pendingFormat ) ) exitOnFailed( "images cannot have different format when combining into array" );
+            if ( pendingFormat == Format::UNKNOWN ) exitOnFailed( "image must have format" );
         }
     }
     const uint32_t arrayCount = static_cast<uint32_t>( images.size() );
@@ -362,8 +369,10 @@ int main( int argc, const char** argv )
         }
     }
     images.clear();
-
-    if ( argBC4 ) std::for_each( mips.begin(), mips.end(), &compressToBC4 );
+    switch ( argsFormat ) {
+    case Format::BC4_UNORM: std::for_each( mips.begin(), mips.end(), &compressToBC4 ); break;
+    default: break;
+    };
 
     using Flags = dds::Header::Flags;
     using Caps = dds::Header::Caps;
