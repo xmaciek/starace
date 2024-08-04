@@ -411,7 +411,7 @@ Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::span<const
     const uint32_t size = static_cast<uint32_t>( data.size() );
 
     BufferVK staging{ m_physicalDevice, m_device, BufferVK::STAGING, size };
-    staging.copyData( data.data() + tci.dataBeginOffset );
+    staging.copyData( data.data() );
 
     TextureVK* tex = new TextureVK{ tci, m_physicalDevice, m_device };
 

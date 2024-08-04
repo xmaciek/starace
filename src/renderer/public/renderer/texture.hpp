@@ -27,7 +27,6 @@ struct TextureCreateInfo {
     uint32_t width = 0;
     uint32_t height = 0;
     uint32_t mip0ByteCount = 0;
-    uint32_t dataBeginOffset = 0;
     uint32_t mips = 1;
     uint32_t array = 1;
     TextureFormat format{};

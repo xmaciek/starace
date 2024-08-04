@@ -12,12 +12,18 @@
 #include <vector>
 
 template <typename T>
-static Texture parseTexture( const T& data )
+static std::span<const uint8_t>& operator >>= ( std::span<const uint8_t>& span, T& t )
+{
+    assert( span.size() >= sizeof( t ) );
+    std::memcpy( &t, span.data(), sizeof( t ) );
+    return span = span.subspan( sizeof( t ) );
+}
+
+Texture parseTexture( std::span<const uint8_t> data )
 {
     ZoneScoped;
-    const uint8_t* dataPtr = data.data();
     dds::Header header{};
-    std::memcpy( &header, dataPtr, sizeof( header ) );
+    data >>= header;
     if ( header.magic != dds::MAGIC ) {
         assert( !"dds .magic field mismatch" );
         return {};
@@ -39,13 +45,10 @@ static Texture parseTexture( const T& data )
         return {};
     }
 
-    dataPtr += sizeof( header );
-
     TextureCreateInfo tci{
         .width = header.width,
         .height = header.height,
         .mip0ByteCount = header.pitchOrLinearSize,
-        .dataBeginOffset = sizeof( header ),
     };
 
     static constexpr auto mipFlags = Caps::fComplex | Caps::fMipMap;
@@ -57,10 +60,7 @@ static Texture parseTexture( const T& data )
     switch ( header.pixelFormat.fourCC ) {
     case dds::DXGI: {
         dds::dxgi::Header dxgiHeader{};
-        std::memcpy( &dxgiHeader, dataPtr, sizeof( dxgiHeader ) );
-        dataPtr += sizeof( dxgiHeader );
-        tci.dataBeginOffset += sizeof( dxgiHeader );
-        assert( tci.dataBeginOffset == 148 );
+        data >>= dxgiHeader;
         if ( header.caps & Caps::fComplex ) {
             tci.array = std::max( dxgiHeader.arraySize, 1u );
         }
@@ -91,17 +91,6 @@ static Texture parseTexture( const T& data )
 
     return Renderer::instance()->createTexture( tci, data );
 }
-
-Texture parseTexture( std::span<const uint8_t> span )
-{
-    return parseTexture<std::span<const uint8_t>>( span );
-}
-
-Texture parseTexture( std::pmr::vector<uint8_t>&& vec )
-{
-    return parseTexture<std::pmr::vector<uint8_t>>( vec );
-}
-
 
 void destroyTexture( Texture tex )
 {
