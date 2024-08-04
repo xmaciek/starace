@@ -93,6 +93,7 @@ public:
     virtual std::pmr::memory_resource* allocator() override;
     virtual Texture createTexture( const TextureCreateInfo&, std::pmr::vector<uint8_t>&& ) override;
     virtual Texture createTexture( const TextureCreateInfo&, std::span<const uint8_t> ) override;
+    virtual uint32_t channelCount( Texture ) const override;
     virtual void beginFrame() override;
     virtual void endFrame() override;
     virtual void deleteBuffer( Buffer ) override;

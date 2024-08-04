@@ -9,6 +9,7 @@
 
 class TextureVK : public Image {
     VkSampler m_sampler = VK_NULL_HANDLE;
+    uint32_t m_channels = 0;
 
 public:
     ~TextureVK();
@@ -22,5 +23,6 @@ public:
 
     VkSampler sampler() const;
     VkDescriptorImageInfo imageInfo() const;
+    inline uint32_t channels() const { return m_channels; }
 
 };

@@ -16,13 +16,11 @@ Image::Image( const CreateInfo& ci ) noexcept
 {
     m_pipelineSlot = g_uiProperty.pipelineSpriteSequence();
     if ( ci.data ) {
-        m_sampleRGBA = 1;
         m_dataModel = g_uiProperty.dataModel( ci.data );
         m_revision = m_dataModel->revision();
         setTexture( m_dataModel->texture( m_dataModel->current() ) );
     }
     else if ( ci.spriteId ) {
-        m_sampleRGBA = 0;
         std::tie( m_uvwh, std::ignore, std::ignore, m_texture ) = g_uiProperty.sprite( ci.spriteId );
     }
     else {
@@ -74,6 +72,7 @@ void Image::setTexture( Texture t )
 {
     assert( t );
     m_texture = t;
+    m_sampleRGBA = Renderer::instance()->channelCount( t ) == 4;
 }
 
 }

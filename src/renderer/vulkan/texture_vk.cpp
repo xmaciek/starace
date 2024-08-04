@@ -14,9 +14,7 @@ static auto format( const TextureCreateInfo& tci )
 {
     switch ( tci.format ) {
     case TextureFormat::eR: return VK_FORMAT_R8_UNORM;
-    case TextureFormat::eRGBA: return VK_FORMAT_R8G8B8A8_UNORM;
     case TextureFormat::eBGRA: return VK_FORMAT_B8G8R8A8_UNORM;
-    case TextureFormat::eBGR565: return VK_FORMAT_B5G6R5_UNORM_PACK16;
     case TextureFormat::eBC1_unorm: return VK_FORMAT_BC1_RGB_UNORM_BLOCK;
     case TextureFormat::eBC2_unorm: return VK_FORMAT_BC2_UNORM_BLOCK;
     case TextureFormat::eBC3_unorm: return VK_FORMAT_BC3_UNORM_BLOCK;
@@ -38,6 +36,24 @@ static auto addressMode( TextureAddressMode a )
         assert( !"unsuported address mode" );
         return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
     };
+}
+
+static uint32_t formatToChannels( VkFormat f )
+{
+    switch ( f ) {
+    case VK_FORMAT_R8_UNORM:
+        return 1;
+    case VK_FORMAT_B8G8R8A8_UNORM:
+    case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
+    case VK_FORMAT_BC2_UNORM_BLOCK:
+    case VK_FORMAT_BC3_UNORM_BLOCK:
+    case VK_FORMAT_BC4_UNORM_BLOCK:
+    case VK_FORMAT_BC5_UNORM_BLOCK:
+        return 4;
+    default:
+        assert( !"unhandled formatToChannels case" );
+        return 0;
+    }
 }
 
 TextureVK::~TextureVK()
@@ -81,18 +97,21 @@ TextureVK::TextureVK( const TextureCreateInfo& tci, VkPhysicalDevice physDevice,
     [[maybe_unused]]
     const VkResult samplerOK = vkCreateSampler( m_device, &samplerInfo, nullptr, &m_sampler );
     assert( samplerOK == VK_SUCCESS );
+    m_channels = formatToChannels( m_format );
 }
 
 TextureVK::TextureVK( TextureVK&& rhs ) noexcept
 {
     std::swap<Image>( *this, rhs );
     std::swap( m_sampler, rhs.m_sampler );
+    std::swap( m_channels, rhs.m_channels );
 }
 
 TextureVK& TextureVK::operator = ( TextureVK&& rhs ) noexcept
 {
     std::swap<Image>( *this, rhs );
     std::swap( m_sampler, rhs.m_sampler );
+    std::swap( m_channels, rhs.m_channels );
     return *this;
 }
 

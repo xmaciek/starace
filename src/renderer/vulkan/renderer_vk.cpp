@@ -25,26 +25,32 @@ public:
 
 // arbitrary values
 static constexpr uint32_t INVALID_INDEX = 0xFFFF'FFFFu;
-static constexpr uint32_t BUFFER_ID_CHECK = 0x10FF'0000u;
-static constexpr uint32_t TEXTURE_ID_CHECK = 0x20FF'0000u;
-
+static constexpr uint32_t BUFFER_ID_CHECK = 0x1F00'0000u;
+static constexpr uint32_t TEXTURE_ID_CHECK = 0x2F00'0000u;
+static constexpr uint32_t INDEX_BITS = 0xFFFFu;
+static constexpr uint32_t DATA_BITS = 0xFF'0000u;
 template <uint32_t TMask>
-requires ( TMask > 0 && ( TMask & 0xFFFFu ) == 0 )
+requires ( TMask > 0 && ( TMask & INDEX_BITS ) == 0 )
 static constexpr uint32_t index2Id( uint32_t index ) { return index | TMask; }
 
 template <uint32_t TMask>
-requires ( TMask > 0 && ( TMask & 0xFFFFu ) == 0 )
+requires ( TMask > 0 && ( TMask & INDEX_BITS ) == 0 )
 static uint32_t id2Index( uint32_t id )
 {
-    if ( ( id & ~0xFFFFu ) == TMask ) [[likely]]
-        return id & 0xFFFFu;
+    const uint32_t MASK = INDEX_BITS | DATA_BITS;
+    if ( ( id & ~MASK ) == TMask ) [[likely]]
+        return id & INDEX_BITS;
     return INVALID_INDEX;
 }
 
 static constexpr auto& bufferIndexToId = index2Id<BUFFER_ID_CHECK>;
 static constexpr auto& bufferIdToIndex = id2Index<BUFFER_ID_CHECK>;
-static constexpr auto& textureIndexToId = index2Id<TEXTURE_ID_CHECK>;
 static constexpr auto& textureIdToIndex = id2Index<TEXTURE_ID_CHECK>;
+static constexpr Texture textureIndexToId( uint32_t index, uint32_t channelCount )
+{
+    assert( channelCount <= 4 );
+    return TEXTURE_ID_CHECK | channelCount << 16 | index;
+}
 
 static Renderer* g_instance = nullptr;
 
@@ -449,12 +455,17 @@ Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::span<const
     TextureVK* oldTex = m_textureSlots[ idx ].exchange( tex );
     assert( !oldTex );
 
-    return textureIndexToId( idx );
+    return textureIndexToId( idx, tex->channels() );
 }
 
 Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::pmr::vector<uint8_t>&& data )
 {
     return createTexture( tci, static_cast<std::span<const uint8_t>>( data ) );
+}
+
+uint32_t RendererVK::channelCount( Texture t ) const
+{
+    return ( t & DATA_BITS ) >> std::countr_zero( DATA_BITS );
 }
 
 void RendererVK::beginFrame()
