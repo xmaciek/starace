@@ -88,10 +88,7 @@ public:
     virtual bool supportedVSync( VSync ) const override;
 
     virtual PipelineSlot createPipeline( const PipelineCreateInfo& ) override;
-    virtual Buffer createBuffer( std::pmr::vector<float>&& ) override;
     virtual Buffer createBuffer( std::span<const float> ) override;
-    virtual std::pmr::memory_resource* allocator() override;
-    virtual Texture createTexture( const TextureCreateInfo&, std::pmr::vector<uint8_t>&& ) override;
     virtual Texture createTexture( const TextureCreateInfo&, std::span<const uint8_t> ) override;
     virtual uint32_t channelCount( Texture ) const override;
     virtual void beginFrame() override;

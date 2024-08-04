@@ -401,16 +401,6 @@ Buffer RendererVK::createBuffer( std::span<const float> vec )
     return bufferIndexToId( idx );
 }
 
-Buffer RendererVK::createBuffer( std::pmr::vector<float>&& vec )
-{
-    return createBuffer( std::span<const float>{ vec.data(), vec.data() + vec.size() } );
-}
-
-std::pmr::memory_resource* RendererVK::allocator()
-{
-    return std::pmr::get_default_resource();
-}
-
 Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::span<const uint8_t> data )
 {
     ZoneScoped;
@@ -456,11 +446,6 @@ Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::span<const
     assert( !oldTex );
 
     return textureIndexToId( idx, tex->channels() );
-}
-
-Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::pmr::vector<uint8_t>&& data )
-{
-    return createTexture( tci, static_cast<std::span<const uint8_t>>( data ) );
 }
 
 uint32_t RendererVK::channelCount( Texture t ) const

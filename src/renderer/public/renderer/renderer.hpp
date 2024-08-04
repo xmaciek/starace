@@ -24,17 +24,13 @@ public:
 
     static Renderer* instance();
 
-    virtual std::pmr::memory_resource* allocator() = 0;
-
     virtual void setVSync( VSync ) = 0;
     virtual bool supportedVSync( VSync ) const = 0;
 
     [[nodiscard]] virtual PipelineSlot createPipeline( const PipelineCreateInfo& ) = 0;
-    [[nodiscard]] virtual Buffer createBuffer( std::pmr::vector<float>&& ) = 0;
     [[nodiscard]] virtual Buffer createBuffer( std::span<const float> ) = 0;
     virtual void deleteBuffer( Buffer ) = 0;
 
-    [[nodiscard]] virtual Texture createTexture( const TextureCreateInfo&, std::pmr::vector<uint8_t>&& ) = 0;
     [[nodiscard]] virtual Texture createTexture( const TextureCreateInfo&, std::span<const uint8_t> ) = 0;
     virtual void deleteTexture( Texture ) = 0;
 
