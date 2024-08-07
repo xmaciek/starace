@@ -21,10 +21,6 @@ private:
 
 public:
     Buffer m_hull{};
-    Buffer m_engines{};
-    Buffer m_wings{};
-    Buffer m_elevators{};
-    Buffer m_fins{};
     Buffer m_thruster{};
     ~Model() = default;
     Model() = default;

@@ -143,8 +143,6 @@ private:
 
     void setupLocalization();
     void setupUI();
-    void setupJetPartsUiModels();
-    void updateJetParts();
 
     // purposefully copy argument
     void render3D( RenderContext );

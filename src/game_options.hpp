@@ -24,17 +24,10 @@ struct OptionsGFX {
     };
 };
 
-using JetPart = std::pair<Buffer, std::pmr::string>;
-using PartModel = ui::Option<JetPart>;
 struct OptionsCustomize {
     ui::GenericDataModel m_jet{};
     ui::GenericDataModel m_weaponPrimary{};
     ui::GenericDataModel m_weaponSecondary{};
-    PartModel m_hull{};
-    PartModel m_engines{};
-    PartModel m_wings{};
-    PartModel m_elevators{};
-    PartModel m_fins{};
 };
 
 struct GameplayUIData {

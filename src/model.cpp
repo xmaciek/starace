@@ -37,17 +37,10 @@ void Model::render( const RenderContext& rctx ) const
     };
     pushData.m_fragmentTexture[ 1 ] = m_texture;
 
-    auto testRender = [&pushData, &pushConstant, rend=rctx.renderer]( auto buff )
-    {
-        if ( !buff ) return;
-        pushData.m_vertexBuffer = buff;
-        rend->push( pushData, &pushConstant );
-    };
-    testRender( m_elevators );
-    testRender( m_fins );
-    testRender( m_engines );
-    testRender( m_wings );
-    testRender( m_hull );
+    if ( m_hull ) {
+        pushData.m_vertexBuffer = m_hull;
+        rctx.renderer->push( pushData, &pushConstant );
+    }
     if ( m_thruster ) {
         PushConstant<Pipeline::eThruster2> p{
             .m_model = math::scale( rctx.model, math::vec3{ meter, meter, meter } ),
