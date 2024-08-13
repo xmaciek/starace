@@ -53,7 +53,6 @@ public:
 
 private:
     Thruster m_thruster[ 2 ]{};
-    AutoLerp<math::vec4> m_thrusterAngles{ {}, {}, 20.0_deg };
     AutoLerp<math::vec2> m_thrusterLength{ { 10.0_m, 10.0_m }, { 10.0_m, 10.0_m }, 10.0_m };
 
     Model m_model{};

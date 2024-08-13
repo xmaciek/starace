@@ -49,22 +49,8 @@ void Jet::render( RenderContext rctx ) const
 
     m_model.render( rctx );
     auto thrusters = m_model.thrusters();
-    if ( !m_vectorThrust ) {
-        for ( const math::vec3& it : thrusters ) {
-            m_thruster[ 0 ].renderAt( rctx, it );
-        }
-    }
-    else {
-        const math::vec4 tangle = m_thrusterAngles.value();
-        const math::mat4 model = rctx.model;
-
-        rctx.model = math::rotate( model, tangle.x + tangle.y, axis::x );
-        m_thruster[ 0 ].renderAt( rctx, thrusters[ 0 ] );
-
-        rctx.model = math::rotate( model, tangle.z + tangle.w, axis::x );
-        m_thruster[ 1 ].renderAt( rctx, thrusters[ 1 ] );
-
-        rctx.model = model;
+    for ( const math::vec3& it : thrusters ) {
+        m_thruster[ 0 ].renderAt( rctx, it );
     }
 
     PushData bd{
@@ -134,14 +120,6 @@ void Jet::update( const UpdateContext& updateContext )
     );
     m_camOffset.update( updateContext.deltaTime );
 
-    math::vec4 thrusterAngles{ -2.5_deg, -2.5_deg, -2.5_deg, 2.5_deg };
-    thrusterAngles *= math::vec4{ m_input.pitch, m_input.roll, m_input.pitch, m_input.roll };
-    m_thrusterAngles.setTarget( thrusterAngles );
-    m_thrusterAngles.update( updateContext.deltaTime );
-
-    float left = 10.0_m + ( m_vectorThrust ? m_input.yaw * 3.0_m : 0.0f ) + m_input.speed * 4.0_m;
-    float right = 10.0_m + ( m_vectorThrust ? m_input.yaw * -3.0_m : 0.0f ) + m_input.speed * 4.0_m;
-    m_thrusterLength.setTarget( { left, right } );
     m_thrusterLength.update( updateContext.deltaTime );
     math::vec2 thrusterLength = m_thrusterLength.value();
     m_thruster[ 0 ].setLength( thrusterLength.x );
