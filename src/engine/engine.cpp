@@ -40,19 +40,19 @@ Engine::Engine( int, char** ) noexcept
         const int initOK = SDL_Init( SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER );
         assert( initOK >= 0 );
     }
-    const int width = 1280;
-    const int height = 720;
-    setViewport( width, height );
+    SDL_DisplayMode desktop{};
+    SDL_GetDesktopDisplayMode( 0, &desktop );
 
     {
         ZoneScopedN( "create window" );
         m_window = SDL_CreateWindow( "Starace"
             , SDL_WINDOWPOS_CENTERED
             , SDL_WINDOWPOS_CENTERED
-            , width
-            , height
+            , desktop.w
+            , desktop.h
             , Renderer::windowFlag
                 | SDL_WINDOW_RESIZABLE
+                | SDL_WINDOW_FULLSCREEN_DESKTOP
         );
         assert( m_window );
     }
