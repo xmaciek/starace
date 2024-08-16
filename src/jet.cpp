@@ -161,7 +161,7 @@ bool Jet::isShooting( uint32_t weaponNum ) const
     switch ( weaponNum ) {
     case 0: return m_input.shoot1;
     case 1: return m_input.shoot2;
-    case 2: return m_input.shoot3;
+    case 2: return m_input.shoot1;
     [[unlikely]]
     default:
         assert( !"weapon index out of range" );

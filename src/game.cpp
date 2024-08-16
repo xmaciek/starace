@@ -30,8 +30,6 @@ constexpr std::tuple<GameAction, Actuator> inputActions[] = {
     { GameAction::eJetShoot1, SDL_SCANCODE_J },
     { GameAction::eJetShoot2, SDL_CONTROLLER_BUTTON_X },
     { GameAction::eJetShoot2, SDL_SCANCODE_K },
-    { GameAction::eJetShoot3, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER },
-    { GameAction::eJetShoot3, SDL_SCANCODE_L },
     { GameAction::eJetTarget, SDL_CONTROLLER_BUTTON_Y },
     { GameAction::eJetTarget, SDL_SCANCODE_I },
     { GameAction::eJetLookAt, SDL_CONTROLLER_BUTTON_LEFTSHOULDER },
@@ -862,7 +860,6 @@ void Game::onAction( Action a )
     case GameAction::eJetRoll: m_jetInput.roll = a.analog(); break;
     case GameAction::eJetShoot1: m_jetInput.shoot1 = a.digital(); break;
     case GameAction::eJetShoot2: m_jetInput.shoot2 = a.digital(); break;
-    case GameAction::eJetShoot3: m_jetInput.shoot3 = a.digital(); break;
     case GameAction::eJetSpeed: m_jetInput.speed = a.analog(); break;
     case GameAction::eJetLookAt: m_jetInput.lookAt = a.digital(); break;
     default: break;
