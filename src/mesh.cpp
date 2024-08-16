@@ -32,19 +32,19 @@ Mesh::Mesh( std::span<const uint8_t> data, Renderer* renderer ) noexcept
 
         assert( chunk.magic == obj::Chunk::MAGIC );
         // TODO: configure outside mesh file
-        if ( chunk.name == "weapons"sv ) {
-            assert( chunk.floatCount == 9 );
-            for ( auto&& it : m_hardpoints ) {
+        if ( chunk.name == "hardpoints.primary"sv ) {
+            assert( chunk.floatCount == 6 );
+            for ( auto&& it : m_hardpointsPrimary ) {
                 std::memcpy( &it, ptr, sizeof( float ) * 3 );
                 std::advance( ptr, sizeof( float ) * 3 );
             }
             continue;
         }
-        if ( chunk.name == "hardpoints"sv ) {
-            assert( chunk.floatCount == 18 );
-            for ( auto&& it : m_hardpoints ) {
-                std::memcpy( &it, ptr, 3 * sizeof( float ) );
-                std::advance( ptr, 6 * sizeof( float ) ); // skip 2nd vertice in line
+        if ( chunk.name == "hardpoints.secondary"sv ) {
+            assert( chunk.floatCount == 3 );
+            for ( auto&& it : m_hardpointsSecondary ) {
+                std::memcpy( &it, ptr, sizeof( float ) * 3 );
+                std::advance( ptr, sizeof( float ) * 3 );
             }
             continue;
         }

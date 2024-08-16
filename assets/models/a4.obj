@@ -425,9 +425,10 @@ f 14/17/58 15/19/58 58/91/58
 f 60/114/66 61/153/66 35/115/66
 f 62/123/69 61/153/69 60/114/69
 f 37/52/83 36/51/83 51/89/83
-o weapons
+o hardpoints.primary
 p 66
-p 67
 p 68
+o hardpoints.secondary
+p 67
 o thruster
 p 69

@@ -18,7 +18,8 @@ class Mesh {
     // TODO revisit with complying map __cpp_lib_generic_unordered_lookup, or drop key altogether
     std::pmr::unordered_map<std::pmr::string, Buffer> m_map{};
 public:
-    std::array<math::vec3, 3> m_hardpoints{}; // todo
+    std::array<math::vec3, 2> m_hardpointsPrimary{}; // todo
+    std::array<math::vec3, 1> m_hardpointsSecondary{}; // todo
     std::array<math::vec3, 2> m_thrusters{}; // todo
     uint32_t m_thrusterCount = 0;
 

@@ -17,7 +17,9 @@ Model::Model( const Mesh& mesh, Texture t ) noexcept
 : m_texture{ t }
 , m_hull{ mesh[ "hull"sv ] }
 {
-    m_weapons = mesh.m_hardpoints;
+    m_weapons[ 0 ] = mesh.m_hardpointsPrimary[ 0 ];
+    m_weapons[ 1 ] = mesh.m_hardpointsSecondary[ 0 ];
+    m_weapons[ 2 ] = mesh.m_hardpointsPrimary[ 1 ];
     m_thrusters.resize( mesh.m_thrusterCount );
     std::copy_n( mesh.m_thrusters.begin(), mesh.m_thrusterCount, m_thrusters.begin() );
 }
