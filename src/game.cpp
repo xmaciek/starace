@@ -865,8 +865,8 @@ void Game::onAction( Action a )
     default: break;
     }
 
-    ui::Screen* screen = currentScreen();
     do {
+        ui::Screen* screen = currentScreen();
         if ( !screen ) break;
         if ( !a.testEnumRange<(Action::Enum)ui::Action::base, (Action::Enum)ui::Action::end>() ) break;
         screen->onAction( ui::Action{ .a = a.toA<ui::Action::Enum>(), .value = a.value } );
