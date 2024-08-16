@@ -22,10 +22,10 @@ Targeting::Targeting( const Targeting::CreateInfo& ci )
 
 void Targeting::render( const RenderContext& rctx ) const
 {
-    if ( !m_pos ) {
+    if ( !m_enabled ) {
         return;
     }
-    const math::vec3 pos2d = project3dTo2d( rctx.camera3d, *m_pos, rctx.viewport );
+    const math::vec3 pos2d = project3dTo2d( rctx.camera3d, position(), rctx.viewport );
     if ( !isOnScreen( pos2d, rctx.viewport ) ) {
         return;
     }
@@ -71,14 +71,14 @@ void Targeting::render( const RenderContext& rctx ) const
     rctx.renderer->push( pushData, &pushConstant );
 }
 
-void Targeting::setPos( const math::vec3& v )
+math::vec3 Targeting::position() const
 {
-    m_pos = v;
+    return math::vec3{ m_pos.x, m_pos.y, m_pos.z };
 }
 
 void Targeting::hide()
 {
-    m_pos.reset();
+    m_enabled = false;
 }
 
 void Targeting::update( const UpdateContext& uctx )
@@ -86,12 +86,8 @@ void Targeting::update( const UpdateContext& uctx )
     m_state.update( uctx.deltaTime );
 }
 
-void Targeting::setState( float f )
+void Targeting::setState( math::vec4 f )
 {
-    m_state.setTarget( f );
-}
-
-const math::vec3* Targeting::target() const
-{
-    return m_pos ? &*m_pos : nullptr;
+    m_pos = f;
+    m_state.setTarget( f.w );
 }

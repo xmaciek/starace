@@ -5,6 +5,13 @@
 #include <engine/update_context.hpp>
 
 #include <cstdint>
+#include <optional>
+#include <span>
+
+struct Signal {
+    math::vec3 position{};
+    uint32_t team;
+};
 
 class SAObject {
 public:
@@ -38,6 +45,9 @@ public:
         const float p = static_cast<float>( point ) * 0.05f;
         return 1.0f + p / ( 1.0f + p );
     }
+
+    static std::optional<Signal> scanSignals( math::vec3 pos, std::span<const Signal> );
+
 protected:
     math::vec3 m_direction{};
     math::vec3 m_position{};

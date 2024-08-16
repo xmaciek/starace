@@ -615,7 +615,9 @@ void Game::updateGame( const UpdateContext& updateContext )
     Bullet::updateAll( updateContext, m_bullets, m_gameScene.explosions(), m_plasma );
     Enemy::updateAll( updateContext, m_enemies );
     m_gameScene.update( updateContext, m_jet.position(), m_jet.velocity() );
-
+    std::pmr::vector<Signal> signals( m_enemies.size() );
+    std::transform( m_enemies.begin(), m_enemies.end(), signals.begin(), []( const auto& p ) { return p->signal(); } );
+    m_jet.scanSignals( signals, updateContext.deltaTime );
     {
         auto soundsToPlay = m_jet.shoot( m_bullets );
         for ( auto&& i : soundsToPlay ) {
@@ -678,22 +680,15 @@ void Game::updateGame( const UpdateContext& updateContext )
         auto isDead = []( const auto& it ) -> bool { return it->status() == SAObject::Status::eDead; };
         for ( auto& e : m_enemies ) {
             if ( isDead( e ) ) {
-                m_jet.untarget( e.get() );
                 m_gameScene.explosions().emplace_back( e->position(), e->velocity(), color::yellowBlaster, m_plasma, 64.0_m, 0.0f );
                 continue;
             }
         }
         std::erase_if( m_enemies, isDead );
     }
-    const SAObject* tgt = m_jet.target();
-    if ( tgt ) {
-        m_targeting.setPos( tgt->position() );
-    } else {
-        m_targeting.hide();
-    }
 
-    m_targeting.update( updateContext );
     m_targeting.setState( m_jet.targetingState() );
+    m_targeting.update( updateContext );
     m_gameplayUIData.m_playerHP = static_cast<float>( m_jet.health() ) / 100.0f;
     m_gameplayUIData.m_jetSpeed = m_jet.speed() / 1600_kmph;
 
@@ -706,7 +701,7 @@ void Game::retarget()
     }
 
     struct TgtInfo {
-        SAObject* obj;
+        Signal s;
         float dist;
         bool operator < ( const TgtInfo& rhs ) const noexcept
         {
@@ -716,17 +711,16 @@ void Game::retarget()
 
     math::vec3 jetPos = m_jet.position();
     math::vec3 jetDir = m_jet.direction();
-    std::pmr::vector<TgtInfo> tgtInfo;
-    tgtInfo.resize( m_enemies.size() );
-    std::transform( m_enemies.begin(), m_enemies.end(), tgtInfo.begin(),
-        [jetPos, jetDir]( auto& obj ) -> TgtInfo
-        {
-            return { obj.get(), math::angle( math::normalize( obj->position() - jetPos ), jetDir ) };
-        }
-    );
-    auto it = std::min_element( tgtInfo.begin(), tgtInfo.end() );
-
-    m_jet.setTarget( it->obj );
+    Signal s{};
+    auto proc = [f=std::numeric_limits<float>::max(), jetPos, jetDir, &s]( auto& obj ) mutable
+    {
+        float angle = math::angle( math::normalize( obj->position() - jetPos ), jetDir );
+        if ( angle > f ) return;
+        f = angle;
+        s = obj->signal();
+    };
+    std::for_each( m_enemies.begin(), m_enemies.end(), std::move( proc ) );
+    m_jet.setTarget( s );
 }
 
 void Game::clearMapData()
@@ -759,6 +753,7 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
         ptr->setWeapon( m_enemyWeapon );
         return ptr;
     });
+    m_jet.setTarget( m_enemies.front()->signal() );
 
 }
 
@@ -926,7 +921,7 @@ std::tuple<math::vec3, math::vec3, math::vec3> Game::getCamera() const
     math::vec3 jetCamUp = math::vec3{ 0, 1, 0 } * m_jet.rotation();
     math::vec3 jetCamTgt = jetCamPos + m_jet.cameraDirection();
 
-    math::vec3 lookAtTgt = m_targeting.target() ? *m_targeting.target() : jetCamTgt;
+    math::vec3 lookAtTgt = m_targeting ? m_targeting.position() : jetCamTgt;
     math::vec3 lookAtPos = math::vec3{ 0.0f, -20.0_m, 0.0f } * m_jet.rotation() + jetPos - math::normalize( lookAtTgt - jetPos ) * 42.8_m;
 
     math::vec3 retPos = math::slerp( jetCamPos, lookAtPos, m_lookAtTarget.value() );

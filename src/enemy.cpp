@@ -47,6 +47,11 @@ void Enemy::shoot( std::pmr::vector<Bullet>& vec )
     b.m_quat = quat();
 }
 
+Signal Enemy::signal() const
+{
+    return Signal{ .position = position() };
+}
+
 void Enemy::renderAll( const RenderContext& rctx, std::span<const UniquePointer<Enemy>> span )
 {
     ZoneScoped;

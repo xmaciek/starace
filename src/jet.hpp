@@ -82,7 +82,9 @@ private:
 
     PointInfo m_points{};
     Input m_input{};
-    bool m_vectorThrust = true;
+
+    Signal m_targetSignal{};
+    math::vec3 m_targetVelocity{};
 
     math::vec3 weaponPoint( uint32_t ) const;
     bool isShooting( uint32_t ) const;
@@ -101,11 +103,12 @@ public:
     virtual void update( const UpdateContext& ) override;
     void lockTarget( SAObject* );
     void processCollision( std::vector<Bullet*>& );
-    void setModel( Model* );
     void untarget( const SAObject* );
     void setInput( const Input& );
+    void scanSignals( std::span<const Signal>, float dt );
+    void setTarget( Signal );
 
-    float targetingState() const;
+    math::vec4 targetingState() const;
     math::vec3 cameraPosition() const;
     math::vec3 cameraDirection() const;
 };

@@ -11,6 +11,7 @@
 #include <span>
 #include <vector>
 
+
 class Enemy : public SAObject {
 private:
     WeaponCreateInfo m_weapon{};
@@ -29,6 +30,7 @@ public:
     virtual void render( RenderContext ) const override;
     virtual void update( const UpdateContext& ) override;
     void setWeapon( const WeaponCreateInfo& );
+    Signal signal() const;
 
     static void renderAll( const RenderContext&, std::span<const UniquePointer<Enemy>> );
     static void updateAll( const UpdateContext&, std::span<UniquePointer<Enemy>> );

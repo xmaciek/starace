@@ -1,6 +1,6 @@
 #include "saobject.hpp"
 
-#include <cmath>
+#include <algorithm>
 
 SAObject::Status SAObject::status() const
 {
@@ -64,6 +64,17 @@ void SAObject::update( const UpdateContext& )
     if ( m_health == 0 ) {
         setStatus( Status::eDead );
     }
+}
+
+std::optional<Signal> SAObject::scanSignals( math::vec3 position, std::span<const Signal> signals )
+{
+    if ( signals.empty() ) return {};
+
+    auto proc = [position]( const Signal& lhs, const Signal& rhs )
+    {
+        return math::distance( position, lhs.position ) < math::distance( position, rhs.position );
+    };
+    return *std::min_element( signals.begin(), signals.end(), std::move( proc ) );
 }
 
 SAObject* SAObject::target() const

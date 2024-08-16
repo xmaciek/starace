@@ -12,10 +12,11 @@
 #include <optional>
 
 class Targeting {
-    std::optional<math::vec3> m_pos{};
+    math::vec4 m_pos{ 0.0f, 0.0f, 1.0f, 0.0f };
     AutoLerp<float> m_state{ 0.0f, 1.0f, 4.0f };
     std::array<math::vec4, 4> m_xyuv{};
     Texture m_texture{};
+    bool m_enabled = true;
 
 public:
     struct CreateInfo {
@@ -26,10 +27,9 @@ public:
     Targeting( const CreateInfo& );
 
     void render( const RenderContext& ) const;
-    void setPos( const math::vec3& );
     void hide();
     void update( const UpdateContext& );
-    void setState( float );
-    const math::vec3* target() const;
-
+    void setState( math::vec4 );
+    math::vec3 position() const;
+    inline operator bool () const { return m_enabled; }
 };

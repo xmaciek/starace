@@ -33,7 +33,6 @@ Jet::Jet( const CreateInfo& ci ) noexcept
     m_speedCurveMax *= pointsToMultiplier( m_points.speedMax );
     m_speed = math::curve( m_speedCurveMin, m_speedCurveNorm, m_speedCurveMax, 0.5f );
     m_speedTarget = { m_speed, m_speed, m_accell };
-    m_vectorThrust = ci.vectorThrust && m_model.thrusters().size() == 2;
     setStatus( Status::eAlive );
 
     std::transform( m_weapons.begin(), m_weapons.end(), m_weaponsCooldown.begin(),
@@ -133,18 +132,28 @@ void Jet::update( const UpdateContext& updateContext )
     m_thruster[ 0 ].update( updateContext );
     m_thruster[ 1 ].update( updateContext );
 
-    if ( m_target ) {
-        if ( m_target->status() != Status::eAlive ) {
-            m_target = nullptr;
-        }
-    }
 }
 
-float Jet::targetingState() const
+void Jet::scanSignals( std::span<const Signal> signals, float dt )
 {
-    if ( !m_target ) return 0.0f;
+    auto tgt = SAObject::scanSignals( m_targetSignal.position, signals );
+    if ( !tgt ) return;
 
-    return AutoAim{}.matches( position(), direction(), m_target->position() ) ? 1.0f : 0.0f;
+    m_targetVelocity = ( tgt->position - m_targetSignal.position ) / dt;
+    m_targetSignal = *tgt;
+}
+
+void Jet::setTarget( Signal v )
+{
+    m_targetSignal = v;
+    m_targetVelocity = {};
+}
+
+math::vec4 Jet::targetingState() const
+{
+    const math::vec3 p = m_targetSignal.position;
+    const float f = static_cast<float>( AutoAim{}.matches( position(), direction(), p ) );
+    return math::vec4{ p, f };
 }
 
 bool Jet::isShooting( uint32_t weaponNum ) const
@@ -175,22 +184,14 @@ Bullet Jet::weapon( uint32_t weaponNum )
     b.m_collideId = COLLIDE_ID;
     switch ( b.m_type ) {
     case Bullet::Type::eLaser:
-        break;
     case Bullet::Type::eTorpedo:
-        if ( m_target && m_target->status() == Status::eAlive ) {
-            b.m_target = m_target;
-        }
         break;
     case Bullet::Type::eBlaster: {
-        // auto-aiming
-        if ( !m_target || m_target->status() != Status::eAlive ) {
-            break;
-        }
         AutoAim autoAim{};
-        if ( !autoAim.matches( position(), direction(), m_target->position() ) ) {
+        if ( !autoAim.matches( position(), direction(), m_targetSignal.position ) ) {
             break;
         }
-        b.m_direction = autoAim( b.m_speed, b.m_position, m_target->position(), m_target->velocity() );
+        b.m_direction = autoAim( b.m_speed, b.m_position, m_targetSignal.position, m_targetVelocity );
     } break;
     default:
         assert( !"unreachable" );
@@ -223,13 +224,6 @@ math::quat Jet::quat() const
 math::quat Jet::rotation() const
 {
     return math::inverse( m_quaternion );
-}
-
-void Jet::untarget( const SAObject* tgt )
-{
-    if ( m_target == tgt ) {
-        m_target = nullptr;
-    }
 }
 
 void Jet::setInput( const Jet::Input& input )
