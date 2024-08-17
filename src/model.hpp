@@ -16,7 +16,6 @@
 class Model {
 private:
     Texture m_texture{};
-    std::vector<math::vec3> m_thrusters{};
     std::array<math::vec3, 3> m_weapons{};
 
 public:

@@ -16,12 +16,11 @@ using std::operator ""sv;
 Model::Model( const Mesh& mesh, Texture t ) noexcept
 : m_texture{ t }
 , m_hull{ mesh[ "hull"sv ] }
+, m_thruster{ mesh[ "thruster"sv ] }
 {
     m_weapons[ 0 ] = mesh.m_hardpointsPrimary[ 0 ];
     m_weapons[ 1 ] = mesh.m_hardpointsSecondary[ 0 ];
     m_weapons[ 2 ] = mesh.m_hardpointsPrimary[ 1 ];
-    m_thrusters.resize( mesh.m_thrusterCount );
-    std::copy_n( mesh.m_thrusters.begin(), mesh.m_thrusterCount, m_thrusters.begin() );
 }
 
 void Model::render( const RenderContext& rctx ) const
@@ -61,12 +60,7 @@ void Model::render( const RenderContext& rctx ) const
 
 std::vector<math::vec3> Model::thrusters() const
 {
-    ZoneScoped;
-    std::vector<math::vec3> vec = m_thrusters;
-    for ( auto& it : vec ) {
-        it *= (float)meter;
-    }
-    return vec;
+    return {};
 }
 
 math::vec3 Model::weapon( uint32_t i ) const

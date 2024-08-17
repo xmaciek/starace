@@ -48,27 +48,6 @@ Mesh::Mesh( std::span<const uint8_t> data, Renderer* renderer ) noexcept
             }
             continue;
         }
-        if ( chunk.name == "thruster"sv ) {
-            assert( chunk.floatCount == 3 || chunk.floatCount == 6 );
-            m_thrusterCount = chunk.floatCount / 3;
-            switch ( chunk.floatCount ) {
-            case 6:
-                std::memcpy( &m_thrusters[0], ptr, sizeof( float ) * 3 );
-                std::advance( ptr, sizeof( float ) * 3 );
-                std::memcpy( &m_thrusters[1], ptr, sizeof( float ) * 3 );
-                std::advance( ptr, sizeof( float ) * 3 );
-                break;
-            case 3:
-                std::memcpy( &m_thrusters[0], ptr, sizeof( float ) * 3 );
-                std::advance( ptr, sizeof( float ) * 3 );
-                break;
-            default:
-                assert( !"unexpected number of floats for thrusters points" );
-                break;
-            }
-            continue;
-        }
-
         const float* floats = reinterpret_cast<const float*>( ptr );
         std::span<const float> span{ floats, floats + chunk.floatCount };
         const uint32_t bytesToLoad = chunk.floatCount * sizeof( float );
