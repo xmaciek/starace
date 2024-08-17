@@ -1,4 +1,4 @@
-#include <engine/async_io.hpp>
+#include <engine/filesystem.hpp>
 #include <extra/pak.hpp>
 
 #include <Tracy.hpp>
@@ -9,17 +9,17 @@
 #include <fstream>
 #include <utility>
 
-AsyncIO::~AsyncIO() noexcept
+Filesystem::~Filesystem() noexcept
 {
     m_isRunning.store( false );
 
 }
 
-AsyncIO::AsyncIO() noexcept = default;
+Filesystem::Filesystem() noexcept = default;
 
-std::span<const uint8_t> AsyncIO::viewWait( const std::filesystem::path& path )
+std::span<const uint8_t> Filesystem::viewWait( const std::filesystem::path& path )
 {
-    ZoneScopedN( "AsyncIO viewWait" );
+    ZoneScopedN( "Filesystem viewWait" );
     while ( m_isRunning.load() ) {
         std::scoped_lock<std::mutex> sl( m_bottleneck );
         auto it = m_blobView.find( path );
@@ -46,7 +46,7 @@ static bool readRaw( std::ifstream& ifs, std::pmr::vector<T>& data )
     return true;
 }
 
-void AsyncIO::mount( const std::filesystem::path& path )
+void Filesystem::mount( const std::filesystem::path& path )
 {
     ZoneScoped;
     if ( path.extension() != ".pak" ) {

@@ -29,7 +29,7 @@ Engine::~Engine() noexcept
 Engine::Engine( int, char** ) noexcept
 {
     ZoneScoped;
-    m_ioPtr = std::make_unique<AsyncIO>();
+    m_ioPtr = std::make_unique<Filesystem>();
     m_io = m_ioPtr.get();
 
     {

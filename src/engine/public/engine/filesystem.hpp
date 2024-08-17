@@ -11,7 +11,7 @@
 #include <span>
 
 // TODO Not much of an async left, rename to something more fitting new desing
-class AsyncIO {
+class Filesystem {
 private:
     std::mutex m_bottleneck;
 
@@ -21,8 +21,8 @@ private:
     std::atomic<bool> m_isRunning = true;
 
 public:
-    ~AsyncIO() noexcept;
-    AsyncIO() noexcept;
+    ~Filesystem() noexcept;
+    Filesystem() noexcept;
 
     void mount( const std::filesystem::path& );
     std::span<const uint8_t> viewWait( const std::filesystem::path& );

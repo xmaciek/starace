@@ -1,7 +1,7 @@
 #pragma once
 
 #include <engine/action.hpp>
-#include <engine/async_io.hpp>
+#include <engine/filesystem.hpp>
 #include <engine/fps_limiter.hpp>
 #include <engine/update_context.hpp>
 #include <engine/render_context.hpp>
@@ -36,7 +36,7 @@ private:
 
     SDL_Window* m_window = nullptr;
     std::tuple<uint32_t, uint32_t, float> m_viewport{};
-    std::unique_ptr<AsyncIO> m_ioPtr{};
+    std::unique_ptr<Filesystem> m_ioPtr{};
     std::unique_ptr<Audio> m_audioPtr{};
     std::unique_ptr<Renderer> m_rendererPtr{};
 
@@ -44,7 +44,7 @@ private:
     std::pmr::vector<SDL_Event> m_events{};
 
 protected:
-    AsyncIO* m_io = nullptr;
+    Filesystem* m_io = nullptr;
     Audio* m_audio = nullptr;
     Renderer* m_renderer = nullptr;
 
