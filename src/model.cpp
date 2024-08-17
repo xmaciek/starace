@@ -25,7 +25,6 @@ Model::Model( const Mesh& mesh, Texture t ) noexcept
 
 void Model::render( const RenderContext& rctx ) const
 {
-    // assert( m_vertices );
     ZoneScoped;
     PushConstant<Pipeline::eMesh> pushConstant{
         .m_model = math::scale( rctx.model, math::vec3{ meter, meter, meter } ),
