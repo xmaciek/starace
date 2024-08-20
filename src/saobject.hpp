@@ -10,7 +10,8 @@
 
 struct Signal {
     math::vec3 position{};
-    uint32_t team;
+    uint32_t team = 0xFFFF'FFFF;
+    inline operator bool () const { return team != 0xFFFF'FFFF; }
 };
 
 class SAObject {
@@ -46,7 +47,7 @@ public:
         return 1.0f + p / ( 1.0f + p );
     }
 
-    static std::optional<Signal> scanSignals( math::vec3 pos, std::span<const Signal> );
+    static Signal scanSignals( math::vec3 pos, std::span<const Signal> );
 
 protected:
     math::vec3 m_direction{};

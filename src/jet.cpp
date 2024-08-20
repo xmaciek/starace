@@ -139,8 +139,8 @@ void Jet::scanSignals( std::span<const Signal> signals, float dt )
     auto tgt = SAObject::scanSignals( m_targetSignal.position, signals );
     if ( !tgt ) return;
 
-    m_targetVelocity = ( tgt->position - m_targetSignal.position ) / dt;
-    m_targetSignal = *tgt;
+    m_targetVelocity = ( tgt.position - m_targetSignal.position ) / dt;
+    m_targetSignal = tgt;
 }
 
 void Jet::setTarget( Signal v )
@@ -182,6 +182,7 @@ Bullet Jet::weapon( uint32_t weaponNum )
     m_weaponsCooldown[ weaponNum ].current = 0.0f;
     Bullet b{ m_weapons[ weaponNum ], math::rotate( quat(), m_model.weapon( weaponNum ) ) + position(), direction() };
     b.m_collideId = COLLIDE_ID;
+    b.m_target = m_targetSignal;
     switch ( b.m_type ) {
     case Bullet::Type::eLaser:
     case Bullet::Type::eTorpedo:

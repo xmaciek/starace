@@ -616,6 +616,7 @@ void Game::updateGame( const UpdateContext& updateContext )
     std::pmr::vector<Signal> signals( m_enemies.size() );
     std::transform( m_enemies.begin(), m_enemies.end(), signals.begin(), []( const auto& p ) { return p->signal(); } );
     m_jet.scanSignals( signals, updateContext.deltaTime );
+    Bullet::scanSignals( m_bullets, signals );
     {
         auto soundsToPlay = m_jet.shoot( m_bullets );
         for ( auto&& i : soundsToPlay ) {

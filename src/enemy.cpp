@@ -49,7 +49,7 @@ void Enemy::shoot( std::pmr::vector<Bullet>& vec )
 
 Signal Enemy::signal() const
 {
-    return Signal{ .position = position() };
+    return Signal{ .position = position(), .team = 0 };
 }
 
 void Enemy::renderAll( const RenderContext& rctx, std::span<const UniquePointer<Enemy>> span )

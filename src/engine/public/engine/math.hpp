@@ -70,6 +70,12 @@ inline auto billboard( const vec3& position, const vec3& cameraPosition, const v
 };
 
 
+inline float manhattan( vec3 a, vec3 b )
+{
+    const vec3 ret = abs( b - a );
+    return ret.x + ret.y + ret.z;
+}
+
 inline float length( float f )
 {
     return glm::abs( f );

@@ -15,6 +15,7 @@ Bullet::Bullet( const WeaponCreateInfo& bp, const math::vec3& position, const ma
 , m_prevPosition{ position }
 , m_color1{ bp.color1 }
 , m_color2{ bp.color2 }
+, m_target{ bp.target }
 , m_speed{ bp.speed }
 , m_maxDistance{ bp.distance }
 , m_size{ bp.size }
@@ -71,7 +72,7 @@ void Bullet::updateAll( const UpdateContext& updateContext, std::span<Bullet> sp
         switch ( bullet.m_type ) {
         case Type::eTorpedo:
             if ( bullet.m_target ) {
-                const math::vec3 tgtDir = math::normalize( bullet.m_target->position() - bullet.m_position );
+                const math::vec3 tgtDir = math::normalize( bullet.m_target.position - bullet.m_position );
                 const float angle = math::angle( bullet.m_direction, tgtDir );
                 const float anglePerUpdate = std::min( angle, 160.0_deg * dt );
                 bullet.m_direction = math::normalize( math::slerp( bullet.m_direction, tgtDir, anglePerUpdate / angle ) );
@@ -102,3 +103,23 @@ void Bullet::updateAll( const UpdateContext& updateContext, std::span<Bullet> sp
     };
     std::for_each( span.begin(), span.end(), update );
 };
+
+void Bullet::scanSignals( std::span<Bullet> bullets, std::span<const Signal> signals )
+{
+    if ( signals.empty() ) return;
+    for ( auto&& bullet : bullets ) {
+        if ( bullet.m_type != Type::eTorpedo ) continue;
+        if ( !bullet.m_target ) continue;
+        Signal ret = bullet.m_target;
+        auto evalSignal = [&ret, pos = ret.position, dist = std::numeric_limits<float>::max(), team = bullet.m_collideId]( const Signal& sig ) mutable
+        {
+            if ( sig.team == team ) return;
+            float d = math::manhattan( pos, sig.position );
+            if ( d > dist ) return;
+            ret = sig;
+            dist = d;
+        };
+        std::for_each( signals.begin(), signals.end(), std::move( evalSignal ) );
+        bullet.m_target = ret;
+    }
+}

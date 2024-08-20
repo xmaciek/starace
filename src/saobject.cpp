@@ -66,7 +66,7 @@ void SAObject::update( const UpdateContext& )
     }
 }
 
-std::optional<Signal> SAObject::scanSignals( math::vec3 position, std::span<const Signal> signals )
+Signal SAObject::scanSignals( math::vec3 position, std::span<const Signal> signals )
 {
     if ( signals.empty() ) return {};
 

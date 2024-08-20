@@ -32,7 +32,7 @@ public:
     math::vec3 m_prevPosition{};
     math::vec4 m_color1{};
     math::vec4 m_color2{};
-    const SAObject* m_target = nullptr;
+    Signal m_target{};
     float m_speed = 0.0f;
     float m_travelDistance = 0.0f;
     float m_maxDistance = 0.0f;
@@ -47,11 +47,13 @@ public:
 
     static void updateAll( const UpdateContext&, std::span<Bullet>, std::pmr::vector<Explosion>&, Texture );
     static void renderAll( const RenderContext&, std::span<Bullet>, Texture );
+    static void scanSignals( std::span<Bullet>, std::span<const Signal> );
 };
 
 struct WeaponCreateInfo {
     math::vec4 color1{};
     math::vec4 color2{};
+    Signal target{};
     float delay = 0.0f;
     float speed = 0.0f;
     float distance = 0.0;
