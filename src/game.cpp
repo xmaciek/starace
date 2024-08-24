@@ -250,24 +250,24 @@ void Game::onInit()
     m_torpedo = m_audio->load( m_io->viewWait( "sounds/torpedo.wav" ) );
     m_click = m_audio->load( m_io->viewWait( "sounds/click.wav" ) );
 
-    auto loadTexture = [&tex = m_textures, &io = m_io]( auto path )
+    auto loadTexture = [&tex = m_textures, &io = m_io]( auto path ) -> Texture
     {
-        return tex[ path ] = parseTexture( io->viewWait( path ) );
+        auto&& [ it, inserted ] = tex.insert( std::make_pair( path, Texture{} ) );
+        if ( inserted ) {
+            it->second = parseTexture( io->viewWait( path ) );
+        }
+        return it->second;
     };
-    loadTexture( "textures/a2.dds" );
-    loadTexture( "textures/a3.dds" );
-    loadTexture( "textures/a4.dds" );
-    loadTexture( "textures/a5.dds" );
     m_plasma = loadTexture( "textures/plasma.dds" );
 
-    auto loadMesh = [&m = m_meshes, &io = m_io, &r = m_renderer]( auto path )
+    auto loadMesh = [&m = m_meshes, &io = m_io, &r = m_renderer]( auto path ) -> Mesh&
     {
-        m[ path ] = Mesh{ io->viewWait( path ), r };
+        auto&& [ it, inserted ] = m.insert( std::make_pair( path, Mesh{} ) );
+        if ( inserted ) {
+            it->second = Mesh{ io->viewWait( path ), r };
+        }
+        return it->second;
     };
-    loadMesh( "models/a2.objc" );
-    loadMesh( "models/a3.objc" );
-    loadMesh( "models/a4.objc" );
-    loadMesh( "models/a5.objc" );
 
     cfg::Entry weapons = cfg::Entry::fromData( m_io->viewWait( "misc/weapons.cfg" ) );
     for ( const auto& it : weapons ) {
@@ -284,7 +284,9 @@ void Game::onInit()
     m_jetsContainer = loadJets( m_io->viewWait( "misc/jets.cfg" ) );
     assert( !m_jetsContainer.empty() );
     for ( auto& it : m_jetsContainer ) {
-        it.model = Model( m_meshes[ it.model_file ], m_textures[ it.model_texture ] );
+        auto&& texture = loadTexture( it.model_texture );
+        auto&& mesh = loadMesh( it.model_file );
+        it.model = Model{ mesh, texture };
     }
 
     m_enemyModel = Model{ m_meshes[ "models/a2.objc" ], m_textures[ "textures/a2.dds" ] };

@@ -66,7 +66,7 @@ Buffer Mesh::operator [] ( std::string_view v ) const noexcept
 
 Mesh::~Mesh() noexcept
 {
-    assert( m_renderer );
+    if ( !m_renderer ) return;
     for ( const auto& it : m_map ) {
         m_renderer->deleteBuffer( it.second );
     }
