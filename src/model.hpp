@@ -26,7 +26,6 @@ public:
     Model( const Mesh&, Texture ) noexcept;
 
     math::vec3 weapon( uint32_t ) const;
-    std::vector<math::vec3> thrusters() const;
     void render( const RenderContext& ) const;
 
 };

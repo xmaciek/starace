@@ -5,7 +5,6 @@
 #include "model.hpp"
 #include "model_proto.hpp"
 #include "saobject.hpp"
-#include "thruster.hpp"
 #include "units.hpp"
 
 #include <shared/pmr_pointer.hpp>
@@ -51,9 +50,6 @@ public:
     };
 
 private:
-    Thruster m_thruster[ 2 ]{};
-    AutoLerp<math::vec2> m_thrusterLength{ { 10.0_m, 10.0_m }, { 10.0_m, 10.0_m }, 10.0_m };
-
     Model m_model{};
 
     struct WeaponCooldown {

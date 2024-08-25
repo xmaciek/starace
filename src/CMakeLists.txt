@@ -42,8 +42,6 @@ set( STARACE_SOURCES
     model_proto.hpp
     saobject.cpp
     saobject.hpp
-    shield.cpp
-    shield.hpp
     skybox.cpp
     skybox.hpp
     space_dust.cpp
@@ -52,8 +50,6 @@ set( STARACE_SOURCES
     targeting.hpp
     texture.cpp
     texture.hpp
-    thruster.cpp
-    thruster.hpp
     ui_glow.cpp
     ui_glow.hpp
     ui_options_models.hpp

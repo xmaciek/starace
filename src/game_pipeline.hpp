@@ -4,9 +4,6 @@
 #include <engine/math.hpp>
 
 enum class Pipeline : PipelineSlot {
-    eLine3dColor1,
-    eLine3dStripColor,
-    eTriangleFan3dColor,
     eTriangleFan3dTexture,
     eGlow,
     eBackground,
@@ -25,15 +22,6 @@ enum class Pipeline : PipelineSlot {
 
 template <Pipeline P>
 struct PushConstant;
-
-template <>
-struct PushConstant<Pipeline::eLine3dStripColor> {
-    math::mat4 m_model{};
-    math::mat4 m_view{};
-    math::mat4 m_projection{};
-    std::array<math::vec4, 32> m_vertices{};
-    std::array<math::vec4, 32> m_colors{};
-};
 
 template <>
 struct PushConstant<Pipeline::eTriangleFan3dTexture> {
@@ -55,15 +43,6 @@ struct PushConstant<Pipeline::eBackground> {
 };
 
 template <>
-struct PushConstant<Pipeline::eLine3dColor1> {
-    math::mat4 m_model{};
-    math::mat4 m_view{};
-    math::mat4 m_projection{};
-    math::vec4 m_color{};
-    std::array<math::vec4, 200> m_vertices{};
-};
-
-template <>
 struct PushConstant<Pipeline::eSpaceDust> {
     static constexpr uint32_t INSTANCES = 100;
     math::mat4 m_model{};
@@ -75,34 +54,12 @@ struct PushConstant<Pipeline::eSpaceDust> {
 };
 
 template <>
-struct PushConstant<Pipeline::eTriangleFan3dColor> {
-    math::mat4 m_model{};
-    math::mat4 m_view{};
-    math::mat4 m_projection{};
-    std::array<math::vec4, 48> m_vertices{};
-    std::array<math::vec4, 48> m_colors{};
-};
-
-template <>
 struct PushConstant<Pipeline::eGlow> {
     math::mat4 m_model{};
     math::mat4 m_view{};
     math::mat4 m_projection{};
     math::vec4 m_color{};
     std::array<math::vec4, 4> m_xyuv{};
-};
-
-template <>
-struct PushConstant<Pipeline::eThruster> {
-    struct alignas( 16 ) Afterglow {
-        math::vec4 color{};
-        math::vec4 xyzs{};
-        float radius = 0.0f;
-    };
-    alignas( 16 ) math::mat4 m_model{};
-    alignas( 16 ) math::mat4 m_view{};
-    alignas( 16 ) math::mat4 m_projection{};
-    alignas( 16 ) std::array<Afterglow, 4> m_afterglow{};
 };
 
 template <>
@@ -208,18 +165,6 @@ PipelineCreateInfo{
 },
 
 PipelineCreateInfo{
-    .m_vertexShader = "shaders/line3_strip_color.vert.spv",
-    .m_fragmentShader = "shaders/line3_strip_color.frag.spv",
-    .m_userHint = static_cast<uint32_t>( Pipeline::eLine3dStripColor ),
-    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eLine3dStripColor> ),
-    .m_enableBlend = true,
-    .m_enableDepthTest = true,
-    .m_enableDepthWrite = false,
-    .m_topology = PipelineCreateInfo::Topology::eLineStrip,
-    .m_vertexUniform = 0b1,
-},
-
-PipelineCreateInfo{
     .m_vertexShader = "shaders/trianglefan_texture.vert.spv",
     .m_fragmentShader = "shaders/trianglefan_texture.frag.spv",
     .m_userHint = static_cast<uint32_t>( Pipeline::eTriangleFan3dTexture ),
@@ -235,34 +180,8 @@ PipelineCreateInfo{
 },
 
 PipelineCreateInfo{
-    .m_vertexShader = "shaders/trianglefan_color.vert.spv",
-    .m_fragmentShader = "shaders/trianglefan_color.frag.spv",
-    .m_userHint = static_cast<uint32_t>( Pipeline::eTriangleFan3dColor ),
-    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eTriangleFan3dColor> ),
-    .m_enableBlend = true,
-    .m_enableDepthTest = true,
-    .m_enableDepthWrite = false,
-    .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
-    .m_cullMode = PipelineCreateInfo::CullMode::eBack,
-    .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_vertexUniform = 0b1,
-},
-
-PipelineCreateInfo{
-    .m_vertexShader = "shaders/lines_color1.vert.spv",
-    .m_fragmentShader = "shaders/lines_color1.frag.spv",
-    .m_userHint = static_cast<uint32_t>( Pipeline::eLine3dColor1 ),
-    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eLine3dColor1> ),
-    .m_enableBlend = true,
-    .m_enableDepthTest = true,
-    .m_enableDepthWrite = false,
-    .m_topology = PipelineCreateInfo::Topology::eLineList,
-    .m_vertexUniform = 0b1,
-},
-
-PipelineCreateInfo{
     .m_vertexShader = "shaders/space_dust.vert.spv",
-    .m_fragmentShader = "shaders/lines_color1.frag.spv",
+    .m_fragmentShader = "shaders/space_dust.frag.spv",
     .m_userHint = static_cast<uint32_t>( Pipeline::eSpaceDust ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eSpaceDust> ),
     .m_enableBlend = true,
@@ -341,19 +260,6 @@ PipelineCreateInfo{
     .m_enableBlend = true,
     .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
-    .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_vertexUniform = 0b1,
-},
-
-PipelineCreateInfo{
-    .m_vertexShader = "shaders/thruster.vert.spv",
-    .m_fragmentShader = "shaders/thruster.frag.spv",
-    .m_userHint = static_cast<uint32_t>( Pipeline::eThruster ),
-    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eThruster> ),
-    .m_enableBlend = true,
-    .m_enableDepthTest = true,
-    .m_topology = PipelineCreateInfo::Topology::eTriangleList,
-    .m_cullMode = PipelineCreateInfo::CullMode::eNone,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
     .m_vertexUniform = 0b1,
 },

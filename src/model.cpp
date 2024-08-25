@@ -57,11 +57,6 @@ void Model::render( const RenderContext& rctx ) const
     }
 }
 
-std::vector<math::vec3> Model::thrusters() const
-{
-    return {};
-}
-
 math::vec3 Model::weapon( uint32_t i ) const
 {
     return m_weapons[ i >= 3 ? 0 : i ] * (float)meter;

@@ -3,7 +3,6 @@
 #include "bullet.hpp"
 #include "saobject.hpp"
 #include "model.hpp"
-#include "thruster.hpp"
 
 #include <engine/math.hpp>
 #include <shared/pmr_pointer.hpp>
@@ -15,7 +14,6 @@
 class Enemy : public SAObject {
 private:
     WeaponCreateInfo m_weapon{};
-    Thruster m_thruster{};
     Model m_model{};
     float m_shotFactor = 0.0f;
     uint16_t m_callsign = 0xFFFF;

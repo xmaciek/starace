@@ -21,8 +21,7 @@ static math::vec3 pointMult( uint8_t a, uint8_t b, uint8_t c )
 };
 
 Jet::Jet( const CreateInfo& ci ) noexcept
-: m_thruster{ { ci.modelScale, ci.modelScale }, { ci.modelScale, ci.modelScale } }
-, m_model{ ci.model }
+: m_model{ ci.model }
 , m_weapons{ ci.weapons }
 , m_pyrLimits{ defaultPyrLimits }
 , m_angleState{ {}, {}, defaultPyrSpeed * pointMult( ci.points.pitch, ci.points.yaw, ci.points.roll ) }
@@ -47,10 +46,6 @@ void Jet::render( RenderContext rctx ) const
     rctx.model *= math::toMat4( quat() );
 
     m_model.render( rctx );
-    auto thrusters = m_model.thrusters();
-    for ( const math::vec3& it : thrusters ) {
-        m_thruster[ 0 ].renderAt( rctx, it );
-    }
 
     PushData bd{
         .m_pipeline = g_pipelines[ Pipeline::eBeamBlob ],
@@ -119,19 +114,11 @@ void Jet::update( const UpdateContext& updateContext )
     );
     m_camOffset.update( updateContext.deltaTime );
 
-    m_thrusterLength.update( updateContext.deltaTime );
-    math::vec2 thrusterLength = m_thrusterLength.value();
-    m_thruster[ 0 ].setLength( thrusterLength.x );
-    m_thruster[ 1 ].setLength( thrusterLength.y );
-
     for ( auto& wc : m_weaponsCooldown ) {
         wc.current = std::min( wc.current + updateContext.deltaTime, wc.ready );
     }
 
     m_position += velocity() * updateContext.deltaTime;
-    m_thruster[ 0 ].update( updateContext );
-    m_thruster[ 1 ].update( updateContext );
-
 }
 
 void Jet::scanSignals( std::span<const Signal> signals, float dt )

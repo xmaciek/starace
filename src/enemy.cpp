@@ -68,9 +68,6 @@ void Enemy::renderAll( const RenderContext& rctx, std::span<const UniquePointer<
 
         r.model = math::translate( rctx.model, ptr->m_position ) * math::toMat4( ptr->quat() );
         ptr->m_model.render( r );
-        for ( auto it : ptr->m_model.thrusters() ) {
-            ptr->m_thruster.renderAt( r, it );
-        }
     }
 }
 
