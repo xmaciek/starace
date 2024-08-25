@@ -9,11 +9,12 @@
 #include <ui/atlas.hpp>
 #include <ui/pipeline.hpp>
 #include <ui/property.hpp>
+#include <ui/label.hpp>
 
 #include <array>
-#include <iostream>
 
 Targeting::Targeting( const Targeting::CreateInfo& ci )
+: m_callsigns{ ci.callsigns }
 {
     m_texture = g_uiProperty.atlasTexture();
     auto unpack = []( Hash::value_type hash )
@@ -98,11 +99,27 @@ void Targeting::render( const RenderContext& rctx ) const
         pushSprite( math::lerp( a[ 2 ], b[ 2 ], value ), m_xyuvTarget[ 2 ], position, targetColor );
         pushSprite( math::lerp( a[ 3 ], b[ 3 ], value ), m_xyuvTarget[ 3 ], position, targetColor );
     }
-    auto pushReticle = [this, targ = &a, &rctx, &pushSprite, callsign = m_targetSignal.callsign]( Signal signal )
+    const ui::RenderContext rr{
+        .renderer = rctx.renderer,
+        .model = rctx.model,
+        .view = rctx.view,
+        .projection = rctx.projection,
+    };
+    auto pushReticle = [this, &rr, targ = &a, &rctx, &pushSprite]( Signal signal )
     {
-        if ( callsign == signal.callsign ) return;
         const math::vec3 pos2d = project3dTo2d( rctx.camera3d, signal.position, rctx.viewport );
         if ( !isOnScreen( pos2d, rctx.viewport ) ) return;
+        ui::Label lbl{ ui::Label::CreateInfo{
+            .font = "medium"_hash,
+            .position{ pos2d.x, rctx.viewport.y - pos2d.y - 96.0f },
+            .anchor = ui::Anchor::fBottom | ui::Anchor::fCenter
+        } };
+        std::u32string txt{ U"B.O.T. " };
+        auto l = static_cast<std::u32string_view>( m_callsigns[ signal.callsign ] );
+        txt.insert( txt.end(), l.begin(), l.end() );
+        lbl.setText( std::move( txt ) );
+        lbl.render( rr );
+        if ( m_targetSignal.callsign == signal.callsign ) return;
         const math::vec2 position{ pos2d.x, pos2d.y };
         pushSprite( (*targ)[ 0 ], m_xyuvReticle[ 0 ], position, color::lightSteelBlue );
         pushSprite( (*targ)[ 1 ], m_xyuvReticle[ 1 ], position, color::lightSteelBlue );
@@ -112,8 +129,6 @@ void Targeting::render( const RenderContext& rctx ) const
     std::for_each( m_signals.begin(), m_signals.end(), std::move( pushReticle ) );
     if ( pushData.m_instanceCount != 0 ) [[likely]] {
         rctx.renderer->push( pushData, &pushConstant );
-
-        std::cout << pushData.m_instanceCount << "\n";
     }
 }
 

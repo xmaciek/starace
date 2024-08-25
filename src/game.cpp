@@ -307,6 +307,21 @@ void Game::setupLocalization()
     g_uiProperty.m_locTable = m_localizationMap.makeView();
 }
 
+static std::pmr::vector<csg::Callsign> loadCallsigns( Filesystem* io )
+{
+    auto data = io->viewWait( "misc/callsigns.csg" );
+    csg::Header header;
+    std::memcpy( &header, data.data(), sizeof( header ) );
+    data = data.subspan( sizeof( header ) );
+    assert( header.magic == header.MAGIC );
+    assert( header.version == header.VERSION );
+    std::pmr::vector<csg::Callsign> callsigns{};
+    callsigns.resize( header.count );
+    std::memcpy( callsigns.data(), data.data(), header.count * sizeof( csg::Callsign ) );
+    return callsigns;
+}
+
+
 void Game::setupUI()
 {
     auto getTexture = [this]( std::string_view path )
@@ -459,6 +474,8 @@ void Game::setupUI()
     m_screenSettingsDisplay = m_io->viewWait( "ui/settings_display.ui" );
     m_screenTitle = m_io->viewWait( "ui/mainmenu.ui" );
 
+    m_callsigns = loadCallsigns( m_io );
+
     Targeting::CreateInfo tci{
         .targetSprites{
             "reticle.t.topleft"_hash,
@@ -478,6 +495,7 @@ void Game::setupUI()
             "reticle.r.botleft"_hash,
             "reticle.r.botright"_hash,
         },
+        .callsigns = m_callsigns,
     };
     m_targeting = Targeting{ tci };
 }
@@ -755,6 +773,7 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
     m_score = 0;
     m_gameScene = GameScene{ mapInfo.texture };
 
+    std::shuffle( m_callsigns.begin(), m_callsigns.end(), Random{ std::random_device()() } );
     const auto& w1 = m_weapons[ m_weapon1 ];
     const auto& w2 = m_weapons[ m_weapon2 ];
     m_jet = Jet( Jet::CreateInfo{

@@ -8,6 +8,7 @@
 #include <engine/update_context.hpp>
 #include <renderer/texture.hpp>
 #include <shared/hash.hpp>
+#include <extra/csg.hpp>
 
 #include <array>
 #include <memory_resource>
@@ -16,6 +17,7 @@
 class Targeting {
     AutoLerp<float> m_state{ 0.0f, 1.0f, 6.0f/*4.0f*/ };
     std::pmr::vector<Signal> m_signals{};
+    std::span<csg::Callsign> m_callsigns{};
     std::array<math::vec4, 4> m_xyuvTarget{};
     std::array<math::vec4, 4> m_xyuvTarget2{};
     std::array<math::vec4, 4> m_xyuvReticle{};
@@ -28,6 +30,7 @@ public:
         std::array<Hash::value_type, 4> targetSprites{};
         std::array<Hash::value_type, 4> targetSprites2{};
         std::array<Hash::value_type, 4> reticleSprites{};
+        std::span<csg::Callsign> callsigns{};
     };
 
     Targeting() noexcept = default;

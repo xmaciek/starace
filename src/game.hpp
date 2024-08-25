@@ -20,6 +20,7 @@
 #include <engine/math.hpp>
 #include <engine/render_context.hpp>
 #include <engine/update_context.hpp>
+#include <extra/csg.hpp>
 #include <renderer/texture.hpp>
 #include <shared/hash.hpp>
 #include <shared/pool.hpp>
@@ -94,6 +95,7 @@ private:
     Texture m_cyberRingTexture{};
     Texture m_plasma{};
     std::pmr::map<std::filesystem::path, Texture> m_textures{};
+    std::pmr::vector<csg::Callsign> m_callsigns{};
 
     Glow m_glow{};
     SpaceDust m_dustUi{};
