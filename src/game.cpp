@@ -460,7 +460,24 @@ void Game::setupUI()
     m_screenTitle = m_io->viewWait( "ui/mainmenu.ui" );
 
     Targeting::CreateInfo tci{
-        .reticleSprites{ "reticleTopLeft"_hash, "reticleTopRight"_hash, "reticleBotLeft"_hash, "reticleBotRight"_hash },
+        .targetSprites{
+            "reticle.t.topleft"_hash,
+            "reticle.t.topright"_hash,
+            "reticle.t.botleft"_hash,
+            "reticle.t.botright"_hash,
+        },
+        .targetSprites2{
+            "reticle.t.up"_hash,
+            "reticle.t.down"_hash,
+            "reticle.t.left"_hash,
+            "reticle.t.right"_hash,
+        },
+        .reticleSprites{
+            "reticle.r.topleft"_hash,
+            "reticle.r.topright"_hash,
+            "reticle.r.botleft"_hash,
+            "reticle.r.botright"_hash,
+        },
     };
     m_targeting = Targeting{ tci };
 }
@@ -688,7 +705,8 @@ void Game::updateGame( const UpdateContext& updateContext )
         std::erase_if( m_enemies, isDead );
     }
 
-    m_targeting.setState( m_jet.targetingState() );
+    m_targeting.setSignals( std::move( signals ) );
+    m_targeting.setTarget( m_jet.targetSignal(), m_jet.targetingState() );
     m_targeting.update( updateContext );
     m_gameplayUIData.m_playerHP = static_cast<float>( m_jet.health() ) / 100.0f;
     m_gameplayUIData.m_jetSpeed = m_jet.speed() / 1600_kmph;
@@ -747,9 +765,13 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
 
     assert( m_enemies.empty() );
     m_enemies.resize( mapInfo.enemies );
-    std::generate( m_enemies.begin(), m_enemies.end(), [this]()
+    std::generate( m_enemies.begin(), m_enemies.end(), [this, cs=0]() mutable
     {
-        UniquePointer<Enemy> ptr{ &m_poolEnemies, &m_enemyModel };
+        Enemy::CreateInfo ci{
+            .model = &m_enemyModel,
+            .callsign = static_cast<uint16_t>( cs++ ),
+        };
+        UniquePointer<Enemy> ptr{ &m_poolEnemies, ci };
         ptr->setTarget( &m_jet );
         ptr->setWeapon( m_enemyWeapon );
         return ptr;
@@ -921,7 +943,8 @@ std::tuple<math::vec3, math::vec3, math::vec3> Game::getCamera() const
     math::vec3 jetCamUp = math::vec3{ 0, 1, 0 } * m_jet.rotation();
     math::vec3 jetCamTgt = jetCamPos + m_jet.cameraDirection();
 
-    math::vec3 lookAtTgt = m_targeting ? m_targeting.position() : jetCamTgt;
+    Signal tgt = m_jet.targetSignal();
+    math::vec3 lookAtTgt = tgt ? tgt.position : jetCamTgt;
     math::vec3 lookAtPos = math::vec3{ 0.0f, -20.0_m, 0.0f } * m_jet.rotation() + jetPos - math::normalize( lookAtTgt - jetPos ) * 42.8_m;
 
     math::vec3 retPos = math::slerp( jetCamPos, lookAtPos, m_lookAtTarget.value() );

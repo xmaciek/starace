@@ -107,7 +107,9 @@ public:
     void scanSignals( std::span<const Signal>, float dt );
     void setTarget( Signal );
 
-    math::vec4 targetingState() const;
+    float targetingState() const;
+    inline Signal targetSignal() const { return m_targetSignal; }
+
     math::vec3 cameraPosition() const;
     math::vec3 cameraDirection() const;
 };

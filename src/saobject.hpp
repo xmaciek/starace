@@ -10,8 +10,9 @@
 
 struct Signal {
     math::vec3 position{};
-    uint32_t team = 0xFFFF'FFFF;
-    inline operator bool () const { return team != 0xFFFF'FFFF; }
+    uint16_t team = 0xFFFF;
+    uint16_t callsign = 0xFFFF;
+    inline operator bool () const { return team != 0xFFFF; }
 };
 
 class SAObject {

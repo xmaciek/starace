@@ -15,25 +15,27 @@ right      = { x = 72  y = 12  w = 8   h = 8   }
 top        = { x = 60  y = 0   w = 8   h = 8   }
 topLeft    = { x = 48  y = 0   w = 8   h = 8   }
 topRight   = { x = 72  y = 0   w = 8   h = 8   }
-icon.hp    = { x = 96  y = 0   w = 32  h = 32  }
-icon.engine = { x = 112 y = 32 w = 48 h = 32 }
-icon.laser = { x = 64 y = 32 w = 16 h = 32 }
-icon.cannon = { x = 80 y = 32 w = 16 h = 32 }
-icon.blaster = { x = 96 y = 32 w = 16 h = 32 }
-icon.rocket = { x = 48 y = 32 w = 16 h = 32 }
-reticleTopLeft  = { x = 128 y = 0  w = 16 h = 16 }
-reticleTopRight = { x = 144 y = 0  w = 16 h = 16 }
-reticleBotLeft  = { x = 128 y = 16 w = 16 h = 16 }
-reticleBotRight = { x = 144 y = 16 w = 16 h = 16 }
 barSlash = { x = 0 y = 48 w = 16 h = 16 }
 barBackslash = { x = 16 y = 48 w = 16 h = 16 }
-vbar0 = { x = 176 y = 0 w = 16 h = 32 }
-vbar1 = { x = 192 y = 0 w = 16 h = 32 }
-vbar2 = { x = 208 y = 0 w = 16 h = 32 }
-vbar3 = { x = 224 y = 0 w = 16 h = 32 }
-vbar4 = { x = 240 y = 0 w = 16 h = 32 }
-vbar5 = { x = 176 y = 32 w = 16 h = 32 }
-vbar6 = { x = 192 y = 32 w = 16 h = 32 }
-vbar7 = { x = 208 y = 32 w = 16 h = 32 }
-vbar8 = { x = 224 y = 32 w = 16 h = 32 }
-vbar9 = { x = 240 y = 32 w = 16 h = 32 }
+
+icon.hp    = { x = 96  y = 0   w = 32  h = 32  }
+icon.engine = { x = 48 y = 32 w = 48 h = 32 }
+icon.laser = { x = 192 y = 32 w = 64 h = 32 }
+icon.cannon = { x = 192 y = 0 w = 64 h = 32 }
+icon.blaster = { x = 96 y = 32 w = 16 h = 32 }
+icon.rocket = { x = 128 y = 0 w = 64 h = 32 }
+
+reticle.t.topleft  = { x = 0 y = 64  w = 16 h = 16 }
+reticle.t.topright = { x = 16 y = 64  w = 16 h = 16 }
+reticle.t.botleft  = { x = 0 y = 80 w = 16 h = 16 }
+reticle.t.botright = { x = 16 y = 80 w = 16 h = 16 }
+reticle.t.down  = { x = 32 y = 64  w = 16 h = 16 }
+reticle.t.up = { x = 48 y = 64  w = 16 h = 16 }
+reticle.t.right  = { x = 32 y = 80 w = 16 h = 16 }
+reticle.t.left = { x = 48 y = 80 w = 16 h = 16 }
+
+reticle.r.topleft  = { x = 64 y = 64  w = 16 h = 16 }
+reticle.r.topright = { x = 80 y = 64  w = 16 h = 16 }
+reticle.r.botleft  = { x = 64 y = 80 w = 16 h = 16 }
+reticle.r.botright = { x = 80 y = 80 w = 16 h = 16 }
+

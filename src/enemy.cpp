@@ -8,8 +8,9 @@
 
 #include <cassert>
 
-Enemy::Enemy( Model* m )
-: m_model{ *m }
+Enemy::Enemy( const CreateInfo& ci )
+: m_model{ *ci.model }
+, m_callsign { ci.callsign }
 {
     m_position = math::vec3{
         randomRange( -10.0f, 10.0f ),
@@ -49,7 +50,11 @@ void Enemy::shoot( std::pmr::vector<Bullet>& vec )
 
 Signal Enemy::signal() const
 {
-    return Signal{ .position = position(), .team = 0 };
+    return Signal{
+        .position = position(),
+        .team = 0,
+        .callsign = m_callsign,
+    };
 }
 
 void Enemy::renderAll( const RenderContext& rctx, std::span<const UniquePointer<Enemy>> span )

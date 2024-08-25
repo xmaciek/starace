@@ -149,11 +149,10 @@ void Jet::setTarget( Signal v )
     m_targetVelocity = {};
 }
 
-math::vec4 Jet::targetingState() const
+float Jet::targetingState() const
 {
     const math::vec3 p = m_targetSignal.position;
-    const float f = static_cast<float>( AutoAim{}.matches( position(), direction(), p ) );
-    return math::vec4{ p, f };
+    return static_cast<float>( AutoAim{}.matches( position(), direction(), p ) );
 }
 
 bool Jet::isShooting( uint32_t weaponNum ) const
