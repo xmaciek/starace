@@ -162,6 +162,8 @@ static std::tuple<WeaponCreateInfo, bool> parseWeapon( const cfg::Entry& entry )
         case "color2"_hash: weap.color2 = makeColor( property.toString() ); continue;
         case "damage"_hash: weap.damage = property.toInt<uint8_t>(); continue;
         case "delay"_hash: weap.delay = property.toFloat(); continue;
+        case "reload"_hash: weap.reload = property.toFloat(); continue;
+        case "capacity"_hash: weap.capacity = property.toInt<uint16_t>(); continue;
         case "hidden"_hash: isHidden = property.toInt<bool>(); continue;
         case "speed"_hash: weap.speed = property.toFloat() * (float)meter; continue;
         case "distance"_hash: weap.distance = property.toFloat() * (float)meter; continue;

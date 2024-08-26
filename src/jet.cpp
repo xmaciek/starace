@@ -35,7 +35,14 @@ Jet::Jet( const CreateInfo& ci ) noexcept
     setStatus( Status::eAlive );
 
     std::transform( m_weapons.begin(), m_weapons.end(), m_weaponsCooldown.begin(),
-        [](const auto& w ) { return WeaponCooldown{ .ready = w.delay, }; } );
+        [](const auto& w ) { return WeaponCooldown{
+            .currentDelay = w.delay,
+            .readyDelay = w.delay,
+            .currentReload = 0.0f,
+            .readyReload = w.reload,
+            .count = w.capacity,
+            .capacity = w.capacity,
+        }; } );
 
 };
 
@@ -114,9 +121,16 @@ void Jet::update( const UpdateContext& updateContext )
     );
     m_camOffset.update( updateContext.deltaTime );
 
-    for ( auto& wc : m_weaponsCooldown ) {
-        wc.current = std::min( wc.current + updateContext.deltaTime, wc.ready );
-    }
+    auto updateWeapon = [dt=updateContext.deltaTime]( WeaponCooldown& wc )
+    {
+        wc.currentDelay = std::min( wc.currentDelay + dt, wc.readyDelay );
+        if ( wc.count >= wc.capacity ) return;
+        wc.currentReload += dt;
+        if ( wc.currentReload < wc.readyReload ) return;
+        wc.count++;
+        wc.currentReload -= wc.readyReload;
+    };
+    std::for_each( m_weaponsCooldown.begin(), m_weaponsCooldown.end(), std::move( updateWeapon ) );
 
     m_position += velocity() * updateContext.deltaTime;
 }
@@ -165,7 +179,12 @@ math::vec3 Jet::weaponPoint( uint32_t weaponNum ) const
 Bullet Jet::weapon( uint32_t weaponNum )
 {
     assert( weaponNum < std::size( m_weapons ) );
-    m_weaponsCooldown[ weaponNum ].current = 0.0f;
+    auto& wc = m_weaponsCooldown[ weaponNum ];
+    wc.currentDelay = 0.0f;
+    if ( wc.count == wc.capacity ) {
+        wc.currentReload = 0.0f;
+    }
+    wc.count--;
     Bullet b{ m_weapons[ weaponNum ], math::rotate( quat(), m_model.weapon( weaponNum ) ) + position(), direction() };
     b.m_collideId = COLLIDE_ID;
     b.m_target = m_targetSignal;
@@ -195,7 +214,8 @@ std::array<Bullet::Type, Jet::MAX_SUPPORTED_WEAPON_COUNT> Jet::shoot( std::pmr::
 
     for ( auto i = 0u; i < MAX_SUPPORTED_WEAPON_COUNT; ++i ) {
         const auto& wc = m_weaponsCooldown[ i ];
-        if ( wc.current < wc.ready ) continue;
+        if ( wc.currentDelay < wc.readyDelay ) continue;
+        if ( wc.count == 0 ) continue;
         if ( !isShooting( i ) ) continue;
         vec.emplace_back( weapon( i ) );
         ret[ i ] = m_weapons[ i ].type;
