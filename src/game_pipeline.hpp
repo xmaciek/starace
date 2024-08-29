@@ -247,7 +247,6 @@ PipelineCreateInfo{
     .m_vertexAssembly{
         PipelineCreateInfo::Assembly{ PipelineCreateInfo::InputType::eF3, 0, 0 },
         PipelineCreateInfo::Assembly{ PipelineCreateInfo::InputType::eF2, 1, 12 },
-        PipelineCreateInfo::Assembly{ PipelineCreateInfo::InputType::eF3, 2, 20 }
     },
     .m_vertexUniform = 0b1,
 },

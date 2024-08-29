@@ -16,7 +16,6 @@ layout( binding = 0 ) uniform ubo {
 
 layout( location = 0 ) in vec3 vertVert;
 layout( location = 1 ) in vec2 vertUV;
-layout( location = 2 ) in vec3 vertNormal;
 
 layout( location = 0 ) out vec2 fragUV;
 layout( location = 1 ) out flat ColorScheme fragColor;
@@ -28,10 +27,7 @@ void main()
         * modelMatrix
         * vec4( vertVert.xyz, 1.0 );
 
-    float f = dot( vertNormal, vertNormal ) * 0.0000001;
-    f += 1.0;
-
-    fragUV = vertUV * f;
+    fragUV = vertUV;
     fragColor = colorScheme;
 
 }
