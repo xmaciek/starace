@@ -17,7 +17,6 @@ set( STARACE_SOURCES
     autolerp.hpp
     bullet.cpp
     bullet.hpp
-    circle.hpp
     colors.hpp
     enemy.cpp
     enemy.hpp

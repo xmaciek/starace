@@ -1,6 +1,5 @@
 #include "targeting.hpp"
 
-#include "circle.hpp"
 #include "colors.hpp"
 #include "utils.hpp"
 #include "units.hpp"
