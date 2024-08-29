@@ -171,8 +171,9 @@ static std::tuple<WeaponCreateInfo, bool> parseWeapon( const cfg::Entry& entry )
         case "score"_hash: weap.score_per_hit = property.toInt<uint16_t>(); continue;
         case "size"_hash: weap.size = property.toFloat() * (float)meter; continue;
         case "type"_hash: weap.type = makeType( property.toString() ); continue;
-        case "sound"_hash: continue; // TODO
+        case "icon"_hash: weap.displayIcon = hash( property.toString() ); continue;
         case "texture"_hash: continue; // TODO
+        case "sound"_hash: continue; // TODO
         default:
             assert( !"unknown weapon property" );
             continue;
@@ -445,6 +446,10 @@ void Game::setupUI()
     m_gameUiDataModels.insert( "$data:weaponPrimary"_hash, &m_optionsCustomize.m_weaponPrimary );
     m_gameUiDataModels.insert( "$data:weaponSecondary"_hash, &m_optionsCustomize.m_weaponSecondary );
     m_gameUiDataModels.insert( "$var:playerHP"_hash, &m_gameplayUIData.m_playerHP );
+    m_gameUiDataModels.insert( "$var:playerReloadPrimary"_hash, &m_gameplayUIData.m_playerReloadPrimary );
+    m_gameUiDataModels.insert( "$var:playerReloadSecondary"_hash, &m_gameplayUIData.m_playerReloadSecondary );
+    m_gameUiDataModels.insert( "$var:playerWeaponPrimary"_hash, &m_gameplayUIData.m_playerWeaponIconPrimary );
+    m_gameUiDataModels.insert( "$var:playerWeaponSecondary"_hash, &m_gameplayUIData.m_playerWeaponIconSecondary );
     m_gameUiDataModels.insert( "$var:jetSpeed"_hash, &m_gameplayUIData.m_jetSpeed );
     m_gameUiDataModels.insert( "$var:missionResult"_hash, &m_uiMissionResult );
     m_gameUiDataModels.insert( "$var:missionScore"_hash, &m_uiMissionScore );
@@ -729,6 +734,9 @@ void Game::updateGame( const UpdateContext& updateContext )
     m_targeting.setTarget( m_jet.targetSignal(), m_jet.targetingState() );
     m_targeting.update( updateContext );
     m_gameplayUIData.m_playerHP = static_cast<float>( m_jet.health() ) / 100.0f;
+    const math::vec2 reloadState = m_jet.reloadState();
+    m_gameplayUIData.m_playerReloadPrimary = reloadState.x;
+    m_gameplayUIData.m_playerReloadSecondary = reloadState.y;
     m_gameplayUIData.m_jetSpeed = m_jet.speed() / 1600_kmph;
 
 }
@@ -798,7 +806,8 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
         return ptr;
     });
     m_jet.setTarget( m_enemies.front()->signal() );
-
+    m_gameplayUIData.m_playerWeaponIconPrimary = w1.displayIcon;
+    m_gameplayUIData.m_playerWeaponIconSecondary = w2.displayIcon;
 }
 
 void Game::changeScreen( Screen scr, Audio::Slot sound )

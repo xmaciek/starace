@@ -112,4 +112,5 @@ public:
 
     math::vec3 cameraPosition() const;
     math::vec3 cameraDirection() const;
+    math::vec2 reloadState() const;
 };

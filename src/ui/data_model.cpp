@@ -34,6 +34,11 @@ Texture DataModel::texture( size_type ) const
     return {};
 }
 
+Hash::value_type DataModel::sprite( size_type ) const
+{
+    return {};
+}
+
 void DataModel::activate( size_type )
 {
 }

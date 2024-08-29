@@ -24,6 +24,28 @@ template <typename T> void setX( void* ci, const cfg::Entry& e ) { reinterpret_c
 template <typename T> void setY( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->position.y = e.toFloat(); };
 template <typename T> void setW( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->size.x = e.toFloat(); };
 template <typename T> void setH( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->size.y = e.toFloat(); };
+template <typename T> void setAnchor( void* ci, const cfg::Entry& e )
+{
+    auto convert = []( const auto& e )
+    {
+        Hash hash{};
+        switch ( hash( e.toString() ) ) {
+        default: assert( !"unknown anchor value" ); [[fallthrough]];
+        case "topLeft"_hash: return Anchor::fTop | Anchor::fLeft;
+        case "midLeft"_hash: return Anchor::fMiddle | Anchor::fLeft;
+        case "botLeft"_hash: return Anchor::fBottom | Anchor::fLeft;
+
+        case "topCenter"_hash: return Anchor::fTop | Anchor::fCenter;
+        case "midCenter"_hash: return Anchor::fMiddle | Anchor::fCenter;
+        case "botCenter"_hash: return Anchor::fBottom | Anchor::fCenter;
+
+        case "topRight"_hash: return Anchor::fTop | Anchor::fRight;
+        case "midRight"_hash: return Anchor::fMiddle | Anchor::fRight;
+        case "botRight"_hash: return Anchor::fBottom | Anchor::fRight;
+        }
+    };
+    reinterpret_cast<typename T::CreateInfo*>( ci )->anchor = convert( e );
+};
 template <typename T> void setCount( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->count = e.toInt<uint32_t>(); };
 template <typename T> void setData( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->data = Hash{}( e.toString() ); };
 template <typename T> void setText( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->text = Hash{}( e.toString() ); };
@@ -66,6 +88,7 @@ inline constexpr std::array PROGRESSBAR_FIELDS = {
     F{ "spriteId"_hash, &setSpriteId<Progressbar> },
     F{ "spriteSpacing"_hash, &setSpriteSpacing<Progressbar> },
     F{ "count"_hash, &setCount<Progressbar> },
+    F{ "anchor"_hash, &setAnchor<Progressbar> },
 };
 
 inline constexpr std::array IMAGE_FIELDS = {
@@ -76,6 +99,7 @@ inline constexpr std::array IMAGE_FIELDS = {
     F{ "x"_hash, &setX<Image> },
     F{ "y"_hash, &setY<Image> },
     F{ "color"_hash, &setColor<Image> },
+    F{ "anchor"_hash, &setAnchor<Image> },
 };
 
 inline constexpr std::array LABEL_FIELDS = {

@@ -42,14 +42,15 @@ static uint32_t formatToChannels( VkFormat f )
 {
     switch ( f ) {
     case VK_FORMAT_R8_UNORM:
+    case VK_FORMAT_BC4_UNORM_BLOCK:
         return 1;
     case VK_FORMAT_B8G8R8A8_UNORM:
     case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
     case VK_FORMAT_BC2_UNORM_BLOCK:
     case VK_FORMAT_BC3_UNORM_BLOCK:
-    case VK_FORMAT_BC4_UNORM_BLOCK:
-    case VK_FORMAT_BC5_UNORM_BLOCK:
         return 4;
+    case VK_FORMAT_BC5_UNORM_BLOCK:
+        return 2;
     default:
         assert( !"unhandled formatToChannels case" );
         return 0;

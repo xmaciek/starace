@@ -2,40 +2,89 @@ width = 1280
 height = 720
 
 Image = {
-    x = 96
-    y = 80
+    x = 120
+    y = 640
     width = 32
     height = 32
     spriteId = icon.hp
     color = green
+    anchor = midRight
 }
 
 Progressbar = {
     x = 128
-    y = 80
+    y = 640
     width = 200
     height = 16
     spriteId = "barBackslash"
     spriteSpacing = -6.0
     data = $var:playerHP
+    anchor = midLeft
 }
 
 Image = {
-    x = 32
-    y = 300
+    x = 72
+    y = 600
     width = 48
     height = 32
     spriteId = icon.engine
     color = green
+    anchor = midRight
 }
 
 Progressbar = {
     x = 80
-    y = 300
+    y = 600
     width = 128
     height = 16
     spriteId = "barBackslash"
     spriteSpacing = -6.0
     color = green
     data = $var:jetSpeed
+    anchor = midLeft
+}
+
+Progressbar = {
+    x = 1200
+    y = 600
+    width = 128
+    height = 16
+    spriteId = "barSlash"
+    spriteSpacing = -6.0
+    color = green
+    data = $var:playerReloadPrimary
+    anchor = midRight
+}
+
+Image = {
+    x = 1208
+    y = 600
+    width = 64
+    height = 32
+    data = $var:playerWeaponPrimary
+    color = green
+    anchor = midLeft
+}
+
+
+Progressbar = {
+    x = 1152
+    y = 640
+    anchor = midRight
+    direction = left
+    width = 200
+    height = 16
+    spriteId = "barSlash"
+    spriteSpacing = -6.0
+    data = $var:playerReloadSecondary
+}
+
+Image = {
+    x = 1160
+    y = 640
+    width = 64
+    height = 32
+    anchor = midLeft
+    data = $var:playerWeaponSecondary
+    color = green
 }

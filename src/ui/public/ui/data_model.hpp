@@ -1,6 +1,7 @@
 #pragma once
 
 #include <renderer/texture.hpp>
+#include <shared/hash.hpp>
 
 #include <cstdint>
 #include <functional>
@@ -14,7 +15,6 @@ namespace ui {
 class DataModel {
 public:
     using size_type = uint16_t;
-
     virtual ~DataModel() noexcept = default;
     DataModel() noexcept = default;
 
@@ -26,6 +26,7 @@ public:
     virtual std::pmr::u32string at( size_type ) const;
     virtual Texture texture( size_type ) const;
     virtual float atF( size_type ) const;
+    virtual Hash::value_type sprite( size_type ) const;
 
     virtual void activate( size_type );
     virtual void select( size_type );

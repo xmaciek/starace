@@ -79,6 +79,14 @@ public:
         else return {};
     }
 
+    virtual Hash::value_type sprite( size_type ) const override
+    {
+        if constexpr ( std::is_same_v<T, Hash::value_type> ) {
+            return m_value;
+        }
+        else return {};
+    }
+
 };
 
 }

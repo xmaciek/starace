@@ -58,11 +58,12 @@ struct WeaponCreateInfo {
     float speed = 0.0f;
     float distance = 0.0;
     float size = 2.6_m;
-    float reload = 0.0f;
+    float reload = 0.001f;
     uint16_t capacity = 0xFFFF;
     uint16_t score_per_hit = 0;
     uint16_t uvid{};
     uint8_t damage = 0;
     Bullet::Type type{};
+    Hash::value_type displayIcon{};
     Hash::value_type displayName{};
 };

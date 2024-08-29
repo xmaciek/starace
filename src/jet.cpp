@@ -38,7 +38,7 @@ Jet::Jet( const CreateInfo& ci ) noexcept
         [](const auto& w ) { return WeaponCooldown{
             .currentDelay = w.delay,
             .readyDelay = w.delay,
-            .currentReload = 0.0f,
+            .currentReload = w.reload,
             .readyReload = w.reload,
             .count = w.capacity,
             .capacity = w.capacity,
@@ -128,7 +128,7 @@ void Jet::update( const UpdateContext& updateContext )
         wc.currentReload += dt;
         if ( wc.currentReload < wc.readyReload ) return;
         wc.count++;
-        wc.currentReload -= wc.readyReload;
+        if ( wc.count < wc.capacity ) wc.currentReload -= wc.readyReload;
     };
     std::for_each( m_weaponsCooldown.begin(), m_weaponsCooldown.end(), std::move( updateWeapon ) );
 
@@ -246,4 +246,12 @@ math::vec3 Jet::cameraPosition() const
 math::vec3 Jet::cameraDirection() const
 {
     return m_direction;
+}
+
+math::vec2 Jet::reloadState() const
+{
+    return math::vec2{
+        m_weaponsCooldown[ 0 ].currentReload / m_weaponsCooldown[ 0 ].readyReload,
+        m_weaponsCooldown[ 1 ].currentReload / m_weaponsCooldown[ 1 ].readyReload
+    };
 }

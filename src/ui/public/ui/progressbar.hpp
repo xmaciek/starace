@@ -27,6 +27,7 @@ public:
         Hash::value_type spriteId{};
         float spriteSpacing{};
         uint32_t count = 0;
+        Anchor anchor = Anchor::fTop | Anchor::fLeft;
     };
 
     virtual ~Progressbar() noexcept override = default;

@@ -9,7 +9,7 @@
 namespace ui {
 
 Progressbar::Progressbar( const Progressbar::CreateInfo& ci ) noexcept
-: Widget{ ci.position, ci.size }
+: Widget{ ci.position, ci.size, ci.anchor }
 , m_spacing{ ci.spriteSpacing }
 , m_count{ ci.count }
 {

@@ -7,18 +7,25 @@
 #include <renderer/renderer.hpp>
 
 #include <cassert>
+#include <iostream>
 
 namespace ui {
 
 Image::Image( const CreateInfo& ci ) noexcept
-: Widget{ ci.position, ci.size }
+: Widget{ ci.position, ci.size, ci.anchor }
 , m_color{ g_uiProperty.color( ci.color ) }
 {
     m_pipelineSlot = g_uiProperty.pipelineSpriteSequence();
     if ( ci.data ) {
         m_dataModel = g_uiProperty.dataModel( ci.data );
         m_revision = m_dataModel->revision();
-        setTexture( m_dataModel->texture( m_dataModel->current() ) );
+        if ( auto tex = m_dataModel->texture( m_dataModel->current() ); tex ) {
+            setTexture( tex );
+        }
+        else if ( Hash::value_type sprite = m_dataModel->sprite( m_dataModel->current() ); sprite ) {
+            std::tie( m_uvwh, std::ignore, std::ignore, m_texture ) = g_uiProperty.sprite( sprite );
+            setTexture( m_texture );
+        }
     }
     else if ( ci.spriteId ) {
         std::tie( m_uvwh, std::ignore, std::ignore, m_texture ) = g_uiProperty.sprite( ci.spriteId );
@@ -60,7 +67,14 @@ void Image::update( const UpdateContext& )
         return;
     }
     m_revision = rev;
-    setTexture( m_dataModel->texture( m_dataModel->current() ) );
+    if ( Texture tex = m_dataModel->texture( m_dataModel->current() ); tex ) {
+        m_uvwh = math::vec4{ 0.0f, 0.0f, 1.0f, 1.0f };
+        setTexture( tex );
+    }
+    else if ( Hash::value_type sprite = m_dataModel->sprite( m_dataModel->current() ); sprite ) {
+        std::tie( m_uvwh, std::ignore, std::ignore, m_texture ) = g_uiProperty.sprite( sprite );
+        setTexture( m_texture );
+    }
 }
 
 void Image::setColor( math::vec4 c )
