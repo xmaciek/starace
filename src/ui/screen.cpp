@@ -535,6 +535,7 @@ void Screen::resize( math::vec2 s )
 void Screen::show( math::vec2 size )
 {
     resize( size );
+    m_repeatDirection = none;
     m_anim = 0.0f;
 }
 
