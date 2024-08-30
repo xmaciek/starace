@@ -1,5 +1,6 @@
 #include <extra/csg.hpp>
 #include <extra/args.hpp>
+#include <extra/unicode.hpp>
 
 #include <algorithm>
 #include <fstream>
@@ -52,10 +53,11 @@ int main( int argc, const char** argv )
     callsigns.reserve( 200 );
     if ( !ifs.is_open() ) exitOnFailed( "cannot open src file:", argSrc );
     for ( std::string line; std::getline( ifs, line ); ) {
-        if ( line.size() >= csg::Callsign::CAPACITY ) exitOnFailed( "callsign too long", line );
+        unicode::Transcoder transcoder{ line };
+        uint32_t length = transcoder.length();
+        if ( length >= csg::Callsign::CAPACITY ) exitOnFailed( "callsign too long", line );
         auto& cs = callsigns.emplace_back();
-        // TODO: utf32
-        std::transform( line.begin(), line.end(), std::begin( cs.str ), [](char c ) -> char32_t { return static_cast<char32_t>( c ); } );
+        std::generate_n( std::begin( cs.str ), length, transcoder );
     }
     ifs.close();
     std::sort( callsigns.begin(), callsigns.end(), []( auto& lhs, auto& rhs ) { return (std::u32string)lhs < (std::u32string)rhs; } );
