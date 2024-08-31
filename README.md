@@ -12,11 +12,14 @@ Hello Vulkan and few more improvements that should be there from the beginning :
 
 ### Requirments:
 * C++20 compiler
-* Vulkan >= 1.1
-* SDL 2 >= 2.0
-* GLM >= 0.9.9
+* Vulkan >= 1.3
+* SDL 2 >= 2.30 ( comes with LunarG vulkan SDK )
+* GLM >= 1.0.1 ( comes with LunarG vulkan SDK )
 * Freetype 2 >= 2.10
 
 ### Target OS:
 * Linux
 * Windows - technically does work, but its not actively checked
+
+### Example build instructions:
+`cmake path/to/repo/ --preset release; make -j 15`
