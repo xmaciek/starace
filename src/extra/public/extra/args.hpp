@@ -51,7 +51,7 @@ public:
 
         T t{};
         std::string_view v = m_argv[ i ];
-        auto ret = std::from_chars( v.begin(), v.end(), t );
+        auto ret = std::from_chars( v.data(), v.data() + v.size(), t );
         if ( ret.ec != std::errc{} ) {
             return false;
         }
