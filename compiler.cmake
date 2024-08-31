@@ -29,6 +29,11 @@ target_compile_options( cxx::flags INTERFACE
 )
 
 elseif ( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" )
+target_compile_options( cxx::flags INTERFACE
+    /D _ENABLE_EXTENDED_ALIGNED_STORAGE=1
+    /wd4566
+)
+
 else ()
     message( FATAL_ERROR "Unsuported compiler" )
 endif()
