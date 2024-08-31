@@ -5,7 +5,7 @@
 
 namespace csg {
 
-struct alignas( 64 ) Header {
+struct Header {
     static const uint32_t MAGIC = ' GSC';
     static const uint32_t VERSION = 1;
     uint32_t magic = MAGIC;
@@ -15,7 +15,7 @@ struct alignas( 64 ) Header {
 };
 static_assert( sizeof( Header ) == 64 );
 
-struct alignas( 64 ) Callsign {
+struct Callsign {
     static const uint32_t CAPACITY = 31;
     char32_t str[ CAPACITY ]{};
     char32_t nullterm{};
