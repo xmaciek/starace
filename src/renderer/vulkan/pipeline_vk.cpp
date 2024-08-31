@@ -256,9 +256,10 @@ PipelineVK::PipelineVK(
         VK_DYNAMIC_STATE_SCISSOR,
         VK_DYNAMIC_STATE_LINE_WIDTH,
     };
+    const uint32_t dynamicStateCount = useLines() ? 3 : 2;
     const VkPipelineDynamicStateCreateInfo dynamicState{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
-        .dynamicStateCount = dynamicStates.size(),
+        .dynamicStateCount = dynamicStateCount,
         .pDynamicStates = dynamicStates.data(),
     };
 

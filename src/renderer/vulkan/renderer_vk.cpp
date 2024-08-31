@@ -743,7 +743,7 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
         m_depthPrepass.begin( fr.m_cmdDepthPrepass, fr.m_renderDepthTarget.framebuffer(), rect );
         m_mainPass.begin( fr.m_cmdColorPass, fr.m_renderTarget.framebuffer(), rect );
     } break;
-    default:
+    [[likely]] default:
         break;
     }
 
@@ -803,7 +803,7 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
     if ( depthWrite ) vkCmdBindDescriptorSets( fr.m_cmdDepthPrepass, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
     vkCmdBindDescriptorSets( fr.m_cmdColorPass, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
 
-    if ( updateLineWidth ) {
+    if ( currentPipeline.useLines() && ( updateLineWidth || rebindPipeline ) ) [[unlikely]] {
         m_lastLineWidth = pushBuffer.m_lineWidth;
         if ( depthWrite ) vkCmdSetLineWidth( fr.m_cmdDepthPrepass, pushBuffer.m_lineWidth );
         vkCmdSetLineWidth( fr.m_cmdColorPass, pushBuffer.m_lineWidth );
