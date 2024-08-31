@@ -1,8 +1,8 @@
-option( EnableTracyProfiler "Whether to enable tracy profiler if present within sdk tree" TRUE )
+option( ENABLE_TRACY_PROFILER "Whether to enable tracy profiler if present within sdk tree" TRUE )
 
 set( tracy_dir "tracy-0.7.8" )
 
-if ( ${EnableTracyProfiler} AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${tracy_dir}/Tracy.hpp" )
+if ( ${ENABLE_TRACY_PROFILER} AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${tracy_dir}/Tracy.hpp" )
     add_library( tracy STATIC )
         target_sources( tracy
         PUBLIC
