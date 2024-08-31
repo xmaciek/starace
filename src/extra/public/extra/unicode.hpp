@@ -20,10 +20,10 @@ enum class BOM : uint32_t {
 
 inline BOM guessBOM( std::span<uint8_t> data )
 {
-    const std::array<uint8_t, 4> utf32be{ 0x00, 0x00, 0xFE, 0xFF };
-    const std::array<uint8_t, 4> utf32le{ 0xFF, 0xFE, 0x00, 0x00 };
-    const std::array<uint8_t, 2> utf16le{ 0xFF, 0xFE };
-    const std::array<uint8_t, 2> utf16be{ 0xFE, 0xFF };
+    const std::array<uint8_t, 4> utf32be{ (uint8_t)0x00, (uint8_t)0x00, (uint8_t)0xFE, (uint8_t)0xFF };
+    const std::array<uint8_t, 4> utf32le{ (uint8_t)0xFF, (uint8_t)0xFE, (uint8_t)0x00, (uint8_t)0x00 };
+    const std::array<uint8_t, 2> utf16le{ (uint8_t)0xFF, (uint8_t)0xFE };
+    const std::array<uint8_t, 2> utf16be{ (uint8_t)0xFE, (uint8_t)0xFF };
 
     if ( data.size() >= 4 ) {
         if ( std::equal( utf32be.begin(), utf32be.end(), data.begin() ) ) return BOM::UTF32BE;
