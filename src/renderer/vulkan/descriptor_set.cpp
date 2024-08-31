@@ -72,7 +72,7 @@ static VkDescriptorSetLayout createLayout( VkDevice device, const PipelineCreate
                 .binding = idx,
                 .descriptorType = type,
                 .descriptorCount = 1,
-                .stageFlags = stage,
+                .stageFlags = static_cast<VkShaderStageFlags>( stage ),
             } );
         }
     };
