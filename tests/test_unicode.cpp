@@ -5,7 +5,6 @@
 #include <string>
 #include <string_view>
 
-#include <cstdio>
 TEST( Unicode, transcoder_length )
 {
     EXPECT_EQ( unicode::Transcoder{ "test\u016B" }.length(), 5 );
