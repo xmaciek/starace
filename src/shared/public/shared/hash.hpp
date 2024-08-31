@@ -33,7 +33,7 @@ struct Hash {
         }
         return ~ret;
     }
-
+#if 0
     static constexpr uint32_t murmur3( const char* str, std::size_t len, uint32_t seed = DEFAULT_SEED ) noexcept
     {
         auto scramble = []( uint32_t k ) -> uint32_t
@@ -87,14 +87,10 @@ struct Hash {
         h ^= h >> 16;
         return h;
     }
-
+#endif
     static constexpr value_type calc( const char* str, std::size_t len ) noexcept
     {
-        // NOTE: what are the odds that 2 different hash algorithms are going to collide silmutanously for same data?
-        // value_type h1 = crc32( str, len );
-        value_type h2 = murmur3( str, len );
-        // return ( h1 << 32 ) | h2;
-        return h2;
+        return crc32( str, len );
     }
 
     constexpr value_type operator () ( std::string_view str ) const noexcept
