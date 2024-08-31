@@ -1,0 +1,44 @@
+{
+    "version": 6
+    , "cmakeMinimumRequired": { "major": 3, "minor": 24, "patch": 0 }
+
+    , "configurePresets": [
+    {
+        "name": "default"
+        , "displayName": "Debug"
+        , "description": "Debug"
+        , "generator": "Unix Makefiles"
+        , "cacheVariables": {
+            "CMAKE_BUILD_TYPE": "Debug"
+            , "ENABLE_TRACY_PROFILER": "OFF"
+        }
+    }
+    , {
+        "name": "release"
+        , "displayName": "Release"
+        , "description": "Release"
+        , "inherits": "default"
+        , "cacheVariables": {
+            "CMAKE_BUILD_TYPE": "Release"
+        }
+    }
+    , {
+        "name": "profile"
+        , "displayName": "Profile"
+        , "description": "Profile"
+        , "inherits": "release"
+        , "cacheVariables": {
+            "ENABLE_TRACY_PROFILER": "ON"
+        }
+    }
+    , {
+        "name": "windoge"
+        , "displayName": "Release (windows)"
+        , "description": "Release (windows)"
+        , "inherits": "release"
+        , "generator": "Ninja"
+        , "binaryDir": "${sourceDir}/build/${presetName}"
+        , "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" }
+    }
+    ]
+}
