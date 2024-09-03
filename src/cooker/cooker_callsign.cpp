@@ -49,9 +49,10 @@ int main( int argc, const char** argv )
     args.read( "--dst", argDst ) || exitOnFailed( "--dst <file/path.csg> \u2012 argument not specified" );
 
     std::ifstream ifs( (std::string)argSrc );
-    std::pmr::vector<csg::Callsign> callsigns;
-    callsigns.reserve( 200 );
     if ( !ifs.is_open() ) exitOnFailed( "cannot open src file:", argSrc );
+
+    std::pmr::vector<csg::Callsign> callsigns;
+    callsigns.reserve( 400 );
     for ( std::string line; std::getline( ifs, line ); ) {
         unicode::Transcoder transcoder{ line };
         uint32_t length = transcoder.length();
@@ -60,7 +61,8 @@ int main( int argc, const char** argv )
         std::generate_n( std::begin( cs.str ), length, transcoder );
     }
     ifs.close();
-    std::sort( callsigns.begin(), callsigns.end(), []( auto& lhs, auto& rhs ) { return (std::u32string)lhs < (std::u32string)rhs; } );
+
+    std::sort( callsigns.begin(), callsigns.end(), []( auto& lhs, auto& rhs ) { return (std::u32string_view)lhs < (std::u32string_view)rhs; } );
     csg::Header header{ .count = static_cast<uint32_t>( callsigns.size() ), };
     std::ofstream ofs( std::string( argDst ), std::ios::binary );
     if ( !ofs.is_open() ) exitOnFailed( "cannot open dst file:", argDst );
