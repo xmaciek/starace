@@ -113,4 +113,5 @@ public:
     math::vec3 cameraPosition() const;
     math::vec3 cameraDirection() const;
     math::vec2 reloadState() const;
+    std::tuple<uint32_t, uint32_t> weaponClip() const;
 };

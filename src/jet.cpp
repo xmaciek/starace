@@ -255,3 +255,8 @@ math::vec2 Jet::reloadState() const
         m_weaponsCooldown[ 1 ].currentReload / m_weaponsCooldown[ 1 ].readyReload
     };
 }
+
+std::tuple<uint32_t, uint32_t> Jet::weaponClip() const
+{
+    return std::make_tuple( m_weaponsCooldown[ 0 ].count, m_weaponsCooldown[ 1 ].count );
+}
