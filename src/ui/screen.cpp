@@ -110,6 +110,8 @@ inline constexpr std::array LABEL_FIELDS = {
     F{ "y"_hash, &setY<Label> },
     F{ "width"_hash, &setW<Label> },
     F{ "height"_hash, &setH<Label> },
+    F{ "anchor"_hash, &setAnchor<Label> },
+    F{ "color"_hash, &setColor<Label> },
 };
 
 inline constexpr std::array SPINBOX_FIELDS = {
