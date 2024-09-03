@@ -447,6 +447,8 @@ void Game::setupUI()
     m_gameUiDataModels.insert( "$data:weaponSecondary"_hash, &m_optionsCustomize.m_weaponSecondary );
     m_gameUiDataModels.insert( "$var:playerHP"_hash, &m_gameplayUIData.m_playerHP );
     m_gameUiDataModels.insert( "$var:playerReloadPrimary"_hash, &m_gameplayUIData.m_playerReloadPrimary );
+    m_gameUiDataModels.insert( "$var:playerWeaponPrimaryCount"_hash, &m_gameplayUIData.m_playerWeaponPrimaryCount );
+    m_gameUiDataModels.insert( "$var:playerWeaponSecondaryCount"_hash, &m_gameplayUIData.m_playerWeaponSecondaryCount );
     m_gameUiDataModels.insert( "$var:playerReloadSecondary"_hash, &m_gameplayUIData.m_playerReloadSecondary );
     m_gameUiDataModels.insert( "$var:playerWeaponPrimary"_hash, &m_gameplayUIData.m_playerWeaponIconPrimary );
     m_gameUiDataModels.insert( "$var:playerWeaponSecondary"_hash, &m_gameplayUIData.m_playerWeaponIconSecondary );
@@ -738,6 +740,9 @@ void Game::updateGame( const UpdateContext& updateContext )
     m_gameplayUIData.m_playerReloadPrimary = reloadState.x;
     m_gameplayUIData.m_playerReloadSecondary = reloadState.y;
     m_gameplayUIData.m_jetSpeed = m_jet.speed() / 1600_kmph;
+    auto [ primary, secondary ] = m_jet.weaponClip();
+    m_gameplayUIData.m_playerWeaponPrimaryCount = primary;
+    m_gameplayUIData.m_playerWeaponSecondaryCount = secondary;
 
 }
 

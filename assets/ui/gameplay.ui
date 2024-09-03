@@ -44,6 +44,15 @@ Progressbar = {
     anchor = midLeft
 }
 
+Label = {
+    x = 1070
+    y = 597.5
+    data = $var:playerWeaponPrimaryCount
+    font = medium
+    anchor = midRight
+    color = green
+}
+
 Progressbar = {
     x = 1200
     y = 600
@@ -66,6 +75,14 @@ Image = {
     anchor = midLeft
 }
 
+Label = {
+    x = 950
+    y = 637.5
+    data = $var:playerWeaponSecondaryCount
+    font = medium
+    anchor = midRight
+    color = green
+}
 
 Progressbar = {
     x = 1152
