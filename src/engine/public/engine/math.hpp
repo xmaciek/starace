@@ -88,17 +88,20 @@ inline auto lerp( T a, T b, float n ) -> T
 }
 
 template <typename T = float>
-inline auto slerp( T a, T b, float n ) -> T
-{
-    return ( 1.0f - n ) * a + n * b;
-}
-
-template <typename T = float>
 inline auto curve( T a, T b, T c, float n ) -> T
 {
     return lerp( lerp( a, b, n ), lerp( b, c, n ), n );
 }
 
+template <typename T>
+inline auto slerp( const T& a, const T& b, float n )
+{
+    float o = angle( a, b );
+    float sino = sin( o );
+    auto p0 = ( sin( ( 1.0f - n ) * o ) / sino ) * a;
+    auto p1 = ( sin( ( n ) * o ) / sino ) * b;
+    return p0 + p1;
+}
 
 // non-linear interpolate
 template <typename T>
