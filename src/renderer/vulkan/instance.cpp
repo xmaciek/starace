@@ -5,8 +5,11 @@
 
 #include <cstdlib>
 #include <cassert>
-#include <cstring>
 #include <algorithm>
+#include <cstring>
+#include <string>
+
+#include <platform/utils.hpp>
 
 #if defined( __linux__ )
 #include <dlfcn.h>
@@ -97,16 +100,17 @@ Instance::Instance( std::pmr::vector<const char*> extensions ) noexcept
     ZoneScoped;
 
     const char* envName = std::getenv( "STARACE_VULKAN_LIBRARY" );
-    m_dll = dlopen( envName ? envName : LIB_NAME, FLAGS );
+    const char* libName = envName ? envName : LIB_NAME;
+    m_dll = dlopen( libName, FLAGS );
     if ( !m_dll ) {
-        assert( !"failed to open vulkan lib" );
-        std::abort();
+        std::string msg = "Failed to open Vulkan library: ";
+        msg.append( libName );
+        platform::ShowFatalError( "Fatal Error", msg );
     }
     vkGetInstanceProcAddr = reinterpret_cast<PFN_vkGetInstanceProcAddr>( dlsym( m_dll, "vkGetInstanceProcAddr" ) );
 
     if ( !vkGetInstanceProcAddr ) {
-        assert( !"failed to open vulkan lib" );
-        std::abort();
+        platform::ShowFatalError( "Fatal Error", "Failed to find vkGetInstanceProcAddr in vulkan library" );
     }
 
 #define GET_PROC( name ) \

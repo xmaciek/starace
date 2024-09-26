@@ -2,6 +2,8 @@
 
 #include "utils_vk.hpp"
 
+#include <platform/utils.hpp>
+
 #include <SDL_vulkan.h>
 #include <Tracy.hpp>
 
@@ -134,9 +136,8 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
     m_instance = Instance{ windowExtensions( createInfo.window ) };
 
     if ( !SDL_Vulkan_CreateSurface( m_window, m_instance, &m_surface ) ) {
-        assert( !"Failed to create sdl vulkan surface" );
-        std::cout << "Failed to create sdl vulkan surface" << std::endl;
-        std::abort();
+        platform::ShowFatalError( "Vulkan error", "Failed to create SDL Vulkan surface" );
+        return;
     }
 
     m_debugMsg = DebugMsg{ m_instance };

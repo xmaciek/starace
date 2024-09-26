@@ -44,6 +44,7 @@ target_sources( renderer_vk
 
 target_link_libraries( renderer_vk
     cxx::flags
+    platform
     renderer
     shared
     Vulkan::Headers

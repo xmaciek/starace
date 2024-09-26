@@ -1,5 +1,6 @@
 #include <engine/filesystem.hpp>
 #include <extra/pak.hpp>
+#include <platform/utils.hpp>
 
 #include <Tracy.hpp>
 
@@ -50,18 +51,21 @@ void Filesystem::mount( const std::filesystem::path& path )
 {
     ZoneScoped;
     if ( path.extension() != ".pak" ) {
-        assert( !"archive not .pak" );
+        platform::ShowFatalError( "Data error", "archive not .pak" );
         return;
     }
     std::ifstream ifs( path, std::ios::binary | std::ios::ate );
-    assert( ifs.is_open() );
+    if ( !ifs.is_open() ) {
+        platform::ShowFatalError( "Data error", "Cannot open .pak file" );
+        return;
+    }
 
     std::streamsize size = ifs.tellg();
     ifs.seekg( 0 );
     pak::Header header{};
     readRaw( ifs, header );
     if ( header.magic != header.MAGIC ) {
-        assert( !".pak magic field mismatch" );
+        platform::ShowFatalError( "Data corruption error", ".pak magic field mismatch" );
         return;
     };
     ifs.seekg( 0 );
