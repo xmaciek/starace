@@ -788,7 +788,9 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
     m_score = 0;
     m_gameScene = GameScene{ mapInfo.texture };
 
-    std::shuffle( m_callsigns.begin(), m_callsigns.end(), Random{ std::random_device()() } );
+    std::pmr::vector<uint16_t> callsigns( m_callsigns.size() );
+    std::iota( callsigns.begin(), callsigns.end(), 0 );
+    std::shuffle( callsigns.begin(), callsigns.end(), Random{ std::random_device()() } );
     const auto& w1 = m_weapons[ m_weapon1 ];
     const auto& w2 = m_weapons[ m_weapon2 ];
     m_jet = Jet( Jet::CreateInfo{
@@ -799,11 +801,11 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
 
     assert( m_enemies.empty() );
     m_enemies.resize( mapInfo.enemies );
-    std::generate( m_enemies.begin(), m_enemies.end(), [this, cs=0]() mutable
+    std::generate( m_enemies.begin(), m_enemies.end(), [this, &callsigns, cs=0u]() mutable
     {
         Enemy::CreateInfo ci{
             .model = &m_enemyModel,
-            .callsign = static_cast<uint16_t>( cs++ ),
+            .callsign = callsigns[ cs++ ],
         };
         UniquePointer<Enemy> ptr{ &m_poolEnemies, ci };
         ptr->setTarget( &m_jet );
