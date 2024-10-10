@@ -22,6 +22,7 @@ struct OptionsGFX {
         }
         , &toString<float>
     };
+    ui::Option<bool> m_fxaa{ 0 };
 };
 
 struct OptionsCustomize {

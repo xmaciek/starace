@@ -15,6 +15,7 @@ endfunction()
 
 compileShader( albedo.frag )
 compileShader( albedo.vert )
+compileShader( antialias_fxaa.comp )
 compileShader( background.frag )
 compileShader( background.vert )
 compileShader( beam_blob.frag )

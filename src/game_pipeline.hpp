@@ -17,6 +17,7 @@ enum class Pipeline : PipelineSlot {
     eScanline,
     eUiRings,
     eBeamBlob,
+    eAntiAliasFXAA,
     count,
 };
 
@@ -110,6 +111,10 @@ struct PushConstant<Pipeline::eGammaCorrection> {
 template <>
 struct PushConstant<Pipeline::eScanline> {
     math::vec4 m_power{};
+};
+
+template <>
+struct PushConstant<Pipeline::eAntiAliasFXAA> {
 };
 
 template <>
@@ -291,6 +296,13 @@ PipelineCreateInfo{
     .m_userHint = static_cast<uint32_t>( Pipeline::eScanline ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eScanline> ),
     .m_computeUniform = 0b1,
+    .m_computeImage = 0b110,
+},
+
+PipelineCreateInfo{
+    .m_computeShader = "shaders/antialias_fxaa.comp.spv",
+    .m_userHint = static_cast<uint32_t>( Pipeline::eAntiAliasFXAA ),
+    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eAntiAliasFXAA> ),
     .m_computeImage = 0b110,
 },
 

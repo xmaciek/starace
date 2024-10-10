@@ -443,6 +443,7 @@ void Game::setupUI()
     m_gameUiDataModels.insert( "$data:missionSelect"_hash, &m_dataMissionSelect );
     m_gameUiDataModels.insert( "$data:resolution"_hash, &m_optionsGFX.m_resolution );
     m_gameUiDataModels.insert( "$data:vsync"_hash, &m_optionsGFX.m_vsync );
+    m_gameUiDataModels.insert( "$data:fxaa"_hash, &m_optionsGFX.m_fxaa );
     m_gameUiDataModels.insert( "$data:weaponPrimary"_hash, &m_optionsCustomize.m_weaponPrimary );
     m_gameUiDataModels.insert( "$data:weaponSecondary"_hash, &m_optionsCustomize.m_weaponSecondary );
     m_gameUiDataModels.insert( "$var:playerHP"_hash, &m_gameplayUIData.m_playerHP );
@@ -1008,6 +1009,12 @@ void Game::render3D( RenderContext rctx )
     Enemy::renderAll( rctx, m_enemies );
     Bullet::renderAll( rctx, m_bullets, m_plasma );
     m_jet.render( rctx );
+
+    if ( m_optionsGFX.m_fxaa.value() ) {
+        const PushConstant<Pipeline::eAntiAliasFXAA> aa{};
+        const DispatchInfo daa{ .m_pipeline = g_pipelines[ Pipeline::eAntiAliasFXAA ] };
+        rctx.renderer->dispatch( daa, &aa );
+    }
 }
 
 void Game::renderBackground( ui::RenderContext rctx ) const
@@ -1054,6 +1061,12 @@ void Game::renderMenuScreen( RenderContext rctx, ui::RenderContext r ) const
     auto& jet = m_jetsContainer[ m_currentJet ].model;
     jet.render( rctx );
     m_dustUi.render( rctx );
+
+    if ( m_optionsGFX.m_fxaa.value() ) {
+        const PushConstant<Pipeline::eAntiAliasFXAA> aa{};
+        const DispatchInfo daa{ .m_pipeline = g_pipelines[ Pipeline::eAntiAliasFXAA ] };
+        rctx.renderer->dispatch( daa, &aa );
+    }
 
     m_uiRings.render( r );
     m_glow.render( r );

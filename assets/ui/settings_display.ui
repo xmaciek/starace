@@ -20,6 +20,7 @@ List = {
         ComboBox = { text = fullscreen  data = $data:fullscreen }
         ComboBox = { text = resolution  data = $data:resolution }
         ComboBox = { text = gammaCorrection  data = $data:gammaCorrection }
+        ComboBox = { text = fxaa  data = $data:fxaa }
     }
 }
 

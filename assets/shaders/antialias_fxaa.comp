@@ -1,0 +1,45 @@
+#version 450
+
+layout( local_size_x = 8, local_size_y = 8 ) in;
+
+layout( rgba32f, binding = 1 ) uniform image2D srcImg;
+layout( rgba32f, binding = 2 ) uniform image2D dstImg;
+
+const vec3 LUMA = vec3( 0.299, 0.587, 0.114 );
+
+float getLuma( vec2 dir )
+{
+    vec4 color = imageLoad( srcImg, ivec2( gl_GlobalInvocationID.xy + dir ) );
+    return dot( color.rgb, LUMA );
+}
+
+vec3 getRGB( vec2 xy )
+{
+    ivec2 pos = ivec2( xy );
+    vec4 color = imageLoad( srcImg, pos );
+    return color.rgb;
+}
+
+void main()
+{
+    float lumaNW = getLuma( vec2( -1, -1 ) );
+    float lumaNE = getLuma( vec2( -1, 1 ) );
+    float lumaSW = getLuma( vec2( 1, -1 ) );
+    float lumaSE = getLuma( vec2( 1, 1 ) );
+    float lumaM  = getLuma( vec2( 0, 0 ) );
+    float horizontal = ( lumaSW + lumaSE ) - ( lumaNW + lumaNE );
+    float vertical = ( lumaNW + lumaSW ) - ( lumaNE + lumaSE );
+    vec2 dir = vec2( horizontal, vertical );
+
+    vec2 fragCoord = gl_GlobalInvocationID.xy;
+    vec3 rgbA = 0.5 * (
+        getRGB( fragCoord + dir * ( 1.0 / 3.0 - 0.5 ) ) +
+        getRGB( fragCoord + dir * ( 2.0 / 3.0 - 0.5 ) ) );
+    vec3 rgbB = rgbA * 0.5 + 0.25 * (
+        getRGB( fragCoord + dir * -0.5 ) +
+        getRGB( fragCoord + dir * 0.5 ) );
+
+    float lumaB = dot( rgbB, LUMA );
+    vec3 color = mix( rgbA, rgbB, clamp( lumaB, 0.0, 1.0 ) );
+    imageStore( dstImg, ivec2( fragCoord ), vec4( color, 1.0 ) );
+}
