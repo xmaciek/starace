@@ -8,34 +8,35 @@
 
 #include <cassert>
 
-static constexpr std::array<Hash::value_type, 9> SLICES = {
-    "topLeft"_hash,
-    "top"_hash,
-    "topRight"_hash,
-    "left"_hash,
-    "mid"_hash,
-    "right"_hash,
-    "botLeft"_hash,
-    "bot"_hash,
-    "botRight"_hash,
-};
-
 namespace ui {
 
 SpinBox::SpinBox( const CreateInfo& ci ) noexcept
-: Widget{ ci.position, ci.size }
+: NineSlice{ NineSlice::CreateInfo{ .position = ci.position, .size = ci.size, .anchor = Anchor::fTop| Anchor::fLeft } }
+, m_label{ Label::CreateInfo{ .text = ci.text, .font = "medium"_hash, .anchor = Anchor::fLeft | Anchor::fMiddle, } }
+, m_value{ Label::CreateInfo{ .data = ci.data, .font = "medium"_hash, .anchor = Anchor::fCenter | Anchor::fMiddle, } }
 , m_model{ g_uiProperty.dataModel( ci.data ) }
-, m_label{ Label::CreateInfo{ .data = ci.data, .font = "small"_hash, .size = ci.size, .anchor = Anchor::fCenter | Anchor::fMiddle, } }
 {
+    math::vec2 s = size();
+    m_label.setPosition( math::vec2{ 16.0f, s.y * 0.5f } );
+    m_value.setPosition( math::vec2{ s.x * 0.75f - 2.0f, s.y * 0.5f } );
     setTabOrder( ci.tabOrder );
 }
 
 void SpinBox::render( RenderContext rctx ) const
 {
+    rctx.colorMain = isFocused() ? rctx.colorFocus : rctx.colorMain;
+    NineSlice::render( rctx );
+
+    const math::vec2 pos = position() + offsetByAnchor();
+    rctx.model = math::translate( rctx.model, math::vec3{ pos.x, pos.y, 0.0f } );
+
+    m_label.render( rctx );
+    m_value.render( rctx );
+
     PushData pushData{
         .m_pipeline = g_uiProperty.pipelineSpriteSequenceColors(),
         .m_verticeCount = 6u,
-        .m_instanceCount = 11u,
+        .m_instanceCount = 2u,
     };
     pushData.m_fragmentTexture[ 1 ] = g_uiProperty.atlasTexture();
 
@@ -45,11 +46,8 @@ void SpinBox::render( RenderContext rctx ) const
         .m_projection = rctx.projection,
     };
 
-    const math::vec2 pos = position() + offsetByAnchor();
-    const math::vec2 s = size();
     math::vec4 left = arrowLeft();
     math::vec4 right = arrowRight();
-    math::vec4 mid{ left.x + left.z, pos.y, s.x - ( left.z + right.z ), s.y };
 
     auto nonlerp2 = []( float a, float b, float n )
     {
@@ -69,19 +67,7 @@ void SpinBox::render( RenderContext rctx ) const
     pushConstant.m_sprites[ 1 ].m_xywh = right;
     pushConstant.m_sprites[ 1 ].m_uvwh =  atlasRef[ "arrowRight"_hash ] / altasExtent;
 
-    auto color = isFocused() ? rctx.colorFocus : rctx.colorMain;
-    NineSlice2 gen{ mid, g_uiProperty.atlas(), SLICES };
-    for ( auto i = 0u; i < 9u; ++i ) {
-        auto& sprite = pushConstant.m_sprites[ i + 2u ];
-        sprite.m_color = color;
-        sprite.m_xywh = gen( i );
-        sprite.m_uvwh = atlasRef[ SLICES[ i ] ] / altasExtent;
-    }
     rctx.renderer->push( pushData, &pushConstant );
-
-    const math::vec2 mv = pos + s * 0.5f;
-    rctx.model = math::translate( rctx.model, math::vec3{ mv.x, mv.y, 0.0f } );
-    m_label.render( rctx );
 }
 
 EventProcessing SpinBox::onMouseEvent( const MouseEvent& event )
@@ -97,8 +83,8 @@ EventProcessing SpinBox::onMouseEvent( const MouseEvent& event )
     }
 
 
-    const bool left = testRect( p, arrowLeft() );
-    const bool right = testRect( p, arrowRight() );
+    const bool left = testRect( p, arrowLeft() + math::vec4{ pos.x, pos.y, 0.0f, 0.0f } );
+    const bool right = testRect( p, arrowRight() + math::vec4{ pos.x, pos.y, 0.0f, 0.0f } );
     switch ( event.type ) {
     case MouseEvent::eMove:
         m_focusL = left;
@@ -125,19 +111,18 @@ EventProcessing SpinBox::onMouseEvent( const MouseEvent& event )
 
 math::vec4 SpinBox::arrowLeft() const
 {
-    const math::vec2 pos = position() + offsetByAnchor();
+    const math::vec2 s = size();
     static constexpr auto arrowHash = "arrowLeft"_hash;
     auto arrow = (*g_uiProperty.atlas())[ arrowHash ];
-    return math::vec4{ pos.x, pos.y, arrow.w, arrow.h };
+    return math::vec4{ s.x * 0.5f, 0.0f, arrow.w, arrow.h };
 }
 
 math::vec4 SpinBox::arrowRight() const
 {
-    const math::vec2 pos = position() + offsetByAnchor();
     const math::vec2 s = size();
     static constexpr auto arrowHash = "arrowRight"_hash;
     auto arrow = (*g_uiProperty.atlas())[ arrowHash ];
-    return math::vec4{ pos.x + s.x - static_cast<float>( arrow.w ), pos.y, arrow.w, arrow.h };
+    return math::vec4{ s.x - static_cast<float>( arrow.w ) - 4.0f, 0.0f, arrow.w, arrow.h };
 }
 
 EventProcessing SpinBox::onAction( ui::Action action )
@@ -161,6 +146,7 @@ EventProcessing SpinBox::onAction( ui::Action action )
 void SpinBox::update( const UpdateContext& uctx )
 {
     m_label.update( uctx );
+    m_value.update( uctx );
     m_animL = std::min( m_animL + uctx.deltaTime * 7.0f, 1.0f );
     m_animR = std::min( m_animR + uctx.deltaTime * 7.0f, 1.0f );
 }

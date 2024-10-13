@@ -9,10 +9,11 @@ Label = {
 }
 
 SpinBox = {
+    text = missionSelect
     data = $data:missionSelect
     x = 48
     y = 150
-    width = 320
+    width = 400
     height = 48
 }
 
@@ -21,7 +22,7 @@ Button = {
     trigger = $function:goto_missionBriefing
     x = 48
     y = 200
-    width = 320
+    width = 400
     height = 48
 }
 

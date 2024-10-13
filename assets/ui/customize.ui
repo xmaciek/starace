@@ -9,45 +9,30 @@ Label = {
 }
 
 SpinBox = {
+    text = jet
     data = $data:jet
     x = 48
     y = 150
-    width = 320
+    width = 512
     height = 48
 }
 
-Label = {
-    text = jet
-    x = 370
-    y = 150
-}
-
 SpinBox = {
+    text = weaponPrimary
     data = $data:weaponPrimary
     x = 48
     y = 200
-    width = 320
+    width = 512
     height = 48
-}
-
-Label = {
-    text = weaponPrimary
-    x = 370
-    y = 200
 }
 
 SpinBox = {
+    text = weaponSecondary
     data = $data:weaponSecondary
     x = 48
     y = 250
-    width = 320
+    width = 512
     height = 48
-}
-
-Label = {
-    text = weaponSecondary
-    x = 370
-    y = 250
 }
 
 Footer = {

@@ -19,7 +19,7 @@ namespace ui {
 
 Button::Button( const CreateInfo& ci ) noexcept
 : NineSlice{ NineSlice::CreateInfo{ .position = ci.position, .size = ci.size, .spriteArray = SLICES, .anchor = Anchor::fTop | Anchor::fLeft } }
-, m_label{ Label::CreateInfo{ .text = ci.text, .font = "small"_hash, .anchor = Anchor::fCenter | Anchor::fMiddle } }
+, m_label{ Label::CreateInfo{ .text = ci.text, .font = "medium"_hash, .position = ci.size * 0.5f, .anchor = Anchor::fCenter | Anchor::fMiddle } }
 , m_onTrigger{ g_uiProperty.gameCallback( ci.trigger ) }
 {
     setTabOrder( ci.tabOrder );
@@ -31,7 +31,7 @@ void Button::render( RenderContext rctx ) const
         rctx.colorMain = rctx.colorFocus;
     }
     NineSlice::render( rctx );
-    const math::vec2 pos = position() + offsetByAnchor() + size() * 0.5f;
+    const math::vec2 pos = position() + offsetByAnchor();
     rctx.model = math::translate( rctx.model, math::vec3{ pos.x, pos.y, 0.0f } );
     m_label.render( rctx );
 }

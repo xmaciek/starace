@@ -2,28 +2,28 @@
 
 #include <ui/data_model.hpp>
 #include <ui/label.hpp>
+#include <ui/nineslice.hpp>
 #include <ui/tab_order.hpp>
-#include <ui/widget.hpp>
 
 namespace ui {
 
-class SpinBox : public Widget {
+class SpinBox : public NineSlice {
 protected:
+    Label m_label{};
+    Label m_value{};
     DataModel* m_model = nullptr;
     float m_animL = 1.0f;
     float m_animR = 1.0f;
     bool m_focusL : 1 = false;
     bool m_focusR : 1 = false;
-    Label m_label{};
 
     math::vec4 arrowLeft() const;
     math::vec4 arrowRight() const;
 
 public:
-    static constexpr inline bool TAB_ORDERING = true;
-
     struct CreateInfo {
         Hash::value_type data;
+        Hash::value_type text;
         math::vec2 position{};
         math::vec2 size{};
         uint16_t tabOrder{};
