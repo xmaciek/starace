@@ -1,8 +1,9 @@
+#include "cooker_common.hpp"
+
 #include <config/config.hpp>
 #include <extra/fnta.hpp>
 #include <extra/args.hpp>
 #include <shared/hash.hpp>
-
 
 #include <algorithm>
 #include <cassert>
@@ -14,11 +15,6 @@
 #include <string_view>
 #include <vector>
 #include <numeric>
-
-#define RED "\x1b[31m"
-#define DEFAULT "\x1b[0m"
-
-static constexpr char FAIL[] = "[ " RED "FAIL" DEFAULT " ] ";
 
 struct Slot {
     fnta::Glyph glyph{};
@@ -45,20 +41,13 @@ int main( int argc, const char** argv )
     std::string_view argsSrcAtlas{};
     std::string_view argsDstAtlas{};
 
-    auto err = []( auto&& msg ) -> bool
-    {
-        std::cout << FAIL << msg << std::endl;
-        std::exit( 1 );
-    };
-
-    args.read( "-i", argsSrcAtlas ) || err( "\t-i \"src/atlas.txt\" \u2012 argument not specified" );
-    args.read( "-o", argsDstAtlas ) || err( "\t-o \"dst/atlas.fnta\" \u2012 argument not specified" );
+    args.read( "-i", argsSrcAtlas ) || cooker::error( "\t-i \"src/atlas.txt\" \u2012 argument not specified" );
+    args.read( "-o", argsDstAtlas ) || cooker::error( "\t-o \"dst/atlas.fnta\" \u2012 argument not specified" );
     const bool argsRemap = args.read( "--remap" );
 
     std::ifstream ifs{ (std::string)argsSrcAtlas, std::ios::binary | std::ios::ate };
     if ( !ifs.is_open() ) {
-        std::cout << FAIL << "Cannot open source atlas to: " << argsSrcAtlas << std::endl;
-        return 1;
+        cooker::error( "Cannot open source atlas:", argsSrcAtlas );
     }
 
     auto fileSize = ifs.tellg();
@@ -137,10 +126,8 @@ int main( int argc, const char** argv )
     header.count = (uint32_t)glyphs.size();
 
     std::ofstream ofs{ (std::string)argsDstAtlas, std::ios::binary };
-    if ( !ofs.is_open() ) {
-        std::cout << FAIL << "Cannot open destination atlas to write: " << argsDstAtlas << std::endl;
-        return 1;
-    }
+    if ( !ofs.is_open() ) cooker::error( "Cannot open destination atlas to write:", argsDstAtlas );
+
     ofs.write( (const char*)&header, sizeof( header ) );
     for ( auto&& g : glyphs ) {
         ofs.write( (const char*)&g.ch, sizeof( g.ch ) );

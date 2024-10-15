@@ -1,4 +1,5 @@
 #include "cooker_dds.hpp"
+#include "cooker_common.hpp"
 
 #include <extra/dds.hpp>
 #include <extra/tga.hpp>
@@ -19,24 +20,6 @@
 #include <utility>
 #include <vector>
 
-#define RED "\x1b[31m"
-#define DEFAULT "\x1b[0m"
-
-static constexpr char FAIL[] = "[ " RED "FAIL" DEFAULT " ] ";
-
-[[noreturn]]
-static bool exitOnFailed( std::string_view msg, const auto& arg )
-{
-    std::cout << FAIL << msg << " " << arg << std::endl;
-    std::exit( 1 );
-}
-[[noreturn]]
-static bool exitOnFailed( std::string_view msg )
-{
-    std::cout << FAIL << msg << std::endl;
-    std::exit( 1 );
-};
-
 using Format = dds::dxgi::Format;
 
 struct Image {
@@ -53,10 +36,10 @@ Image convertTga( const std::filesystem::path& srcFile )
     struct BGRA { uint8_t b, g, r, a; };
 
     std::ifstream ifs( srcFile, std::ios::binary | std::ios::ate );
-    ifs.is_open() || exitOnFailed( "cannot open file:", srcFile );
+    ifs.is_open() || cooker::error( "cannot open file:", srcFile );
 
     size_t fileSize = static_cast<size_t>( ifs.tellg() );
-    ( fileSize >= sizeof( tga::Header ) ) || exitOnFailed( "file too short", srcFile );
+    ( fileSize >= sizeof( tga::Header ) ) || cooker::error( "file too short", srcFile );
 
     tga::Header header{};
     ifs.seekg( 0 );
@@ -110,7 +93,7 @@ Image convertTga( const std::filesystem::path& srcFile )
             return { .format = Format::B8G8R8A8_UNORM, .width = header.width, .height = header.height, .pixels = std::move( ret ) };
 
         default:
-            exitOnFailed( "unhandled colormap bpp", srcFile );
+            cooker::error( "unhandled colormap bpp", srcFile );
         }
     }
 
@@ -141,19 +124,19 @@ Image convertTga( const std::filesystem::path& srcFile )
             return { .format = Format::B8G8R8A8_UNORM, .width = header.width, .height = header.height, .pixels = std::move( ret ) };
         }
         default:
-            exitOnFailed( "unknown pixel format, todo maybe later:", srcFile );
+            cooker::error( "unknown pixel format, todo maybe later:", srcFile );
         }
     }
 
     default:
-        exitOnFailed( "unhandled image type:", srcFile );
+        cooker::error( "unhandled image type:", srcFile );
     }
 }
 
 void compressToBC4( Image& img )
 {
-    if ( img.format != Format::R8_UNORM ) exitOnFailed( "Expected format R8" );
-    if ( img.pixels.empty() ) exitOnFailed( "no pixels to convert" );
+    if ( img.format != Format::R8_UNORM ) cooker::error( "Expected format R8" );
+    if ( img.pixels.empty() ) cooker::error( "no pixels to convert" );
 
     const uint32_t blockCount = (uint32_t)img.pixels.size() / 16;
     std::pmr::vector<uint8_t> imageOut( sizeof( dds::BC4 ) * blockCount );
@@ -315,15 +298,15 @@ int main( int argc, const char** argv )
     std::string_view argSrc{};
     std::string_view argDst{};
 
-    args.read( "--src", argSrc ) || exitOnFailed( "--src <file/path.tga> \u2012 argument not specified" );
-    args.read( "--dst", argDst ) || exitOnFailed( "--dst <file/path.dds> \u2012 argument not specified" );
+    args.read( "--src", argSrc ) || cooker::error( "--src <file/path.tga> \u2012 argument not specified" );
+    args.read( "--dst", argDst ) || cooker::error( "--dst <file/path.dds> \u2012 argument not specified" );
     const bool argMipgen = args.read( "--mipgen" );
     const Format argsFormat = [&args]()
     {
         std::string_view argsFormat{};
         if ( !args.read( "--format", argsFormat ) ) return Format::UNKNOWN;
         if ( argsFormat == "BC4" ) return Format::BC4_UNORM;
-        exitOnFailed( "--format has unsupported value \u2012", argsFormat );
+        cooker::error( "--format has unsupported value \u2012", argsFormat );
     }();
 
     auto commaSeparate = []( std::string_view sv ) -> std::pmr::vector<std::filesystem::path>
@@ -340,7 +323,7 @@ int main( int argc, const char** argv )
         return ret;
     };
     std::pmr::vector<std::filesystem::path> src = commaSeparate( argSrc );
-    src.empty() && exitOnFailed( "--src argument requires valid paths" );
+    src.empty() && cooker::error( "--src argument requires valid paths" );
     std::filesystem::path dst = argDst;
     std::list<Image> images;
     {
@@ -349,14 +332,14 @@ int main( int argc, const char** argv )
         Format pendingFormat{};
         for ( auto&& file : src ) {
             images.emplace_back() = convertTga( file );
-            if ( images.back().pixels.empty() ) exitOnFailed( "image must have pixels" );
+            if ( images.back().pixels.empty() ) cooker::error( "image must have pixels" );
             uint32_t width = std::exchange( pendingWidth, images.back().width );
             uint32_t height = std::exchange( pendingHeight, images.back().height );
             Format format = std::exchange( pendingFormat, images.back().format );
-            if ( width && ( width != pendingWidth ) ) exitOnFailed( "images cannot have different width when combining into array" );
-            if ( height && ( height != pendingHeight ) ) exitOnFailed( "images cannot have different height when combining into array" );
-            if ( ( format != Format::UNKNOWN ) && ( format != pendingFormat ) ) exitOnFailed( "images cannot have different format when combining into array" );
-            if ( pendingFormat == Format::UNKNOWN ) exitOnFailed( "image must have format" );
+            if ( width && ( width != pendingWidth ) ) cooker::error( "images cannot have different width when combining into array" );
+            if ( height && ( height != pendingHeight ) ) cooker::error( "images cannot have different height when combining into array" );
+            if ( ( format != Format::UNKNOWN ) && ( format != pendingFormat ) ) cooker::error( "images cannot have different format when combining into array" );
+            if ( pendingFormat == Format::UNKNOWN ) cooker::error( "image must have format" );
         }
     }
     const uint32_t arrayCount = static_cast<uint32_t>( images.size() );
@@ -405,7 +388,7 @@ int main( int argc, const char** argv )
         header.caps |= Caps::fComplex;
     }
     std::ofstream ofs( dst, std::ios::binary );
-    ofs.is_open() || exitOnFailed( "cannot open file:", dst );
+    ofs.is_open() || cooker::error( "cannot open file:", dst );
 
     ofs.write( reinterpret_cast<const char*>( &header ), static_cast<std::streamsize>( sizeof( header ) ) );
     ofs.write( reinterpret_cast<const char*>( &dxgiHeader ), static_cast<std::streamsize>( sizeof( dxgiHeader ) ) );

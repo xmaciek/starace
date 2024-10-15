@@ -1,3 +1,5 @@
+#include "cooker_common.hpp"
+
 #include <extra/obj.hpp>
 
 #include <array>
@@ -8,18 +10,6 @@
 #include <string_view>
 #include <vector>
 #include <memory_resource>
-
-#define RED "\x1b[31m"
-#define DEFAULT "\x1b[0m"
-
-static constexpr char FAIL[] = "[ " RED "FAIL" DEFAULT " ] ";
-
-[[noreturn]]
-static bool exitOnFailed( std::string_view msg, auto arg )
-{
-    std::cout << FAIL << msg << " " << arg << std::endl;
-    std::exit( 1 );
-}
 
 struct Vec2{ float data[ 2 ]; };
 struct Vec3{ float data[ 3 ]; };
@@ -37,13 +27,13 @@ static bool testIntegrity( obj::DataType a, obj::DataType expected )
 
 int main( int argc, char** argv )
 {
-    ( argc == 3 ) || exitOnFailed( "expected 2 arguments: <src.obj> <dst.objc>", "" );
+    ( argc == 3 ) || cooker::error( "expected 2 arguments: <src.obj> <dst.objc>", "" );
 
     std::filesystem::path src{ argv[ 1 ] };
     std::filesystem::path dst{ argv[ 2 ] };
 
     std::ifstream ifs( src );
-    ifs.is_open() || exitOnFailed( "failed to open file:", src );
+    ifs.is_open() || cooker::error( "failed to open file:", src );
 
     decltype( obj::load( {} ) ) dataOut{};
     decltype( dataOut )::value_type* chunk = nullptr;
@@ -62,7 +52,7 @@ int main( int argc, char** argv )
         if ( line.size() < 3 ) { continue; }
         const std::string_view sv{ line.c_str(), 2 };
         if ( sv == "o " ) {
-            ( line.size() <= sizeof( obj::Chunk::name ) + 2 ) || exitOnFailed( "object name too long to fit into Chunk.name field", line );
+            ( line.size() <= sizeof( obj::Chunk::name ) + 2 ) || cooker::error( "object name too long to fit into Chunk.name field", line );
             dataOut.emplace_back();
             chunk = &dataOut.back();
             std::copy_n( line.c_str() + 2, line.size() - 2, chunk->first.name );
@@ -81,7 +71,7 @@ int main( int argc, char** argv )
             std::sscanf( line.c_str() + 3, "%f %f %f", v.data, v.data + 1, v.data + 2 );
         }
         else if ( sv == "f " ) {
-            testIntegrity( chunk->first.dataType, obj::DataType::vtn ) || exitOnFailed( "data type mismatch, possibly interleaving f with l", chunk->first.name );
+            testIntegrity( chunk->first.dataType, obj::DataType::vtn ) || cooker::error( "data type mismatch, possibly interleaving f with l", chunk->first.name );
             chunk->first.dataType = obj::DataType::vtn;
 
             std::array<Face, 3> f{};
@@ -94,21 +84,21 @@ int main( int argc, char** argv )
             f[ 1 ].vert--; f[ 1 ].uv--; f[ 1 ].norm--;
             f[ 2 ].vert--; f[ 2 ].uv--; f[ 2 ].norm--;
             for ( auto&& ff : f ) {
-                ( ff.vert < vertices.size() ) || exitOnFailed( "requested index out of vertice range: index", ff.vert + 1 );
+                ( ff.vert < vertices.size() ) || cooker::error( "requested index out of vertice range: index", ff.vert + 1 );
                 chunk->second.push_back( vertices[ ff.vert ].data[ 0 ] );
                 chunk->second.push_back( vertices[ ff.vert ].data[ 1 ] );
                 chunk->second.push_back( vertices[ ff.vert ].data[ 2 ] );
-                ( ff.uv < uv.size() ) || exitOnFailed( "requested index out of uv range: index", ff.uv + 1 );
+                ( ff.uv < uv.size() ) || cooker::error( "requested index out of uv range: index", ff.uv + 1 );
                 chunk->second.push_back( uv[ ff.uv ].data[ 0 ] );
                 chunk->second.push_back( uv[ ff.uv ].data[ 1 ] );
-                ( ff.norm < normals.size() ) || exitOnFailed( "requested index out of normal range: index", ff.norm + 1 );
+                ( ff.norm < normals.size() ) || cooker::error( "requested index out of normal range: index", ff.norm + 1 );
                 chunk->second.push_back( normals[ ff.norm ].data[ 0 ] );
                 chunk->second.push_back( normals[ ff.norm ].data[ 1 ] );
                 chunk->second.push_back( normals[ ff.norm ].data[ 2 ] );
             }
         }
         else if ( sv == "l " ) {
-            testIntegrity( chunk->first.dataType, obj::DataType::v ) || exitOnFailed( "data type mismatch, possibly interleaving l with f", chunk->first.name );
+            testIntegrity( chunk->first.dataType, obj::DataType::v ) || cooker::error( "data type mismatch, possibly interleaving l with f", chunk->first.name );
             chunk->first.dataType = obj::DataType::v;
             uint32_t i = 0;
             uint32_t j = 0;
@@ -123,7 +113,7 @@ int main( int argc, char** argv )
             chunk->second.push_back( vertices[ j ].data[ 2 ] );
         }
         else if ( sv == "p " ) {
-            testIntegrity( chunk->first.dataType, obj::DataType::v ) || exitOnFailed( "data type mismatch, possibly interleaving p with f", chunk->first.name );
+            testIntegrity( chunk->first.dataType, obj::DataType::v ) || cooker::error( "data type mismatch, possibly interleaving p with f", chunk->first.name );
             chunk->first.dataType = obj::DataType::v;
 
             uint32_t idx = 0;
@@ -138,7 +128,7 @@ int main( int argc, char** argv )
 
     for ( auto& it : dataOut ) {
         ( it.second.size() <= std::numeric_limits<uint32_t>::max() )
-            || exitOnFailed( "float count too large, number exceeds max of uint32_t:", it.second.size() );
+            || cooker::error( "float count too large, number exceeds max of uint32_t:", it.second.size() );
         it.first.floatCount = static_cast<uint32_t>( it.second.size() );
     }
 
@@ -146,7 +136,7 @@ int main( int argc, char** argv )
     header.chunkCount = static_cast<uint32_t>( dataOut.size() );
 
     std::ofstream ofs( dst, std::ios::binary );
-    ofs.is_open() || exitOnFailed( "failed to open:", dst );
+    ofs.is_open() || cooker::error( "failed to open:", dst );
 
     ofs.write( reinterpret_cast<const char*>( &header ), sizeof( header ) );
     for ( const auto& it : dataOut ) {

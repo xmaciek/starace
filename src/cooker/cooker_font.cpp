@@ -1,4 +1,6 @@
 #include "cooker_dds.hpp"
+#include "cooker_common.hpp"
+
 #include <extra/dds.hpp>
 #include <extra/fnta.hpp>
 #include <extra/args.hpp>
@@ -20,27 +22,6 @@
 #include <tuple>
 #include <vector>
 
-#define RED "\x1b[31m"
-#define YELLOW "\x1b[33m"
-#define DEFAULT "\x1b[0m"
-
-static constexpr char FAIL[] = "[ " RED "FAIL" DEFAULT " ] ";
-static constexpr char WARN[] = "[ " YELLOW "WARN" DEFAULT " ] ";
-
-static void exitOnFailed( FT_Error ec )
-{
-    if ( ec == 0 ) return;
-    std::cout << FAIL << FT_Error_String( ec ) << std::endl;
-    std::exit( 1 );
-}
-
-[[noreturn]]
-static bool exitOnFailed( std::string_view msg )
-{
-    std::cout << FAIL << msg << std::endl;
-    std::exit( 1 );
-}
-
 static std::vector<std::pair<char32_t, char32_t>> splitRanges( std::string_view args )
 {
     std::vector<std::pair<char32_t, char32_t>> ret;
@@ -51,15 +32,15 @@ static std::vector<std::pair<char32_t, char32_t>> splitRanges( std::string_view 
         const char* end = args.data() + args.size();
         uint32_t v1 = 0;
         auto res1 = std::from_chars( begin, end, v1, 16 );
-        if ( v1 == 0 || res1.ec != std::errc{} ) exitOnFailed( "cannot parse string as hex number: " + std::string( begin, end ) );
-        if ( res1.ptr == end ) exitOnFailed( "expected a comma separator for range pair: " + std::string( begin, end ) );
-        if ( *res1.ptr != ',' ) exitOnFailed( "expected a comma separator for range pair: " + std::string( begin, end ) );
+        if ( v1 == 0 || res1.ec != std::errc{} ) cooker::error( "cannot parse string as hex number: " + std::string( begin, end ) );
+        if ( res1.ptr == end ) cooker::error( "expected a comma separator for range pair: " + std::string( begin, end ) );
+        if ( *res1.ptr != ',' ) cooker::error( "expected a comma separator for range pair: " + std::string( begin, end ) );
 
         uint32_t v2 = 0;
         begin = res1.ptr + 1;
         auto res2 = std::from_chars( begin, end, v2, 16 );
-        if ( v2 == 0 || res2.ec != std::errc{} ) exitOnFailed( "cannot parse string as hex number: " + std::string( begin, end ) );
-        if ( res2.ptr != end && *res2.ptr != ',' ) exitOnFailed( "expected a comma separator or end of a string: " + std::string( begin, end ) );
+        if ( v2 == 0 || res2.ec != std::errc{} ) cooker::error( "cannot parse string as hex number: " + std::string( begin, end ) );
+        if ( res2.ptr != end && *res2.ptr != ',' ) cooker::error( "expected a comma separator or end of a string: " + std::string( begin, end ) );
         return std::make_tuple( (char32_t)v1, (char32_t)v2, (char32_t)std::distance( args.data(), res2.ptr + (res2.ptr != end) ) );
     };
 
@@ -213,8 +194,7 @@ static std::vector<FT_Byte> loadFontFile( std::string_view path )
 {
     std::ifstream ifs( (std::string)path, std::ios::binary | std::ios::ate );
     if ( !ifs.is_open() ) {
-        std::cout << FAIL << "Font file cannot be open: " << path << std::endl;
-        std::exit( 1 );
+        cooker::error( "Font file cannot be open:", path );
     }
     auto size = ifs.tellg();
     ifs.seekg( 0 );
@@ -246,11 +226,11 @@ int main( int argc, const char** argv )
     std::string_view argsDstDDS{};
     std::string_view argsRanges{};
 
-    ( args.read( "--px", size ) && ( size > 0 ) ) || exitOnFailed( "--px \"unsigned integer\" > 0 \u2012 argument not specified or invalid" );
-    args.read( "--src", argsSrcFont ) || exitOnFailed( "--src \"src/font/file/path.ext\" \u2012 argument not specified" );
-    args.read( "--out", argsDstFont ) || exitOnFailed( "--out \"dst/font/atlas.fnta\" \u2012 argument not specified" );
-    args.read( "--dds", argsDstDDS ) || exitOnFailed( "--dds \"dst/font/image.dds\" \u2012 argument not specified" );
-    args.read( "--ranges", argsRanges ) || exitOnFailed( "--ranges \"#begin1,#end1,#begin2,#end2,#beginN,#endN\" \u2012 20,7F,A1,180 \u2012 argument not specified" );
+    ( args.read( "--px", size ) && ( size > 0 ) ) || cooker::error( "--px \"unsigned integer\" > 0 \u2012 argument not specified or invalid" );
+    args.read( "--src", argsSrcFont ) || cooker::error( "--src \"src/font/file/path.ext\" \u2012 argument not specified" );
+    args.read( "--out", argsDstFont ) || cooker::error( "--out \"dst/font/atlas.fnta\" \u2012 argument not specified" );
+    args.read( "--dds", argsDstDDS ) || cooker::error( "--dds \"dst/font/image.dds\" \u2012 argument not specified" );
+    args.read( "--ranges", argsRanges ) || cooker::error( "--ranges \"#begin1,#end1,#begin2,#end2,#beginN,#endN\" \u2012 20,7F,A1,180 \u2012 argument not specified" );
 
     auto ranges = splitRanges( argsRanges );
     auto fontData = loadFontFile( argsSrcFont );
@@ -261,8 +241,9 @@ int main( int argc, const char** argv )
     };
     DestroyOnExit ft{};
 
-    const FT_Error initOK = FT_Init_FreeType( &ft.library );
-    exitOnFailed( initOK );
+    if ( FT_Error ec = FT_Init_FreeType( &ft.library ); ec ) {
+        cooker::error( FT_Error_String( ec ) );
+    }
 
     const FT_Open_Args openArgs{
         .flags = FT_OPEN_MEMORY,
@@ -271,14 +252,16 @@ int main( int argc, const char** argv )
     };
 
     FT_Face face{};
-    const FT_Error newFaceOK = FT_Open_Face( ft.library, &openArgs, 0, &face );
-    exitOnFailed( newFaceOK );
+    if ( FT_Error ec = FT_Open_Face( ft.library, &openArgs, 0, &face ); ec ) {
+        cooker::error( FT_Error_String( ec ) );
+    }
 
     float height = static_cast<float>( size );
     const FT_UInt pixelSize = static_cast<FT_UInt>( height );
 
-    const FT_Error pixelSizeOK = FT_Set_Pixel_Sizes( face, 0, pixelSize );
-    exitOnFailed( pixelSizeOK );
+    if ( FT_Error ec = FT_Set_Pixel_Sizes( face, 0, pixelSize ); ec ) {
+        cooker::error( FT_Error_String( ec ) );
+    }
 
     std::u32string charset{};
     auto genRange = []( auto& charset, char32_t begin, char32_t end )
@@ -300,17 +283,18 @@ int main( int argc, const char** argv )
     {
         const FT_UInt glyphIndex = FT_Get_Char_Index( face, ch );
         if ( glyphIndex == 0 ) {
-            std::cout << WARN << "charcode not present in font: 0x" << std::hex << (uint32_t)ch << std::endl;
+            cooker::warning( "charcode not present in font:", ch );
         }
-        const FT_Error loadOK = FT_Load_Glyph( face, glyphIndex, FT_LOAD_DEFAULT );
-        exitOnFailed( loadOK );
+        if ( FT_Error ec = FT_Load_Glyph( face, glyphIndex, FT_LOAD_DEFAULT ); ec ) {
+            cooker::error( FT_Error_String( ec ) );
+        }
 
         FT_GlyphSlot slot = face->glyph;
-        const FT_Error renderOK = FT_Render_Glyph( slot, FT_RENDER_MODE_NORMAL );
-        exitOnFailed( renderOK );
+        if ( FT_Error ec = FT_Render_Glyph( slot, FT_RENDER_MODE_NORMAL ); ec ) {
+            cooker::error( FT_Error_String( ec ) );
+        }
         if ( slot->bitmap.pixel_mode != FT_PIXEL_MODE_GRAY ) {
-            std::cout << FAIL << "pixel mode not gray" << std::endl;
-            std::exit( 1 );
+            cooker::error( "pixel mode not gray" );
         }
 
         Slot ret{};
@@ -415,8 +399,7 @@ int main( int argc, const char** argv )
     };
     std::ofstream ofs{ (std::string)argsDstDDS, std::ios::binary };
     if ( !ofs.is_open() ) {
-        std::cout << FAIL << "Cannot open file for write: " << argsDstDDS << std::endl;
-        return 1;
+        cooker::error( "Cannot open file for write:", argsDstDDS );
     }
 
     ofs.write( (const char*)&ddsHeader, sizeof( ddsHeader ) );
@@ -432,8 +415,7 @@ int main( int argc, const char** argv )
     };
     ofs = std::ofstream( (std::string)argsDstFont, std::ios::binary );
     if ( !ofs.is_open() ) {
-        std::cout << FAIL << "Cannot open font atlas to write: " << argsDstFont << std::endl;
-        return 1;
+        cooker::error( "Cannot open font atlas to write:", argsDstFont );
     }
     ofs.write( (const char*)&fntaHeader, sizeof( fntaHeader ) );
     ofs.write( (const char*)charset.data(), (std::streamsize)charset.size() * 4 );

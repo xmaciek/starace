@@ -1,3 +1,5 @@
+#include "cooker_common.hpp"
+
 #include <extra/pak.hpp>
 
 #include <algorithm>
@@ -10,23 +12,11 @@
 #include <vector>
 #include <type_traits>
 
-#define RED "\x1b[31m"
-#define DEFAULT "\x1b[0m"
-
-static constexpr char FAIL[] = "[ " RED "FAIL" DEFAULT " ] ";
-
-[[noreturn]]
-static bool exitOnFailed( std::string_view msg, std::string_view arg )
-{
-    std::cout << FAIL << msg << " " << arg << std::endl;
-    std::exit( 1 );
-}
-
 static std::string preparePakPath( const std::string& str, int includeDirectoryCount )
 {
     auto stat = std::filesystem::status( str );
-    std::filesystem::exists( stat ) || exitOnFailed( "path don't exists:", str );
-    std::filesystem::is_regular_file( stat ) || exitOnFailed( "path is not file:", str );
+    std::filesystem::exists( stat ) || cooker::error( "path don't exists:", str );
+    std::filesystem::is_regular_file( stat ) || cooker::error( "path is not file:", str );
 
     auto rit = std::find_if( str.rbegin(), str.rend(), [includeDirectoryCount]( char c ) mutable
     {
@@ -41,7 +31,7 @@ static std::string preparePakPath( const std::string& str, int includeDirectoryC
     auto it = str.begin();
     std::advance( it, seekit );
     auto dist = std::distance( it, str.end() );
-    ( static_cast<uint32_t>( dist ) < sizeof( pak::Entry::name ) ) || exitOnFailed( "path too long to fit into Header.path field", str );
+    ( static_cast<uint32_t>( dist ) < sizeof( pak::Entry::name ) ) || cooker::error( "path too long to fit into Header.path field", str );
 
     std::string ret;
     ret.resize( static_cast<std::string::size_type>( dist ) );
@@ -96,7 +86,7 @@ std::ofstream& align( std::ofstream& o, size_t a )
 
 int main( int argc, const char** argv )
 {
-    ( argc == 3 ) || exitOnFailed( "expected 2 arguments: archive.pak \"semi;colon;separated;list;of;files\"", "" );
+    ( argc == 3 ) || cooker::error( "expected 2 arguments: archive.pak \"semi;colon;separated;list;of;files\"", "" );
 
     auto fileList = preparePathPairs( argv[ 2 ] );
     pak::Header header{};
@@ -104,16 +94,16 @@ int main( int argc, const char** argv )
     entries.reserve( fileList.size() );
 
     std::ofstream ofs( argv[ 1 ], std::ios::binary );
-    ofs.is_open() || exitOnFailed( "failed to open file for writing", argv[ 1 ] );
+    ofs.is_open() || cooker::error( "failed to open file for writing", argv[ 1 ] );
     ofs <<= header;
 
     std::vector<char> tmp;
     for ( auto&& [ src, dst ] : fileList ) {
         auto& entry = entries.emplace_back();
-        strcpyIntoBuffer( dst, entry.name ) || exitOnFailed( "path too long to fit into .name field", dst );
+        strcpyIntoBuffer( dst, entry.name ) || cooker::error( "path too long to fit into .name field", dst );
 
         std::ifstream ifs( src, std::ios::binary | std::ios::ate );
-        ifs.is_open() || exitOnFailed( "cannot open file for reading:", src );
+        ifs.is_open() || cooker::error( "cannot open file for reading:", src );
 
         const std::streamsize size = ifs.tellg();
         tmp.resize( static_cast<std::vector<char>::size_type>( size ) );
