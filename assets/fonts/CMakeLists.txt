@@ -1,6 +1,6 @@
 function( cook_font )
-    set( oneValueArgs TARGET SRC SIZE RANGES )
-    cmake_parse_arguments( COOK_FONT "" "${oneValueArgs}" "" ${ARGN} )
+    set( oneValueArgs TARGET SRC SIZE )
+    cmake_parse_arguments( COOK_FONT "" "${oneValueArgs}" "RANGES" ${ARGN} )
     if ( NOT DEFINED COOK_FONT_TARGET )
         message( FATAL_ERROR "TARGET not provided" )
     endif()
@@ -32,7 +32,7 @@ function( cook_font )
             --src "${COOK_FONT_SRC}"
             --out "${CMAKE_CURRENT_BINARY_DIR}/${out.font}"
             --dds "${CMAKE_CURRENT_BINARY_DIR}/${out.dds}"
-            --ranges "${COOK_FONT_RANGES}"
+            --ranges "\"${COOK_FONT_RANGES}\""
     )
 endfunction()
 

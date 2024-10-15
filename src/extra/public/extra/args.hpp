@@ -3,6 +3,8 @@
 #include <string_view>
 #include <charconv>
 #include <type_traits>
+#include <vector>
+#include <memory_resource>
 
 class Args
 {
@@ -56,6 +58,25 @@ public:
             return false;
         }
         value = t;
+        return true;
+    }
+
+    bool read( std::string_view name, std::pmr::vector<uint32_t>& value, std::string_view separators, uint32_t base = 10 ) const noexcept
+    {
+        int i = findVariable( name ) + 1;
+        if ( i >= m_argc ) return false;
+
+        auto oldSize = value.size();
+        std::string_view v = m_argv[ i ];
+        do {
+            auto end = std::min( v.find_first_of( separators ), v.size() );
+            auto ret = std::from_chars( v.data(), v.data() + end, value.emplace_back(), (int)base );
+            if ( ret.ec != std::errc{} ) {
+                value.resize( oldSize );
+                return false;
+            }
+            v.remove_prefix( std::min( end + 1, v.size() ) );
+        } while ( !v.empty() );
         return true;
     }
 };

@@ -22,35 +22,18 @@
 #include <tuple>
 #include <vector>
 
-static std::vector<std::pair<char32_t, char32_t>> splitRanges( std::string_view args )
+static std::vector<std::pair<char32_t, char32_t>> splitRanges( std::span<uint32_t> args )
 {
     std::vector<std::pair<char32_t, char32_t>> ret;
-    ret.reserve( 4 );
-    auto parse = []( uint32_t pos, std::string_view args ) -> std::tuple<char32_t,char32_t,uint32_t>
-    {
-        const char* begin = args.data() + pos;
-        const char* end = args.data() + args.size();
-        uint32_t v1 = 0;
-        auto res1 = std::from_chars( begin, end, v1, 16 );
-        if ( v1 == 0 || res1.ec != std::errc{} ) cooker::error( "cannot parse string as hex number: " + std::string( begin, end ) );
-        if ( res1.ptr == end ) cooker::error( "expected a comma separator for range pair: " + std::string( begin, end ) );
-        if ( *res1.ptr != ',' ) cooker::error( "expected a comma separator for range pair: " + std::string( begin, end ) );
-
-        uint32_t v2 = 0;
-        begin = res1.ptr + 1;
-        auto res2 = std::from_chars( begin, end, v2, 16 );
-        if ( v2 == 0 || res2.ec != std::errc{} ) cooker::error( "cannot parse string as hex number: " + std::string( begin, end ) );
-        if ( res2.ptr != end && *res2.ptr != ',' ) cooker::error( "expected a comma separator or end of a string: " + std::string( begin, end ) );
-        return std::make_tuple( (char32_t)v1, (char32_t)v2, (char32_t)std::distance( args.data(), res2.ptr + (res2.ptr != end) ) );
-    };
-
-    uint32_t offset = 0;
-    do {
-        auto [ begin, end, pos ] = parse( offset, args );
-        if ( pos == 0 ) break;
-        ret.emplace_back( begin, end );
-        offset = pos;
-    } while ( offset != args.size() );
+    ret.reserve( 8 );
+    if ( args.size() % 2 ) {
+        cooker::error( "ranges not specified in pairs" );
+    }
+    bool b = true;
+    for ( auto&& chr : args ) {
+        ( b ? ret.emplace_back().first : ret.back().second ) = chr;
+        b = !b;
+    }
     return ret;
 }
 
@@ -214,7 +197,7 @@ int main( int argc, const char** argv )
             "\t--src \"src/font/file/path.ext\" \u2012 source font file\n"
             "\t--out \"dst/font/atlas.fnta\" \u2012 destination of cooked atlas dataset\n"
             "\t--dds \"dst/font/image.dds\" \u2012 destination of cooked atlas image\n"
-            "\t--ranges \"#begin1,#end1,#begin2,#end2,#beginN,#endN\" \u2012 \"20,7F,A1,180\" \u2012 specifies UTF32 hexadecimal glyph ranges\n"
+            "\t--ranges \"#begin1,#end1,#begin2,#end2;#beginN,#endN\" \u2012 \"20,7F;A1,180\" \u2012 specifies UTF32 hexadecimal glyph ranges, comma or semicolon separated\n"
             "\nOptional Arguments:\n"
             "\t-h --help \u2012 prints this message and exit\n"
             ;
@@ -224,13 +207,13 @@ int main( int argc, const char** argv )
     std::string_view argsSrcFont{};
     std::string_view argsDstFont{};
     std::string_view argsDstDDS{};
-    std::string_view argsRanges{};
+    std::pmr::vector<uint32_t> argsRanges{};
 
     ( args.read( "--px", size ) && ( size > 0 ) ) || cooker::error( "--px \"unsigned integer\" > 0 \u2012 argument not specified or invalid" );
     args.read( "--src", argsSrcFont ) || cooker::error( "--src \"src/font/file/path.ext\" \u2012 argument not specified" );
     args.read( "--out", argsDstFont ) || cooker::error( "--out \"dst/font/atlas.fnta\" \u2012 argument not specified" );
     args.read( "--dds", argsDstDDS ) || cooker::error( "--dds \"dst/font/image.dds\" \u2012 argument not specified" );
-    args.read( "--ranges", argsRanges ) || cooker::error( "--ranges \"#begin1,#end1,#begin2,#end2,#beginN,#endN\" \u2012 20,7F,A1,180 \u2012 argument not specified" );
+    args.read( "--ranges", argsRanges, ",;", 16 ) || cooker::error( "--ranges \"#begin1,#end1,#begin2,#end2;#beginN,#endN\" \u2012 20,7F;A1,180 \u2012 argument not specified (either comma or semicolon separated)" );
 
     auto ranges = splitRanges( argsRanges );
     auto fontData = loadFontFile( argsSrcFont );
