@@ -18,8 +18,6 @@
 #include <config/config.hpp>
 #include <engine/engine.hpp>
 #include <engine/math.hpp>
-#include <engine/render_context.hpp>
-#include <engine/update_context.hpp>
 #include <extra/csg.hpp>
 #include <renderer/texture.hpp>
 #include <shared/hash.hpp>
@@ -161,8 +159,8 @@ private:
     virtual void onActuator( Actuator ) override;
     virtual void onInit() override;
     virtual void onExit() override;
-    virtual void onRender( RenderContext ) override;
-    virtual void onUpdate( const UpdateContext& ) override;
+    virtual void onRender( Renderer* ) override;
+    virtual void onUpdate( float ) override;
     virtual void onResize( uint32_t, uint32_t ) override;
     virtual void onMouseEvent( const MouseEvent& ) override;
 };

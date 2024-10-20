@@ -2,7 +2,6 @@
 
 #include <engine/math.hpp>
 #include <engine/mouse_event.hpp>
-#include <engine/update_context.hpp>
 #include <shared/pmr_pointer.hpp>
 #include <ui/input.hpp>
 #include <ui/tab_order.hpp>
@@ -15,6 +14,7 @@
 namespace ui {
 
 struct RenderContext;
+struct UpdateContext;
 class Widget;
 
 class Screen {

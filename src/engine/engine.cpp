@@ -92,16 +92,11 @@ int Engine::run()
 
 void Engine::gameThread()
 {
-    UpdateContext updateContext{};
-    RenderContext renderContext{
-        .renderer = m_renderer,
-    };
-
     using clock = FpsLimiter::Clock;
-
     clock::duration averagePresentDuration{};
     clock::duration averageSleepOverhead{};
     auto lastUpdate = clock::now();
+    float deltaTime = 0.0f;
 
     while ( m_isRunning.load() ) {
         FrameMark;
@@ -111,11 +106,11 @@ void Engine::gameThread()
         auto now = clock::now();
         const auto dt = std::chrono::duration_cast<std::chrono::nanoseconds>( now - lastUpdate );
         lastUpdate = now;
-        updateContext.deltaTime = (float)dt.count() / 1'000'000'000ull;
-        onUpdate( updateContext );
+        deltaTime = (float)dt.count() / 1'000'000'000ull;
+        onUpdate( deltaTime );
 
         m_renderer->beginFrame();
-        onRender( renderContext );
+        onRender( m_renderer );
         m_renderer->endFrame();
 
         {

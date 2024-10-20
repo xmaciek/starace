@@ -6,7 +6,6 @@
 
 #include <shared/hash.hpp>
 #include <engine/math.hpp>
-#include <engine/update_context.hpp>
 
 #include <memory_resource>
 #include <string_view>

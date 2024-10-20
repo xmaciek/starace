@@ -543,7 +543,7 @@ ui::Screen* Game::currentScreen()
     }
 }
 
-void Game::onRender( RenderContext rctx )
+void Game::onRender( Renderer* renderer )
 {
     ZoneScoped;
     if ( m_currentScreen.load() == Screen::eInit ) [[unlikely]] {
@@ -552,10 +552,12 @@ void Game::onRender( RenderContext rctx )
 
     const auto [ width, height, aspect ] = viewport();
     const auto [ view, projection ] = getCameraMatrix();
-    rctx.projection = math::ortho( 0.0f, static_cast<float>( width ), 0.0f, static_cast<float>( height ), -100.0f, 100.0f );
-    rctx.camera3d = projection * view;
-    rctx.viewport = { width, height };
-
+    RenderContext rctx{
+        .renderer = renderer,
+        .projection = math::ortho( 0.0f, static_cast<float>( width ), 0.0f, static_cast<float>( height ), -100.0f, 100.0f ),
+        .camera3d = projection * view,
+        .viewport = { width, height },
+    };
     const ui::RenderContext r{
         .renderer = rctx.renderer,
         .model = rctx.model,
@@ -608,9 +610,11 @@ void Game::onRender( RenderContext rctx )
     m_renderer->dispatch( dispatchScanline, &pushScanline );
 }
 
-void Game::onUpdate( const UpdateContext& uctx )
+void Game::onUpdate( float deltaTime )
 {
     ZoneScoped;
+    UpdateContext uctx{ .deltaTime = deltaTime, };
+    ui::UpdateContext uictx{ .deltaTime = deltaTime, };
 
     switch ( m_currentScreen ) {
     [[unlikely]] case Screen::eInit:
@@ -621,13 +625,13 @@ void Game::onUpdate( const UpdateContext& uctx )
         break;
     default:
         m_dustUi.update( uctx );
-        m_uiRings.update( uctx );
+        m_uiRings.update( uictx );
         break;
     }
 
     ui::Screen* screen = currentScreen();
     if ( screen ) {
-        screen->update( uctx );
+        screen->update( uictx );
     }
 }
 

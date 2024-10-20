@@ -3,7 +3,6 @@
 #include <ui/widget.hpp>
 
 #include <renderer/texture.hpp>
-#include <engine/update_context.hpp>
 
 #include <array>
 
@@ -17,6 +16,6 @@ public:
     UIRings( Texture ) noexcept;
 
     void render( ui::RenderContext ) const override;
-    void update( const UpdateContext& ) override;
+    void update( const ui::UpdateContext& ) override;
 
 };

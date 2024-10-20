@@ -29,8 +29,8 @@ set( STARACE_SOURCES
     game_callbacks.hpp
     game_options.hpp
     game_pipeline.hpp
-    game_scene.hpp
     game_scene.cpp
+    game_scene.hpp
     jet.cpp
     jet.hpp
     main.cpp
@@ -40,6 +40,7 @@ set( STARACE_SOURCES
     model.cpp
     model.hpp
     model_proto.hpp
+    render_context.hpp
     saobject.cpp
     saobject.hpp
     skybox.cpp
@@ -56,6 +57,7 @@ set( STARACE_SOURCES
     ui_rings.cpp
     ui_rings.hpp
     units.hpp
+    update_context.hpp
     utils.cpp
     utils.hpp
 )

@@ -45,7 +45,7 @@ void UIRings::render( ui::RenderContext rctx ) const
     rctx.renderer->push( pushData, &pushConstant );
 }
 
-void UIRings::update( const UpdateContext& uctx )
+void UIRings::update( const ui::UpdateContext& uctx )
 {
     static constexpr auto warp = []( float f )
     {

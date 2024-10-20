@@ -3,10 +3,9 @@
 #include "explosion.hpp"
 #include "skybox.hpp"
 #include "space_dust.hpp"
+#include "update_context.hpp"
 
-#include <renderer/renderer.hpp>
 #include <renderer/texture.hpp>
-#include <engine/update_context.hpp>
 
 #include <memory_resource>
 #include <vector>

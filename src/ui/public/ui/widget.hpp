@@ -5,7 +5,6 @@
 
 #include <engine/math.hpp>
 #include <engine/mouse_event.hpp>
-#include <engine/update_context.hpp>
 
 #include <span>
 
@@ -21,6 +20,10 @@ struct RenderContext {
 
     math::vec4 colorMain{};
     math::vec4 colorFocus{};
+};
+
+struct UpdateContext {
+    float deltaTime{};
 };
 
 enum class EventProcessing : uint32_t {

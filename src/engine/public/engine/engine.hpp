@@ -3,8 +3,6 @@
 #include <engine/action.hpp>
 #include <engine/filesystem.hpp>
 #include <engine/fps_limiter.hpp>
-#include <engine/update_context.hpp>
-#include <engine/render_context.hpp>
 #include <engine/mouse_event.hpp>
 #include <audio/audio.hpp>
 #include <renderer/renderer.hpp>
@@ -62,8 +60,8 @@ protected:
     virtual void onActuator( Actuator ) = 0;
     virtual void onInit() = 0;
     virtual void onExit() = 0;
-    virtual void onRender( RenderContext ) = 0;
-    virtual void onUpdate( const UpdateContext& ) = 0;
+    virtual void onRender( Renderer* ) = 0;
+    virtual void onUpdate( float ) = 0;
     virtual void onMouseEvent( const MouseEvent& ) = 0;
     virtual void onResize( uint32_t, uint32_t ) = 0;
 
