@@ -34,8 +34,6 @@ public:
     math::vec3 direction() const;
     math::vec3 position() const;
     math::vec3 velocity() const;
-    virtual void render( RenderContext ) const = 0;
-    virtual void update( const UpdateContext& );
     void kill();
     void setDamage( uint8_t d );
     void setStatus( Status s );

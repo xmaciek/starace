@@ -98,8 +98,8 @@ public:
 
     math::quat quat() const;
     math::quat rotation() const;
-    virtual void render( RenderContext ) const override;
-    virtual void update( const UpdateContext& ) override;
+    void render( RenderContext ) const;
+    void update( const UpdateContext& );
     void lockTarget( SAObject* );
     void processCollision( std::vector<Bullet*>& );
     void untarget( const SAObject* );

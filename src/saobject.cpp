@@ -57,15 +57,6 @@ uint16_t SAObject::health() const
     return m_health;
 }
 
-void SAObject::update( const UpdateContext& )
-{
-    m_health = static_cast<uint8_t>( std::max( m_health - m_pendingDamage, 0 ) );
-    m_pendingDamage = 0;
-    if ( m_health == 0 ) {
-        setStatus( Status::eDead );
-    }
-}
-
 Signal SAObject::scanSignals( math::vec3 position, std::span<const Signal> signals )
 {
     if ( signals.empty() ) return {};

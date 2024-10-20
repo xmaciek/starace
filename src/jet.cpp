@@ -82,8 +82,10 @@ void Jet::render( RenderContext rctx ) const
 
 void Jet::update( const UpdateContext& updateContext )
 {
-    SAObject::update( updateContext );
-    if ( status() == Status::eDead ) {
+    m_health -= std::min( m_health, m_pendingDamage );
+    m_pendingDamage = 0;
+    if ( m_health == 0 ) {
+        m_status = Status::eDead;
         return;
     }
 

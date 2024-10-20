@@ -29,8 +29,6 @@ public:
     Enemy( const CreateInfo& );
 
     void shoot( std::pmr::vector<Bullet>& );
-    virtual void render( RenderContext ) const override;
-    virtual void update( const UpdateContext& ) override;
     void setWeapon( const WeaponCreateInfo& );
     Signal signal() const;
 

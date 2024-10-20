@@ -71,16 +71,6 @@ void Enemy::renderAll( const RenderContext& rctx, std::span<const UniquePointer<
     }
 }
 
-void Enemy::render( RenderContext ) const
-{
-    assert( !"not callable" );
-}
-
-void Enemy::update( const UpdateContext& )
-{
-    assert( !"not callable" );
-}
-
 void Enemy::updateAll( const UpdateContext& uctx, std::span<UniquePointer<Enemy>> e )
 {
     auto update = [&uctx]( auto& p )
