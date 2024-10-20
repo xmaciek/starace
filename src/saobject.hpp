@@ -2,19 +2,13 @@
 
 #include "render_context.hpp"
 #include "update_context.hpp"
+#include "signal.hpp"
 
 #include <engine/math.hpp>
 
 #include <cstdint>
 #include <optional>
 #include <span>
-
-struct Signal {
-    math::vec3 position{};
-    uint16_t team = 0xFFFF;
-    uint16_t callsign = 0xFFFF;
-    inline operator bool () const { return team != 0xFFFF; }
-};
 
 class SAObject {
 public:

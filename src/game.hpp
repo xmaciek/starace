@@ -153,7 +153,7 @@ private:
     void retarget();
     void setCamera();
     void unpause();
-    void updateGame( const UpdateContext& );
+    void updateGame( UpdateContext& );
 
     void onAction( Action );
     virtual void onActuator( Actuator ) override;

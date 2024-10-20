@@ -43,6 +43,7 @@ set( STARACE_SOURCES
     render_context.hpp
     saobject.cpp
     saobject.hpp
+    signal.hpp
     skybox.cpp
     skybox.hpp
     space_dust.cpp

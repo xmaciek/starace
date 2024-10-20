@@ -80,7 +80,7 @@ void Jet::render( RenderContext rctx ) const
     }
 }
 
-void Jet::update( const UpdateContext& updateContext )
+void Jet::update( const UpdateContext& uctx )
 {
     m_health -= std::min( m_health, m_pendingDamage );
     m_pendingDamage = 0;
@@ -89,10 +89,11 @@ void Jet::update( const UpdateContext& updateContext )
         return;
     }
 
+    scanSignals( uctx.signals, uctx.deltaTime );
     const math::vec3 pyrControl{ m_input.pitch, m_input.yaw, m_input.roll };
     const math::vec3 pyrTarget = pyrControl * m_pyrLimits;
     m_angleState.setTarget( pyrTarget );
-    m_angleState.update( updateContext.deltaTime );
+    m_angleState.update( uctx.deltaTime );
 
     {
         const float speedPos = ( 1.0f + m_input.speed ) * 0.5f;
@@ -103,11 +104,11 @@ void Jet::update( const UpdateContext& updateContext )
         const uint8_t accellPoints[ 3 ]{ 0, m_points.accell, m_points.deaccell };
         const float accellMultiplier = pointsToMultiplier( accellPoints[ accell + deaccell * 2 ] );
         m_speedTarget.setVelocity( ( accell ? m_accell : m_deaccell ) * accellMultiplier );
-        m_speedTarget.update( updateContext.deltaTime + updateContext.deltaTime * updateContext.deltaTime );
+        m_speedTarget.update( uctx.deltaTime + uctx.deltaTime * uctx.deltaTime );
         m_speed = m_speedTarget.value();
     }
 
-    m_quaternion *= math::quat{ m_angleState.value() * updateContext.deltaTime };
+    m_quaternion *= math::quat{ m_angleState.value() * uctx.deltaTime };
     m_direction = math::normalize( math::rotate( m_quaternion, math::vec3{ 0.0f, 0.0f, -1.0f } ) );
 
 
@@ -121,9 +122,9 @@ void Jet::update( const UpdateContext& updateContext )
         nlerpRescale( -2.0_m, 2.0_m, m_input.pitch ),
         0.0f }
     );
-    m_camOffset.update( updateContext.deltaTime );
+    m_camOffset.update( uctx.deltaTime );
 
-    auto updateWeapon = [dt=updateContext.deltaTime]( WeaponCooldown& wc )
+    auto updateWeapon = [dt=uctx.deltaTime]( WeaponCooldown& wc )
     {
         wc.currentDelay = std::min( wc.currentDelay + dt, wc.readyDelay );
         if ( wc.count >= wc.capacity ) return;
@@ -134,7 +135,7 @@ void Jet::update( const UpdateContext& updateContext )
     };
     std::for_each( m_weaponsCooldown.begin(), m_weaponsCooldown.end(), std::move( updateWeapon ) );
 
-    m_position += velocity() * updateContext.deltaTime;
+    m_position += velocity() * uctx.deltaTime;
 }
 
 void Jet::scanSignals( std::span<const Signal> signals, float dt )

@@ -88,6 +88,7 @@ private:
     math::vec3 weaponPoint( uint32_t ) const;
     bool isShooting( uint32_t ) const;
     Bullet weapon( uint32_t );
+    void scanSignals( std::span<const Signal>, float );
 
 public:
     virtual ~Jet() noexcept override = default;
@@ -104,7 +105,6 @@ public:
     void processCollision( std::vector<Bullet*>& );
     void untarget( const SAObject* );
     void setInput( const Input& );
-    void scanSignals( std::span<const Signal>, float dt );
     void setTarget( Signal );
 
     float targetingState() const;

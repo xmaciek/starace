@@ -65,16 +65,27 @@ void Bullet::renderAll( const RenderContext& rctx, std::span<Bullet> span, Textu
     }
 }
 
-void Bullet::updateAll( const UpdateContext& updateContext, std::span<Bullet> span, std::pmr::vector<Explosion>& explosions, Texture texture )
+void Bullet::updateAll( const UpdateContext& uctx, std::span<Bullet> span, std::pmr::vector<Explosion>& explosions, Texture texture )
 {
-    auto update = [dt = updateContext.deltaTime, &explosions, texture]( auto& bullet )
+    auto update = [&uctx, &explosions, texture]( auto& bullet )
     {
         switch ( bullet.m_type ) {
         case Type::eTorpedo:
             if ( bullet.m_target ) {
+                Signal ret = bullet.m_target;
+                auto evalSignal = [&ret, pos = ret.position, dist = std::numeric_limits<float>::max(), team = bullet.m_collideId]( const Signal& sig ) mutable
+                {
+                    if ( sig.team == team ) return;
+                    float d = math::manhattan( pos, sig.position );
+                    if ( d > dist ) return;
+                    ret = sig;
+                    dist = d;
+                };
+                std::for_each( uctx.signals.begin(), uctx.signals.end(), std::move( evalSignal ) );
+                bullet.m_target = ret;
                 const math::vec3 tgtDir = math::normalize( bullet.m_target.position - bullet.m_position );
                 const float angle = math::angle( bullet.m_direction, tgtDir );
-                const float anglePerUpdate = std::min( angle, 160.0_deg * dt );
+                const float anglePerUpdate = std::min( angle, 160.0_deg * uctx.deltaTime );
                 bullet.m_direction = math::normalize( math::slerp( bullet.m_direction, tgtDir, anglePerUpdate / angle ) );
             }
             bullet.m_quat = math::quatLookAt( bullet.m_direction, { 0.0f, 1.0f, 0.0f } );
@@ -90,8 +101,8 @@ void Bullet::updateAll( const UpdateContext& updateContext, std::span<Bullet> sp
         case Type::eLaser:
         case Type::eBlaster:
             bullet.m_prevPosition = bullet.m_position;
-            bullet.m_position += bullet.m_direction * bullet.m_speed * dt;
-            bullet.m_travelDistance += bullet.m_speed * dt;
+            bullet.m_position += bullet.m_direction * bullet.m_speed * uctx.deltaTime;
+            bullet.m_travelDistance += bullet.m_speed * uctx.deltaTime;
             break;
 
         case Type::eDead:
@@ -104,22 +115,3 @@ void Bullet::updateAll( const UpdateContext& updateContext, std::span<Bullet> sp
     std::for_each( span.begin(), span.end(), update );
 };
 
-void Bullet::scanSignals( std::span<Bullet> bullets, std::span<const Signal> signals )
-{
-    if ( signals.empty() ) return;
-    for ( auto&& bullet : bullets ) {
-        if ( bullet.m_type != Type::eTorpedo ) continue;
-        if ( !bullet.m_target ) continue;
-        Signal ret = bullet.m_target;
-        auto evalSignal = [&ret, pos = ret.position, dist = std::numeric_limits<float>::max(), team = bullet.m_collideId]( const Signal& sig ) mutable
-        {
-            if ( sig.team == team ) return;
-            float d = math::manhattan( pos, sig.position );
-            if ( d > dist ) return;
-            ret = sig;
-            dist = d;
-        };
-        std::for_each( signals.begin(), signals.end(), std::move( evalSignal ) );
-        bullet.m_target = ret;
-    }
-}

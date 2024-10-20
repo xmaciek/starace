@@ -645,7 +645,7 @@ void Game::unpause()
     changeScreen( Screen::eGame );
 }
 
-void Game::updateGame( const UpdateContext& updateContext )
+void Game::updateGame( UpdateContext& updateContext )
 {
     ZoneScoped;
     m_jet.setInput( m_jetInput );
@@ -657,6 +657,9 @@ void Game::updateGame( const UpdateContext& updateContext )
         changeScreen( Screen::eWin );
     }
 
+    std::pmr::vector<Signal> signals( m_enemies.size() );
+    std::transform( m_enemies.begin(), m_enemies.end(), signals.begin(), []( const auto& p ) { return p->signal(); } );
+    updateContext.signals = signals;
 
     m_lookAtTarget.setTarget( m_jetInput.lookAt ? 1.0f : 0.0f );
     m_lookAtTarget.update( updateContext.deltaTime );
@@ -664,10 +667,6 @@ void Game::updateGame( const UpdateContext& updateContext )
     Bullet::updateAll( updateContext, m_bullets, m_gameScene.explosions(), m_plasma );
     Enemy::updateAll( updateContext, m_enemies );
     m_gameScene.update( updateContext, m_jet.position(), m_jet.velocity() );
-    std::pmr::vector<Signal> signals( m_enemies.size() );
-    std::transform( m_enemies.begin(), m_enemies.end(), signals.begin(), []( const auto& p ) { return p->signal(); } );
-    m_jet.scanSignals( signals, updateContext.deltaTime );
-    Bullet::scanSignals( m_bullets, signals );
     {
         auto soundsToPlay = m_jet.shoot( m_bullets );
         for ( auto&& i : soundsToPlay ) {
