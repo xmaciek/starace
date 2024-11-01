@@ -55,8 +55,6 @@ set( STARACE_SOURCES
     ui_glow.cpp
     ui_glow.hpp
     ui_options_models.hpp
-    ui_rings.cpp
-    ui_rings.hpp
     units.hpp
     update_context.hpp
     utils.cpp

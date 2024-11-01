@@ -205,7 +205,6 @@ void Game::onResize( uint32_t w, uint32_t h )
     if ( auto* screen = currentScreen() ) {
         screen->resize( { w, h } );
     }
-    m_uiRings.setSize( { w, h } );
 }
 
 void Game::onInit()
@@ -402,8 +401,6 @@ void Game::setupUI()
     m_optionsCustomize.m_weaponSecondary.m_current = [this](){ return m_weapon2; };
     m_optionsCustomize.m_weaponSecondary.m_revision = [this](){ return m_weapon2; };
 
-    m_uiRings = UIRings{ parseTexture( m_io->viewWait( "textures/cyber_ring.dds" ) ) };
-
     m_dataMissionSelect.m_current = [this](){ return m_currentMission; };
     m_dataMissionSelect.m_revision = [this](){ return m_currentMission; };
     m_dataMissionSelect.m_size = [this](){ return static_cast<ui::DataModel::size_type>( m_mapsContainer.size() ); };
@@ -576,7 +573,6 @@ void Game::onRender( Renderer* renderer )
     case Screen::eDead:
     case Screen::eWin:
         renderGameScreen( rctx );
-        m_uiRings.render( r );
         m_glow.render( r );
         break;
 
@@ -625,7 +621,6 @@ void Game::onUpdate( float deltaTime )
         break;
     default:
         m_dustUi.update( uctx );
-        m_uiRings.update( uictx );
         break;
     }
 
@@ -1071,7 +1066,6 @@ void Game::renderMenuScreen( RenderContext rctx, ui::RenderContext r ) const
         rctx.renderer->dispatch( daa, &aa );
     }
 
-    m_uiRings.render( r );
     m_glow.render( r );
 }
 

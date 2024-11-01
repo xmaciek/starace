@@ -13,7 +13,6 @@
 #include "targeting.hpp"
 #include "texture.hpp"
 #include "ui_glow.hpp"
-#include "ui_rings.hpp"
 
 #include <config/config.hpp>
 #include <engine/engine.hpp>
@@ -87,10 +86,7 @@ private:
 
     std::pmr::vector<WeaponCreateInfo> m_weapons{};
     WeaponCreateInfo m_enemyWeapon{};
-    UIRings m_uiRings{};
 
-
-    Texture m_cyberRingTexture{};
     Texture m_plasma{};
     std::pmr::map<std::filesystem::path, Texture> m_textures{};
     std::pmr::vector<csg::Callsign> m_callsigns{};
