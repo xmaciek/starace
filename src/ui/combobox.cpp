@@ -43,13 +43,13 @@ public:
 
 ComboBox::ComboBox( const ComboBox::CreateInfo& ci ) noexcept
 : NineSlice{ NineSlice::CreateInfo{ .position = ci.position, .size = ci.size, .anchor = Anchor::fTop| Anchor::fLeft } }
-, m_label{ Label::CreateInfo{ .text = ci.text, .font = "medium"_hash, .anchor = Anchor::fLeft | Anchor::fMiddle, } }
-, m_value{ Label::CreateInfo{ .data = ci.data, .font = "medium"_hash, .anchor = Anchor::fRight | Anchor::fMiddle, } }
 , m_data{ ci.data }
 {
+    m_label = emplace_child<Label>( Label::CreateInfo{ .text = ci.text, .font = "medium"_hash, .anchor = Anchor::fLeft | Anchor::fMiddle, } );
+    m_value = emplace_child<Label>( Label::CreateInfo{ .data = ci.data, .font = "medium"_hash, .anchor = Anchor::fRight | Anchor::fMiddle, } );
     math::vec2 s = size();
-    m_label.setPosition( math::vec2{ 16.0f, s.y * 0.5f } );
-    m_value.setPosition( math::vec2{ s.x - 16.0f, s.y * 0.5f } );
+    m_label->setPosition( math::vec2{ 16.0f, s.y * 0.5f } );
+    m_value->setPosition( math::vec2{ s.x - 16.0f, s.y * 0.5f } );
     setTabOrder( ci.tabOrder );
 }
 
@@ -76,11 +76,6 @@ EventProcessing ComboBox::onAction( ui::Action action )
     }
 }
 
-void ComboBox::update( const UpdateContext& uctx )
-{
-    m_value.update( uctx );
-}
-
 EventProcessing ComboBox::onMouseEvent( const MouseEvent& event )
 {
     const math::vec2 p = event.position;
@@ -101,12 +96,6 @@ void ComboBox::render( RenderContext rctx ) const
 {
     rctx.colorMain = isFocused() ? rctx.colorFocus : rctx.colorMain;
     NineSlice::render( rctx );
-    const math::vec2 pos = position() + offsetByAnchor();
-
-    rctx.model = math::translate( rctx.model, math::vec3{ pos.x, pos.y, 0.0f } );
-
-    m_label.render( rctx );
-    m_value.render( rctx );
 }
 
 ComboBoxList::ComboBoxList( const ComboBoxList::CreateInfo& ci ) noexcept
@@ -128,17 +117,15 @@ ComboBoxList::ComboBoxList( const ComboBoxList::CreateInfo& ci ) noexcept
 
 void ComboBoxList::render( RenderContext rctx ) const
 {
-    const math::vec2 pos = position() + offsetByAnchor();
+    using PushConstant = PushConstant<Pipeline::eSpriteSequenceColors>;
     const float width = size().x;
-    rctx.model = math::translate( rctx.model, math::vec3{ pos.x, pos.y, 0.0f } );
-
     PushData pushData{
         .m_pipeline = g_uiProperty.pipelineSpriteSequenceColors(),
-        .m_verticeCount = 6u,
+        .m_verticeCount = PushConstant::VERTICES,
         .m_instanceCount = 7u,
     };
     pushData.m_fragmentTexture[ 1 ] = g_uiProperty.atlasTexture();
-    PushConstant<Pipeline::eSpriteSequenceColors> pushConstant{
+    PushConstant pushConstant{
         .m_model = rctx.model,
         .m_view = rctx.view,
         .m_projection = rctx.projection,
@@ -147,7 +134,7 @@ void ComboBoxList::render( RenderContext rctx ) const
     auto count = visibleCount();
     float midSize = m_topPadding + m_lineHeight * static_cast<float>( count );
 
-    using S = PushConstant<Pipeline::eSpriteSequenceColors>::Sprite;
+    using S = PushConstant::Sprite;
     auto gibLine = []( float y, float w, float h, auto color, auto left, auto mid, auto right ) -> std::tuple<S,S,S>
     {
         const Font& atlasRef = *g_uiProperty.atlas();
@@ -182,10 +169,11 @@ void ComboBoxList::render( RenderContext rctx ) const
         .position{ width - 16.0f, m_topPadding },
         .anchor = Anchor::fRight | Anchor::fTop,
     };
+
     for ( decltype( count ) i = 0; i < count; ++i ) {
         Label l{ ci };
         l.setText( m_model->at( i + m_index.offset() ) );
-        l.render( rctx );
+        l.onRender( rctx );
         ci.position.y += m_lineHeight;
     }
 }

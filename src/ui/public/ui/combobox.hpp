@@ -10,8 +10,8 @@ namespace ui {
 class DataModel;
 
 class ComboBox : public NineSlice {
-    Label m_label{};
-    Label m_value{};
+    Label* m_label{};
+    Label* m_value{};
     Hash::value_type m_data{};
 
     void open();
@@ -28,7 +28,6 @@ public:
     ComboBox( const CreateInfo& ) noexcept;
 
     virtual void render( RenderContext ) const override;
-    virtual void update( const UpdateContext& ) override;
     virtual EventProcessing onMouseEvent( const MouseEvent& ) override;
     virtual EventProcessing onAction( ui::Action ) override;
 };

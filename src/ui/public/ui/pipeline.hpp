@@ -20,6 +20,7 @@ struct PushConstant;
 template <>
 struct PushConstant<Pipeline::eSpriteSequence> {
     static constexpr uint32_t INSTANCES = 48;
+    static constexpr uint32_t VERTICES = 6;
     struct Sprite {
         math::vec4 m_xywh;
         math::vec4 m_uvwh;
@@ -36,6 +37,7 @@ struct PushConstant<Pipeline::eSpriteSequence> {
 template <>
 struct PushConstant<Pipeline::eSpriteSequenceColors> {
     static constexpr uint32_t INSTANCES = 48;
+    static constexpr uint32_t VERTICES = 6;
     struct Sprite {
         math::vec4 m_color;
         math::vec4 m_xywh;

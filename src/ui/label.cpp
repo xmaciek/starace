@@ -28,9 +28,8 @@ Label::Label( const Label::CreateInfo& ci )
 void Label::render( RenderContext rctx ) const
 {
     assert( !m_text.empty() );
-    const math::vec3 pos{ position() + offsetByAnchor(), 0.0f };
 
-    m_renderText.pushConstant.m_model = math::translate( rctx.model, pos );
+    m_renderText.pushConstant.m_model = rctx.model;
     m_renderText.pushConstant.m_view = rctx.view;
     m_renderText.pushConstant.m_projection = rctx.projection;
     rctx.renderer->push( m_renderText.pushData, &m_renderText.pushConstant );

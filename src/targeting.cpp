@@ -117,7 +117,7 @@ void Targeting::render( const RenderContext& rctx ) const
         auto l = static_cast<std::u32string_view>( m_callsigns[ signal.callsign ] );
         txt.insert( txt.end(), l.begin(), l.end() );
         lbl.setText( std::move( txt ) );
-        lbl.render( rr );
+        lbl.onRender( rr );
         if ( m_targetSignal.callsign == signal.callsign ) return;
         const math::vec2 position{ pos2d.x, pos2d.y };
         pushSprite( (*targ)[ 0 ], m_xyuvReticle[ 0 ], position, color::lightSteelBlue );

@@ -22,20 +22,21 @@ NineSlice::NineSlice( const CreateInfo& ci ) noexcept
 
 void NineSlice::render( RenderContext rctx ) const
 {
+    using PushConstant = PushConstant<Pipeline::eSpriteSequence>;
     ZoneScoped;
 
     PushData pushData{
         .m_pipeline = g_uiProperty.pipelineSpriteSequence(),
-        .m_verticeCount = 6,
+        .m_verticeCount = PushConstant::VERTICES,
         .m_instanceCount = 9,
     };
     pushData.m_fragmentTexture[ 1 ] = g_uiProperty.atlasTexture();
 
-    const math::vec2 pos = position() + offsetByAnchor();
+    const math::vec2 pos{};
     const math::vec2 s = size();
     const math::vec4 mid{ pos.x, pos.y, s.x, s.y };
 
-    PushConstant<Pipeline::eSpriteSequence> pushConstant{
+    PushConstant pushConstant{
         .m_model = rctx.model,
         .m_view = rctx.view,
         .m_projection = rctx.projection,

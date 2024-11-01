@@ -10,7 +10,7 @@ namespace ui {
 
 class Button : public NineSlice {
 private:
-    Label m_label{};
+    Label* m_label{};
     std::function<void()> m_onTrigger{};
 
 public:

@@ -187,7 +187,7 @@ inline constexpr std::array WIDGETS = {
     W{ "AnimFrame"_hash, &makeWidget<AnimFrame>, ANIMFRAME_FIELDS },
 };
 
-static UniquePointer<Widget> makeFooter( std::pmr::memory_resource* alloc, const cfg::Entry& entry )
+static UniquePointer<Widget> makeFooter( std::pmr::memory_resource* alloc, const cfg::Entry& entry, math::vec2 position, math::vec2 size  )
 {
     ZoneScoped;
     auto makeInput = []( Hash::value_type h ) -> Action::Enum
@@ -202,7 +202,10 @@ static UniquePointer<Widget> makeFooter( std::pmr::memory_resource* alloc, const
     };
     Hash hash{};
     std::pmr::vector<Footer::Entry> entries;
-    Footer::CreateInfo ci{};
+    Footer::CreateInfo ci{
+        .position = position,
+        .size = size,
+    };
     for ( auto&& property : entry ) {
         switch ( hash( *property ) ) {
         case "Button"_hash: {
@@ -350,7 +353,10 @@ Screen::Screen( std::span<const uint8_t> fileContent ) noexcept
     for ( const auto& property : entry ) {
         const auto h = hash( *property );
         switch ( h ) {
-        case "Footer"_hash: m_footer = makeFooter( alloc, property ); continue;
+        case "Footer"_hash: m_footer = makeFooter( alloc, property
+            , math::vec2{ 48.0f, m_extent.y - 48.0f * 2.0f }
+            , math::vec2{ m_extent.x - 48.0f * 2.0f, 48.0f }
+        ); continue;
         case "List"_hash: makeList( alloc, property, m_widgets, tabOrderCount ); continue;
         case "height"_hash: m_extent.y = property.toFloat(); continue;
         case "width"_hash: m_extent.x = property.toFloat(); continue;
@@ -365,11 +371,7 @@ Screen::Screen( std::span<const uint8_t> fileContent ) noexcept
     }
     if ( tabOrderCount != 0 ) {
         m_tabOrder = TabOrder<>{ 0, 0, tabOrderCount };
-        changeFocus( Widget::c_invalidTabOrder, 0 );
-    }
-    if ( m_footer ) {
-        m_footer->setPosition( math::vec2{ 48.0f, m_extent.y - 48.0f * 2.0f } );
-        m_footer->setSize( math::vec2{ m_extent.x - 48.0f * 2.0f, 48.0f } );
+        changeFocus( Widget::INVALID_TAB, 0 );
     }
 }
 
@@ -393,11 +395,11 @@ void Screen::render( const RenderContext& rctx ) const
         const float startPos = startPosistionForWidget( it, m_viewport.x, m_extent.x );
         const float animX = math::nonlerp( startPos, 0.0f, m_anim );
         r.view = math::translate( view, math::vec3{ animX, 0.0f, 0.0f } );
-        it->render( r );
+        it->onRender( r );
     }
 
-    if ( m_footer ) m_footer->render( r );
-    if ( m_modalWidget ) m_modalWidget->render( r );
+    if ( m_footer ) m_footer->onRender( r );
+    if ( m_modalWidget ) m_modalWidget->onRender( r );
 }
 
 void Screen::updateInputRepeat( float dt )
@@ -423,10 +425,10 @@ void Screen::update( const UpdateContext& uctx )
     }
     m_anim = std::clamp( m_anim + uctx.deltaTime * 5.0f, 0.0f, 1.0f );
     for ( const auto& it : m_widgets ) {
-        it->update( uctx );
+        it->onUpdate( uctx );
     }
-    if ( m_footer ) m_footer->update( uctx );
-    if ( m_modalWidget ) m_modalWidget->update( uctx );
+    if ( m_footer ) m_footer->onUpdate( uctx );
+    if ( m_modalWidget ) m_modalWidget->onUpdate( uctx );
 
     updateInputRepeat( uctx.deltaTime );
 }
@@ -438,7 +440,7 @@ void Screen::onMouseEvent( const MouseEvent& e )
     event.position *= m_viewport;
     event.position -= m_offset;
     if ( m_modalWidget ) {
-        auto mouseProcessing = m_modalWidget->onMouseEvent( event );
+        auto mouseProcessing = m_modalWidget->onEvent( event );
         if ( mouseProcessing == EventProcessing::eStop ) {
             m_modalWidget = {};
         }
@@ -447,19 +449,19 @@ void Screen::onMouseEvent( const MouseEvent& e )
     uint16_t prevWidget = *m_tabOrder;
     m_tabOrder.invalidate();
     for ( const auto& it : m_widgets ) {
-        auto mouseProcessing = it->onMouseEvent( event );
+        auto mouseProcessing = it->onEvent( event );
         if ( mouseProcessing == EventProcessing::eContinue ) continue;
         m_tabOrder = it->tabOrder();
         changeFocus( prevWidget, *m_tabOrder );
         return;
     }
 
-    if ( m_footer ) m_footer->onMouseEvent( event );
+    if ( m_footer ) m_footer->onEvent( event );
 }
 
 Widget* Screen::findWidgetByTabOrder( uint16_t tabOrder )
 {
-    if ( tabOrder == Widget::c_invalidTabOrder ) {
+    if ( tabOrder == Widget::INVALID_TAB ) {
         return nullptr;
     }
 
@@ -546,9 +548,5 @@ void Screen::show( math::vec2 size )
     m_repeatDirection = none;
     m_anim = 0.0f;
 }
-
-
-
-
 
 }

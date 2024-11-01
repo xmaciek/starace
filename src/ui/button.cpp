@@ -19,9 +19,9 @@ namespace ui {
 
 Button::Button( const CreateInfo& ci ) noexcept
 : NineSlice{ NineSlice::CreateInfo{ .position = ci.position, .size = ci.size, .spriteArray = SLICES, .anchor = Anchor::fTop | Anchor::fLeft } }
-, m_label{ Label::CreateInfo{ .text = ci.text, .font = "medium"_hash, .position = ci.size * 0.5f, .anchor = Anchor::fCenter | Anchor::fMiddle } }
 , m_onTrigger{ g_uiProperty.gameCallback( ci.trigger ) }
 {
+    m_label = emplace_child<Label>( Label::CreateInfo{ .text = ci.text, .font = "medium"_hash, .position = ci.size * 0.5f, .anchor = Anchor::fCenter | Anchor::fMiddle, } );
     setTabOrder( ci.tabOrder );
 }
 
@@ -31,9 +31,6 @@ void Button::render( RenderContext rctx ) const
         rctx.colorMain = rctx.colorFocus;
     }
     NineSlice::render( rctx );
-    const math::vec2 pos = position() + offsetByAnchor();
-    rctx.model = math::translate( rctx.model, math::vec3{ pos.x, pos.y, 0.0f } );
-    m_label.render( rctx );
 }
 
 void Button::trigger() const
@@ -49,7 +46,8 @@ void Button::setTrigger( std::function<void()> t )
 
 void Button::setText( std::u32string_view txt )
 {
-    m_label.setText( txt );
+    assert( m_label );
+    m_label->setText( txt );
 }
 
 EventProcessing Button::onMouseEvent( const MouseEvent& event )
@@ -57,7 +55,7 @@ EventProcessing Button::onMouseEvent( const MouseEvent& event )
     switch ( event.type ) {
     case MouseEvent::eMove:
         setFocused( testRect( event.position ) );
-        return m_focused ? EventProcessing::eStop : EventProcessing::eContinue;
+        return EventProcessing::eContinue;
     case MouseEvent::eClick:
         if ( !m_enabled ) { return EventProcessing::eContinue; }
         if ( !testRect( event.position ) ) { return EventProcessing::eContinue; }

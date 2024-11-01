@@ -37,24 +37,24 @@ Image::Image( const CreateInfo& ci ) noexcept
 
 void Image::render( RenderContext rctx ) const
 {
+    using PushConstant = PushConstant<Pipeline::eSpriteSequence>;
     assert( m_texture );
-    PushBuffer pushBuffer{
+    PushData pushData{
         .m_pipeline = m_pipelineSlot,
-        .m_verticeCount = 6,
+        .m_verticeCount = PushConstant::VERTICES,
     };
-    pushBuffer.m_fragmentTexture[ 1 ] = m_texture;
+    pushData.m_fragmentTexture[ 1 ] = m_texture;
 
-    const math::vec2 pos = position() + offsetByAnchor();
-    PushConstant<Pipeline::eSpriteSequence> pushConstant{
+    PushConstant pushConstant{
         .m_model = rctx.model,
         .m_view = rctx.view,
         .m_projection = rctx.projection,
         .m_color = m_color,
     };
-    pushConstant.m_sprites[ 0 ].m_xywh = math::vec4{ pos.x, pos.y, m_size.x, m_size.y };
+    pushConstant.m_sprites[ 0 ].m_xywh = math::vec4{ 0.0f, 0.0f, m_size.x, m_size.y };
     pushConstant.m_sprites[ 0 ].m_uvwh = m_uvwh;
     pushConstant.m_sprites[ 0 ].m_sampleRGBA = m_sampleRGBA;
-    rctx.renderer->push( pushBuffer, &pushConstant );
+    rctx.renderer->push( pushData, &pushConstant );
 }
 
 void Image::update( const UpdateContext& )

@@ -12,35 +12,30 @@ namespace ui {
 
 SpinBox::SpinBox( const CreateInfo& ci ) noexcept
 : NineSlice{ NineSlice::CreateInfo{ .position = ci.position, .size = ci.size, .anchor = Anchor::fTop| Anchor::fLeft } }
-, m_label{ Label::CreateInfo{ .text = ci.text, .font = "medium"_hash, .anchor = Anchor::fLeft | Anchor::fMiddle, } }
-, m_value{ Label::CreateInfo{ .data = ci.data, .font = "medium"_hash, .anchor = Anchor::fCenter | Anchor::fMiddle, } }
 , m_model{ g_uiProperty.dataModel( ci.data ) }
 {
+    m_label = emplace_child<Label>( Label::CreateInfo{ .text = ci.text, .font = "medium"_hash, .anchor = Anchor::fLeft | Anchor::fMiddle, } );
+    m_value = emplace_child<Label>( Label::CreateInfo{ .data = ci.data, .font = "medium"_hash, .anchor = Anchor::fCenter | Anchor::fMiddle, } );
     math::vec2 s = size();
-    m_label.setPosition( math::vec2{ 16.0f, s.y * 0.5f } );
-    m_value.setPosition( math::vec2{ s.x * 0.75f - 2.0f, s.y * 0.5f } );
+    m_label->setPosition( math::vec2{ 16.0f, s.y * 0.5f } );
+    m_value->setPosition( math::vec2{ s.x * 0.75f - 2.0f, s.y * 0.5f } );
     setTabOrder( ci.tabOrder );
 }
 
 void SpinBox::render( RenderContext rctx ) const
 {
+    using PushConstant = PushConstant<Pipeline::eSpriteSequenceColors>;
     rctx.colorMain = isFocused() ? rctx.colorFocus : rctx.colorMain;
     NineSlice::render( rctx );
 
-    const math::vec2 pos = position() + offsetByAnchor();
-    rctx.model = math::translate( rctx.model, math::vec3{ pos.x, pos.y, 0.0f } );
-
-    m_label.render( rctx );
-    m_value.render( rctx );
-
     PushData pushData{
         .m_pipeline = g_uiProperty.pipelineSpriteSequenceColors(),
-        .m_verticeCount = 6u,
+        .m_verticeCount = PushConstant::VERTICES,
         .m_instanceCount = 2u,
     };
     pushData.m_fragmentTexture[ 1 ] = g_uiProperty.atlasTexture();
 
-    PushConstant<Pipeline::eSpriteSequenceColors> pushConstant{
+    PushConstant pushConstant{
         .m_model = rctx.model,
         .m_view = rctx.view,
         .m_projection = rctx.projection,
@@ -145,8 +140,6 @@ EventProcessing SpinBox::onAction( ui::Action action )
 
 void SpinBox::update( const UpdateContext& uctx )
 {
-    m_label.update( uctx );
-    m_value.update( uctx );
     m_animL = std::min( m_animL + uctx.deltaTime * 7.0f, 1.0f );
     m_animR = std::min( m_animR + uctx.deltaTime * 7.0f, 1.0f );
 }

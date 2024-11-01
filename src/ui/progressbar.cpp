@@ -30,23 +30,22 @@ Progressbar::Progressbar( const Progressbar::CreateInfo& ci ) noexcept
 
 void Progressbar::render( ui::RenderContext rctx ) const
 {
+    using PushConstant = ui::PushConstant<ui::Pipeline::eSpriteSequenceColors>;
     PushData pushData{
         .m_pipeline = g_uiProperty.pipelineSpriteSequenceColors(),
-        .m_verticeCount = 6u,
+        .m_verticeCount = PushConstant::VERTICES,
         .m_instanceCount = m_count,
     };
     pushData.m_fragmentTexture[ 1 ] = m_texture;
 
-    using PushConstant = ui::PushConstant<ui::Pipeline::eSpriteSequenceColors>;
     PushConstant pushConstant{
         .m_model = rctx.model,
         .m_view = rctx.view,
         .m_projection = rctx.projection,
     };
 
-    math::vec2 pos = position() + offsetByAnchor();
     const float xOffset = m_spriteSize.x + m_spacing;
-    auto Gen = [this, pos, i = 0u, value = m_value, xOffset]() mutable
+    auto Gen = [this, pos = math::vec2{}, i = 0u, value = m_value, xOffset]() mutable
     {
         const math::vec4 winScreen{ 0.0275f, 1.0f, 0.075f, 1.0f };
         const math::vec4 crimson{ 0.863f, 0.078f,  0.234f, 1.0f };

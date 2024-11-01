@@ -5,12 +5,17 @@
 
 #include <engine/math.hpp>
 #include <engine/mouse_event.hpp>
+#include <shared/pmr_pointer.hpp>
 
 #include <span>
+#include <list>
+#include <memory_resource>
 
 class Renderer;
 
 namespace ui {
+
+class Screen;
 
 struct RenderContext {
     Renderer* renderer = nullptr;
@@ -32,24 +37,45 @@ enum class EventProcessing : uint32_t {
 };
 
 class Widget {
+    friend Screen;
+    EventProcessing onEvent( const MouseEvent& );
+    void onUpdate( const UpdateContext& );
+
 public:
-    static constexpr uint16_t c_invalidTabOrder = 0xFFFF;
+    static constexpr uint16_t INVALID_TAB = 0xFFFF;
+
+    template <typename T>
+    inline T* emplace_child( const typename T::CreateInfo& ci )
+    {
+        auto alloc = std::pmr::get_default_resource();
+        auto& w = m_children.emplace_back( UniquePointer<T>{ alloc, ci } );
+        return reinterpret_cast<T*>( w.get() );
+    }
+
+    void onRender( RenderContext ) const;
 
 protected:
+    std::pmr::list<UniquePointer<Widget>> m_children{};
     math::vec2 m_position{};
     math::vec2 m_size{};
     Anchor m_anchor = Anchor::fTop | Anchor::fLeft;
-    uint16_t m_tabOrder = c_invalidTabOrder;
+    uint16_t m_tabOrder = INVALID_TAB;
     bool m_enabled : 1 = true;
     bool m_focused : 1 = false;
 
     bool testRect( math::vec2 ) const;
+
     static bool testRect( math::vec2 p, math::vec2 pos, math::vec2 size );
     static bool testRect( math::vec2 p, const math::vec4& xywh );
 
 public:
     virtual ~Widget() noexcept = default;
     Widget() noexcept = default;
+    Widget( const Widget& ) = delete;
+    Widget( Widget&& ) = delete;
+    Widget& operator = ( const Widget& ) = delete;
+    Widget& operator = ( Widget&& ) = delete;
+
     inline Widget( Anchor a ) noexcept
     : m_anchor{ a }
     {}
@@ -66,7 +92,7 @@ public:
     {}
 
     virtual void update( const UpdateContext& );
-    virtual void render( RenderContext ) const = 0;
+    virtual void render( RenderContext ) const;
     virtual EventProcessing onMouseEvent( const MouseEvent& );
     virtual EventProcessing onAction( ui::Action );
 

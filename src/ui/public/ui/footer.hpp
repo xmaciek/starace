@@ -2,6 +2,7 @@
 
 #include <ui/widget.hpp>
 #include <ui/input.hpp>
+#include <ui/label.hpp>
 #include <shared/hash.hpp>
 
 #include <array>
@@ -35,11 +36,10 @@ public:
     virtual ~Footer() noexcept override = default;
     Footer( const CreateInfo& ) noexcept;
 
-    virtual void render( RenderContext ) const override;
-    virtual EventProcessing onMouseEvent( const MouseEvent& ) override;
     virtual EventProcessing onAction( ui::Action ) override;
 
 private:
+    Label* m_label{};
     struct ActionInfo {
         Action::Enum action{};
         Hash::value_type textId = 0;

@@ -2,6 +2,33 @@
 
 namespace ui {
 
+EventProcessing Widget::onEvent( const MouseEvent& e )
+{
+    const math::vec2 pos = position() + offsetByAnchor();
+
+    MouseEvent ev = e;
+    ev.position -= pos;
+    for ( auto&& it : m_children ) {
+        auto ret = it->onEvent( ev );
+        if ( ret == EventProcessing::eStop ) return ret;
+    }
+    return onMouseEvent( e );
+}
+
+void Widget::onRender( RenderContext rctx ) const
+{
+    const math::vec2 pos = position() + offsetByAnchor();
+    rctx.model = math::translate( rctx.model, math::vec3{ pos.x, pos.y, 0.0f } );
+    render( rctx );
+    for ( auto&& it : m_children ) it->onRender( rctx );
+}
+
+void Widget::onUpdate( const UpdateContext& uctx )
+{
+    update( uctx );
+    for ( auto&& it : m_children ) it->onUpdate( uctx );
+}
+
 void Widget::setPosition( math::vec2 v )
 {
     m_position = v;
@@ -43,6 +70,10 @@ EventProcessing Widget::onMouseEvent( const MouseEvent& )
 }
 
 void Widget::update( const UpdateContext& )
+{
+}
+
+void Widget::render( RenderContext ) const
 {
 }
 

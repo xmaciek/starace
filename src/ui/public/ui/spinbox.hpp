@@ -9,8 +9,8 @@ namespace ui {
 
 class SpinBox : public NineSlice {
 protected:
-    Label m_label{};
-    Label m_value{};
+    Label* m_label{};
+    Label* m_value{};
     DataModel* m_model = nullptr;
     float m_animL = 1.0f;
     float m_animR = 1.0f;
