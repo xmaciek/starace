@@ -1,5 +1,7 @@
 #include <ui/screen.hpp>
 
+#include "glow.hpp"
+
 #include <ui/animframe.hpp>
 #include <ui/button.hpp>
 #include <ui/combobox.hpp>
@@ -352,6 +354,7 @@ Screen::Screen( std::span<const uint8_t> fileContent ) noexcept
         case "List"_hash: makeList( alloc, property, m_widgets, tabOrderCount ); continue;
         case "height"_hash: m_extent.y = property.toFloat(); continue;
         case "width"_hash: m_extent.x = property.toFloat(); continue;
+        case "glow"_hash: if ( property.toInt<bool>() ) m_glow = UniquePointer<Glow>{ alloc, g_uiProperty.pipelineGlow() }; continue;
         default:
             break;
         }
@@ -373,6 +376,7 @@ Screen::Screen( std::span<const uint8_t> fileContent ) noexcept
 void Screen::render( const RenderContext& rctx ) const
 {
     ZoneScoped;
+    if ( m_glow ) m_glow->render( rctx );
     auto r = rctx;
     r.projection = math::ortho( 0.0f, m_viewport.x, 0.0f, m_viewport.y, -1.0f, 1.0f );
     const math::mat4 view = math::translate( r.view, math::vec3{ m_offset.x, m_offset.y, 0.0f } );
@@ -526,6 +530,7 @@ void Screen::onAction( ui::Action action )
 
 void Screen::resize( math::vec2 s )
 {
+    if ( m_glow ) m_glow->setSize( s );
     m_resize = s;
     const float aspect = m_resize.x / m_resize.y;
     const float srcAspect = m_extent.x / m_extent.y;

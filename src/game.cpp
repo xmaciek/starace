@@ -201,7 +201,6 @@ void Game::onExit()
 void Game::onResize( uint32_t w, uint32_t h )
 {
     ZoneScoped;
-    m_glow.setSize( { w, h } );
     if ( auto* screen = currentScreen() ) {
         screen->resize( { w, h } );
     }
@@ -226,6 +225,7 @@ void Game::onInit()
 
     g_uiProperty.m_pipelineSpriteSequence = setupPipeline( m_renderer, m_io, ui::SPRITE_SEQUENCE );
     g_uiProperty.m_pipelineSpriteSequenceColors = setupPipeline( m_renderer, m_io, ui::SPRITE_SEQUENCE_COLORS );
+    g_uiProperty.m_pipelineGlow = setupPipeline( m_renderer, m_io, ui::GLOW );
 
     m_enemies.reserve( 100 );
     m_bullets.reserve( 2000 );
@@ -573,7 +573,6 @@ void Game::onRender( Renderer* renderer )
     case Screen::eDead:
     case Screen::eWin:
         renderGameScreen( rctx );
-        m_glow.render( r );
         break;
 
     case Screen::eMissionSelection:
@@ -1065,8 +1064,6 @@ void Game::renderMenuScreen( RenderContext rctx, ui::RenderContext r ) const
         const DispatchInfo daa{ .m_pipeline = g_pipelines[ Pipeline::eAntiAliasFXAA ] };
         rctx.renderer->dispatch( daa, &aa );
     }
-
-    m_glow.render( r );
 }
 
 void Game::onActuator( Actuator a )

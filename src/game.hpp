@@ -12,7 +12,6 @@
 #include "space_dust.hpp"
 #include "targeting.hpp"
 #include "texture.hpp"
-#include "ui_glow.hpp"
 
 #include <config/config.hpp>
 #include <engine/engine.hpp>
@@ -91,7 +90,6 @@ private:
     std::pmr::map<std::filesystem::path, Texture> m_textures{};
     std::pmr::vector<csg::Callsign> m_callsigns{};
 
-    Glow m_glow{};
     SpaceDust m_dustUi{};
     ui::Screen m_screenCustomize{};
     ui::Screen m_screenGameplay{};

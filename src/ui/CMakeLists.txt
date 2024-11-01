@@ -8,6 +8,8 @@ target_sources( ui
     data_model.cpp
     font.cpp
     footer.cpp
+    glow.cpp
+    glow.hpp
     image.cpp
     label.cpp
     nineslice.cpp

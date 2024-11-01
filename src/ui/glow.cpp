@@ -1,20 +1,25 @@
-#include "ui_glow.hpp"
+#include "glow.hpp"
 
-#include "game_pipeline.hpp"
+#include <ui/property.hpp>
+#include <ui/pipeline.hpp>
 
 #include <renderer/renderer.hpp>
 
-void Glow::render( ui::RenderContext rctx ) const
+namespace ui {
+
+void Glow::render( RenderContext rctx ) const
 {
+    using PushConstant = PushConstant<Pipeline::eGlow>;
     PushBuffer pushBuffer{
-        .m_pipeline = g_pipelines[ Pipeline::eGlow ],
-        .m_verticeCount = 4,
+        .m_pipeline = m_pipeline,
+        .m_verticeCount = PushConstant::VERTICES,
     };
-    PushConstant<Pipeline::eGlow> pushConstant{};
-    pushConstant.m_model = rctx.model;
-    pushConstant.m_view = rctx.view;
-    pushConstant.m_projection = rctx.projection;
-    pushConstant.m_color = rctx.colorMain;
+    PushConstant pushConstant{
+        .m_model = rctx.model,
+        .m_view = rctx.view,
+        .m_projection = rctx.projection,
+        .m_color = rctx.colorMain,
+    };
 
     const math::vec2 pos = position() + offsetByAnchor();
     const float x = pos.x;
@@ -28,4 +33,6 @@ void Glow::render( ui::RenderContext rctx ) const
     pushConstant.m_xyuv[ 3 ] = math::vec4{ xw, y, 1.0f, 0.0f };
 
     rctx.renderer->push( pushBuffer, &pushConstant );
+}
+
 }

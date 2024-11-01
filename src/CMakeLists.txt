@@ -52,8 +52,6 @@ set( STARACE_SOURCES
     targeting.hpp
     texture.cpp
     texture.hpp
-    ui_glow.cpp
-    ui_glow.hpp
     ui_options_models.hpp
     units.hpp
     update_context.hpp

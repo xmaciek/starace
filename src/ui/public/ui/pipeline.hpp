@@ -10,6 +10,7 @@ namespace ui {
 enum class Pipeline : uint32_t {
     eSpriteSequence,
     eSpriteSequenceColors,
+    eGlow,
 };
 using enum Pipeline;
 
@@ -46,6 +47,15 @@ struct PushConstant<Pipeline::eSpriteSequenceColors> {
     std::array<Sprite, INSTANCES> m_sprites{};
 };
 
+template <>
+struct PushConstant<Pipeline::eGlow> {
+    static constexpr uint32_t VERTICES = 4;
+    math::mat4 m_model{};
+    math::mat4 m_view{};
+    math::mat4 m_projection{};
+    math::vec4 m_color{};
+    std::array<math::vec4, 4> m_xyuv{};
+};
 
 [[maybe_unused]] inline constexpr auto SPRITE_SEQUENCE =
 PipelineCreateInfo{
@@ -73,5 +83,16 @@ PipelineCreateInfo{
     .m_fragmentImage = 0b10,
 };
 
-
+[[maybe_unused]] inline constexpr auto GLOW =
+PipelineCreateInfo{
+    .m_vertexShader = "shaders/glow.vert.spv",
+    .m_fragmentShader = "shaders/glow.frag.spv",
+    .m_userHint = static_cast<uint32_t>( Pipeline::eGlow ),
+    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eGlow> ),
+    .m_enableBlend = true,
+    .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
+    .m_cullMode = PipelineCreateInfo::CullMode::eBack,
+    .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
+    .m_vertexUniform = 0b1,
+};
 }

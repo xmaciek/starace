@@ -5,7 +5,6 @@
 
 enum class Pipeline : PipelineSlot {
     eTriangleFan3dTexture,
-    eGlow,
     eBackground,
     eAlbedo,
     eMesh,
@@ -52,15 +51,6 @@ struct PushConstant<Pipeline::eSpaceDust> {
     math::vec4 m_color{};
     math::vec4 m_particleOffset{};
     std::array<math::vec4, INSTANCES> m_particles{};
-};
-
-template <>
-struct PushConstant<Pipeline::eGlow> {
-    math::mat4 m_model{};
-    math::mat4 m_view{};
-    math::mat4 m_projection{};
-    math::vec4 m_color{};
-    std::array<math::vec4, 4> m_xyuv{};
 };
 
 template <>
@@ -253,18 +243,6 @@ PipelineCreateInfo{
         PipelineCreateInfo::Assembly{ PipelineCreateInfo::InputType::eF3, 0, 0 },
         PipelineCreateInfo::Assembly{ PipelineCreateInfo::InputType::eF2, 1, 12 },
     },
-    .m_vertexUniform = 0b1,
-},
-
-PipelineCreateInfo{
-    .m_vertexShader = "shaders/glow.vert.spv",
-    .m_fragmentShader = "shaders/glow.frag.spv",
-    .m_userHint = static_cast<uint32_t>( Pipeline::eGlow ),
-    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eGlow> ),
-    .m_enableBlend = true,
-    .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
-    .m_cullMode = PipelineCreateInfo::CullMode::eBack,
-    .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
     .m_vertexUniform = 0b1,
 },
 
