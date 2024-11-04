@@ -14,7 +14,6 @@ enum class Pipeline : PipelineSlot {
     eThruster2,
     eGammaCorrection,
     eScanline,
-    eUiRings,
     eBeamBlob,
     eAntiAliasFXAA,
     count,
@@ -105,15 +104,6 @@ struct PushConstant<Pipeline::eScanline> {
 
 template <>
 struct PushConstant<Pipeline::eAntiAliasFXAA> {
-};
-
-template <>
-struct PushConstant<Pipeline::eUiRings> {
-    math::mat4 m_view{};
-    math::mat4 m_projection{};
-    math::vec4 m_xywh{};
-    alignas( 16 ) std::array<math::mat4, 3> m_modelMatrix{};
-    alignas( 16 ) std::array<math::vec4, 3> m_color;
 };
 
 template <>
@@ -282,19 +272,6 @@ PipelineCreateInfo{
     .m_userHint = static_cast<uint32_t>( Pipeline::eAntiAliasFXAA ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eAntiAliasFXAA> ),
     .m_computeImage = 0b110,
-},
-
-PipelineCreateInfo{
-    .m_vertexShader = "shaders/ui_rings.vert.spv",
-    .m_fragmentShader = "shaders/ui_rings.frag.spv",
-    .m_userHint = static_cast<uint32_t>( Pipeline::eUiRings ),
-    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eUiRings> ),
-    .m_enableBlend = true,
-    .m_topology = PipelineCreateInfo::Topology::eTriangleList,
-    .m_cullMode = PipelineCreateInfo::CullMode::eBack,
-    .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_vertexUniform = 0b1,
-    .m_fragmentImage = 0b10,
 },
 
 PipelineCreateInfo{
