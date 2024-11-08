@@ -20,7 +20,7 @@ NineSlice::NineSlice( const CreateInfo& ci ) noexcept
 }
 
 
-void NineSlice::render( RenderContext rctx ) const
+void NineSlice::render( const RenderContext& rctx ) const
 {
     using PushConstant = PushConstant<Pipeline::eSpriteSequence>;
     ZoneScoped;

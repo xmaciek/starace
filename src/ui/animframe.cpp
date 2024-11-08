@@ -21,7 +21,7 @@ AnimFrame::AnimFrame( const CreateInfo& ci ) noexcept
     assert( m_count );
 }
 
-void AnimFrame::render( ui::RenderContext rctx ) const
+void AnimFrame::render( const RenderContext& rctx ) const
 {
     PushData pushData{
         .m_pipeline = g_uiProperty.pipelineSpriteSequence(),

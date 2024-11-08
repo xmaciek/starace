@@ -7,7 +7,7 @@
 
 namespace ui {
 
-void Glow::render( RenderContext rctx ) const
+void Glow::render( const RenderContext& rctx ) const
 {
     using PushConstant = PushConstant<Pipeline::eGlow>;
     PushBuffer pushBuffer{

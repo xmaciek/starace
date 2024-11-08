@@ -22,8 +22,9 @@ SpinBox::SpinBox( const CreateInfo& ci ) noexcept
     setTabOrder( ci.tabOrder );
 }
 
-void SpinBox::render( RenderContext rctx ) const
+void SpinBox::render( const RenderContext& r ) const
 {
+    auto rctx = r;
     using PushConstant = PushConstant<Pipeline::eSpriteSequenceColors>;
     rctx.colorMain = isFocused() ? rctx.colorFocus : rctx.colorMain;
     NineSlice::render( rctx );

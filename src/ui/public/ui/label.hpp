@@ -40,7 +40,7 @@ public:
     Label() = default;
     Label( const CreateInfo& );
 
-    virtual void render( RenderContext ) const override;
+    virtual void render( const RenderContext& ) const override;
     virtual void update( const UpdateContext& ) override;
 
     void setText( std::u32string_view );

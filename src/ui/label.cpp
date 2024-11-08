@@ -25,7 +25,7 @@ Label::Label( const Label::CreateInfo& ci )
     }
 }
 
-void Label::render( RenderContext rctx ) const
+void Label::render( const RenderContext& rctx ) const
 {
     assert( !m_text.empty() );
 

@@ -28,9 +28,9 @@ Progressbar::Progressbar( const Progressbar::CreateInfo& ci ) noexcept
     assert( m_count );
 }
 
-void Progressbar::render( ui::RenderContext rctx ) const
+void Progressbar::render( const RenderContext& rctx ) const
 {
-    using PushConstant = ui::PushConstant<ui::Pipeline::eSpriteSequenceColors>;
+    using PushConstant = PushConstant<Pipeline::eSpriteSequenceColors>;
     PushData pushData{
         .m_pipeline = g_uiProperty.pipelineSpriteSequenceColors(),
         .m_verticeCount = PushConstant::VERTICES,

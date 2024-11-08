@@ -36,7 +36,7 @@ public:
     ComboBoxList( const CreateInfo& p ) noexcept;
 
 
-    virtual void render( RenderContext ) const override;
+    virtual void render( const RenderContext& ) const override;
     virtual EventProcessing onMouseEvent( const MouseEvent& ) override;
     virtual EventProcessing onAction( ui::Action ) override;
 };
@@ -92,8 +92,9 @@ EventProcessing ComboBox::onMouseEvent( const MouseEvent& event )
     return EventProcessing::eStop;
 }
 
-void ComboBox::render( RenderContext rctx ) const
+void ComboBox::render( const RenderContext& r ) const
 {
+    auto rctx = r;
     rctx.colorMain = isFocused() ? rctx.colorFocus : rctx.colorMain;
     NineSlice::render( rctx );
 }
@@ -115,7 +116,7 @@ ComboBoxList::ComboBoxList( const ComboBoxList::CreateInfo& ci ) noexcept
     setSize( math::vec2{ ci.size.x, midHeight + m_botHeight } );
 }
 
-void ComboBoxList::render( RenderContext rctx ) const
+void ComboBoxList::render( const RenderContext& rctx ) const
 {
     using PushConstant = PushConstant<Pipeline::eSpriteSequenceColors>;
     const float width = size().x;

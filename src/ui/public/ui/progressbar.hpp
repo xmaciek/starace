@@ -34,7 +34,7 @@ public:
     Progressbar() noexcept = default;
     Progressbar( const CreateInfo& ) noexcept;
 
-    virtual void render( ui::RenderContext ) const override;
+    virtual void render( const RenderContext& ) const override;
     virtual void update( const UpdateContext& ) override;
 
 };

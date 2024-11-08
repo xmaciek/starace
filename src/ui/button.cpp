@@ -25,8 +25,9 @@ Button::Button( const CreateInfo& ci ) noexcept
     setTabOrder( ci.tabOrder );
 }
 
-void Button::render( RenderContext rctx ) const
+void Button::render( const RenderContext& r ) const
 {
+    auto rctx = r;
     if ( isFocused() ) {
         rctx.colorMain = rctx.colorFocus;
     }

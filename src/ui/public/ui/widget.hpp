@@ -92,7 +92,7 @@ public:
     {}
 
     virtual void update( const UpdateContext& );
-    virtual void render( RenderContext ) const;
+    virtual void render( const RenderContext& ) const;
     virtual EventProcessing onMouseEvent( const MouseEvent& );
     virtual EventProcessing onAction( ui::Action );
 

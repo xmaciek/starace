@@ -43,7 +43,7 @@ public:
     NineSlice() noexcept = default;
     NineSlice( const CreateInfo& ) noexcept;
 
-    virtual void render( RenderContext ) const override;
+    virtual void render( const RenderContext& ) const override;
 };
 
 }

@@ -33,7 +33,7 @@ public:
     Image() noexcept = default;
     Image( const CreateInfo& ) noexcept;
 
-    virtual void render( RenderContext ) const override;
+    virtual void render( const RenderContext& ) const override;
     virtual void update( const UpdateContext& ) override;
     void setColor( math::vec4 );
     void setTexture( Texture );

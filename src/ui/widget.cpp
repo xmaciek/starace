@@ -73,7 +73,7 @@ void Widget::update( const UpdateContext& )
 {
 }
 
-void Widget::render( RenderContext ) const
+void Widget::render( const RenderContext& ) const
 {
 }
 

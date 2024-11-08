@@ -35,7 +35,7 @@ Image::Image( const CreateInfo& ci ) noexcept
     }
 };
 
-void Image::render( RenderContext rctx ) const
+void Image::render( const RenderContext& rctx ) const
 {
     using PushConstant = PushConstant<Pipeline::eSpriteSequence>;
     assert( m_texture );
