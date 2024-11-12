@@ -40,7 +40,7 @@ void NineSlice::render( const RenderContext& rctx ) const
         .m_model = rctx.model,
         .m_view = rctx.view,
         .m_projection = rctx.projection,
-        .m_color = rctx.colorMain,
+        .m_color = isFocused() ? rctx.colorFocus : rctx.colorMain,
     };
 
     const auto& atlasRef = *g_uiProperty.atlas();
