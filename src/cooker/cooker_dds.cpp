@@ -71,11 +71,13 @@ Image convertTga( const std::filesystem::path& srcFile )
         };
         switch ( header.colorMap[ 4 ] ) {
         case 8:
+            if ( header.bitsPerPixel != 8 ) cooker::error( "color map pixel type mismatch" );
             ret.resize( header.width * header.height );
             unmap( reinterpret_cast<B*>( colorMap.data() ), indexes, reinterpret_cast<B*>( ret.data() ) );
             return { .format = Format::R8_UNORM, .width = header.width, .height = header.height, .pixels = std::move( ret ) };
 
         case 24: {
+            if ( header.bitsPerPixel != 24 ) cooker::error( "color map pixel type mismatch" );
             std::pmr::vector<uint8_t> tmp;
             std::swap( tmp, colorMap );
 
@@ -88,6 +90,7 @@ Image convertTga( const std::filesystem::path& srcFile )
         [[fallthrough]];
 
         case 32:
+            if ( header.bitsPerPixel != 32 ) cooker::error( "color map pixel type mismatch" );
             ret.resize( sizeof( uint32_t ) * header.width * header.height );
             unmap( reinterpret_cast<BGRA*>( colorMap.data() ), indexes, reinterpret_cast<BGRA*>( ret.data() ) );
             return { .format = Format::B8G8R8A8_UNORM, .width = header.width, .height = header.height, .pixels = std::move( ret ) };
