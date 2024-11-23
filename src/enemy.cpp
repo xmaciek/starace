@@ -4,7 +4,7 @@
 #include "utils.hpp"
 #include "units.hpp"
 
-#include <Tracy.hpp>
+#include <profiler.hpp>
 
 #include <cassert>
 

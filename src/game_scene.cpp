@@ -1,6 +1,6 @@
 #include "game_scene.hpp"
 
-#include <Tracy.hpp>
+#include <profiler.hpp>
 
 GameScene::GameScene( const std::array<Texture, 6>& t ) noexcept
 : m_skybox{ t }

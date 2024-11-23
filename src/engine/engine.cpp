@@ -3,7 +3,7 @@
 #include "controller_state.hpp"
 
 #include <SDL.h>
-#include <Tracy.hpp>
+#include <profiler.hpp>
 
 #include <algorithm>
 #include <chrono>

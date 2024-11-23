@@ -1,6 +1,6 @@
 #include <extra/obj.hpp>
 
-#include <Tracy.hpp>
+#include <profiler.hpp>
 
 #include <cassert>
 #include <cstring>

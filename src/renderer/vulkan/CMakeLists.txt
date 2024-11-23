@@ -47,8 +47,8 @@ target_link_libraries( renderer_vk
     platform
     renderer
     shared
+    profiler
     Vulkan::Headers
-    Tracy::Client
 )
 
 target_compile_definitions( renderer_vk

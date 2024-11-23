@@ -15,7 +15,7 @@
 
 #include <config/config.hpp>
 
-#include <Tracy.hpp>
+#include <profiler.hpp>
 
 #include <optional>
 #include <string_view>

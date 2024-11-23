@@ -21,6 +21,6 @@ set_target_properties( extra PROPERTIES
 )
 
 target_link_libraries( extra
-    Tracy::Client
+    profiler
     cxx::flags
 )

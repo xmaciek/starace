@@ -9,7 +9,7 @@
 #include <type_traits>
 #include <memory_resource>
 
-#include <Tracy.hpp>
+#include <profiler.hpp>
 
 template <typename T, std::size_t TCapacity>
 class Pool : protected Indexer<TCapacity>, public std::pmr::memory_resource {

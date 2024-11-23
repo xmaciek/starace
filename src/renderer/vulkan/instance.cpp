@@ -1,7 +1,7 @@
 
 #include "instance.hpp"
 
-#include <Tracy.hpp>
+#include <profiler.hpp>
 
 #include <cstdlib>
 #include <cassert>

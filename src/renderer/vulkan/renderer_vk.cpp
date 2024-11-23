@@ -5,7 +5,7 @@
 #include <platform/utils.hpp>
 
 #include <SDL_vulkan.h>
-#include <Tracy.hpp>
+#include <profiler.hpp>
 
 #include <algorithm>
 #include <bit>

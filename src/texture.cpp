@@ -4,7 +4,7 @@
 #include <extra/dds.hpp>
 #include <extra/tga.hpp>
 
-#include <Tracy.hpp>
+#include <profiler.hpp>
 
 #include <algorithm>
 #include <cassert>

@@ -25,7 +25,7 @@ target_link_libraries( engine
     extra
     renderer_vk
     shared
+    profiler
     glm::glm
     SDL2::SDL2
-    Tracy::Client
 )

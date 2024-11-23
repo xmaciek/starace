@@ -9,6 +9,7 @@ add_subdirectory( extra )
 add_subdirectory( platform )
 add_subdirectory( renderer )
 add_subdirectory( shared )
+add_subdirectory( profiler )
 add_subdirectory( ui )
 
 set( STARACE_SOURCES
@@ -75,6 +76,7 @@ target_link_libraries( ${bin_name}
     engine
     extra
     ui
+    profiler
     SDL2::SDL2
     SDL2::main
     Threads::Threads

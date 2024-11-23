@@ -6,7 +6,7 @@
 
 #include "utils_vk.hpp"
 
-#include <Tracy.hpp>
+#include <profiler.hpp>
 
 RenderPass::RenderPass( VkDevice device, VkFormat format, VkFormat depthFormat ) noexcept
 : m_device{ device }

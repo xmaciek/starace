@@ -11,7 +11,7 @@
 
 #include <config/config.hpp>
 
-#include <Tracy.hpp>
+#include <profiler.hpp>
 
 #include <algorithm>
 #include <chrono>

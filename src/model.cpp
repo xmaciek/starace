@@ -6,7 +6,7 @@
 
 #include <renderer/renderer.hpp>
 
-#include <Tracy.hpp>
+#include <profiler.hpp>
 
 #include <cassert>
 #include <algorithm>

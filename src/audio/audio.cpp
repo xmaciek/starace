@@ -2,7 +2,7 @@
 
 #include <shared/indexer.hpp>
 
-#include <Tracy.hpp>
+#include <profiler.hpp>
 
 #include <SDL.h>
 

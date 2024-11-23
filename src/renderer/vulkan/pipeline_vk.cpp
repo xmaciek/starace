@@ -4,7 +4,7 @@
 #include "shader.hpp"
 #include "utils_vk.hpp"
 
-#include <Tracy.hpp>
+#include <profiler.hpp>
 
 #include <array>
 #include <cassert>

@@ -1,6 +1,6 @@
 #include "queue_manager.hpp"
 
-#include <Tracy.hpp>
+#include <profiler.hpp>
 
 #include <utility>
 #include <vector>

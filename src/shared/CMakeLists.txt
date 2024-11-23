@@ -20,5 +20,5 @@ set_target_properties( shared PROPERTIES
 target_link_libraries( shared
     INTERFACE
     cxx::flags
-    Tracy::Client
+    profiler
 )

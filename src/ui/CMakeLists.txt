@@ -60,5 +60,5 @@ target_link_libraries( ui
     renderer
     config
     cxx::flags
-    Tracy::Client
+    profiler
 )

@@ -2,7 +2,7 @@
 #include <extra/pak.hpp>
 #include <platform/utils.hpp>
 
-#include <Tracy.hpp>
+#include <profiler.hpp>
 
 #include <algorithm>
 #include <cassert>
