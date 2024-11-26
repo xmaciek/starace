@@ -5,7 +5,7 @@ glow = 1
 Label = { x = 48 y = 50 text = settings font = large }
 
 Button = { x = 48 y = 150 width = 320 height = 48 text = settings.audio trigger = $function:goto_settings_audio }
-Button = { x = 48 y = 200 width = 320 height = 48 text = display        trigger = $function:goto_settings_display }
+Button = { x = 48 y = 200 width = 320 height = 48 text = settings.display trigger = $function:goto_settings_display }
 
 Footer = {
     Button = { text = return    input = eMenuCancel     trigger = $function:goto_titlemenu }
