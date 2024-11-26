@@ -226,122 +226,6 @@ static UniquePointer<Widget> makeFooter( std::pmr::memory_resource* alloc, const
     return UniquePointer<Footer>{ alloc, ci };
 }
 
-static void makeList( std::pmr::memory_resource* alloc, const cfg::Entry& entry, std::pmr::vector<UniquePointer<Widget>>& retList, uint16_t& tabOrder )
-{
-    ZoneScoped;
-    struct Element {
-        enum class Type : uint32_t {
-            invalid = 0,
-            eButton,
-            eComboBox,
-        };
-        Hash::value_type trigger{};
-        Hash::value_type text{};
-        Hash::value_type data{};
-        Type type{};
-        uint16_t tabOrder = 0;
-    };
-
-    math::vec2 xy{};
-    math::vec2 elementSize{};
-    math::vec2 advance{};
-    float spacing = 0.0f;
-    Hash::value_type direction = "down"_hash;
-
-    std::pmr::vector<Element> elements;
-    auto readElement = [&tabOrder]( const cfg::Entry& entry ) -> Element
-    {
-        Element e{};
-        Hash hash{};
-        switch ( hash( *entry ) ) {
-        case "ComboBox"_hash:
-            e.tabOrder = tabOrder++;
-            e.type = Element::Type::eComboBox;
-            for ( auto&& property : entry ) {
-                switch ( hash( *property ) ) {
-                case "text"_hash: e.text = hash( property.toString() ); continue;
-                case "data"_hash: e.data = hash( property.toString() ); continue;
-                default: assert( !"unhandled enum when reading List.entries.ComboBox" ); continue;
-                }
-            }
-            return e;
-        case "Button"_hash:
-            e.tabOrder = tabOrder++;
-            e.type = Element::Type::eButton;
-            for ( auto&& property : entry ) {
-                switch ( hash( *property ) ) {
-                case "text"_hash: e.text = hash( property.toString() ); continue;
-                case "trigger"_hash: e.trigger = hash( property.toString() ); continue;
-                }
-            }
-            return e;
-        default:
-            assert( !"unhandled enum when reading List.entries" );
-            break;
-        }
-        return e;
-    };
-
-    Hash hash{};
-    for ( auto&& property : entry ) {
-        switch ( hash( *property ) ) {
-        case "x"_hash: xy.x = property.toFloat(); continue;
-        case "y"_hash: xy.y = property.toFloat(); continue;
-        case "spacing"_hash: spacing = property.toFloat(); continue;
-        case "elementWidth"_hash: elementSize.x = property.toFloat(); continue;
-        case "elementHeight"_hash: elementSize.y = property.toFloat(); continue;
-        case "direction"_hash: direction = hash( property.toString() ); continue;
-        case "entries"_hash:
-            for ( auto&& e : property ) {
-                elements.emplace_back( readElement( e ) );
-            }
-            continue;
-        default:
-            assert( !"unhandled enum when reading List" );
-        }
-    }
-
-    switch ( direction ) {
-        default:
-            assert( !"unhandled enum List.direction" );
-            [[fallthrough]];
-        case "down"_hash: advance = { 0.0f, spacing + elementSize.y }; break;
-        case "up"_hash: advance = { 0.0f, -( spacing + elementSize.y ) }; break;
-        case "left"_hash: advance = { -( spacing + elementSize.x ), 0.0f }; break;
-        case "right"_hash: advance = { spacing + elementSize.x, 0.0f }; break;
-    };
-
-
-    for ( auto&& it : elements ) {
-        switch ( it.type ) {
-        case Element::Type::eComboBox: {
-            ComboBox::CreateInfo ci{
-                .data = it.data,
-                .text = it.text,
-                .position = xy,
-                .size = elementSize,
-                .tabOrder = it.tabOrder
-            };
-            retList.emplace_back( UniquePointer<ComboBox>( alloc, ci ) );
-        } break;
-        case Element::Type::eButton: {
-            Button::CreateInfo ci{
-                .text = it.text,
-                .trigger = it.trigger,
-                .position = xy,
-                .size = elementSize,
-                .tabOrder = it.tabOrder
-            };
-            retList.emplace_back( UniquePointer<Button>( alloc, ci ) );
-        } break;
-        default:
-            assert( !"Unhandled elemet type" );
-            continue;
-        }
-        xy += advance;
-    }
-}
-
 Screen::Screen( std::span<const uint8_t> fileContent ) noexcept
 {
     ZoneScoped;
@@ -357,7 +241,6 @@ Screen::Screen( std::span<const uint8_t> fileContent ) noexcept
             , math::vec2{ 48.0f, m_extent.y - 48.0f * 2.0f }
             , math::vec2{ m_extent.x - 48.0f * 2.0f, 48.0f }
         ); continue;
-        case "List"_hash: makeList( alloc, property, m_widgets, tabOrderCount ); continue;
         case "height"_hash: m_extent.y = property.toFloat(); continue;
         case "width"_hash: m_extent.x = property.toFloat(); continue;
         case "glow"_hash: if ( property.toInt<bool>() ) m_glow = UniquePointer<Glow>{ alloc, g_uiProperty.pipelineGlow() }; continue;

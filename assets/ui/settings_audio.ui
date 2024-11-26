@@ -2,26 +2,11 @@ width = 1280
 height = 720
 glow = 1
 
-Label = {
-    text = settings.audio
-    font = large
-    x = 48
-    y = 50
-}
+Label = { x = 48 y = 50 text = settings.audio font = large }
 
-List = {
-    x = 48
-    y = 150
-    spacing = 2
-    elementWidth = 400
-    elementHeight = 48
-    direction = down
-    entries = {
-        ComboBox = { text = settings.audio.master   data = $data:settings.audio.master }
-        ComboBox = { text = settings.audio.sfx      data = $data:settings.audio.sfx }
-        ComboBox = { text = settings.audio.ui       data = $data:settings.audio.ui }
-    }
-}
+ComboBox = { x = 48 y = 150 width = 400 height = 48 text = settings.audio.master   data = $data:settings.audio.master }
+ComboBox = { x = 48 y = 200 width = 400 height = 48 text = settings.audio.sfx      data = $data:settings.audio.sfx }
+ComboBox = { x = 48 y = 250 width = 400 height = 48 text = settings.audio.ui       data = $data:settings.audio.ui }
 
 Footer = {
     Button = { text = apply     input = eMenuApply      trigger = $function:applyAudio }
