@@ -25,14 +25,15 @@ using Buffer = std::pmr::vector<Uint8>;
 struct alignas( 8 ) PlaySpan {
     uint32_t position;
     Audio::Slot slot;
+    Audio::Channel channel;
     bool isEnqueued;
-    bool padding;
 };
 static_assert( sizeof( PlaySpan ) == 8 );
 
-class SDLAudioEngine : public Audio {
+class SDLAudio : public Audio {
     SDL_AudioSpec m_spec{};
     SDL_AudioDeviceID m_device{};
+    std::array<float, (size_t)Audio::Channel::count> m_volumeChannels{};
 
     static constexpr uint64_t c_maxSlots = 8;
     Indexer<c_maxSlots> m_slotMachine{};
@@ -44,20 +45,26 @@ class SDLAudioEngine : public Audio {
 
     std::pmr::memory_resource* allocator();
 
-public:
-    virtual ~SDLAudioEngine() override;
-    SDLAudioEngine();
+    float volume( Channel c ) const
+    {
+        return m_volumeChannels[ 0 ] * m_volumeChannels[ (size_t)c ];
+    }
 
-    virtual void play( Slot ) override;
+public:
+    virtual ~SDLAudio() override;
+    SDLAudio();
+
+    virtual void play( Slot, Channel ) override;
     virtual Slot load( std::span<const uint8_t> ) override;
+    virtual void setVolume( Channel, float ) override;
 };
 
 Audio* Audio::create()
 {
-    return new SDLAudioEngine();
+    return new SDLAudio();
 }
 
-SDLAudioEngine::~SDLAudioEngine()
+SDLAudio::~SDLAudio()
 {
     ZoneScoped;
     SDL_PauseAudioDevice( m_device, 1 );
@@ -65,9 +72,10 @@ SDLAudioEngine::~SDLAudioEngine()
     SDL_AudioQuit();
 }
 
-SDLAudioEngine::SDLAudioEngine()
+SDLAudio::SDLAudio()
 {
     ZoneScoped;
+    std::fill( m_volumeChannels.begin(), m_volumeChannels.end(), 1.0f );
     SDL_InitSubSystem( SDL_INIT_AUDIO );
 
     using size_type = std::pmr::vector<std::pmr::string>::size_type;
@@ -97,7 +105,7 @@ SDLAudioEngine::SDLAudioEngine()
         .format = AUDIO_S16LSB,
         .channels = 2,
         .samples = 512,
-        .callback = &SDLAudioEngine::callback,
+        .callback = &SDLAudio::callback,
         .userdata = this,
     };
 
@@ -113,19 +121,19 @@ SDLAudioEngine::SDLAudioEngine()
     SDL_PauseAudioDevice( m_device, 0 );
 }
 
-std::pmr::memory_resource* SDLAudioEngine::allocator()
+std::pmr::memory_resource* SDLAudio::allocator()
 {
     return std::pmr::get_default_resource();
 }
 
-void SDLAudioEngine::callback( void* userData, Uint8* stream, int len )
+void SDLAudio::callback( void* userData, Uint8* stream, int len )
 {
     ZoneScoped;
     assert( userData );
     assert( stream );
 
     std::fill_n( stream, len, (Uint8)0 );
-    SDLAudioEngine* instance = reinterpret_cast<SDLAudioEngine*>( userData );
+    SDLAudio* instance = reinterpret_cast<SDLAudio*>( userData );
     auto& toPlay = instance->m_nowPlaying;
     const auto format = instance->m_spec.format;
 
@@ -144,14 +152,14 @@ void SDLAudioEngine::callback( void* userData, Uint8* stream, int len )
             , buffer.data() + span.position
             , format
             , playLength
-            , SDL_MIX_MAXVOLUME
+            , SDL_MIX_MAXVOLUME * instance->volume( it.load().channel )
         );
         span.position += playLength;
         it.store( span.position == bufferSize ? PlaySpan{} : span );
     }
 }
 
-Audio::Slot SDLAudioEngine::load( std::span<const uint8_t> data )
+Audio::Slot SDLAudio::load( std::span<const uint8_t> data )
 {
     ZoneScoped;
     Buffer buffer{ allocator() };
@@ -187,7 +195,7 @@ Audio::Slot SDLAudioEngine::load( std::span<const uint8_t> data )
     return slot + 1;
 }
 
-void SDLAudioEngine::play( Audio::Slot idx )
+void SDLAudio::play( Audio::Slot idx, Audio::Channel c )
 {
     ZoneScoped;
     assert( idx > 0 );
@@ -197,6 +205,7 @@ void SDLAudioEngine::play( Audio::Slot idx )
     PlaySpan span{
         .position = 0,
         .slot = idx,
+        .channel = c,
         .isEnqueued = true,
     };
     for ( auto& it : m_nowPlaying ) {
@@ -205,3 +214,10 @@ void SDLAudioEngine::play( Audio::Slot idx )
     }
     assert( !"too many sounds playing" );
 }
+
+void SDLAudio::setVolume( Audio::Channel c, float v )
+{
+    assert( c < Channel::count );
+    m_volumeChannels[ (size_t)c ] = std::clamp( v, 0.0f, 1.0f );
+}
+

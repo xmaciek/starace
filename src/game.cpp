@@ -441,6 +441,9 @@ void Game::setupUI()
     m_gameUiDataModels.insert( "$data:resolution"_hash, &m_optionsGFX.m_resolution );
     m_gameUiDataModels.insert( "$data:vsync"_hash, &m_optionsGFX.m_vsync );
     m_gameUiDataModels.insert( "$data:fxaa"_hash, &m_optionsGFX.m_fxaa );
+    m_gameUiDataModels.insert( "$data:settings.audio.master"_hash, &m_optionsAudio.m_master );
+    m_gameUiDataModels.insert( "$data:settings.audio.ui"_hash, &m_optionsAudio.m_ui );
+    m_gameUiDataModels.insert( "$data:settings.audio.sfx"_hash, &m_optionsAudio.m_sfx );
     m_gameUiDataModels.insert( "$data:weaponPrimary"_hash, &m_optionsCustomize.m_weaponPrimary );
     m_gameUiDataModels.insert( "$data:weaponSecondary"_hash, &m_optionsCustomize.m_weaponSecondary );
     m_gameUiDataModels.insert( "$var:playerHP"_hash, &m_gameplayUIData.m_playerHP );
@@ -459,6 +462,7 @@ void Game::setupUI()
     m_gameCallbacks.insert( "$function:goto_titlemenu"_hash, [this](){ changeScreen( Screen::eMainMenu, m_click ); } );
     m_gameCallbacks.insert( "$function:goto_settings"_hash, [this](){ changeScreen( Screen::eSettings, m_click ); } );
     m_gameCallbacks.insert( "$function:goto_settings_display"_hash, [this](){ changeScreen( Screen::eSettingsDisplay, m_click ); } );
+    m_gameCallbacks.insert( "$function:goto_settings_audio"_hash, [this](){ changeScreen( Screen::eSettingsAudio, m_click ); } );
     m_gameCallbacks.insert( "$function:quit"_hash, [this](){ quit(); } );
     m_gameCallbacks.insert( "$function:resume"_hash, [this]{ changeScreen( Screen::eGame, m_click ); } );
     m_gameCallbacks.insert( "$function:applyGFX"_hash, [this]
@@ -468,6 +472,12 @@ void Game::setupUI()
         setDisplayMode( displayMode );
         m_renderer->setVSync( m_optionsGFX.m_vsync.value() );
     });
+    m_gameCallbacks.insert( "$function:applyAudio"_hash, [this]()
+    {
+        m_audio->setVolume( Audio::Channel::eMaster, m_optionsAudio.m_master.value() );
+        m_audio->setVolume( Audio::Channel::eSFX, m_optionsAudio.m_sfx.value() );
+        m_audio->setVolume( Audio::Channel::eUI, m_optionsAudio.m_ui.value() );
+    } );
 
     g_uiProperty.m_gameCallbacks = m_gameCallbacks.makeView();
     g_uiProperty.m_dataModels = m_gameUiDataModels.makeView();
@@ -479,6 +489,7 @@ void Game::setupUI()
     m_screenPause = m_io->viewWait( "ui/pause.ui" );
     m_screenSettings = m_io->viewWait( "ui/settings.ui" );
     m_screenSettingsDisplay = m_io->viewWait( "ui/settings_display.ui" );
+    m_screenSettingsAudio = m_io->viewWait( "ui/settings_audio.ui" );
     m_screenTitle = m_io->viewWait( "ui/mainmenu.ui" );
 
     m_callsigns = loadCallsigns( m_io );
@@ -535,6 +546,9 @@ ui::Screen* Game::currentScreen()
     case Screen::eSettingsDisplay:
         return &m_screenSettingsDisplay;
 
+    case Screen::eSettingsAudio:
+        return &m_screenSettingsAudio;
+
     default:
         return nullptr;
     }
@@ -566,9 +580,6 @@ void Game::onRender( Renderer* renderer )
 
     switch ( m_currentScreen ) {
     case Screen::eGame:
-        renderGameScreen( rctx );
-        break;
-
     case Screen::eGamePaused:
     case Screen::eDead:
     case Screen::eWin:
@@ -580,6 +591,7 @@ void Game::onRender( Renderer* renderer )
     case Screen::eMainMenu:
     case Screen::eSettings:
     case Screen::eSettingsDisplay:
+    case Screen::eSettingsAudio:
         renderMenuScreen( rctx, r );
         break;
 
@@ -665,8 +677,8 @@ void Game::updateGame( UpdateContext& updateContext )
         auto soundsToPlay = m_jet.shoot( m_bullets );
         for ( auto&& i : soundsToPlay ) {
             switch ( i ) {
-            case Bullet::Type::eBlaster: m_audio->play( m_blaster ); break;
-            case Bullet::Type::eTorpedo: m_audio->play( m_torpedo ); break;
+            case Bullet::Type::eBlaster: m_audio->play( m_blaster, Audio::Channel::eSFX ); break;
+            case Bullet::Type::eTorpedo: m_audio->play( m_torpedo, Audio::Channel::eSFX ); break;
             default: break;
             }
         }
@@ -819,7 +831,7 @@ void Game::changeScreen( Screen scr, Audio::Slot sound )
 {
     ZoneScoped;
     if ( sound ) {
-        m_audio->play( sound );
+        m_audio->play( sound, Audio::Channel::eUI );
     }
     SDL_ShowCursor( scr != Screen::eGame );
 
@@ -828,6 +840,7 @@ void Game::changeScreen( Screen scr, Audio::Slot sound )
     case Screen::eCustomize:
     case Screen::eSettings:
     case Screen::eSettingsDisplay:
+    case Screen::eSettingsAudio:
     case Screen::eGame:
     case Screen::eGamePaused:
         m_currentScreen = scr;

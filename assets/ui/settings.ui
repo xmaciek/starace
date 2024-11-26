@@ -18,6 +18,15 @@ Button = {
     height = 48
 }
 
+Button = {
+    text = settings.audio
+    trigger = $function:goto_settings_audio
+    x = 48
+    y = 200
+    width = 320
+    height = 48
+}
+
 Footer = {
     Button = { text = return    input = eMenuCancel     trigger = $function:goto_titlemenu }
 }

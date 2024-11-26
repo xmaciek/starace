@@ -53,6 +53,7 @@ private:
         eMainMenu,
         eSettings,
         eSettingsDisplay,
+        eSettingsAudio,
         max,
     };
 
@@ -97,6 +98,7 @@ private:
     ui::Screen m_screenMissionSelect{};
     ui::Screen m_screenPause{};
     ui::Screen m_screenSettingsDisplay{};
+    ui::Screen m_screenSettingsAudio{};
     ui::Screen m_screenSettings{};
     ui::Screen m_screenTitle{};
 
@@ -108,8 +110,9 @@ private:
 
     ui::GenericDataModel m_dataMissionSelect{};
 
-    OptionsGFX m_optionsGFX{};
     OptionsCustomize m_optionsCustomize{};
+    OptionsGFX m_optionsGFX{};
+    OptionsAudio m_optionsAudio{};
     GameplayUIData m_gameplayUIData{};
 
     ui::Var<std::pmr::u32string> m_uiMissionResult{ U"BUG ME" };
