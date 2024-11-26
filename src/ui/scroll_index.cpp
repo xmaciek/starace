@@ -22,7 +22,7 @@ void ScrollIndex::increase()
         m_index++;
         return;
     }
-    if ( ( m_offset + 1 ) < m_maxOffset ) {
+    if ( ( m_offset ) < m_maxOffset ) {
         m_offset++;
     }
 }
