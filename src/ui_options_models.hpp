@@ -13,62 +13,6 @@
 namespace ui {
 
 template <typename T>
-class OptionsArrayModel : public DataModel {
-    size_type m_revision = 0;
-    size_type m_current = 0;
-    std::pmr::vector<T> m_values;
-
-public:
-    virtual ~OptionsArrayModel() noexcept = default;
-    OptionsArrayModel() noexcept = default;
-
-    OptionsArrayModel( std::pmr::vector<T>&& vec ) noexcept
-    : m_values( std::move( vec ) )
-    {
-    }
-
-    T value() const
-    {
-        assert( m_current < m_values.size() );
-        return m_values[ m_current ];
-    }
-
-    virtual size_type current() const override
-    {
-        return m_current;
-    }
-
-    virtual size_type revision() const override
-    {
-        return m_revision;
-    }
-
-    virtual size_type size() const override
-    {
-        return static_cast<size_type>( m_values.size() );
-    }
-
-    virtual std::pmr::u32string at( size_type i ) const override
-    {
-        assert( i < m_values.size() );
-        return toString( m_values[ i ] );
-    }
-
-    virtual void select( size_type i ) override
-    {
-        assert( i < m_values.size() );
-        m_revision++;
-        m_current = i;
-    }
-
-    virtual void refresh( size_type i = 1 ) override
-    {
-        m_revision += i;
-    }
-
-};
-
-template <typename T>
 class Option : public DataModel {
 public:
     using FnToString = std::function<std::pmr::u32string(const T&)>;
