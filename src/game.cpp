@@ -434,6 +434,9 @@ void Game::setupUI()
         m_optionsGFX.m_vsync = ui::Option<VSync>{ 1, std::move( v ), std::move( h ) };
     };
 
+    m_optionsAudio.m_driver.setData( 0, m_audio->listDrivers() );
+    m_optionsAudio.m_device.setData( 0, m_audio->listDevices() );
+
     m_gameUiDataModels.insert( "$data:fullscreen"_hash, &m_optionsGFX.m_fullscreen );
     m_gameUiDataModels.insert( "$data:gammaCorrection"_hash, &m_optionsGFX.m_gamma );
     m_gameUiDataModels.insert( "$data:jet"_hash, &m_optionsCustomize.m_jet );
@@ -441,6 +444,8 @@ void Game::setupUI()
     m_gameUiDataModels.insert( "$data:resolution"_hash, &m_optionsGFX.m_resolution );
     m_gameUiDataModels.insert( "$data:vsync"_hash, &m_optionsGFX.m_vsync );
     m_gameUiDataModels.insert( "$data:fxaa"_hash, &m_optionsGFX.m_fxaa );
+    m_gameUiDataModels.insert( "$data:settings.audio.driver"_hash, &m_optionsAudio.m_driver );
+    m_gameUiDataModels.insert( "$data:settings.audio.device"_hash, &m_optionsAudio.m_device );
     m_gameUiDataModels.insert( "$data:settings.audio.master"_hash, &m_optionsAudio.m_master );
     m_gameUiDataModels.insert( "$data:settings.audio.ui"_hash, &m_optionsAudio.m_ui );
     m_gameUiDataModels.insert( "$data:settings.audio.sfx"_hash, &m_optionsAudio.m_sfx );
@@ -477,6 +482,8 @@ void Game::setupUI()
         m_audio->setVolume( Audio::Channel::eMaster, m_optionsAudio.m_master.value() );
         m_audio->setVolume( Audio::Channel::eSFX, m_optionsAudio.m_sfx.value() );
         m_audio->setVolume( Audio::Channel::eUI, m_optionsAudio.m_ui.value() );
+        m_audio->selectDriver( m_optionsAudio.m_driver.value() );
+        m_audio->selectDevice( m_optionsAudio.m_device.value() );
     } );
 
     g_uiProperty.m_gameCallbacks = m_gameCallbacks.makeView();

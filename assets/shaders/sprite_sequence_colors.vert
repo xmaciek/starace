@@ -1,6 +1,6 @@
 #version 450
 
-const uint INSTANCES = 48;
+const uint INSTANCES = 64;
 
 const vec2 vertmult[] = {
     vec2( 0.0, 0.0 ),

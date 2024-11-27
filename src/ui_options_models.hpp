@@ -111,6 +111,11 @@ public:
     , m_toString( std::move( toString ) )
     {}
 
+    Option( size_type currentIndex, FnToString&& fn ) noexcept
+    : m_currentIndex{ currentIndex }
+    , m_toString{ std::move( fn ) }
+    {}
+
     T value() const
     {
         assert( m_currentIndex < m_values.size() );

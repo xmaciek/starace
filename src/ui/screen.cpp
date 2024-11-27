@@ -132,6 +132,7 @@ inline constexpr std::array COMBOBOX_FIELDS = {
     F{ "width"_hash, &setW<ComboBox> },
     F{ "x"_hash, &setX<ComboBox> },
     F{ "y"_hash, &setY<ComboBox> },
+    F{ "font"_hash, &setFont<ComboBox> },
 };
 
 inline constexpr std::array BUTTON_FIELDS = {

@@ -22,6 +22,7 @@ public:
         Hash::value_type text{};
         math::vec2 position{};
         math::vec2 size{};
+        Hash::value_type font = "medium"_hash;
         uint16_t tabOrder = 0;
     };
     ~ComboBox() noexcept = default;

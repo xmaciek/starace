@@ -4,9 +4,12 @@ glow = 1
 
 Label = { x = 48 y = 50 text = settings.audio font = large }
 
-ComboBox = { x = 48 y = 150 width = 400 height = 48 text = settings.audio.master   data = $data:settings.audio.master }
-ComboBox = { x = 48 y = 200 width = 400 height = 48 text = settings.audio.sfx      data = $data:settings.audio.sfx }
-ComboBox = { x = 48 y = 250 width = 400 height = 48 text = settings.audio.ui       data = $data:settings.audio.ui }
+ComboBox = { x = 48 y = 150 width = 600 height = 48 text = settings.audio.driver   data = $data:settings.audio.driver }
+ComboBox = { x = 48 y = 200 width = 600 height = 48 text = settings.audio.device   data = $data:settings.audio.device font = small }
+
+ComboBox = { x = 48 y = 300 width = 600 height = 48 text = settings.audio.master   data = $data:settings.audio.master }
+ComboBox = { x = 48 y = 350 width = 600 height = 48 text = settings.audio.sfx      data = $data:settings.audio.sfx }
+ComboBox = { x = 48 y = 400 width = 600 height = 48 text = settings.audio.ui       data = $data:settings.audio.ui }
 
 Footer = {
     Button = { text = apply     input = eMenuApply      trigger = $function:applyAudio }

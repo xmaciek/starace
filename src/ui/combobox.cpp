@@ -46,7 +46,7 @@ ComboBox::ComboBox( const ComboBox::CreateInfo& ci ) noexcept
 , m_data{ ci.data }
 {
     m_label = emplace_child<Label>( Label::CreateInfo{ .text = ci.text, .font = "medium"_hash, .anchor = Anchor::fLeft | Anchor::fMiddle, } );
-    m_value = emplace_child<Label>( Label::CreateInfo{ .data = ci.data, .font = "medium"_hash, .anchor = Anchor::fRight | Anchor::fMiddle, } );
+    m_value = emplace_child<Label>( Label::CreateInfo{ .data = ci.data, .font = ci.font, .anchor = Anchor::fRight | Anchor::fMiddle, } );
     math::vec2 s = size();
     m_label->setPosition( math::vec2{ 16.0f, s.y * 0.5f } );
     m_value->setPosition( math::vec2{ s.x - 16.0f, s.y * 0.5f } );
