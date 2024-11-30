@@ -209,6 +209,7 @@ void Game::onResize( uint32_t w, uint32_t h )
 void Game::onInit()
 {
     ZoneScoped;
+    m_io->setCallback( ".dds", [this]( auto path, auto data ){ loadDDS( path, data ); } );
     m_io->mount( "data.pak" );
 
     auto setupPipeline = []( auto* renderer, auto* io, auto ci ) -> PipelineSlot
@@ -252,15 +253,7 @@ void Game::onInit()
     m_torpedo = m_audio->load( m_io->viewWait( "sounds/torpedo.wav" ) );
     m_click = m_audio->load( m_io->viewWait( "sounds/click.wav" ) );
 
-    auto loadTexture = [&tex = m_textures, &io = m_io]( auto path ) -> Texture
-    {
-        auto&& [ it, inserted ] = tex.insert( std::make_pair( path, Texture{} ) );
-        if ( inserted ) {
-            it->second = parseTexture( io->viewWait( path ) );
-        }
-        return it->second;
-    };
-    m_plasma = loadTexture( "textures/plasma.dds" );
+    m_plasma = m_textures[ "textures/plasma.dds" ];
 
     auto loadMesh = [&m = m_meshes, &io = m_io, &r = m_renderer]( auto path ) -> Mesh&
     {
@@ -286,7 +279,7 @@ void Game::onInit()
     m_jetsContainer = loadJets( m_io->viewWait( "misc/jets.cfg" ) );
     assert( !m_jetsContainer.empty() );
     for ( auto& it : m_jetsContainer ) {
-        auto&& texture = loadTexture( it.model_texture );
+        auto&& texture = m_textures[ it.model_texture ];
         auto&& mesh = loadMesh( it.model_file );
         it.model = Model{ mesh, texture };
     }
@@ -326,41 +319,33 @@ static std::pmr::vector<csg::Callsign> loadCallsigns( Filesystem* io )
 
 void Game::setupUI()
 {
-    auto getTexture = [this]( std::string_view path )
-    {
-        auto [it, inserted] = m_textures.insert( std::make_pair( path, Texture{} ) );
-        if (inserted) {
-            it->second = parseTexture( m_io->viewWait( path ) );
-        }
-        return it->second;
-    };
     m_uiAtlas = ui::Font::CreateInfo{
         .fontAtlas = m_io->viewWait( "misc/ui_atlas.fnta" ),
-        .texture = getTexture( "textures/atlas_ui.dds" ),
+        .texture = m_textures[ "textures/atlas_ui.dds" ],
     };
     m_inputXbox = ui::Font::CreateInfo{
         .fontAtlas = m_io->viewWait( "misc/xbox_atlas.fnta" ),
-        .texture = getTexture( "textures/xbox_atlas.dds" ),
+        .texture = m_textures[ "textures/xbox_atlas.dds" ],
     };
     m_fontSmall = ui::Font::CreateInfo{
         .fontAtlas = m_io->viewWait( "fonts/dejavu_24.fnta" ),
         .upstream = &m_inputXbox,
         .remapper = &m_uiRemapper,
-        .texture = getTexture( "fonts/dejavu_24.dds" ),
+        .texture = m_textures[ "fonts/dejavu_24.dds" ],
         .scale = 0.5f,
     };
     m_fontMedium = ui::Font::CreateInfo{
         .fontAtlas = m_io->viewWait( "fonts/dejavu_36.fnta" ),
         .upstream = &m_inputXbox,
         .remapper = &m_uiRemapper,
-        .texture = getTexture( "fonts/dejavu_36.dds" ),
+        .texture = m_textures[ "fonts/dejavu_36.dds" ],
         .scale = 0.5f,
     };
     m_fontLarge = ui::Font::CreateInfo{
         .fontAtlas = m_io->viewWait( "fonts/dejavu_64.fnta" ),
         .upstream = &m_inputXbox,
         .remapper = &m_uiRemapper,
-        .texture = getTexture( "fonts/dejavu_64.dds" ),
+        .texture = m_textures[ "fonts/dejavu_64.dds" ],
         .scale = 0.5f,
     };
 
@@ -893,17 +878,6 @@ void Game::loadMapProto()
     m_mapsContainer = loadMaps( m_io->viewWait( "misc/maps.cfg" ) );
     assert( !m_mapsContainer.empty() );
 
-    std::pmr::set<std::filesystem::path> uniqueTextures;
-    for ( auto it : m_mapsContainer ) {
-        uniqueTextures.insert( it.previewPath );
-        for ( auto p : it.filePath ) {
-            uniqueTextures.insert( p );
-        }
-    }
-
-    for ( const auto& it : uniqueTextures ) {
-        m_textures[ it ] = parseTexture( m_io->viewWait( it ) );
-    }
     for ( auto& it : m_mapsContainer ) {
         for ( size_t i = 0; i < it.texture.size(); ++i ) {
             it.texture[ i ] = m_textures[ it.filePath[ i ] ];
@@ -913,6 +887,13 @@ void Game::loadMapProto()
         assert( it.preview );
     }
 
+}
+
+void Game::loadDDS( std::string_view path, std::span<const uint8_t> data )
+{
+    auto&& [ it, inserted ] = m_textures.insert( std::make_pair( path, Texture{} ) );
+    if ( !inserted ) return;
+    it->second = parseTexture( data );
 }
 
 uint32_t Game::viewportWidth() const

@@ -9,8 +9,10 @@
 #include <mutex>
 #include <vector>
 #include <span>
+#include <functional>
+#include <string>
+#include <string_view>
 
-// TODO Not much of an async left, rename to something more fitting new desing
 class Filesystem {
 private:
     std::mutex m_bottleneck;
@@ -20,11 +22,15 @@ private:
 
     std::atomic<bool> m_isRunning = true;
 
+    using Callback = std::function<void( std::string_view, std::span<const uint8_t> )>;
+    std::pmr::list<std::pair<std::pmr::string, Callback>> m_callbacks{};
+
 public:
     ~Filesystem() noexcept;
     Filesystem() noexcept;
 
     void mount( const std::filesystem::path& );
+    void setCallback( std::string_view, Callback&& );
     std::span<const uint8_t> viewWait( const std::filesystem::path& );
 
 };
