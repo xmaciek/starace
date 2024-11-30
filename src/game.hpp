@@ -125,6 +125,7 @@ private:
     FixedMap<Hash::value_type, std::pmr::u32string, 64> m_localizationMap{};
 
     void loadDDS( std::string_view, std::span<const uint8_t> );
+    void loadOBJC( std::string_view, std::span<const uint8_t> );
     uint32_t viewportHeight() const;
     uint32_t viewportWidth() const;
     float viewportAspect() const;

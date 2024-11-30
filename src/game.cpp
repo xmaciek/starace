@@ -210,6 +210,7 @@ void Game::onInit()
 {
     ZoneScoped;
     m_io->setCallback( ".dds", [this]( auto path, auto data ){ loadDDS( path, data ); } );
+    m_io->setCallback( ".objc", [this]( auto path, auto data ){ loadOBJC( path, data ); } );
     m_io->mount( "data.pak" );
 
     auto setupPipeline = []( auto* renderer, auto* io, auto ci ) -> PipelineSlot
@@ -255,15 +256,6 @@ void Game::onInit()
 
     m_plasma = m_textures[ "textures/plasma.dds" ];
 
-    auto loadMesh = [&m = m_meshes, &io = m_io, &r = m_renderer]( auto path ) -> Mesh&
-    {
-        auto&& [ it, inserted ] = m.insert( std::make_pair( path, Mesh{} ) );
-        if ( inserted ) {
-            it->second = Mesh{ io->viewWait( path ), r };
-        }
-        return it->second;
-    };
-
     cfg::Entry weapons = cfg::Entry::fromData( m_io->viewWait( "misc/weapons.cfg" ) );
     for ( const auto& it : weapons ) {
         auto [ weapon, isHidden ] = parseWeapon( it );
@@ -280,7 +272,7 @@ void Game::onInit()
     assert( !m_jetsContainer.empty() );
     for ( auto& it : m_jetsContainer ) {
         auto&& texture = m_textures[ it.model_texture ];
-        auto&& mesh = loadMesh( it.model_file );
+        auto&& mesh = m_meshes[ it.model_file ];
         it.model = Model{ mesh, texture };
     }
 
@@ -894,6 +886,13 @@ void Game::loadDDS( std::string_view path, std::span<const uint8_t> data )
     auto&& [ it, inserted ] = m_textures.insert( std::make_pair( path, Texture{} ) );
     if ( !inserted ) return;
     it->second = parseTexture( data );
+}
+
+void Game::loadOBJC( std::string_view path, std::span<const uint8_t> data )
+{
+    auto&& [ it, inserted ] = m_meshes.insert( std::make_pair( path, Mesh{} ) );
+    if ( !inserted ) return;
+    it->second = Mesh{ data, m_renderer };
 }
 
 uint32_t Game::viewportWidth() const
