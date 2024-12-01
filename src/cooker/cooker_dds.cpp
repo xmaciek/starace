@@ -29,12 +29,42 @@ struct Image {
     std::pmr::vector<uint8_t> pixels;
 };
 
-Image convertTga( const std::filesystem::path& srcFile )
-{
-    using B = uint8_t;
-    struct BGR { uint8_t b, g, r; };
-    struct BGRA { uint8_t b, g, r, a; };
+using B = uint8_t;
+struct BGR { uint8_t b, g, r; };
+struct BGRA { uint8_t b, g, r, a; };
 
+template <typename TFrom, typename TTo>
+TTo doConvert( const TFrom& );
+template <> B doConvert<BGRA, B>( const BGRA& c ) { return c.b; };
+template <> B doConvert<BGR, B>( const BGR& c ) { return c.b; };
+template <> BGRA doConvert<BGR, BGRA>( const BGR& c ) { return BGRA{ c.b, c.g, c.r, 0xFF }; };
+
+template <typename TFrom, typename TTo>
+static Image unmap( std::ifstream& ifs, const tga::Header& header, Format format )
+{
+    [[maybe_unused]]
+    uint16_t colorMapOffset = 0; std::memcpy( &colorMapOffset, header.colorMap, 2 );
+    uint16_t colorMapCount = 0; std::memcpy( &colorMapCount, header.colorMap + 2, 2 );
+    std::pmr::vector<TFrom> colorMap( (std::size_t)colorMapCount );
+    ifs.read( reinterpret_cast<char*>( colorMap.data() ), static_cast<std::streamsize>( colorMapCount * sizeof( TFrom ) ) );
+    std::pmr::vector<uint8_t> indexes;
+    indexes.resize( header.width * header.height );
+    ifs.read( reinterpret_cast<char*>( indexes.data() ), static_cast<std::streamsize>( indexes.size() ) );
+    ifs.close();
+    std::pmr::vector<TTo> colorMap2;
+    if constexpr ( std::is_same_v<TFrom, TTo> ) { std::swap( colorMap, colorMap2 ); }
+    else {
+        colorMap2.resize( colorMap.size() );
+        std::transform( colorMap.begin(), colorMap.end(), colorMap2.begin(), &doConvert<TFrom, TTo> );
+    }
+    std::pmr::vector<uint8_t> ret( header.width * header.height * sizeof( TTo ) );
+    std::span<TTo> retSpan{ (TTo*)ret.data(), (TTo*)ret.data() + header.width * header.height };
+    std::transform( indexes.begin(), indexes.end(), retSpan.begin(), [&colorMap2]( uint8_t i ) { return colorMap2[ (uint32_t)i ]; } );
+    return { .format = format, .width = header.width, .height = header.height, .pixels = std::move( ret ) };
+}
+
+static Image convertTga( const std::filesystem::path& srcFile )
+{
     std::ifstream ifs( srcFile, std::ios::binary | std::ios::ate );
     ifs.is_open() || cooker::error( "cannot open file:", srcFile );
 
@@ -50,56 +80,18 @@ Image convertTga( const std::filesystem::path& srcFile )
 
     switch ( header.imageType ) {
     case tga::ImageType::eColorMap: {
-        uint16_t colorMapOffset = 0; std::memcpy( &colorMapOffset, header.colorMap, 2 );
-        uint16_t colorMapCount = 0; std::memcpy( &colorMapCount, header.colorMap + 2, 2 );
-        std::pmr::vector<uint8_t> colorMap;
-        colorMap.resize( (std::size_t)colorMapCount * ( header.colorMap[ 4 ] / 8 ) );
-        ifs.read( reinterpret_cast<char*>( colorMap.data() ), static_cast<std::streamsize>( colorMap.size() ) );
-
-        std::pmr::vector<uint8_t> indexes;
-        indexes.resize( header.width * header.height );
-        ifs.read( reinterpret_cast<char*>( indexes.data() ), static_cast<std::streamsize>( indexes.size() ) );
-        ifs.close();
-
-        auto unmap = []( const auto* colorMap, const auto& indexes, auto* dataOut )
-        {
-            auto convert = [colorMap]( auto idx )
-            {
-                return colorMap[ idx ];
-            };
-            std::transform( indexes.begin(), indexes.end(), dataOut, convert );
-        };
-        switch ( header.colorMap[ 4 ] ) {
-        case 8:
-            if ( header.bitsPerPixel != 8 ) cooker::error( "color map pixel type mismatch" );
-            ret.resize( header.width * header.height );
-            unmap( reinterpret_cast<B*>( colorMap.data() ), indexes, reinterpret_cast<B*>( ret.data() ) );
-            return { .format = Format::R8_UNORM, .width = header.width, .height = header.height, .pixels = std::move( ret ) };
-
-        case 24: {
-            if ( header.bitsPerPixel != 24 ) cooker::error( "color map pixel type mismatch" );
-            std::pmr::vector<uint8_t> tmp;
-            std::swap( tmp, colorMap );
-
-            colorMap.resize( colorMapCount * sizeof( uint32_t ) );
-            const BGR* srcBegin = reinterpret_cast<const BGR*>( tmp.data() );
-            const BGR* srcEnd = srcBegin + colorMapCount;
-            BGRA* dataOut = reinterpret_cast<BGRA*>( colorMap.data() );
-            std::transform( srcBegin, srcEnd, dataOut, []( auto bgr ) { return BGRA{ bgr.b, bgr.g, bgr.r, 255u }; } );
-        }
-        [[fallthrough]];
-
-        case 32:
-            if ( header.bitsPerPixel != 32 ) cooker::error( "color map pixel type mismatch" );
-            ret.resize( sizeof( uint32_t ) * header.width * header.height );
-            unmap( reinterpret_cast<BGRA*>( colorMap.data() ), indexes, reinterpret_cast<BGRA*>( ret.data() ) );
-            return { .format = Format::B8G8R8A8_UNORM, .width = header.width, .height = header.height, .pixels = std::move( ret ) };
-
-        default:
-            cooker::error( "unhandled colormap bpp", srcFile );
+        uint32_t id = header.colorMap[ 4 ];
+        id <<= 8;
+        id |= header.bitsPerPixel;
+        switch ( id ) {
+        case 0x8'08: return unmap<B,B>( ifs, header, Format::R8_UNORM );
+        case 0x18'08: return unmap<BGR, B>( ifs, header, Format::R8_UNORM );
+        case 0x18'20: return unmap<BGR, BGRA>( ifs, header, Format::B8G8R8A8_UNORM );
+        case 0x20'08: return unmap<BGRA, B>( ifs, header, Format::R8_UNORM );
+        case 0x20'20: return unmap<BGRA, BGRA>( ifs, header, Format::B8G8R8A8_UNORM );
+        default: cooker::error( "colomap pixel type mismatch" );
         }
     }
-
 
     case tga::ImageType::eTrueColor:
     case tga::ImageType::eGrayscale: {
@@ -123,7 +115,7 @@ Image convertTga( const std::filesystem::path& srcFile )
             const BGR* srcBegin = reinterpret_cast<const BGR*>( tmp.data() );
             const BGR* srcEnd = srcBegin + header.width * header.height;
             BGRA* dataOut = reinterpret_cast<BGRA*>( ret.data() );
-            std::transform( srcBegin, srcEnd, dataOut, []( auto bgr ) { return BGRA{ bgr.b, bgr.g, bgr.r, 255u }; } );
+            std::transform( srcBegin, srcEnd, dataOut, &doConvert<BGR, BGRA> );
             return { .format = Format::B8G8R8A8_UNORM, .width = header.width, .height = header.height, .pixels = std::move( ret ) };
         }
         default:
