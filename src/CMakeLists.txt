@@ -65,9 +65,10 @@ set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
 set( bin_name "starace" )
 add_executable( ${bin_name} ${STARACE_SOURCES} )
 
-# strip
-if ( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" )
-    set_target_properties( ${bin_name} PROPERTIES LINK_FLAGS_RELEASE -s )
+if ( ${STRIP_SYMBOLS} )
+    if ( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" )
+        set_target_properties( ${bin_name} PROPERTIES LINK_FLAGS_RELEASE -s )
+    endif()
 endif()
 
 target_link_libraries( ${bin_name}

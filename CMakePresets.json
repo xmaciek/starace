@@ -11,6 +11,7 @@
         , "cacheVariables": {
             "CMAKE_BUILD_TYPE": "Debug"
             , "ENABLE_TRACY_PROFILER": "OFF"
+            , "STRIP_SYMBOLS": "OFF"
         }
     }
     , {
@@ -20,6 +21,7 @@
         , "inherits": "default"
         , "cacheVariables": {
             "CMAKE_BUILD_TYPE": "Release"
+            , "STRIP_SYMBOLS": "ON"
         }
     }
     , {
