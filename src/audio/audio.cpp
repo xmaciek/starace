@@ -252,7 +252,7 @@ bool SDLAudio::selectDevice( std::string_view name )
     };
     if ( m_device ) SDL_CloseAudioDevice( m_device );
     m_device = SDL_OpenAudioDevice( it->c_str(), 0, &want, &m_spec, SDL_AUDIO_ALLOW_FORMAT_CHANGE );
-    if ( m_device == 0 ) platform::ShowFatalError( "Failed to initialize audio device", (std::string)name );
+    if ( m_device == 0 ) platform::showFatalError( "Failed to initialize audio device", (std::string)name );
     SDL_PauseAudioDevice( m_device, 0 );
     m_deviceName = *it;
     return true;

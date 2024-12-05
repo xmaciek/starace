@@ -105,12 +105,12 @@ Instance::Instance( std::pmr::vector<const char*> extensions ) noexcept
     if ( !m_dll ) {
         std::string msg = "Failed to open Vulkan library: ";
         msg.append( libName );
-        platform::ShowFatalError( "Fatal Error", msg );
+        platform::showFatalError( "Fatal Error", msg );
     }
     vkGetInstanceProcAddr = reinterpret_cast<PFN_vkGetInstanceProcAddr>( dlsym( m_dll, "vkGetInstanceProcAddr" ) );
 
     if ( !vkGetInstanceProcAddr ) {
-        platform::ShowFatalError( "Fatal Error", "Failed to find vkGetInstanceProcAddr in vulkan library" );
+        platform::showFatalError( "Fatal Error", "Failed to find vkGetInstanceProcAddr in vulkan library" );
     }
 
 #define GET_PROC( name ) \

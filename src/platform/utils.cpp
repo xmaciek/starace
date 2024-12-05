@@ -6,7 +6,7 @@
 
 namespace platform {
 
-void ShowFatalError( const std::string& title, const std::string& message )
+void showFatalError( const std::string& title, const std::string& message )
 {
     SDL_MessageBoxButtonData btn{
         .text = "OK",

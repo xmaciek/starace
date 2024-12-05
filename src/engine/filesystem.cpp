@@ -53,12 +53,12 @@ void Filesystem::mount( const std::filesystem::path& path )
 {
     ZoneScoped;
     if ( path.extension() != ".pak" ) {
-        platform::ShowFatalError( "Data error", "archive not .pak" );
+        platform::showFatalError( "Data error", "archive not .pak" );
         return;
     }
     std::ifstream ifs( path, std::ios::binary | std::ios::ate );
     if ( !ifs.is_open() ) {
-        platform::ShowFatalError( "Data error", "Cannot open .pak file" );
+        platform::showFatalError( "Data error", "Cannot open .pak file" );
         return;
     }
 
@@ -67,7 +67,7 @@ void Filesystem::mount( const std::filesystem::path& path )
     pak::Header header{};
     readRaw( ifs, header );
     if ( header.magic != header.MAGIC ) {
-        platform::ShowFatalError( "Data corruption error", ".pak magic field mismatch" );
+        platform::showFatalError( "Data corruption error", ".pak magic field mismatch" );
         return;
     };
     ifs.seekg( 0 );

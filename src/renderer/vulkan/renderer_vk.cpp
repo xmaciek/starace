@@ -136,7 +136,7 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
     m_instance = Instance{ windowExtensions( createInfo.window ) };
 
     if ( !SDL_Vulkan_CreateSurface( m_window, m_instance, &m_surface ) ) {
-        platform::ShowFatalError( "Vulkan error", "Failed to create SDL Vulkan surface" );
+        platform::showFatalError( "Vulkan error", "Failed to create SDL Vulkan surface" );
         return;
     }
 
