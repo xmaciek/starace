@@ -54,22 +54,29 @@ void Filesystem::mount( const std::filesystem::path& path )
     ZoneScoped;
     if ( path.extension() != ".pak" ) {
         platform::showFatalError( "Data error", "archive not .pak" );
-        return;
     }
     std::ifstream ifs( path, std::ios::binary | std::ios::ate );
     if ( !ifs.is_open() ) {
         platform::showFatalError( "Data error", "Cannot open .pak file" );
-        return;
     }
 
     std::streamsize size = ifs.tellg();
+    if ( size > 0xFFFFFFFFu ) {
+        platform::showFatalError( "Data corruption error", ".pak file size exceeds size limit" );
+    }
+
     ifs.seekg( 0 );
     pak::Header header{};
     readRaw( ifs, header );
     if ( header.magic != header.MAGIC ) {
         platform::showFatalError( "Data corruption error", ".pak magic field mismatch" );
-        return;
     };
+    if ( (uint64_t)header.offset + header.size > 0xFFFFFFFFu ) {
+        platform::showFatalError( "Data corruption error", ".pak entries exceeds file size limit" );
+    }
+    if ( header.size % 64 ) {
+        platform::showFatalError( "Data corruption error", ".pak header::size % 64 != 0" );
+    }
     ifs.seekg( 0 );
     using size_type = std::pmr::vector<uint8_t>::size_type;
     std::pmr::vector<uint8_t> blob( static_cast<size_type>( size ) );
@@ -80,6 +87,10 @@ void Filesystem::mount( const std::filesystem::path& path )
     {
         ZoneScopedN( "Headers sort" );
         std::memcpy( entries.data(), blob.data() + header.offset, header.size );
+        std::for_each( entries.begin(), entries.end(), [size]( const auto& it )
+        {
+            if ( (uint64_t)it.offset + it.size > (uint64_t)size ) platform::showFatalError( "Data corruption error", ".pak out of bounds file entry" );
+        } );
         std::sort( entries.begin(), entries.end(), [this]( const auto& lhs, const auto& rhs )
         {
             std::string_view l{ std::begin( lhs.name ) };
