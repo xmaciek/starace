@@ -12,7 +12,11 @@ add_subdirectory( shared )
 add_subdirectory( profiler )
 add_subdirectory( ui )
 
-set( STARACE_SOURCES
+set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
+
+add_executable( starace )
+set_target_properties( starace PROPERTIES OUTPUT_NAME "starace" )
+target_sources( starace PRIVATE
     action_state_tracker.cpp
     action_state_tracker.hpp
     autoaim.hpp
@@ -60,18 +64,15 @@ set( STARACE_SOURCES
     utils.hpp
 )
 
-set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
-
-set( bin_name "starace" )
-add_executable( ${bin_name} ${STARACE_SOURCES} )
-
+option( STRIP_SYMBOLS "Whether to enable symbol stripping" FALSE )
 if ( ${STRIP_SYMBOLS} )
+    # TODO: test target property LINKER_TYPE
     if ( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" )
-        set_target_properties( ${bin_name} PROPERTIES LINK_FLAGS_RELEASE -s )
+        set_target_properties( starace PROPERTIES LINK_FLAGS -s )
     endif()
 endif()
 
-target_link_libraries( ${bin_name}
+target_link_libraries( starace
     cxx::flags
     config
     engine
