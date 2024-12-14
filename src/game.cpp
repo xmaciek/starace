@@ -66,34 +66,6 @@ constexpr std::tuple<GameAction, Actuator, Actuator> inputActions2[] = {
     { GameAction::eJetSpeed, SDL_CONTROLLER_AXIS_TRIGGERLEFT, SDL_CONTROLLER_AXIS_TRIGGERRIGHT },
 };
 
-
-static std::pmr::vector<ModelProto> loadJets( std::span<const uint8_t> data )
-{
-    ZoneScoped;
-    cfg::Entry entry = cfg::Entry::fromData( data );
-
-    std::pmr::vector<ModelProto> jets;
-    jets.reserve( 4 );
-
-    Hash hash{};
-    for ( auto&& jetData : entry ) {
-        auto& jet = jets.emplace_back();
-        std::string_view name = *jetData;
-        jet.name = std::pmr::u32string{ name.begin(), name.end() };
-        for ( auto&& property : jetData ) {
-            switch ( hash( *property ) ) {
-            case "model"_hash: jet.model_file = property.toString(); break;
-            case "texture"_hash: jet.model_texture = property.toString(); break;
-            default:
-                assert( !"unknown property while parsing jets.cfg" );
-                break;
-            }
-        }
-    }
-
-    return jets;
-}
-
 static std::tuple<WeaponCreateInfo, bool> parseWeapon( const cfg::Entry& entry )
 {
     auto makeType = []( std::string_view sv )
@@ -185,6 +157,7 @@ void Game::onInit()
     m_io->setCallback( ".dds", [this]( auto path, auto data ){ loadDDS( path, data ); } );
     m_io->setCallback( ".objc", [this]( auto path, auto data ){ loadOBJC( path, data ); } );
     m_io->setCallback( ".map", [this]( auto path, auto data ){ loadMAP( path, data ); } );
+    m_io->setCallback( ".jet", [this]( auto path, auto data ){ loadJET( path, data ); } );
     m_io->mount( "data.pak" );
 
     auto setupPipeline = []( auto* renderer, auto* io, auto ci ) -> PipelineSlot
@@ -205,8 +178,6 @@ void Game::onInit()
 
     m_enemies.reserve( 100 );
     m_bullets.reserve( 2000 );
-    m_jetsContainer.reserve( 5 );
-    m_mapsContainer.reserve( 5 );
     for ( auto [ eid, act ] : inputActions ) {
         m_actionStateTracker.add( static_cast<Action::Enum>( eid ), act );
     }
@@ -241,13 +212,6 @@ void Game::onInit()
         }
     }
 
-    m_jetsContainer = loadJets( m_io->viewWait( "misc/jets.cfg" ) );
-    assert( !m_jetsContainer.empty() );
-    for ( auto& it : m_jetsContainer ) {
-        auto&& texture = m_textures[ it.model_texture ];
-        auto&& mesh = m_meshes[ it.model_file ];
-        it.model = Model{ mesh, texture };
-    }
 
     m_enemyModel = Model{ m_meshes[ "models/a2.objc" ], m_textures[ "textures/a2.dds" ] };
 
@@ -850,7 +814,6 @@ void Game::loadOBJC( std::string_view path, std::span<const uint8_t> data )
     it->second = Mesh{ data, m_renderer };
 }
 
-
 void Game::loadMAP( std::string_view, std::span<const uint8_t> data )
 {
     using std::string_view_literals::operator""sv;
@@ -868,6 +831,17 @@ void Game::loadMAP( std::string_view, std::span<const uint8_t> data )
     ci.enemies = entry[ "enemies"sv ].toInt<uint32_t>();
 }
 
+void Game::loadJET( std::string_view, std::span<const uint8_t> data )
+{
+    using std::string_view_literals::operator""sv;
+    ZoneScoped;
+    cfg::Entry entry = cfg::Entry::fromData( data );
+    auto& jet = m_jetsContainer.emplace_back();
+    auto&& texture = m_textures[ entry[ "texture"sv ].toString() ];
+    auto&& mesh = m_meshes[ entry[ "model"sv ].toString() ];
+    jet.model = Model{ mesh, texture };
+    jet.name = entry[ "name"sv ].toString32();
+}
 
 uint32_t Game::viewportWidth() const
 {
