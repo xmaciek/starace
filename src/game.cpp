@@ -66,67 +66,6 @@ constexpr std::tuple<GameAction, Actuator, Actuator> inputActions2[] = {
     { GameAction::eJetSpeed, SDL_CONTROLLER_AXIS_TRIGGERLEFT, SDL_CONTROLLER_AXIS_TRIGGERRIGHT },
 };
 
-static std::tuple<WeaponCreateInfo, bool> parseWeapon( const cfg::Entry& entry )
-{
-    auto makeType = []( std::string_view sv )
-    {
-        Hash hash{};
-        switch ( hash( sv ) ) {
-        default:
-            assert( !"unknown type" );
-            [[fallthrough]];
-        case "blaster"_hash: return Bullet::Type::eBlaster;
-        case "torpedo"_hash: return Bullet::Type::eTorpedo;
-        case "laser"_hash: return Bullet::Type::eLaser;
-        }
-    };
-
-    auto makeColor = []( std::string_view sv )
-    {
-        Hash hash{};
-        switch ( hash( sv ) ) {
-        case "blaster"_hash: return color::blaster;
-        case "dodgerBlue"_hash: return color::dodgerBlue;
-        case "orchid"_hash: return color::orchid;
-        case "red"_hash: return color::crimson;
-        case "white"_hash: return color::white;
-        case "yellow"_hash: return color::yellow;
-        case "yellowBlaster"_hash: return color::yellowBlaster;
-        default:
-            assert( !"unknown color" );
-            return color::orchid;
-        }
-    };
-
-    Hash hash{};
-    WeaponCreateInfo weap{};
-    bool isHidden = false;
-    for ( const auto& property : entry ) {
-        switch ( hash( *property ) ) {
-        case "color1"_hash: weap.color1 = makeColor( property.toString() ); continue;
-        case "color2"_hash: weap.color2 = makeColor( property.toString() ); continue;
-        case "damage"_hash: weap.damage = property.toInt<uint8_t>(); continue;
-        case "delay"_hash: weap.delay = property.toFloat(); continue;
-        case "reload"_hash: weap.reload = property.toFloat(); continue;
-        case "capacity"_hash: weap.capacity = property.toInt<uint16_t>(); continue;
-        case "hidden"_hash: isHidden = property.toInt<bool>(); continue;
-        case "speed"_hash: weap.speed = property.toFloat() * (float)meter; continue;
-        case "distance"_hash: weap.distance = property.toFloat() * (float)meter; continue;
-        case "loc"_hash: weap.displayName = hash( property.toString() ); continue;
-        case "score"_hash: weap.score_per_hit = property.toInt<uint16_t>(); continue;
-        case "size"_hash: weap.size = property.toFloat() * (float)meter; continue;
-        case "type"_hash: weap.type = makeType( property.toString() ); continue;
-        case "icon"_hash: weap.displayIcon = hash( property.toString() ); continue;
-        case "texture"_hash: continue; // TODO
-        case "sound"_hash: continue; // TODO
-        default:
-            assert( !"unknown weapon property" );
-            continue;
-        }
-    }
-    return { weap, isHidden };
-}
-
 Game::Game( int argc, char** argv )
 : Engine{ argc, argv }
 {
@@ -158,6 +97,7 @@ void Game::onInit()
     m_io->setCallback( ".objc", [this]( auto path, auto data ){ loadOBJC( path, data ); } );
     m_io->setCallback( ".map", [this]( auto path, auto data ){ loadMAP( path, data ); } );
     m_io->setCallback( ".jet", [this]( auto path, auto data ){ loadJET( path, data ); } );
+    m_io->setCallback( ".wpn", [this]( auto path, auto data ){ loadWPN( path, data ); } );
     m_io->mount( "data.pak" );
 
     auto setupPipeline = []( auto* renderer, auto* io, auto ci ) -> PipelineSlot
@@ -198,21 +138,7 @@ void Game::onInit()
     m_blaster = m_audio->load( m_io->viewWait( "sounds/blaster.wav" ) );
     m_torpedo = m_audio->load( m_io->viewWait( "sounds/torpedo.wav" ) );
     m_click = m_audio->load( m_io->viewWait( "sounds/click.wav" ) );
-
     m_plasma = m_textures[ "textures/plasma.dds" ];
-
-    cfg::Entry weapons = cfg::Entry::fromData( m_io->viewWait( "misc/weapons.cfg" ) );
-    for ( const auto& it : weapons ) {
-        auto [ weapon, isHidden ] = parseWeapon( it );
-        if ( isHidden ) {
-            m_enemyWeapon = weapon;
-        }
-        else {
-            m_weapons.emplace_back( weapon );
-        }
-    }
-
-
     m_enemyModel = Model{ m_meshes[ "models/a2.objc" ], m_textures[ "textures/a2.dds" ] };
 
     setupUI();
@@ -841,6 +767,69 @@ void Game::loadJET( std::string_view, std::span<const uint8_t> data )
     auto&& mesh = m_meshes[ entry[ "model"sv ].toString() ];
     jet.model = Model{ mesh, texture };
     jet.name = entry[ "name"sv ].toString32();
+}
+
+void Game::loadWPN( std::string_view, std::span<const uint8_t> data )
+{
+    ZoneScoped;
+    auto makeType = []( std::string_view sv )
+    {
+        Hash hash{};
+        switch ( hash( sv ) ) {
+        default:
+            assert( !"unknown type" );
+            [[fallthrough]];
+        case "blaster"_hash: return Bullet::Type::eBlaster;
+        case "torpedo"_hash: return Bullet::Type::eTorpedo;
+        case "laser"_hash: return Bullet::Type::eLaser;
+        }
+    };
+
+    auto makeColor = []( std::string_view sv )
+    {
+        Hash hash{};
+        switch ( hash( sv ) ) {
+        case "blaster"_hash: return color::blaster;
+        case "dodgerBlue"_hash: return color::dodgerBlue;
+        case "orchid"_hash: return color::orchid;
+        case "red"_hash: return color::crimson;
+        case "white"_hash: return color::white;
+        case "yellow"_hash: return color::yellow;
+        case "yellowBlaster"_hash: return color::yellowBlaster;
+        default:
+            assert( !"unknown color" );
+            return color::orchid;
+        }
+    };
+    auto entry = cfg::Entry::fromData( data );
+    Hash hash{};
+    WeaponCreateInfo weap{};
+    bool isHidden = false;
+    for ( const auto& property : entry ) {
+        switch ( hash( *property ) ) {
+        case "color1"_hash: weap.color1 = makeColor( property.toString() ); continue;
+        case "color2"_hash: weap.color2 = makeColor( property.toString() ); continue;
+        case "damage"_hash: weap.damage = property.toInt<uint8_t>(); continue;
+        case "delay"_hash: weap.delay = property.toFloat(); continue;
+        case "reload"_hash: weap.reload = property.toFloat(); continue;
+        case "capacity"_hash: weap.capacity = property.toInt<uint16_t>(); continue;
+        case "hidden"_hash: isHidden = property.toInt<bool>(); continue;
+        case "speed"_hash: weap.speed = property.toFloat() * (float)meter; continue;
+        case "distance"_hash: weap.distance = property.toFloat() * (float)meter; continue;
+        case "loc"_hash: weap.displayName = hash( property.toString() ); continue;
+        case "score"_hash: weap.score_per_hit = property.toInt<uint16_t>(); continue;
+        case "size"_hash: weap.size = property.toFloat() * (float)meter; continue;
+        case "type"_hash: weap.type = makeType( property.toString() ); continue;
+        case "icon"_hash: weap.displayIcon = hash( property.toString() ); continue;
+        case "texture"_hash: continue; // TODO
+        case "sound"_hash: continue; // TODO
+        default:
+            assert( !"unknown weapon property" );
+            continue;
+        }
+    }
+    if ( isHidden ) m_enemyWeapon = weap;
+    else m_weapons.emplace_back( weap );
 }
 
 uint32_t Game::viewportWidth() const

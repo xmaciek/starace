@@ -1,0 +1,15 @@
+type = torpedo
+loc = weapon.torpedo
+color1 = orchid
+color2 = white
+damage = 25
+delay = 0.2
+speed = 666
+distance = 6000
+score = 2
+sound = sounds/torpedo.wav
+texture = textures/plasma.tga
+size = 2.6
+reload = 4
+capacity = 4
+icon = icon.rocket

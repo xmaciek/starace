@@ -1,0 +1,15 @@
+type = blaster
+loc = weapon.blaster
+color1 = blaster
+color2 = dodgerBlue
+damage = 5
+delay = 0.15
+speed = 1400
+distance = 6000
+score = 30
+sound = sounds/blaster.wav
+texture = textures/plasma.tga
+size = 2.0
+icon = icon.blaster
+capacity = 15
+reload = 1

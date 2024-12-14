@@ -1,0 +1,15 @@
+type = blaster
+loc = weapon.cannon
+color1 = white
+color2 = yellow
+damage = 2
+delay = 0.075
+speed = 2222
+distance = 6000
+score = 2
+sound = sounds/blaster.wav
+texture = textures/plasma.tga
+size = 0.5
+icon = icon.cannon
+reload = 0.25
+capacity = 30

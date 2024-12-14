@@ -1,0 +1,13 @@
+type = laser
+loc = weapon.laser
+color1 = red
+color2 = white
+damage = 1
+delay = 0.025
+speed = 3000
+distance = 3000
+score = 2
+sound = sounds/blaster.wav
+texture = textures/plasma.tga
+size = 1.0
+icon = icon.laser

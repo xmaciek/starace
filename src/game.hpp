@@ -128,6 +128,7 @@ private:
     void loadOBJC( std::string_view, std::span<const uint8_t> );
     void loadMAP( std::string_view, std::span<const uint8_t> );
     void loadJET( std::string_view, std::span<const uint8_t> );
+    void loadWPN( std::string_view, std::span<const uint8_t> );
     uint32_t viewportHeight() const;
     uint32_t viewportWidth() const;
     float viewportAspect() const;
