@@ -83,12 +83,13 @@ private:
     std::pmr::vector<MapCreateInfo> m_mapsContainer{};
     std::pmr::vector<ModelProto> m_jetsContainer{};
     std::pmr::map<std::filesystem::path, Mesh> m_meshes{};
+    std::pmr::map<std::filesystem::path, Texture> m_textures{};
+    std::pmr::map<std::filesystem::path, Audio::Slot> m_sounds{};
 
     std::pmr::vector<WeaponCreateInfo> m_weapons{};
     WeaponCreateInfo m_enemyWeapon{};
 
     Texture m_plasma{};
-    std::pmr::map<std::filesystem::path, Texture> m_textures{};
     std::pmr::vector<csg::Callsign> m_callsigns{};
 
     SpaceDust m_dustUi{};
@@ -130,6 +131,7 @@ private:
     void loadJET( std::string_view, std::span<const uint8_t> );
     void loadWPN( std::string_view, std::span<const uint8_t> );
     void loadLANG( std::string_view, std::span<const uint8_t> );
+    void loadWAV( std::string_view, std::span<const uint8_t> );
 
     uint32_t viewportHeight() const;
     uint32_t viewportWidth() const;

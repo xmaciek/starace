@@ -95,6 +95,7 @@ void Game::onInit()
     ZoneScoped;
     m_io->setCallback( ".dds", [this]( auto path, auto data ){ loadDDS( path, data ); } );
     m_io->setCallback( ".objc", [this]( auto path, auto data ){ loadOBJC( path, data ); } );
+    m_io->setCallback( ".wav", [this]( auto path, auto data ){ loadWAV( path, data ); } );
     m_io->setCallback( ".lang", [this]( auto path, auto data ){ loadLANG( path, data ); } );
     m_io->setCallback( ".map", [this]( auto path, auto data ){ loadMAP( path, data ); } );
     m_io->setCallback( ".jet", [this]( auto path, auto data ){ loadJET( path, data ); } );
@@ -134,9 +135,9 @@ void Game::onInit()
     m_dustUi.setLineWidth( 2.0f );
 
 
-    m_blaster = m_audio->load( m_io->viewWait( "sounds/blaster.wav" ) );
-    m_torpedo = m_audio->load( m_io->viewWait( "sounds/torpedo.wav" ) );
-    m_click = m_audio->load( m_io->viewWait( "sounds/click.wav" ) );
+    m_blaster = m_sounds[ "sounds/blaster.wav" ];
+    m_torpedo = m_sounds[ "sounds/torpedo.wav" ];
+    m_click = m_sounds[ "sounds/click.wav" ];
     m_plasma = m_textures[ "textures/plasma.dds" ];
     m_enemyModel = Model{ m_meshes[ "models/a2.objc" ], m_textures[ "textures/a2.dds" ] };
 
@@ -829,6 +830,14 @@ void Game::loadLANG( std::string_view, std::span<const uint8_t> data )
         m_localizationMap.insert( hash( *it ), it.toString32() );
     }
     g_uiProperty.m_locTable = m_localizationMap.makeView();
+}
+
+void Game::loadWAV( std::string_view path, std::span<const uint8_t> data )
+{
+    ZoneScoped;
+    auto [ it, inserted ] = m_sounds.insert( std::make_pair( path, Audio::Slot{} ) );
+    if ( !inserted ) return;
+    it->second = m_audio->load( data );
 }
 
 uint32_t Game::viewportWidth() const
