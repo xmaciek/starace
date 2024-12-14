@@ -129,6 +129,8 @@ private:
     void loadMAP( std::string_view, std::span<const uint8_t> );
     void loadJET( std::string_view, std::span<const uint8_t> );
     void loadWPN( std::string_view, std::span<const uint8_t> );
+    void loadLANG( std::string_view, std::span<const uint8_t> );
+
     uint32_t viewportHeight() const;
     uint32_t viewportWidth() const;
     float viewportAspect() const;
@@ -142,7 +144,6 @@ private:
     std::tuple<math::vec3, math::vec3, math::vec3> getCamera() const;
     std::tuple<math::mat4, math::mat4> getCameraMatrix() const;
 
-    void setupLocalization();
     void setupUI();
 
     // purposefully copy argument

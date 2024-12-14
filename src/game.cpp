@@ -95,6 +95,7 @@ void Game::onInit()
     ZoneScoped;
     m_io->setCallback( ".dds", [this]( auto path, auto data ){ loadDDS( path, data ); } );
     m_io->setCallback( ".objc", [this]( auto path, auto data ){ loadOBJC( path, data ); } );
+    m_io->setCallback( ".lang", [this]( auto path, auto data ){ loadLANG( path, data ); } );
     m_io->setCallback( ".map", [this]( auto path, auto data ){ loadMAP( path, data ); } );
     m_io->setCallback( ".jet", [this]( auto path, auto data ){ loadJET( path, data ); } );
     m_io->setCallback( ".wpn", [this]( auto path, auto data ){ loadWPN( path, data ); } );
@@ -128,8 +129,6 @@ void Game::onInit()
         m_actionStateTracker.add( static_cast<Action::Enum>( eid ), min, max );
     }
 
-    setupLocalization();
-
     m_dustUi.setVelocity( math::vec3{ 0.0f, 0.0f, 26.0_m } );
     m_dustUi.setCenter( {} );
     m_dustUi.setLineWidth( 2.0f );
@@ -144,17 +143,6 @@ void Game::onInit()
     setupUI();
     onResize( viewportWidth(), viewportHeight() );
     changeScreen( Screen::eMainMenu );
-}
-
-void Game::setupLocalization()
-{
-    ZoneScoped;
-    auto loc = cfg::Entry::fromData( m_io->viewWait( "lang/en.txt" ) );
-    Hash hash{};
-    for ( const auto& it : loc ) {
-        m_localizationMap.insert( hash( *it ), it.toString32() );
-    }
-    g_uiProperty.m_locTable = m_localizationMap.makeView();
 }
 
 static std::pmr::vector<csg::Callsign> loadCallsigns( Filesystem* io )
@@ -830,6 +818,17 @@ void Game::loadWPN( std::string_view, std::span<const uint8_t> data )
     }
     if ( isHidden ) m_enemyWeapon = weap;
     else m_weapons.emplace_back( weap );
+}
+
+void Game::loadLANG( std::string_view, std::span<const uint8_t> data )
+{
+    ZoneScoped;
+    auto loc = cfg::Entry::fromData( data );
+    Hash hash{};
+    for ( const auto& it : loc ) {
+        m_localizationMap.insert( hash( *it ), it.toString32() );
+    }
+    g_uiProperty.m_locTable = m_localizationMap.makeView();
 }
 
 uint32_t Game::viewportWidth() const
