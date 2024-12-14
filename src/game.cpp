@@ -93,13 +93,13 @@ void Game::onResize( uint32_t w, uint32_t h )
 void Game::onInit()
 {
     ZoneScoped;
-    m_io->setCallback( ".dds", [this]( auto path, auto data ){ loadDDS( path, data ); } );
-    m_io->setCallback( ".objc", [this]( auto path, auto data ){ loadOBJC( path, data ); } );
-    m_io->setCallback( ".wav", [this]( auto path, auto data ){ loadWAV( path, data ); } );
-    m_io->setCallback( ".lang", [this]( auto path, auto data ){ loadLANG( path, data ); } );
-    m_io->setCallback( ".map", [this]( auto path, auto data ){ loadMAP( path, data ); } );
-    m_io->setCallback( ".jet", [this]( auto path, auto data ){ loadJET( path, data ); } );
-    m_io->setCallback( ".wpn", [this]( auto path, auto data ){ loadWPN( path, data ); } );
+    m_io->setCallback( ".dds", [this]( const auto& asset ){ loadDDS( asset ); } );
+    m_io->setCallback( ".objc", [this]( const auto& asset ){ loadOBJC( asset ); } );
+    m_io->setCallback( ".wav", [this]( const auto& asset ){ loadWAV( asset ); } );
+    m_io->setCallback( ".lang", [this]( const auto& asset ){ loadLANG( asset ); } );
+    m_io->setCallback( ".map", [this]( const auto& asset ){ loadMAP( asset ); } );
+    m_io->setCallback( ".jet", [this]( const auto& asset ){ loadJET( asset ); } );
+    m_io->setCallback( ".wpn", [this]( const auto& asset ){ loadWPN( asset ); } );
     m_io->mount( "data.pak" );
 
     auto setupPipeline = []( auto* renderer, auto* io, auto ci ) -> PipelineSlot
@@ -715,25 +715,25 @@ void Game::changeScreen( Screen scr, Audio::Slot sound )
     }
 }
 
-void Game::loadDDS( std::string_view path, std::span<const uint8_t> data )
+void Game::loadDDS( const Asset& asset )
 {
-    auto&& [ it, inserted ] = m_textures.insert( std::make_pair( path, Texture{} ) );
+    auto&& [ it, inserted ] = m_textures.insert( std::make_pair( asset.path, Texture{} ) );
     if ( !inserted ) return;
-    it->second = parseTexture( data );
+    it->second = parseTexture( asset.data );
 }
 
-void Game::loadOBJC( std::string_view path, std::span<const uint8_t> data )
+void Game::loadOBJC( const Asset& asset )
 {
-    auto&& [ it, inserted ] = m_meshes.insert( std::make_pair( path, Mesh{} ) );
+    auto&& [ it, inserted ] = m_meshes.insert( std::make_pair( asset.path, Mesh{} ) );
     if ( !inserted ) return;
-    it->second = Mesh{ data, m_renderer };
+    it->second = Mesh{ asset.data, m_renderer };
 }
 
-void Game::loadMAP( std::string_view, std::span<const uint8_t> data )
+void Game::loadMAP( const Asset& asset )
 {
     using std::string_view_literals::operator""sv;
     ZoneScoped;
-    cfg::Entry entry = cfg::Entry::fromData( data );
+    cfg::Entry entry = cfg::Entry::fromData( asset.data );
     MapCreateInfo& ci = m_mapsContainer.emplace_back();
     ci.texture[ MapCreateInfo::eTop ] = m_textures[ entry[ "top"sv ].toString() ];
     ci.texture[ MapCreateInfo::eBottom ] = m_textures[ entry[ "bottom"sv ].toString() ];
@@ -746,11 +746,11 @@ void Game::loadMAP( std::string_view, std::span<const uint8_t> data )
     ci.enemies = entry[ "enemies"sv ].toInt<uint32_t>();
 }
 
-void Game::loadJET( std::string_view, std::span<const uint8_t> data )
+void Game::loadJET( const Asset& asset )
 {
     using std::string_view_literals::operator""sv;
     ZoneScoped;
-    cfg::Entry entry = cfg::Entry::fromData( data );
+    cfg::Entry entry = cfg::Entry::fromData( asset.data );
     auto& jet = m_jetsContainer.emplace_back();
     auto&& texture = m_textures[ entry[ "texture"sv ].toString() ];
     auto&& mesh = m_meshes[ entry[ "model"sv ].toString() ];
@@ -758,7 +758,7 @@ void Game::loadJET( std::string_view, std::span<const uint8_t> data )
     jet.name = entry[ "name"sv ].toString32();
 }
 
-void Game::loadWPN( std::string_view, std::span<const uint8_t> data )
+void Game::loadWPN( const Asset& asset )
 {
     ZoneScoped;
     auto makeType = []( std::string_view sv )
@@ -790,7 +790,7 @@ void Game::loadWPN( std::string_view, std::span<const uint8_t> data )
             return color::orchid;
         }
     };
-    auto entry = cfg::Entry::fromData( data );
+    auto entry = cfg::Entry::fromData( asset.data );
     Hash hash{};
     WeaponCreateInfo weap{};
     bool isHidden = false;
@@ -821,10 +821,10 @@ void Game::loadWPN( std::string_view, std::span<const uint8_t> data )
     else m_weapons.emplace_back( weap );
 }
 
-void Game::loadLANG( std::string_view, std::span<const uint8_t> data )
+void Game::loadLANG( const Asset& asset )
 {
     ZoneScoped;
-    auto loc = cfg::Entry::fromData( data );
+    auto loc = cfg::Entry::fromData( asset.data );
     Hash hash{};
     for ( const auto& it : loc ) {
         m_localizationMap.insert( hash( *it ), it.toString32() );
@@ -832,12 +832,12 @@ void Game::loadLANG( std::string_view, std::span<const uint8_t> data )
     g_uiProperty.m_locTable = m_localizationMap.makeView();
 }
 
-void Game::loadWAV( std::string_view path, std::span<const uint8_t> data )
+void Game::loadWAV( const Asset& asset )
 {
     ZoneScoped;
-    auto [ it, inserted ] = m_sounds.insert( std::make_pair( path, Audio::Slot{} ) );
+    auto [ it, inserted ] = m_sounds.insert( std::make_pair( asset.path, Audio::Slot{} ) );
     if ( !inserted ) return;
-    it->second = m_audio->load( data );
+    it->second = m_audio->load( asset.data );
 }
 
 uint32_t Game::viewportWidth() const

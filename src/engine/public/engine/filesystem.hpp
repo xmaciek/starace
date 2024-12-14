@@ -13,6 +13,11 @@
 #include <string>
 #include <string_view>
 
+struct Asset {
+    std::string_view path{};
+    std::span<const uint8_t> data{};
+};
+
 class Filesystem {
 private:
     std::mutex m_bottleneck;
@@ -22,7 +27,7 @@ private:
 
     std::atomic<bool> m_isRunning = true;
 
-    using Callback = std::function<void( std::string_view, std::span<const uint8_t> )>;
+    using Callback = std::function<void( const Asset& )>;
     std::pmr::list<std::pair<std::pmr::string, Callback>> m_callbacks{};
 
 public:

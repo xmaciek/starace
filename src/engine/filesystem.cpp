@@ -115,7 +115,7 @@ void Filesystem::mount( const std::filesystem::path& path )
         std::string_view name{ std::begin( it.name ) };
         auto cb = std::find_if( m_callbacks.begin(), m_callbacks.end(), [name]( const auto& a ) { return name.ends_with( a.first ); } );
         if ( cb == m_callbacks.end() ) continue;
-        std::invoke( cb->second, name, data );
+        std::invoke( cb->second, Asset{ name, data } );
     }
     std::scoped_lock<std::mutex> sl( m_bottleneck );
     m_blobs.emplace_back() = std::move( blob );

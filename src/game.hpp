@@ -125,13 +125,13 @@ private:
     FixedMap<Hash::value_type, std::function<void()>, 64> m_gameCallbacks{};
     FixedMap<Hash::value_type, std::pmr::u32string, 64> m_localizationMap{};
 
-    void loadDDS( std::string_view, std::span<const uint8_t> );
-    void loadOBJC( std::string_view, std::span<const uint8_t> );
-    void loadMAP( std::string_view, std::span<const uint8_t> );
-    void loadJET( std::string_view, std::span<const uint8_t> );
-    void loadWPN( std::string_view, std::span<const uint8_t> );
-    void loadLANG( std::string_view, std::span<const uint8_t> );
-    void loadWAV( std::string_view, std::span<const uint8_t> );
+    void loadDDS( const Asset& );
+    void loadOBJC( const Asset& );
+    void loadMAP( const Asset& );
+    void loadJET( const Asset& );
+    void loadWPN( const Asset& );
+    void loadLANG( const Asset& );
+    void loadWAV( const Asset& );
 
     uint32_t viewportHeight() const;
     uint32_t viewportWidth() const;
