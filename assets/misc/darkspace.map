@@ -1,0 +1,9 @@
+name = DarkSpace
+enemies = 25
+top = textures/star_field.dds
+bottom = textures/star_field.dds
+left = textures/star_field.dds
+right = textures/star_field.dds
+front = textures/star_field.dds
+back = textures/star_field.dds
+preview = textures/star_field.dds

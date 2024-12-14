@@ -7,7 +7,6 @@ add_subdirectory( ui )
 add_subdirectory( misc )
 
 pak_file( data "${CMAKE_CURRENT_SOURCE_DIR}/misc/jets.cfg" )
-pak_file( data "${CMAKE_CURRENT_SOURCE_DIR}/misc/maps.cfg" )
 pak_file( data "${CMAKE_CURRENT_SOURCE_DIR}/misc/weapons.cfg" )
 pak_file( data "${CMAKE_CURRENT_SOURCE_DIR}/misc/ui_atlas.txt" )
 pak_file( data "${CMAKE_CURRENT_SOURCE_DIR}/lang/en.txt" )

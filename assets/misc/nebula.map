@@ -1,0 +1,9 @@
+name = Nebula
+enemies = 15
+preview = textures/nebula1.dds
+top = textures/star_field.dds
+bottom = textures/star_field.dds
+left = textures/nebula1.dds
+right = textures/star_field.dds
+front = textures/star_field.dds
+back = textures/star_field.dds

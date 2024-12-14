@@ -126,13 +126,13 @@ private:
 
     void loadDDS( std::string_view, std::span<const uint8_t> );
     void loadOBJC( std::string_view, std::span<const uint8_t> );
+    void loadMAP( std::string_view, std::span<const uint8_t> );
     uint32_t viewportHeight() const;
     uint32_t viewportWidth() const;
     float viewportAspect() const;
     void changeScreen( Screen, Audio::Slot sound = {} );
     void clearMapData();
     void createMapData( const MapCreateInfo&, const ModelProto& );
-    void loadMapProto();
     void pause();
 
     ui::Screen* currentScreen();

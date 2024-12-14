@@ -94,33 +94,6 @@ static std::pmr::vector<ModelProto> loadJets( std::span<const uint8_t> data )
     return jets;
 }
 
-static std::pmr::vector<MapCreateInfo> loadMaps( std::span<const uint8_t> data )
-{
-    ZoneScoped;
-    cfg::Entry entry = cfg::Entry::fromData( data );
-
-    std::pmr::vector<MapCreateInfo> levels;
-    levels.reserve( 5 );
-
-    using std::literals::string_view_literals::operator""sv;
-    for ( const cfg::Entry& it : entry ) {
-        std::string_view name = *it;
-        levels.emplace_back( MapCreateInfo{
-            .name = std::pmr::u32string{ name.begin(), name.end() },
-            .previewPath = it[ "preview"sv ].toString(),
-            .enemies = static_cast<uint32_t>( it[ "enemies"sv ].toInt() ),
-        } );
-        levels.back().filePath[ MapCreateInfo::eTop ] = it[ "top"sv ].toString();
-        levels.back().filePath[ MapCreateInfo::eBottom ] = it[ "bottom"sv ].toString();
-        levels.back().filePath[ MapCreateInfo::eLeft ] = it[ "left"sv ].toString();
-        levels.back().filePath[ MapCreateInfo::eRight ] = it[ "right"sv ].toString();
-        levels.back().filePath[ MapCreateInfo::eFront ] = it[ "front"sv ].toString();
-        levels.back().filePath[ MapCreateInfo::eBack ] = it[ "back"sv ].toString();
-    }
-
-    return levels;
-}
-
 static std::tuple<WeaponCreateInfo, bool> parseWeapon( const cfg::Entry& entry )
 {
     auto makeType = []( std::string_view sv )
@@ -211,6 +184,7 @@ void Game::onInit()
     ZoneScoped;
     m_io->setCallback( ".dds", [this]( auto path, auto data ){ loadDDS( path, data ); } );
     m_io->setCallback( ".objc", [this]( auto path, auto data ){ loadOBJC( path, data ); } );
+    m_io->setCallback( ".map", [this]( auto path, auto data ){ loadMAP( path, data ); } );
     m_io->mount( "data.pak" );
 
     auto setupPipeline = []( auto* renderer, auto* io, auto ci ) -> PipelineSlot
@@ -266,7 +240,6 @@ void Game::onInit()
             m_weapons.emplace_back( weapon );
         }
     }
-    loadMapProto();
 
     m_jetsContainer = loadJets( m_io->viewWait( "misc/jets.cfg" ) );
     assert( !m_jetsContainer.empty() );
@@ -863,24 +836,6 @@ void Game::changeScreen( Screen scr, Audio::Slot sound )
     }
 }
 
-void Game::loadMapProto()
-{
-    ZoneScoped;
-    assert( m_mapsContainer.empty() );
-    m_mapsContainer = loadMaps( m_io->viewWait( "misc/maps.cfg" ) );
-    assert( !m_mapsContainer.empty() );
-
-    for ( auto& it : m_mapsContainer ) {
-        for ( size_t i = 0; i < it.texture.size(); ++i ) {
-            it.texture[ i ] = m_textures[ it.filePath[ i ] ];
-            assert( it.texture[ i ] );
-        }
-        it.preview = m_textures[ it.previewPath ];
-        assert( it.preview );
-    }
-
-}
-
 void Game::loadDDS( std::string_view path, std::span<const uint8_t> data )
 {
     auto&& [ it, inserted ] = m_textures.insert( std::make_pair( path, Texture{} ) );
@@ -894,6 +849,25 @@ void Game::loadOBJC( std::string_view path, std::span<const uint8_t> data )
     if ( !inserted ) return;
     it->second = Mesh{ data, m_renderer };
 }
+
+
+void Game::loadMAP( std::string_view, std::span<const uint8_t> data )
+{
+    using std::string_view_literals::operator""sv;
+    ZoneScoped;
+    cfg::Entry entry = cfg::Entry::fromData( data );
+    MapCreateInfo& ci = m_mapsContainer.emplace_back();
+    ci.texture[ MapCreateInfo::eTop ] = m_textures[ entry[ "top"sv ].toString() ];
+    ci.texture[ MapCreateInfo::eBottom ] = m_textures[ entry[ "bottom"sv ].toString() ];
+    ci.texture[ MapCreateInfo::eLeft ] = m_textures[ entry[ "left"sv ].toString() ];
+    ci.texture[ MapCreateInfo::eRight ] = m_textures[ entry[ "right"sv ].toString() ];
+    ci.texture[ MapCreateInfo::eFront ] = m_textures[ entry[ "front"sv ].toString() ];
+    ci.texture[ MapCreateInfo::eBack ] = m_textures[ entry[ "back"sv ].toString() ];
+    ci.name = entry[ "name"sv ].toString32();
+    ci.preview = m_textures[ entry[ "preview"sv ].toString() ];
+    ci.enemies = entry[ "enemies"sv ].toInt<uint32_t>();
+}
+
 
 uint32_t Game::viewportWidth() const
 {

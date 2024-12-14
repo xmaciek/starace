@@ -1,0 +1,9 @@
+name = Atmosphere
+enemies = 30
+top = textures/horizon_top.dds
+bottom = textures/horizon_bottom.dds
+left = textures/horizon.dds
+right = textures/horizon2.dds
+front = textures/horizon2.dds
+back = textures/horizon.dds
+preview = textures/horizon_bottom.dds
