@@ -37,6 +37,8 @@ enum class Format : uint32_t {
     B5G6R5_UNORM = 85,
     B5G5R5A1_UNORM = 86,
     B8G8R8A8_UNORM = 87,
+
+    B4G4R4A4_UNORM = 115,
     // TODO: more formats
 };
 

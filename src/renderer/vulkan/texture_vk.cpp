@@ -20,6 +20,7 @@ static auto format( const TextureCreateInfo& tci )
     case TextureFormat::eBC3_unorm: return VK_FORMAT_BC3_UNORM_BLOCK;
     case TextureFormat::eBC4_unorm: return VK_FORMAT_BC4_UNORM_BLOCK;
     case TextureFormat::eBC5_unorm: return VK_FORMAT_BC5_UNORM_BLOCK;
+    case TextureFormat::eB4G4R4A4_unorm: return VK_FORMAT_A4R4G4B4_UNORM_PACK16;
     default:
         assert( !"unsuported format" );
         return VK_FORMAT_UNDEFINED;
@@ -44,6 +45,7 @@ static uint32_t formatToChannels( VkFormat f )
     case VK_FORMAT_R8_UNORM:
     case VK_FORMAT_BC4_UNORM_BLOCK:
         return 1;
+    case VK_FORMAT_A4R4G4B4_UNORM_PACK16:
     case VK_FORMAT_B8G8R8A8_UNORM:
     case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
     case VK_FORMAT_BC2_UNORM_BLOCK:

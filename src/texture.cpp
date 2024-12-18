@@ -72,6 +72,7 @@ Texture parseTexture( std::span<const uint8_t> data )
         case BC4_UNORM: tci.format = TextureFormat::eBC4_unorm; break;
         case B8G8R8A8_UNORM: tci.format = TextureFormat::eBGRA; break;
         case R8_UNORM: tci.format = TextureFormat::eR; break;
+        case B4G4R4A4_UNORM: tci.format = TextureFormat::eB4G4R4A4_unorm; break;
         default:
             assert( !"unhandled format, here be dragons" );
             return {};
