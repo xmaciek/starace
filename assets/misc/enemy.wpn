@@ -1,11 +1,9 @@
-type = blaster
-color1 = yellowBlaster
-color2 = white
 damage = 10
 delay = 0.4
-speed = 1400
 distance = 6000
-score = 30
-texture = textures/plasma.tga
 hidden = 1
-size = 2.6
+mesh = models/cannon.objc
+score = 30
+speed = 1400
+texture = textures/cannon.dds
+type = blaster

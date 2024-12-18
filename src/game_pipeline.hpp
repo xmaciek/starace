@@ -16,6 +16,7 @@ enum class Pipeline : PipelineSlot {
     eScanline,
     eBeamBlob,
     eAntiAliasFXAA,
+    eProjectile,
     count,
 };
 
@@ -90,6 +91,19 @@ struct PushConstant<Pipeline::eParticleBlob> {
     alignas( 16 ) math::vec3 m_cameraPosition{};
     alignas( 16 ) math::vec3 m_cameraUp{};
     alignas( 16 ) std::array<Particle, INSTANCES> m_particles{};
+};
+
+template <>
+struct PushConstant<Pipeline::eProjectile> {
+    static constexpr uint32_t INSTANCES = 64;
+    struct Projectile {
+        alignas( 16 ) math::quat m_quat{};
+        alignas( 16 ) math::vec4 m_positionScale{};
+    };
+    math::mat4 m_model{};
+    math::mat4 m_view{};
+    math::mat4 m_projection{};
+    std::array<Projectile, INSTANCES> m_projectiles{};
 };
 
 template <>
@@ -285,6 +299,25 @@ PipelineCreateInfo{
     .m_cullMode = PipelineCreateInfo::CullMode::eNone,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
     .m_vertexUniform = 0b1,
+},
+
+PipelineCreateInfo{
+    .m_vertexShader = "shaders/projectile.vert.spv",
+    .m_fragmentShader = "shaders/projectile.frag.spv",
+    .m_userHint = static_cast<uint32_t>( Pipeline::eProjectile ),
+    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eProjectile> ),
+    .m_enableBlend = true,
+    .m_enableDepthTest = true,
+    .m_topology = PipelineCreateInfo::Topology::eTriangleList,
+    .m_cullMode = PipelineCreateInfo::CullMode::eNone,
+    .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
+    .m_vertexStride = sizeof( float ) * 8,
+    .m_vertexAssembly{
+        PipelineCreateInfo::Assembly{ PipelineCreateInfo::InputType::eF3, 0, 0 },
+        PipelineCreateInfo::Assembly{ PipelineCreateInfo::InputType::eF2, 1, 12 },
+    },
+    .m_vertexUniform = 0b1,
+    .m_fragmentImage = 0b10,
 },
 
 };

@@ -1,6 +1,7 @@
 #include "jet.hpp"
 
 #include "autoaim.hpp"
+#include "colors.hpp"
 #include "texture.hpp"
 #include "utils.hpp"
 #include "game_pipeline.hpp"
@@ -71,8 +72,8 @@ void Jet::render( RenderContext rctx ) const
             .m_position = weaponPoint( i ),
             .m_quat = quat(),
             .m_displacement{ 1.0_m, 1.0_m, 1000.0_m },
-            .m_color1 = m_weapons[ i ].color1,
-            .m_color2 = m_weapons[ i ].color2,
+            .m_color1 = color::crimson,
+            .m_color2 = color::white,
         };
     }
     if ( bd.m_instanceCount ) {

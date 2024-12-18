@@ -530,7 +530,7 @@ void Game::updateGame( UpdateContext& updateContext )
             return Explosion{
                 .m_position = p + ( b.m_position - p ) * 15.0_m,
                 .m_velocity = b.m_direction * b.m_speed * 0.1f,
-                .m_color = b.m_color1,
+                .m_color = color::white,
                 .m_texture = plasma,
                 .m_size = 16.0_m,
             };
@@ -774,30 +774,12 @@ void Game::loadWPN( const Asset& asset )
         }
     };
 
-    auto makeColor = []( std::string_view sv )
-    {
-        Hash hash{};
-        switch ( hash( sv ) ) {
-        case "blaster"_hash: return color::blaster;
-        case "dodgerBlue"_hash: return color::dodgerBlue;
-        case "orchid"_hash: return color::orchid;
-        case "red"_hash: return color::crimson;
-        case "white"_hash: return color::white;
-        case "yellow"_hash: return color::yellow;
-        case "yellowBlaster"_hash: return color::yellowBlaster;
-        default:
-            assert( !"unknown color" );
-            return color::orchid;
-        }
-    };
     auto entry = cfg::Entry::fromData( asset.data );
     Hash hash{};
     WeaponCreateInfo weap{};
     bool isHidden = false;
     for ( const auto& property : entry ) {
         switch ( hash( *property ) ) {
-        case "color1"_hash: weap.color1 = makeColor( property.toString() ); continue;
-        case "color2"_hash: weap.color2 = makeColor( property.toString() ); continue;
         case "damage"_hash: weap.damage = property.toInt<uint8_t>(); continue;
         case "delay"_hash: weap.delay = property.toFloat(); continue;
         case "reload"_hash: weap.reload = property.toFloat(); continue;
@@ -807,10 +789,10 @@ void Game::loadWPN( const Asset& asset )
         case "distance"_hash: weap.distance = property.toFloat() * (float)meter; continue;
         case "loc"_hash: weap.displayName = hash( property.toString() ); continue;
         case "score"_hash: weap.score_per_hit = property.toInt<uint16_t>(); continue;
-        case "size"_hash: weap.size = property.toFloat() * (float)meter; continue;
         case "type"_hash: weap.type = makeType( property.toString() ); continue;
         case "icon"_hash: weap.displayIcon = hash( property.toString() ); continue;
-        case "texture"_hash: continue; // TODO
+        case "mesh"_hash: weap.mesh = m_meshes[ property.toString() ][ "projectile" ]; continue;
+        case "texture"_hash: weap.texture = m_textures[ property.toString() ]; continue;
         case "sound"_hash: continue; // TODO
         default:
             assert( !"unknown weapon property" );

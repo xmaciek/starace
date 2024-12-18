@@ -13,12 +13,11 @@ Bullet::Bullet( const WeaponCreateInfo& bp, const math::vec3& position, const ma
 : m_position{ position }
 , m_direction{ direction }
 , m_prevPosition{ position }
-, m_color1{ bp.color1 }
-, m_color2{ bp.color2 }
 , m_target{ bp.target }
+, m_mesh{ bp.mesh }
+, m_texture{ bp.texture }
 , m_speed{ bp.speed }
 , m_maxDistance{ bp.distance }
-, m_size{ bp.size }
 , m_score{ bp.score_per_hit }
 , m_damage{ bp.damage }
 , m_type{ bp.type }
@@ -29,39 +28,48 @@ void Bullet::renderAll( const RenderContext& rctx, std::span<Bullet> span, Textu
 {
     if ( span.empty() ) return;
 
-    PushData bd{
-        .m_pipeline = g_pipelines[ Pipeline::eBeamBlob ],
-        .m_verticeCount = 12,
-    };
-    using PushConstant = PushConstant<Pipeline::eBeamBlob>;
-    PushConstant bc{
+    std::sort( span.begin(), span.end(), []( const auto& lhs, const auto& rhs ) {
+        if ( lhs.m_mesh != rhs.m_mesh ) return lhs.m_mesh < rhs.m_mesh;
+        return lhs.m_texture < rhs.m_texture;
+    } );
+    using PushConstant = PushConstant<Pipeline::eProjectile>;
+    PushConstant pc{
         .m_model = rctx.model,
         .m_view = rctx.view,
         .m_projection = rctx.projection,
     };
+    PushData pd{
+        .m_pipeline = g_pipelines[ Pipeline::eProjectile ],
+    };
 
     const math::mat4 mvp = rctx.projection * rctx.view * rctx.model;
-
+    Buffer lastMesh{};
+    Texture lastTexture{};
     uint32_t idx = 0;
+
     for ( auto&& bullet : span ) {
         if ( bullet.m_type == Type::eLaser ) continue;
         if ( !isOnScreen( mvp, bullet.m_position, rctx.viewport ) ) continue;
-        bc.m_beams[ idx++ ] = PushConstant::Beam{
-            .m_position = bullet.m_position,
-            .m_quat = bullet.m_quat,
-            .m_displacement{ bullet.m_size, bullet.m_size, bullet.m_speed * 0.01618f },
-            .m_color1 = bullet.m_color1,
-            .m_color2 = bullet.m_color2,
-        };
-        if ( idx == PushConstant::INSTANCES ) {
-            bd.m_instanceCount = idx;
-            rctx.renderer->push( bd, &bc );
+        assert( bullet.m_mesh );
+        assert( bullet.m_texture );
+        if ( lastMesh != bullet.m_mesh || lastTexture != bullet.m_texture || idx == PushConstant::INSTANCES ) {
+            pd.m_fragmentTexture[ 1 ] = lastTexture;
+            pd.m_vertexBuffer = lastMesh;
+            pd.m_instanceCount = idx;
+            if ( lastMesh && lastTexture ) {
+                rctx.renderer->push( pd, &pc );
+            }
             idx = 0;
         }
+        lastMesh = bullet.m_mesh;
+        lastTexture = bullet.m_texture;
+        pc.m_projectiles[ idx++ ] = PushConstant::Projectile{ bullet.m_quat, math::vec4{ bullet.m_position, meter } };
     }
     if ( idx != 0 ) {
-        bd.m_instanceCount = idx;
-        rctx.renderer->push( bd, &bc );
+        pd.m_fragmentTexture[ 1 ] = lastTexture;
+        pd.m_vertexBuffer = lastMesh;
+        pd.m_instanceCount = idx;
+        rctx.renderer->push( pd, &pc );
     }
 }
 
@@ -92,7 +100,7 @@ void Bullet::updateAll( const UpdateContext& uctx, std::span<Bullet> span, std::
             explosions.emplace_back() = Explosion{
                 .m_position = bullet.m_position,
                 .m_velocity = -bullet.m_direction * bullet.m_speed * 0.1f,
-                .m_color = bullet.m_color1,
+                .m_color = math::vec4{ 1.0f, 1.0f, 1.0f, 1.0f },
                 .m_texture = texture,
                 .m_size = 2.0_m,
             };
