@@ -36,8 +36,6 @@ target_sources( starace PRIVATE
     game_pipeline.hpp
     game_scene.cpp
     game_scene.hpp
-    jet.cpp
-    jet.hpp
     main.cpp
     map_create_info.hpp
     mesh.cpp
@@ -45,6 +43,8 @@ target_sources( starace PRIVATE
     model.cpp
     model.hpp
     model_proto.hpp
+    player.cpp
+    player.hpp
     render_context.hpp
     saobject.cpp
     saobject.hpp

@@ -1,4 +1,4 @@
-#include "jet.hpp"
+#include "player.hpp"
 
 #include "autoaim.hpp"
 #include "colors.hpp"
@@ -21,7 +21,7 @@ static math::vec3 pointMult( uint8_t a, uint8_t b, uint8_t c )
     };
 };
 
-Jet::Jet( const CreateInfo& ci ) noexcept
+Player::Player( const CreateInfo& ci ) noexcept
 : m_model{ ci.model }
 , m_weapons{ ci.weapons }
 , m_pyrLimits{ defaultPyrLimits }
@@ -47,7 +47,7 @@ Jet::Jet( const CreateInfo& ci ) noexcept
 
 };
 
-void Jet::render( RenderContext rctx ) const
+void Player::render( RenderContext rctx ) const
 {
     auto model = rctx.model;
     rctx.model = math::translate( rctx.model, position() );
@@ -81,7 +81,7 @@ void Jet::render( RenderContext rctx ) const
     }
 }
 
-void Jet::update( const UpdateContext& uctx )
+void Player::update( const UpdateContext& uctx )
 {
     m_health -= std::min( m_health, m_pendingDamage );
     m_pendingDamage = 0;
@@ -139,7 +139,7 @@ void Jet::update( const UpdateContext& uctx )
     m_position += velocity() * uctx.deltaTime;
 }
 
-void Jet::scanSignals( std::span<const Signal> signals, float dt )
+void Player::scanSignals( std::span<const Signal> signals, float dt )
 {
     auto tgt = SAObject::scanSignals( m_targetSignal.position, signals );
     if ( !tgt ) return;
@@ -148,19 +148,19 @@ void Jet::scanSignals( std::span<const Signal> signals, float dt )
     m_targetSignal = tgt;
 }
 
-void Jet::setTarget( Signal v )
+void Player::setTarget( Signal v )
 {
     m_targetSignal = v;
     m_targetVelocity = {};
 }
 
-float Jet::targetingState() const
+float Player::targetingState() const
 {
     const math::vec3 p = m_targetSignal.position;
     return static_cast<float>( AutoAim{}.matches( position(), direction(), p ) );
 }
 
-bool Jet::isShooting( uint32_t weaponNum ) const
+bool Player::isShooting( uint32_t weaponNum ) const
 {
     switch ( weaponNum ) {
     case 0: return m_input.shoot1;
@@ -173,14 +173,14 @@ bool Jet::isShooting( uint32_t weaponNum ) const
     }
 }
 
-math::vec3 Jet::weaponPoint( uint32_t weaponNum ) const
+math::vec3 Player::weaponPoint( uint32_t weaponNum ) const
 {
     math::vec3 w = math::rotate( quat(), m_model.weapon( weaponNum ) );
     w += position();
     return w;
 }
 
-Bullet Jet::weapon( uint32_t weaponNum )
+Bullet Player::weapon( uint32_t weaponNum )
 {
     assert( weaponNum < std::size( m_weapons ) );
     auto& wc = m_weaponsCooldown[ weaponNum ];
@@ -211,7 +211,7 @@ Bullet Jet::weapon( uint32_t weaponNum )
     return b;
 }
 
-std::array<Bullet::Type, Jet::MAX_SUPPORTED_WEAPON_COUNT> Jet::shoot( std::pmr::vector<Bullet>& vec )
+std::array<Bullet::Type, Player::MAX_SUPPORTED_WEAPON_COUNT> Player::shoot( std::pmr::vector<Bullet>& vec )
 {
     std::array<Bullet::Type, MAX_SUPPORTED_WEAPON_COUNT> ret;
     std::fill( ret.begin(), ret.end(), Bullet::Type::eDead );
@@ -227,32 +227,32 @@ std::array<Bullet::Type, Jet::MAX_SUPPORTED_WEAPON_COUNT> Jet::shoot( std::pmr::
     return ret;
 }
 
-math::quat Jet::quat() const
+math::quat Player::quat() const
 {
     return m_quaternion;
 }
 
-math::quat Jet::rotation() const
+math::quat Player::rotation() const
 {
     return math::inverse( m_quaternion );
 }
 
-void Jet::setInput( const Jet::Input& input )
+void Player::setInput( const Player::Input& input )
 {
     m_input = input;
 }
 
-math::vec3 Jet::cameraPosition() const
+math::vec3 Player::cameraPosition() const
 {
     return m_camOffset.value() + math::vec3{ 0.0f, -10.5_m, 41.5_m };
 }
 
-math::vec3 Jet::cameraDirection() const
+math::vec3 Player::cameraDirection() const
 {
     return m_direction;
 }
 
-math::vec2 Jet::reloadState() const
+math::vec2 Player::reloadState() const
 {
     return math::vec2{
         m_weaponsCooldown[ 0 ].currentReload / m_weaponsCooldown[ 0 ].readyReload,
@@ -260,7 +260,7 @@ math::vec2 Jet::reloadState() const
     };
 }
 
-std::tuple<uint32_t, uint32_t> Jet::weaponClip() const
+std::tuple<uint32_t, uint32_t> Player::weaponClip() const
 {
     return std::make_tuple( m_weaponsCooldown[ 0 ].count, m_weaponsCooldown[ 1 ].count );
 }

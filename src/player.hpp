@@ -16,7 +16,7 @@
 #include <span>
 
 class Renderer;
-class Jet : public SAObject {
+class Player : public SAObject {
 public:
     static constexpr inline uint32_t MAX_SUPPORTED_WEAPON_COUNT = 3;
     static constexpr inline uint16_t COLLIDE_ID = 'JT';
@@ -91,9 +91,9 @@ private:
     void scanSignals( std::span<const Signal>, float );
 
 public:
-    virtual ~Jet() noexcept override = default;
-    Jet() noexcept = default;
-    Jet( const CreateInfo& ) noexcept;
+    virtual ~Player() noexcept override = default;
+    Player() noexcept = default;
+    Player( const CreateInfo& ) noexcept;
 
     std::array<Bullet::Type, MAX_SUPPORTED_WEAPON_COUNT> shoot( std::pmr::vector<Bullet>& );
 

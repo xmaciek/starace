@@ -490,9 +490,9 @@ void Game::unpause()
 void Game::updateGame( UpdateContext& updateContext )
 {
     ZoneScoped;
-    m_jet.setInput( m_jetInput );
+    m_player.setInput( m_playerInput );
 
-    if ( m_jet.status() == Jet::Status::eDead ) {
+    if ( m_player.status() == Player::Status::eDead ) {
         changeScreen( Screen::eDead );
     }
     if ( m_enemies.empty() ) {
@@ -503,14 +503,14 @@ void Game::updateGame( UpdateContext& updateContext )
     std::transform( m_enemies.begin(), m_enemies.end(), signals.begin(), []( const auto& p ) { return p->signal(); } );
     updateContext.signals = signals;
 
-    m_lookAtTarget.setTarget( m_jetInput.lookAt ? 1.0f : 0.0f );
+    m_lookAtTarget.setTarget( m_playerInput.lookAt ? 1.0f : 0.0f );
     m_lookAtTarget.update( updateContext.deltaTime );
-    m_jet.update( updateContext );
+    m_player.update( updateContext );
     Bullet::updateAll( updateContext, m_bullets, m_gameScene.explosions(), m_plasma );
     Enemy::updateAll( updateContext, m_enemies );
-    m_gameScene.update( updateContext, m_jet.position(), m_jet.velocity() );
+    m_gameScene.update( updateContext, m_player.position(), m_player.velocity() );
     {
-        auto soundsToPlay = m_jet.shoot( m_bullets );
+        auto soundsToPlay = m_player.shoot( m_bullets );
         for ( auto&& i : soundsToPlay ) {
             switch ( i ) {
             case Bullet::Type::eBlaster: m_audio->play( m_blaster, Audio::Channel::eSFX ); break;
@@ -524,7 +524,7 @@ void Game::updateGame( UpdateContext& updateContext )
     }
 
     {
-        const math::vec3 jetPos = m_jet.position();
+        const math::vec3 jetPos = m_player.position();
         auto makeExplosion = [plasma = m_plasma]( const Bullet& b, const math::vec3& p ) -> Explosion
         {
             return Explosion{
@@ -541,12 +541,12 @@ void Game::updateGame( UpdateContext& updateContext )
             switch ( b.m_collideId ) {
             case Enemy::COLLIDE_ID:
                 if ( !intersectLineSphere( b.m_position, b.m_prevPosition, jetPos, 15.0_m ) ) continue;
-                m_jet.setDamage( b.m_damage );
+                m_player.setDamage( b.m_damage );
                 b.m_type = Bullet::Type::eDead;
                 m_gameScene.explosions().emplace_back( makeExplosion( b, jetPos ) );
                 break;
 
-            case Jet::COLLIDE_ID:
+            case Player::COLLIDE_ID:
                 for ( auto& e : m_enemies ) {
                     assert( e );
                     if ( !intersectLineSphere( b.m_position, b.m_prevPosition, e->position(), 15.0_m ) ) continue;
@@ -579,14 +579,14 @@ void Game::updateGame( UpdateContext& updateContext )
     }
 
     m_targeting.setSignals( std::move( signals ) );
-    m_targeting.setTarget( m_jet.targetSignal(), m_jet.targetingState() );
+    m_targeting.setTarget( m_player.targetSignal(), m_player.targetingState() );
     m_targeting.update( updateContext );
-    m_gameplayUIData.m_playerHP = static_cast<float>( m_jet.health() ) / 100.0f;
-    const math::vec2 reloadState = m_jet.reloadState();
+    m_gameplayUIData.m_playerHP = static_cast<float>( m_player.health() ) / 100.0f;
+    const math::vec2 reloadState = m_player.reloadState();
     m_gameplayUIData.m_playerReloadPrimary = reloadState.x;
     m_gameplayUIData.m_playerReloadSecondary = reloadState.y;
-    m_gameplayUIData.m_jetSpeed = m_jet.speed() / 1600_kmph;
-    auto [ primary, secondary ] = m_jet.weaponClip();
+    m_gameplayUIData.m_jetSpeed = m_player.speed() / 1600_kmph;
+    auto [ primary, secondary ] = m_player.weaponClip();
     m_gameplayUIData.m_playerWeaponPrimaryCount = primary;
     m_gameplayUIData.m_playerWeaponSecondaryCount = secondary;
 
@@ -607,8 +607,8 @@ void Game::retarget()
         }
     };
 
-    math::vec3 jetPos = m_jet.position();
-    math::vec3 jetDir = m_jet.direction();
+    math::vec3 jetPos = m_player.position();
+    math::vec3 jetDir = m_player.direction();
     Signal s{};
     auto proc = [f=std::numeric_limits<float>::max(), jetPos, jetDir, &s]( auto& obj ) mutable
     {
@@ -618,7 +618,7 @@ void Game::retarget()
         s = obj->signal();
     };
     std::for_each( m_enemies.begin(), m_enemies.end(), std::move( proc ) );
-    m_jet.setTarget( s );
+    m_player.setTarget( s );
 }
 
 void Game::clearMapData()
@@ -639,7 +639,7 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
     std::shuffle( callsigns.begin(), callsigns.end(), Random{ std::random_device()() } );
     const auto& w1 = m_weapons[ m_weapon1 ];
     const auto& w2 = m_weapons[ m_weapon2 ];
-    m_jet = Jet( Jet::CreateInfo{
+    m_player = Player( Player::CreateInfo{
         .model = modelData.model,
         .vectorThrust = true,
         .weapons{ w1, w2, w1 },
@@ -654,11 +654,11 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
             .callsign = callsigns[ cs++ ],
         };
         UniquePointer<Enemy> ptr{ &m_poolEnemies, ci };
-        ptr->setTarget( &m_jet );
+        ptr->setTarget( &m_player );
         ptr->setWeapon( m_enemyWeapon );
         return ptr;
     });
-    m_jet.setTarget( m_enemies.front()->signal() );
+    m_player.setTarget( m_enemies.front()->signal() );
     m_gameplayUIData.m_playerWeaponIconPrimary = w1.displayIcon;
     m_gameplayUIData.m_playerWeaponIconSecondary = w2.displayIcon;
 }
@@ -842,13 +842,13 @@ void Game::onAction( Action a )
     ZoneScoped;
     const GameAction action = a.toA<GameAction>();
     switch ( action ) {
-    case GameAction::eJetPitch: m_jetInput.pitch = -a.analog(); break;
-    case GameAction::eJetYaw: m_jetInput.yaw = -a.analog(); break;
-    case GameAction::eJetRoll: m_jetInput.roll = a.analog(); break;
-    case GameAction::eJetShoot1: m_jetInput.shoot1 = a.digital(); break;
-    case GameAction::eJetShoot2: m_jetInput.shoot2 = a.digital(); break;
-    case GameAction::eJetSpeed: m_jetInput.speed = a.analog(); break;
-    case GameAction::eJetLookAt: m_jetInput.lookAt = a.digital(); break;
+    case GameAction::eJetPitch: m_playerInput.pitch = -a.analog(); break;
+    case GameAction::eJetYaw: m_playerInput.yaw = -a.analog(); break;
+    case GameAction::eJetRoll: m_playerInput.roll = a.analog(); break;
+    case GameAction::eJetShoot1: m_playerInput.shoot1 = a.digital(); break;
+    case GameAction::eJetShoot2: m_playerInput.shoot2 = a.digital(); break;
+    case GameAction::eJetSpeed: m_playerInput.speed = a.analog(); break;
+    case GameAction::eJetLookAt: m_playerInput.lookAt = a.digital(); break;
     default: break;
     }
 
@@ -900,14 +900,14 @@ void Game::renderGameScreen( RenderContext rctx )
 
 std::tuple<math::vec3, math::vec3, math::vec3> Game::getCamera() const
 {
-    math::vec3 jetPos = m_jet.position();
-    math::vec3 jetCamPos = jetPos + m_jet.cameraPosition() * m_jet.rotation();
-    math::vec3 jetCamUp = math::vec3{ 0, 1, 0 } * m_jet.rotation();
-    math::vec3 jetCamTgt = jetCamPos + m_jet.cameraDirection();
+    math::vec3 jetPos = m_player.position();
+    math::vec3 jetCamPos = jetPos + m_player.cameraPosition() * m_player.rotation();
+    math::vec3 jetCamUp = math::vec3{ 0, 1, 0 } * m_player.rotation();
+    math::vec3 jetCamTgt = jetCamPos + m_player.cameraDirection();
 
-    Signal tgt = m_jet.targetSignal();
+    Signal tgt = m_player.targetSignal();
     math::vec3 lookAtTgt = tgt ? tgt.position : jetCamTgt;
-    math::vec3 lookAtPos = math::vec3{ 0.0f, -20.0_m, 0.0f } * m_jet.rotation() + jetPos - math::normalize( lookAtTgt - jetPos ) * 42.8_m;
+    math::vec3 lookAtPos = math::vec3{ 0.0f, -20.0_m, 0.0f } * m_player.rotation() + jetPos - math::normalize( lookAtTgt - jetPos ) * 42.8_m;
 
     math::vec3 retPos = math::lerp( jetCamPos, lookAtPos, m_lookAtTarget.value() );
     math::vec3 retTgt = math::lerp( jetCamTgt, lookAtTgt, m_lookAtTarget.value() );
@@ -920,7 +920,7 @@ std::tuple<math::mat4, math::mat4> Game::getCameraMatrix() const
     const auto [ cameraPos, cameraUp, cameraTgt ] = getCamera();
     return {
         math::lookAt( cameraPos, cameraTgt, cameraUp ),
-        math::perspective( math::radians( 55.0f + m_jet.speed() * 3 ), viewportAspect(), 0.001f, 2000.0f )
+        math::perspective( math::radians( 55.0f + m_player.speed() * 3 ), viewportAspect(), 0.001f, 2000.0f )
     };
 }
 
@@ -932,7 +932,7 @@ void Game::render3D( RenderContext rctx )
     m_gameScene.render( rctx );
     Enemy::renderAll( rctx, m_enemies );
     Bullet::renderAll( rctx, m_bullets, m_plasma );
-    m_jet.render( rctx );
+    m_player.render( rctx );
 
     if ( m_optionsGFX.m_fxaa.value() ) {
         const PushConstant<Pipeline::eAntiAliasFXAA> aa{};

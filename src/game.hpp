@@ -6,7 +6,7 @@
 #include "enemy.hpp"
 #include "game_options.hpp"
 #include "game_scene.hpp"
-#include "jet.hpp"
+#include "player.hpp"
 #include "map_create_info.hpp"
 #include "model_proto.hpp"
 #include "space_dust.hpp"
@@ -70,7 +70,7 @@ private:
     uint32_t m_weapon2 = 1;
     uint32_t m_score = 0;
     Model m_enemyModel{};
-    Jet m_jet{};
+    Player m_player{};
     GameScene m_gameScene{};
 
     Audio::Slot m_blaster{};
@@ -106,7 +106,7 @@ private:
     Targeting m_targeting{};
     AutoLerp<float> m_lookAtTarget{ 0.0f, 1.0f, 3.0f };
 
-    Jet::Input m_jetInput{};
+    Player::Input m_playerInput{};
     std::atomic<Screen> m_currentScreen = Screen::eInit;
 
     ui::GenericDataModel m_dataMissionSelect{};
