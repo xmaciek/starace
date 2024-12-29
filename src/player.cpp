@@ -211,10 +211,9 @@ Bullet Player::weapon( uint32_t weaponNum )
     return b;
 }
 
-std::array<Bullet::Type, Player::MAX_SUPPORTED_WEAPON_COUNT> Player::shoot( std::pmr::vector<Bullet>& vec )
+std::array<Audio::Slot, Player::MAX_SUPPORTED_WEAPON_COUNT> Player::shoot( std::pmr::vector<Bullet>& vec )
 {
-    std::array<Bullet::Type, MAX_SUPPORTED_WEAPON_COUNT> ret;
-    std::fill( ret.begin(), ret.end(), Bullet::Type::eDead );
+    std::array<Audio::Slot, MAX_SUPPORTED_WEAPON_COUNT> ret{};
 
     for ( auto i = 0u; i < MAX_SUPPORTED_WEAPON_COUNT; ++i ) {
         const auto& wc = m_weaponsCooldown[ i ];
@@ -222,7 +221,7 @@ std::array<Bullet::Type, Player::MAX_SUPPORTED_WEAPON_COUNT> Player::shoot( std:
         if ( wc.count == 0 ) continue;
         if ( !isShooting( i ) ) continue;
         vec.emplace_back( weapon( i ) );
-        ret[ i ] = m_weapons[ i ].type;
+        ret[ i ] = m_weapons[ i ].sound;
     }
     return ret;
 }

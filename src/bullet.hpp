@@ -4,6 +4,7 @@
 #include "units.hpp"
 #include "explosion.hpp"
 
+#include <audio/audio.hpp>
 #include <engine/math.hpp>
 #include <renderer/texture.hpp>
 #include <renderer/buffer.hpp>
@@ -64,4 +65,5 @@ struct WeaponCreateInfo {
     Bullet::Type type{};
     Hash::value_type displayIcon{};
     Hash::value_type displayName{};
+    Audio::Slot sound{};
 };

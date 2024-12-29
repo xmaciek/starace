@@ -9,6 +9,7 @@
 
 #include <shared/pmr_pointer.hpp>
 
+#include <audio/audio.hpp>
 #include <engine/math.hpp>
 
 #include <vector>
@@ -95,7 +96,7 @@ public:
     Player() noexcept = default;
     Player( const CreateInfo& ) noexcept;
 
-    std::array<Bullet::Type, MAX_SUPPORTED_WEAPON_COUNT> shoot( std::pmr::vector<Bullet>& );
+    std::array<Audio::Slot, MAX_SUPPORTED_WEAPON_COUNT> shoot( std::pmr::vector<Bullet>& );
 
     math::quat quat() const;
     math::quat rotation() const;

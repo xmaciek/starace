@@ -511,16 +511,8 @@ void Game::updateGame( UpdateContext& updateContext )
     m_gameScene.update( updateContext, m_player.position(), m_player.velocity() );
     {
         auto soundsToPlay = m_player.shoot( m_bullets );
-        for ( auto&& i : soundsToPlay ) {
-            switch ( i ) {
-            case Bullet::Type::eBlaster: m_audio->play( m_blaster, Audio::Channel::eSFX ); break;
-            case Bullet::Type::eTorpedo: m_audio->play( m_torpedo, Audio::Channel::eSFX ); break;
-            default: break;
-            }
-        }
-        for ( auto&& e : m_enemies ) {
-            e->shoot( m_bullets );
-        }
+        for ( auto&& s : soundsToPlay ) { if ( s ) m_audio->play( s, Audio::Channel::eSFX ); }
+        for ( auto&& e : m_enemies ) { e->shoot( m_bullets ); }
     }
 
     {
@@ -793,7 +785,7 @@ void Game::loadWPN( const Asset& asset )
         case "icon"_hash: weap.displayIcon = hash( property.toString() ); continue;
         case "mesh"_hash: weap.mesh = m_meshes[ property.toString() ][ "projectile" ]; continue;
         case "texture"_hash: weap.texture = m_textures[ property.toString() ]; continue;
-        case "sound"_hash: continue; // TODO
+        case "sound"_hash: weap.sound = m_sounds[ property.toString() ]; continue;
         default:
             assert( !"unknown weapon property" );
             continue;
