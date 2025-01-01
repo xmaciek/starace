@@ -174,7 +174,7 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
             .samplerAnisotropy = VK_TRUE,
         };
         auto layers = m_instance.layers();
-        const VkDeviceCreateInfo createInfo{
+        const VkDeviceCreateInfo deviceCreateInfo{
             .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
             .queueCreateInfoCount = qcount,
             .pQueueCreateInfos = qarr.data(),
@@ -185,7 +185,7 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
             .pEnabledFeatures = &deviceFeatures,
         };
         [[maybe_unused]]
-        const VkResult deviceOK = vkCreateDevice( m_physicalDevice, &createInfo, nullptr, &m_device );
+        const VkResult deviceOK = vkCreateDevice( m_physicalDevice, &deviceCreateInfo, nullptr, &m_device );
         assert( deviceOK == VK_SUCCESS );
     }
 

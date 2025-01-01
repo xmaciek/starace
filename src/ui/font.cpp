@@ -226,8 +226,8 @@ Font::RenderText Font::composeText( const math::vec4& color, std::u32string_view
         else {
             std::array<char32_t, 20> remapped;
             uint32_t remappedCount = m_remapper->apply( chr, remapped );
-            for ( uint32_t i = 0; i < remappedCount; ++i ) {
-                appendRenderText( cursor, ret.pushData, ret.pushConstant, remapped[ i ] );
+            for ( uint32_t j = 0; j < remappedCount; ++j ) {
+                appendRenderText( cursor, ret.pushData, ret.pushConstant, remapped[ j ] );
             }
         }
 

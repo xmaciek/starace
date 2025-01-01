@@ -10,6 +10,7 @@ target_compile_options( cxx::flags INTERFACE
     -Wno-missing-field-initializers
     -Wno-multichar
     -Wpedantic
+    -Wshadow
     -fno-exceptions
     -fno-rtti
 )
@@ -24,6 +25,7 @@ target_compile_options( cxx::flags INTERFACE
     -Wno-multichar
     -Wno-string-conversion
     -Wpedantic
+    -Wshadow
     -fno-exceptions
     -fno-rtti
 )
