@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <cstdint>
 #include <cstring>
 #include <algorithm>
@@ -26,21 +27,32 @@ struct Swizzler {
     using PixelType = TPixel;
     using BlockType = std::array<PixelType, 16>;
 
-    std::span<PixelType> data;
+    std::span<const PixelType> data;
     uint32_t blocksInRow = 0;
     uint32_t col = 0;
 
+    Swizzler( std::span<const uint8_t> d, uint32_t width )
+    : data{ reinterpret_cast<const PixelType*>( d.data() ), d.size() / sizeof( PixelType ) }
+    , blocksInRow( width / 4 )
+    {
+        assert( width % 4 == 0 );
+        assert( data.size() % 16 == 0 );
+    }
+
     inline BlockType operator () ()
     {
+        assert( data.size() >= 16 );
         BlockType ret{};
-        std::memcpy( &ret[ 0 ],  &data[ col * 4 + blocksInRow * 4 * 0 ], sizeof( PixelType ) * 4 );
-        std::memcpy( &ret[ 4 ],  &data[ col * 4 + blocksInRow * 4 * 1 ], sizeof( PixelType ) * 4 );
-        std::memcpy( &ret[ 8 ],  &data[ col * 4 + blocksInRow * 4 * 2 ], sizeof( PixelType ) * 4 );
-        std::memcpy( &ret[ 12 ], &data[ col * 4 + blocksInRow * 4 * 3 ], sizeof( PixelType ) * 4 );
+        auto it = data.begin() + col * 4;
+        auto advance = blocksInRow * 4;
+        std::copy_n( it + advance * 0, 4, ret.begin() );
+        std::copy_n( it + advance * 1, 4, ret.begin() + 4 );
+        std::copy_n( it + advance * 2, 4, ret.begin() + 8 );
+        std::copy_n( it + advance * 3, 4, ret.begin() + 12 );
         ++col;
         if ( col == blocksInRow ) {
             col = 0;
-            data = data.subspan( blocksInRow * sizeof( BlockType ) );
+            data = data.subspan( blocksInRow * 16 );
         }
         return ret;
     }

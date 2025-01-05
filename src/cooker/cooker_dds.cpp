@@ -137,7 +137,7 @@ void compressToBC4( Image& img )
     std::pmr::vector<uint8_t> imageOut( sizeof( dds::BC4 ) * blockCount );
     std::pmr::vector<dds::Swizzler<>::BlockType> tmp( blockCount );
 
-    dds::Swizzler<uint8_t> swizzler{ img.pixels, img.width / 4 };
+    dds::Swizzler<uint8_t> swizzler{ img.pixels, img.width };
     std::generate( tmp.begin(), tmp.end(), swizzler );
     std::transform( tmp.begin(), tmp.end(), reinterpret_cast<dds::BC4*>( imageOut.data() ), &dds::compressor_bc4 );
     std::swap( img.pixels, imageOut );

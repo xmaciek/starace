@@ -352,9 +352,9 @@ int main( int argc, const char** argv )
 
     std::vector<dds::BC4> texture( pixels.size() / 16 );
     {
-        std::vector<dds::Swizzler<>::BlockType> blocks( texture.size() );
-        dds::Swizzler<> swizzler{ pixels, surfWidth / 4 };
-        std::generate( blocks.begin(), blocks.end(), swizzler );
+        using Swizzler = dds::Swizzler<uint8_t>;
+        std::vector<Swizzler::BlockType> blocks( texture.size() );
+        std::generate( blocks.begin(), blocks.end(), Swizzler{ pixels, surfWidth } );
         std::transform( blocks.begin(), blocks.end(), texture.begin(), &dds::compressor_bc4 );
     }
 
