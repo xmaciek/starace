@@ -333,13 +333,16 @@ void RendererVK::setVSync( VSync v )
     m_pendingVSyncChange = v;
 }
 
-bool RendererVK::supportedVSync( VSync v ) const
+bool RendererVK::featureAvailable( Feature f ) const
 {
     assert( m_physicalDevice );
     assert( m_surface );
-    auto vsyncs = Swapchain::supportedVSyncs( m_physicalDevice, m_surface );
-    assert( static_cast<uint32_t>( v ) < vsyncs.size() );
-    return vsyncs[ static_cast<uint32_t>( v ) ];
+    switch ( f ) {
+    case Feature::eVSyncMailbox:
+        return Swapchain::supportedVSyncs( m_physicalDevice, m_surface )[ (uint32_t)VSync::eMailbox ];
+    default:
+        return false;
+    }
 }
 
 static void beginRecording( VkCommandBuffer cmd )

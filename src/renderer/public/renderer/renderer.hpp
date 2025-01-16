@@ -24,8 +24,12 @@ public:
 
     static Renderer* instance();
 
+    enum class Feature : uint32_t {
+        eVSyncMailbox,
+    };
+
+    virtual bool featureAvailable( Feature ) const = 0;
     virtual void setVSync( VSync ) = 0;
-    virtual bool supportedVSync( VSync ) const = 0;
 
     [[nodiscard]] virtual PipelineSlot createPipeline( const PipelineCreateInfo& ) = 0;
     [[nodiscard]] virtual Buffer createBuffer( std::span<const float> ) = 0;

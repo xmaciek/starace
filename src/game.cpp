@@ -256,7 +256,7 @@ void Game::setupUI()
     {
         std::pmr::vector<VSync> v{ VSync::eOff, VSync::eOn };
         std::pmr::vector<Hash::value_type> h{ "off"_hash, "on"_hash };
-        if ( m_renderer->supportedVSync( VSync::eMailbox ) ) {
+        if ( m_renderer->featureAvailable( Renderer::Feature::eVSyncMailbox ) ) {
             v.emplace_back( VSync::eMailbox );
             h.emplace_back( "mailbox"_hash );
         }

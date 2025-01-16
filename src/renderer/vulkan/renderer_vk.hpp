@@ -84,8 +84,8 @@ class RendererVK : public Renderer {
 public:
     virtual ~RendererVK() override;
     RendererVK( const Renderer::CreateInfo& );
+    virtual bool featureAvailable( Feature ) const override;
     virtual void setVSync( VSync ) override;
-    virtual bool supportedVSync( VSync ) const override;
 
     virtual PipelineSlot createPipeline( const PipelineCreateInfo& ) override;
     virtual Buffer createBuffer( std::span<const float> ) override;
