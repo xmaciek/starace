@@ -177,8 +177,8 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
         , createInfo.vsync
     );
 
-    m_mainPass = RenderPass{ m_device, m_colorFormat, m_depthFormat };
-    m_depthPrepass = RenderPass{ m_device, m_depthFormat };
+    m_mainPass = RenderPass{ RenderPass::eColor };
+    m_depthPrepass = RenderPass{ RenderPass::eDepth };
 
     {
         static constexpr VkSemaphoreCreateInfo semaphoreInfo{
@@ -264,8 +264,8 @@ PipelineSlot RendererVK::createPipeline( const PipelineCreateInfo& pci )
     m_pipelines[ slot ] = PipelineVK{
         pci
         , m_device
-        , m_mainPass
-        , m_depthPrepass
+        , m_depthFormat
+        , m_colorFormat
         , layout
         , descriptorId
     };
@@ -521,32 +521,38 @@ void RendererVK::recreateRenderTargets( const VkExtent2D& resolution )
 {
     ZoneScoped;
     for ( auto& it : m_frames ) {
-        it.m_renderDepthTarget = RenderTarget{
-            RenderTarget::DEPTH
-            , m_physicalDevice
+        it.m_renderDepthTarget = Image{
+            m_physicalDevice
             , m_device
-            , m_depthPrepass
             , resolution
             , m_depthFormat
-            , nullptr
+            , 1
+            , 1
+            , Image::RTGT_DEPTH.usage
+            , Image::RTGT_DEPTH.memoryFlags
+            , Image::RTGT_DEPTH.aspectFlags
         };
-        it.m_renderTarget = RenderTarget{
-            RenderTarget::COLOR
-            , m_physicalDevice
+        it.m_renderTarget = Image{
+            m_physicalDevice
             , m_device
-            , m_mainPass
             , resolution
             , m_colorFormat
-            , it.m_renderDepthTarget.view()
+            , 1
+            , 1
+            , Image::RTGT_COLOR.usage
+            , Image::RTGT_COLOR.memoryFlags
+            , Image::RTGT_COLOR.aspectFlags
         };
-        it.m_renderTargetTmp = RenderTarget{
-            RenderTarget::COLOR
-            , m_physicalDevice
+        it.m_renderTargetTmp = Image{
+            m_physicalDevice
             , m_device
-            , m_mainPass
             , resolution
             , m_colorFormat
-            , it.m_renderDepthTarget.view()
+            , 1
+            , 1
+            , Image::RTGT_COLOR.usage
+            , Image::RTGT_COLOR.memoryFlags
+            , Image::RTGT_COLOR.aspectFlags
         };
     }
     vkDeviceWaitIdle( m_device );
@@ -709,20 +715,17 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
     Frame& fr = m_frames[ m_currentFrame ];
     PipelineVK& currentPipeline = m_pipelines[ pushBuffer.m_pipeline ];
 
-    fr.m_renderTarget.transfer( fr.m_cmdColorPass, constants::fragmentWrite );
     switch ( fr.m_state ) {
     case Frame::State::eCompute: {
         fr.m_state = Frame::State::eGraphics;
-        const VkRect2D rect{ .extent = fr.m_renderDepthTarget.extent() };
-        m_depthPrepass.resume( fr.m_cmdDepthPrepass, fr.m_renderDepthTarget.framebuffer(), rect );
-        m_mainPass.resume( fr.m_cmdColorPass, fr.m_renderTarget.framebuffer(), rect );
+        m_depthPrepass.resume( fr.m_cmdDepthPrepass, fr.m_renderDepthTarget, fr.m_renderTarget );
+        m_mainPass.resume( fr.m_cmdColorPass, fr.m_renderDepthTarget, fr.m_renderTarget );
     } break;
 
     case Frame::State::eNone: {
         fr.m_state = Frame::State::eGraphics;
-        const VkRect2D rect{ .extent = fr.m_renderDepthTarget.extent() };
-        m_depthPrepass.begin( fr.m_cmdDepthPrepass, fr.m_renderDepthTarget.framebuffer(), rect );
-        m_mainPass.begin( fr.m_cmdColorPass, fr.m_renderTarget.framebuffer(), rect );
+        m_depthPrepass.begin( fr.m_cmdDepthPrepass, fr.m_renderDepthTarget, fr.m_renderTarget );
+        m_mainPass.begin( fr.m_cmdColorPass, fr.m_renderDepthTarget, fr.m_renderTarget );
     } break;
     [[likely]] default:
         break;
@@ -833,7 +836,7 @@ void RendererVK::dispatch( [[maybe_unused]] const DispatchInfo& dispatchInfo, [[
         VkDescriptorImageInfo imageInfo;
     };
 
-    const RenderTarget* rtgt[] = {
+    const Image* rtgt[] = {
         &fr.m_renderTarget,
         &fr.m_renderTargetTmp,
     };

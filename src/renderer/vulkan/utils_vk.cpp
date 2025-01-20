@@ -6,7 +6,7 @@ void transferImage( VkCommandBuffer cmd, VkImage image, const TransferInfo& src,
 {
     assert( mipCount > 0 );
     const VkImageSubresourceRange imageSubresourceRange{
-        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .aspectMask = dst.m_aspect,
         .baseMipLevel = 0,
         .levelCount = mipCount,
         .baseArrayLayer = 0,

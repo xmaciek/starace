@@ -8,7 +8,6 @@
 #include "instance.hpp"
 #include "pipeline_vk.hpp"
 #include "queue_manager.hpp"
-#include "render_target.hpp"
 #include "renderpass.hpp"
 #include "swapchain.hpp"
 #include "texture_vk.hpp"

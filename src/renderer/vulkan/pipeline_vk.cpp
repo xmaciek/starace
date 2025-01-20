@@ -163,8 +163,8 @@ static std::tuple<PipelineVK::DescriptorWrites, uint32_t> prepareDescriptorWrite
 PipelineVK::PipelineVK(
     const PipelineCreateInfo& pci
     , VkDevice device
-    , VkRenderPass colorPass
-    , VkRenderPass depthPrepass
+    , VkFormat depthFormat
+    , VkFormat colorFormat
     , VkDescriptorSetLayout layout
     , uint32_t descriptorSetId
 ) noexcept
@@ -203,9 +203,6 @@ PipelineVK::PipelineVK(
         std::tie( m_descriptorWrites, m_descriptorWriteCount ) = prepareDescriptorWrites( pci );
         return;
     }
-
-    assert( colorPass );
-    assert( depthPrepass );
 
     const VkPipelineViewportStateCreateInfo viewportState{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
@@ -290,9 +287,23 @@ PipelineVK::PipelineVK(
         fragmentShader.fragment()
     };
 
+    const VkPipelineRenderingCreateInfoKHR colorRenderInfo{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR,
+        .colorAttachmentCount = 1,
+        .pColorAttachmentFormats = &colorFormat,
+        .depthAttachmentFormat = depthFormat,
+        .stencilAttachmentFormat = depthFormat,
+    };
+    const VkPipelineRenderingCreateInfoKHR depthRenderInfo{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR,
+        .depthAttachmentFormat = depthFormat,
+        .stencilAttachmentFormat = depthFormat,
+    };
+
     const std::array pipelineInfo{
         VkGraphicsPipelineCreateInfo{
             .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+            .pNext = &colorRenderInfo,
             .stageCount = stages.size(),
             .pStages = stages.data(),
             .pVertexInputState = &vertexInputInfo,
@@ -304,11 +315,11 @@ PipelineVK::PipelineVK(
             .pColorBlendState = &colorBlending,
             .pDynamicState = &dynamicState,
             .layout = m_layout,
-            .renderPass = colorPass,
         },
         // depth prepass
         VkGraphicsPipelineCreateInfo{
             .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+            .pNext = &depthRenderInfo,
             .stageCount = 1u,
             .pStages = stages.data(),
             .pVertexInputState = &vertexInputInfo,
@@ -319,11 +330,10 @@ PipelineVK::PipelineVK(
             .pDepthStencilState = &depthStencilPrepass,
             .pDynamicState = &dynamicState,
             .layout = m_layout,
-            .renderPass = depthPrepass,
         }
     };
 
-    const uint32_t pipelineCount = pci.m_enableDepthWrite ? 2 : 1;
+    const uint32_t pipelineCount = 2;
     std::array<VkPipeline, 2> pipelines{};
     [[maybe_unused]]
     const VkResult pipelineOK = vkCreateGraphicsPipelines( device, nullptr, pipelineCount, pipelineInfo.data(), nullptr, pipelines.data() );

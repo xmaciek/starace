@@ -46,6 +46,15 @@ VkImage Image::image() const
     return m_image;
 }
 
+
+VkDescriptorImageInfo Image::imageInfo() const
+{
+    return {
+        .imageView = m_imageView,
+        .imageLayout = VK_IMAGE_LAYOUT_GENERAL,
+    };
+}
+
 VkImageView Image::view() const
 {
     assert( m_imageView );

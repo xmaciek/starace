@@ -35,8 +35,8 @@ public:
     PipelineVK(
         const PipelineCreateInfo&
         , VkDevice
-        , VkRenderPass color
-        , VkRenderPass depth
+        , VkFormat depthFormat
+        , VkFormat colorFormat
         , VkDescriptorSetLayout
         , uint32_t descriptorSetId
     ) noexcept;

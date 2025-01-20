@@ -5,6 +5,23 @@
 #include "vk.hpp"
 
 class Image {
+public:
+    struct Purpose {
+        uint32_t usage = 0;
+        VkMemoryPropertyFlagBits memoryFlags{};
+        VkImageAspectFlagBits aspectFlags{};
+    };
+    static constexpr inline Purpose RTGT_COLOR{
+        .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_STORAGE_BIT,
+        .memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        .aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT,
+    };
+    static constexpr inline Purpose RTGT_DEPTH{
+        .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+        .memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        .aspectFlags = VK_IMAGE_ASPECT_DEPTH_BIT,
+    };
+
 protected:
     DeviceMemory m_deviceMemory{};
     VkDevice m_device = VK_NULL_HANDLE;
@@ -42,6 +59,7 @@ public:
     uint32_t mipCount() const;
     uint32_t arrayCount() const;
     VkImage image() const;
+    VkDescriptorImageInfo imageInfo() const;
     VkImageView view() const;
     VkExtent2D extent() const;
 

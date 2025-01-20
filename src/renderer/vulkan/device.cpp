@@ -41,14 +41,22 @@ Device::Device( VkPhysicalDevice phys, std::span<const char*> layers, std::span<
     vkEnumerateDeviceExtensionProperties( phys, nullptr, &count, deviceExtensions.data() );
     std::pmr::vector<const char*> enableExtensions{};
     Wishlist wishlist{ &deviceExtensions, &enableExtensions };
-    auto showError = []( auto ext )
+    auto required = [&wishlist]( auto ext )
     {
+        if ( wishlist( ext ) ) return;
         platform::showFatalError( "Required GPU extension is missing", ext );
     };
-    if ( !wishlist( VK_KHR_SWAPCHAIN_EXTENSION_NAME ) ) showError( VK_KHR_SWAPCHAIN_EXTENSION_NAME );
+    required( VK_KHR_SWAPCHAIN_EXTENSION_NAME );
+    required( VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME );
+
+    VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRendering{
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES,
+        .dynamicRendering = VK_TRUE,
+    };
 
     const VkDeviceCreateInfo deviceCreateInfo{
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+        .pNext = &dynamicRendering,
         .queueCreateInfoCount = static_cast<uint32_t>( queues.size() ),
         .pQueueCreateInfos = queues.data(),
         .enabledLayerCount = static_cast<uint32_t>( layers.size() ),

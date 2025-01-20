@@ -24,8 +24,6 @@ target_sources( renderer_vk
     pipeline_vk.hpp
     queue_manager.cpp
     queue_manager.hpp
-    render_target.cpp
-    render_target.hpp
     renderer_vk.cpp
     renderer_vk.hpp
     renderpass.cpp

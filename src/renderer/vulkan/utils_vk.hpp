@@ -14,6 +14,7 @@ struct TransferInfo {
     VkImageLayout m_layout{};
     VkAccessFlags m_access{};
     VkPipelineStageFlags m_stage{};
+    VkImageAspectFlags m_aspect{};
     inline bool operator == ( const TransferInfo& ) const noexcept = default;
 };
 
@@ -26,19 +27,21 @@ inline constexpr TransferInfo undefined{
     .m_layout = VK_IMAGE_LAYOUT_UNDEFINED,
     .m_access = 0,
     .m_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+    .m_aspect = VK_IMAGE_ASPECT_COLOR_BIT,
 };
 
 inline constexpr TransferInfo fragmentWrite{
     .m_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
     .m_access = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
     .m_stage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+    .m_aspect = VK_IMAGE_ASPECT_COLOR_BIT,
 };
-
 
 inline constexpr TransferInfo computeReadWrite{
     .m_layout = VK_IMAGE_LAYOUT_GENERAL,
     .m_access = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT,
     .m_stage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+    .m_aspect = VK_IMAGE_ASPECT_COLOR_BIT,
 };
 
 
@@ -46,36 +49,42 @@ inline constexpr TransferInfo present{
     .m_layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
     .m_access = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
     .m_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+    .m_aspect = VK_IMAGE_ASPECT_COLOR_BIT,
 };
 
 inline constexpr TransferInfo copyTo{
     .m_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
     .m_access = VK_ACCESS_TRANSFER_WRITE_BIT,
     .m_stage = VK_PIPELINE_STAGE_TRANSFER_BIT,
+    .m_aspect = VK_IMAGE_ASPECT_COLOR_BIT,
 };
 
 inline constexpr TransferInfo copyFrom{
     .m_layout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
     .m_access = VK_ACCESS_TRANSFER_WRITE_BIT,
     .m_stage = VK_PIPELINE_STAGE_TRANSFER_BIT,
+    .m_aspect = VK_IMAGE_ASPECT_COLOR_BIT,
 };
 
 inline constexpr TransferInfo fragmentRead{
     .m_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
     .m_access = VK_ACCESS_SHADER_READ_BIT,
     .m_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+    .m_aspect = VK_IMAGE_ASPECT_COLOR_BIT,
 };
 
 inline constexpr TransferInfo depthWrite{
     .m_layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
     .m_access = 0,
     .m_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+    .m_aspect = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT,
 };
 
 inline constexpr TransferInfo depthRead{
     .m_layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,
     .m_access = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT,
     .m_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+    .m_aspect = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT,
 };
 }
 } // namespace constants
