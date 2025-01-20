@@ -56,10 +56,6 @@ static constexpr Texture textureIndexToId( uint32_t index, uint32_t channelCount
 
 static Renderer* g_instance = nullptr;
 
-static constexpr std::array REQUIRED_DEVICE_EXTENSIONS = {
-    VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-};
-
 constexpr std::size_t operator ""_MiB( unsigned long long v ) noexcept
 {
     return v << 20;
@@ -166,27 +162,11 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
     }
 
     m_queueManager = QueueManager{ m_physicalDevice, m_surface };
+
     {
-        ZoneScopedN( "create device" );
-        auto [ qarr, qcount ] = m_queueManager.createInfo();
-        VkPhysicalDeviceFeatures deviceFeatures{
-            .wideLines = VK_TRUE,
-            .samplerAnisotropy = VK_TRUE,
-        };
         auto layers = m_instance.layers();
-        const VkDeviceCreateInfo deviceCreateInfo{
-            .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-            .queueCreateInfoCount = qcount,
-            .pQueueCreateInfos = qarr.data(),
-            .enabledLayerCount = static_cast<uint32_t>( layers.size() ),
-            .ppEnabledLayerNames = layers.data(),
-            .enabledExtensionCount = static_cast<uint32_t>( REQUIRED_DEVICE_EXTENSIONS.size() ),
-            .ppEnabledExtensionNames = REQUIRED_DEVICE_EXTENSIONS.data(),
-            .pEnabledFeatures = &deviceFeatures,
-        };
-        [[maybe_unused]]
-        const VkResult deviceOK = vkCreateDevice( m_physicalDevice, &deviceCreateInfo, nullptr, &m_device );
-        assert( deviceOK == VK_SUCCESS );
+        auto queues = m_queueManager.createInfo();
+        m_device = Device{ m_physicalDevice, layers, queues };
     }
 
     m_queueManager.acquire( m_device );
@@ -322,9 +302,6 @@ RendererVK::~RendererVK()
     m_swapchain = {};
     if ( m_surface ) {
         vkDestroySurfaceKHR( m_instance, m_surface, nullptr );
-    }
-    if ( m_device ) {
-        vkDestroyDevice( m_device, nullptr );
     }
 }
 

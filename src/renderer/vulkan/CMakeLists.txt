@@ -11,6 +11,8 @@ target_sources( renderer_vk
     debug_messanger.hpp
     descriptor_set.cpp
     descriptor_set.hpp
+    device.cpp
+    device.hpp
     device_memory.cpp
     device_memory.hpp
     frame.hpp
@@ -20,8 +22,8 @@ target_sources( renderer_vk
     instance.hpp
     pipeline_vk.cpp
     pipeline_vk.hpp
-    queue_manager.hpp
     queue_manager.cpp
+    queue_manager.hpp
     render_target.cpp
     render_target.hpp
     renderer_vk.cpp
@@ -40,6 +42,7 @@ target_sources( renderer_vk
     utils_vk.hpp
     vk.def
     vk.hpp
+    wishlist.hpp
 )
 
 target_link_libraries( renderer_vk

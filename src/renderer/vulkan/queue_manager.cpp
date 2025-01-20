@@ -141,29 +141,30 @@ void QueueManager::acquire( VkDevice device )
 
 }
 
-std::tuple<std::array<VkDeviceQueueCreateInfo, 3>, uint32_t> QueueManager::createInfo() const
+std::pmr::vector<VkDeviceQueueCreateInfo> QueueManager::createInfo() const
 {
-    std::tuple<std::array<VkDeviceQueueCreateInfo, 3>, uint32_t> ret;
-    auto& arr = std::get<0>( ret );
-    arr[ 0 ] = VkDeviceQueueCreateInfo{
+    std::pmr::vector<VkDeviceQueueCreateInfo> ret;
+    ret.reserve( 3 );
+    ret.emplace_back( VkDeviceQueueCreateInfo{
         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
         .queueFamilyIndex = m_graphicsFamily.index,
         .queueCount = 1u + static_cast<uint32_t>( ( m_graphicsFamily.index == m_transferFamily.index ) && m_graphicsFamily.count > 1 ),
         .pQueuePriorities = PRIORITIES.data(),
-    };
-    arr[ 1 ] = VkDeviceQueueCreateInfo{
+    } );
+    ret.emplace_back( VkDeviceQueueCreateInfo{
         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
         .queueFamilyIndex = m_presentFamily.index,
         .queueCount = 1u,
         .pQueuePriorities = PRIORITIES.data(),
-    };
-    arr[ 2 ] = VkDeviceQueueCreateInfo{
-        .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-        .queueFamilyIndex = m_transferFamily.index,
-        .queueCount = 1u,
-        .pQueuePriorities = PRIORITIES.data(),
-    };
-    std::get<1>( ret ) = 2u + static_cast<uint32_t>( m_graphicsFamily.index != m_transferFamily.index );
+    } );
+    if ( m_graphicsFamily.index != m_transferFamily.index ) {
+            ret.emplace_back( VkDeviceQueueCreateInfo{
+            .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+            .queueFamilyIndex = m_transferFamily.index,
+            .queueCount = 1u,
+            .pQueuePriorities = PRIORITIES.data(),
+        } );
+    }
     return ret;
 }
 

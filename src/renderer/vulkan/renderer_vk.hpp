@@ -1,9 +1,9 @@
 #pragma once
 
-
 #include "buffer_vk.hpp"
 #include "command_pool.hpp"
 #include "debug_messanger.hpp"
+#include "device.hpp"
 #include "frame.hpp"
 #include "instance.hpp"
 #include "pipeline_vk.hpp"
@@ -25,15 +25,12 @@
 #include <optional>
 
 class RendererVK : public Renderer {
-    Instance m_instance{};
-
     SDL_Window* m_window = nullptr;
-
-    [[no_unique_address]]
-    DebugMsg m_debugMsg{};
-
+    Instance m_instance{};
+    [[no_unique_address]] DebugMsg m_debugMsg{};
     VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
-    VkDevice m_device = VK_NULL_HANDLE;
+    Device m_device{};
+
     VkSurfaceKHR m_surface = VK_NULL_HANDLE;
 
     using Bottleneck = std::scoped_lock<std::mutex>;

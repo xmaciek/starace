@@ -6,6 +6,8 @@
 #include <tuple>
 #include <array>
 #include <mutex>
+#include <vector>
+#include <memory_resource>
 
 class QueueManager {
 public:
@@ -44,7 +46,7 @@ public:
     std::tuple<VkQueue, std::mutex*> present();
     std::tuple<VkQueue, std::mutex*> transfer();
 
-    std::tuple<std::array<VkDeviceQueueCreateInfo, 3>, uint32_t> createInfo() const;
+    std::pmr::vector<VkDeviceQueueCreateInfo> createInfo() const;
     void acquire( VkDevice );
 
 };

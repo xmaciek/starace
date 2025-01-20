@@ -57,6 +57,7 @@ DECL_FUNCTION( vkDestroySurfaceKHR );
 DECL_FUNCTION( vkDestroySwapchainKHR );
 DECL_FUNCTION( vkDeviceWaitIdle );
 DECL_FUNCTION( vkEndCommandBuffer );
+DECL_FUNCTION( vkEnumerateDeviceExtensionProperties );
 DECL_FUNCTION( vkEnumeratePhysicalDevices );
 DECL_FUNCTION( vkFreeMemory );
 DECL_FUNCTION( vkGetBufferMemoryRequirements );
