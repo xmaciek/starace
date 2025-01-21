@@ -9,6 +9,7 @@ ComboBox = { x = 48 y = 200 width = 400 height = 48 text = settings.display.full
 ComboBox = { x = 48 y = 250 width = 400 height = 48 text = settings.display.resolution       data = $data:resolution }
 ComboBox = { x = 48 y = 300 width = 400 height = 48 text = settings.display.gammaCorrection  data = $data:gammaCorrection }
 ComboBox = { x = 48 y = 350 width = 400 height = 48 text = settings.display.fxaa             data = $data:fxaa }
+ComboBox = { x = 48 y = 400 width = 400 height = 48 text = settings.display.fpsLimiter       data = $data:fpsLimiter }
 
 Footer = {
     Button = { text = apply     input = eMenuApply      trigger = $function:applyGFX }

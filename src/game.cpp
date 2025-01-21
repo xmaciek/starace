@@ -160,7 +160,6 @@ static std::pmr::vector<csg::Callsign> loadCallsigns( Filesystem* io )
     return callsigns;
 }
 
-
 void Game::setupUI()
 {
     m_uiAtlas = ui::Font::CreateInfo{
@@ -273,6 +272,7 @@ void Game::setupUI()
     m_gameUiDataModels.insert( "$data:resolution"_hash, &m_optionsGFX.m_resolution );
     m_gameUiDataModels.insert( "$data:vsync"_hash, &m_optionsGFX.m_vsync );
     m_gameUiDataModels.insert( "$data:fxaa"_hash, &m_optionsGFX.m_fxaa );
+    m_gameUiDataModels.insert( "$data:fpsLimiter"_hash, &m_optionsGFX.m_fpsLimiter );
     m_gameUiDataModels.insert( "$data:settings.audio.driver"_hash, &m_optionsAudio.m_driver );
     m_gameUiDataModels.insert( "$data:settings.audio.device"_hash, &m_optionsAudio.m_device );
     m_gameUiDataModels.insert( "$data:settings.audio.master"_hash, &m_optionsAudio.m_master );
@@ -305,6 +305,7 @@ void Game::setupUI()
         displayMode.fullscreen = m_optionsGFX.m_fullscreen.value();
         setDisplayMode( displayMode );
         m_renderer->setVSync( m_optionsGFX.m_vsync.value() );
+        setTargetFPS( 200, m_optionsGFX.m_fpsLimiter.value() ? FpsLimiter::eSpinLock : FpsLimiter::eOff );
     });
     m_gameCallbacks.insert( "$function:applyAudio"_hash, [this]()
     {

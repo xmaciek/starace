@@ -64,7 +64,7 @@ Engine::Engine( int, char** ) noexcept
     m_audio = Audio::create();
     m_audioPtr = std::unique_ptr<Audio>( m_audio );
 
-    setTargetFPS( 144, FpsLimiter::eSpinLock );
+    setTargetFPS( 200, FpsLimiter::eSpinLock );
 }
 
 int Engine::run()
