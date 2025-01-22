@@ -448,10 +448,6 @@ void Game::onRender( Renderer* renderer )
         .m_pipeline = g_pipelines[ Pipeline::eGammaCorrection ],
     };
     m_renderer->dispatch( dispatchInfo, &pushConstant );
-
-    const PushConstant<Pipeline::eScanline> pushScanline{ .m_power = { 0.816f, 0.816f, 0.816f, 1.0f } };
-    const DispatchInfo dispatchScanline{ .m_pipeline = g_pipelines[ Pipeline::eScanline ] };
-    m_renderer->dispatch( dispatchScanline, &pushScanline );
 }
 
 void Game::onUpdate( float deltaTime )
