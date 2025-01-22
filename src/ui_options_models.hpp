@@ -39,15 +39,6 @@ public:
 
     Option( size_type currentIndex
         , std::pmr::vector<T>&& values
-        , std::pmr::vector<Hash::value_type>&& locValues
-    ) noexcept
-    : m_currentIndex{ currentIndex }
-    , m_values( std::move( values ) )
-    , m_locValues( std::move( locValues ) )
-    {}
-
-    Option( size_type currentIndex
-        , std::pmr::vector<T>&& values
         , FnToString&& toString
     ) noexcept
     : m_currentIndex{ currentIndex }

@@ -10,6 +10,8 @@
 
 
 struct OptionsGFX {
+    template <typename T> static std::pmr::u32string toString( const T& );
+
     ui::Option<DisplayMode> m_resolution{};
     ui::Option<bool> m_fullscreen{ 0 };
     ui::Option<VSync> m_vsync{};
@@ -28,10 +30,9 @@ struct OptionsGFX {
         eOff,
         eFXAA,
     };
-    static std::pmr::u32string toString( AntiAlias );
     ui::Option<AntiAlias> m_antialias{ 0
         , { AntiAlias::eOff, AntiAlias::eFXAA }
-        , &OptionsGFX::toString
+        , &OptionsGFX::toString<AntiAlias>
     };
     ui::Option<bool> m_fpsLimiter{ 1 };
 };

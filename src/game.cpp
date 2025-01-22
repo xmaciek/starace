@@ -248,18 +248,14 @@ void Game::setupUI()
         return m_mapsContainer[ i ].preview;
     };
 
-    m_optionsGFX.m_resolution = ui::Option<DisplayMode>{ 0, displayModes(),
-        []( const auto& dm ) { return intToUTF32( dm.width ) + U" x " + intToUTF32( dm.height ); }
-    };
+    m_optionsGFX.m_resolution = ui::Option<DisplayMode>{ 0, displayModes(), &OptionsGFX::toString<DisplayMode> };
 
     {
         std::pmr::vector<VSync> v{ VSync::eOff, VSync::eOn };
-        std::pmr::vector<Hash::value_type> h{ "off"_hash, "on"_hash };
         if ( m_renderer->featureAvailable( Renderer::Feature::eVSyncMailbox ) ) {
             v.emplace_back( VSync::eMailbox );
-            h.emplace_back( "mailbox"_hash );
         }
-        m_optionsGFX.m_vsync = ui::Option<VSync>{ 1, std::move( v ), std::move( h ) };
+        m_optionsGFX.m_vsync = ui::Option<VSync>{ 1, std::move( v ), &OptionsGFX::toString<VSync> };
     };
 
     m_optionsAudio.m_driver.setData( 0, m_audio->listDrivers() );
