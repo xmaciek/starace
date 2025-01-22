@@ -17,11 +17,6 @@ bool isOnScreen( const math::vec3& point, const math::vec2& viewport );
 bool isOnScreen( const math::mat4& mvp, const math::vec3& point, const math::vec2& viewport );
 float randomRange( float a, float b );
 
-constexpr double colorHalf( double col ) noexcept
-{
-    return ( col >= 0.5 ) ? 1.0 - col : col;
-}
-
 template <typename T>
 char32_t* toChars( char32_t* begin, char32_t* end, T t )
 {
