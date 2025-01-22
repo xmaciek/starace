@@ -271,7 +271,7 @@ void Game::setupUI()
     m_gameUiDataModels.insert( "$data:missionSelect"_hash, &m_dataMissionSelect );
     m_gameUiDataModels.insert( "$data:resolution"_hash, &m_optionsGFX.m_resolution );
     m_gameUiDataModels.insert( "$data:vsync"_hash, &m_optionsGFX.m_vsync );
-    m_gameUiDataModels.insert( "$data:fxaa"_hash, &m_optionsGFX.m_fxaa );
+    m_gameUiDataModels.insert( "$data:antialias"_hash, &m_optionsGFX.m_antialias );
     m_gameUiDataModels.insert( "$data:fpsLimiter"_hash, &m_optionsGFX.m_fpsLimiter );
     m_gameUiDataModels.insert( "$data:settings.audio.driver"_hash, &m_optionsAudio.m_driver );
     m_gameUiDataModels.insert( "$data:settings.audio.device"_hash, &m_optionsAudio.m_device );
@@ -923,10 +923,14 @@ void Game::render3D( RenderContext rctx )
     Bullet::renderAll( rctx, m_bullets, m_plasma );
     m_player.render( rctx );
 
-    if ( m_optionsGFX.m_fxaa.value() ) {
+    switch ( m_optionsGFX.m_antialias.value() ) {
+    case OptionsGFX::AntiAlias::eFXAA: {
         const PushConstant<Pipeline::eAntiAliasFXAA> aa{};
         const DispatchInfo daa{ .m_pipeline = g_pipelines[ Pipeline::eAntiAliasFXAA ] };
         rctx.renderer->dispatch( daa, &aa );
+    } break;
+    default:
+        break;
     }
 }
 
@@ -975,10 +979,14 @@ void Game::renderMenuScreen( RenderContext rctx, ui::RenderContext r ) const
     jet.render( rctx );
     m_dustUi.render( rctx );
 
-    if ( m_optionsGFX.m_fxaa.value() ) {
+    switch ( m_optionsGFX.m_antialias.value() ) {
+    case OptionsGFX::AntiAlias::eFXAA: {
         const PushConstant<Pipeline::eAntiAliasFXAA> aa{};
         const DispatchInfo daa{ .m_pipeline = g_pipelines[ Pipeline::eAntiAliasFXAA ] };
         rctx.renderer->dispatch( daa, &aa );
+    } break;
+    default:
+        break;
     }
 }
 

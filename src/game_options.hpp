@@ -3,10 +3,11 @@
 #include "ui_options_models.hpp"
 
 #include <ui/var.hpp>
-#include <renderer/buffer.hpp>
+#include <renderer/renderer.hpp>
 
 #include <string>
 #include <memory_resource>
+
 
 struct OptionsGFX {
     ui::Option<DisplayMode> m_resolution{};
@@ -20,9 +21,18 @@ struct OptionsGFX {
             , 3.0f, 3.1f, 3.2f, 3.3f, 3.4f, 3.5f, 3.6f, 3.7f, 3.8f, 3.9f
             , 4.0f, 4.1f, 4.2f, 4.3f, 4.4f, 4.5f, 4.6f, 4.7f, 4.8f, 4.9f
         }
-        , &toString<float>
+        , &::toString<float>
     };
-    ui::Option<bool> m_fxaa{ 0 };
+
+    enum class AntiAlias : uint32_t {
+        eOff,
+        eFXAA,
+    };
+    static std::pmr::u32string toString( AntiAlias );
+    ui::Option<AntiAlias> m_antialias{ 0
+        , { AntiAlias::eOff, AntiAlias::eFXAA }
+        , &OptionsGFX::toString
+    };
     ui::Option<bool> m_fpsLimiter{ 1 };
 };
 
