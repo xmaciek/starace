@@ -1,19 +1,21 @@
 #pragma once
 
 #include "vk.hpp"
+#include "device.hpp"
 #include "image.hpp"
 
 class RenderPass {
-    bool m_depthOnly = false;
-
 public:
+    bool m_depthOnly : 1 = false;
+    bool m_hasVRS : 1 = false;
+    bool m_vrs : 1 = false;
     enum Purpose {
         eColor,
         eDepth,
     };
 
     RenderPass() noexcept = default;
-    RenderPass( Purpose ) noexcept;
+    RenderPass( const Device&, Purpose ) noexcept;
     ~RenderPass() noexcept = default;
 
     RenderPass( const RenderPass& ) = delete;
@@ -25,4 +27,5 @@ public:
     void resume( VkCommandBuffer, const Image& depth, const Image& color ) noexcept;
     void end( VkCommandBuffer ) noexcept;
 
+    inline void enableVRS( bool b ) noexcept { m_vrs = b; }
 };

@@ -2,11 +2,20 @@
 
 #include "vk.hpp"
 
+#include <bitset>
+#include <cstdint>
 #include <span>
 
 class Device {
+public:
+    enum Feature : uint32_t {
+        eVRS,
+        count,
+    };
+
 private:
     VkDevice m_device{};
+    std::bitset<count> m_features{};
 
 public:
     ~Device();
@@ -18,4 +27,6 @@ public:
     Device& operator = ( Device&& );
 
     inline operator VkDevice () const { return m_device; }
+
+    bool hasFeature( Feature ) const;
 };

@@ -177,8 +177,8 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
         , createInfo.vsync
     );
 
-    m_mainPass = RenderPass{ RenderPass::eColor };
-    m_depthPrepass = RenderPass{ RenderPass::eDepth };
+    m_mainPass = RenderPass{ m_device, RenderPass::eColor };
+    m_depthPrepass = RenderPass{ m_device, RenderPass::eDepth };
 
     {
         static constexpr VkSemaphoreCreateInfo semaphoreInfo{
@@ -317,8 +317,24 @@ bool RendererVK::featureAvailable( Feature f ) const
     switch ( f ) {
     case Feature::eVSyncMailbox:
         return Swapchain::supportedVSyncs( m_physicalDevice, m_surface )[ (uint32_t)VSync::eMailbox ];
+    case Feature::eVRSAA:
+        return m_device.hasFeature( Device::eVRS );
     default:
         return false;
+    }
+}
+
+void RendererVK::setFeatureEnabled( Feature f, bool b )
+{
+    switch ( f ) {
+    case Feature::eVSyncMailbox: break;
+    case Feature::eVRSAA:
+        m_mainPass.enableVRS( featureAvailable( f ) && b );
+        refreshResolution();
+        break;
+    default:
+        assert( !"unhandled enum" );
+        break;
     }
 }
 
@@ -511,15 +527,30 @@ void RendererVK::recreateSwapchain()
 
 void RendererVK::setResolution( uint32_t width, uint32_t height )
 {
+    assert( width && height );
+    if ( m_resolution.width == width && m_resolution.height == height ) return;
     uint64_t packedResolution = static_cast<uint64_t>( width );
     packedResolution <<= 32;
     packedResolution |= height;
     m_pendingResolutionChange.store( packedResolution );
 }
 
-void RendererVK::recreateRenderTargets( const VkExtent2D& resolution )
+void RendererVK::refreshResolution()
+{
+    uint64_t packedResolution = static_cast<uint64_t>( m_resolution.width );
+    packedResolution <<= 32;
+    packedResolution |= m_resolution.height;
+    m_pendingResolutionChange.store( packedResolution );
+}
+
+void RendererVK::recreateRenderTargets( VkExtent2D resolution )
 {
     ZoneScoped;
+    m_resolution = resolution;
+    if ( m_mainPass.m_vrs ) {
+        resolution.width *= 2;
+        resolution.height *= 2;
+    }
     for ( auto& it : m_frames ) {
         it.m_renderDepthTarget = Image{
             m_physicalDevice
@@ -692,18 +723,13 @@ void RendererVK::present()
         assert( !"failed to present" );
     }
 
-    do {
-        const uint64_t packedResolution = m_pendingResolutionChange.exchange( 0 );
-        if ( packedResolution == 0 ) [[likely]] break;
+    if ( const uint64_t packedResolution = m_pendingResolutionChange.exchange( 0 ); packedResolution ) [[unlikely]] {
         const VkExtent2D res{
             .width = static_cast<uint32_t>( packedResolution >> 32 ),
             .height = static_cast<uint32_t>( packedResolution & 0xFFFF'FFFFull ),
         };
-        assert( res.width && res.height );
-        const VkExtent2D currentRes = m_frames[ 0 ].m_renderTarget.extent();
-        if ( currentRes == res ) break;
         recreateRenderTargets( res );
-    } while ( 0 );
+    }
     vkQueueWaitIdle( queue );
 }
 
@@ -871,7 +897,7 @@ void RendererVK::dispatch( [[maybe_unused]] const DispatchInfo& dispatchInfo, [[
     vkCmdBindPipeline( fr.m_cmdColorPass, VK_PIPELINE_BIND_POINT_COMPUTE, currentPipeline );
 
     const VkExtent2D extent = fr.m_renderTarget.extent();
-    vkCmdDispatch( fr.m_cmdColorPass, extent.width / 8, extent.height / 8, 1 );
+    vkCmdDispatch( fr.m_cmdColorPass, extent.width / 4, extent.height / 4, 1 );
 
     std::swap( fr.m_renderTarget, fr.m_renderTargetTmp );
 }

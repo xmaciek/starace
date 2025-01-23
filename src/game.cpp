@@ -251,6 +251,14 @@ void Game::setupUI()
     m_optionsGFX.m_resolution = ui::Option<DisplayMode>{ 0, displayModes(), &OptionsGFX::toString<DisplayMode> };
 
     {
+        using enum OptionsGFX::AntiAlias;
+        std::pmr::vector<OptionsGFX::AntiAlias> aa{ eOff, eFXAA };
+        if ( m_renderer->featureAvailable( Renderer::Feature::eVRSAA ) ) {
+            aa.emplace_back( eVRSAA );
+        }
+        m_optionsGFX.m_antialias = ui::Option<OptionsGFX::AntiAlias>{ 0, std::move( aa ), &OptionsGFX::toString<OptionsGFX::AntiAlias> };
+    }
+    {
         std::pmr::vector<VSync> v{ VSync::eOff, VSync::eOn };
         if ( m_renderer->featureAvailable( Renderer::Feature::eVSyncMailbox ) ) {
             v.emplace_back( VSync::eMailbox );
@@ -299,8 +307,9 @@ void Game::setupUI()
     {
         DisplayMode displayMode = m_optionsGFX.m_resolution.value();
         displayMode.fullscreen = m_optionsGFX.m_fullscreen.value();
-        setDisplayMode( displayMode );
         m_renderer->setVSync( m_optionsGFX.m_vsync.value() );
+        m_renderer->setFeatureEnabled( Renderer::Feature::eVRSAA, m_optionsGFX.m_antialias.value() == OptionsGFX::AntiAlias::eVRSAA );
+        setDisplayMode( displayMode );
         setTargetFPS( 200, m_optionsGFX.m_fpsLimiter.value() ? FpsLimiter::eSpinLock : FpsLimiter::eOff );
     });
     m_gameCallbacks.insert( "$function:applyAudio"_hash, [this]()
@@ -920,7 +929,8 @@ void Game::render3D( RenderContext rctx )
     m_player.render( rctx );
 
     switch ( m_optionsGFX.m_antialias.value() ) {
-    case OptionsGFX::AntiAlias::eFXAA: {
+    case OptionsGFX::AntiAlias::eFXAA:
+    case OptionsGFX::AntiAlias::eVRSAA: {
         const PushConstant<Pipeline::eAntiAliasFXAA> aa{};
         const DispatchInfo daa{ .m_pipeline = g_pipelines[ Pipeline::eAntiAliasFXAA ] };
         rctx.renderer->dispatch( daa, &aa );
@@ -976,7 +986,8 @@ void Game::renderMenuScreen( RenderContext rctx, ui::RenderContext r ) const
     m_dustUi.render( rctx );
 
     switch ( m_optionsGFX.m_antialias.value() ) {
-    case OptionsGFX::AntiAlias::eFXAA: {
+    case OptionsGFX::AntiAlias::eFXAA:
+    case OptionsGFX::AntiAlias::eVRSAA: {
         const PushConstant<Pipeline::eAntiAliasFXAA> aa{};
         const DispatchInfo daa{ .m_pipeline = g_pipelines[ Pipeline::eAntiAliasFXAA ] };
         rctx.renderer->dispatch( daa, &aa );

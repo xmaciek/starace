@@ -100,7 +100,8 @@ Instance::Instance( std::pmr::vector<const char*> extensions ) noexcept
 
 #define GET_PROC( name ) \
     if ( name = reinterpret_cast<PFN_##name>( procAddr( #name ) ); !name ) \
-    { assert( name ); std::abort(); }
+        platform::showFatalError( "Fatal Error", "Failed to find " #name " in vulkan library" )
+#define GET_PROC_OPTIONAL( name ) name = reinterpret_cast<PFN_##name>( procAddr( #name ) );
 
     GET_PROC( vkCreateInstance );
     GET_PROC( vkEnumerateInstanceLayerProperties );
@@ -133,6 +134,7 @@ Instance::Instance( std::pmr::vector<const char*> extensions ) noexcept
 
     GET_PROC( vkDestroyInstance );
 #define DECL_FUNCTION( name ) GET_PROC( name )
+#define DECL_FUNCTION_OPTIONAL( name ) GET_PROC_OPTIONAL( name )
 #include "vk.def"
 }
 

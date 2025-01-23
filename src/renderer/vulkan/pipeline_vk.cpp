@@ -162,7 +162,7 @@ static std::tuple<PipelineVK::DescriptorWrites, uint32_t> prepareDescriptorWrite
 
 PipelineVK::PipelineVK(
     const PipelineCreateInfo& pci
-    , VkDevice device
+    , const Device& device
     , VkFormat depthFormat
     , VkFormat colorFormat
     , VkDescriptorSetLayout layout
@@ -248,16 +248,28 @@ PipelineVK::PipelineVK(
         .pAttachments = &colorBlendAttachment,
     };
 
-    const std::array dynamicStates{
+    const std::array dynamicStatesDepth{
         VK_DYNAMIC_STATE_VIEWPORT,
         VK_DYNAMIC_STATE_SCISSOR,
         VK_DYNAMIC_STATE_LINE_WIDTH,
     };
-    const uint32_t dynamicStateCount = useLines() ? 3 : 2;
-    const VkPipelineDynamicStateCreateInfo dynamicState{
+    std::pmr::vector<VkDynamicState> dynamicStatesColor{
+        VK_DYNAMIC_STATE_VIEWPORT,
+        VK_DYNAMIC_STATE_SCISSOR,
+    };
+    if ( useLines() ) dynamicStatesColor.emplace_back( VK_DYNAMIC_STATE_LINE_WIDTH );
+    if ( device.hasFeature( Device::eVRS ) ) dynamicStatesColor.emplace_back( VK_DYNAMIC_STATE_FRAGMENT_SHADING_RATE_KHR );
+
+    const VkPipelineDynamicStateCreateInfo dynamicStateDepth{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
-        .dynamicStateCount = dynamicStateCount,
-        .pDynamicStates = dynamicStates.data(),
+        .dynamicStateCount = static_cast<uint32_t>( dynamicStatesDepth.size() - !useLines() ),
+        .pDynamicStates = dynamicStatesDepth.data(),
+    };
+
+    const VkPipelineDynamicStateCreateInfo dynamicStateColor{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+        .dynamicStateCount = static_cast<uint32_t>( dynamicStatesColor.size() ),
+        .pDynamicStates = dynamicStatesColor.data(),
     };
 
     const auto [ attribute, attributeCount ] = attributeAssembly( pci );
@@ -313,7 +325,7 @@ PipelineVK::PipelineVK(
             .pMultisampleState = &multisampling,
             .pDepthStencilState = &depthStencilColor,
             .pColorBlendState = &colorBlending,
-            .pDynamicState = &dynamicState,
+            .pDynamicState = &dynamicStateColor,
             .layout = m_layout,
         },
         // depth prepass
@@ -328,7 +340,7 @@ PipelineVK::PipelineVK(
             .pRasterizationState = &rasterizer,
             .pMultisampleState = &multisampling,
             .pDepthStencilState = &depthStencilPrepass,
-            .pDynamicState = &dynamicState,
+            .pDynamicState = &dynamicStateDepth,
             .layout = m_layout,
         }
     };

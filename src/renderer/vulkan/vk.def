@@ -1,6 +1,9 @@
 #if !defined( DECL_FUNCTION )
 #error DECL_FUNCTION not defined before vk.def include
 #endif
+#if !defined( DECL_FUNCTION_OPTIONAL )
+#error DECL_FUNCTION_OPTIONAL not defined before vk.def include
+#endif
 
 DECL_FUNCTION( vkAcquireNextImageKHR );
 DECL_FUNCTION( vkAllocateCommandBuffers );
@@ -20,6 +23,7 @@ DECL_FUNCTION( vkCmdDispatch );
 DECL_FUNCTION( vkCmdDraw );
 DECL_FUNCTION( vkCmdEndRenderingKHR );
 DECL_FUNCTION( vkCmdPipelineBarrier );
+DECL_FUNCTION_OPTIONAL( vkCmdSetFragmentShadingRateKHR );
 DECL_FUNCTION( vkCmdSetLineWidth );
 DECL_FUNCTION( vkCmdSetScissor );
 DECL_FUNCTION( vkCmdSetViewport );
@@ -82,3 +86,4 @@ DECL_FUNCTION( vkUnmapMemory );
 DECL_FUNCTION( vkUpdateDescriptorSets );
 
 #undef DECL_FUNCTION
+#undef DECL_FUNCTION_OPTIONAL

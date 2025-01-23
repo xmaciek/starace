@@ -29,11 +29,9 @@ struct OptionsGFX {
     enum class AntiAlias : uint32_t {
         eOff,
         eFXAA,
+        eVRSAA,
     };
-    ui::Option<AntiAlias> m_antialias{ 0
-        , { AntiAlias::eOff, AntiAlias::eFXAA }
-        , &OptionsGFX::toString<AntiAlias>
-    };
+    ui::Option<AntiAlias> m_antialias{};
     ui::Option<bool> m_fpsLimiter{ 1 };
 };
 

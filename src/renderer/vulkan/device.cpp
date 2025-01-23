@@ -17,11 +17,13 @@ Device::~Device()
 Device::Device( Device&& rhs )
 {
     std::swap( rhs.m_device, m_device );
+    std::swap( rhs.m_features, m_features );
 }
 
 Device& Device::operator = ( Device&& rhs )
 {
     std::swap( rhs.m_device, m_device );
+    std::swap( rhs.m_features, m_features );
     return *this;
 }
 
@@ -49,9 +51,23 @@ Device::Device( VkPhysicalDevice phys, std::span<const char*> layers, std::span<
     required( VK_KHR_SWAPCHAIN_EXTENSION_NAME );
     required( VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME );
 
+    void** pNext = nullptr;
     VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRendering{
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES,
         .dynamicRendering = VK_TRUE,
+    };
+    pNext = &dynamicRendering.pNext;
+
+    VkPhysicalDeviceFragmentShadingRateFeaturesKHR vrs{
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_FEATURES_KHR,
+        .pipelineFragmentShadingRate = VK_TRUE,
+        .primitiveFragmentShadingRate = VK_TRUE,
+        .attachmentFragmentShadingRate = VK_TRUE,
+    };
+    if ( wishlist( VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME ) ) {
+        m_features[ Feature::eVRS ] = true;
+        *pNext = &vrs;
+        pNext = &vrs.pNext;
     };
 
     const VkDeviceCreateInfo deviceCreateInfo{
@@ -68,4 +84,9 @@ Device::Device( VkPhysicalDevice phys, std::span<const char*> layers, std::span<
     [[maybe_unused]]
     const VkResult deviceOK = vkCreateDevice( phys, &deviceCreateInfo, nullptr, &m_device );
     assert( deviceOK == VK_SUCCESS );
+}
+
+bool Device::hasFeature( Feature f ) const
+{
+    return m_features[ f ];
 }

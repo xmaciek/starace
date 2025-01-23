@@ -8,8 +8,9 @@
 
 #include <profiler.hpp>
 
-RenderPass::RenderPass( Purpose purpose ) noexcept
+RenderPass::RenderPass( const Device& d, Purpose purpose ) noexcept
 : m_depthOnly{ purpose == eDepth }
+, m_hasVRS{ d.hasFeature( Device::eVRS ) }
 {
 }
 
@@ -33,7 +34,15 @@ void RenderPass::begin( VkCommandBuffer cmd, const Image& depth, const Image& co
     };
     vkCmdSetViewport( cmd, 0, 1, &viewport );
     vkCmdSetScissor( cmd, 0, 1, &rect );
-
+    if ( m_hasVRS ) {
+        const VkExtent2D vrs = m_vrs ? VkExtent2D{ 2, 2 } : VkExtent2D{ 1, 1 };
+        const VkFragmentShadingRateCombinerOpKHR combiner[]{
+            VK_FRAGMENT_SHADING_RATE_COMBINER_OP_KEEP_KHR,
+            VK_FRAGMENT_SHADING_RATE_COMBINER_OP_KEEP_KHR,
+        };
+        assert( vkCmdSetFragmentShadingRateKHR );
+        vkCmdSetFragmentShadingRateKHR( cmd, &vrs, combiner );
+    }
     const VkRenderingAttachmentInfoKHR colorAttachment{
         .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
         .imageView = color.view(),
@@ -59,6 +68,7 @@ void RenderPass::begin( VkCommandBuffer cmd, const Image& depth, const Image& co
         .pColorAttachments = m_depthOnly ? nullptr : &colorAttachment,
         .pDepthAttachment = &depthAttachment,
     };
+
     vkCmdBeginRenderingKHR( cmd, &renderInfo );
 }
 

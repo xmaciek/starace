@@ -2,6 +2,7 @@
 
 #include "buffer_vk.hpp"
 #include "descriptor_set.hpp"
+#include "device.hpp"
 #include "vk.hpp"
 
 #include <renderer/pipeline.hpp>
@@ -34,7 +35,7 @@ public:
 
     PipelineVK(
         const PipelineCreateInfo&
-        , VkDevice
+        , const Device&
         , VkFormat depthFormat
         , VkFormat colorFormat
         , VkDescriptorSetLayout

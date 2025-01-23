@@ -26,9 +26,11 @@ public:
 
     enum class Feature : uint32_t {
         eVSyncMailbox,
+        eVRSAA,
     };
 
     virtual bool featureAvailable( Feature ) const = 0;
+    virtual void setFeatureEnabled( Feature, bool ) = 0;
     virtual void setVSync( VSync ) = 0;
 
     [[nodiscard]] virtual PipelineSlot createPipeline( const PipelineCreateInfo& ) = 0;

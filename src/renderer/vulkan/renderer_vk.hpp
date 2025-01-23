@@ -70,17 +70,20 @@ class RendererVK : public Renderer {
 
     VkFormat m_colorFormat = VK_FORMAT_UNDEFINED;
     VkFormat m_depthFormat = VK_FORMAT_UNDEFINED;
+    VkExtent2D m_resolution{};
 
     std::atomic<uint64_t> m_pendingResolutionChange = {};
     std::optional<VSync> m_pendingVSyncChange{};
 
     void recreateSwapchain();
-    void recreateRenderTargets( const VkExtent2D& );
+    void recreateRenderTargets( VkExtent2D );
+    void refreshResolution();
 
 public:
     virtual ~RendererVK() override;
     RendererVK( const Renderer::CreateInfo& );
     virtual bool featureAvailable( Feature ) const override;
+    virtual void setFeatureEnabled( Feature, bool ) override;
     virtual void setVSync( VSync ) override;
 
     virtual PipelineSlot createPipeline( const PipelineCreateInfo& ) override;

@@ -9,6 +9,7 @@ std::pmr::u32string OptionsGFX::toString( const OptionsGFX::AntiAlias& aa )
     switch ( aa ) {
     case eOff: return g_uiProperty.localize( "off"_hash );
     case eFXAA: return U"FXAA";
+    case eVRSAA: return U"VRSAA";
     [[unlikely]] default:
         assert( !"unhandled enum" );
         return U"<BUG>";
