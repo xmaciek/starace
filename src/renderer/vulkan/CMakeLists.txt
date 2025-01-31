@@ -52,9 +52,10 @@ target_link_libraries( renderer_vk
     Vulkan::Headers
 )
 
+option( ENABLE_VULKAN_VALIDATION "Enable Vulkan validation" 1 )
 target_compile_definitions( renderer_vk
     PRIVATE
-    ENABLE_VULKAN_VALIDATION=1
+    ENABLE_VULKAN_VALIDATION=${ENABLE_VULKAN_VALIDATION}
     VK_NO_PROTOTYPES=1
 )
 

@@ -12,6 +12,7 @@
             "CMAKE_BUILD_TYPE": "Debug"
             , "ENABLE_TRACY_PROFILER": "OFF"
             , "STRIP_SYMBOLS": "OFF"
+            , "ENABLE_VULKAN_VALIDATION" : "1"
         }
     }
     , {
@@ -22,6 +23,7 @@
         , "cacheVariables": {
             "CMAKE_BUILD_TYPE": "Release"
             , "STRIP_SYMBOLS": "ON"
+            , "ENABLE_VULKAN_VALIDATION" : "0"
         }
     }
     , {
