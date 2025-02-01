@@ -15,7 +15,7 @@ public:
 
 private:
     VkDevice m_device{};
-    std::bitset<count> m_features{};
+    std::bitset<Feature::count> m_features{};
 
 public:
     ~Device();
