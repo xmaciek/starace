@@ -10,7 +10,7 @@ target_compile_options( cxx::flags INTERFACE
     -Wno-missing-field-initializers
     -Wno-multichar
     -Wpedantic
-    -Wshadow
+    # -Wshadow # disabled because false-positive shadowing in lambdas
     -fno-exceptions
     -fno-rtti
 )
