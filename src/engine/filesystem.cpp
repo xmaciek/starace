@@ -8,46 +8,45 @@
 #include <cassert>
 #include <cstring>
 #include <fstream>
-#include <utility>
 #include <iterator>
+#include <numeric>
+#include <ranges>
+#include <utility>
 
-Filesystem::~Filesystem() noexcept
-{
-    m_isRunning.store( false );
-
-}
+Filesystem::~Filesystem() noexcept = default;
 
 Filesystem::Filesystem() noexcept = default;
 
-std::span<const uint8_t> Filesystem::viewWait( const std::filesystem::path& path )
+std::span<const uint8_t> Filesystem::viewWait( std::string_view path )
 {
     ZoneScopedN( "Filesystem viewWait" );
-    while ( m_isRunning.load() ) {
-        std::scoped_lock<std::mutex> sl( m_bottleneck );
-        auto it = m_blobView.find( path );
-        if ( it != m_blobView.end() ) {
-            return it->second;
-        }
-        assert( !"file not found" );
+    std::pmr::string key( path );
+    std::scoped_lock<std::mutex> sl( m_bottleneckFs );
+    for ( auto&& mount : m_mounts ) {
+        auto it = mount.m_toc.find( key );
+        if ( it != mount.m_toc.end() ) { return it->second; }
     }
-
+    assert( !"file not found" );
     return {};
 }
 
-static bool readRaw( std::ifstream& ifs, pak::Header& h )
+static void readRaw( std::ifstream& ifs, pak::Header& h )
 {
     ifs.read( reinterpret_cast<char*>( &h ), static_cast<std::streamsize>( sizeof( h ) ) );
-    return true;
 }
 
 template <typename T>
-static bool readRaw( std::ifstream& ifs, std::pmr::vector<T>& data )
+static void readRaw( std::ifstream& ifs, std::span<T> data )
 {
     ZoneScoped;
     auto size = static_cast<std::streamsize>( data.size() * sizeof( T ) );
     ifs.read( reinterpret_cast<char*>( data.data() ), size );
-    return true;
 }
+
+static inline auto align16( auto v )
+{
+    return (decltype(v))( ( (uintptr_t)v + 15ull ) & ~15ull );
+};
 
 void Filesystem::mount( const std::filesystem::path& path )
 {
@@ -60,8 +59,10 @@ void Filesystem::mount( const std::filesystem::path& path )
         platform::showFatalError( "Data error", "Cannot open .pak file" );
     }
 
-    std::streamsize size = ifs.tellg();
-    if ( size > 0xFFFFFFFFu ) {
+    using size_type = decltype( Mount::m_blob )::size_type;
+    static constexpr size_type MAX_SIZE = 0xFFFF'FFFFu;
+    const size_type fileSize = static_cast<size_type>( ifs.tellg() );
+    if ( fileSize > MAX_SIZE ) {
         platform::showFatalError( "Data corruption error", ".pak file size exceeds size limit" );
     }
 
@@ -71,32 +72,41 @@ void Filesystem::mount( const std::filesystem::path& path )
     if ( header.magic != header.MAGIC ) {
         platform::showFatalError( "Data corruption error", ".pak magic field mismatch" );
     };
-    if ( (uint64_t)header.offset + header.size > 0xFFFFFFFFu ) {
+    if ( ( (size_type)header.offset + header.size ) > MAX_SIZE ) {
         platform::showFatalError( "Data corruption error", ".pak entries exceeds file size limit" );
     }
     if ( header.size % 64 ) {
         platform::showFatalError( "Data corruption error", ".pak header::size % 64 != 0" );
     }
-    ifs.seekg( 0 );
-    using size_type = std::pmr::vector<uint8_t>::size_type;
-    std::pmr::vector<uint8_t> blob( static_cast<size_type>( size ) );
-    readRaw( ifs, blob );
-    ifs.close();
 
-    std::pmr::vector<pak::Entry> entries( header.size / sizeof( pak::Header ) );
+    std::pmr::vector<pak::Entry> entries( header.size / sizeof( pak::Entry ) );
+    assert( !entries.empty() );
+    size_type preallocSize = 0;
     {
-        ZoneScopedN( "Headers sort" );
-        std::memcpy( entries.data(), blob.data() + header.offset, header.size );
-        std::for_each( entries.begin(), entries.end(), [size]( const auto& it )
+        ZoneScopedN( "read & process .pak TOC" );
+        ifs.seekg( header.offset );
+        readRaw( ifs, std::span<pak::Entry>( entries ) );
+
+        std::ranges::for_each( entries, [fileSize, &preallocSize]( const auto& it )
         {
-            if ( (uint64_t)it.offset + it.size > (uint64_t)size ) platform::showFatalError( "Data corruption error", ".pak out of bounds file entry" );
+            if ( (size_type)it.offset + it.size > fileSize ) [[unlikely]] {
+                platform::showFatalError( "Data corruption error", ".pak out of bounds file entry" );
+            }
+            if ( it.offset < sizeof( header ) ) [[unlikely]]
+            {
+                platform::showFatalError( "Data corruption error", ".pak entry overwrites pak header" );
+            }
+            // NOTE: align file sizes by 16 for easier debugging
+            preallocSize += align16( it.size );
         } );
-        std::sort( entries.begin(), entries.end(), [this]( const auto& lhs, const auto& rhs )
+        assert( preallocSize != 0 );
+        assert( preallocSize <= MAX_SIZE );
+        std::ranges::sort( entries, [this]( const auto& lhs, const auto& rhs )
         {
             std::string_view l{ std::begin( lhs.name ) };
             std::string_view r{ std::begin( rhs.name ) };
-            auto itl = std::find_if( m_callbacks.begin(), m_callbacks.end(), [l]( const auto& a ) { return l.ends_with( a.first ); } );
-            auto itr = std::find_if( m_callbacks.begin(), m_callbacks.end(), [r]( const auto& a ) { return r.ends_with( a.first ); } );
+            auto itl = std::ranges::find_if( m_callbacks, [l]( const auto& a ) { return l.ends_with( a.first ); } );
+            auto itr = std::ranges::find_if( m_callbacks, [r]( const auto& a ) { return r.ends_with( a.first ); } );
             auto dl = std::distance( m_callbacks.begin(), itl );
             auto dr = std::distance( m_callbacks.begin(), itr );
             if ( dl != dr ) return dl < dr;
@@ -104,27 +114,36 @@ void Filesystem::mount( const std::filesystem::path& path )
         } );
     }
 
-    auto makeSpan = []( const pak::Entry& e, uint8_t* blob )
+    // NOTE: I have no guarantees default allocator will give me 16 byte aligned pointer
+    decltype( Mount::m_blob ) blob( preallocSize + 16 );
+    decltype( Mount::m_toc ) map;
+    auto* ptr = blob.data();
+    std::ranges::for_each( entries, [this, &ifs, &map, &ptr]( const auto& entry )
     {
-        return std::span<uint8_t>{ blob + e.offset, blob + e.offset + e.size };
-    };
+        std::string_view name{ std::begin( entry.name ) };
+        ptr = align16( ptr );
+        ifs.seekg( entry.offset );
+        [[maybe_unused]]
+        auto [ it, inserted ] = map.insert( std::make_pair( name, std::span<uint8_t>{ ptr, entry.size } ) );
+        assert( inserted );
+        ptr += entry.size;
+        readRaw( ifs, it->second );
 
-    std::pmr::map<std::filesystem::path, std::span<const uint8_t>> map{};
-    for ( auto&& it : entries ) {
-        auto& data = ( map[ it.name ] = makeSpan( it, blob.data() ) );
-        std::string_view name{ std::begin( it.name ) };
-        auto cb = std::find_if( m_callbacks.begin(), m_callbacks.end(), [name]( const auto& a ) { return name.ends_with( a.first ); } );
-        if ( cb == m_callbacks.end() ) continue;
-        std::invoke( cb->second, Asset{ name, data } );
-    }
-    std::scoped_lock<std::mutex> sl( m_bottleneck );
-    m_blobs.emplace_back() = std::move( blob );
-    // NOTE: new entries should overwrite existing entries, but .merge does not do that, hence do the merge the other way
-    map.merge( std::move( m_blobView ) );
-    m_blobView = std::move( map );
+        std::scoped_lock sl{ m_bottleneckCb };
+        auto cb = std::ranges::find_if( m_callbacks, [name]( const auto& a ) { return name.ends_with( a.first ); } );
+        if ( cb == m_callbacks.end() ) return;
+        // TODO: move to async once file dependency is solved
+        std::invoke( cb->second, Asset{ name, it->second } );
+    } );
+
+    std::scoped_lock sl{ m_bottleneckFs };
+    auto& mount = m_mounts.emplace_front();
+    mount.m_blob = std::move( blob );
+    mount.m_toc = std::move( map );
 }
 
 void Filesystem::setCallback( std::string_view ext, Callback&& cb )
 {
+    std::scoped_lock sl{ m_bottleneckFs };
     m_callbacks.emplace_back( std::make_pair( ext, cb ) );
 }
