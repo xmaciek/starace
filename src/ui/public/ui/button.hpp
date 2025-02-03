@@ -11,7 +11,7 @@ namespace ui {
 class Button : public NineSlice {
 private:
     Label* m_label{};
-    std::function<void()> m_onTrigger{};
+    Hash::value_type m_trigger{};
 
 public:
     struct CreateInfo {
@@ -28,7 +28,6 @@ public:
     virtual EventProcessing onMouseEvent( const MouseEvent& ) override;
     virtual EventProcessing onAction( ui::Action ) override;
 
-    void setTrigger( std::function<void()> );
     void trigger() const;
     void setText( std::u32string_view );
 

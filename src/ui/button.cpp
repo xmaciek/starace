@@ -19,7 +19,7 @@ namespace ui {
 
 Button::Button( const CreateInfo& ci ) noexcept
 : NineSlice{ NineSlice::CreateInfo{ .position = ci.position, .size = ci.size, .spriteArray = SLICES, .anchor = Anchor::fTop | Anchor::fLeft } }
-, m_onTrigger{ g_uiProperty.gameCallback( ci.trigger ) }
+, m_trigger{ ci.trigger }
 {
     m_label = emplace_child<Label>( Label::CreateInfo{ .text = ci.text, .font = "medium"_hash, .position = ci.size * 0.5f, .anchor = Anchor::fCenter | Anchor::fMiddle, } );
     setTabOrder( ci.tabOrder );
@@ -27,13 +27,11 @@ Button::Button( const CreateInfo& ci ) noexcept
 
 void Button::trigger() const
 {
-    assert( m_onTrigger );
-    m_onTrigger();
-}
-
-void Button::setTrigger( std::function<void()> t )
-{
-    m_onTrigger = t;
+    if ( m_trigger ) {
+        auto tr = g_uiProperty.gameCallback( m_trigger );
+        assert( tr );
+        tr();
+    }
 }
 
 void Button::setText( std::u32string_view txt )
