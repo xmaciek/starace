@@ -1,6 +1,7 @@
 width = 1280
 height = 720
 glow = 1
+name = result
 
 Label = {
     data = $var:missionResult

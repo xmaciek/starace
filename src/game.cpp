@@ -140,7 +140,7 @@ void Game::onInit()
 
     setupUI();
     onResize( viewportWidth(), viewportHeight() );
-    changeScreen( Screen::eMainMenu );
+    changeScreen( Scene::eMainMenu );
 }
 
 static std::pmr::vector<csg::Callsign> loadCallsigns( Filesystem* io )
@@ -291,15 +291,15 @@ void Game::setupUI()
     m_gameUiDataModels.insert( "$var:jetSpeed"_hash, &m_gameplayUIData.m_jetSpeed );
     m_gameUiDataModels.insert( "$var:missionResult"_hash, &m_uiMissionResult );
     m_gameUiDataModels.insert( "$var:missionScore"_hash, &m_uiMissionScore );
-    m_gameCallbacks.insert( "$function:goto_missionBriefing"_hash,  [this](){ changeScreen( Screen::eGameBriefing, m_click ); } );
-    m_gameCallbacks.insert( "$function:goto_newgame"_hash, [this](){ changeScreen( Screen::eMissionSelection, m_click ); } );
-    m_gameCallbacks.insert( "$function:goto_customize"_hash, [this](){ changeScreen( Screen::eCustomize, m_click ); } );
-    m_gameCallbacks.insert( "$function:goto_titlemenu"_hash, [this](){ changeScreen( Screen::eMainMenu, m_click ); } );
-    m_gameCallbacks.insert( "$function:goto_settings"_hash, [this](){ changeScreen( Screen::eSettings, m_click ); } );
-    m_gameCallbacks.insert( "$function:goto_settings_display"_hash, [this](){ changeScreen( Screen::eSettingsDisplay, m_click ); } );
-    m_gameCallbacks.insert( "$function:goto_settings_audio"_hash, [this](){ changeScreen( Screen::eSettingsAudio, m_click ); } );
+    m_gameCallbacks.insert( "$function:goto_missionBriefing"_hash,  [this](){ changeScreen( Scene::eGameBriefing, m_click ); } );
+    m_gameCallbacks.insert( "$function:goto_newgame"_hash, [this](){ changeScreen( Scene::eMissionSelection, m_click ); } );
+    m_gameCallbacks.insert( "$function:goto_customize"_hash, [this](){ changeScreen( Scene::eCustomize, m_click ); } );
+    m_gameCallbacks.insert( "$function:goto_titlemenu"_hash, [this](){ changeScreen( Scene::eMainMenu, m_click ); } );
+    m_gameCallbacks.insert( "$function:goto_settings"_hash, [this](){ changeScreen( Scene::eSettings, m_click ); } );
+    m_gameCallbacks.insert( "$function:goto_settings_display"_hash, [this](){ changeScreen( Scene::eSettingsDisplay, m_click ); } );
+    m_gameCallbacks.insert( "$function:goto_settings_audio"_hash, [this](){ changeScreen( Scene::eSettingsAudio, m_click ); } );
     m_gameCallbacks.insert( "$function:quit"_hash, [this](){ quit(); } );
-    m_gameCallbacks.insert( "$function:resume"_hash, [this]{ changeScreen( Screen::eGame, m_click ); } );
+    m_gameCallbacks.insert( "$function:resume"_hash, [this]{ changeScreen( Scene::eGame, m_click ); } );
     m_gameCallbacks.insert( "$function:applyGFX"_hash, [this]
     {
         DisplayMode displayMode = m_optionsGFX.m_resolution.value();
@@ -321,15 +321,15 @@ void Game::setupUI()
     g_uiProperty.m_gameCallbacks = m_gameCallbacks.makeView();
     g_uiProperty.m_dataModels = m_gameUiDataModels.makeView();
 
-    m_screenCustomize = m_io->viewWait( "ui/customize.ui" );
-    m_screenGameplay = m_io->viewWait( "ui/gameplay.ui" );
-    m_screenMissionResult = m_io->viewWait( "ui/result.ui" );
-    m_screenMissionSelect = m_io->viewWait( "ui/missionselect.ui" );
-    m_screenPause = m_io->viewWait( "ui/pause.ui" );
-    m_screenSettings = m_io->viewWait( "ui/settings.ui" );
-    m_screenSettingsDisplay = m_io->viewWait( "ui/settings_display.ui" );
-    m_screenSettingsAudio = m_io->viewWait( "ui/settings_audio.ui" );
-    m_screenTitle = m_io->viewWait( "ui/mainmenu.ui" );
+    m_screens.emplace_back( m_io->viewWait( "ui/customize.ui" ) );
+    m_screens.emplace_back( m_io->viewWait( "ui/gameplay.ui" ) );
+    m_screens.emplace_back( m_io->viewWait( "ui/result.ui" ) );
+    m_screens.emplace_back( m_io->viewWait( "ui/missionselect.ui" ) );
+    m_screens.emplace_back( m_io->viewWait( "ui/pause.ui" ) );
+    m_screens.emplace_back( m_io->viewWait( "ui/settings.ui" ) );
+    m_screens.emplace_back( m_io->viewWait( "ui/settings_display.ui" ) );
+    m_screens.emplace_back( m_io->viewWait( "ui/settings_audio.ui" ) );
+    m_screens.emplace_back( m_io->viewWait( "ui/mainmenu.ui" ) );
 
     m_callsigns = loadCallsigns( m_io );
 
@@ -359,44 +359,13 @@ void Game::setupUI()
 
 ui::Screen* Game::currentScreen()
 {
-    switch ( m_currentScreen ) {
-    case Screen::eGame:
-        return &m_screenGameplay;
-
-    case Screen::eGamePaused:
-        return &m_screenPause;
-
-    case Screen::eDead:
-    case Screen::eWin:
-        return &m_screenMissionResult;
-
-    case Screen::eMissionSelection:
-        return &m_screenMissionSelect;
-
-    case Screen::eMainMenu:
-        return &m_screenTitle;
-
-    case Screen::eCustomize:
-        return &m_screenCustomize;
-
-    case Screen::eSettings:
-        return &m_screenSettings;
-
-    case Screen::eSettingsDisplay:
-        return &m_screenSettingsDisplay;
-
-    case Screen::eSettingsAudio:
-        return &m_screenSettingsAudio;
-
-    default:
-        return nullptr;
-    }
+    return m_currentScreen;
 }
 
 void Game::onRender( Renderer* renderer )
 {
     ZoneScoped;
-    if ( m_currentScreen.load() == Screen::eInit ) [[unlikely]] {
+    if ( m_currentScene.load() == Scene::eInit ) [[unlikely]] {
         return;
     }
 
@@ -417,20 +386,20 @@ void Game::onRender( Renderer* renderer )
         .colorFocus = color::lightSkyBlue,
     };
 
-    switch ( m_currentScreen ) {
-    case Screen::eGame:
-    case Screen::eGamePaused:
-    case Screen::eDead:
-    case Screen::eWin:
+    switch ( m_currentScene.load() ) {
+    case Scene::eGame:
+    case Scene::eGamePaused:
+    case Scene::eDead:
+    case Scene::eWin:
         renderGameScreen( rctx );
         break;
 
-    case Screen::eMissionSelection:
-    case Screen::eCustomize:
-    case Screen::eMainMenu:
-    case Screen::eSettings:
-    case Screen::eSettingsDisplay:
-    case Screen::eSettingsAudio:
+    case Scene::eMissionSelection:
+    case Scene::eCustomize:
+    case Scene::eMainMenu:
+    case Scene::eSettings:
+    case Scene::eSettingsDisplay:
+    case Scene::eSettingsAudio:
         renderMenuScreen( rctx, r );
         break;
 
@@ -458,11 +427,11 @@ void Game::onUpdate( float deltaTime )
     UpdateContext uctx{ .deltaTime = deltaTime, };
     ui::UpdateContext uictx{ .deltaTime = deltaTime, };
 
-    switch ( m_currentScreen ) {
-    [[unlikely]] case Screen::eInit:
+    switch ( m_currentScene.load() ) {
+    [[unlikely]] case Scene::eInit:
         return;
 
-    case Screen::eGame:
+    case Scene::eGame:
         updateGame( uctx );
         break;
     default:
@@ -478,12 +447,12 @@ void Game::onUpdate( float deltaTime )
 
 void Game::pause()
 {
-    changeScreen( Screen::eGamePaused );
+    changeScreen( Scene::eGamePaused );
 }
 
 void Game::unpause()
 {
-    changeScreen( Screen::eGame );
+    changeScreen( Scene::eGame );
 }
 
 void Game::updateGame( UpdateContext& updateContext )
@@ -492,10 +461,10 @@ void Game::updateGame( UpdateContext& updateContext )
     m_player.setInput( m_playerInput );
 
     if ( m_player.status() == Player::Status::eDead ) {
-        changeScreen( Screen::eDead );
+        changeScreen( Scene::eDead );
     }
     if ( m_enemies.empty() ) {
-        changeScreen( Screen::eWin );
+        changeScreen( Scene::eWin );
     }
 
     std::pmr::vector<Signal> signals( m_enemies.size() );
@@ -654,45 +623,49 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
     m_gameplayUIData.m_playerWeaponIconSecondary = w2.displayIcon;
 }
 
-void Game::changeScreen( Screen scr, Audio::Slot sound )
+void Game::changeScreen( Scene scene, Audio::Slot sound )
 {
     ZoneScoped;
     if ( sound ) {
         m_audio->play( sound, Audio::Channel::eUI );
     }
-    SDL_ShowCursor( scr != Screen::eGame );
+    SDL_ShowCursor( scene != Scene::eGame );
+    auto setScreen = [this]( auto hash )
+    {
+        auto it = std::ranges::find_if( m_screens, [hash]( const auto& sc ) { return sc.name() == hash; } );
+        assert( it != m_screens.end() );
+        m_currentScreen = &*it;
+    };
 
-    switch ( scr ) {
-    case Screen::eMainMenu:
-    case Screen::eCustomize:
-    case Screen::eSettings:
-    case Screen::eSettingsDisplay:
-    case Screen::eSettingsAudio:
-    case Screen::eGame:
-    case Screen::eGamePaused:
-        m_currentScreen = scr;
-        break;
-
-    case Screen::eDead:
+    m_currentScene = scene;
+    switch ( scene ) {
+    case Scene::eMainMenu: setScreen( "mainMenu"_hash ); break;
+    case Scene::eCustomize: setScreen( "customize"_hash ); break;
+    case Scene::eSettings: setScreen( "settings"_hash ); break;
+    case Scene::eSettingsDisplay: setScreen( "settings.display"_hash ); break;
+    case Scene::eSettingsAudio: setScreen( "settings.audio"_hash ); break;
+    case Scene::eGame: setScreen( "gameplay"_hash ); break;
+    case Scene::eGamePaused: setScreen( "pause"_hash ); break;
+    case Scene::eDead:
         m_uiMissionResult = g_uiProperty.localize( "missionLost"_hash );
         m_uiMissionScore = g_uiProperty.localize( "yourScore"_hash ) + intToUTF32( m_score );
-        m_currentScreen = scr;
+        setScreen( "result"_hash );
         break;
 
-    case Screen::eWin:
+    case Scene::eWin:
         m_uiMissionResult = g_uiProperty.localize( "missionWin"_hash );
         m_uiMissionScore = g_uiProperty.localize( "yourScore"_hash ) + intToUTF32( m_score );
-        m_currentScreen = scr;
+        setScreen( "result"_hash );
         break;
 
-    case Screen::eGameBriefing:
+    case Scene::eGameBriefing:
         createMapData( m_mapsContainer[ m_currentMission ], m_jetsContainer[ m_currentJet ] );
-        changeScreen( Screen::eGamePaused );
+        changeScreen( Scene::eGamePaused );
         break;
 
-    case Screen::eMissionSelection:
+    case Scene::eMissionSelection:
         clearMapData();
-        m_currentScreen = scr;
+        setScreen( "missionSelect"_hash );
         break;
 
     default:
@@ -850,7 +823,7 @@ void Game::onAction( Action a )
         screen->onAction( ui::Action{ .a = a.toA<ui::Action::Enum>(), .value = a.value } );
     } while ( 0 );
 
-    if ( m_currentScreen == Screen::eGame ) {
+    if ( m_currentScene.load() == Scene::eGame ) {
         switch ( action ) {
         case GameAction::eJetTarget:
             if ( a.digital() ) { retarget(); }

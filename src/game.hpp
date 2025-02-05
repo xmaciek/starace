@@ -40,7 +40,7 @@ public:
     ~Game();
 
 private:
-    enum class Screen : uint32_t {
+    enum class Scene : uint32_t {
         eInit,
         eGame,
         eGameBriefing,
@@ -56,6 +56,7 @@ private:
         eSettingsAudio,
         max,
     };
+    std::atomic<Scene> m_currentScene = Scene::eInit;
 
     ui::Remapper m_uiRemapper{};
     ui::Font m_uiAtlas{};
@@ -72,6 +73,8 @@ private:
     Model m_enemyModel{};
     Player m_player{};
     GameScene m_gameScene{};
+    std::pmr::list<ui::Screen> m_screens;
+    ui::Screen* m_currentScreen = nullptr;
 
     Audio::Slot m_click{};
 
@@ -91,21 +94,11 @@ private:
     std::pmr::vector<csg::Callsign> m_callsigns{};
 
     SpaceDust m_dustUi{};
-    ui::Screen m_screenCustomize{};
-    ui::Screen m_screenGameplay{};
-    ui::Screen m_screenMissionResult{};
-    ui::Screen m_screenMissionSelect{};
-    ui::Screen m_screenPause{};
-    ui::Screen m_screenSettingsDisplay{};
-    ui::Screen m_screenSettingsAudio{};
-    ui::Screen m_screenSettings{};
-    ui::Screen m_screenTitle{};
 
     Targeting m_targeting{};
     AutoLerp<float> m_lookAtTarget{ 0.0f, 1.0f, 3.0f };
 
     Player::Input m_playerInput{};
-    std::atomic<Screen> m_currentScreen = Screen::eInit;
 
     ui::GenericDataModel m_dataMissionSelect{};
 
@@ -134,7 +127,7 @@ private:
     uint32_t viewportHeight() const;
     uint32_t viewportWidth() const;
     float viewportAspect() const;
-    void changeScreen( Screen, Audio::Slot sound = {} );
+    void changeScreen( Scene, Audio::Slot sound = {} );
     void clearMapData();
     void createMapData( const MapCreateInfo&, const ModelProto& );
     void pause();

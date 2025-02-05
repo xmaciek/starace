@@ -3,6 +3,7 @@
 #include <engine/math.hpp>
 #include <engine/mouse_event.hpp>
 #include <shared/pmr_pointer.hpp>
+#include <shared/hash.hpp>
 #include <ui/input.hpp>
 #include <ui/tab_order.hpp>
 
@@ -24,6 +25,7 @@ class Screen {
     math::vec2 m_viewport{ 1, 1 };
     math::vec2 m_offset{};
     float m_anim = 0.0f;
+    Hash::value_type m_name = 0;
     std::pmr::vector<UniquePointer<Widget>> m_widgets{};
 
     UniquePointer<Widget> m_glow{};
@@ -62,6 +64,7 @@ public:
     void render( const RenderContext& ) const;
     void resize( math::vec2 );
 
+    inline Hash::value_type name() const { return m_name; }
     void show( math::vec2 size );
 };
 

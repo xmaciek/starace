@@ -244,6 +244,7 @@ Screen::Screen( std::span<const uint8_t> fileContent ) noexcept
         ); continue;
         case "height"_hash: m_extent.y = property.toFloat(); continue;
         case "width"_hash: m_extent.x = property.toFloat(); continue;
+        case "name"_hash: m_name = hash( property.toString() ); continue;
         case "glow"_hash: if ( property.toInt<bool>() ) m_glow = UniquePointer<Glow>{ alloc, g_uiProperty.pipelineGlow() }; continue;
         default:
             break;
