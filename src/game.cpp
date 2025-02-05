@@ -134,9 +134,6 @@ void Game::onInit()
     m_dustUi.setCenter( {} );
     m_dustUi.setLineWidth( 2.0f );
 
-
-    m_blaster = m_sounds[ "sounds/blaster.wav" ];
-    m_torpedo = m_sounds[ "sounds/torpedo.wav" ];
     m_click = m_sounds[ "sounds/click.wav" ];
     m_plasma = m_textures[ "textures/plasma.dds" ];
     m_enemyModel = Model{ m_meshes[ "models/a2.objc" ], m_textures[ "textures/a2.dds" ] };

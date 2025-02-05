@@ -73,9 +73,7 @@ private:
     Player m_player{};
     GameScene m_gameScene{};
 
-    Audio::Slot m_blaster{};
     Audio::Slot m_click{};
-    Audio::Slot m_torpedo{};
 
     std::pmr::vector<Bullet> m_bullets{};
     Pool<Enemy, 100> m_poolEnemies{};
