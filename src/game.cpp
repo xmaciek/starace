@@ -70,6 +70,13 @@ Game::Game( int argc, char** argv )
 : Engine{ argc, argv }
 {
     ZoneScoped;
+    m_io->setCallback( ".dds", [this]( const auto& asset ){ loadDDS( asset ); } );
+    m_io->setCallback( ".objc", [this]( const auto& asset ){ loadOBJC( asset ); } );
+    m_io->setCallback( ".wav", [this]( const auto& asset ){ loadWAV( asset ); } );
+    m_io->setCallback( ".lang", [this]( const auto& asset ){ loadLANG( asset ); } );
+    m_io->setCallback( ".map", [this]( const auto& asset ){ loadMAP( asset ); } );
+    m_io->setCallback( ".jet", [this]( const auto& asset ){ loadJET( asset ); } );
+    m_io->setCallback( ".wpn", [this]( const auto& asset ){ loadWPN( asset ); } );
 }
 
 Game::~Game()
@@ -93,13 +100,6 @@ void Game::onResize( uint32_t w, uint32_t h )
 void Game::onInit()
 {
     ZoneScoped;
-    m_io->setCallback( ".dds", [this]( const auto& asset ){ loadDDS( asset ); } );
-    m_io->setCallback( ".objc", [this]( const auto& asset ){ loadOBJC( asset ); } );
-    m_io->setCallback( ".wav", [this]( const auto& asset ){ loadWAV( asset ); } );
-    m_io->setCallback( ".lang", [this]( const auto& asset ){ loadLANG( asset ); } );
-    m_io->setCallback( ".map", [this]( const auto& asset ){ loadMAP( asset ); } );
-    m_io->setCallback( ".jet", [this]( const auto& asset ){ loadJET( asset ); } );
-    m_io->setCallback( ".wpn", [this]( const auto& asset ){ loadWPN( asset ); } );
     m_io->mount( "data.pak" );
 
     auto setupPipeline = []( auto* renderer, auto* io, auto ci ) -> PipelineSlot
