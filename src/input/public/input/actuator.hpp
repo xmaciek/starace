@@ -17,6 +17,7 @@ struct Actuator {
 
     enum class Source : uint16_t {
         eKBM,
+        ePS4,
         eXBoxOne,
     };
 

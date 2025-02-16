@@ -59,6 +59,7 @@ endfunction()
 
 cook_atlas( SRC "ui_atlas.txt" DST "ui_atlas.fnta" )
 cook_atlas( SRC "xbox_atlas.txt" DST "xbox_atlas.fnta" REMAP )
+cook_atlas( SRC "ps4_atlas.txt" DST "ps4_atlas.fnta" REMAP )
 cook_callsign( SRC "callsigns.txt" DST "callsigns.csg" )
 pak_file( data "${CMAKE_CURRENT_SOURCE_DIR}/nebula.map" )
 pak_file( data "${CMAKE_CURRENT_SOURCE_DIR}/darkspace.map" )

@@ -145,6 +145,20 @@ void Engine::gameThread()
     }
 }
 
+static input::Actuator::Source mapControllerType( SDL_GameControllerType t )
+{
+    switch ( t ) {
+    default:
+    case SDL_CONTROLLER_TYPE_XBOX360:
+    case SDL_CONTROLLER_TYPE_XBOXONE:
+        return input::Actuator::Source::eXBoxOne;
+
+    case SDL_CONTROLLER_TYPE_PS4:
+    case SDL_CONTROLLER_TYPE_PS5:
+        return input::Actuator::Source::ePS4;
+    }
+}
+
 void Engine::processEvents()
 {
     using namespace input;
@@ -202,6 +216,7 @@ void Engine::processEvents()
             const bool state = event.cbutton.state == SDL_PRESSED;
             Actuator a{ static_cast<Actuator::Buttoncode>( event.cbutton.button ) };
             a.value = state ? Actuator::MAX : Actuator::NOMINAL;
+            a.source = mapControllerType( SDL_GameControllerTypeForIndex( event.cbutton.which ) );
             onActuator( a );
         } break;
 
@@ -230,8 +245,12 @@ void Engine::processEvents()
                 int16_t y = state.ly_dzone();
                 int16_t ox = std::exchange( axes[ SDL_CONTROLLER_AXIS_LEFTX ], x );
                 int16_t oy = std::exchange( axes[ SDL_CONTROLLER_AXIS_LEFTY ], y );
-                if ( x != ox ) onActuator( Actuator{ static_cast<Actuator::Axiscode>( SDL_CONTROLLER_AXIS_LEFTX ), x } );
-                if ( y != oy ) onActuator( Actuator{ static_cast<Actuator::Axiscode>( SDL_CONTROLLER_AXIS_LEFTY ), y } );
+                Actuator ax{ static_cast<Actuator::Axiscode>( SDL_CONTROLLER_AXIS_LEFTX ), x };
+                ax.source = mapControllerType( SDL_GameControllerTypeForIndex( event.cbutton.which ) );
+                Actuator ay{ static_cast<Actuator::Axiscode>( SDL_CONTROLLER_AXIS_LEFTY ), y };
+                ay.source = ax.source;
+                if ( x != ox ) onActuator( ax );
+                if ( y != oy ) onActuator( ay );
             } continue;
 
             case SDL_CONTROLLER_AXIS_RIGHTX:
@@ -240,19 +259,27 @@ void Engine::processEvents()
                 int16_t y = state.ry_dzone();
                 int16_t ox = std::exchange( axes[ SDL_CONTROLLER_AXIS_RIGHTX ], x );
                 int16_t oy = std::exchange( axes[ SDL_CONTROLLER_AXIS_RIGHTY ], y );
-                if ( x != ox ) onActuator( Actuator{ static_cast<Actuator::Axiscode>( SDL_CONTROLLER_AXIS_RIGHTX ), x } );
-                if ( y != oy ) onActuator( Actuator{ static_cast<Actuator::Axiscode>( SDL_CONTROLLER_AXIS_RIGHTY ), y } );
+                Actuator ax{ static_cast<Actuator::Axiscode>( SDL_CONTROLLER_AXIS_RIGHTX ), x };
+                ax.source = mapControllerType( SDL_GameControllerTypeForIndex( event.cbutton.which ) );
+                Actuator ay{ static_cast<Actuator::Axiscode>( SDL_CONTROLLER_AXIS_RIGHTY ), y };
+                ay.source = ax.source;
+                if ( x != ox ) onActuator( ax );
+                if ( y != oy ) onActuator( ay );
             } continue;
 
             case SDL_CONTROLLER_AXIS_TRIGGERLEFT: {
                 int16_t t = state.lt_dzone();
                 int16_t ot = std::exchange( axes[ event.caxis.axis ], t );
-                if ( t != ot ) onActuator( Actuator{ static_cast<Actuator::Axiscode>( event.caxis.axis ), t } );
+                Actuator a{ static_cast<Actuator::Axiscode>( event.caxis.axis ), t };
+                a.source = mapControllerType( SDL_GameControllerTypeForIndex( event.caxis.which ) );
+                if ( t != ot ) onActuator( a );
             } continue;
             case SDL_CONTROLLER_AXIS_TRIGGERRIGHT: {
                 int16_t t = state.rt_dzone();
                 int16_t ot = std::exchange( axes[ event.caxis.axis ], t );
-                if ( t != ot ) onActuator( Actuator{ static_cast<Actuator::Axiscode>( event.caxis.axis ), t } );
+                Actuator a{ static_cast<Actuator::Axiscode>( event.caxis.axis ), t };
+                a.source = mapControllerType( SDL_GameControllerTypeForIndex( event.caxis.which ) );
+                if ( t != ot ) onActuator( a );
             } continue;
             }
 

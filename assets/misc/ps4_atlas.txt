@@ -1,0 +1,25 @@
+width = 256
+height = 256
+lineHeight = 40
+remapOffset = 64
+
+a = { x = 0 y = 0 w = 48 h = 48 py = 2 }
+b = { x = 48 y = 0 w = 48 h = 48 py = 2 }
+x = { x = 96 y = 0 w = 48 h = 48 py = 2 }
+y = { x = 144 y = 0 w = 48 h = 48 py = 2 }
+start = { x = 192 y = 0 w = 48 h = 48 py = 2 }
+select = { x = 192 y = 48 w = 48 h = 48 py = 2 }
+up = { x = 0 y = 48 w = 48 h = 48 py = 2 }
+down = { x = 48 y = 48 w = 48 h = 48 py = 2 }
+left = { x = 96 y = 48 w = 48 h = 48 py = 2 }
+right = { x = 144 y = 48 w = 48 h = 48 py = 2 }
+lb = { x = 0 y = 96 w = 48 h = 48 py = 2 }
+lt = { x = 48 y = 96 w = 48 h = 48 py = 2 }
+lx = { x = 96 y = 96 w = 48 h = 48 py = 2 }
+ly = { x = 96 y = 96 w = 48 h = 48 py = 2 }
+l = { x = 0 y = 192 w = 48 h = 48 py = 2 }
+rb = { x = 0 y = 96 w = 48 h = 48 py = 2 }
+rt = { x = 48 y = 96 w = 48 h = 48 py = 2 }
+rx = { x = 96 y = 96 w = 48 h = 48 py = 2 }
+ry = { x = 96 y = 96 w = 48 h = 48 py = 2 }
+r = { x = 48 y = 192 w = 48 h = 48 py = 2 }

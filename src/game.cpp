@@ -152,8 +152,13 @@ void Game::setupUI()
         .fontAtlas = m_io->viewWait( "misc/ui_atlas.fnta" ),
         .texture = m_textures[ "textures/atlas_ui.dds" ],
     };
+    m_inputPS4 = ui::Font::CreateInfo{
+        .fontAtlas = m_io->viewWait( "misc/ps4_atlas.fnta" ),
+        .texture = m_textures[ "textures/ps4_atlas.dds" ],
+    };
     m_inputXbox = ui::Font::CreateInfo{
         .fontAtlas = m_io->viewWait( "misc/xbox_atlas.fnta" ),
+        .upstream = &m_inputPS4,
         .texture = m_textures[ "textures/xbox_atlas.dds" ],
     };
     m_fontSmall = ui::Font::CreateInfo{

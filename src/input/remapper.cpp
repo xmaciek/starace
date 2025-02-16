@@ -12,6 +12,7 @@
 namespace input {
 
 static constexpr uint32_t XBOX_REMAP_OFFSET = 32;
+static constexpr uint32_t PS4_REMAP_OFFSET = 64;
 
 static uint32_t mapController( Actuator a, uint32_t remapOffset, std::span<char32_t> out )
 {
@@ -79,6 +80,7 @@ uint32_t Remapper::apply( Actuator::Source source, char32_t chr, std::span<char3
         *kit = U']'; kit++;
         return (uint32_t)std::distance( out.begin(), kit );
     }
+    case Source::ePS4: return mapController( it->m_max, PS4_REMAP_OFFSET, out );
     case Source::eXBoxOne: return mapController( it->m_max, XBOX_REMAP_OFFSET, out );
     default: assert( !"unhandled enum" );
     }
