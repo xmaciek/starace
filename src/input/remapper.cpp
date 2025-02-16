@@ -15,23 +15,40 @@ static constexpr uint32_t XBOX_REMAP_OFFSET = 32;
 
 static uint32_t mapController( Actuator a, uint32_t remapOffset, std::span<char32_t> out )
 {
-    switch ( a.typed.id ) {
-    case SDL_CONTROLLER_BUTTON_A: *out.begin() = remapOffset + fnta::Input::A; return 1;
-    case SDL_CONTROLLER_BUTTON_B: *out.begin() = remapOffset + fnta::Input::B; return 1;
-    case SDL_CONTROLLER_BUTTON_X: *out.begin() = remapOffset + fnta::Input::X; return 1;
-    case SDL_CONTROLLER_BUTTON_Y: *out.begin() = remapOffset + fnta::Input::Y; return 1;
-    case SDL_CONTROLLER_BUTTON_BACK: *out.begin() = remapOffset + fnta::Input::Select; return 1;
-    case SDL_CONTROLLER_BUTTON_START: *out.begin() = remapOffset + fnta::Input::Start; return 1;
-    case SDL_CONTROLLER_BUTTON_LEFTSTICK: *out.begin() = remapOffset + fnta::Input::L; return 1;
-    case SDL_CONTROLLER_BUTTON_RIGHTSTICK: *out.begin() = remapOffset + fnta::Input::R; return 1;
-    case SDL_CONTROLLER_BUTTON_LEFTSHOULDER: *out.begin() = remapOffset + fnta::Input::LB; return 1;
-    case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER: *out.begin() = remapOffset + fnta::Input::RB; return 1;
-    case SDL_CONTROLLER_BUTTON_DPAD_UP: *out.begin() = remapOffset + fnta::Input::Up; return 1;
-    case SDL_CONTROLLER_BUTTON_DPAD_DOWN: *out.begin() = remapOffset + fnta::Input::Down; return 1;
-    case SDL_CONTROLLER_BUTTON_DPAD_LEFT: *out.begin() = remapOffset + fnta::Input::Left; return 1;
-    case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: *out.begin() = remapOffset + fnta::Input::Right; return 1;
-    // TODO: axes
-    default: assert( !"unhandled enum" ); return 0;
+    switch ( a.typed.type ) {
+    case Actuator::BUTTONCODE:
+        switch ( a.typed.id ) {
+        case SDL_CONTROLLER_BUTTON_A: *out.begin() = remapOffset + fnta::Input::A; return 1;
+        case SDL_CONTROLLER_BUTTON_B: *out.begin() = remapOffset + fnta::Input::B; return 1;
+        case SDL_CONTROLLER_BUTTON_X: *out.begin() = remapOffset + fnta::Input::X; return 1;
+        case SDL_CONTROLLER_BUTTON_Y: *out.begin() = remapOffset + fnta::Input::Y; return 1;
+        case SDL_CONTROLLER_BUTTON_BACK: *out.begin() = remapOffset + fnta::Input::Select; return 1;
+        case SDL_CONTROLLER_BUTTON_START: *out.begin() = remapOffset + fnta::Input::Start; return 1;
+        case SDL_CONTROLLER_BUTTON_LEFTSTICK: *out.begin() = remapOffset + fnta::Input::L; return 1;
+        case SDL_CONTROLLER_BUTTON_RIGHTSTICK: *out.begin() = remapOffset + fnta::Input::R; return 1;
+        case SDL_CONTROLLER_BUTTON_LEFTSHOULDER: *out.begin() = remapOffset + fnta::Input::LB; return 1;
+        case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER: *out.begin() = remapOffset + fnta::Input::RB; return 1;
+        case SDL_CONTROLLER_BUTTON_DPAD_UP: *out.begin() = remapOffset + fnta::Input::Up; return 1;
+        case SDL_CONTROLLER_BUTTON_DPAD_DOWN: *out.begin() = remapOffset + fnta::Input::Down; return 1;
+        case SDL_CONTROLLER_BUTTON_DPAD_LEFT: *out.begin() = remapOffset + fnta::Input::Left; return 1;
+        case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: *out.begin() = remapOffset + fnta::Input::Right; return 1;
+        default: assert( !"unhandled button enum" ); return 0;
+        }
+
+    case Actuator::AXISCODE:
+        switch ( a.typed.id ) {
+        case SDL_CONTROLLER_AXIS_LEFTX: *out.begin() = remapOffset + fnta::Input::LX; return 1;
+        case SDL_CONTROLLER_AXIS_LEFTY: *out.begin() = remapOffset + fnta::Input::LY; return 1;
+        case SDL_CONTROLLER_AXIS_RIGHTX: *out.begin() = remapOffset + fnta::Input::RX; return 1;
+        case SDL_CONTROLLER_AXIS_RIGHTY: *out.begin() = remapOffset + fnta::Input::RY; return 1;
+        case SDL_CONTROLLER_AXIS_TRIGGERLEFT: *out.begin() = remapOffset + fnta::Input::LT; return 1;
+        case SDL_CONTROLLER_AXIS_TRIGGERRIGHT: *out.begin() = remapOffset + fnta::Input::RT; return 1;
+        default: assert( !"unhandled axis enum" ); return 0;
+        }
+
+    default:
+        assert( !"faulty data in actuator" );
+        return 0;
     }
 }
 
