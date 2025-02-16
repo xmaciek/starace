@@ -3,7 +3,6 @@
 #include <ui/input.hpp>
 #include <ui/pipeline.hpp>
 #include <ui/property.hpp>
-#include <ui/remapper.hpp>
 
 #include <renderer/renderer.hpp>
 
@@ -97,6 +96,7 @@ Font::Font( Font&& rhs )
     std::swap( m_scale, rhs.m_scale );
     std::swap( m_texture, rhs.m_texture );
     std::swap( m_glyphMap, rhs.m_glyphMap );
+    std::swap( m_remapper, rhs.m_remapper );
 }
 
 Font& Font::operator = ( Font&& rhs )
@@ -108,6 +108,7 @@ Font& Font::operator = ( Font&& rhs )
     std::swap( m_scale, rhs.m_scale );
     std::swap( m_texture, rhs.m_texture );
     std::swap( m_glyphMap, rhs.m_glyphMap );
+    std::swap( m_remapper, rhs.m_remapper );
     return *this;
 }
 
@@ -225,7 +226,8 @@ Font::RenderText Font::composeText( const math::vec4& color, std::u32string_view
         }
         else {
             std::array<char32_t, 20> remapped;
-            uint32_t remappedCount = m_remapper->apply( chr, remapped );
+            assert( m_remapper );
+            uint32_t remappedCount = m_remapper->apply( g_uiProperty.inputSource(), chr, remapped );
             for ( uint32_t j = 0; j < remappedCount; ++j ) {
                 appendRenderText( cursor, ret.pushData, ret.pushConstant, remapped[ j ] );
             }

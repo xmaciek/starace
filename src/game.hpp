@@ -1,6 +1,5 @@
 #pragma once
 
-#include "action_state_tracker.hpp"
 #include "autolerp.hpp"
 #include "bullet.hpp"
 #include "enemy.hpp"
@@ -23,7 +22,7 @@
 #include <ui/atlas.hpp>
 #include <ui/data_model.hpp>
 #include <ui/font.hpp>
-#include <ui/remapper.hpp>
+#include <input/remapper.hpp>
 #include <ui/screen.hpp>
 #include <ui/var.hpp>
 
@@ -58,7 +57,7 @@ private:
     };
     std::atomic<Scene> m_currentScene = Scene::eInit;
 
-    ui::Remapper m_uiRemapper{};
+    input::Remapper m_remapper{};
     ui::Font m_uiAtlas{};
     ui::Font m_inputXbox{};
     ui::Font m_fontSmall{};
@@ -109,8 +108,6 @@ private:
 
     ui::Var<std::pmr::u32string> m_uiMissionResult{ U"BUG ME" };
     ui::Var<std::pmr::u32string> m_uiMissionScore{ U"BUG ME" };
-
-    ActionStateTracker m_actionStateTracker{};
 
     FixedMap<Hash::value_type, ui::DataModel*, 64> m_gameUiDataModels{};
     FixedMap<Hash::value_type, std::function<void()>, 64> m_gameCallbacks{};

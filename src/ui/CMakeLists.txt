@@ -15,7 +15,6 @@ target_sources( ui
     nineslice.cpp
     progressbar.cpp
     property.cpp
-    remapper.cpp
     screen.cpp
     scroll_index.cpp
     spinbox.cpp
@@ -37,7 +36,6 @@ target_sources( ui
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/pipeline.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/progressbar.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/property.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/remapper.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/screen.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/scroll_index.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/spinbox.hpp

@@ -8,6 +8,7 @@
 #include <renderer/texture.hpp>
 #include <shared/fixed_map.hpp>
 #include <shared/hash.hpp>
+#include <input/remapper.hpp>
 
 #include <cstdint>
 #include <span>
@@ -18,11 +19,9 @@ class Renderer;
 
 namespace ui {
 
-class Remapper;
-
 class Font {
     const Font* m_upstream{};
-    const Remapper* m_remapper{};
+    const input::Remapper* m_remapper{};
     uint32_t m_width = 0;
     uint32_t m_height = 0;
     uint32_t m_lineHeight = 0;
@@ -38,7 +37,7 @@ public:
     struct CreateInfo {
         std::span<const uint8_t> fontAtlas{};
         const Font* upstream = nullptr;
-        const Remapper* remapper = nullptr;
+        const input::Remapper* remapper = nullptr;
         Texture texture{};
         float scale = 1.0f;
     };

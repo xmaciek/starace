@@ -121,16 +121,16 @@ void Game::onInit()
 
     m_enemies.reserve( 100 );
     m_bullets.reserve( 2000 );
-    auto addAction = [st=&m_actionStateTracker]( const auto& p )
+    auto addAction = [r=&m_remapper]( const auto& p )
     {
         auto [eid, act] = p;
-        st->add( static_cast<input::Action::Enum>( eid ), act );
+        r->add( static_cast<input::Action::Enum>( eid ), act );
     };
     std::ranges::for_each( UI_INPUT, addAction );
     std::ranges::for_each( inputActions, addAction );
-    std::ranges::for_each( inputActions2, [st=&m_actionStateTracker]( const auto& p ){
+    std::ranges::for_each( inputActions2, [r=&m_remapper]( const auto& p ){
         auto [eid, min, max] = p;
-        st->add( static_cast<input::Action::Enum>( eid ), min, max );
+        r->add( static_cast<input::Action::Enum>( eid ), min, max );
     } );
 
     m_dustUi.setVelocity( math::vec3{ 0.0f, 0.0f, 26.0_m } );
@@ -159,21 +159,21 @@ void Game::setupUI()
     m_fontSmall = ui::Font::CreateInfo{
         .fontAtlas = m_io->viewWait( "fonts/dejavu_24.fnta" ),
         .upstream = &m_inputXbox,
-        .remapper = &m_uiRemapper,
+        .remapper = &m_remapper,
         .texture = m_textures[ "fonts/dejavu_24.dds" ],
         .scale = 0.5f,
     };
     m_fontMedium = ui::Font::CreateInfo{
         .fontAtlas = m_io->viewWait( "fonts/dejavu_36.fnta" ),
         .upstream = &m_inputXbox,
-        .remapper = &m_uiRemapper,
+        .remapper = &m_remapper,
         .texture = m_textures[ "fonts/dejavu_36.dds" ],
         .scale = 0.5f,
     };
     m_fontLarge = ui::Font::CreateInfo{
         .fontAtlas = m_io->viewWait( "fonts/dejavu_64.fnta" ),
         .upstream = &m_inputXbox,
-        .remapper = &m_uiRemapper,
+        .remapper = &m_remapper,
         .texture = m_textures[ "fonts/dejavu_64.dds" ],
         .scale = 0.5f,
     };
@@ -843,6 +843,7 @@ void Game::onAction( input::Action a )
 void Game::onMouseEvent( const MouseEvent& mouseEvent )
 {
     using namespace input;
+    const bool inputSourceChanges = g_uiProperty.setInputSource( Actuator::Source::eKBM );
     ZoneScoped;
     switch ( mouseEvent.type ) {
     case MouseEvent::eClickSecondary:
@@ -856,6 +857,9 @@ void Game::onMouseEvent( const MouseEvent& mouseEvent )
     }
     ui::Screen* screen = currentScreen();
     if ( screen ) {
+        if ( inputSourceChanges ) {
+            screen->refreshInput();
+        }
         screen->onMouseEvent( mouseEvent );
     }
 }
@@ -979,7 +983,7 @@ void Game::onActuator( input::Actuator a )
         screen->refreshInput();
     }
 
-    const std::pmr::vector<Action> actions = m_actionStateTracker.updateAndResolve( a );
+    const std::pmr::vector<Action> actions = m_remapper.updateAndResolve( a );
     for ( const auto& it : actions ) {
         onAction( it );
     }
