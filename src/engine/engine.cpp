@@ -147,7 +147,7 @@ void Engine::gameThread()
 
 void Engine::processEvents()
 {
-
+    using namespace input;
     std::pmr::vector<SDL_Event> events{};
     {
         std::scoped_lock lock{ m_eventsBottleneck };

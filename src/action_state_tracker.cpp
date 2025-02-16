@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+using namespace input;
+
 void ActionStateTracker::add( Action::Enum e, Actuator a )
 {
     m_data.push_back( Pair{ .m_max = a, .m_userEnum = e } );

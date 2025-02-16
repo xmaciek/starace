@@ -151,8 +151,8 @@ private:
     void unpause();
     void updateGame( UpdateContext& );
 
-    void onAction( Action );
-    virtual void onActuator( Actuator ) override;
+    void onAction( input::Action );
+    virtual void onActuator( input::Actuator ) override;
     virtual void onInit() override;
     virtual void onExit() override;
     virtual void onRender( Renderer* ) override;

@@ -8,6 +8,7 @@
 #include <shared/fixed_map.hpp>
 #include <shared/hash.hpp>
 #include <shared/pmr_pointer.hpp>
+#include <input/actuator.hpp>
 
 #include <cassert>
 #include <functional>
@@ -28,6 +29,7 @@ class Property {
     PipelineSlot m_pipelineSpriteSequence{};
     PipelineSlot m_pipelineSpriteSequenceColors{};
     PipelineSlot m_pipelineGlow{};
+    using InputSource = input::Actuator::Source;
     InputSource m_inputSource{};
 
     const Font* m_fontSmall = nullptr;

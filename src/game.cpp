@@ -21,7 +21,7 @@
 #include <cmath>
 #include <set>
 
-constexpr std::tuple<GameAction, Actuator> inputActions[] = {
+constexpr std::tuple<GameAction, input::Actuator> inputActions[] = {
     { GameAction::eGamePause, SDL_CONTROLLER_BUTTON_START },
     { GameAction::eGamePause, SDL_SCANCODE_ESCAPE },
     { GameAction::eJetPitch, SDL_CONTROLLER_AXIS_LEFTY },
@@ -37,7 +37,7 @@ constexpr std::tuple<GameAction, Actuator> inputActions[] = {
     { GameAction::eJetYaw, SDL_CONTROLLER_AXIS_LEFTX },
 };
 
-constexpr std::tuple<ui::Action::Enum, Actuator> UI_INPUT[] = {
+constexpr std::tuple<ui::Action::Enum, input::Actuator> UI_INPUT[] = {
     { ui::Action::eMenuApply, SDL_CONTROLLER_BUTTON_START },
     { ui::Action::eMenuApply, SDL_SCANCODE_SPACE },
     { ui::Action::eMenuCancel, SDL_CONTROLLER_BUTTON_B },
@@ -58,7 +58,7 @@ constexpr std::tuple<ui::Action::Enum, Actuator> UI_INPUT[] = {
     { ui::Action::eMenuUp, SDL_SCANCODE_W },
 };
 
-constexpr std::tuple<GameAction, Actuator, Actuator> inputActions2[] = {
+constexpr std::tuple<GameAction, input::Actuator, input::Actuator> inputActions2[] = {
     { GameAction::eJetPitch, SDL_SCANCODE_W, SDL_SCANCODE_S },
     { GameAction::eJetYaw, SDL_SCANCODE_Q, SDL_SCANCODE_E },
     { GameAction::eJetRoll, SDL_SCANCODE_A, SDL_SCANCODE_D },
@@ -121,15 +121,17 @@ void Game::onInit()
 
     m_enemies.reserve( 100 );
     m_bullets.reserve( 2000 );
-    for ( auto [ eid, act ] : inputActions ) {
-        m_actionStateTracker.add( static_cast<Action::Enum>( eid ), act );
-    }
-    for ( auto [ eid, act ] : UI_INPUT ) {
-        m_actionStateTracker.add( static_cast<Action::Enum>( eid ), act );
-    }
-    for ( auto [ eid, min, max ] : inputActions2 ) {
-        m_actionStateTracker.add( static_cast<Action::Enum>( eid ), min, max );
-    }
+    auto addAction = [st=&m_actionStateTracker]( const auto& p )
+    {
+        auto [eid, act] = p;
+        st->add( static_cast<input::Action::Enum>( eid ), act );
+    };
+    std::ranges::for_each( UI_INPUT, addAction );
+    std::ranges::for_each( inputActions, addAction );
+    std::ranges::for_each( inputActions2, [st=&m_actionStateTracker]( const auto& p ){
+        auto [eid, min, max] = p;
+        st->add( static_cast<input::Action::Enum>( eid ), min, max );
+    } );
 
     m_dustUi.setVelocity( math::vec3{ 0.0f, 0.0f, 26.0_m } );
     m_dustUi.setCenter( {} );
@@ -800,8 +802,9 @@ float Game::viewportAspect() const
     return std::get<2>( viewport() );
 }
 
-void Game::onAction( Action a )
+void Game::onAction( input::Action a )
 {
+    using namespace input;
     ZoneScoped;
 
     const GameAction action = a.toA<GameAction>();
@@ -839,10 +842,11 @@ void Game::onAction( Action a )
 
 void Game::onMouseEvent( const MouseEvent& mouseEvent )
 {
+    using namespace input;
     ZoneScoped;
     switch ( mouseEvent.type ) {
     case MouseEvent::eClickSecondary:
-        onAction( Action{ .userEnum = (::Action::Enum)ui::Action::eMenuCancel, .value = mouseEvent.value } );
+        onAction( Action{ .userEnum = (Action::Enum)ui::Action::eMenuCancel, .value = mouseEvent.value } );
         return;
     case MouseEvent::eClickMiddle:
         return;
@@ -967,20 +971,10 @@ void Game::renderMenuScreen( RenderContext rctx, ui::RenderContext r ) const
     }
 }
 
-void Game::onActuator( Actuator a )
+void Game::onActuator( input::Actuator a )
 {
-    bool inputChanged = false;
-    switch ( a.source ) {
-    case Actuator::Source::eKBM:
-        inputChanged = g_uiProperty.setInputSource( ui::InputSource::eKBM );
-        break;
-    case Actuator::Source::eXBoxOne:
-        inputChanged = g_uiProperty.setInputSource( ui::InputSource::eXBoxOne );
-        break;
-    default:
-        assert( !"unhandled enum" );
-        break;
-    }
+    using namespace input;
+    bool inputChanged = g_uiProperty.setInputSource( a.source );
     if ( ui::Screen* screen = currentScreen(); inputChanged && screen ) {
         screen->refreshInput();
     }

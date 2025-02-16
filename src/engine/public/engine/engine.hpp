@@ -1,6 +1,6 @@
 #pragma once
 
-#include <engine/action.hpp>
+#include <input/actuator.hpp>
 #include <engine/filesystem.hpp>
 #include <engine/fps_limiter.hpp>
 #include <engine/mouse_event.hpp>
@@ -54,10 +54,7 @@ protected:
 
     void quit();
 
-    void registerAction( Action::Enum, Actuator );
-    void registerAction( Action::Enum, Actuator, Actuator );
-
-    virtual void onActuator( Actuator ) = 0;
+    virtual void onActuator( input::Actuator ) = 0;
     virtual void onInit() = 0;
     virtual void onExit() = 0;
     virtual void onRender( Renderer* ) = 0;

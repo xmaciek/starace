@@ -55,10 +55,11 @@ set_target_properties( ui PROPERTIES
 )
 
 target_link_libraries( ui
-    shared
-    engine
-    renderer
-    config
     cxx::flags
+    config
+    engine #for math.hpp
+    input
     profiler
+    renderer
+    shared
 )

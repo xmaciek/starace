@@ -1,6 +1,7 @@
 #include <ui/remapper.hpp>
 #include <ui/property.hpp>
 #include <ui/input.hpp>
+#include <input/actuator.hpp>
 
 #include <algorithm>
 
@@ -8,8 +9,9 @@ namespace ui {
 
 uint32_t Remapper::apply( char32_t chr, std::span<char32_t> out ) const
 {
+    using Source = input::Actuator::Source;
     switch ( g_uiProperty.inputSource() ) {
-    case InputSource::eKBM:
+    case Source::eKBM:
         switch ( (ui::Action::Enum)chr ) {
         case ui::Action::eMenuConfirm: std::copy_n( U"[Enter]", 7, out.begin() ); return 7;
         case ui::Action::eMenuCancel: std::copy_n( U"[Esc]", 5, out.begin() ); return 5;
@@ -17,7 +19,7 @@ uint32_t Remapper::apply( char32_t chr, std::span<char32_t> out ) const
         default: break;
         }
         break;
-    case InputSource::eXBoxOne:
+    case Source::eXBoxOne:
         break;
     }
     return 0;

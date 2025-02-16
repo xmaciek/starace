@@ -1,18 +1,13 @@
 #pragma once
 
-#include <engine/action.hpp>
+#include <input/action.hpp>
 
 #include <cstdint>
 
 namespace ui {
 
-enum class InputSource {
-    eKBM,
-    eXBoxOne,
-};
-
 struct Action {
-    enum class Enum : ::Action::Enum {
+    enum class Enum : input::Action::Enum {
         base = 0xE000,
         eMenuUp,
         eMenuDown,

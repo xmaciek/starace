@@ -11,6 +11,7 @@ add_subdirectory( renderer )
 add_subdirectory( shared )
 add_subdirectory( profiler )
 add_subdirectory( ui )
+add_subdirectory( input )
 
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
 

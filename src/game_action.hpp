@@ -1,8 +1,8 @@
 #pragma once
 
-#include <engine/action.hpp>
+#include <input/action.hpp>
 
-enum class GameAction : Action::Enum {
+enum class GameAction : input::Action::Enum {
     eGamePause,
     eJetPitch,
     eJetYaw,
