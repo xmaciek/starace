@@ -28,6 +28,7 @@ class Property {
     PipelineSlot m_pipelineSpriteSequence{};
     PipelineSlot m_pipelineSpriteSequenceColors{};
     PipelineSlot m_pipelineGlow{};
+    InputSource m_inputSource{};
 
     const Font* m_fontSmall = nullptr;
     const Font* m_fontMedium = nullptr;
@@ -57,6 +58,9 @@ public:
     inline PipelineSlot pipelineSpriteSequence() const { return m_pipelineSpriteSequence; }
     inline PipelineSlot pipelineSpriteSequenceColors() const { return m_pipelineSpriteSequenceColors; }
     inline PipelineSlot pipelineGlow() const { return m_pipelineGlow; }
+
+    inline bool setInputSource( InputSource s ) { return std::exchange( m_inputSource, s ) != s; }
+    inline InputSource inputSource() const { return m_inputSource; }
 
     inline std::pmr::u32string localize( Hash::value_type key ) const
     {

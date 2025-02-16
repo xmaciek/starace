@@ -1,5 +1,7 @@
 #include <ui/widget.hpp>
 
+#include <algorithm>
+
 namespace ui {
 
 EventProcessing Widget::onEvent( const MouseEvent& e )
@@ -27,6 +29,11 @@ void Widget::onUpdate( const UpdateContext& uctx )
 {
     update( uctx );
     for ( auto&& it : m_children ) it->onUpdate( uctx );
+}
+
+void Widget::refreshInput()
+{
+    std::ranges::for_each( m_children, []( auto& wgt ) { wgt->refreshInput(); } );
 }
 
 void Widget::setPosition( math::vec2 v )

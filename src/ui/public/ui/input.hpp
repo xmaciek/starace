@@ -6,6 +6,11 @@
 
 namespace ui {
 
+enum class InputSource {
+    eKBM,
+    eXBoxOne,
+};
+
 struct Action {
     enum class Enum : ::Action::Enum {
         base = 0xE000,

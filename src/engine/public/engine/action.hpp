@@ -13,6 +13,11 @@ struct Actuator {
     using Buttoncode = SDL_GameControllerButton;
     using Axiscode = SDL_GameControllerAxis;
 
+    enum class Source : uint16_t {
+        eKBM,
+        eXBoxOne,
+    };
+
     static constexpr inline uint16_t SCANCODE = 1;
     static constexpr inline uint16_t BUTTONCODE = 2;
     static constexpr inline uint16_t AXISCODE = 3;
@@ -37,23 +42,33 @@ struct Actuator {
         Typed typed;
     };
     value_type value = 0;
+    Source source = {};
 
     constexpr Actuator() noexcept = default;
     constexpr Actuator( Scancode s, bool v = false ) noexcept
-    : typed{ .type = SCANCODE, .id = (uint16_t)s }, value{ v ? MAX : NOMINAL } {};
+    : typed{ .type = SCANCODE, .id = (uint16_t)s }
+    , value{ v ? MAX : NOMINAL }
+    , source{ Source::eKBM }
+    {}
 
     constexpr Actuator( Buttoncode b, bool v = false ) noexcept
-    : typed{ .type = BUTTONCODE, .id = (uint16_t)b }, value{ v ? MAX : NOMINAL } {};
+    : typed{ .type = BUTTONCODE, .id = (uint16_t)b }
+    , value{ v ? MAX : NOMINAL }
+    , source{ Source::eXBoxOne }
+    {}
 
     constexpr Actuator( Axiscode a, value_type v = 0 ) noexcept
-    : typed{ .type = AXISCODE, .id = (uint16_t)a }, value{ v } {};
+    : typed{ .type = AXISCODE, .id = (uint16_t)a }
+    , value{ v }
+    , source{ Source::eXBoxOne }
+    {}
 
     constexpr bool operator == ( const Actuator& rhs ) const noexcept
     {
         return raw == rhs.raw;
     }
 };
-static_assert( sizeof( Actuator ) == 4 );
+static_assert( sizeof( Actuator ) == 6 );
 static_assert( alignof( Actuator ) == 2 );
 
 struct Action {

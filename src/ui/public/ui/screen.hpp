@@ -66,6 +66,7 @@ public:
 
     inline Hash::value_type name() const { return m_name; }
     void show( math::vec2 size );
+    void refreshInput();
 };
 
 }

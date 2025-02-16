@@ -5,6 +5,7 @@
 #include <renderer/renderer.hpp>
 
 #include <cassert>
+#include <algorithm>
 
 namespace ui {
 
@@ -35,6 +36,15 @@ void Label::render( const RenderContext& rctx ) const
     rctx.renderer->push( m_renderText.pushData, &m_renderText.pushConstant );
 }
 
+void Label::refreshInput()
+{
+    Widget::refreshInput();
+    if ( m_hasActions ) {
+        m_renderText = m_font->composeText( m_color, m_text, m_labelExtent );
+        m_size = m_renderText.extent;
+    }
+}
+
 void Label::setText( std::u32string_view str )
 {
     setText( std::pmr::u32string{ str.begin(), str.end() } );
@@ -44,6 +54,11 @@ void Label::setText( std::pmr::u32string&& str )
 {
     assert( !str.empty() );
     m_text = std::move( str );
+    auto isAction = []( char32_t c )
+    {
+        return c >= (char32_t)Action::base && c < (char32_t)Action::end;
+    };
+    m_hasActions = std::ranges::find_if( m_text, isAction ) != m_text.end();
     m_renderText = m_font->composeText( m_color, m_text, m_labelExtent );
     m_size = m_renderText.extent;
 }

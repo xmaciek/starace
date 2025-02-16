@@ -969,6 +969,22 @@ void Game::renderMenuScreen( RenderContext rctx, ui::RenderContext r ) const
 
 void Game::onActuator( Actuator a )
 {
+    bool inputChanged = false;
+    switch ( a.source ) {
+    case Actuator::Source::eKBM:
+        inputChanged = g_uiProperty.setInputSource( ui::InputSource::eKBM );
+        break;
+    case Actuator::Source::eXBoxOne:
+        inputChanged = g_uiProperty.setInputSource( ui::InputSource::eXBoxOne );
+        break;
+    default:
+        assert( !"unhandled enum" );
+        break;
+    }
+    if ( ui::Screen* screen = currentScreen(); inputChanged && screen ) {
+        screen->refreshInput();
+    }
+
     const std::pmr::vector<Action> actions = m_actionStateTracker.updateAndResolve( a );
     for ( const auto& it : actions ) {
         onAction( it );

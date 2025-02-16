@@ -429,9 +429,16 @@ void Screen::resize( math::vec2 s )
 
 void Screen::show( math::vec2 size )
 {
+    refreshInput();
     resize( size );
     m_repeatDirection = none;
     m_anim = 0.0f;
+}
+
+void Screen::refreshInput()
+{
+    std::ranges::for_each( m_widgets, []( auto& ptr ) { ptr->refreshInput(); } );
+    if ( m_footer ) { m_footer->refreshInput(); }
 }
 
 }

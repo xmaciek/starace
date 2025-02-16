@@ -33,6 +33,7 @@ private:
     math::vec4 m_color = math::vec4{ 1.0f, 1.0f, 1.0f, 1.0f };
     math::vec2 m_labelExtent{};
     DataModel::size_type m_revision = 0xFFFF;
+    bool m_hasActions : 1 = false;
     // TODO remove mutable
     mutable Font::RenderText m_renderText{};
 
@@ -46,6 +47,7 @@ public:
     void setText( std::u32string_view );
     void setText( std::pmr::u32string&& );
     DataModel* dataModel() const;
+    virtual void refreshInput() override;
 };
 }
 
