@@ -123,6 +123,7 @@ private:
     void loadWPN( const Asset& );
     void loadLANG( const Asset& );
     void loadWAV( const Asset& );
+    void loadCSG( const Asset& );
 
     uint32_t viewportHeight() const;
     uint32_t viewportWidth() const;

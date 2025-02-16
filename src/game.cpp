@@ -77,6 +77,7 @@ Game::Game( int argc, char** argv )
     m_io->setCallback( ".map", [this]( const auto& asset ){ loadMAP( asset ); } );
     m_io->setCallback( ".jet", [this]( const auto& asset ){ loadJET( asset ); } );
     m_io->setCallback( ".wpn", [this]( const auto& asset ){ loadWPN( asset ); } );
+    m_io->setCallback( ".csg", [this]( const auto& asset ){ loadCSG( asset ); } );
 }
 
 Game::~Game()
@@ -141,20 +142,6 @@ void Game::onInit()
     setupUI();
     onResize( viewportWidth(), viewportHeight() );
     changeScreen( Scene::eMainMenu );
-}
-
-static std::pmr::vector<csg::Callsign> loadCallsigns( Filesystem* io )
-{
-    auto data = io->viewWait( "misc/callsigns.csg" );
-    csg::Header header;
-    std::memcpy( &header, data.data(), sizeof( header ) );
-    data = data.subspan( sizeof( header ) );
-    assert( header.magic == header.MAGIC );
-    assert( header.version == header.VERSION );
-    std::pmr::vector<csg::Callsign> callsigns{};
-    callsigns.resize( header.count );
-    std::memcpy( callsigns.data(), data.data(), header.count * sizeof( csg::Callsign ) );
-    return callsigns;
 }
 
 void Game::setupUI()
@@ -330,8 +317,6 @@ void Game::setupUI()
     m_screens.emplace_back( m_io->viewWait( "ui/settings_display.ui" ) );
     m_screens.emplace_back( m_io->viewWait( "ui/settings_audio.ui" ) );
     m_screens.emplace_back( m_io->viewWait( "ui/mainmenu.ui" ) );
-
-    m_callsigns = loadCallsigns( m_io );
 
     Targeting::CreateInfo tci{
         .targetSprites{
@@ -786,6 +771,20 @@ void Game::loadWAV( const Asset& asset )
     it->second = m_audio->load( asset.data );
 }
 
+void Game::loadCSG( const Asset& asset )
+{
+    csg::Header header;
+    assert( asset.data.size() >= sizeof( header ) );
+    std::memcpy( &header, asset.data.data(), sizeof( header ) );
+    assert( header.magic == header.MAGIC );
+    assert( header.version == header.VERSION );
+    auto data = asset.data.subspan( sizeof( header ) );
+    std::pmr::vector<csg::Callsign> callsigns{};
+    auto size = m_callsigns.size();
+    m_callsigns.resize( size + header.count );
+    std::memcpy( m_callsigns.data() + size, data.data(), header.count * sizeof( csg::Callsign ) );
+}
+
 uint32_t Game::viewportWidth() const
 {
     return std::get<0>( viewport() );
@@ -804,6 +803,7 @@ float Game::viewportAspect() const
 void Game::onAction( Action a )
 {
     ZoneScoped;
+
     const GameAction action = a.toA<GameAction>();
     switch ( action ) {
     case GameAction::eJetPitch: m_playerInput.pitch = -a.analog(); break;
