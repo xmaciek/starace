@@ -37,9 +37,12 @@ static uint32_t mapController( Actuator a, uint32_t remapOffset, std::span<char3
 
 uint32_t Remapper::apply( Actuator::Source source, char32_t chr, std::span<char32_t> out ) const
 {
-    auto it = std::ranges::find_if( m_data, [chr, source]( const auto& p )
+    const bool isController = source == Actuator::Source::eKBM;
+    auto it = std::ranges::find_if( m_data, [chr, isController]( const auto& p )
     {
-        return (char32_t)p.m_userEnum == chr && source == p.m_max.source;
+        if ( (char32_t)p.m_userEnum != chr ) return false;
+        const bool c = p.m_max.source == Actuator::Source::eKBM;
+        return c == isController;
     } );
     if ( it == m_data.end() ) return 0;
 
