@@ -76,7 +76,7 @@ uint32_t Remapper::apply( Actuator::Source source, char32_t chr, std::span<char3
         assert( sv.size() + 2 < out.size() );
         auto kit = out.begin();
         *kit = U'['; kit++;
-        kit = std::transform( sv.begin(), sv.end(), kit, []( char c ) -> char32_t { return c; } );
+        kit = std::transform( sv.begin(), sv.end(), kit, []( char c ) -> char32_t { return (char32_t)c; } );
         *kit = U']'; kit++;
         return (uint32_t)std::distance( out.begin(), kit );
     }
