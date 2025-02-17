@@ -31,7 +31,8 @@ struct OptionsGFX {
         eFXAA,
         eVRSAA,
     };
-    ui::Option<AntiAlias> m_antialias{};
+    ui::Option<AntiAlias> m_antialiasUI{};
+    AntiAlias m_antialias = AntiAlias::eOff;
     ui::Option<bool> m_fpsLimiter{ 1 };
 };
 

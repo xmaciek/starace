@@ -247,7 +247,7 @@ void Game::setupUI()
         if ( m_renderer->featureAvailable( Renderer::Feature::eVRSAA ) ) {
             aa.emplace_back( eVRSAA );
         }
-        m_optionsGFX.m_antialias = ui::Option<OptionsGFX::AntiAlias>{ 0, std::move( aa ), &OptionsGFX::toString<OptionsGFX::AntiAlias> };
+        m_optionsGFX.m_antialiasUI = ui::Option<OptionsGFX::AntiAlias>{ 0, std::move( aa ), &OptionsGFX::toString<OptionsGFX::AntiAlias> };
     }
     {
         std::pmr::vector<VSync> v{ VSync::eOff, VSync::eOn };
@@ -266,7 +266,7 @@ void Game::setupUI()
     m_gameUiDataModels.insert( "$data:missionSelect"_hash, &m_dataMissionSelect );
     m_gameUiDataModels.insert( "$data:resolution"_hash, &m_optionsGFX.m_resolution );
     m_gameUiDataModels.insert( "$data:vsync"_hash, &m_optionsGFX.m_vsync );
-    m_gameUiDataModels.insert( "$data:antialias"_hash, &m_optionsGFX.m_antialias );
+    m_gameUiDataModels.insert( "$data:antialias"_hash, &m_optionsGFX.m_antialiasUI );
     m_gameUiDataModels.insert( "$data:fpsLimiter"_hash, &m_optionsGFX.m_fpsLimiter );
     m_gameUiDataModels.insert( "$data:settings.audio.driver"_hash, &m_optionsAudio.m_driver );
     m_gameUiDataModels.insert( "$data:settings.audio.device"_hash, &m_optionsAudio.m_device );
@@ -299,7 +299,8 @@ void Game::setupUI()
         DisplayMode displayMode = m_optionsGFX.m_resolution.value();
         displayMode.fullscreen = m_optionsGFX.m_fullscreen.value();
         m_renderer->setVSync( m_optionsGFX.m_vsync.value() );
-        m_renderer->setFeatureEnabled( Renderer::Feature::eVRSAA, m_optionsGFX.m_antialias.value() == OptionsGFX::AntiAlias::eVRSAA );
+        m_optionsGFX.m_antialias = m_optionsGFX.m_antialiasUI.value();
+        m_renderer->setFeatureEnabled( Renderer::Feature::eVRSAA, m_optionsGFX.m_antialias == OptionsGFX::AntiAlias::eVRSAA );
         setDisplayMode( displayMode );
         setTargetFPS( 200, m_optionsGFX.m_fpsLimiter.value() ? FpsLimiter::eSpinLock : FpsLimiter::eOff );
     });
@@ -911,7 +912,7 @@ void Game::render3D( RenderContext rctx )
     Bullet::renderAll( rctx, m_bullets, m_plasma );
     m_player.render( rctx );
 
-    switch ( m_optionsGFX.m_antialias.value() ) {
+    switch ( m_optionsGFX.m_antialias ) {
     case OptionsGFX::AntiAlias::eFXAA:
     case OptionsGFX::AntiAlias::eVRSAA: {
         const PushConstant<Pipeline::eAntiAliasFXAA> aa{};
@@ -968,7 +969,7 @@ void Game::renderMenuScreen( RenderContext rctx, ui::RenderContext r ) const
     jet.render( rctx );
     m_dustUi.render( rctx );
 
-    switch ( m_optionsGFX.m_antialias.value() ) {
+    switch ( m_optionsGFX.m_antialias ) {
     case OptionsGFX::AntiAlias::eFXAA:
     case OptionsGFX::AntiAlias::eVRSAA: {
         const PushConstant<Pipeline::eAntiAliasFXAA> aa{};
