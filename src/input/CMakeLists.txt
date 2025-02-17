@@ -1,4 +1,4 @@
-add_library( input SHARED )
+add_library( input STATIC )
 
 target_sources( input
     PRIVATE
