@@ -13,7 +13,7 @@ struct OptionsGFX {
     template <typename T> static std::pmr::u32string toString( const T& );
 
     ui::Option<DisplayMode> m_resolution{};
-    ui::Option<bool> m_fullscreen{ 0 };
+    ui::Option<bool> m_fullscreen{ 1 };
     ui::Option<VSync> m_vsync{};
 
     ui::Option<float> m_gamma{ 18,
