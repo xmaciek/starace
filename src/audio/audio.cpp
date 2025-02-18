@@ -87,11 +87,11 @@ SDLAudio::SDLAudio()
     SDL_InitSubSystem( SDL_INIT_AUDIO );
 
     auto drivers = listDrivers();
-    assert( !drivers.empty() );
+    if ( drivers.empty() ) return;
     selectDriver( drivers.front() );
 
     auto devices = listDevices();
-    assert( !devices.empty() );
+    if ( devices.empty() ) return;
     selectDevice( devices.front() );
 }
 
@@ -148,18 +148,19 @@ Audio::Slot SDLAudio::load( std::span<const uint8_t> data )
 
     SDL_AudioCVT cvt{};
     SDL_BuildAudioCVT( &cvt, spec.format, spec.channels, spec.freq, m_spec.format, m_spec.channels, m_spec.freq );
-    assert( cvt.needed );
+    if ( cvt.needed ) {
 
-    buffer.resize( static_cast<Buffer::size_type>( tmpLen ) * static_cast<Buffer::size_type>( cvt.len_mult ) );
-    cvt.buf = buffer.data();
-    cvt.len = static_cast<int>( tmpLen );
-    std::copy( tmpBuff, tmpBuff + tmpLen, buffer.begin() );
+        buffer.resize( static_cast<Buffer::size_type>( tmpLen ) * static_cast<Buffer::size_type>( cvt.len_mult ) );
+        cvt.buf = buffer.data();
+        cvt.len = static_cast<int>( tmpLen );
+        std::copy( tmpBuff, tmpBuff + tmpLen, buffer.begin() );
 
-    [[maybe_unused]]
-    const int convertErr = SDL_ConvertAudio( &cvt );
-    assert( convertErr == 0 );
-    buffer.resize( static_cast<Buffer::size_type>( cvt.len_cvt ) );
+        [[maybe_unused]]
+        const int convertErr = SDL_ConvertAudio( &cvt );
+        assert( convertErr == 0 );
+        buffer.resize( static_cast<Buffer::size_type>( cvt.len_cvt ) );
 
+    }
     SDL_FreeWAV( tmpBuff );
 
     uint16_t slot = static_cast<uint16_t>( m_slotMachine.next() );
