@@ -28,8 +28,7 @@ Label::Label( const Label::CreateInfo& ci )
 
 void Label::render( const RenderContext& rctx ) const
 {
-    assert( !m_text.empty() );
-
+    if ( m_renderText.pushData.m_instanceCount == 0 ) [[unlikely]] return;
     m_renderText.pushConstant.m_model = rctx.model;
     m_renderText.pushConstant.m_view = rctx.view;
     m_renderText.pushConstant.m_projection = rctx.projection;
@@ -52,7 +51,6 @@ void Label::setText( std::u32string_view str )
 
 void Label::setText( std::pmr::u32string&& str )
 {
-    assert( !str.empty() );
     m_text = std::move( str );
     auto isAction = []( char32_t c )
     {
