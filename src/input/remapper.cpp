@@ -1,6 +1,7 @@
 #include <input/remapper.hpp>
 
 #include <extra/fnta.hpp>
+#include <extra/unicode.hpp>
 
 #include <cassert>
 #include <algorithm>
@@ -71,12 +72,15 @@ uint32_t Remapper::apply( Actuator::Source source, char32_t chr, std::span<char3
         const char* keyName = SDL_GetKeyName( vk );
         if ( !keyName ) return 0;
 
-        // TODO: utf32
+
         std::string_view sv{ keyName };
         assert( sv.size() + 2 < out.size() );
         auto kit = out.begin();
         *kit = U'['; kit++;
-        kit = std::transform( sv.begin(), sv.end(), kit, []( char c ) -> char32_t { return (char32_t)c; } );
+        unicode::Transcoder transcoder{ sv };
+        // TODO: std::copy
+        auto length = std::clamp( (uint32_t)out.size() - 2u, 0u, transcoder.length() );
+        for ( ; length-- ; ) *(kit++) = *(transcoder++);
         *kit = U']'; kit++;
         return (uint32_t)std::distance( out.begin(), kit );
     }
