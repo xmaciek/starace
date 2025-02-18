@@ -110,7 +110,12 @@ math::vec4 SpinBox::arrowLeft() const
     const math::vec2 s = size();
     static constexpr auto arrowHash = "arrowLeft"_hash;
     auto arrow = (*g_uiProperty.atlas())[ arrowHash ];
-    return math::vec4{ s.x * 0.5f, 0.0f, arrow.w, arrow.h };
+    return math::vec4{
+        s.x * 0.5f,
+        s.y * 0.5f - static_cast<float>( arrow.h ) * 0.5f,
+        arrow.w,
+        arrow.h
+    };
 }
 
 math::vec4 SpinBox::arrowRight() const
@@ -118,7 +123,12 @@ math::vec4 SpinBox::arrowRight() const
     const math::vec2 s = size();
     static constexpr auto arrowHash = "arrowRight"_hash;
     auto arrow = (*g_uiProperty.atlas())[ arrowHash ];
-    return math::vec4{ s.x - static_cast<float>( arrow.w ) - 4.0f, 0.0f, arrow.w, arrow.h };
+    return math::vec4{
+        s.x - static_cast<float>( arrow.w ) - 4.0f,
+        s.y * 0.5f - static_cast<float>( arrow.h ) * 0.5f,
+        arrow.w,
+        arrow.h
+    };
 }
 
 EventProcessing SpinBox::onAction( ui::Action action )

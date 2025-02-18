@@ -1,8 +1,8 @@
 width = 256
 height = 256
 
-arrowLeft  = { x = 24  y = 0   w = 24  h = 48  }
-arrowRight = { x = 0   y = 0   w = 24  h = 48  }
+arrowLeft  = { x = 24  y = 0   w = 24  h = 32  }
+arrowRight = { x = 0   y = 0   w = 24  h = 32  }
 background = { x = 84  y = 0   w = 8   h = 8   }
 bot        = { x = 60  y = 24  w = 8   h = 8   }
 botLeft    = { x = 48  y = 24  w = 8   h = 8   }
