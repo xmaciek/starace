@@ -53,6 +53,7 @@ public:
 
     T value() const
     {
+        if ( m_values.empty() ) return {};
         assert( m_currentIndex < m_values.size() );
         return m_values[ m_currentIndex ];
     }
@@ -74,6 +75,7 @@ public:
 
     virtual std::pmr::u32string at( size_type i ) const override
     {
+        if ( m_values.empty() ) return {};
         assert( i < m_values.size() );
         if ( m_toString ) return m_toString( m_values[ i ] );
         assert( i < m_locValues.size() );
@@ -82,6 +84,7 @@ public:
 
     virtual void select( size_type i ) override
     {
+        if ( m_values.empty() ) return;
         assert( i < m_values.size() );
         m_currentIndex = i;
         m_revision++;
