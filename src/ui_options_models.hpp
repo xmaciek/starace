@@ -30,14 +30,14 @@ public:
     virtual ~Option() noexcept = default;
     Option() noexcept = default;
 
-    Option( size_type currentIndex ) noexcept
+    inline Option( size_type currentIndex ) noexcept
     requires std::is_same_v<bool, T>
     : m_currentIndex{ currentIndex }
     , m_values{ false, true }
     , m_locValues{ "off"_hash, "on"_hash }
     {}
 
-    Option( size_type currentIndex
+    inline Option( size_type currentIndex
         , std::pmr::vector<T>&& values
         , FnToString&& toString
     ) noexcept
@@ -46,16 +46,26 @@ public:
     , m_toString( std::move( toString ) )
     {}
 
-    Option( size_type currentIndex, FnToString&& fn ) noexcept
+    inline Option( size_type currentIndex, FnToString&& fn ) noexcept
     : m_currentIndex{ currentIndex }
     , m_toString{ std::move( fn ) }
     {}
 
-    T value() const
+    inline T value() const noexcept
     {
         if ( m_values.empty() ) return {};
         assert( m_currentIndex < m_values.size() );
         return m_values[ m_currentIndex ];
+    }
+
+    inline void assign( const T& t ) noexcept
+    {
+        auto it = std::ranges::find( m_values, t );
+        if ( it == m_values.end() ) {
+            assert( !"value not found in model" );
+            it = m_values.begin();
+        }
+        select( (size_type)std::distance( m_values.begin(), it ) );
     }
 
     virtual size_type current() const override

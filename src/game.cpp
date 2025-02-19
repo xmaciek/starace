@@ -257,8 +257,9 @@ void Game::setupUI()
         m_optionsGFX.m_vsync = ui::Option<VSync>{ 1, std::move( v ), &OptionsGFX::toString<VSync> };
     };
 
-    m_optionsAudio.m_driver.setData( 0, m_audio->listDrivers() );
-    m_optionsAudio.m_device.setData( 0, m_audio->listDevices() );
+    m_optionsAudio.m_driverNameUI.setData( 0, m_audio->listDrivers() );
+    m_optionsAudio.m_deviceNameUI.setData( 0, m_audio->listDevices() );
+    m_optionsAudio.set();
 
     m_gameUiDataModels.insert( "$data:fullscreen"_hash, &m_optionsGFX.m_fullscreen );
     m_gameUiDataModels.insert( "$data:gammaCorrection"_hash, &m_optionsGFX.m_gamma );
@@ -268,11 +269,11 @@ void Game::setupUI()
     m_gameUiDataModels.insert( "$data:vsync"_hash, &m_optionsGFX.m_vsync );
     m_gameUiDataModels.insert( "$data:antialias"_hash, &m_optionsGFX.m_antialiasUI );
     m_gameUiDataModels.insert( "$data:fpsLimiter"_hash, &m_optionsGFX.m_fpsLimiter );
-    m_gameUiDataModels.insert( "$data:settings.audio.driver"_hash, &m_optionsAudio.m_driver );
-    m_gameUiDataModels.insert( "$data:settings.audio.device"_hash, &m_optionsAudio.m_device );
-    m_gameUiDataModels.insert( "$data:settings.audio.master"_hash, &m_optionsAudio.m_master );
-    m_gameUiDataModels.insert( "$data:settings.audio.ui"_hash, &m_optionsAudio.m_ui );
-    m_gameUiDataModels.insert( "$data:settings.audio.sfx"_hash, &m_optionsAudio.m_sfx );
+    m_gameUiDataModels.insert( "$data:settings.audio.driver"_hash, &m_optionsAudio.m_driverNameUI );
+    m_gameUiDataModels.insert( "$data:settings.audio.device"_hash, &m_optionsAudio.m_deviceNameUI );
+    m_gameUiDataModels.insert( "$data:settings.audio.master"_hash, &m_optionsAudio.m_masterUI );
+    m_gameUiDataModels.insert( "$data:settings.audio.ui"_hash, &m_optionsAudio.m_uiUI );
+    m_gameUiDataModels.insert( "$data:settings.audio.sfx"_hash, &m_optionsAudio.m_sfxUI );
     m_gameUiDataModels.insert( "$data:weaponPrimary"_hash, &m_optionsCustomize.m_weaponPrimary );
     m_gameUiDataModels.insert( "$data:weaponSecondary"_hash, &m_optionsCustomize.m_weaponSecondary );
     m_gameUiDataModels.insert( "$var:playerHP"_hash, &m_gameplayUIData.m_playerHP );
@@ -306,11 +307,20 @@ void Game::setupUI()
     });
     m_gameCallbacks.insert( "$function:applyAudio"_hash, [this]()
     {
-        m_audio->setVolume( Audio::Channel::eMaster, m_optionsAudio.m_master.value() );
-        m_audio->setVolume( Audio::Channel::eSFX, m_optionsAudio.m_sfx.value() );
-        m_audio->setVolume( Audio::Channel::eUI, m_optionsAudio.m_ui.value() );
-        m_audio->selectDriver( m_optionsAudio.m_driver.value() );
-        m_audio->selectDevice( m_optionsAudio.m_device.value() );
+        if ( !m_optionsAudio.hasChanges() ) return;
+        m_optionsAudio.set();
+        m_audio->setVolume( Audio::Channel::eMaster, m_optionsAudio.m_master );
+        m_audio->setVolume( Audio::Channel::eSFX, m_optionsAudio.m_sfx );
+        m_audio->setVolume( Audio::Channel::eUI, m_optionsAudio.m_ui );
+        m_audio->selectDriver( m_optionsAudio.m_driverName );
+        m_audio->selectDevice( m_optionsAudio.m_deviceName );
+    } );
+    m_gameCallbacks.insert( "$function:exitAudio"_hash, [this]()
+    {
+        if ( m_optionsAudio.hasChanges() ) {
+            m_optionsAudio.restore();
+        }
+        changeScreen( Scene::eSettings, m_click );
     } );
 
     g_uiProperty.m_gameCallbacks = m_gameCallbacks.makeView();

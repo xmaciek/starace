@@ -14,5 +14,5 @@ SpinBox = { x = 48 y = 400 width = 600 height = 48 text = settings.audio.ui     
 
 Footer = {
     Button = { text = apply     input = eMenuApply      trigger = $function:applyAudio }
-    Button = { text = return    input = eMenuCancel     trigger = $function:goto_settings }
+    Button = { text = return    input = eMenuCancel     trigger = $function:exitAudio }
 }
