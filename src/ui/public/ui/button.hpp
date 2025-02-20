@@ -21,6 +21,7 @@ public:
         math::vec2 position{};
         math::vec2 size{};
         uint16_t tabOrder{};
+        Anchor anchor = Anchor::fTop | Anchor::fLeft;
     };
     ~Button() noexcept = default;
     Button() noexcept = default;

@@ -18,7 +18,7 @@ static constexpr std::array<ui::Atlas::hash_type, 9> SLICES = {
 namespace ui {
 
 Button::Button( const CreateInfo& ci ) noexcept
-: NineSlice{ NineSlice::CreateInfo{ .position = ci.position, .size = ci.size, .spriteArray = SLICES, .anchor = Anchor::fTop | Anchor::fLeft } }
+: NineSlice{ NineSlice::CreateInfo{ .position = ci.position, .size = ci.size, .spriteArray = SLICES, .anchor = ci.anchor } }
 , m_trigger{ ci.trigger }
 {
     m_label = emplace_child<Label>( Label::CreateInfo{ .text = ci.text, .font = "medium"_hash, .position = ci.size * 0.5f, .anchor = Anchor::fCenter | Anchor::fMiddle, } );

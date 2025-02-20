@@ -230,7 +230,7 @@ static UniquePointer<Widget> makeFooter( std::pmr::memory_resource* alloc, const
 Screen::Screen( std::span<const uint8_t> fileContent ) noexcept
 {
     ZoneScoped;
-    std::pmr::memory_resource* alloc = std::pmr::get_default_resource();
+    std::pmr::memory_resource* alloc = allocator();
     uint16_t tabOrderCount = 0;
 
     auto entry = cfg::Entry::fromData( fileContent );
@@ -300,6 +300,26 @@ void Screen::updateInputRepeat( float dt )
     case eRight: onAction( ui::Action{ .a = ui::Action::eMenuRight, .value = 0x7FFF } ); break;
     default: break;
     }
+}
+
+std::pmr::memory_resource* Screen::allocator()
+{
+    return std::pmr::get_default_resource();
+}
+
+UniquePointer<ui::MessageBox> Screen::messageBox( Hash::value_type text )
+{
+    ui::MessageBox::CreateInfo ci{
+        .position = m_viewport * math::vec2{ 0.5f, 0.5f } - m_offset,
+        .size = m_viewport * math::vec2{ 0.333f, 0.333f },
+        .text = text,
+    };
+    return UniquePointer<ui::MessageBox>{ allocator(), ci };
+}
+
+void Screen::addModalWidget( UniquePointer<Widget>&& w )
+{
+    m_modalWidget = std::move( w );
 }
 
 void Screen::update( const UpdateContext& uctx )

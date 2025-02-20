@@ -12,6 +12,7 @@ target_sources( ui
     glow.hpp
     image.cpp
     label.cpp
+    message_box.cpp
     nineslice.cpp
     progressbar.cpp
     property.cpp
@@ -32,6 +33,7 @@ target_sources( ui
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/image.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/input.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/label.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/message_box.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/nineslice.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/pipeline.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/progressbar.hpp

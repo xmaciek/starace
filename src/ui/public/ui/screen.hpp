@@ -6,6 +6,7 @@
 #include <shared/hash.hpp>
 #include <ui/input.hpp>
 #include <ui/tab_order.hpp>
+#include <ui/message_box.hpp>
 
 #include <vector>
 #include <memory>
@@ -48,6 +49,8 @@ class Screen {
 
     void updateInputRepeat( float );
 
+    std::pmr::memory_resource* allocator();
+
 public:
     ~Screen() noexcept = default;
     Screen() noexcept = default;
@@ -67,6 +70,11 @@ public:
     inline Hash::value_type name() const { return m_name; }
     void show( math::vec2 size );
     void refreshInput();
+
+    [[nodiscard]]
+    UniquePointer<MessageBox> messageBox( Hash::value_type );
+    void addModalWidget( UniquePointer<Widget>&& );
+
 };
 
 }

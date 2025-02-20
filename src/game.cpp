@@ -8,6 +8,7 @@
 #include "units.hpp"
 #include <ui/property.hpp>
 #include <ui/pipeline.hpp>
+#include <ui/message_box.hpp>
 
 #include <config/config.hpp>
 
@@ -317,10 +318,19 @@ void Game::setupUI()
     } );
     m_gameCallbacks.insert( "$function:exitAudio"_hash, [this]()
     {
-        if ( m_optionsAudio.hasChanges() ) {
+        if ( !m_optionsAudio.hasChanges() ) return changeScreen( Scene::eSettings, m_click );
+        auto* screen = currentScreen();
+        assert( screen );
+        auto msg = screen->messageBox( "settings.audio.unsaved"_hash );
+        assert( msg );
+        msg->addButton( "yes"_hash, ui::Action::eMenuConfirm, [this]()
+        {
             m_optionsAudio.restore();
-        }
-        changeScreen( Scene::eSettings, m_click );
+            changeScreen( Scene::eSettings, m_click );
+        } );
+        msg->addButton( "no"_hash, ui::Action::eMenuCancel, [screen]() { screen->addModalWidget( {} ); } );
+        screen->addModalWidget( std::move( msg ) );
+
     } );
 
     g_uiProperty.m_gameCallbacks = m_gameCallbacks.makeView();
