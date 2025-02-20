@@ -35,6 +35,37 @@ std::pmr::u32string OptionsGFX::toString( const VSync& v )
     }
 }
 
+void OptionsGFX::set()
+{
+    m_antialias = m_antialiasUI.value();
+    m_resolution = m_resolutionUI.value();
+    m_gamma = m_gammaUI.value();
+    m_fullscreen = m_fullscreenUI.value();
+    m_vsync = m_vsyncUI.value();
+    m_fpsLimiter = m_fpsLimiterUI.value();
+}
+
+void OptionsGFX::restore()
+{
+    m_antialiasUI.assign( m_antialias );
+    m_resolutionUI.assign( m_resolution );
+    m_gammaUI.assign( m_gamma );
+    m_fullscreenUI.assign( m_fullscreen );
+    m_vsyncUI.assign( m_vsync );
+    m_fpsLimiterUI.assign( m_fpsLimiter );
+}
+
+bool OptionsGFX::hasChanges() const
+{
+    return m_antialias != m_antialiasUI.value()
+        || m_resolution != m_resolutionUI.value()
+        || m_gamma != m_gammaUI.value()
+        || m_fullscreen != m_fullscreenUI.value()
+        || m_vsync != m_vsyncUI.value()
+        || m_fpsLimiter != m_fpsLimiterUI.value()
+        ;
+}
+
 void OptionsAudio::set()
 {
     m_driverName = m_driverNameUI.value();

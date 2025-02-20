@@ -13,11 +13,17 @@
 struct OptionsGFX {
     template <typename T> static std::pmr::u32string toString( const T& );
 
-    ui::Option<DisplayMode> m_resolution{};
-    ui::Option<bool> m_fullscreen{ 1 };
-    ui::Option<VSync> m_vsync{};
-
-    ui::Option<float> m_gamma{ 18,
+    enum class AntiAlias : uint32_t {
+        eOff,
+        eFXAA,
+        eVRSAA,
+    };
+    ui::Option<AntiAlias> m_antialiasUI{};
+    ui::Option<DisplayMode> m_resolutionUI{};
+    ui::Option<bool> m_fullscreenUI{ 1 };
+    ui::Option<VSync> m_vsyncUI{};
+    ui::Option<bool> m_fpsLimiterUI{ 1 };
+    ui::Option<float> m_gammaUI{ 18,
         std::pmr::vector<float>{ 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f
             , 1.0f, 1.1f, 1.2f, 1.3f, 1.4f, 1.5f, 1.6f, 1.7f, 1.8f, 1.9f
             , 2.0f, 2.1f, 2.2f, 2.3f, 2.4f, 2.5f, 2.6f, 2.7f, 2.8f, 2.9f
@@ -27,14 +33,16 @@ struct OptionsGFX {
         , &::toString<float>
     };
 
-    enum class AntiAlias : uint32_t {
-        eOff,
-        eFXAA,
-        eVRSAA,
-    };
-    ui::Option<AntiAlias> m_antialiasUI{};
     AntiAlias m_antialias = AntiAlias::eOff;
-    ui::Option<bool> m_fpsLimiter{ 1 };
+    DisplayMode m_resolution{};
+    VSync m_vsync{};
+    float m_gamma = 2.2f;
+    bool m_fullscreen = true;
+    bool m_fpsLimiter = true;
+
+    void restore();
+    void set();
+    bool hasChanges() const;
 };
 
 struct OptionsAudio {

@@ -241,7 +241,7 @@ void Game::setupUI()
         return m_mapsContainer[ i ].preview;
     };
 
-    m_optionsGFX.m_resolution = ui::Option<DisplayMode>{ 0, displayModes(), &OptionsGFX::toString<DisplayMode> };
+    m_optionsGFX.m_resolutionUI = ui::Option<DisplayMode>{ 0, displayModes(), &OptionsGFX::toString<DisplayMode> };
 
     {
         using enum OptionsGFX::AntiAlias;
@@ -256,21 +256,20 @@ void Game::setupUI()
         if ( m_renderer->featureAvailable( Renderer::Feature::eVSyncMailbox ) ) {
             v.emplace_back( VSync::eMailbox );
         }
-        m_optionsGFX.m_vsync = ui::Option<VSync>{ 1, std::move( v ), &OptionsGFX::toString<VSync> };
+        m_optionsGFX.m_vsyncUI = ui::Option<VSync>{ 1, std::move( v ), &OptionsGFX::toString<VSync> };
     };
 
     m_optionsAudio.m_driverNameUI.setData( 0, m_audio->listDrivers() );
     m_optionsAudio.m_deviceNameUI.setData( 0, m_audio->listDevices() );
+    m_optionsGFX.set();
     m_optionsAudio.set();
 
-    m_gameUiDataModels.insert( "$data:fullscreen"_hash, &m_optionsGFX.m_fullscreen );
-    m_gameUiDataModels.insert( "$data:gammaCorrection"_hash, &m_optionsGFX.m_gamma );
-    m_gameUiDataModels.insert( "$data:jet"_hash, &m_optionsCustomize.m_jet );
-    m_gameUiDataModels.insert( "$data:missionSelect"_hash, &m_dataMissionSelect );
-    m_gameUiDataModels.insert( "$data:resolution"_hash, &m_optionsGFX.m_resolution );
-    m_gameUiDataModels.insert( "$data:vsync"_hash, &m_optionsGFX.m_vsync );
-    m_gameUiDataModels.insert( "$data:antialias"_hash, &m_optionsGFX.m_antialiasUI );
-    m_gameUiDataModels.insert( "$data:fpsLimiter"_hash, &m_optionsGFX.m_fpsLimiter );
+    m_gameUiDataModels.insert( "$data:settings.display.fullscreen"_hash, &m_optionsGFX.m_fullscreenUI );
+    m_gameUiDataModels.insert( "$data:settings.display.gamma"_hash, &m_optionsGFX.m_gammaUI );
+    m_gameUiDataModels.insert( "$data:settings.display.resolution"_hash, &m_optionsGFX.m_resolutionUI );
+    m_gameUiDataModels.insert( "$data:settings.display.vsync"_hash, &m_optionsGFX.m_vsyncUI );
+    m_gameUiDataModels.insert( "$data:settings.display.antialias"_hash, &m_optionsGFX.m_antialiasUI );
+    m_gameUiDataModels.insert( "$data:settings.display.fpsLimiter"_hash, &m_optionsGFX.m_fpsLimiterUI );
     m_gameUiDataModels.insert( "$data:settings.audio.driver"_hash, &m_optionsAudio.m_driverNameUI );
     m_gameUiDataModels.insert( "$data:settings.audio.device"_hash, &m_optionsAudio.m_deviceNameUI );
     m_gameUiDataModels.insert( "$data:settings.audio.master"_hash, &m_optionsAudio.m_masterUI );
@@ -278,6 +277,8 @@ void Game::setupUI()
     m_gameUiDataModels.insert( "$data:settings.audio.sfx"_hash, &m_optionsAudio.m_sfxUI );
     m_gameUiDataModels.insert( "$data:weaponPrimary"_hash, &m_optionsCustomize.m_weaponPrimary );
     m_gameUiDataModels.insert( "$data:weaponSecondary"_hash, &m_optionsCustomize.m_weaponSecondary );
+    m_gameUiDataModels.insert( "$data:jet"_hash, &m_optionsCustomize.m_jet );
+    m_gameUiDataModels.insert( "$data:missionSelect"_hash, &m_dataMissionSelect );
     m_gameUiDataModels.insert( "$var:playerHP"_hash, &m_gameplayUIData.m_playerHP );
     m_gameUiDataModels.insert( "$var:playerReloadPrimary"_hash, &m_gameplayUIData.m_playerReloadPrimary );
     m_gameUiDataModels.insert( "$var:playerWeaponPrimaryCount"_hash, &m_gameplayUIData.m_playerWeaponPrimaryCount );
@@ -297,15 +298,31 @@ void Game::setupUI()
     m_gameCallbacks.insert( "$function:goto_settings_audio"_hash, [this](){ changeScreen( Scene::eSettingsAudio, m_click ); } );
     m_gameCallbacks.insert( "$function:quit"_hash, [this](){ quit(); } );
     m_gameCallbacks.insert( "$function:resume"_hash, [this]{ changeScreen( Scene::eGame, m_click ); } );
-    m_gameCallbacks.insert( "$function:applyGFX"_hash, [this]
+    m_gameCallbacks.insert( "$function:applyDisplay"_hash, [this]()
     {
-        DisplayMode displayMode = m_optionsGFX.m_resolution.value();
-        displayMode.fullscreen = m_optionsGFX.m_fullscreen.value();
-        m_renderer->setVSync( m_optionsGFX.m_vsync.value() );
-        m_optionsGFX.m_antialias = m_optionsGFX.m_antialiasUI.value();
+        if ( !m_optionsGFX.hasChanges() ) return;
+        m_optionsGFX.set();
+        DisplayMode displayMode = m_optionsGFX.m_resolution;
+        displayMode.fullscreen = m_optionsGFX.m_fullscreen;
+        m_renderer->setVSync( m_optionsGFX.m_vsync );
         m_renderer->setFeatureEnabled( Renderer::Feature::eVRSAA, m_optionsGFX.m_antialias == OptionsGFX::AntiAlias::eVRSAA );
         setDisplayMode( displayMode );
-        setTargetFPS( 200, m_optionsGFX.m_fpsLimiter.value() ? FpsLimiter::eSpinLock : FpsLimiter::eOff );
+        setTargetFPS( 200, m_optionsGFX.m_fpsLimiter ? FpsLimiter::eSpinLock : FpsLimiter::eOff );
+    });
+    m_gameCallbacks.insert( "$function:exitDisplay"_hash, [this]()
+    {
+        if ( !m_optionsGFX.hasChanges() ) return changeScreen( Scene::eSettings, m_click );
+        auto* screen = currentScreen();
+        assert( screen );
+        auto msg = screen->messageBox( "settings.display.unsaved"_hash );
+        assert( msg );
+        msg->addButton( "yes"_hash, ui::Action::eMenuConfirm, [this]()
+        {
+            m_optionsGFX.restore();
+            changeScreen( Scene::eSettings, m_click );
+        } );
+        msg->addButton( "no"_hash, ui::Action::eMenuCancel, [screen]() { screen->addModalWidget( {} ); } );
+        screen->addModalWidget( std::move( msg ) );
     });
     m_gameCallbacks.insert( "$function:applyAudio"_hash, [this]()
     {
@@ -427,7 +444,7 @@ void Game::onRender( Renderer* renderer )
     }
 
     const PushConstant<Pipeline::eGammaCorrection> pushConstant{
-        .m_power = m_optionsGFX.m_gamma.value(),
+        .m_power = m_optionsGFX.m_gamma,
     };
 
     const DispatchInfo dispatchInfo{
