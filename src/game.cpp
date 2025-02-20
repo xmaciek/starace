@@ -368,7 +368,8 @@ ui::Screen* Game::currentScreen()
 void Game::onRender( Renderer* renderer )
 {
     ZoneScoped;
-    if ( m_currentScene.load() == Scene::eInit ) [[unlikely]] {
+    const auto scene = m_currentScene.load();
+    if ( scene == Scene::eInit ) [[unlikely]] {
         return;
     }
 
@@ -389,7 +390,7 @@ void Game::onRender( Renderer* renderer )
         .colorFocus = color::lightSkyBlue,
     };
 
-    switch ( m_currentScene.load() ) {
+    switch ( scene ) {
     case Scene::eGame:
     case Scene::eGamePaused:
     case Scene::eDead:
