@@ -11,6 +11,7 @@ enum class Pipeline : uint32_t {
     eSpriteSequence,
     eSpriteSequenceColors,
     eGlow,
+    eBlurDesaturate,
 };
 using enum Pipeline;
 
@@ -59,6 +60,9 @@ struct PushConstant<Pipeline::eGlow> {
     std::array<math::vec4, 4> m_xyuv{};
 };
 
+template <>
+struct PushConstant<Pipeline::eBlurDesaturate> {};
+
 [[maybe_unused]] inline constexpr auto SPRITE_SEQUENCE =
 PipelineCreateInfo{
     .m_vertexShader = "shaders/sprite_sequence.vert.spv",
@@ -96,5 +100,13 @@ PipelineCreateInfo{
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
     .m_vertexUniform = 0b1,
+};
+
+[[maybe_unused]] inline constexpr auto BLUR_DESATURATE =
+PipelineCreateInfo{
+    .m_computeShader = "shaders/blur_desaturate.comp.spv",
+    .m_userHint = static_cast<uint32_t>( Pipeline::eBlurDesaturate ),
+    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eBlurDesaturate> ),
+    .m_computeImage = 0b110,
 };
 }

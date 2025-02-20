@@ -119,6 +119,7 @@ void Game::onInit()
     g_uiProperty.m_pipelineSpriteSequence = setupPipeline( m_renderer, m_io, ui::SPRITE_SEQUENCE );
     g_uiProperty.m_pipelineSpriteSequenceColors = setupPipeline( m_renderer, m_io, ui::SPRITE_SEQUENCE_COLORS );
     g_uiProperty.m_pipelineGlow = setupPipeline( m_renderer, m_io, ui::GLOW );
+    g_uiProperty.m_pipelineBlurDesaturate = setupPipeline( m_renderer, m_io, ui::BLUR_DESATURATE );
 
     m_enemies.reserve( 100 );
     m_bullets.reserve( 2000 );

@@ -1,0 +1,36 @@
+#version 450
+
+layout( local_size_x = 8, local_size_y = 8 ) in;
+
+layout( rgba32f, binding = 1 ) uniform image2D srcImg;
+layout( rgba32f, binding = 2 ) uniform image2D dstImg;
+
+const vec3 LUMA = vec3( 0.299, 0.587, 0.114 );
+
+vec4 readColor( int x, int y )
+{
+    return imageLoad( srcImg, ivec2( gl_GlobalInvocationID.xy ) + ivec2( x, y ) );
+}
+
+
+void main()
+{
+    float samples = 1.0 / 13.0;
+    vec4 color = readColor( 0, 0 ) * samples;
+    color += readColor( -2,  0 ) * samples;
+    color += readColor(  2,  0 ) * samples;
+    color += readColor(  0, -2 ) * samples;
+    color += readColor(  0,  2 ) * samples;
+    color += readColor( -4,  0 ) * samples;
+    color += readColor(  4,  0 ) * samples;
+    color += readColor(  0, -4 ) * samples;
+    color += readColor(  0,  4 ) * samples;
+    color += readColor( -3, -3 ) * samples;
+    color += readColor(  3, -3 ) * samples;
+    color += readColor( -3,  3 ) * samples;
+    color += readColor(  3,  3 ) * samples;
+
+    float l = dot( color.rgb, LUMA );
+    vec3 des = mix( color.rgb * 0.5, vec3( l, l, l ), 0.5 );
+    imageStore( dstImg, ivec2( gl_GlobalInvocationID.xy ), vec4( des, 1.0 ) );
+}
