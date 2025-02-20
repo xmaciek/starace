@@ -5,13 +5,14 @@
 
 #include <functional>
 #include <string_view>
+#include <variant>
 
 namespace ui {
 
 class Button : public NineSlice {
 private:
     Label* m_label{};
-    Hash::value_type m_trigger{};
+    std::variant<std::monostate, Hash::value_type, std::function<void()>> m_trigger{};
 
 public:
     struct CreateInfo {
@@ -29,6 +30,7 @@ public:
     virtual EventProcessing onAction( ui::Action ) override;
 
     void trigger() const;
+    void setTrigger( std::function<void()>&& );
     void setText( std::u32string_view );
 
 };

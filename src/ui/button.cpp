@@ -27,11 +27,18 @@ Button::Button( const CreateInfo& ci ) noexcept
 
 void Button::trigger() const
 {
-    if ( m_trigger ) {
-        auto tr = g_uiProperty.gameCallback( m_trigger );
-        assert( tr );
-        tr();
-    }
+    struct TriggerFire {
+        void operator () ( std::monostate ) {}
+        void operator () ( const std::function<void()>& f ) { assert( f ); f(); }
+        void operator () ( Hash::value_type h ) { if ( h ) (*this)( g_uiProperty.gameCallback( h ) ); }
+    };
+    std::visit( TriggerFire{}, m_trigger );
+}
+
+void Button::setTrigger( std::function<void()>&& f )
+{
+    assert( f );
+    m_trigger = std::move( f );
 }
 
 void Button::setText( std::u32string_view txt )
