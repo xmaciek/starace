@@ -1,4 +1,4 @@
-function( sdl2FromDirectory rootDir includeDir libDir )
+function( sdl2FromDirectory rootDir includeDir binDir libDir )
     if ( TARGET SDL2::SDL2 )
         return()
     endif()
@@ -10,10 +10,10 @@ function( sdl2FromDirectory rootDir includeDir libDir )
     add_library( SDL2::SDL2 ALIAS sdl2 )
     set_target_properties( sdl2 PROPERTIES
         INTERFACE_INCLUDE_DIRECTORIES "${rootDir}/${includeDir}"
-        LINK_LIBRARIES "${rootDir}/${libDir}/SDL2.dll"
+        LINK_LIBRARIES "${rootDir}/${binDir}/SDL2.dll"
         IMPORTED_LOCATION "${rootDir}/${libDir}/SDL2.lib"
     )
-    configure_file( "${rootDir}/${libDir}/SDL2.dll" "${CMAKE_BINARY_DIR}/SDL2.dll" COPYONLY )
+    configure_file( "${rootDir}/${binDir}/SDL2.dll" "${CMAKE_BINARY_DIR}/SDL2.dll" COPYONLY )
 
     add_library( sdl2main UNKNOWN IMPORTED GLOBAL )
     add_library( SDL2::main ALIAS sdl2main )
@@ -22,8 +22,9 @@ function( sdl2FromDirectory rootDir includeDir libDir )
     )
 endfunction()
 
-sdl2FromDirectory( "${CMAKE_CURRENT_SOURCE_DIR}/SDL2" "include" "lib/x64" )
-sdl2FromDirectory( "$ENV{VK_SDK_PATH}/Third-Party" "include/SDL2" "bin" )
+sdl2FromDirectory( "${CMAKE_CURRENT_SOURCE_DIR}/SDL2" "include" "lib/x64" "lib/x64" )
+sdl2FromDirectory( "$ENV{VK_SDK_PATH}/Third-Party" "include/SDL2" "bin" "bin" )
+sdl2FromDirectory( "$ENV{VK_SDK_PATH}" "include/SDL2" "bin" "lib" )
 
 if ( NOT TARGET SDL2::SDL2 AND UNIX )
     if ( NOT EXISTS "/usr/include/SDL2/SDL.h" )

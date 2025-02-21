@@ -4,6 +4,7 @@
 
 #include <profiler.hpp>
 
+#include <bit>
 #include <array>
 #include <cassert>
 #include <algorithm>

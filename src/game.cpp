@@ -21,6 +21,7 @@
 #include <random>
 #include <cmath>
 #include <set>
+#include <numeric>
 
 constexpr std::tuple<GameAction, input::Actuator> inputActions[] = {
     { GameAction::eGamePause, SDL_CONTROLLER_BUTTON_START },
