@@ -15,7 +15,7 @@ add_subdirectory( input )
 
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
 
-add_executable( starace )
+add_executable( starace WIN32 )
 set_target_properties( starace PROPERTIES OUTPUT_NAME "starace" )
 target_sources( starace PRIVATE
     autoaim.hpp

@@ -17,4 +17,4 @@ set_target_properties( profiler PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
-set_vs_directory( profiler "lib" )
+set_vs_directory( profiler "libs" )
