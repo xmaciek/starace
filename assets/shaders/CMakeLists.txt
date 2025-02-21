@@ -9,7 +9,7 @@ function( compileShader file )
         DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${file}"
         COMMAND Vulkan::glslc ${OPTIMIZE_LEVEL} "${CMAKE_CURRENT_SOURCE_DIR}/${file}" -o "${file_out}"
     )
-    set_vs_directory( "shader.${file}" "shaders" )
+    set_vs_directory( "shader.${file}" "assets/shaders" )
     pak_file_cooked( data "${file_out}" "shader.${file}" )
 endfunction()
 

@@ -31,7 +31,7 @@ function( cook_dds )
             ${COOK_DDS_MIPGEN}
             ${COOK_DDS_FORMAT_PARAM} ${COOK_DDS_FORMAT}
     )
-    set_vs_directory( "texture.${COOK_DDS_DST}" "textures" )
+    set_vs_directory( "texture.${COOK_DDS_DST}" "assets/textures" )
     pak_file_cooked( data "${file_out}" "texture.${COOK_DDS_DST}" )
 endfunction()
 

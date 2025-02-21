@@ -7,7 +7,7 @@ function( cook_obj file )
         DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${file}.obj"
         COMMAND cooker_obj "${CMAKE_CURRENT_SOURCE_DIR}/${file}.obj" "${file_out}"
     )
-    set_vs_directory( "model.${file}" "models" )
+    set_vs_directory( "model.${file}" "assets/models" )
     pak_file_cooked( data "${file_out}" "model.${file}" )
 endfunction()
 

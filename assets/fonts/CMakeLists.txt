@@ -20,7 +20,7 @@ function( cook_font )
     add_custom_target( font.${tgt}
         DEPENDS "${out.dds}" "${out.font}"
     )
-    set_vs_directory( font.${tgt} "fonts" )
+    set_vs_directory( font.${tgt} "assets/fonts" )
     pak_file_cooked( data "${CMAKE_CURRENT_BINARY_DIR}/${out.font}" font.${tgt} )
     pak_file_cooked( data "${CMAKE_CURRENT_BINARY_DIR}/${out.dds}" font.${tgt} )
 

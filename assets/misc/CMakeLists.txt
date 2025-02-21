@@ -18,7 +18,7 @@ function( cook_atlas )
         DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${COOK_ATLAS_DST}"
     )
 
-    set_vs_directory( atlas.${COOK_ATLAS_DST} "misc" )
+    set_vs_directory( atlas.${COOK_ATLAS_DST} "assets/misc" )
     pak_file_cooked( data "${CMAKE_CURRENT_BINARY_DIR}/${COOK_ATLAS_DST}" atlas.${COOK_ATLAS_DST} )
 
     add_custom_command(
@@ -44,7 +44,7 @@ function( cook_callsign )
         DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${COOK_CALLSIGN_DST}"
     )
 
-    set_vs_directory( callsign.${COOK_CALLSIGN_DST} "misc" )
+    set_vs_directory( callsign.${COOK_CALLSIGN_DST} "assets/misc" )
     pak_file_cooked( data "${CMAKE_CURRENT_BINARY_DIR}/${COOK_CALLSIGN_DST}" callsign.${COOK_CALLSIGN_DST} )
 
     add_custom_command(
