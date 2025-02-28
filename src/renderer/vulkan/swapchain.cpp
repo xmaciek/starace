@@ -155,6 +155,8 @@ Swapchain::Swapchain( VkPhysicalDevice physicalDevice, VkDevice device, VkSurfac
 
     m_extent = surfaceCaps.currentExtent;
     m_imageCount = std::clamp<uint32_t>( 3u, surfaceCaps.minImageCount, surfaceCaps.maxImageCount );
+    const uint32_t familyCount = familyAccess[ 0 ] == familyAccess[ 1 ] ? 1u : 2u;
+    const auto sharingMode = familyCount == 1 ? VK_SHARING_MODE_EXCLUSIVE : VK_SHARING_MODE_CONCURRENT;
 
     const VkSwapchainCreateInfoKHR createInfo{
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
@@ -165,8 +167,8 @@ Swapchain::Swapchain( VkPhysicalDevice physicalDevice, VkDevice device, VkSurfac
         .imageExtent = m_extent,
         .imageArrayLayers = 1,
         .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
-        .imageSharingMode = VK_SHARING_MODE_CONCURRENT,
-        .queueFamilyIndexCount = familyAccess.size(),
+        .imageSharingMode = sharingMode,
+        .queueFamilyIndexCount = familyCount,
         .pQueueFamilyIndices = familyAccess.data(),
         .preTransform = surfaceCaps.currentTransform,
         .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,

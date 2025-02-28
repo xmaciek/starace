@@ -712,7 +712,8 @@ void RendererVK::present()
         .pImageIndices = &m_currentFrame,
     };
 
-    auto [ queue, _ ] = m_queueManager.present();
+    auto [ queue, bottleneck ] = m_queueManager.present();
+    Bottleneck lock{ *bottleneck };
     switch ( vkQueuePresentKHR( queue, &presentInfo ) ) {
     [[likely]]
     case VK_SUCCESS: break;

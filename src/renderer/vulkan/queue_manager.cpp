@@ -40,6 +40,39 @@ QueueManager& QueueManager::operator = ( QueueManager&& rhs )
     return *this;
 }
 
+struct UltraIndex {
+    uint32_t family;
+    uint32_t queueId;
+    uint32_t mutexId;
+};
+static auto composeIndexes( auto graphics, auto present, auto transfer )
+{
+    std::array<UltraIndex, 3> ret;
+    ret[ 0 ] = { graphics.index, 0, 0 };
+    uint32_t graphicsQueue = 1;
+
+    if ( graphics.index != present.index ) {
+        ret[ 1 ] = { present.index, 0, 1 };
+    }
+    else if ( graphics.count > graphicsQueue ) {
+        ret[ 1 ] = { graphics.index, graphicsQueue++, 1 };
+    }
+    else {
+        ret[ 1 ] = { graphics.index, 0, 0 };
+    }
+
+    if ( graphics.index != transfer.index ) {
+        ret[ 2 ] = { transfer.index, 0, 2 };
+    }
+    else if ( graphics.count > graphicsQueue ) {
+        ret[ 2 ] = { graphics.index, graphicsQueue++, 2 };
+    }
+    else {
+        ret[ 2 ] = { graphics.index, 0, 0 };
+    }
+    return ret;
+}
+
 static std::tuple<QueueManager::Family, QueueManager::Family, QueueManager::Family> selectFamilies( const auto& graphics, const auto& present, const auto& transfer )
 {
     for ( auto&& g : graphics ) {
@@ -120,43 +153,41 @@ QueueManager::QueueManager( VkPhysicalDevice device, VkSurfaceKHR surface )
 void QueueManager::acquire( VkDevice device )
 {
     assert( device );
-    vkGetDeviceQueue( device, m_graphicsFamily.index, 0u, &std::get<VkQueue>( m_graphics ) );
-    vkGetDeviceQueue( device, m_presentFamily.index, 0u, &std::get<VkQueue>( m_present ) );
-    std::get<uint32_t>( m_graphics ) = 0;
-    std::get<uint32_t>( m_present ) = 1;
+    auto indexes = composeIndexes( m_graphicsFamily, m_presentFamily, m_transferFamily );
 
-    auto& [ transq, transId ] = m_transfer;
-    if ( m_graphicsFamily.index != m_transferFamily.index ) {
-        vkGetDeviceQueue( device, m_transferFamily.index, 0, &transq );
-        transId = 2;
-    }
-    else if ( m_graphicsFamily.count > 1 ) {
-        vkGetDeviceQueue( device, m_graphicsFamily.index, 1, &transq );
-        transId = 2;
-    }
-    else {
-        vkGetDeviceQueue( device, m_graphicsFamily.index, 0, &transq );
-        transId = 0;
-    }
+    std::get<uint32_t>( m_graphics ) = indexes[ 0 ].mutexId;
+    vkGetDeviceQueue( device, indexes[ 0 ].family, indexes[ 0 ].queueId, &std::get<VkQueue>( m_graphics ) );
 
+    std::get<uint32_t>( m_present ) = indexes[ 1 ].mutexId;
+    vkGetDeviceQueue( device, indexes[ 1 ].family, indexes[ 1 ].queueId, &std::get<VkQueue>( m_present ) );
+
+    std::get<uint32_t>( m_transfer ) = indexes[ 2 ].mutexId;
+    vkGetDeviceQueue( device, indexes[ 2 ].family, indexes[ 2 ].queueId, &std::get<VkQueue>( m_transfer ) );
 }
 
 std::pmr::vector<VkDeviceQueueCreateInfo> QueueManager::createInfo() const
 {
     std::pmr::vector<VkDeviceQueueCreateInfo> ret;
     ret.reserve( 3 );
+
+    uint32_t graphicsReserveCount = 1u;
+    if ( m_graphicsFamily.index == m_presentFamily.index ) graphicsReserveCount++;
+    if ( m_graphicsFamily.index == m_transferFamily.index ) graphicsReserveCount++;
+
     ret.emplace_back( VkDeviceQueueCreateInfo{
         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
         .queueFamilyIndex = m_graphicsFamily.index,
-        .queueCount = 1u + static_cast<uint32_t>( ( m_graphicsFamily.index == m_transferFamily.index ) && m_graphicsFamily.count > 1 ),
+        .queueCount = std::min( graphicsReserveCount, m_graphicsFamily.count ),
         .pQueuePriorities = PRIORITIES.data(),
     } );
-    ret.emplace_back( VkDeviceQueueCreateInfo{
-        .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-        .queueFamilyIndex = m_presentFamily.index,
-        .queueCount = 1u,
-        .pQueuePriorities = PRIORITIES.data(),
-    } );
+    if ( m_graphicsFamily.index != m_presentFamily.index ) {
+        ret.emplace_back( VkDeviceQueueCreateInfo{
+            .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+            .queueFamilyIndex = m_presentFamily.index,
+            .queueCount = 1u,
+            .pQueuePriorities = PRIORITIES.data(),
+        } );
+    }
     if ( m_graphicsFamily.index != m_transferFamily.index ) {
             ret.emplace_back( VkDeviceQueueCreateInfo{
             .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
