@@ -10,20 +10,192 @@
 #include <string_view>
 #include <vector>
 #include <memory_resource>
+#include <cassert>
 
-struct Vec2{ float data[ 2 ]; };
-struct Vec3{ float data[ 3 ]; };
-struct Face {
-    uint32_t vert;
-    uint32_t uv;
-    uint32_t norm;
+struct Vec2 { float data[ 2 ]{}; };
+struct Vec3 { float data[ 3 ]{}; };
+
+struct UV : public Vec2 {
+    UV() = default;
+    UV( std::string_view sv )
+    {
+        std::sscanf( sv.data(), "vt %f %f", data, data + 1 );
+    }
 };
 
-static bool testIntegrity( obj::DataType a, obj::DataType expected )
+struct Vertex : public Vec3 {
+    Vertex() = default;
+    Vertex( std::string_view sv )
+    {
+        std::sscanf( sv.data(), "v %f %f %f", data, data + 1, data + 2 );
+    }
+};
+
+
+struct Normal : public Vec3 {
+    Normal() = default;
+    Normal( std::string_view sv )
+    {
+        std::sscanf( sv.data(), "vn %f %f %f", data, data + 1, data + 2 );
+    }
+};
+
+struct Face {
+    uint32_t vert[ 3 ]{};
+    uint32_t uv[ 3 ]{};
+    uint32_t norm[ 3 ]{};
+    Face() = default;
+    Face( std::string_view sv )
+    {
+        std::sscanf( sv.data(), "f %u/%u/%u %u/%u/%u %u/%u/%u"
+            , vert, uv, norm
+            , vert + 1, uv + 1, norm + 1
+            , vert + 2, uv + 2, norm + 2
+        );
+    }
+};
+
+struct Point {
+    uint32_t v{};
+    Point() = default;
+    Point( std::string_view sv )
+    {
+        std::sscanf( sv.data(), "p %u", &v );
+    }
+};
+
+struct Object {
+    char name[ 52 ]{};
+    Object() = default;
+    Object( std::string_view sv )
+    {
+        if ( sv.size() >= ( sizeof( name ) + 2 ) ) cooker::error( "object name too long", sv );
+        std::copy( sv.begin() + 2, sv.end(), std::begin( name ) );
+    }
+};
+
+struct Line {};
+
+struct FullObject : public Object {
+    std::pmr::vector<float> data{};
+    obj::DataType dataType = obj::DataType::invalid;
+
+    FullObject( const Object& o )
+    : Object{ o }
+    {
+        data.reserve( 0xFFFu );
+    }
+};
+
+std::ofstream& operator << ( std::ofstream& o, const FullObject& fo )
 {
-    if ( a == obj::DataType::invalid ) return true;
-    return a == expected;
+    o.write( reinterpret_cast<const char*>( &obj::Chunk::MAGIC ), sizeof( obj::Chunk::MAGIC ) );
+    o.write( fo.name, sizeof( fo.name ) );
+    o.write( reinterpret_cast<const char*>( &fo.dataType ), sizeof( fo.dataType ) );
+    uint32_t s = (uint32_t)fo.data.size();
+    o.write( reinterpret_cast<const char*>( &s ), sizeof( s ) );
+    std::ranges::for_each( fo.data, [&o]( float f ) { o.write( reinterpret_cast<const char*>( &f ), sizeof( float ) ); } );
+    return o;
 }
+
+struct Compiler {
+
+    std::pmr::vector<Vec3> m_vertex{};
+    std::pmr::vector<Vec2> m_uv{};
+    std::pmr::vector<Vec3> m_normal{};
+    std::pmr::vector<FullObject> m_objects{};
+
+    // Blender hack:
+    uint32_t verticeIndexForChunk = 0;
+
+    Compiler()
+    {
+        m_vertex.reserve( 0xFFFu );
+        m_uv.reserve( 0xFFFu );
+        m_normal.reserve( 0xFFFu );
+        m_objects.reserve( 0xFu );
+    }
+
+    void blenderHackMissingPoints()
+    {
+        auto idx = std::exchange( verticeIndexForChunk, (uint32_t)m_vertex.size() );
+        if ( m_objects.empty() ) return;
+        if ( !m_objects.back().data.empty() ) return;
+        if ( idx == m_vertex.size() ) return;
+        assert( idx < m_vertex.size() );
+        for ( auto it = m_vertex.begin() + idx; it != m_vertex.end(); ++it ) {
+            std::ranges::copy( it->data, std::back_inserter( m_objects.back().data ) );
+        }
+    }
+
+    void operator () ( const Object& o )
+    {
+        blenderHackMissingPoints();
+        m_objects.emplace_back( o );
+    }
+    void operator () ( const Vertex& v ) { m_vertex.emplace_back( v ); }
+    void operator () ( const UV& uv ) { m_uv.emplace_back( uv ); }
+    void operator () ( const Normal& n ) { m_normal.emplace_back( n ); }
+    void operator () ( Line )
+    {
+        if ( m_objects.empty() ) cooker::error( "lines not supported", "" );
+        cooker::error( "lines not supported in object", m_objects.back().name );
+    }
+    void operator () ( Face f )
+    {
+        if ( m_objects.empty() ) cooker::error( "requesting to add face to null object" );
+        auto& o = m_objects.back();
+        if ( o.dataType == obj::DataType::invalid ) { o.dataType = obj::DataType::vtn; };
+        if ( o.dataType != obj::DataType::vtn ) cooker::error( "mixing face with non-face element in object", o.name );
+
+        auto doVert = [size=m_vertex.size(), &o]( auto& u )
+        {
+            if ( u == 0 ) cooker::error( "vertex cannot have index 0 in object", o.name );
+            if ( u > size ) cooker::error( "accessing vertex in face out of declared vertices in object", o.name );
+            u--;
+        };
+        auto doUV = [size=m_uv.size(), &o]( auto& u )
+        {
+            if ( u == 0 ) cooker::error( "uv cannot have index 0 in object", o.name );
+            if ( u > size ) cooker::error( "accessing uv in face out of declared ivs in object", o.name );
+            u--;
+        };
+        auto doNormal = [size=m_normal.size(), &o]( auto& u )
+        {
+            if ( u == 0 ) cooker::error( "normal cannot have index 0 in object", o.name );
+            if ( u > size ) cooker::error( "accessing normal in face out of declared normals in object", o.name );
+            u--;
+        };
+        std::ranges::for_each( f.vert, doVert );
+        std::ranges::for_each( f.uv, doUV );
+        std::ranges::for_each( f.norm, doNormal );
+
+        for ( uint32_t i = 0; i < 3; ++i ) {
+            o.data.emplace_back( m_vertex[ f.vert[ i ] ].data[ 0 ] );
+            o.data.emplace_back( -m_vertex[ f.vert[ i ] ].data[ 1 ] ); // Blender hack, negative value on y axis
+            o.data.emplace_back( m_vertex[ f.vert[ i ] ].data[ 2 ] );
+            o.data.emplace_back( m_uv[ f.uv[ i ] ].data[ 0 ] );
+            o.data.emplace_back( m_uv[ f.uv[ i ] ].data[ 1 ] );
+            o.data.emplace_back( m_normal[ f.norm[ i ] ].data[ 0 ] );
+            o.data.emplace_back( m_normal[ f.norm[ i ] ].data[ 1 ] );
+            o.data.emplace_back( m_normal[ f.norm[ i ] ].data[ 2 ] );
+        }
+    }
+    void operator () ( const Point& p )
+    {
+        if ( m_objects.empty() ) cooker::error( "requesting to add point to null object" );
+        auto& o = m_objects.back();
+        if ( o.dataType == obj::DataType::invalid ) { o.dataType = obj::DataType::v; };
+        if ( o.dataType != obj::DataType::v ) cooker::error( "mixing point with non-point element in object", o.name );
+
+        if ( p.v == 0 ) cooker::error( "point cannot have index 0 in object", o.name );
+        if ( p.v > m_vertex.size() ) cooker::error( "accessing vertex in point out of declared vertexes in object", o.name );
+        o.data.emplace_back( m_vertex[ p.v - 1 ].data[ 0 ] );
+        o.data.emplace_back( -m_vertex[ p.v - 1 ].data[ 1 ] );
+        o.data.emplace_back( m_vertex[ p.v - 1 ].data[ 2 ] );
+    }
+
+};
 
 int main( int argc, char** argv )
 {
@@ -32,116 +204,34 @@ int main( int argc, char** argv )
     std::filesystem::path src{ argv[ 1 ] };
     std::filesystem::path dst{ argv[ 2 ] };
 
+    Compiler compiler{};
+    std::string line{};
+    line.reserve( 64 );
+
     std::ifstream ifs( src );
     ifs.is_open() || cooker::error( "failed to open file:", src );
 
-    decltype( obj::load( {} ) ) dataOut{};
-    decltype( dataOut )::value_type* chunk = nullptr;
-
-    std::pmr::vector<Vec3> vertices{};
-    std::pmr::vector<Vec2> uv{};
-    std::pmr::vector<Vec3> normals{};
-
-    vertices.reserve( 2000 );
-    uv.reserve( 2000 );
-    normals.reserve( 2000 );
-
-    std::string line{};
-    line.reserve( 64 );
     while ( std::getline( ifs, line ) ) {
         if ( line.size() < 3 ) { continue; }
         const std::string_view sv{ line.c_str(), 2 };
-        if ( sv == "o " ) {
-            ( line.size() <= sizeof( obj::Chunk::name ) + 2 ) || cooker::error( "object name too long to fit into Chunk.name field", line );
-            dataOut.emplace_back();
-            chunk = &dataOut.back();
-            std::copy_n( line.c_str() + 2, line.size() - 2, chunk->first.name );
-        }
-        else if ( sv == "v " ) {
-            Vec3& v = vertices.emplace_back();
-            std::sscanf( line.c_str() + 2, "%f %f %f", v.data, v.data + 1, v.data + 2 );
-            v.data[ 1 ] *= -1.0f; // blender fix
-        }
-        else if ( sv == "vt" ) {
-            Vec2& v = uv.emplace_back();
-            std::sscanf( line.c_str() + 3, "%f %f", v.data, v.data + 1 );
-        }
-        else if ( sv == "vn" ) {
-            Vec3& v = normals.emplace_back();
-            std::sscanf( line.c_str() + 3, "%f %f %f", v.data, v.data + 1, v.data + 2 );
-        }
-        else if ( sv == "f " ) {
-            testIntegrity( chunk->first.dataType, obj::DataType::vtn ) || cooker::error( "data type mismatch, possibly interleaving f with l", chunk->first.name );
-            chunk->first.dataType = obj::DataType::vtn;
-
-            std::array<Face, 3> f{};
-            std::sscanf( line.c_str() + 2, "%u/%u/%u %u/%u/%u %u/%u/%u"
-                , &f[ 0 ].vert, &f[ 0 ].uv, &f[ 0 ].norm
-                , &f[ 1 ].vert, &f[ 1 ].uv, &f[ 1 ].norm
-                , &f[ 2 ].vert, &f[ 2 ].uv, &f[ 2 ].norm
-            );
-            f[ 0 ].vert--; f[ 0 ].uv--; f[ 0 ].norm--;
-            f[ 1 ].vert--; f[ 1 ].uv--; f[ 1 ].norm--;
-            f[ 2 ].vert--; f[ 2 ].uv--; f[ 2 ].norm--;
-            for ( auto&& ff : f ) {
-                ( ff.vert < vertices.size() ) || cooker::error( "requested index out of vertice range: index", ff.vert + 1 );
-                chunk->second.push_back( vertices[ ff.vert ].data[ 0 ] );
-                chunk->second.push_back( vertices[ ff.vert ].data[ 1 ] );
-                chunk->second.push_back( vertices[ ff.vert ].data[ 2 ] );
-                ( ff.uv < uv.size() ) || cooker::error( "requested index out of uv range: index", ff.uv + 1 );
-                chunk->second.push_back( uv[ ff.uv ].data[ 0 ] );
-                chunk->second.push_back( uv[ ff.uv ].data[ 1 ] );
-                ( ff.norm < normals.size() ) || cooker::error( "requested index out of normal range: index", ff.norm + 1 );
-                chunk->second.push_back( normals[ ff.norm ].data[ 0 ] );
-                chunk->second.push_back( normals[ ff.norm ].data[ 1 ] );
-                chunk->second.push_back( normals[ ff.norm ].data[ 2 ] );
-            }
-        }
-        else if ( sv == "l " ) {
-            testIntegrity( chunk->first.dataType, obj::DataType::v ) || cooker::error( "data type mismatch, possibly interleaving l with f", chunk->first.name );
-            chunk->first.dataType = obj::DataType::v;
-            uint32_t i = 0;
-            uint32_t j = 0;
-            std::sscanf( line.c_str() + 2, "%u %u", &i, &j );
-            i--;
-            j--;
-            chunk->second.push_back( vertices[ i ].data[ 0 ] );
-            chunk->second.push_back( vertices[ i ].data[ 1 ] );
-            chunk->second.push_back( vertices[ i ].data[ 2 ] );
-            chunk->second.push_back( vertices[ j ].data[ 0 ] );
-            chunk->second.push_back( vertices[ j ].data[ 1 ] );
-            chunk->second.push_back( vertices[ j ].data[ 2 ] );
-        }
-        else if ( sv == "p " ) {
-            testIntegrity( chunk->first.dataType, obj::DataType::v ) || cooker::error( "data type mismatch, possibly interleaving p with f", chunk->first.name );
-            chunk->first.dataType = obj::DataType::v;
-
-            uint32_t idx = 0;
-            std::sscanf( line.c_str() + 2, "%u", &idx );
-            idx--;
-            chunk->second.push_back( vertices[ idx ].data[ 0 ] );
-            chunk->second.push_back( vertices[ idx ].data[ 1 ] );
-            chunk->second.push_back( vertices[ idx ].data[ 2 ] );
-        }
+        if ( sv == "v " ) compiler( Vertex( line ) );
+        else if ( sv == "o " ) compiler( Object( line ) );
+        else if ( sv == "vt" ) compiler( UV( line ) );
+        else if ( sv == "vn" ) compiler( Normal( line ) );
+        else if ( sv == "f " ) compiler( Face( line ) );
+        else if ( sv == "p " ) compiler( Point( line ) );
+        else if ( sv == "l " ) compiler( Line{} );
     }
     ifs.close();
-
-    for ( auto& it : dataOut ) {
-        ( it.second.size() <= std::numeric_limits<uint32_t>::max() )
-            || cooker::error( "float count too large, number exceeds max of uint32_t:", it.second.size() );
-        it.first.floatCount = static_cast<uint32_t>( it.second.size() );
-    }
+    compiler.blenderHackMissingPoints();
 
     obj::Header header{};
-    header.chunkCount = static_cast<uint32_t>( dataOut.size() );
+    header.chunkCount = static_cast<uint32_t>( compiler.m_objects.size() );
 
     std::ofstream ofs( dst, std::ios::binary );
     ofs.is_open() || cooker::error( "failed to open:", dst );
 
     ofs.write( reinterpret_cast<const char*>( &header ), sizeof( header ) );
-    for ( const auto& it : dataOut ) {
-        ofs.write( reinterpret_cast<const char*>( &it.first ), sizeof( obj::Chunk ) );
-        ofs.write( reinterpret_cast<const char*>( it.second.data() ), static_cast<std::streamsize>( it.second.size() * sizeof( float ) ) );
-    }
+    std::ranges::for_each( compiler.m_objects, [&ofs]( const auto& f ) { ofs << f; } );
     return 0;
 }
