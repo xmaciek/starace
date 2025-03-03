@@ -36,7 +36,7 @@ BufferVK::BufferVK( VkPhysicalDevice physicalDevice, VkDevice device, const Purp
 , m_size( size )
 {
     ZoneScoped;
-
+    assert( size != 0 );
     const VkBufferCreateInfo bufferInfo{
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .size = size,
