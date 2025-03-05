@@ -56,20 +56,6 @@ inline float angle( const auto& a, const auto&b )
     return acos( dot( a, b ) );
 }
 
-inline auto billboard( const vec3& position, const vec3& cameraPosition, const vec3& cameraUp )
-{
-    const vec3 direction = glm::normalize( cameraPosition - position );
-    const vec3 right = glm::cross( cameraUp, direction );
-    const vec3 up = glm::cross( direction, right );
-    return mat4{
-        vec4{ right, 0 },
-        vec4{ up, 0 },
-        vec4{ direction, 0 },
-        vec4{ position, 1 },
-    };
-};
-
-
 inline float manhattan( vec3 a, vec3 b )
 {
     const vec3 ret = abs( b - a );
@@ -113,12 +99,6 @@ inline T nonlerp( const T& a, const T& b, float n )
 inline float normalize( float f )
 {
     return f < 0.0f ? -1.0f : 1.0f;
-}
-
-inline float pointLineDistance( const math::vec3& point, const math::vec3& lineDir, const math::vec3& lineOrg ) noexcept
-{
-    glm::vec3 p = glm::closestPointOnLine( point, lineOrg, lineOrg + lineDir * 1000.0f );
-    return distance( point, p );
 }
 
 template <uint32_t TRow, uint32_t TCol>
