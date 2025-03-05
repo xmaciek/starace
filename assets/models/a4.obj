@@ -793,3 +793,5 @@ p 164
 o hardpoints.secondary
 v 0 -0.186335 -5.59006
 p 165
+o thruster.afterglow
+v -0.000000 0.372700 4.690002
