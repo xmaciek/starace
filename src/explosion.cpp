@@ -9,7 +9,7 @@
 
 bool Explosion::isInvalid( const Explosion& e ) noexcept
 {
-    return e.m_state >= 1.0f;
+    return ( e.m_state / e.m_duration ) >= 1.0f;
 }
 
 void Explosion::renderAll( const RenderContext& rctx, const std::pmr::vector<Explosion>& explosions )
@@ -34,10 +34,12 @@ void Explosion::renderAll( const RenderContext& rctx, const std::pmr::vector<Exp
     {
         static const math::vec4 COLOR_OUT = color::crimson * math::vec4{ 1.0f, 1.0f, 1.0f, 0.0f };
         const auto& pos = expl.m_position;
+        float state = expl.m_state / expl.m_duration;
+        uint32_t idx = static_cast<uint32_t>( 60.0f * expl.m_state ) % 4; // anim fps
         return {
-            .m_position = math::vec4{ pos.x, pos.y, pos.z, math::lerp( 0.0f, expl.m_size, expl.m_state ) },
-            .m_uvxywh = math::makeUVxywh<1, 1>( 0, 0 ),
-            .m_color = math::lerp( expl.m_color, COLOR_OUT, expl.m_state ),
+            .m_position = math::vec4{ pos.x, pos.y, pos.z, math::lerp( 0.0f, expl.m_size, state ) },
+            .m_uvxywh = math::makeUVxywh<2, 2>( ( idx / 2 ) % 2, idx % 2 ),
+            .m_color = math::lerp( expl.m_color, COLOR_OUT, math::smoothstep( 0.0f, 1.0f, state ) ),
         };
     };
 

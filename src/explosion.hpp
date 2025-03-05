@@ -17,6 +17,7 @@ struct Explosion {
     Texture m_texture{};
     float m_size = 64.0_m;
     float m_state = 0.0f;
+    float m_duration = 1.0f;
 
     static bool isInvalid( const Explosion& ) noexcept;
     static void renderAll( const RenderContext&, const std::pmr::vector<Explosion>& );

@@ -518,7 +518,7 @@ void Game::updateGame( UpdateContext& updateContext )
 
     {
         const math::vec3 jetPos = m_player.position();
-        auto makeExplosion = [plasma = m_plasma]( const Bullet& b, const math::vec3& p ) -> Explosion
+        auto makeExplosion = [plasma = m_plasma]( const Bullet& b, const math::vec3& p, float duration ) -> Explosion
         {
             return Explosion{
                 .m_position = p + ( b.m_position - p ) * 15.0_m,
@@ -526,6 +526,7 @@ void Game::updateGame( UpdateContext& updateContext )
                 .m_color = color::white,
                 .m_texture = plasma,
                 .m_size = 16.0_m,
+                .m_duration = duration
             };
         };
 
@@ -536,7 +537,7 @@ void Game::updateGame( UpdateContext& updateContext )
                 if ( !intersectLineSphere( b.m_position, b.m_prevPosition, jetPos, 15.0_m ) ) continue;
                 m_player.setDamage( b.m_damage );
                 b.m_type = Bullet::Type::eDead;
-                m_gameScene.explosions().emplace_back( makeExplosion( b, jetPos ) );
+                m_gameScene.explosions().emplace_back( makeExplosion( b, jetPos, 0.5f ) );
                 break;
 
             case Player::COLLIDE_ID:
@@ -546,7 +547,7 @@ void Game::updateGame( UpdateContext& updateContext )
                     e->setDamage( b.m_damage );
                     m_score += b.m_score;
                     b.m_type = Bullet::Type::eDead;
-                    m_gameScene.explosions().emplace_back( makeExplosion( b, e->position() ) );
+                    m_gameScene.explosions().emplace_back( makeExplosion( b, e->position(), 0.5f ) );
                     break;
                 }
                 break;
@@ -564,7 +565,7 @@ void Game::updateGame( UpdateContext& updateContext )
         auto isDead = []( const auto& it ) -> bool { return it->status() == SAObject::Status::eDead; };
         for ( auto& e : m_enemies ) {
             if ( isDead( e ) ) {
-                m_gameScene.explosions().emplace_back( e->position(), e->velocity(), color::yellowBlaster, m_plasma, 64.0_m, 0.0f );
+                m_gameScene.explosions().emplace_back( e->position(), e->velocity(), color::yellowBlaster, m_plasma, 64.0_m, 0.0f, 1.0f );
                 continue;
             }
         }

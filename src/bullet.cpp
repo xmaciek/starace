@@ -97,12 +97,14 @@ void Bullet::updateAll( const UpdateContext& uctx, std::span<Bullet> span, std::
                 bullet.m_direction = math::normalize( math::slerp( bullet.m_direction, tgtDir, anglePerUpdate / angle ) );
             }
             bullet.m_quat = math::quatLookAt( bullet.m_direction, { 0.0f, 1.0f, 0.0f } );
+            // rocket trail
             explosions.emplace_back() = Explosion{
                 .m_position = bullet.m_position,
                 .m_velocity = -bullet.m_direction * bullet.m_speed * 0.1f,
                 .m_color = math::vec4{ 1.0f, 1.0f, 1.0f, 1.0f },
                 .m_texture = texture,
                 .m_size = 2.0_m,
+                .m_duration = 1.5f,
             };
             [[fallthrough]];
 
