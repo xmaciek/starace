@@ -20,8 +20,8 @@ class Mesh {
 public:
     std::array<math::vec3, 2> m_hardpointsPrimary{}; // todo
     std::array<math::vec3, 1> m_hardpointsSecondary{}; // todo
-    std::array<math::vec3, 2> m_thrusters{}; // todo
-    uint32_t m_thrusterCount = 0;
+    std::array<math::vec3, 2> m_thrusterAfterglow{}; // todo
+    uint32_t m_thrusterAfterglowCount = 0;
 
     ~Mesh() noexcept;
     Mesh() noexcept = default;

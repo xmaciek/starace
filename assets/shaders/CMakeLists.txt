@@ -13,6 +13,8 @@ function( compileShader file )
     pak_file_cooked( data "${file_out}" "shader.${file}" )
 endfunction()
 
+compileShader( afterglow.frag )
+compileShader( afterglow.vert )
 compileShader( albedo.frag )
 compileShader( albedo.vert )
 compileShader( antialias_fxaa.comp )

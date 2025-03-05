@@ -48,6 +48,25 @@ Mesh::Mesh( std::span<const uint8_t> data, Renderer* renderer ) noexcept
             }
             continue;
         }
+        if ( chunk.name == "thruster.afterglow"sv ) {
+            m_thrusterAfterglowCount = 0;
+            switch ( chunk.floatCount ) {
+            case 6:
+                std::memcpy( &m_thrusterAfterglow[ m_thrusterAfterglowCount++ ], ptr, sizeof( float ) * 3 );
+                std::advance( ptr, sizeof( float ) * 3 );
+                [[fallthrough]];
+            case 3:
+                std::memcpy( &m_thrusterAfterglow[ m_thrusterAfterglowCount++ ], ptr, sizeof( float ) * 3 );
+                std::advance( ptr, sizeof( float ) * 3 );
+                [[fallthrough]];
+            case 0:
+                break;
+            default:
+                assert( !"unexpected float count in thruster.afterglow" );
+                break;
+            }
+        }
+
         const float* floats = reinterpret_cast<const float*>( ptr );
         std::span<const float> span{ floats, floats + chunk.floatCount };
         const uint32_t bytesToLoad = chunk.floatCount * sizeof( float );

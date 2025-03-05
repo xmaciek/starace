@@ -16,6 +16,7 @@ enum class Pipeline : PipelineSlot {
     eBeamBlob,
     eAntiAliasFXAA,
     eProjectile,
+    eAfterglow,
     count,
 };
 
@@ -75,6 +76,18 @@ struct PushConstant<Pipeline::eThruster2> {
     math::vec4 m_colorInner2{};
     math::vec4 m_colorOutter1{};
     math::vec4 m_colorOutter2{};
+};
+
+template <>
+struct PushConstant<Pipeline::eAfterglow> {
+    static constexpr uint32_t VERTICES = 6;
+    static constexpr uint32_t INSTANCES = 4;
+    math::mat4 m_model{};
+    math::mat4 m_view{};
+    math::mat4 m_projection{};
+    alignas( 16 ) math::vec3 m_modelOffset{};
+    std::array<math::vec4, INSTANCES> m_zSizeCutoff{};
+    std::array<math::vec4, 4> m_colorScheme;
 };
 
 template <>
@@ -257,6 +270,20 @@ PipelineCreateInfo{
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
     .m_vertexUniform = 0b1,
     .m_fragmentImage = 0b10,
+},
+
+PipelineCreateInfo{
+    .m_vertexShader = "shaders/afterglow.vert.spv",
+    .m_fragmentShader = "shaders/afterglow.frag.spv",
+    .m_userHint = static_cast<uint32_t>( Pipeline::eAfterglow ),
+    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eAfterglow> ),
+    .m_enableBlend = true,
+    .m_enableDepthTest = true,
+    .m_enableDepthWrite = false,
+    .m_topology = PipelineCreateInfo::Topology::eTriangleList,
+    .m_cullMode = PipelineCreateInfo::CullMode::eNone,
+    .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
+    .m_vertexUniform = 0b1,
 },
 
 PipelineCreateInfo{
