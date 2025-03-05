@@ -35,6 +35,11 @@ struct BGRA { uint8_t b, g, r, a; };
 
 template <typename TFrom, typename TTo>
 TTo doConvert( const TFrom& );
+
+template <typename TFrom, typename TTo>
+requires ( std::is_same_v<TFrom, TTo> )
+TTo doConvert( const TFrom& t ) { return t; }
+
 template <> B doConvert<BGRA, B>( const BGRA& c ) { return c.b; };
 template <> B doConvert<BGR, B>( const BGR& c ) { return c.b; };
 template <> BGRA doConvert<BGR, BGRA>( const BGR& c ) { return BGRA{ c.b, c.g, c.r, 0xFF }; };
@@ -63,6 +68,44 @@ static Image unmap( std::ifstream& ifs, const tga::Header& header, Format format
     return { .format = format, .width = header.width, .height = header.height, .pixels = std::move( ret ) };
 }
 
+template <typename TIn, typename TRet>
+struct RLE {
+    std::span<const uint8_t> m_data{};
+    TIn m_color{};
+    int16_t m_pixelCount = -1;
+    bool m_compressed = false;
+
+    RLE( std::span<const uint8_t> data )
+    : m_data{ data }
+    {}
+
+    TRet operator () ()
+    {
+        if ( m_pixelCount == -1 ) {
+            if ( m_data.size() < 1 ) cooker::error( "unexpected end of RLE stream", __LINE__ );
+            m_pixelCount = m_data.front();
+            m_compressed = m_pixelCount & 128;
+            m_pixelCount &= ~128;
+            if ( m_compressed ) {
+                if ( m_data.size() < sizeof( TIn ) + 1 ) cooker::error( "unexpected end of RLE stream", __LINE__ );
+                std::memcpy( &m_color, m_data.data() + 1, sizeof( TIn ) );
+                m_data = m_data.subspan( sizeof( TIn ) + 1 );
+            }
+            else {
+                m_data = m_data.subspan( 1 );
+            }
+        }
+
+        m_pixelCount--;
+        if ( m_compressed ) return doConvert<TIn, TRet>( m_color );
+        TIn ret{};
+        if ( m_data.size() < sizeof( TIn ) ) cooker::error( "unexpected end of RLE stream", __LINE__ );
+        std::memcpy( &ret, m_data.data(), sizeof( TIn ) );
+        m_data = m_data.subspan( sizeof( TIn ) );
+        return doConvert<TIn, TRet>( ret );
+    }
+};
+
 static Image convertTga( const std::filesystem::path& srcFile )
 {
     std::ifstream ifs( srcFile, std::ios::binary | std::ios::ate );
@@ -75,6 +118,10 @@ static Image convertTga( const std::filesystem::path& srcFile )
     ifs.seekg( 0 );
     ifs.read( reinterpret_cast<char*>( &header ), sizeof( tga::Header ) );
     fileSize -= sizeof( tga::Header );
+
+    if ( header.imageDescriptor & ~tga::ImageDescriptor::fTopLeft ) {
+        cooker::error( "TGA expected to be top left origin", srcFile );
+    }
 
     std::pmr::vector<uint8_t> ret;
 
@@ -120,6 +167,26 @@ static Image convertTga( const std::filesystem::path& srcFile )
         }
         default:
             cooker::error( "unknown pixel format, todo maybe later:", srcFile );
+        }
+    case tga::ImageType::eTrueColorRLE:
+        switch ( header.bitsPerPixel ) {
+        default: cooker::error( "unhandled RLE bit count:", (uint32_t)header.bitsPerPixel );
+        case 24: {
+            ret.resize( sizeof( BGRA ) * header.width * header.height );
+            std::pmr::vector<uint8_t> tmp;
+            tmp.resize( fileSize );
+            ifs.read( reinterpret_cast<char*>( tmp.data() ), static_cast<std::streamsize>( fileSize ) );
+            std::generate_n( reinterpret_cast<BGRA*>( ret.data() ), header.width * header.height, RLE<BGR, BGRA>{ tmp } );
+            return { .format = Format::B8G8R8A8_UNORM, .width = header.width, .height = header.height, .pixels = std::move( ret ) };
+        }
+        case 32: {
+            ret.resize( sizeof( BGRA ) * header.width * header.height );
+            std::pmr::vector<uint8_t> tmp;
+            tmp.resize( fileSize );
+            ifs.read( reinterpret_cast<char*>( tmp.data() ), static_cast<std::streamsize>( fileSize ) );
+            std::generate_n( reinterpret_cast<BGRA*>( ret.data() ), header.width * header.height, RLE<BGRA, BGRA>{ tmp } );
+            return { .format = Format::B8G8R8A8_UNORM, .width = header.width, .height = header.height, .pixels = std::move( ret ) };
+        }
         }
     }
 

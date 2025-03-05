@@ -9,9 +9,14 @@ enum ImageType : uint8_t {
     eColorMap = 1,
     eTrueColor = 2,
     eGrayscale = 3,
-    eRLEColorMap = 9,
-    eRLETruecolor = 10,
-    eRLEGrayscale = 11,
+    eColorMapRLE = 9,
+    eTrueColorRLE = 10,
+    eGrayscaleRLE = 11,
+};
+
+enum ImageDescriptor : uint8_t {
+    none = 0,
+    fTopLeft = 32,
 };
 
 struct Header {
@@ -24,7 +29,7 @@ struct Header {
     uint16_t width = 0;
     uint16_t height = 0;
     uint8_t bitsPerPixel = 0;
-    uint8_t imageDescriptor = 0;
+    ImageDescriptor imageDescriptor = ImageDescriptor::none;
 };
 static_assert( sizeof( tga::Header ) == 18 );
 
