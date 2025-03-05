@@ -133,7 +133,7 @@ struct Compiler {
         blenderHackMissingPoints();
         m_objects.emplace_back( o );
     }
-    void operator () ( const Vertex& v ) { m_vertex.emplace_back( v ); }
+    void operator () ( const Vertex& v ) { m_vertex.emplace_back( v ); m_vertex.back().data[ 1 ] *= -1.0f; }
     void operator () ( const UV& uv ) { m_uv.emplace_back( uv ); }
     void operator () ( const Normal& n ) { m_normal.emplace_back( n ); }
     void operator () ( Line )
@@ -172,7 +172,7 @@ struct Compiler {
 
         for ( uint32_t i = 0; i < 3; ++i ) {
             o.data.emplace_back( m_vertex[ f.vert[ i ] ].data[ 0 ] );
-            o.data.emplace_back( -m_vertex[ f.vert[ i ] ].data[ 1 ] ); // Blender hack, negative value on y axis
+            o.data.emplace_back( m_vertex[ f.vert[ i ] ].data[ 1 ] ); // Blender hack, negative value on y axis
             o.data.emplace_back( m_vertex[ f.vert[ i ] ].data[ 2 ] );
             o.data.emplace_back( m_uv[ f.uv[ i ] ].data[ 0 ] );
             o.data.emplace_back( m_uv[ f.uv[ i ] ].data[ 1 ] );
@@ -191,7 +191,7 @@ struct Compiler {
         if ( p.v == 0 ) cooker::error( "point cannot have index 0 in object", o.name );
         if ( p.v > m_vertex.size() ) cooker::error( "accessing vertex in point out of declared vertexes in object", o.name );
         o.data.emplace_back( m_vertex[ p.v - 1 ].data[ 0 ] );
-        o.data.emplace_back( -m_vertex[ p.v - 1 ].data[ 1 ] );
+        o.data.emplace_back( m_vertex[ p.v - 1 ].data[ 1 ] );
         o.data.emplace_back( m_vertex[ p.v - 1 ].data[ 2 ] );
     }
 
