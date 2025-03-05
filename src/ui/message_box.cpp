@@ -30,9 +30,12 @@ EventProcessing MessageBox::onAction( ui::Action a )
 
 void MessageBox::render( const RenderContext& rctx ) const
 {
-    const PushConstant<Pipeline::eBlurDesaturate> bd{};
+    using PushConstant = PushConstant<Pipeline::eBlurDesaturate>;
     const DispatchInfo di{ .m_pipeline = m_blur };
-    rctx.renderer->dispatch( di, &bd );
+    const PushConstant horizontal{ .m_direction = 0 };
+    const PushConstant vertical{ .m_direction = 1 };
+    rctx.renderer->dispatch( di, &horizontal );
+    rctx.renderer->dispatch( di, &vertical );
     Super::render( rctx );
 }
 

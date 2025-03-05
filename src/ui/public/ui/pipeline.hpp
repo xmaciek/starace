@@ -61,7 +61,9 @@ struct PushConstant<Pipeline::eGlow> {
 };
 
 template <>
-struct PushConstant<Pipeline::eBlurDesaturate> {};
+struct PushConstant<Pipeline::eBlurDesaturate> {
+    alignas( 16 ) uint32_t m_direction{};
+};
 
 [[maybe_unused]] inline constexpr auto SPRITE_SEQUENCE =
 PipelineCreateInfo{
@@ -107,6 +109,7 @@ PipelineCreateInfo{
     .m_computeShader = "shaders/blur_desaturate.comp.spv",
     .m_userHint = static_cast<uint32_t>( Pipeline::eBlurDesaturate ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eBlurDesaturate> ),
+    .m_computeUniform = 0b1,
     .m_computeImage = 0b110,
 };
 }
