@@ -23,6 +23,9 @@ private:
 public:
     Buffer m_hull{};
     Buffer m_thruster{};
+    Buffer m_wings{};
+    Buffer m_tail{};
+    Buffer m_intake{};
     ~Model() = default;
     Model() = default;
     Model( const Mesh&, Texture ) noexcept;

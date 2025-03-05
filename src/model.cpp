@@ -18,6 +18,9 @@ Model::Model( const Mesh& mesh, Texture t ) noexcept
 , m_thrusterAfterglowCount{  mesh.m_thrusterAfterglowCount }
 , m_hull{ mesh[ "hull"sv ] }
 , m_thruster{ mesh[ "thruster"sv ] }
+, m_wings{ mesh[ "wings"sv ] }
+, m_tail{ mesh[ "tail"sv ] }
+, m_intake{ mesh[ "intake"sv ] }
 {
     m_weapons[ 0 ] = mesh.m_hardpointsPrimary[ 0 ];
     m_weapons[ 1 ] = mesh.m_hardpointsSecondary[ 0 ];
@@ -37,11 +40,17 @@ void Model::render( const RenderContext& rctx ) const
         .m_pipeline = g_pipelines[ Pipeline::eMesh ],
     };
     pushData.m_fragmentTexture[ 1 ] = m_texture;
-
-    if ( m_hull ) {
-        pushData.m_vertexBuffer = m_hull;
+    auto renderMesh = [&pushData, &pushConstant, &rctx]( Buffer b )
+    {
+        if ( !b ) return;
+        pushData.m_vertexBuffer = b;
         rctx.renderer->push( pushData, &pushConstant );
-    }
+    };
+    renderMesh( m_tail );
+    renderMesh( m_hull );
+    renderMesh( m_wings );
+    renderMesh( m_intake );
+
     if ( m_thruster ) {
         PushConstant<Pipeline::eThruster2> p{
             .m_model = math::scale( rctx.model, math::vec3{ meter, meter, meter } ),

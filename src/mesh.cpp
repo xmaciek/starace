@@ -60,7 +60,7 @@ Mesh::Mesh( std::span<const uint8_t> data, Renderer* renderer ) noexcept
                 std::advance( ptr, sizeof( float ) * 3 );
                 [[fallthrough]];
             case 0:
-                break;
+                continue;
             default:
                 assert( !"unexpected float count in thruster.afterglow" );
                 break;
