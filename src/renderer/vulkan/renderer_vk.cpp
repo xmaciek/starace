@@ -83,8 +83,8 @@ static VkPhysicalDevice selectPhysicalDevice( VkInstance instance, VkPhysicalDev
             return it;
         }
     }
-    platform::showFatalError( "Vulkan error", "Discrete GPU reqired" );
-    return VK_NULL_HANDLE;
+    if ( devices.empty() ) platform::showFatalError( "Vulkan error", "No GPU found" );
+    return devices.front();
 }
 
 struct FormatSupportTest {
