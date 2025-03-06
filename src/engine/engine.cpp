@@ -64,6 +64,7 @@ Engine::Engine( int, char** ) noexcept
     m_audio = Audio::create();
     m_audioPtr = std::unique_ptr<Audio>( m_audio );
 
+    setViewport( (uint32_t)desktop.w, (uint32_t)desktop.h ); // SDL does not fire window resize event on windows upon window creation
     setTargetFPS( 200, FpsLimiter::eSpinLock );
 }
 
