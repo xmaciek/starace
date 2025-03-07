@@ -319,12 +319,17 @@ void Engine::setTargetFPS( uint32_t fps, FpsLimiter::Mode mode )
 
 void Engine::setViewport( uint32_t w, uint32_t h )
 {
+    assert( w );
+    assert( h );
     const float aspect = static_cast<float>( w ) / static_cast<float>( h );
     m_viewport = { w, h, aspect };
 }
 
 std::tuple<uint32_t, uint32_t, float> Engine::viewport() const
 {
+    assert( std::get<0>( m_viewport ) );
+    assert( std::get<1>( m_viewport ) );
+    assert( std::get<2>( m_viewport ) > 0.0f );
     return m_viewport;
 }
 
