@@ -641,15 +641,15 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
 
     assert( m_enemies.empty() );
     m_enemies.resize( mapInfo.enemies );
-    std::generate( m_enemies.begin(), m_enemies.end(), [this, &callsigns, cs=0u]() mutable
+    std::ranges::generate( m_enemies, [this, &callsigns, cs=0u]() mutable
     {
         Enemy::CreateInfo ci{
+            .weapon = m_enemyWeapon,
             .model = &m_enemyModel,
             .callsign = callsigns[ cs++ ],
         };
         UniquePointer<Enemy> ptr{ &m_poolEnemies, ci };
         ptr->setTarget( &m_player );
-        ptr->setWeapon( m_enemyWeapon );
         return ptr;
     });
     m_player.setTarget( m_enemies.front()->signal() );

@@ -23,7 +23,6 @@ static math::vec3 pointMult( uint8_t a, uint8_t b, uint8_t c )
 
 Player::Player( const CreateInfo& ci ) noexcept
 : m_model{ ci.model }
-, m_weapons{ ci.weapons }
 , m_pyrLimits{ defaultPyrLimits }
 , m_angleState{ {}, {}, defaultPyrSpeed * pointMult( ci.points.pitch, ci.points.yaw, ci.points.roll ) }
 , m_points{ ci.points }
@@ -34,16 +33,9 @@ Player::Player( const CreateInfo& ci ) noexcept
     m_speed = math::curve( m_speedCurveMin, m_speedCurveNorm, m_speedCurveMax, 0.5f );
     m_speedTarget = { m_speed, m_speed, m_accell };
     setStatus( Status::eAlive );
-
-    std::transform( m_weapons.begin(), m_weapons.end(), m_weaponsCooldown.begin(),
-        [](const auto& w ) { return WeaponCooldown{
-            .currentDelay = w.delay,
-            .readyDelay = w.delay,
-            .currentReload = w.reload,
-            .readyReload = w.reload,
-            .count = w.capacity,
-            .capacity = w.capacity,
-        }; } );
+    for ( uint32_t i = 0; i < MAX_SUPPORTED_WEAPON_COUNT; ++i ) {
+        m_weapons[ i ] = ci.weapons[ i ];
+    }
 
 };
 
@@ -66,7 +58,7 @@ void Player::render( RenderContext rctx ) const
         .m_projection = rctx.projection,
     };
     for ( uint32_t i = 0; i < MAX_SUPPORTED_WEAPON_COUNT; ++i ) {
-        if ( m_weapons[ i ].type != Bullet::Type::eLaser ) continue;
+        if ( m_weapons[ i ].m_ci.type != Bullet::Type::eLaser ) continue;
         if ( !isShooting( i ) ) continue;
         bc.m_beams[ bd.m_instanceCount++ ] = PushConstant<Pipeline::eBeamBlob>::Beam{
             .m_position = weaponPoint( i ),
@@ -125,16 +117,7 @@ void Player::update( const UpdateContext& uctx )
     );
     m_camOffset.update( uctx.deltaTime );
 
-    auto updateWeapon = [dt=uctx.deltaTime]( WeaponCooldown& wc )
-    {
-        wc.currentDelay = std::min( wc.currentDelay + dt, wc.readyDelay );
-        if ( wc.count >= wc.capacity ) return;
-        wc.currentReload += dt;
-        if ( wc.currentReload < wc.readyReload ) return;
-        wc.count++;
-        if ( wc.count < wc.capacity ) wc.currentReload -= wc.readyReload;
-    };
-    std::for_each( m_weaponsCooldown.begin(), m_weaponsCooldown.end(), std::move( updateWeapon ) );
+    std::ranges::for_each( m_weapons, [&uctx]( auto& w ) { w.update( uctx ); } );
 
     m_position += velocity() * uctx.deltaTime;
 }
@@ -183,30 +166,16 @@ math::vec3 Player::weaponPoint( uint32_t weaponNum ) const
 Bullet Player::weapon( uint32_t weaponNum )
 {
     assert( weaponNum < std::size( m_weapons ) );
-    auto& wc = m_weaponsCooldown[ weaponNum ];
-    wc.currentDelay = 0.0f;
-    if ( wc.count == wc.capacity ) {
-        wc.currentReload = 0.0f;
-    }
-    wc.count--;
-    Bullet b{ m_weapons[ weaponNum ], math::rotate( quat(), m_model.weapon( weaponNum ) ) + position(), direction() };
+    AutoAim aa{};
+    WeaponCreateInfo wci = m_weapons[ weaponNum ].fire();
+    math::vec3 projectilePosition = math::rotate( quat(), m_model.weapon( weaponNum ) ) + position();
+    math::vec3 projectileDirection = wci.type == Bullet::Type::eBlaster && aa.matches( position(), direction(), m_targetSignal.position )
+        ? aa( wci.speed, projectilePosition, m_targetSignal.position, m_targetVelocity )
+        : direction();
+
+    Bullet b{ wci, projectilePosition, projectileDirection };
     b.m_collideId = COLLIDE_ID;
     b.m_target = m_targetSignal;
-    switch ( b.m_type ) {
-    case Bullet::Type::eLaser:
-    case Bullet::Type::eTorpedo:
-        break;
-    case Bullet::Type::eBlaster: {
-        AutoAim autoAim{};
-        if ( !autoAim.matches( position(), direction(), m_targetSignal.position ) ) {
-            break;
-        }
-        b.m_direction = autoAim( b.m_speed, b.m_position, m_targetSignal.position, m_targetVelocity );
-    } break;
-    default:
-        assert( !"unreachable" );
-        break;
-    }
     b.m_quat = math::quatLookAt( b.m_direction, math::rotate( quat(), math::vec3{ 0.0f, 1.0f, 0.0f } ) );
     return b;
 }
@@ -214,14 +183,12 @@ Bullet Player::weapon( uint32_t weaponNum )
 std::array<Audio::Slot, Player::MAX_SUPPORTED_WEAPON_COUNT> Player::shoot( std::pmr::vector<Bullet>& vec )
 {
     std::array<Audio::Slot, MAX_SUPPORTED_WEAPON_COUNT> ret{};
-
     for ( auto i = 0u; i < MAX_SUPPORTED_WEAPON_COUNT; ++i ) {
-        const auto& wc = m_weaponsCooldown[ i ];
-        if ( wc.currentDelay < wc.readyDelay ) continue;
-        if ( wc.count == 0 ) continue;
+        const auto& wc = m_weapons[ i ];
+        if ( !wc.ready() ) continue;
         if ( !isShooting( i ) ) continue;
         vec.emplace_back( weapon( i ) );
-        ret[ i ] = m_weapons[ i ].sound;
+        ret[ i ] = m_weapons[ i ].m_ci.sound;
     }
     return ret;
 }
@@ -254,12 +221,12 @@ math::vec3 Player::cameraDirection() const
 math::vec2 Player::reloadState() const
 {
     return math::vec2{
-        m_weaponsCooldown[ 0 ].currentReload / m_weaponsCooldown[ 0 ].readyReload,
-        m_weaponsCooldown[ 1 ].currentReload / m_weaponsCooldown[ 1 ].readyReload
+        m_weapons[ 0 ].m_reload / m_weapons[ 0 ].m_ci.reload,
+        m_weapons[ 1 ].m_reload / m_weapons[ 1 ].m_ci.reload
     };
 }
 
 std::tuple<uint32_t, uint32_t> Player::weaponClip() const
 {
-    return std::make_tuple( m_weaponsCooldown[ 0 ].count, m_weaponsCooldown[ 1 ].count );
+    return std::make_tuple( m_weapons[ 0 ].m_count, m_weapons[ 1 ].m_count );
 }

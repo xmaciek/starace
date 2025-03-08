@@ -67,3 +67,17 @@ struct WeaponCreateInfo {
     Hash::value_type displayName{};
     Audio::Slot sound{};
 };
+
+struct Weapon {
+    WeaponCreateInfo m_ci{};
+
+    float m_delay = 0.0f;
+    float m_reload = 0.0f;
+    uint16_t m_count = 0;
+
+    Weapon() = default;
+    Weapon( const WeaponCreateInfo& );
+    void update( const UpdateContext& );
+    bool ready() const;
+    WeaponCreateInfo fire();
+};

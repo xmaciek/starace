@@ -9,7 +9,8 @@
 #include <cassert>
 
 Enemy::Enemy( const CreateInfo& ci )
-: m_model{ *ci.model }
+: m_weapon{ ci.weapon }
+, m_model{ *ci.model }
 , m_callsign { ci.callsign }
 {
     m_position = math::vec3{
@@ -24,11 +25,6 @@ Enemy::Enemy( const CreateInfo& ci )
     m_direction = math::vec3( 0.0f, 0.0f, 1.0f );
 }
 
-void Enemy::setWeapon( const WeaponCreateInfo& w )
-{
-    m_weapon = w;
-}
-
 math::quat Enemy::quat() const
 {
     return math::quatLookAt( m_direction, { 0.0f, 1.0f, 0.0f } );
@@ -36,14 +32,9 @@ math::quat Enemy::quat() const
 
 void Enemy::shoot( std::pmr::vector<Bullet>& vec )
 {
-    if ( m_shotFactor < m_weapon.delay ) {
-        return;
-    }
-    if ( !AutoAim{}.matches( position(), direction(), m_target->position() ) ) {
-        return;
-    }
-    m_shotFactor = 0;
-    auto& b = vec.emplace_back( m_weapon, position(), direction() );
+    if ( !m_weapon.ready() ) return;
+    if ( !AutoAim{}.matches( position(), direction(), m_target->position() ) ) return;
+    auto& b = vec.emplace_back( m_weapon.fire(), position(), direction() );
     b.m_collideId = COLLIDE_ID;
     b.m_quat = quat();
 }
@@ -76,7 +67,7 @@ void Enemy::updateAll( const UpdateContext& uctx, std::span<UniquePointer<Enemy>
     auto update = [&uctx]( auto& p )
     {
         assert( p->status() != Status::eDead );
-        p->m_shotFactor = std::min( p->m_weapon.delay, p->m_shotFactor + uctx.deltaTime );
+        p->m_weapon.update( uctx );
         p->m_direction = interceptTarget( p->m_direction, p->m_position, p->m_target->position(), 30.0_deg * uctx.deltaTime );
         p->m_position += p->velocity() * uctx.deltaTime;
         p->m_health -= std::min( p->m_health, p->m_pendingDamage );

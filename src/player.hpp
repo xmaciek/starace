@@ -52,18 +52,7 @@ public:
 
 private:
     Model m_model{};
-
-    struct WeaponCooldown {
-        float currentDelay;
-        float readyDelay;
-        float currentReload;
-        float readyReload;
-        uint16_t count;
-        uint16_t capacity;
-    };
-
-    std::array<WeaponCooldown, MAX_SUPPORTED_WEAPON_COUNT> m_weaponsCooldown{};
-    std::array<WeaponCreateInfo, MAX_SUPPORTED_WEAPON_COUNT> m_weapons{};
+    std::array<Weapon, MAX_SUPPORTED_WEAPON_COUNT> m_weapons{};
 
     math::quat m_quaternion{ math::vec3{} };
 

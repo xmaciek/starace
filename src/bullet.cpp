@@ -125,3 +125,33 @@ void Bullet::updateAll( const UpdateContext& uctx, std::span<Bullet> span, std::
     std::for_each( span.begin(), span.end(), update );
 };
 
+
+
+Weapon::Weapon( const WeaponCreateInfo& ci )
+: m_ci{ ci }
+, m_reload{ ci.reload }
+, m_count{ ci.capacity }
+{
+}
+
+void Weapon::update( const UpdateContext& uctx )
+{
+    m_delay = std::min( m_delay + uctx.deltaTime, m_ci.delay );
+    if ( m_count >= m_ci.capacity ) return;
+    m_reload += uctx.deltaTime;
+    if ( m_reload < m_ci.reload ) return;
+    m_count++;
+    if ( m_count < m_ci.capacity ) m_reload -= m_ci.reload;
+}
+
+bool Weapon::ready() const
+{
+    return m_count > 0 && m_delay >= m_ci.delay;
+}
+
+WeaponCreateInfo Weapon::fire()
+{
+    m_count--;
+    m_delay = 0.0f;
+    return m_ci;
+}
