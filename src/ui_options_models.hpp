@@ -89,7 +89,7 @@ public:
         assert( i < m_values.size() );
         if ( m_toString ) return m_toString( m_values[ i ] );
         assert( i < m_locValues.size() );
-        return g_uiProperty.localize( m_locValues[ i ] );
+        return std::pmr::u32string{ g_uiProperty.localize( m_locValues[ i ] ) };
     }
 
     virtual void select( size_type i ) override

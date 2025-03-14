@@ -209,7 +209,7 @@ void Game::setupUI()
     {
         assert( i < m_weapons.size() );
         auto key = m_weapons[ i ].displayName;
-        return g_uiProperty.localize( key );
+        return std::pmr::u32string{ g_uiProperty.localize( key ) };
     };
     auto weaponCount = [this](){ return static_cast<ui::DataModel::size_type>( m_weapons.size() ); };
     m_optionsCustomize.m_weaponPrimary.m_size = weaponCount;
@@ -681,14 +681,14 @@ void Game::changeScreen( Scene scene, Audio::Slot sound )
     case Scene::eGame: setScreen( "gameplay"_hash ); break;
     case Scene::eGamePaused: setScreen( "pause"_hash ); break;
     case Scene::eDead:
-        m_uiMissionResult = g_uiProperty.localize( "missionLost"_hash );
-        m_uiMissionScore = g_uiProperty.localize( "yourScore"_hash ) + intToUTF32( m_score );
+        m_uiMissionResult = std::pmr::u32string{ g_uiProperty.localize( "missionLost"_hash ) };
+        m_uiMissionScore = std::pmr::u32string { g_uiProperty.localize( "yourScore"_hash ) } + intToUTF32( m_score );
         setScreen( "result"_hash );
         break;
 
     case Scene::eWin:
-        m_uiMissionResult = g_uiProperty.localize( "missionWin"_hash );
-        m_uiMissionScore = g_uiProperty.localize( "yourScore"_hash ) + intToUTF32( m_score );
+        m_uiMissionResult = std::pmr::u32string{ g_uiProperty.localize( "missionWin"_hash ) };
+        m_uiMissionScore = std::pmr::u32string{ g_uiProperty.localize( "yourScore"_hash ) } + intToUTF32( m_score );
         setScreen( "result"_hash );
         break;
 
@@ -804,12 +804,7 @@ void Game::loadWPN( const Asset& asset )
 void Game::loadLANG( const Asset& asset )
 {
     ZoneScoped;
-    auto loc = cfg::Entry::fromData( asset.data );
-    Hash hash{};
-    for ( const auto& it : loc ) {
-        m_localizationMap.insert( hash( *it ), it.toString32() );
-    }
-    g_uiProperty.m_locTable = m_localizationMap.makeView();
+    g_uiProperty.m_lockit = ui::Lockit( asset.data );
 }
 
 void Game::loadWAV( const Asset& asset )

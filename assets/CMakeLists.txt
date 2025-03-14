@@ -5,6 +5,6 @@ add_subdirectory( sounds )
 add_subdirectory( textures )
 add_subdirectory( ui )
 add_subdirectory( misc )
+add_subdirectory( lang )
 
 pak_file( data "${CMAKE_CURRENT_SOURCE_DIR}/misc/ui_atlas.txt" )
-pak_file( data "${CMAKE_CURRENT_SOURCE_DIR}/lang/en.lang" )

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ui/widget.hpp>
+#include <ui/lockit.hpp>
 
 #include <engine/math.hpp>
 #include <renderer/texture.hpp>
@@ -22,7 +23,6 @@ namespace ui {
 class DataModel;
 class Atlas;
 class Font;
-using LocTable = FixedMapView<Hash::value_type, std::pmr::u32string>;
 
 class Property {
     friend Game;
@@ -37,7 +37,7 @@ class Property {
     const Font* m_fontMedium = nullptr;
     const Font* m_fontLarge = nullptr;
     const Font* m_atlas = nullptr;
-    LocTable m_locTable{};
+    Lockit m_lockit{};
     FixedMapView<Hash::value_type, ui::DataModel*> m_dataModels{};
     FixedMapView<Hash::value_type, std::function<void()>> m_gameCallbacks{};
 
@@ -66,14 +66,9 @@ public:
     inline bool setInputSource( InputSource s ) { return std::exchange( m_inputSource, s ) != s; }
     inline InputSource inputSource() const { return m_inputSource; }
 
-    inline std::pmr::u32string localize( Hash::value_type key ) const
+    inline std::u32string_view localize( Hash::value_type key ) const
     {
-        const auto* value = m_locTable.find( key );
-        if ( value ) {
-            return *value;
-        }
-        //assert( !"missing loc key" );
-        return U"<BUG:Missing loc key>";
+        return m_lockit.find( key );
     }
 
     inline void requestModalWidget( UniquePointer<Widget>&& w )
