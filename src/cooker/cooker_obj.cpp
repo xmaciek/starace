@@ -1,6 +1,7 @@
 #include "cooker_common.hpp"
 
 #include <extra/obj.hpp>
+#include <extra/args.hpp>
 
 #include <array>
 #include <algorithm>
@@ -89,12 +90,11 @@ struct FullObject : public Object {
 
 std::ofstream& operator << ( std::ofstream& o, const FullObject& fo )
 {
-    o.write( reinterpret_cast<const char*>( &obj::Chunk::MAGIC ), sizeof( obj::Chunk::MAGIC ) );
-    o.write( fo.name, sizeof( fo.name ) );
-    o.write( reinterpret_cast<const char*>( &fo.dataType ), sizeof( fo.dataType ) );
-    uint32_t s = (uint32_t)fo.data.size();
-    o.write( reinterpret_cast<const char*>( &s ), sizeof( s ) );
-    std::ranges::for_each( fo.data, [&o]( float f ) { o.write( reinterpret_cast<const char*>( &f ), sizeof( float ) ); } );
+    cooker::write( o, obj::Chunk::MAGIC );
+    cooker::write( o, fo.name );
+    cooker::write( o, fo.dataType );
+    cooker::write( o, (uint32_t)fo.data.size() );
+    cooker::write( o, fo.data );
     return o;
 }
 
@@ -197,19 +197,30 @@ struct Compiler {
 
 };
 
-int main( int argc, char** argv )
+int main( int argc, const char** argv )
 {
-    ( argc == 3 ) || cooker::error( "expected 2 arguments: <src.obj> <dst.objc>", "" );
+    Args args{ argc, argv };
+    if ( !args || args.read( "-h" ) || args.read( "--help" ) ) {
+        std::cout <<
+            "Required arguments:\n"
+            "\t--src \"<file/path.obj>\" \u2012 specifies source object\n"
+            "\t--dst \"<file/path.objc>\" \u2012 specifies output object\n"
+            "\nOptional arguments:\n"
+            "\t-h --help \u2012 prints this message\n"
+            ;
+    }
 
-    std::filesystem::path src{ argv[ 1 ] };
-    std::filesystem::path dst{ argv[ 2 ] };
+    std::string_view argSrc{};
+    std::string_view argDst{};
+    args.read( "--src", argSrc ) || cooker::error( "--src <file/path.obj> \u2012 argument not specified" );
+    args.read( "--dst", argDst ) || cooker::error( "--dst <file/path.objc> \u2012 argument not specified" );
 
     Compiler compiler{};
     std::string line{};
     line.reserve( 64 );
 
-    std::ifstream ifs( src );
-    ifs.is_open() || cooker::error( "failed to open file:", src );
+    std::ifstream ifs( (std::string)argSrc );
+    ifs.is_open() || cooker::error( "failed to open file:", argSrc );
 
     while ( std::getline( ifs, line ) ) {
         if ( line.size() < 3 ) { continue; }
@@ -228,10 +239,8 @@ int main( int argc, char** argv )
     obj::Header header{};
     header.chunkCount = static_cast<uint32_t>( compiler.m_objects.size() );
 
-    std::ofstream ofs( dst, std::ios::binary );
-    ofs.is_open() || cooker::error( "failed to open:", dst );
-
-    ofs.write( reinterpret_cast<const char*>( &header ), sizeof( header ) );
+    auto ofs = cooker::openWrite( argDst );
+    cooker::write( ofs, header );
     std::ranges::for_each( compiler.m_objects, [&ofs]( const auto& f ) { ofs << f; } );
     return 0;
 }

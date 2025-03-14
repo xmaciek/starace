@@ -46,10 +46,8 @@ int main( int argc, const char** argv )
 
     std::sort( callsigns.begin(), callsigns.end(), []( auto& lhs, auto& rhs ) { return (std::u32string_view)lhs < (std::u32string_view)rhs; } );
     csg::Header header{ .count = static_cast<uint32_t>( callsigns.size() ), };
-    std::ofstream ofs( std::string( argDst ), std::ios::binary );
-    if ( !ofs.is_open() ) cooker::error( "cannot open dst file:", argDst );
-    ofs.write( reinterpret_cast<char*>( &header ), sizeof( header ) );
-    ofs.write( reinterpret_cast<char*>( callsigns.data() ), static_cast<std::streamsize>( callsigns.size() * sizeof( csg::Callsign ) ) );
-    ofs.close();
+    auto ofs = cooker::openWrite( argDst );
+    cooker::write( ofs, header );
+    cooker::write( ofs, callsigns );
     return 0;
 }

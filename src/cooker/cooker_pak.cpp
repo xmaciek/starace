@@ -54,21 +54,6 @@ std::vector<std::pair<std::string, std::string>> preparePathPairs( std::string_v
     return ret;
 }
 
-template <typename T>
-requires std::is_trivially_copyable_v<T>
-std::ofstream& operator <<= ( std::ofstream& o, const std::vector<T>& v )
-{
-    auto size = static_cast<std::streamsize>( sizeof( T ) * v.size() );
-    o.write( reinterpret_cast<const char*>( v.data() ), size );
-    return o;
-}
-
-std::ofstream& operator <<= ( std::ofstream& o, const pak::Header& v )
-{
-    o.write( reinterpret_cast<const char*>( &v ), static_cast<std::streamsize>( sizeof( v ) ) );
-    return o;
-}
-
 bool strcpyIntoBuffer( const auto& src, auto& dst )
 {
     if ( std::size( src ) > std::size( dst ) ) return false;
@@ -90,14 +75,13 @@ int main( int argc, const char** argv )
 
     auto fileList = preparePathPairs( argv[ 2 ] );
     pak::Header header{};
-    std::vector<pak::Entry> entries;
+    std::pmr::vector<pak::Entry> entries;
     entries.reserve( fileList.size() );
 
-    std::ofstream ofs( argv[ 1 ], std::ios::binary );
-    ofs.is_open() || cooker::error( "failed to open file for writing", argv[ 1 ] );
-    ofs <<= header;
+    auto ofs = cooker::openWrite( argv[ 1 ] );
+    cooker::write( ofs, header );
 
-    std::vector<char> tmp;
+    std::pmr::vector<char> tmp;
     for ( auto&& [ src, dst ] : fileList ) {
         auto& entry = entries.emplace_back();
         strcpyIntoBuffer( dst, entry.name ) || cooker::error( "path too long to fit into .name field", dst );
@@ -106,7 +90,7 @@ int main( int argc, const char** argv )
         ifs.is_open() || cooker::error( "cannot open file for reading:", src );
 
         const std::streamsize size = ifs.tellg();
-        tmp.resize( static_cast<std::vector<char>::size_type>( size ) );
+        tmp.resize( static_cast<std::pmr::vector<char>::size_type>( size ) );
         ifs.seekg( 0 );
         ifs.read( tmp.data(), size );
         ifs.close();
@@ -115,13 +99,13 @@ int main( int argc, const char** argv )
 
         entry.offset = static_cast<uint32_t>( ofs.tellp() );
         entry.size = static_cast<uint32_t>( size );
-        ofs <<= tmp;
+        cooker::write( ofs, tmp );
     }
     align( ofs, 64 );
     header.offset = static_cast<uint32_t>( ofs.tellp() );
-    ofs <<= entries;
+    cooker::write( ofs, entries );
     ofs.seekp( 0 );
     header.size = static_cast<uint32_t>( entries.size() * sizeof( pak::Entry ) );
-    ofs <<= header;
+    cooker::write( ofs, header );
     return 0;
 }

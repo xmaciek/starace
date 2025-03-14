@@ -386,7 +386,7 @@ int main( int argc, const char** argv )
     };
     std::pmr::vector<std::filesystem::path> src = commaSeparate( argSrc );
     src.empty() && cooker::error( "--src argument requires valid paths" );
-    std::filesystem::path dst = argDst;
+
     std::list<Image> images;
     {
         uint32_t pendingWidth = 0;
@@ -449,13 +449,12 @@ int main( int argc, const char** argv )
     if ( dxgiHeader.arraySize > 1 ) {
         header.caps |= Caps::fComplex;
     }
-    std::ofstream ofs( dst, std::ios::binary );
-    ofs.is_open() || cooker::error( "cannot open file:", dst );
 
-    ofs.write( reinterpret_cast<const char*>( &header ), static_cast<std::streamsize>( sizeof( header ) ) );
-    ofs.write( reinterpret_cast<const char*>( &dxgiHeader ), static_cast<std::streamsize>( sizeof( dxgiHeader ) ) );
+    auto ofs = cooker::openWrite( argDst );
+    cooker::write( ofs, header );
+    cooker::write( ofs, dxgiHeader );
     for ( auto&& mip : mips ) {
-        ofs.write( reinterpret_cast<const char*>( mip.pixels.data() ), static_cast<std::streamsize>( mip.pixels.size() ) );
+        cooker::write( ofs, mip.pixels );
     }
     return 0;
 }

@@ -125,17 +125,9 @@ int main( int argc, const char** argv )
     std::sort( glyphs.begin(), glyphs.end(), []( const auto& lhs, const auto& rhs ) { return lhs.ch < rhs.ch; } );
     header.count = (uint32_t)glyphs.size();
 
-    std::ofstream ofs{ (std::string)argsDstAtlas, std::ios::binary };
-    if ( !ofs.is_open() ) cooker::error( "Cannot open destination atlas to write:", argsDstAtlas );
-
-    ofs.write( (const char*)&header, sizeof( header ) );
-    for ( auto&& g : glyphs ) {
-        ofs.write( (const char*)&g.ch, sizeof( g.ch ) );
-    }
-    for ( auto&& g : glyphs ) {
-        ofs.write( (const char*)&g.data, sizeof( g.data ) );
-    }
-    ofs.close();
-
+    auto ofs = cooker::openWrite( argsDstAtlas );
+    cooker::write( ofs, header );
+    std::ranges::for_each( glyphs, [&ofs]( const auto& g ) { cooker::write( ofs, g.ch ); } );
+    std::ranges::for_each( glyphs, [&ofs]( const auto& g ) { cooker::write( ofs, g.data ); } );
     return 0;
 }
