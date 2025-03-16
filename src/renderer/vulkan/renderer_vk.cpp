@@ -25,6 +25,11 @@ public:
     }
 } setup{};
 
+struct ResourceDeleter {
+    void operator () ( TextureVK* t ) { assert( t ); delete t; }
+    void operator () ( BufferVK* b ) { assert( b ); delete b; }
+};
+
 // arbitrary values
 static constexpr uint32_t INVALID_INDEX = 0xFFFF'FFFFu;
 static constexpr uint32_t BUFFER_ID_CHECK = 0x1F00'0000u;
@@ -276,26 +281,13 @@ PipelineSlot RendererVK::createPipeline( const PipelineCreateInfo& pci )
 RendererVK::~RendererVK()
 {
     ZoneScoped;
-    for ( auto& it : m_frames ) {
-        it = {};
-    }
+    std::ranges::for_each( m_frames, []( auto& f ) { f = {}; } );
     m_transferCommandPool = {};
 
-    for ( const auto& it : m_textureSlots ) {
-        delete it.load();
-    }
-    for ( auto* it : m_texturePendingDelete ) {
-        delete it;
-    }
-
-    for ( const auto& it : m_bufferSlots ) {
-        delete it.load();
-    }
-    for ( auto* it : m_bufferPendingDelete ) {
-        delete it;
-    }
-
-    for ( auto& it : m_pipelines ) { it = {}; }
+    std::ranges::for_each( m_textureSlots, []( auto& t ) { delete t.load(); } );
+    std::ranges::for_each( m_bufferSlots, []( auto& b ) { delete b.load(); } );
+    std::ranges::for_each( m_resourceDelete, []( auto& a ) { std::visit( ResourceDeleter{}, a ); } );
+    std::ranges::for_each( m_pipelines, []( auto& p ) { p = {}; } );
     destroy<vkDestroySemaphore, VkSemaphore>( m_device, m_semaphoreRender );
     destroy<vkDestroySemaphore, VkSemaphore>( m_device, m_semaphoreAvailableImage );
     m_depthPrepass = {};
@@ -492,8 +484,8 @@ void RendererVK::deleteBuffer( Buffer b )
     BufferVK* buff = m_bufferSlots[ bufferIndex ].exchange( nullptr );
     assert( buff );
     m_bufferIndexer.release( bufferIndex );
-    Bottleneck bottleneck{ m_bufferBottleneck };
-    m_bufferPendingDelete.push_back( buff );
+    Bottleneck bottleneck{ m_resourceDeleteBottleneck };
+    m_resourceDelete.emplace_back( buff );
 }
 
 void RendererVK::deleteTexture( Texture t )
@@ -505,8 +497,8 @@ void RendererVK::deleteTexture( Texture t )
     TextureVK* tex = m_textureSlots[ textureIndex ].exchange( nullptr );
     assert( tex );
     m_textureIndexer.release( textureIndex );
-    Bottleneck bottleneck{ m_textureBottleneck };
-    m_texturePendingDelete.push_back( tex );
+    Bottleneck bottleneck{ m_resourceDeleteBottleneck };
+    m_resourceDelete.emplace_back( tex );
 }
 
 void RendererVK::recreateSwapchain()
@@ -681,21 +673,13 @@ void RendererVK::endFrame()
         vkQueueWaitIdle( queue );
     }
 
-    auto release = []( auto& vec, auto& bottleneck )
+    decltype(m_resourceDelete) tmp{ m_resourceDelete.get_allocator() };
     {
-        std::remove_reference_t<decltype(vec)> tmp{ vec.get_allocator() };
-        {
-            Bottleneck lock{ bottleneck };
-            std::swap( tmp, vec );
-        }
-        for ( auto* it : tmp ) {
-            assert( it );
-            delete it;
-        }
-    };
+        Bottleneck lock{ m_resourceDeleteBottleneck };
+        std::swap( tmp, m_resourceDelete );
+    }
 
-    release( m_bufferPendingDelete, m_bufferBottleneck );
-    release( m_texturePendingDelete, m_textureBottleneck );
+    std::ranges::for_each( tmp, []( auto& a ) { std::visit( ResourceDeleter{}, a ); } );
 }
 
 void RendererVK::present()

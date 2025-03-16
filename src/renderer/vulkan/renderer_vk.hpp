@@ -22,6 +22,7 @@
 #include <vector>
 #include <mutex>
 #include <optional>
+#include <variant>
 
 class RendererVK : public Renderer {
     SDL_Window* m_window = nullptr;
@@ -60,13 +61,13 @@ class RendererVK : public Renderer {
     const TextureVK* m_defaultTexture = nullptr;
     Indexer<64> m_textureIndexer{};
     std::array<std::atomic<TextureVK*>, 64> m_textureSlots{};
-    std::mutex m_textureBottleneck{};
-    std::pmr::vector<TextureVK*> m_texturePendingDelete{};
 
     Indexer<64> m_bufferIndexer{};
     std::array<std::atomic<BufferVK*>, 64> m_bufferSlots{};
-    std::mutex m_bufferBottleneck{};
-    std::pmr::vector<BufferVK*> m_bufferPendingDelete{};
+
+    std::mutex m_resourceDeleteBottleneck{};
+    using ResourceDelete = std::variant<TextureVK*, BufferVK*>;
+    std::pmr::vector<ResourceDelete> m_resourceDelete{};
 
     VkFormat m_colorFormat = VK_FORMAT_UNDEFINED;
     VkFormat m_depthFormat = VK_FORMAT_UNDEFINED;
