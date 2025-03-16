@@ -221,8 +221,8 @@ math::vec3 Player::cameraDirection() const
 math::vec2 Player::reloadState() const
 {
     return math::vec2{
-        m_weapons[ 0 ].m_reload / m_weapons[ 0 ].m_ci.reload,
-        m_weapons[ 1 ].m_reload / m_weapons[ 1 ].m_ci.reload
+        m_weapons[ 0 ].reloadProgress(),
+        m_weapons[ 1 ].reloadProgress(),
     };
 }
 

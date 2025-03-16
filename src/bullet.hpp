@@ -71,7 +71,7 @@ struct WeaponCreateInfo {
 struct Weapon {
     WeaponCreateInfo m_ci{};
 
-    float m_delay = 0.0f;
+    float m_cooldown = 0.0f;
     float m_reload = 0.0f;
     uint16_t m_count = 0;
 
@@ -80,4 +80,5 @@ struct Weapon {
     void update( const UpdateContext& );
     bool ready() const;
     WeaponCreateInfo fire();
+    float reloadProgress() const;
 };

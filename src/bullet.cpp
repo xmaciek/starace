@@ -125,8 +125,6 @@ void Bullet::updateAll( const UpdateContext& uctx, std::span<Bullet> span, std::
     std::for_each( span.begin(), span.end(), update );
 };
 
-
-
 Weapon::Weapon( const WeaponCreateInfo& ci )
 : m_ci{ ci }
 , m_reload{ ci.reload }
@@ -136,9 +134,9 @@ Weapon::Weapon( const WeaponCreateInfo& ci )
 
 void Weapon::update( const UpdateContext& uctx )
 {
-    m_delay = std::min( m_delay + uctx.deltaTime, m_ci.delay );
+    m_cooldown = std::max( m_cooldown - uctx.deltaTime, 0.0f );
     if ( m_count >= m_ci.capacity ) return;
-    m_reload += uctx.deltaTime;
+    m_reload = std::min( m_reload + uctx.deltaTime, m_ci.reload );
     if ( m_reload < m_ci.reload ) return;
     m_count++;
     if ( m_count < m_ci.capacity ) m_reload -= m_ci.reload;
@@ -146,12 +144,18 @@ void Weapon::update( const UpdateContext& uctx )
 
 bool Weapon::ready() const
 {
-    return m_count > 0 && m_delay >= m_ci.delay;
+    return m_count > 0 && m_cooldown <= 0.0f;
 }
 
 WeaponCreateInfo Weapon::fire()
 {
     m_count--;
-    m_delay = 0.0f;
+    m_cooldown = m_ci.delay;
+    if ( m_reload >= m_ci.reload ) m_reload -= m_ci.reload;
     return m_ci;
+}
+
+float Weapon::reloadProgress() const
+{
+    return math::clamp( m_reload / m_ci.reload, 0.0f, 1.0f );
 }
