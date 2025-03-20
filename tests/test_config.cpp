@@ -101,6 +101,13 @@ TEST( Config, iterator )
     EXPECT_EQ( it->toString(), "d"sv );
 }
 
+TEST( Config, broken )
+{
+    auto sv = "{ a = { b = c } }"_span;
+    cfg::Entry entry = cfg::Entry::fromData( sv );
+    EXPECT_TRUE( entry.name.empty() );
+}
+
 TEST( Config, quotes )
 {
     auto sv = "a = \"q u o t e s\""_span;
