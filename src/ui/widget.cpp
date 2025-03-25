@@ -36,6 +36,11 @@ void Widget::refreshInput()
     std::ranges::for_each( m_children, []( auto& wgt ) { wgt->refreshInput(); } );
 }
 
+void Widget::lockitChanged()
+{
+    std::ranges::for_each( m_children, []( auto& wgt ) { wgt->lockitChanged(); } );
+}
+
 void Widget::setPosition( math::vec2 v )
 {
     m_position = v;

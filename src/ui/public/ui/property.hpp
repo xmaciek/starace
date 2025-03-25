@@ -37,7 +37,8 @@ class Property {
     const Font* m_fontMedium = nullptr;
     const Font* m_fontLarge = nullptr;
     const Font* m_atlas = nullptr;
-    Lockit m_lockit{};
+    std::pmr::vector<Lockit> m_lockit{};
+    uint32_t m_currentLang = 0;
     FixedMapView<Hash::value_type, ui::DataModel*> m_dataModels{};
     FixedMapView<Hash::value_type, std::function<void()>> m_gameCallbacks{};
 
@@ -68,7 +69,11 @@ public:
 
     inline std::u32string_view localize( Hash::value_type key ) const
     {
-        return m_lockit.find( key );
+        assert( !m_lockit.empty() );
+        if ( m_lockit.empty() ) [[unlikely]] return U"<no lockit>";
+
+        assert( m_currentLang < m_lockit.size() );
+        return m_lockit[ m_currentLang ].find( key );
     }
 
     inline void requestModalWidget( UniquePointer<Widget>&& w )

@@ -21,7 +21,6 @@ private:
     size_type m_revision = 0;
     size_type m_currentIndex = 0;
     std::pmr::vector<T> m_values;
-    std::pmr::vector<Hash::value_type> m_locValues;
     FnToString m_toString{};
 
 public:
@@ -34,7 +33,7 @@ public:
     requires std::is_same_v<bool, T>
     : m_currentIndex{ currentIndex }
     , m_values{ false, true }
-    , m_locValues{ "off"_hash, "on"_hash }
+    , m_toString{ []( bool b ) { return std::pmr::u32string{ g_uiProperty.localize( b ? "on"_hash : "off"_hash ) }; } }
     {}
 
     inline Option( size_type currentIndex
@@ -87,9 +86,14 @@ public:
     {
         if ( m_values.empty() ) return {};
         assert( i < m_values.size() );
-        if ( m_toString ) return m_toString( m_values[ i ] );
-        assert( i < m_locValues.size() );
-        return std::pmr::u32string{ g_uiProperty.localize( m_locValues[ i ] ) };
+        if constexpr ( std::is_same_v<T, std::pmr::u32string> ) {
+            return m_values[ i ];
+        }
+        else {
+            if ( m_toString ) return m_toString( m_values[ i ] );
+            assert( !"missing to string fn" );
+            return U"<Error>";
+        }
     }
 
     virtual void select( size_type i ) override
@@ -106,11 +110,16 @@ public:
         m_revision += i;
     }
 
-    void setData( size_type current, std::pmr::vector<T>&& values, std::pmr::vector<Hash::value_type>&& locValues = {} )
+    void addOption( T&& t )
+    {
+        m_values.emplace_back( std::forward<T>( t ) );
+        refresh();
+    }
+
+    void setData( size_type current, std::pmr::vector<T>&& values )
     {
         m_currentIndex = current;
         m_values = std::move( values );
-        m_locValues = std::move( locValues );
         refresh();
     }
 };

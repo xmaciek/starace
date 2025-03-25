@@ -32,6 +32,7 @@ private:
     std::pmr::u32string m_text{};
     math::vec4 m_color = math::vec4{ 1.0f, 1.0f, 1.0f, 1.0f };
     math::vec2 m_labelExtent{};
+    Hash::value_type m_locText{};
     DataModel::size_type m_revision = 0xFFFF;
     bool m_hasActions : 1 = false;
     // TODO remove mutable
@@ -47,6 +48,8 @@ public:
     void setText( std::u32string_view );
     void setText( std::pmr::u32string&& );
     DataModel* dataModel() const;
+
+    virtual void lockitChanged() override;
     virtual void refreshInput() override;
 };
 }

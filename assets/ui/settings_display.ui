@@ -5,12 +5,12 @@ name = settings.display
 
 Label = { x = 48 y = 50 text = settings.display font = large }
 
-SpinBox = { x = 48 y = 150 width = 400 height = 48 text = settings.display.vsync            data = $data:settings.display.vsync }
-SpinBox = { x = 48 y = 200 width = 400 height = 48 text = settings.display.fullscreen       data = $data:settings.display.fullscreen }
-ComboBox = { x = 48 y = 250 width = 400 height = 48 text = settings.display.resolution      data = $data:settings.display.resolution }
-ComboBox = { x = 48 y = 300 width = 400 height = 48 text = settings.display.gamma           data = $data:settings.display.gamma }
-SpinBox = { x = 48 y = 350 width = 400 height = 48 text = settings.display.antialias        data = $data:settings.display.antialias }
-SpinBox = { x = 48 y = 400 width = 400 height = 48 text = settings.display.fpsLimiter       data = $data:settings.display.fpsLimiter }
+SpinBox = { x = 48 y = 150 width = 600 height = 48 text = settings.display.vsync            data = $data:settings.display.vsync }
+SpinBox = { x = 48 y = 200 width = 600 height = 48 text = settings.display.fullscreen       data = $data:settings.display.fullscreen }
+ComboBox = { x = 48 y = 250 width = 600 height = 48 text = settings.display.resolution      data = $data:settings.display.resolution }
+ComboBox = { x = 48 y = 300 width = 600 height = 48 text = settings.display.gamma           data = $data:settings.display.gamma }
+SpinBox = { x = 48 y = 350 width = 600 height = 48 text = settings.display.antialias        data = $data:settings.display.antialias }
+SpinBox = { x = 48 y = 400 width = 600 height = 48 text = settings.display.fpsLimiter       data = $data:settings.display.fpsLimiter }
 
 Footer = {
     Button = { text = apply     input = eMenuApply      trigger = $function:applyDisplay }

@@ -94,6 +94,7 @@ public:
     virtual void update( const UpdateContext& );
     virtual void render( const RenderContext& ) const;
     virtual void refreshInput();
+    virtual void lockitChanged();
     virtual EventProcessing onMouseEvent( const MouseEvent& );
     virtual EventProcessing onAction( ui::Action );
 

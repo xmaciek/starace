@@ -461,4 +461,10 @@ void Screen::refreshInput()
     if ( m_footer ) { m_footer->refreshInput(); }
 }
 
+void Screen::lockitChanged()
+{
+    std::ranges::for_each( m_widgets, []( auto& ptr ) { ptr->lockitChanged(); } );
+    if ( m_footer ) { m_footer->lockitChanged(); }
+}
+
 }

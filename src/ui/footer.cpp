@@ -52,6 +52,11 @@ void Footer::refreshText()
     m_label->setText( m_text );
 }
 
+void Footer::lockitChanged()
+{
+    refreshText();
+}
+
 EventProcessing Footer::onAction( ui::Action a )
 {
     for ( auto&& action : m_actions ) {

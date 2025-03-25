@@ -4,7 +4,7 @@ glow = 1
 name = missionSelect
 
 Label = {
-    text = missionSelect
+    text = mission
     font = large
     x = 48
     y = 50

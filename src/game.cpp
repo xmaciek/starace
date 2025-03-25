@@ -276,6 +276,7 @@ void Game::setupUI()
     m_gameUiDataModels.insert( "$data:settings.audio.master"_hash, &m_optionsAudio.m_masterUI );
     m_gameUiDataModels.insert( "$data:settings.audio.ui"_hash, &m_optionsAudio.m_uiUI );
     m_gameUiDataModels.insert( "$data:settings.audio.sfx"_hash, &m_optionsAudio.m_sfxUI );
+    m_gameUiDataModels.insert( "$data:settings.game.language"_hash, &m_optionsGame.m_languageUI );
     m_gameUiDataModels.insert( "$data:weaponPrimary"_hash, &m_optionsCustomize.m_weaponPrimary );
     m_gameUiDataModels.insert( "$data:weaponSecondary"_hash, &m_optionsCustomize.m_weaponSecondary );
     m_gameUiDataModels.insert( "$data:jet"_hash, &m_optionsCustomize.m_jet );
@@ -297,6 +298,7 @@ void Game::setupUI()
     m_gameCallbacks.insert( "$function:goto_settings"_hash, [this](){ changeScreen( Scene::eSettings, m_click ); } );
     m_gameCallbacks.insert( "$function:goto_settings_display"_hash, [this](){ changeScreen( Scene::eSettingsDisplay, m_click ); } );
     m_gameCallbacks.insert( "$function:goto_settings_audio"_hash, [this](){ changeScreen( Scene::eSettingsAudio, m_click ); } );
+    m_gameCallbacks.insert( "$function:goto_settings_game"_hash, [this](){ changeScreen( Scene::eSettingsGame, m_click ); } );
     m_gameCallbacks.insert( "$function:quit"_hash, [this](){ quit(); } );
     m_gameCallbacks.insert( "$function:resume"_hash, [this]{ changeScreen( Scene::eGame, m_click ); } );
     m_gameCallbacks.insert( "$function:applyDisplay"_hash, [this]()
@@ -349,8 +351,34 @@ void Game::setupUI()
         } );
         msg->addButton( "no"_hash, ui::Action::eMenuCancel, [screen]() { screen->addModalWidget( {} ); } );
         screen->addModalWidget( std::move( msg ) );
-
     } );
+    m_gameCallbacks.insert( "$function:applyGameSettings"_hash, [this]()
+    {
+        if ( !m_optionsGame.hasChanges() ) return;
+        m_optionsGame.set();
+        auto it = std::ranges::find_if( g_uiProperty.m_lockit, [name=m_optionsGame.m_language]( const auto& l )
+        {
+            return l.find( "lockit"_hash ) == name;
+        } );
+        assert( it != g_uiProperty.m_lockit.end() );
+        g_uiProperty.m_currentLang = static_cast<uint32_t>( std::distance( g_uiProperty.m_lockit.begin(), it ) );
+        std::ranges::for_each( m_screens, []( auto& s ) { s.lockitChanged(); } );
+    });
+    m_gameCallbacks.insert( "$function:exitGameSettings"_hash, [this]()
+    {
+        if ( !m_optionsGame.hasChanges() ) return changeScreen( Scene::eSettings, m_click );
+        auto* screen = currentScreen();
+        assert( screen );
+        auto msg = screen->messageBox( "settings.game.unsaved"_hash );
+        assert( msg );
+        msg->addButton( "yes"_hash, ui::Action::eMenuConfirm, [this]()
+        {
+            m_optionsGame.restore();
+            changeScreen( Scene::eSettings, m_click );
+        } );
+        msg->addButton( "no"_hash, ui::Action::eMenuCancel, [screen]() { screen->addModalWidget( {} ); } );
+        screen->addModalWidget( std::move( msg ) );
+    });
 
     g_uiProperty.m_gameCallbacks = m_gameCallbacks.makeView();
     g_uiProperty.m_dataModels = m_gameUiDataModels.makeView();
@@ -363,6 +391,7 @@ void Game::setupUI()
     m_screens.emplace_back( m_io->viewWait( "ui/settings.ui" ) );
     m_screens.emplace_back( m_io->viewWait( "ui/settings_display.ui" ) );
     m_screens.emplace_back( m_io->viewWait( "ui/settings_audio.ui" ) );
+    m_screens.emplace_back( m_io->viewWait( "ui/settings_game.ui" ) );
     m_screens.emplace_back( m_io->viewWait( "ui/mainmenu.ui" ) );
 
     Targeting::CreateInfo tci{
@@ -433,6 +462,7 @@ void Game::onRender( Renderer* renderer )
     case Scene::eSettings:
     case Scene::eSettingsDisplay:
     case Scene::eSettingsAudio:
+    case Scene::eSettingsGame:
         renderMenuScreen( rctx, r );
         break;
 
@@ -678,6 +708,7 @@ void Game::changeScreen( Scene scene, Audio::Slot sound )
     case Scene::eSettings: setScreen( "settings"_hash ); break;
     case Scene::eSettingsDisplay: setScreen( "settings.display"_hash ); break;
     case Scene::eSettingsAudio: setScreen( "settings.audio"_hash ); break;
+    case Scene::eSettingsGame: setScreen( "settings.game"_hash ); break;
     case Scene::eGame: setScreen( "gameplay"_hash ); break;
     case Scene::eGamePaused: setScreen( "pause"_hash ); break;
     case Scene::eDead:
@@ -804,7 +835,11 @@ void Game::loadWPN( const Asset& asset )
 void Game::loadLANG( const Asset& asset )
 {
     ZoneScoped;
-    g_uiProperty.m_lockit = ui::Lockit( asset.data );
+    auto& ll = g_uiProperty.m_lockit.emplace_back( asset.data );
+    auto name = ll.find( "lockit"_hash );
+    m_optionsGame.m_languageUI.addOption( std::pmr::u32string{ name } );
+    if ( m_optionsGame.m_language.empty() ) { return; }
+    m_optionsGame.m_language = std::pmr::u32string{ name };
 }
 
 void Game::loadWAV( const Asset& asset )

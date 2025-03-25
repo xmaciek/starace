@@ -23,3 +23,4 @@ endfunction()
 
 
 cook_lang( SRC en.csv DST en.lang )
+cook_lang( SRC pl.csv DST pl.lang )

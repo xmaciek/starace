@@ -15,14 +15,15 @@ Label::Label( const Label::CreateInfo& ci )
 , m_font{ g_uiProperty.font( ci.font ) }
 , m_color{ g_uiProperty.color( ci.color ) }
 , m_labelExtent{ ci.size }
+, m_locText{ ci.text }
 {
     assert( m_font );
     if ( m_dataModel ) {
         m_revision = m_dataModel->revision();
         setText( m_dataModel->at( m_dataModel->current() ) );
     }
-    else if ( ci.text ) {
-        setText( g_uiProperty.localize( ci.text ) );
+    else if ( m_locText ) {
+        setText( g_uiProperty.localize( m_locText ) );
     }
 }
 
@@ -41,6 +42,18 @@ void Label::refreshInput()
     if ( m_hasActions ) {
         m_renderText = m_font->composeText( m_color, m_text, m_labelExtent );
         m_size = m_renderText.extent;
+    }
+}
+
+void Label::lockitChanged()
+{
+    Widget::lockitChanged();
+    if ( m_dataModel ) {
+        m_revision = m_dataModel->revision();
+        setText( m_dataModel->at( m_dataModel->current() ) );
+    }
+    else if ( m_locText ) {
+        setText( g_uiProperty.localize( m_locText ) );
     }
 }
 

@@ -11,7 +11,7 @@ Label = {
 }
 
 Button = {
-    text = missionSelect
+    text = mission
     trigger = $function:goto_newgame
     x = 48
     y = 150

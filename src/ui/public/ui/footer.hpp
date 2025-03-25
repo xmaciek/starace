@@ -38,6 +38,8 @@ public:
 
     virtual EventProcessing onAction( ui::Action ) override;
 
+    virtual void lockitChanged() override;
+
 private:
     Label* m_label{};
     struct ActionInfo {

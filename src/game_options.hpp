@@ -72,6 +72,15 @@ struct OptionsAudio {
     bool hasChanges() const;
 };
 
+struct OptionsGame {
+    ui::Option<std::pmr::u32string> m_languageUI{};
+    std::pmr::u32string m_language{};
+
+    void restore();
+    void set();
+    bool hasChanges() const;
+};
+
 struct OptionsCustomize {
     ui::GenericDataModel m_jet{};
     ui::GenericDataModel m_weaponPrimary{};

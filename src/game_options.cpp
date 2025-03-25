@@ -94,6 +94,17 @@ bool OptionsAudio::hasChanges() const
     ;
 }
 
+void OptionsGame::set()
+{
+    m_language = m_languageUI.value();
+}
 
+void OptionsGame::restore()
+{
+    m_languageUI.assign( m_language );
+}
 
-
+bool OptionsGame::hasChanges() const
+{
+    return m_language != m_languageUI.value();
+}

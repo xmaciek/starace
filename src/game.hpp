@@ -53,6 +53,7 @@ private:
         eSettings,
         eSettingsDisplay,
         eSettingsAudio,
+        eSettingsGame,
         max,
     };
     std::atomic<Scene> m_currentScene = Scene::eInit;
@@ -105,6 +106,7 @@ private:
     OptionsCustomize m_optionsCustomize{};
     OptionsGFX m_optionsGFX{};
     OptionsAudio m_optionsAudio{};
+    OptionsGame m_optionsGame{};
     GameplayUIData m_gameplayUIData{};
 
     ui::Var<std::pmr::u32string> m_uiMissionResult{ U"BUG ME" };
