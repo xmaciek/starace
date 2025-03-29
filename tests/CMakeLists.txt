@@ -12,6 +12,7 @@ target_link_libraries( tests
     shared
     config
     extra
+    engine
 )
 
 target_sources( tests
@@ -20,5 +21,6 @@ target_sources( tests
     test_fixed_map.cpp
     test_fixed_map_view.cpp
     test_hash.cpp
+    test_savesystem.cpp
     test_unicode.cpp
 )

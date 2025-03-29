@@ -3,11 +3,13 @@ add_library( engine STATIC )
 target_sources( engine
     PRIVATE
     filesystem.cpp
+    savesystem.cpp
     engine.cpp
     controller_state.hpp
 
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/public/engine/filesystem.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/engine/savesystem.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/engine/engine.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/engine/math.hpp
 )
