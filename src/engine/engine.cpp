@@ -29,6 +29,7 @@ Engine::~Engine() noexcept
 Engine::Engine( int, char** ) noexcept
 {
     ZoneScoped;
+    m_saveSystem = std::make_unique<SaveSystem>( "starace" );
     m_ioPtr = std::make_unique<Filesystem>();
     m_io = m_ioPtr.get();
 

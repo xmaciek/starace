@@ -103,6 +103,7 @@ private:
 
     ui::GenericDataModel m_dataMissionSelect{};
 
+    GameSettings m_gameSettings{};
     OptionsCustomize m_optionsCustomize{};
     OptionsGFX m_optionsGFX{};
     OptionsAudio m_optionsAudio{};
@@ -124,6 +125,11 @@ private:
     void loadLANG( const Asset& );
     void loadWAV( const Asset& );
     void loadCSG( const Asset& );
+
+    void loadSettings();
+    void applyDisplay();
+    void applyAudio();
+    void applyGameSettings();
 
     uint32_t viewportHeight() const;
     uint32_t viewportWidth() const;

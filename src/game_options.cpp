@@ -1,11 +1,19 @@
 #include "game_options.hpp"
 
+#include <algorithm>
 #include <cassert>
 
-template <>
-std::pmr::u32string OptionsGFX::toString( const OptionsGFX::AntiAlias& aa )
+static void copySecure( const auto& string, auto& arr )
 {
-    using enum OptionsGFX::AntiAlias;
+    const auto size = std::min( string.size(), std::size( arr ) );
+    auto it = std::copy_n( string.begin(), size, std::begin( arr ) );
+    std::fill( it, std::end( arr ), 0 );
+}
+
+template <>
+std::pmr::u32string OptionsGFX::toString( const AntiAlias& aa )
+{
+    using enum AntiAlias;
     switch ( aa ) {
     case eOff: return std::pmr::u32string{ g_uiProperty.localize( "off"_hash ) };
     case eFXAA: return U"FXAA";
@@ -35,76 +43,77 @@ std::pmr::u32string OptionsGFX::toString( const VSync& v )
     }
 }
 
-void OptionsGFX::set()
+void OptionsGFX::ui2settings( GameSettings& gs ) const
 {
-    m_antialias = m_antialiasUI.value();
-    m_resolution = m_resolutionUI.value();
-    m_gamma = m_gammaUI.value();
-    m_fullscreen = m_fullscreenUI.value();
-    m_vsync = m_vsyncUI.value();
-    m_fpsLimiter = m_fpsLimiterUI.value();
+    gs.antialias = m_antialiasUI.value();
+    gs.resolution = m_resolutionUI.value();
+    gs.gamma = m_gammaUI.value();
+    gs.fullscreen = m_fullscreenUI.value();
+    gs.vsync = m_vsyncUI.value();
+    gs.fpsLimiter = m_fpsLimiterUI.value();
 }
 
-void OptionsGFX::restore()
+void OptionsGFX::settings2ui( const GameSettings& gs )
 {
-    m_antialiasUI.assign( m_antialias );
-    m_resolutionUI.assign( m_resolution );
-    m_gammaUI.assign( m_gamma );
-    m_fullscreenUI.assign( m_fullscreen );
-    m_vsyncUI.assign( m_vsync );
-    m_fpsLimiterUI.assign( m_fpsLimiter );
+    m_antialiasUI.assign( gs.antialias );
+    m_resolutionUI.assign( gs.resolution );
+    m_gammaUI.assign( gs.gamma );
+    m_fullscreenUI.assign( gs.fullscreen );
+    m_vsyncUI.assign( gs.vsync );
+    m_fpsLimiterUI.assign( gs.fpsLimiter );
 }
 
-bool OptionsGFX::hasChanges() const
+bool OptionsGFX::hasChanges( const GameSettings& gs ) const
 {
-    return m_antialias != m_antialiasUI.value()
-        || m_resolution != m_resolutionUI.value()
-        || m_gamma != m_gammaUI.value()
-        || m_fullscreen != m_fullscreenUI.value()
-        || m_vsync != m_vsyncUI.value()
-        || m_fpsLimiter != m_fpsLimiterUI.value()
+    return gs.antialias != m_antialiasUI.value()
+        || gs.resolution != m_resolutionUI.value()
+        || gs.gamma != m_gammaUI.value()
+        || gs.fullscreen != m_fullscreenUI.value()
+        || gs.vsync != m_vsyncUI.value()
+        || gs.fpsLimiter != m_fpsLimiterUI.value()
         ;
 }
 
-void OptionsAudio::set()
+void OptionsAudio::ui2settings( GameSettings& gs ) const
 {
-    m_driverName = m_driverNameUI.value();
-    m_deviceName = m_deviceNameUI.value();
-    m_master = m_masterUI.value();
-    m_sfx = m_sfxUI.value();
-    m_ui = m_uiUI.value();
+    copySecure( m_driverNameUI.value(), gs.audioDriverName );
+    copySecure( m_deviceNameUI.value(), gs.audioDeviceName );
+    gs.audioMaster = m_masterUI.value();
+    gs.audioSFX = m_sfxUI.value();
+    gs.audioUI = m_uiUI.value();
 }
 
-void OptionsAudio::restore()
+
+void OptionsAudio::settings2ui( const GameSettings& gs )
 {
-    m_driverNameUI.assign( m_driverName );
-    m_deviceNameUI.assign( m_deviceName );
-    m_masterUI.assign( m_master );
-    m_sfxUI.assign( m_sfx );
-    m_uiUI.assign( m_ui );
+    m_driverNameUI.assign( gs.audioDriverName );
+    m_deviceNameUI.assign( gs.audioDeviceName );
+    m_masterUI.assign( gs.audioMaster );
+    m_sfxUI.assign( gs.audioSFX );
+    m_uiUI.assign( gs.audioUI );
 }
 
-bool OptionsAudio::hasChanges() const
+bool OptionsAudio::hasChanges( const GameSettings& gs ) const
 {
-    return m_masterUI.value() != m_master
-        || m_sfxUI.value() != m_sfx
-        || m_uiUI.value() != m_ui
-        || m_driverNameUI.value() != m_driverName
-        || m_deviceNameUI.value() != m_deviceName
+    return m_masterUI.value() != gs.audioMaster
+        || m_sfxUI.value() != gs.audioSFX
+        || m_uiUI.value() != gs.audioUI
+        || m_driverNameUI.value() != gs.audioDriverName
+        || m_deviceNameUI.value() != gs.audioDeviceName
     ;
 }
 
-void OptionsGame::set()
+void OptionsGame::ui2settings( GameSettings& gs ) const
 {
-    m_language = m_languageUI.value();
+    copySecure( m_languageUI.value(), gs.gameLang );
 }
 
-void OptionsGame::restore()
+void OptionsGame::settings2ui( const GameSettings& gs )
 {
-    m_languageUI.assign( m_language );
+    m_languageUI.assign( gs.gameLang );
 }
 
-bool OptionsGame::hasChanges() const
+bool OptionsGame::hasChanges( const GameSettings& gs ) const
 {
-    return m_language != m_languageUI.value();
+    return gs.gameLang != m_languageUI.value();
 }

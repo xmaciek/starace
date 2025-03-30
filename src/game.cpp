@@ -72,6 +72,7 @@ Game::Game( int argc, char** argv )
 : Engine{ argc, argv }
 {
     ZoneScoped;
+    loadSettings();
     m_io->setCallback( ".dds", [this]( const auto& asset ){ loadDDS( asset ); } );
     m_io->setCallback( ".objc", [this]( const auto& asset ){ loadOBJC( asset ); } );
     m_io->setCallback( ".wav", [this]( const auto& asset ){ loadWAV( asset ); } );
@@ -144,6 +145,7 @@ void Game::onInit()
     m_plasma = m_textures[ "textures/plasma.dds" ];
     m_enemyModel = Model{ m_meshes[ "models/a2.objc" ], m_textures[ "textures/a2.dds" ] };
 
+    applyGameSettings();
     setupUI();
     onResize( viewportWidth(), viewportHeight() );
     changeScreen( Scene::eMainMenu );
@@ -245,12 +247,11 @@ void Game::setupUI()
     m_optionsGFX.m_resolutionUI = ui::Option<DisplayMode>{ 0, displayModes(), &OptionsGFX::toString<DisplayMode> };
 
     {
-        using enum OptionsGFX::AntiAlias;
-        std::pmr::vector<OptionsGFX::AntiAlias> aa{ eOff, eFXAA };
+        std::pmr::vector<AntiAlias> aa{ AntiAlias::eOff, AntiAlias::eFXAA };
         if ( m_renderer->featureAvailable( Renderer::Feature::eVRSAA ) ) {
-            aa.emplace_back( eVRSAA );
+            aa.emplace_back( AntiAlias::eVRSAA );
         }
-        m_optionsGFX.m_antialiasUI = ui::Option<OptionsGFX::AntiAlias>{ 0, std::move( aa ), &OptionsGFX::toString<OptionsGFX::AntiAlias> };
+        m_optionsGFX.m_antialiasUI = ui::Option<AntiAlias>{ 0, std::move( aa ), &OptionsGFX::toString<AntiAlias> };
     }
     {
         std::pmr::vector<VSync> v{ VSync::eOff, VSync::eOn };
@@ -262,8 +263,10 @@ void Game::setupUI()
 
     m_optionsAudio.m_driverNameUI.setData( 0, m_audio->listDrivers() );
     m_optionsAudio.m_deviceNameUI.setData( 0, m_audio->listDevices() );
-    m_optionsGFX.set();
-    m_optionsAudio.set();
+
+    m_optionsGFX.settings2ui( m_gameSettings );
+    m_optionsAudio.settings2ui( m_gameSettings );
+    m_optionsGame.settings2ui( m_gameSettings );
 
     m_gameUiDataModels.insert( "$data:settings.display.fullscreen"_hash, &m_optionsGFX.m_fullscreenUI );
     m_gameUiDataModels.insert( "$data:settings.display.gamma"_hash, &m_optionsGFX.m_gammaUI );
@@ -303,25 +306,21 @@ void Game::setupUI()
     m_gameCallbacks.insert( "$function:resume"_hash, [this]{ changeScreen( Scene::eGame, m_click ); } );
     m_gameCallbacks.insert( "$function:applyDisplay"_hash, [this]()
     {
-        if ( !m_optionsGFX.hasChanges() ) return;
-        m_optionsGFX.set();
-        DisplayMode displayMode = m_optionsGFX.m_resolution;
-        displayMode.fullscreen = m_optionsGFX.m_fullscreen;
-        m_renderer->setVSync( m_optionsGFX.m_vsync );
-        m_renderer->setFeatureEnabled( Renderer::Feature::eVRSAA, m_optionsGFX.m_antialias == OptionsGFX::AntiAlias::eVRSAA );
-        setDisplayMode( displayMode );
-        setTargetFPS( 200, m_optionsGFX.m_fpsLimiter ? FpsLimiter::eSpinLock : FpsLimiter::eOff );
+        if ( !m_optionsGFX.hasChanges( m_gameSettings ) ) return;
+        m_optionsGFX.ui2settings( m_gameSettings );
+        m_saveSystem->save( 0, m_gameSettings );
+        applyDisplay();
     });
     m_gameCallbacks.insert( "$function:exitDisplay"_hash, [this]()
     {
-        if ( !m_optionsGFX.hasChanges() ) return changeScreen( Scene::eSettings, m_click );
+        if ( !m_optionsGFX.hasChanges( m_gameSettings ) ) return changeScreen( Scene::eSettings, m_click );
         auto* screen = currentScreen();
         assert( screen );
         auto msg = screen->messageBox( "settings.display.unsaved"_hash );
         assert( msg );
         msg->addButton( "yes"_hash, ui::Action::eMenuConfirm, [this]()
         {
-            m_optionsGFX.restore();
+            m_optionsGFX.settings2ui( m_gameSettings );
             changeScreen( Scene::eSettings, m_click );
         } );
         msg->addButton( "no"_hash, ui::Action::eMenuCancel, [screen]() { screen->addModalWidget( {} ); } );
@@ -329,24 +328,21 @@ void Game::setupUI()
     });
     m_gameCallbacks.insert( "$function:applyAudio"_hash, [this]()
     {
-        if ( !m_optionsAudio.hasChanges() ) return;
-        m_optionsAudio.set();
-        m_audio->setVolume( Audio::Channel::eMaster, m_optionsAudio.m_master );
-        m_audio->setVolume( Audio::Channel::eSFX, m_optionsAudio.m_sfx );
-        m_audio->setVolume( Audio::Channel::eUI, m_optionsAudio.m_ui );
-        m_audio->selectDriver( m_optionsAudio.m_driverName );
-        m_audio->selectDevice( m_optionsAudio.m_deviceName );
+        if ( !m_optionsAudio.hasChanges( m_gameSettings ) ) return;
+        m_optionsAudio.ui2settings( m_gameSettings );
+        m_saveSystem->save( 0, m_gameSettings );
+        applyAudio();
     } );
     m_gameCallbacks.insert( "$function:exitAudio"_hash, [this]()
     {
-        if ( !m_optionsAudio.hasChanges() ) return changeScreen( Scene::eSettings, m_click );
+        if ( !m_optionsAudio.hasChanges( m_gameSettings ) ) return changeScreen( Scene::eSettings, m_click );
         auto* screen = currentScreen();
         assert( screen );
         auto msg = screen->messageBox( "settings.audio.unsaved"_hash );
         assert( msg );
         msg->addButton( "yes"_hash, ui::Action::eMenuConfirm, [this]()
         {
-            m_optionsAudio.restore();
+            m_optionsAudio.settings2ui( m_gameSettings );
             changeScreen( Scene::eSettings, m_click );
         } );
         msg->addButton( "no"_hash, ui::Action::eMenuCancel, [screen]() { screen->addModalWidget( {} ); } );
@@ -354,26 +350,21 @@ void Game::setupUI()
     } );
     m_gameCallbacks.insert( "$function:applyGameSettings"_hash, [this]()
     {
-        if ( !m_optionsGame.hasChanges() ) return;
-        m_optionsGame.set();
-        auto it = std::ranges::find_if( g_uiProperty.m_lockit, [name=m_optionsGame.m_language]( const auto& l )
-        {
-            return l.find( "lockit"_hash ) == name;
-        } );
-        assert( it != g_uiProperty.m_lockit.end() );
-        g_uiProperty.m_currentLang = static_cast<uint32_t>( std::distance( g_uiProperty.m_lockit.begin(), it ) );
-        std::ranges::for_each( m_screens, []( auto& s ) { s.lockitChanged(); } );
+        if ( !m_optionsGame.hasChanges( m_gameSettings ) ) return;
+        m_optionsGame.ui2settings( m_gameSettings );
+        m_saveSystem->save( 0, m_gameSettings );
+        applyGameSettings();
     });
     m_gameCallbacks.insert( "$function:exitGameSettings"_hash, [this]()
     {
-        if ( !m_optionsGame.hasChanges() ) return changeScreen( Scene::eSettings, m_click );
+        if ( !m_optionsGame.hasChanges( m_gameSettings ) ) return changeScreen( Scene::eSettings, m_click );
         auto* screen = currentScreen();
         assert( screen );
         auto msg = screen->messageBox( "settings.game.unsaved"_hash );
         assert( msg );
         msg->addButton( "yes"_hash, ui::Action::eMenuConfirm, [this]()
         {
-            m_optionsGame.restore();
+            m_optionsGame.settings2ui( m_gameSettings );
             changeScreen( Scene::eSettings, m_click );
         } );
         msg->addButton( "no"_hash, ui::Action::eMenuCancel, [screen]() { screen->addModalWidget( {} ); } );
@@ -475,7 +466,7 @@ void Game::onRender( Renderer* renderer )
     }
 
     const PushConstant<Pipeline::eGammaCorrection> pushConstant{
-        .m_power = m_optionsGFX.m_gamma,
+        .m_power = m_gameSettings.gamma,
     };
 
     const DispatchInfo dispatchInfo{
@@ -838,8 +829,6 @@ void Game::loadLANG( const Asset& asset )
     auto& ll = g_uiProperty.m_lockit.emplace_back( asset.data );
     auto name = ll.find( "lockit"_hash );
     m_optionsGame.m_languageUI.addOption( std::pmr::u32string{ name } );
-    if ( m_optionsGame.m_language.empty() ) { return; }
-    m_optionsGame.m_language = std::pmr::u32string{ name };
 }
 
 void Game::loadWAV( const Asset& asset )
@@ -863,6 +852,60 @@ void Game::loadCSG( const Asset& asset )
     m_callsigns.resize( size + header.count );
     std::memcpy( m_callsigns.data() + size, data.data(), header.count * sizeof( csg::Callsign ) );
 }
+
+void Game::applyDisplay()
+{
+    DisplayMode displayMode = m_gameSettings.resolution;
+    displayMode.fullscreen = m_gameSettings.fullscreen;
+    m_renderer->setVSync( m_gameSettings.vsync );
+    m_renderer->setFeatureEnabled( Renderer::Feature::eVRSAA, m_gameSettings.antialias == AntiAlias::eVRSAA );
+    setDisplayMode( displayMode );
+    setTargetFPS( 200, m_gameSettings.fpsLimiter ? FpsLimiter::eSpinLock : FpsLimiter::eOff );
+}
+
+void Game::applyAudio()
+{
+    m_audio->setVolume( Audio::Channel::eMaster, m_gameSettings.audioMaster );
+    m_audio->setVolume( Audio::Channel::eSFX, m_gameSettings.audioSFX );
+    m_audio->setVolume( Audio::Channel::eUI, m_gameSettings.audioUI );
+    m_audio->selectDriver( m_gameSettings.audioDriverName );
+    m_audio->selectDevice( m_gameSettings.audioDeviceName );
+}
+
+void Game::applyGameSettings()
+{
+    if ( m_gameSettings.gameLang[ 0 ] == 0 ) {
+        const auto& ll = g_uiProperty.m_lockit.front();
+        auto name = ll.find( "lockit"_hash );
+        assert( !name.empty() );
+        std::copy_n( name.begin(), std::min( name.size(), std::size( m_gameSettings.gameLang ) ), std::begin( m_gameSettings.gameLang ) );
+    }
+    else {
+        auto it = std::ranges::find_if( g_uiProperty.m_lockit, [&name=m_gameSettings.gameLang]( const auto& l )
+        {
+            return l.find( "lockit"_hash ) == name;
+        } );
+        assert( it != g_uiProperty.m_lockit.end() );
+        g_uiProperty.m_currentLang = static_cast<uint32_t>( std::distance( g_uiProperty.m_lockit.begin(), it ) );
+        m_optionsGame.m_languageUI.select( (uint16_t)g_uiProperty.m_currentLang );
+        std::ranges::for_each( m_screens, []( auto& s ) { s.lockitChanged(); } );
+    }
+}
+
+void Game::loadSettings()
+{
+    std::pmr::vector<uint8_t> config{};
+    GameSettings saveConfig{};
+    if ( m_saveSystem->load( 0, config ) != SaveSystem::eSuccess ) return;
+    if ( config.size() != sizeof( saveConfig ) ) return;
+    std::memcpy( &saveConfig, config.data(), sizeof( saveConfig ) );
+    if ( saveConfig.magic != saveConfig.MAGIC ) return;
+    if ( saveConfig.version != saveConfig.VERSION ) return;
+    m_gameSettings = saveConfig;
+    applyDisplay();
+    applyAudio();
+}
+
 
 uint32_t Game::viewportWidth() const
 {
@@ -983,9 +1026,9 @@ void Game::render3D( RenderContext rctx )
     Bullet::renderAll( rctx, m_bullets, m_plasma );
     m_player.render( rctx );
 
-    switch ( m_optionsGFX.m_antialias ) {
-    case OptionsGFX::AntiAlias::eFXAA:
-    case OptionsGFX::AntiAlias::eVRSAA: {
+    switch ( m_gameSettings.antialias ) {
+    case AntiAlias::eFXAA:
+    case AntiAlias::eVRSAA: {
         const PushConstant<Pipeline::eAntiAliasFXAA> aa{};
         const DispatchInfo daa{ .m_pipeline = g_pipelines[ Pipeline::eAntiAliasFXAA ] };
         rctx.renderer->dispatch( daa, &aa );
@@ -1040,9 +1083,9 @@ void Game::renderMenuScreen( RenderContext rctx, ui::RenderContext r ) const
     jet.render( rctx );
     m_dustUi.render( rctx );
 
-    switch ( m_optionsGFX.m_antialias ) {
-    case OptionsGFX::AntiAlias::eFXAA:
-    case OptionsGFX::AntiAlias::eVRSAA: {
+    switch ( m_gameSettings.antialias ) {
+    case AntiAlias::eFXAA:
+    case AntiAlias::eVRSAA: {
         const PushConstant<Pipeline::eAntiAliasFXAA> aa{};
         const DispatchInfo daa{ .m_pipeline = g_pipelines[ Pipeline::eAntiAliasFXAA ] };
         rctx.renderer->dispatch( daa, &aa );

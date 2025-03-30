@@ -4,6 +4,7 @@
 #include <engine/filesystem.hpp>
 #include <engine/fps_limiter.hpp>
 #include <engine/mouse_event.hpp>
+#include <engine/savesystem.hpp>
 #include <audio/audio.hpp>
 #include <renderer/renderer.hpp>
 #include <shared/track_allocator.hpp>
@@ -42,6 +43,7 @@ private:
     std::pmr::vector<SDL_Event> m_events{};
 
 protected:
+    std::unique_ptr<SaveSystem> m_saveSystem{};
     Filesystem* m_io = nullptr;
     Audio* m_audio = nullptr;
     Renderer* m_renderer = nullptr;

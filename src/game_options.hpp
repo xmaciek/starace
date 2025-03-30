@@ -9,15 +9,43 @@
 #include <string>
 #include <memory_resource>
 
+enum class AntiAlias : uint32_t {
+    eOff,
+    eFXAA,
+    eVRSAA,
+};
+
+struct GameSettings {
+    static constexpr inline const uint32_t MAGIC = 'GGFC';
+    static constexpr inline const uint32_t VERSION = 1;
+    uint32_t magic = MAGIC;
+    uint32_t version = VERSION;
+
+    DisplayMode resolution{};
+    float gamma = 2.2f;
+    AntiAlias antialias = AntiAlias::eOff;
+    VSync vsync = VSync::eOn;
+    bool fullscreen = 1;
+    bool fpsLimiter = 1;
+
+    char audioDeviceName[ 256 ]{};
+    char audioDriverName[ 256 ]{};
+    float audioMaster = 1.0f;
+    float audioSFX = 1.0f;
+    float audioUI = 1.0f;
+
+    char32_t gameLang[ 64 ]{};
+
+    inline operator std::span<const uint8_t> () const
+    {
+        return std::span{ reinterpret_cast<const uint8_t*>( this ), sizeof( *this ) };
+    }
+};
+
 
 struct OptionsGFX {
     template <typename T> static std::pmr::u32string toString( const T& );
 
-    enum class AntiAlias : uint32_t {
-        eOff,
-        eFXAA,
-        eVRSAA,
-    };
     ui::Option<AntiAlias> m_antialiasUI{};
     ui::Option<DisplayMode> m_resolutionUI{};
     ui::Option<bool> m_fullscreenUI{ 1 };
@@ -33,16 +61,9 @@ struct OptionsGFX {
         , &::toString<float>
     };
 
-    AntiAlias m_antialias = AntiAlias::eOff;
-    DisplayMode m_resolution{};
-    VSync m_vsync{};
-    float m_gamma = 2.2f;
-    bool m_fullscreen = true;
-    bool m_fpsLimiter = true;
-
-    void restore();
-    void set();
-    bool hasChanges() const;
+    void settings2ui( const GameSettings& );
+    void ui2settings( GameSettings& ) const;
+    bool hasChanges( const GameSettings& ) const;
 };
 
 struct OptionsAudio {
@@ -61,24 +82,17 @@ struct OptionsAudio {
         , &toString<float>
     };
 
-    std::pmr::string m_driverName{};
-    std::pmr::string m_deviceName{};
-    float m_master = 1.0f;
-    float m_sfx = 1.0f;
-    float m_ui = 1.0f;
-
-    void restore();
-    void set();
-    bool hasChanges() const;
+    void settings2ui( const GameSettings& );
+    void ui2settings( GameSettings& ) const;
+    bool hasChanges( const GameSettings& ) const;
 };
 
 struct OptionsGame {
     ui::Option<std::pmr::u32string> m_languageUI{};
-    std::pmr::u32string m_language{};
 
-    void restore();
-    void set();
-    bool hasChanges() const;
+    void settings2ui( const GameSettings& );
+    void ui2settings( GameSettings& ) const;
+    bool hasChanges( const GameSettings& ) const;
 };
 
 struct OptionsCustomize {
