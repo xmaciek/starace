@@ -894,14 +894,37 @@ void Game::applyGameSettings()
 
 void Game::loadSettings()
 {
-    std::pmr::vector<uint8_t> config{};
-    GameSettings saveConfig{};
-    if ( m_saveSystem->load( 0, config ) != SaveSystem::eSuccess ) return;
-    if ( config.size() != sizeof( saveConfig ) ) return;
-    std::memcpy( &saveConfig, config.data(), sizeof( saveConfig ) );
-    if ( saveConfig.magic != saveConfig.MAGIC ) return;
-    if ( saveConfig.version != saveConfig.VERSION ) return;
-    m_gameSettings = saveConfig;
+    [this]()
+    {
+        std::pmr::vector<uint8_t> config{};
+        GameSettings saveConfig{};
+        if ( m_saveSystem->load( 0, config ) != SaveSystem::eSuccess ) return;
+        if ( config.size() != sizeof( saveConfig ) ) return;
+        std::memcpy( &saveConfig, config.data(), sizeof( saveConfig ) );
+        if ( saveConfig.magic != saveConfig.MAGIC ) return;
+        if ( saveConfig.version != saveConfig.VERSION ) return;
+        m_gameSettings = saveConfig;
+    }();
+
+    // validate
+    if ( auto&& ds = displayModes(); !validate( m_gameSettings.resolution, ds ) ) {
+        assert( !ds.empty() );
+        if ( !ds.empty() ) {
+            m_gameSettings.resolution = ds.front();
+        }
+    }
+    if ( auto&& devs = m_audio->listDevices(); !validate( m_gameSettings.audioDeviceName, devs ) ) {
+        assert( !devs.empty() );
+        if ( !devs.empty() ) {
+            copySecure( devs.front(), m_gameSettings.audioDeviceName );
+        }
+    }
+    if ( auto&& devs = m_audio->listDrivers(); !validate( m_gameSettings.audioDriverName, devs ) ) {
+        assert( !devs.empty() );
+        if ( !devs.empty() ) {
+            copySecure( devs.front(), m_gameSettings.audioDriverName );
+        }
+    }
     applyDisplay();
     applyAudio();
 }

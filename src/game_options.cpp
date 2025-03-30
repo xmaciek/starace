@@ -3,13 +3,6 @@
 #include <algorithm>
 #include <cassert>
 
-static void copySecure( const auto& string, auto& arr )
-{
-    const auto size = std::min( string.size(), std::size( arr ) );
-    auto it = std::copy_n( string.begin(), size, std::begin( arr ) );
-    std::fill( it, std::end( arr ), 0 );
-}
-
 template <>
 std::pmr::u32string OptionsGFX::toString( const AntiAlias& aa )
 {
