@@ -65,8 +65,8 @@ struct ParserCSV {
             if ( valueEnd == line.end() ) cooker::error( "value must end with quotes, at line", lineCount );
 
             unicode::Transcoder utf{ std::string_view{ valueBegin, valueEnd } };
-            const auto offset = m_string.size();
-            const auto size = utf.length();
+            const auto offset = static_cast<uint32_t>( m_string.size() );
+            const auto size = static_cast<uint32_t>( utf.length() );
             m_string.resize( offset + size + 1u );
 
             auto begin = m_string.begin();

@@ -1,11 +1,15 @@
 #include <engine/savesystem.hpp>
 
+#include <extra/unicode.hpp>
+#include <platform/windows.hpp>
+
+#include <algorithm>
 #include <cassert>
-#include <cstdio>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <type_traits>
+
 
 template <bool B>
 static constexpr auto conditional( auto&& t1, auto&& t2 ) noexcept
@@ -32,10 +36,10 @@ static SaveSystem::Slot fileNameToSlot( const std::filesystem::path& path )
 {
     if ( path.extension() != EXTENSION ) return SaveSystem::INVALID_SLOT;
 
-    auto stem = path.stem().native();
+    auto stem = path.stem();
     std::size_t count = 0;
-    unsigned long long v = std::stoull( stem, &count );
-    return v < SaveSystem::MAX_SAVES && count == stem.size()
+    unsigned long long v = std::stoull( stem.native(), &count);
+    return v < SaveSystem::MAX_SAVES && count == stem.native().size()
         ? static_cast<SaveSystem::Slot>( v )
         : SaveSystem::INVALID_SLOT
         ;
@@ -60,8 +64,20 @@ static std::filesystem::path getSaveDirectory( [[maybe_unused]] std::string_view
     }
     assert( !"config dir not found" );
     return ret;
-#elif defined( __WIN64 )
-    return {};
+#elif defined( _WIN64 )
+    wchar_t* path = nullptr;
+    const HRESULT pathOK = SHGetKnownFolderPath( FOLDERID_SavedGames, 0, 0, &path );
+    assert( pathOK == S_OK );
+    assert( path );
+    if ( pathOK != S_OK || !path ) return {};
+
+    unicode::Transcoder transcoder( gameName );
+    std::wstring name{};
+    name.resize( transcoder.length() );
+    std::ranges::for_each( name, transcoder );
+    std::filesystem::path ret = path;
+    ret /= name;
+    return ret;
 #else
 #error Unsupported platform
 #endif

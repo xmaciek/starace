@@ -94,6 +94,9 @@ struct Transcoder {
         }
     }
 
+    inline void operator () ( char32_t& out ) { out = **this; ++*this; }
+    inline void operator () ( wchar_t& out ) { out = static_cast<wchar_t>( **this ); ++*this; }
+
     inline uint32_t length() const
     {
         return std::accumulate( data.begin(), data.end(), 0u, []( uint32_t ret, uint8_t c )

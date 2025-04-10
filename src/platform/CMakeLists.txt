@@ -7,6 +7,7 @@ target_sources( platform
 
     PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/public/platform/utils.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/public/platform/windows.hpp"
 )
 
 set_target_properties( platform PROPERTIES

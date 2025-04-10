@@ -12,6 +12,7 @@
 #include <string>
 
 #include <platform/utils.hpp>
+#include <platform/windows.hpp>
 
 #if defined( __linux__ )
 #include <dlfcn.h>
@@ -19,9 +20,6 @@ static constexpr auto LIB_NAME = "libvulkan.so";
 static constexpr auto FLAGS = RTLD_LAZY | RTLD_LOCAL;
 
 #elif defined( _WIN64 )
-#define WIN32_LEAN_AND_MEAN 1
-#include <Windows.h>
-
 static constexpr auto LIB_NAME = "vulkan-1";
 static constexpr auto FLAGS = 0;
 static const auto dlopen = []( auto name, auto ) -> void* { return reinterpret_cast<void*>( LoadLibraryA( name ) ); };
