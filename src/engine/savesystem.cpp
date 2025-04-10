@@ -7,29 +7,38 @@
 #include <fstream>
 #include <type_traits>
 
+template <bool B>
+static constexpr auto conditional( auto&& t1, auto&& t2 ) noexcept
+{
+    if constexpr ( B ) return std::forward<decltype(t1)>( t1 );
+    else return std::forward<decltype(t2)>( t2 );
+}
+
 static constexpr bool IS_WIDE_CHAR = std::is_same_v<wchar_t, std::filesystem::path::value_type>;
+static constexpr auto EXTENSION = conditional<IS_WIDE_CHAR>( L".save", ".save" );
 
 static void appendFileName( std::filesystem::path& path, SaveSystem::Slot s )
 {
     if constexpr ( IS_WIDE_CHAR ) {
-        path /= std::to_wstring( s ) + L".save";
+        path /= std::to_wstring( s );
     }
     else {
-        path /= std::to_string( s ) + ".save";
+        path /= std::to_string( s );
     }
+    path += EXTENSION;
 }
 
 static SaveSystem::Slot fileNameToSlot( const std::filesystem::path& path )
 {
-    SaveSystem::Slot slot = SaveSystem::INVALID_SLOT;
-#if defined( __linux__ )
-    const int readOK = std::sscanf( path.filename().c_str(), "%u.save", &slot );
-    return readOK == 1 && slot < SaveSystem::MAX_SAVES ? slot : SaveSystem::INVALID_SLOT;
-#elif defined( __WIN64 )
-    return SaveSystem::INVALID_SLOT;
-#else
-#error Unsupported platform
-#endif
+    if ( path.extension() != EXTENSION ) return SaveSystem::INVALID_SLOT;
+
+    auto stem = path.stem().native();
+    std::size_t count = 0;
+    unsigned long long v = std::stoull( stem, &count );
+    return v < SaveSystem::MAX_SAVES && count == stem.size()
+        ? static_cast<SaveSystem::Slot>( v )
+        : SaveSystem::INVALID_SLOT
+        ;
 }
 
 static std::filesystem::path getSaveDirectory( [[maybe_unused]] std::string_view gameName )
