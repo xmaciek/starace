@@ -3,6 +3,9 @@
 #include "device_memory.hpp"
 #include "vk.hpp"
 
+#include <cstdint>
+#include <span>
+
 class BufferVK {
 public:
     struct Purpose {
@@ -23,7 +26,6 @@ private:
     DeviceMemory m_memory{};
     VkDevice m_device = VK_NULL_HANDLE;
     VkBuffer m_buffer = VK_NULL_HANDLE;
-    uint32_t m_size = 0;
 
 public:
     ~BufferVK() noexcept;
@@ -35,7 +37,7 @@ public:
     BufferVK& operator = ( BufferVK&& ) noexcept;
 
     void transferFrom( const BufferVK&, VkCommandBuffer );
-    void copyData( const uint8_t* );
+    void copyData( std::span<const uint8_t> );
     uint32_t sizeInBytes() const;
 
     operator VkBuffer () const;

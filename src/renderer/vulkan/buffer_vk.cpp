@@ -19,7 +19,6 @@ BufferVK::BufferVK( BufferVK&& rhs ) noexcept
     std::swap( m_device, rhs.m_device );
     std::swap( m_memory, rhs.m_memory );
     std::swap( m_buffer, rhs.m_buffer );
-    std::swap( m_size, rhs.m_size );
 }
 
 BufferVK& BufferVK::operator = ( BufferVK&& rhs ) noexcept
@@ -27,13 +26,11 @@ BufferVK& BufferVK::operator = ( BufferVK&& rhs ) noexcept
     std::swap( m_device, rhs.m_device );
     std::swap( m_memory, rhs.m_memory );
     std::swap( m_buffer, rhs.m_buffer );
-    std::swap( m_size, rhs.m_size );
     return *this;
 }
 
 BufferVK::BufferVK( VkPhysicalDevice physicalDevice, VkDevice device, const Purpose& purpose, uint32_t size ) noexcept
 : m_device( device )
-, m_size( size )
 {
     ZoneScoped;
     assert( size != 0 );
@@ -58,23 +55,24 @@ BufferVK::BufferVK( VkPhysicalDevice physicalDevice, VkDevice device, const Purp
 void BufferVK::transferFrom( const BufferVK& from, VkCommandBuffer cmd )
 {
     ZoneScoped;
-    assert( from.m_size == m_size );
+    assert( from.sizeInBytes() == sizeInBytes() );
     const VkBufferCopy copyRegion{
-        .size = m_size,
+        .size = sizeInBytes(),
     };
     vkCmdCopyBuffer( cmd, from.m_buffer, m_buffer, 1, &copyRegion );
 }
 
-void BufferVK::copyData( const uint8_t* data )
+void BufferVK::copyData( std::span<const uint8_t> data )
 {
     ZoneScoped;
-    assert( data );
+    assert( !data.empty() );
+    assert( data.size() <= sizeInBytes() );
+
     void* ptr = nullptr;
-    assert( m_size <= m_memory.size() );
     [[maybe_unused]]
-    const VkResult mapOK = vkMapMemory( m_device, m_memory, 0, m_size, 0, &ptr );
+    const VkResult mapOK = vkMapMemory( m_device, m_memory, 0, data.size(), 0, &ptr );
     assert( mapOK == VK_SUCCESS );
-    std::memcpy( ptr, data, m_size );
+    std::memcpy( ptr, data.data(), data.size() );
     vkUnmapMemory( m_device, m_memory );
 }
 
@@ -85,5 +83,5 @@ BufferVK::operator VkBuffer () const
 
 uint32_t BufferVK::sizeInBytes() const
 {
-    return m_size;
+    return m_memory.size();
 }

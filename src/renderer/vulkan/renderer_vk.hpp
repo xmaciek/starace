@@ -69,6 +69,10 @@ class RendererVK : public Renderer {
     using ResourceDelete = std::variant<TextureVK*, BufferVK*>;
     std::pmr::vector<ResourceDelete> m_resourceDelete{};
 
+    static const constexpr inline uint32_t STAGING_BUFFER_CACHE_COUNT = 4;
+    std::mutex m_stagingBuffersCacheBottleneck{};
+    std::array<BufferVK, STAGING_BUFFER_CACHE_COUNT> m_stagingBuffersCache{};
+
     VkFormat m_colorFormat = VK_FORMAT_UNDEFINED;
     VkFormat m_depthFormat = VK_FORMAT_UNDEFINED;
     VkExtent2D m_resolution{};
@@ -79,6 +83,9 @@ class RendererVK : public Renderer {
     void recreateSwapchain();
     void recreateRenderTargets( VkExtent2D );
     void refreshResolution();
+
+    BufferVK getStagingBuffer( uint32_t );
+    void releaseStagingBuffer( BufferVK&& );
 
 public:
     virtual ~RendererVK() override;

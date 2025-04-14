@@ -11,7 +11,6 @@
 #include <bit>
 #include <cassert>
 #include <cstring>
-#include <iostream>
 
 static class RendererSetup {
 public:
@@ -284,6 +283,7 @@ RendererVK::~RendererVK()
     std::ranges::for_each( m_frames, []( auto& f ) { f = {}; } );
     m_transferCommandPool = {};
 
+    std::ranges::for_each( m_stagingBuffersCache, []( auto& b ) { b = {}; } );
     std::ranges::for_each( m_textureSlots, []( auto& t ) { delete t.load(); } );
     std::ranges::for_each( m_bufferSlots, []( auto& b ) { delete b.load(); } );
     std::ranges::for_each( m_resourceDelete, []( auto& a ) { std::visit( ResourceDeleter{}, a ); } );
@@ -350,8 +350,10 @@ static void beginRecording( VkCommandBuffer cmd )
 Buffer RendererVK::createBuffer( std::span<const float> vec )
 {
     ZoneScoped;
-    BufferVK staging{ m_physicalDevice, m_device, BufferVK::STAGING, static_cast<uint32_t>( vec.size() * sizeof( float ) ) };
-    staging.copyData( reinterpret_cast<const uint8_t*>( vec.data() ) );
+    const uint32_t size = static_cast<uint32_t>( vec.size() * sizeof( float ) );
+    std::span<const uint8_t> data{ reinterpret_cast<const uint8_t*>( vec.data() ), size };
+    BufferVK staging = getStagingBuffer( size );
+    staging.copyData( data );
 
     BufferVK* buff = new BufferVK{ m_physicalDevice, m_device, BufferVK::DEVICE_LOCAL, staging.sizeInBytes() };
 
@@ -384,6 +386,8 @@ Buffer RendererVK::createBuffer( std::span<const float> vec )
         vkQueueWaitIdle( queue );
     }
 
+    releaseStagingBuffer( std::move( staging ) );
+
     const uint32_t idx = static_cast<uint32_t>( m_bufferIndexer.next() );
     [[maybe_unused]]
     BufferVK* oldBuff = m_bufferSlots[ idx ].exchange( buff );
@@ -400,8 +404,8 @@ Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::span<const
 
     const uint32_t size = static_cast<uint32_t>( data.size() );
 
-    BufferVK staging{ m_physicalDevice, m_device, BufferVK::STAGING, size };
-    staging.copyData( data.data() );
+    BufferVK staging = getStagingBuffer( size );
+    staging.copyData( data );
 
     TextureVK* tex = new TextureVK{ tci, m_physicalDevice, m_device };
 
@@ -435,6 +439,7 @@ Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::span<const
     TextureVK* oldTex = m_textureSlots[ idx ].exchange( tex );
     assert( !oldTex );
 
+    releaseStagingBuffer( std::move( staging ) );
     return textureIndexToId( idx, tex->channels() );
 }
 
@@ -499,6 +504,40 @@ void RendererVK::deleteTexture( Texture t )
     m_textureIndexer.release( textureIndex );
     Bottleneck bottleneck{ m_resourceDeleteBottleneck };
     m_resourceDelete.emplace_back( tex );
+}
+
+BufferVK RendererVK::getStagingBuffer( uint32_t size )
+{
+    ZoneScoped;
+    std::array<uint32_t, STAGING_BUFFER_CACHE_COUNT> score{};
+    {
+        Bottleneck bottleneck{ m_stagingBuffersCacheBottleneck };
+        std::ranges::transform( m_stagingBuffersCache, score.begin(), [size]( const auto& buff )
+        {
+            if ( buff.sizeInBytes() < size ) return 0u;
+            static_assert( std::is_same_v<decltype( buff.sizeInBytes() ), uint32_t> );
+            return 0xFFFFFFFFu - buff.sizeInBytes();
+        } );
+        auto it = std::ranges::max_element( score );
+        assert( it != score.end() );
+        if ( *it != 0u ) {
+            auto index = static_cast<uint32_t>( std::distance( score.begin(), it ) );
+            assert( index < m_stagingBuffersCache.size() );
+            return std::exchange( m_stagingBuffersCache[ index ], {} );
+        }
+    }
+    return BufferVK{ m_physicalDevice, m_device, BufferVK::STAGING, size };
+}
+
+void RendererVK::releaseStagingBuffer( BufferVK&& buffer )
+{
+    ZoneScoped;
+    auto cmp = []( const auto& lhs, const auto& rhs ) { return lhs.sizeInBytes() < rhs.sizeInBytes(); };
+    Bottleneck bottleneck{ m_stagingBuffersCacheBottleneck };
+    auto it = std::ranges::min_element( m_stagingBuffersCache, cmp );
+    assert( it != m_stagingBuffersCache.end() );
+    if ( it->sizeInBytes() >= buffer.sizeInBytes() ) return;
+    *it = std::move( buffer );
 }
 
 void RendererVK::recreateSwapchain()
