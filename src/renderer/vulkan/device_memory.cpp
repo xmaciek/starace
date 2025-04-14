@@ -1,10 +1,13 @@
 #include "device_memory.hpp"
 
+#include <profiler.hpp>
+
 #include <cassert>
 #include <utility>
 
 DeviceMemory::~DeviceMemory() noexcept
 {
+    ZoneScoped;
     if ( m_memory ) {
         vkFreeMemory( m_device, m_memory, 0 );
     }
@@ -47,6 +50,7 @@ static uint32_t memoryType( VkPhysicalDevice device, uint32_t typeBits, VkMemory
 DeviceMemory::DeviceMemory( VkPhysicalDevice physDevice, VkDevice device, VkBuffer buffer, VkMemoryPropertyFlags flags ) noexcept
 : m_device{ device }
 {
+    ZoneScoped;
     assert( device );
     assert( buffer );
 

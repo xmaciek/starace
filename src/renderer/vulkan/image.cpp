@@ -9,6 +9,7 @@
 
 Image::~Image() noexcept
 {
+    ZoneScoped;
     destroy<vkDestroyImageView>( m_device, m_imageView );
     destroy<vkDestroyImage>( m_device, m_image );
 }
