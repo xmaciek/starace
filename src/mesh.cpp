@@ -67,9 +67,9 @@ Mesh::Mesh( std::span<const uint8_t> data, Renderer* renderer ) noexcept
             }
         }
 
-        const float* floats = reinterpret_cast<const float*>( ptr );
-        std::span<const float> span{ floats, floats + chunk.floatCount };
+        const uint8_t* floats = reinterpret_cast<const uint8_t*>( ptr );
         const uint32_t bytesToLoad = chunk.floatCount * sizeof( float );
+        std::span<const uint8_t> span{ floats, bytesToLoad };
         std::advance( ptr, bytesToLoad );
         Buffer buffer = renderer->createBuffer( span );
         m_map.emplace( std::make_pair( std::pmr::string{ chunk.name }, buffer ) );

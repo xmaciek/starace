@@ -95,7 +95,7 @@ public:
     virtual void setVSync( VSync ) override;
 
     virtual PipelineSlot createPipeline( const PipelineCreateInfo& ) override;
-    virtual Buffer createBuffer( std::span<const float> ) override;
+    virtual Buffer createBuffer( std::span<const uint8_t> ) override;
     virtual Texture createTexture( const TextureCreateInfo&, std::span<const uint8_t> ) override;
     virtual uint32_t channelCount( Texture ) const override;
     virtual void beginFrame() override;

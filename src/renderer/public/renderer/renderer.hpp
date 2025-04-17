@@ -34,7 +34,7 @@ public:
     virtual void setVSync( VSync ) = 0;
 
     [[nodiscard]] virtual PipelineSlot createPipeline( const PipelineCreateInfo& ) = 0;
-    [[nodiscard]] virtual Buffer createBuffer( std::span<const float> ) = 0;
+    [[nodiscard]] virtual Buffer createBuffer( std::span<const uint8_t> ) = 0;
     virtual void deleteBuffer( Buffer ) = 0;
 
     [[nodiscard]] virtual Texture createTexture( const TextureCreateInfo&, std::span<const uint8_t> ) = 0;

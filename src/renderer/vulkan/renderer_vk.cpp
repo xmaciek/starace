@@ -347,18 +347,18 @@ static void beginRecording( VkCommandBuffer cmd )
     assert( cmdOK == VK_SUCCESS );
 }
 
-Buffer RendererVK::createBuffer( std::span<const float> vec )
+Buffer RendererVK::createBuffer( std::span<const uint8_t> data )
 {
     ZoneScoped;
-    const uint32_t size = static_cast<uint32_t>( vec.size() * sizeof( float ) );
-    std::span<const uint8_t> data{ reinterpret_cast<const uint8_t*>( vec.data() ), size };
+    const uint32_t size = static_cast<uint32_t>( data.size() );
     BufferVK staging = getStagingBuffer( size );
+    assert( staging.sizeInBytes() >= data.size() );
     staging.copyData( data );
 
-    BufferVK* buff = new BufferVK{ m_physicalDevice, m_device, BufferVK::DEVICE_LOCAL, staging.sizeInBytes() };
+    BufferVK* buff = new BufferVK{ m_physicalDevice, m_device, BufferVK::DEVICE_LOCAL, size };
 
     const VkBufferCopy copyRegion{
-        .size = staging.sizeInBytes(),
+        .size = size,
     };
 
     VkCommandBuffer cmd = m_transferCmd;
@@ -405,6 +405,7 @@ Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::span<const
     const uint32_t size = static_cast<uint32_t>( data.size() );
 
     BufferVK staging = getStagingBuffer( size );
+    assert( staging.sizeInBytes() >= size );
     staging.copyData( data );
 
     TextureVK* tex = new TextureVK{ tci, m_physicalDevice, m_device };
