@@ -104,8 +104,6 @@ void Game::onResize( uint32_t w, uint32_t h )
 void Game::onInit()
 {
     ZoneScoped;
-    m_io->mount( "data.pak" );
-
     auto setupPipeline = []( auto* renderer, auto* io, auto ci ) -> PipelineSlot
     {
         if ( ci.m_vertexShader ) ci.m_vertexShaderData = io->viewWait( ci.m_vertexShader );
@@ -114,11 +112,22 @@ void Game::onInit()
         return renderer->createPipeline( ci );
     };
 
+    m_io->mount( "init.pak" );
+    g_uiProperty.m_pipelineSpriteSequence = setupPipeline( m_renderer, m_io, ui::SPRITE_SEQUENCE );
+    g_uiProperty.m_atlas = &m_uiAtlas;
+    m_uiAtlas = ui::Font::CreateInfo{
+        .fontAtlas = m_io->viewWait( "misc/ui_atlas.fnta" ),
+        .texture = m_textures[ "textures/atlas_ui.dds" ],
+    };
+    m_screens.emplace_back( m_io->viewWait( "ui/loading.ui" ) );
+    changeScreen( Scene::eLoading );
+
+    m_io->mount( "data.pak" );
+
     for ( const auto& p : g_pipelineCreateInfo ) {
         g_pipelines[ static_cast<Pipeline>( p.m_userHint ) ] = setupPipeline( m_renderer, m_io, p );
     }
 
-    g_uiProperty.m_pipelineSpriteSequence = setupPipeline( m_renderer, m_io, ui::SPRITE_SEQUENCE );
     g_uiProperty.m_pipelineSpriteSequenceColors = setupPipeline( m_renderer, m_io, ui::SPRITE_SEQUENCE_COLORS );
     g_uiProperty.m_pipelineGlow = setupPipeline( m_renderer, m_io, ui::GLOW );
     g_uiProperty.m_pipelineBlurDesaturate = setupPipeline( m_renderer, m_io, ui::BLUR_DESATURATE );
@@ -153,10 +162,7 @@ void Game::onInit()
 
 void Game::setupUI()
 {
-    m_uiAtlas = ui::Font::CreateInfo{
-        .fontAtlas = m_io->viewWait( "misc/ui_atlas.fnta" ),
-        .texture = m_textures[ "textures/atlas_ui.dds" ],
-    };
+
     m_inputPS4 = ui::Font::CreateInfo{
         .fontAtlas = m_io->viewWait( "misc/ps4_atlas.fnta" ),
         .texture = m_textures[ "textures/ps4_atlas.dds" ],
@@ -188,7 +194,6 @@ void Game::setupUI()
         .scale = 0.5f,
     };
 
-    g_uiProperty.m_atlas = &m_uiAtlas;
     g_uiProperty.m_fontSmall = &m_fontSmall;
     g_uiProperty.m_fontMedium = &m_fontMedium;
     g_uiProperty.m_fontLarge = &m_fontLarge;
@@ -457,14 +462,15 @@ void Game::onRender( Renderer* renderer )
         renderMenuScreen( rctx, r );
         break;
 
-    default:
+    [[unlikely]] default:
         break;
     }
 
-    if ( ui::Screen* screen = currentScreen(); screen ) {
-        screen->render( r );
-    }
+    ui::Screen* screen = currentScreen();
+    assert( screen );
+    screen->render( r );
 
+    if ( scene == Scene::eLoading ) [[unlikely]] return;
     const PushConstant<Pipeline::eGammaCorrection> pushConstant{
         .m_power = m_gameSettings.gamma,
     };
@@ -484,6 +490,8 @@ void Game::onUpdate( float deltaTime )
     switch ( m_currentScene.load() ) {
     [[unlikely]] case Scene::eInit:
         return;
+    [[unlikely]] case Scene::eLoading:
+        break;
 
     case Scene::eGame:
         updateGame( uctx );
@@ -494,9 +502,8 @@ void Game::onUpdate( float deltaTime )
     }
 
     ui::Screen* screen = currentScreen();
-    if ( screen ) {
-        screen->update( uictx );
-    }
+    assert( screen );
+    screen->update( uictx );
 }
 
 void Game::pause()
@@ -694,6 +701,7 @@ void Game::changeScreen( Scene scene, Audio::Slot sound )
 
     m_currentScene = scene;
     switch ( scene ) {
+    case Scene::eLoading: setScreen( "loading"_hash ); break;
     case Scene::eMainMenu: setScreen( "mainMenu"_hash ); break;
     case Scene::eCustomize: setScreen( "customize"_hash ); break;
     case Scene::eSettings: setScreen( "settings"_hash ); break;
@@ -729,10 +737,10 @@ void Game::changeScreen( Scene scene, Audio::Slot sound )
         break;
     }
 
-    if ( ui::Screen* screen = currentScreen() ) {
-        auto [ w, h, a ] = viewport();
-        screen->show( { w, h } );
-    }
+    ui::Screen* screen = currentScreen();
+    assert( screen );
+    auto [ w, h, a ] = viewport();
+    screen->show( { w, h } );
 }
 
 void Game::loadDDS( const Asset& asset )

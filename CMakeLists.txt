@@ -13,6 +13,7 @@ include( functions.cmake )
 find_package( Vulkan REQUIRED )
 
 
+decl_pak( init )
 decl_pak( data )
 set( DEFAULT_PACK data )
 
@@ -21,6 +22,7 @@ add_subdirectory( sdk )
 add_subdirectory( src )
 add_subdirectory( tests )
 make_pak( data )
+make_pak( init )
 
 
 configure_file( README.md README.md COPYONLY )

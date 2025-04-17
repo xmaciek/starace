@@ -1,0 +1,15 @@
+width = 1280
+height = 720
+name = loading
+
+AnimFrame = { x = 640 y = 360 width = 32 height = 32
+    anchor = midCenter
+    frame0 = load0
+    frame1 = load1
+    frame2 = load2
+    frame3 = load3
+    frame4 = load4
+    frame5 = load5
+    frame6 = load6
+    frame7 = load7
+}

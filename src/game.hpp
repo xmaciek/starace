@@ -41,6 +41,7 @@ public:
 private:
     enum class Scene : uint32_t {
         eInit,
+        eLoading,
         eGame,
         eGameBriefing,
         eGamePaused,

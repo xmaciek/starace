@@ -16,6 +16,7 @@ class AnimFrame : public Widget {
     DataModel::size_type m_revision = 0xFFFF;
     uint32_t m_index{};
     uint32_t m_count{};
+    float m_spinner = 0.0f;
 
 public:
     struct CreateInfo {
@@ -24,6 +25,7 @@ public:
         Hash::value_type data{};
         Hash::value_type color = "white"_hash;
         std::array<Hash::value_type, 16> frames{};
+        Anchor anchor = Anchor::fTop | Anchor::fLeft;
     };
 
     virtual ~AnimFrame() noexcept override = default;

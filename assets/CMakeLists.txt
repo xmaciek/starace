@@ -6,5 +6,3 @@ add_subdirectory( textures )
 add_subdirectory( ui )
 add_subdirectory( misc )
 add_subdirectory( lang )
-
-pak_file( ${DEFAULT_PACK} "${CMAKE_CURRENT_SOURCE_DIR}/misc/ui_atlas.txt" )

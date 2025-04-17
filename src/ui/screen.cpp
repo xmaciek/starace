@@ -158,6 +158,7 @@ inline constexpr std::array ANIMFRAME_FIELDS = {
     F{ "height"_hash, &setH<AnimFrame> },
     F{ "data"_hash, &setData<AnimFrame> },
     F{ "color"_hash, &setColor<AnimFrame> },
+    F{ "anchor"_hash, &setAnchor<AnimFrame> },
     F{ "frame0"_hash, &setFrame<AnimFrame, 0> },
     F{ "frame1"_hash, &setFrame<AnimFrame, 1> },
     F{ "frame2"_hash, &setFrame<AnimFrame, 2> },
