@@ -1,5 +1,5 @@
 function( cook_dds )
-    cmake_parse_arguments( COOK_DDS "MIPGEN" "DST;FORMAT" "SRC" ${ARGN} )
+    cmake_parse_arguments( COOK_DDS "MIPGEN" "DST;FORMAT;PACK" "SRC" ${ARGN} )
     if ( COOK_DDS_MIPGEN )
         set( COOK_DDS_MIPGEN "--mipgen" )
     endif()
@@ -9,9 +9,14 @@ function( cook_dds )
 
     if ( NOT COOK_DDS_SRC )
         message( FATAL_ERROR "SRC argument not specified" )
-    elseif( NOT COOK_DDS_DST )
+    endif()
+    if( NOT COOK_DDS_DST )
         message( FATAL_ERROR "DST argument not specified" )
     endif()
+    if ( NOT COOK_DDS_PACK )
+        set( COOK_DDS_PACK ${DEFAULT_PACK} )
+    endif()
+
     set( file_out "${CMAKE_CURRENT_BINARY_DIR}/${COOK_DDS_DST}" )
     add_custom_target( "texture.${COOK_DDS_DST}" DEPENDS "${file_out}" )
 
@@ -32,7 +37,7 @@ function( cook_dds )
             ${COOK_DDS_FORMAT_PARAM} ${COOK_DDS_FORMAT}
     )
     set_vs_directory( "texture.${COOK_DDS_DST}" "assets/textures" )
-    pak_file_cooked( data "${file_out}" "texture.${COOK_DDS_DST}" )
+    pak_file_cooked( ${COOK_DDS_PACK} "${file_out}" "texture.${COOK_DDS_DST}" )
 endfunction()
 
 

@@ -8,7 +8,7 @@ function( cook_obj file )
         COMMAND cooker_obj --src "${CMAKE_CURRENT_SOURCE_DIR}/${file}.obj" --dst "${file_out}"
     )
     set_vs_directory( "model.${file}" "assets/models" )
-    pak_file_cooked( data "${file_out}" "model.${file}" )
+    pak_file_cooked( ${DEFAULT_PACK} "${file_out}" "model.${file}" )
 endfunction()
 
 cook_obj( a2 )

@@ -14,6 +14,8 @@ find_package( Vulkan REQUIRED )
 
 
 decl_pak( data )
+set( DEFAULT_PACK data )
+
 add_subdirectory( assets )
 add_subdirectory( sdk )
 add_subdirectory( src )

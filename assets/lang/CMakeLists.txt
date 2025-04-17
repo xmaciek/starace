@@ -1,5 +1,5 @@
 function( cook_lang )
-    cmake_parse_arguments( COOK_LANG "" "" "SRC;DST" ${ARGN} )
+    cmake_parse_arguments( COOK_LANG "" "SRC;DST" "" ${ARGN} )
 
     if ( NOT COOK_LANG_SRC )
         message( FATAL_ERROR "SRC argument not specified" )
@@ -18,7 +18,7 @@ function( cook_lang )
             --dst "${file_out}"
     )
     set_vs_directory( "lang.${COOK_LANG_DST}" "assets/lang" )
-    pak_file_cooked( data "${file_out}" "lang.${COOK_LANG_DST}" )
+    pak_file_cooked( ${DEFAULT_PACK} "${file_out}" "lang.${COOK_LANG_DST}" )
 endfunction()
 
 
