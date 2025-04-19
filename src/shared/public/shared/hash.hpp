@@ -97,19 +97,6 @@ struct Hash {
     {
         return calc( str.data(), str.size() );
     }
-
-    template<std::size_t TSize>
-    struct TStr {
-        char data[ TSize - 1 ]{};
-        std::size_t size = TSize - 1;
-        consteval TStr ( const char (&str)[ TSize ] ) noexcept
-        {
-            for ( auto i = 0u; i < size; ++i ) data[ i ] = str[ i ];
-        }
-    };
-
-    template <TStr T>
-    static inline constexpr value_type v = calc( T.data, T.size );
 };
 
 constexpr Hash::value_type operator ""_hash( const char* str, std::size_t len ) noexcept
