@@ -7,6 +7,7 @@
 #include <fstream>
 #include <span>
 #include <memory_resource>
+#include <string>
 #include <vector>
 
 namespace cooker {
@@ -49,6 +50,19 @@ std::ofstream openWrite( std::string_view path )
     std::ofstream ofs( (std::string)path, std::ios::binary );
     ofs.is_open() || cooker::error( "cannot open file for writing", path );
     return ofs;
+}
+
+[[nodiscard]]
+std::pmr::string readText( std::string_view path )
+{
+    std::ifstream ifs( (std::string)path, std::ios::binary | std::ios::ate );
+    ifs.is_open() || cooker::error( "cannot open file for reading", path );
+    auto size = ifs.tellg();
+    ifs.seekg( 0 );
+    std::pmr::string ret;
+    ret.resize( static_cast<size_t>( size ) );
+    ifs.read( ret.data(), size );
+    return ret;
 }
 
 template <typename T>
