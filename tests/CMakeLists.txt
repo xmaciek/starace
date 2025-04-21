@@ -13,10 +13,12 @@ target_link_libraries( tests
     config
     extra
     engine
+    ccmd
 )
 
 target_sources( tests
     PRIVATE
+    test_ccmd.cpp
     test_config.cpp
     test_fixed_map.cpp
     test_fixed_map_view.cpp

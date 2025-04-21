@@ -3,6 +3,7 @@ find_package( Threads REQUIRED )
 add_subdirectory( cooker )
 
 add_subdirectory( audio )
+add_subdirectory( ccmd )
 add_subdirectory( config )
 add_subdirectory( engine )
 add_subdirectory( extra )
