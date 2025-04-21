@@ -121,28 +121,3 @@ template <typename T>
 struct TabOrdering : public std::false_type {};
 
 }
-
-using Widget = ui::Widget;
-
-// TODO: remove
-class Layout {
-public:
-    enum Flow {
-        eHorizontal,
-        eVertical,
-    };
-
-private:
-    math::vec2 m_position{};
-    Flow m_flow = Flow::eHorizontal;
-
-public:
-    ~Layout() noexcept = default;
-    Layout() noexcept = default;
-    inline Layout( math::vec2 pos, Flow a ) noexcept
-    : m_position{ pos }
-    , m_flow{ a }
-    {}
-
-    void operator () ( std::span<Widget*> ) const;
-};

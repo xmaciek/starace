@@ -160,27 +160,3 @@ EventProcessing Widget::onAction( ui::Action )
 }
 
 }
-
-void Layout::operator() ( std::span<Widget*> wgts ) const
-{
-    math::vec2 position = m_position;
-    switch ( m_flow ) {
-    case eHorizontal:
-        for ( Widget* it : wgts ) {
-            const math::vec2 size = it->size();
-            it->setPosition( position );
-            position.x += size.x;
-        }
-        break;
-    case eVertical:
-        for ( Widget* it : wgts ) {
-            const math::vec2 size = it->size();
-            it->setPosition( position );
-            position.y += size.y;
-        }
-        break;
-    default:
-        assert( !"unhandled enum" );
-        break;
-    }
-}
