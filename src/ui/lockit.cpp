@@ -22,6 +22,7 @@ Lockit::Lockit( std::span<const uint8_t> data )
     m_data = { reinterpret_cast<const char32_t*>( data.data() ), header.string };
     data = data.subspan( header.string * sizeof( char32_t ) );
 
+    std::ranges::copy( header.id, m_id.begin() );
     assert( data.size() == 0 );
 }
 

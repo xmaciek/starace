@@ -94,6 +94,7 @@ int main( int argc, const char** argv )
             "Required arguments:\n"
             "\t--src \"src/file/path.csv\" \u2012 source localization file\n"
             "\t--dst \"dst/file/path.lang\" \u2012 destination of cooked localization\n"
+            "\t--id <value> \u2012 language identifier (max 8 chars)\n"
             "\nOptional Arguments:\n"
             "\t-h --help \u2012 prints this message and exit\n"
             ;
@@ -101,9 +102,13 @@ int main( int argc, const char** argv )
     }
     std::string_view argsSrc{};
     std::string_view argsDst{};
+    std::string_view argsId{};
 
     args.read( "--src", argsSrc ) || cooker::error( "--src \"src/file/path.csv\" \u2012 argument not specified" );
     args.read( "--dst", argsDst ) || cooker::error( "--dst \"dst/file/path.lang\" \u2012 argument not specified" );
+    args.read( "--id", argsId ) || cooker::error( "--id <value> \u2012 argument not specified" );
+    if ( argsId.empty() || argsId.size() > 8 )
+        cooker::error( "--id \u2012 invalid argument:", argsId );
 
     std::ifstream ifs( (std::string)argsSrc, std::ios::binary | std::ios::ate );
     ifs.is_open() || cooker::error( "source file cannot be open", argsSrc );
@@ -120,6 +125,7 @@ int main( int argc, const char** argv )
         .count = static_cast<uint32_t>( parser.m_keys.size() ),
         .string = static_cast<uint32_t>( parser.m_string.size() ),
     };
+    std::ranges::copy( argsId, std::begin( header.id ) );
 
     auto ofs = cooker::openWrite( argsDst );
     cooker::write( ofs, header );

@@ -15,6 +15,7 @@ class Lockit {
 
     std::span<const lang::KeyType> m_keys{};
     std::span<const char32_t> m_data{};
+    std::array<char, 8> m_id{};
 
 public:
     ~Lockit() = default;
@@ -25,6 +26,7 @@ public:
     Lockit( Lockit&& ) = default;
     Lockit& operator = ( Lockit&& ) = default;
 
+    inline auto id() const { return m_id; }
     std::u32string_view find( std::string_view ) const;
     std::u32string_view find( Hash::value_type ) const;
 

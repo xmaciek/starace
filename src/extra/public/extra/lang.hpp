@@ -25,13 +25,14 @@ static_assert( sizeof( KeyType ) == 12 );
 
 struct Header {
     static constexpr inline uint32_t MAGIC = 'GNAL';
-    static constexpr inline uint32_t VERSION = 1;
+    static constexpr inline uint32_t VERSION = 2;
 
     uint32_t magic = MAGIC;
     uint32_t version = VERSION;
+    char id[ 8 ]{};
     uint32_t count = 0;
     uint32_t string = 0;
 };
-static_assert( sizeof( Header ) == 16 );
+static_assert( sizeof( Header ) == 24 );
 
 }
