@@ -17,7 +17,7 @@ enum class AntiAlias : uint32_t {
 
 struct GameSettings {
     static constexpr inline const uint32_t MAGIC = 'GGFC';
-    static constexpr inline const uint32_t VERSION = 1;
+    static constexpr inline const uint32_t VERSION = 2;
     uint32_t magic = MAGIC;
     uint32_t version = VERSION;
 
@@ -34,7 +34,7 @@ struct GameSettings {
     float audioSFX = 1.0f;
     float audioUI = 1.0f;
 
-    char32_t gameLang[ 64 ]{};
+    std::array<char, 8> gameLang{};
 
     inline operator std::span<const uint8_t> () const
     {
@@ -88,7 +88,12 @@ struct OptionsAudio {
 };
 
 struct OptionsGame {
-    ui::Option<std::pmr::u32string> m_languageUI{};
+    struct LanguageInfo {
+        std::array<char, 8> id{};
+        std::pmr::u32string display{};
+        inline operator std::pmr::u32string () const { return display; }
+    };
+    ui::Option<LanguageInfo> m_languageUI{ 0 };
 
     void settings2ui( const GameSettings& );
     void ui2settings( GameSettings& ) const;

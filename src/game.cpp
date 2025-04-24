@@ -835,8 +835,10 @@ void Game::loadLANG( const Asset& asset )
 {
     ZoneScoped;
     auto& ll = g_uiProperty.m_lockit.emplace_back( asset.data );
-    auto name = ll.find( "lockit"_hash );
-    m_optionsGame.m_languageUI.addOption( std::pmr::u32string{ name } );
+    m_optionsGame.m_languageUI.addOption( OptionsGame::LanguageInfo{
+        .id = ll.id(),
+        .display = std::pmr::u32string{ ll.find( "lockit"_hash ) },
+    } );
 }
 
 void Game::loadWAV( const Asset& asset )
@@ -884,14 +886,12 @@ void Game::applyGameSettings()
 {
     if ( m_gameSettings.gameLang[ 0 ] == 0 ) {
         const auto& ll = g_uiProperty.m_lockit.front();
-        auto name = ll.find( "lockit"_hash );
-        assert( !name.empty() );
-        std::copy_n( name.begin(), std::min( name.size(), std::size( m_gameSettings.gameLang ) ), std::begin( m_gameSettings.gameLang ) );
+        std::ranges::copy( ll.id(), std::begin( m_gameSettings.gameLang ) );
     }
     else {
-        auto it = std::ranges::find_if( g_uiProperty.m_lockit, [&name=m_gameSettings.gameLang]( const auto& l )
+        auto it = std::ranges::find_if( g_uiProperty.m_lockit, [id=m_gameSettings.gameLang]( const auto& l )
         {
-            return l.find( "lockit"_hash ) == name;
+            return l.id() == id;
         } );
         assert( it != g_uiProperty.m_lockit.end() );
         g_uiProperty.m_currentLang = static_cast<uint32_t>( std::distance( g_uiProperty.m_lockit.begin(), it ) );

@@ -45,10 +45,17 @@ public:
     , m_toString( std::move( toString ) )
     {}
 
+    inline Option( size_type currentIndex ) noexcept
+    requires requires ( const T& t ) { static_cast<std::pmr::u32string>( t ); }
+    : Option( currentIndex, []( const T& t ) { return static_cast<std::pmr::u32string>( t ); } )
+    {
+    }
+
     inline Option( size_type currentIndex, FnToString&& fn ) noexcept
     : m_currentIndex{ currentIndex }
     , m_toString{ std::move( fn ) }
     {}
+
 
     inline T value() const noexcept
     {
@@ -65,6 +72,16 @@ public:
             it = m_values.begin();
         }
         select( (size_type)std::distance( m_values.begin(), it ) );
+    }
+
+    inline bool assignIf( auto&& cmp ) noexcept
+    {
+        auto it = std::ranges::find_if( m_values, std::move( cmp ) );
+        if ( it == m_values.end() ) {
+            return false;
+        }
+        select( (size_type)std::distance( m_values.begin(), it ) );
+        return true;
     }
 
     virtual size_type current() const override

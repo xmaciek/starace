@@ -98,15 +98,15 @@ bool OptionsAudio::hasChanges( const GameSettings& gs ) const
 
 void OptionsGame::ui2settings( GameSettings& gs ) const
 {
-    copySecure( m_languageUI.value(), gs.gameLang );
+    gs.gameLang = m_languageUI.value().id;
 }
 
 void OptionsGame::settings2ui( const GameSettings& gs )
 {
-    m_languageUI.assign( gs.gameLang );
+    m_languageUI.assignIf( [id=gs.gameLang]( const auto& info ) { return info.id == id; } );
 }
 
 bool OptionsGame::hasChanges( const GameSettings& gs ) const
 {
-    return gs.gameLang != m_languageUI.value();
+    return gs.gameLang != m_languageUI.value().id;
 }
