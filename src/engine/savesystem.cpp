@@ -10,7 +10,6 @@
 #include <fstream>
 #include <type_traits>
 
-
 template <bool B>
 static constexpr auto conditional( auto&& t1, auto&& t2 ) noexcept
 {
@@ -19,30 +18,50 @@ static constexpr auto conditional( auto&& t1, auto&& t2 ) noexcept
 }
 
 static constexpr bool IS_WIDE_CHAR = std::is_same_v<wchar_t, std::filesystem::path::value_type>;
+using ViewType = std::conditional_t<IS_WIDE_CHAR, std::wstring_view, std::string_view>;
 static constexpr auto EXTENSION = conditional<IS_WIDE_CHAR>( L".save", ".save" );
+
+static constexpr std::array<ViewType, SaveSystem::MAX_SAVES> SLOT_ALIAS{
+    conditional<IS_WIDE_CHAR>( L"config.save", "config.save" ),
+};
+
+static auto toString( uint32_t v )
+{
+    if constexpr ( IS_WIDE_CHAR ) return std::to_wstring( v );
+    else return std::to_string( v );
+}
 
 static void appendFileName( std::filesystem::path& path, SaveSystem::Slot s )
 {
-    if constexpr ( IS_WIDE_CHAR ) {
-        path /= std::to_wstring( s );
+    const auto& alias = SLOT_ALIAS[ s ];
+    if ( alias.empty() ) {
+        path /= toString( s );
+        path += EXTENSION;
     }
     else {
-        path /= std::to_string( s );
+        path /= alias;
     }
-    path += EXTENSION;
 }
 
 static SaveSystem::Slot fileNameToSlot( const std::filesystem::path& path )
 {
+    auto fileName = path.filename();
+    auto it = std::ranges::find( SLOT_ALIAS, fileName.native() );
+    if ( it != SLOT_ALIAS.end() ) {
+        return static_cast<SaveSystem::Slot>( std::distance( SLOT_ALIAS.begin(), it ) );
+    }
     if ( path.extension() != EXTENSION ) return SaveSystem::INVALID_SLOT;
 
     auto stem = path.stem();
     std::size_t count = 0;
-    unsigned long long v = std::stoull( stem.native(), &count);
-    return v < SaveSystem::MAX_SAVES && count == stem.native().size()
-        ? static_cast<SaveSystem::Slot>( v )
-        : SaveSystem::INVALID_SLOT
-        ;
+    unsigned long long v = std::stoull( stem.native(), &count );
+    // stoull failed
+    if ( count != stem.native().size() ) return SaveSystem::INVALID_SLOT;
+    if ( v >= SaveSystem::MAX_SAVES ) return SaveSystem::INVALID_SLOT;
+    // slot has alias, ignore
+    if ( !SLOT_ALIAS[ v ].empty() ) return SaveSystem::INVALID_SLOT;
+
+    return static_cast<SaveSystem::Slot>( v );
 }
 
 static std::filesystem::path getSaveDirectory( [[maybe_unused]] std::string_view gameName )
