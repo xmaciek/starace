@@ -118,44 +118,43 @@ bool readLine( std::string_view& s, std::string_view& ret )
     return true;
 }
 
-bool isSeparator( char c )
-{
-    switch ( c ) {
-    // case '\n':
-    case '\r':
-    case ' ':
-    case '\t':
-    case '\f':
-    case '\v':
-        return true;
-    default:
-        return false;
-    }
-}
 
 struct WordSplitter {
-
     std::string_view line;
 
-    inline uint32_t countIf( auto&& fn ) const
+    bool operator () ( std::string_view& ret )
     {
-        auto pos = std::find_if_not( line.begin(), line.end(), std::move( fn ) );
-        return pos == line.end() ? static_cast<uint32_t>( line.size() ) : static_cast<uint32_t>( pos - line.begin() );
+        auto begin = std::find_if_not( line.begin(), line.end(), &isSeparator );
+        if ( begin == line.end() ) return false;
+
+        const bool q = ( *begin == '"' );
+        std::advance( begin, q );
+        const auto end = std::find_if( begin, line.end(), q ? &isQuote : &isSeparator );
+        ret = std::string_view{ begin, end };
+        auto distance = std::distance( line.begin(), end );
+        distance += ( end != line.end() && isQuote( *end ) );
+        line.remove_prefix( distance );
+        return true;
     }
 
-    operator bool ()
+    static bool isSeparator( char c )
     {
-        auto l = countIf( &isSeparator );
-        line.remove_prefix( l );
-        return !line.empty();
+        switch ( c ) {
+        // case '\n':
+        case '\r':
+        case ' ':
+        case '\t':
+        case '\f':
+        case '\v':
+            return true;
+        default:
+            return false;
+        }
     }
 
-    std::string_view operator () ()
+    static bool isQuote( char c )
     {
-        auto l = countIf( []( char c ) { return !isSeparator( c ); } );
-        std::string_view ret{ line.begin(), l };
-        line.remove_prefix( l );
-        return ret;
+        return c == '"';
     }
 };
 
@@ -247,8 +246,9 @@ std::pmr::vector<std::byte> compile( std::string_view stream, const CompileConte
         words.clear();
         {
             WordSplitter ws{ line };
-            while ( ws ) {
-                words.emplace_back( ws() );
+            std::string_view word{};
+            while ( ws( word ) ) {
+                words.emplace_back( word );
             }
             if ( words.empty() ) [[unlikely]] continue;
         }

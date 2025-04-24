@@ -219,3 +219,24 @@ TEST( ccmd, argvFailConvert )
     EXPECT_EQ( ret, ccmd::eFunctionFail );
     EXPECT_EQ( rctx.commandExitCode, 2 );
 }
+
+TEST( ccmd, quotesArgument )
+{
+    auto bytecode = ccmd::compile( "cmd \"aa bb\" \"cc dd\"" );
+    ASSERT_FALSE( bytecode.empty() );
+
+    auto cmd = []( ccmd::Vm* vm, void* )
+    {
+        std::pmr::string v{};
+        ccmd::argv( vm, 0, v );
+        if ( v != "aa bb" ) return 1u;
+        ccmd::argv( vm, 1, v );
+        if ( v != "cc dd" ) return 2u;
+        return 0u;
+    };
+    std::array commands = {
+        ccmd::Command{ "cmd", cmd, nullptr },
+    };
+    auto ret = ccmd::run( commands, bytecode );
+    EXPECT_EQ( ret, ccmd::eSuccess );
+}
