@@ -51,6 +51,12 @@ public:
     {
     }
 
+    inline Option( size_type currentIndex ) noexcept
+    requires ( std::is_same_v<T, std::pmr::string> )
+    : Option( currentIndex, []( const auto& s ) { return std::pmr::u32string{ s.begin(), s.end() }; } )
+    {
+    }
+
     inline Option( size_type currentIndex, FnToString&& fn ) noexcept
     : m_currentIndex{ currentIndex }
     , m_toString{ std::move( fn ) }
