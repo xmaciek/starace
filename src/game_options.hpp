@@ -15,9 +15,16 @@ enum class AntiAlias : uint32_t {
     eVRSAA,
 };
 
+struct Percent {
+    uint8_t value = 0;
+    inline operator float () const { return static_cast<float>( value ) / 100.0f; }
+    operator std::pmr::u32string () const;
+    static std::pmr::vector<Percent> makeRange( uint32_t step, uint32_t extra = 1 );
+};
+
 struct GameSettings {
     static constexpr inline const uint32_t MAGIC = 'GGFC';
-    static constexpr inline const uint32_t VERSION = 2;
+    static constexpr inline const uint32_t VERSION = 3;
     uint32_t magic = MAGIC;
     uint32_t version = VERSION;
 
@@ -30,9 +37,9 @@ struct GameSettings {
 
     char audioDeviceName[ 256 ]{};
     char audioDriverName[ 256 ]{};
-    float audioMaster = 1.0f;
-    float audioSFX = 1.0f;
-    float audioUI = 1.0f;
+    Percent audioMaster{ 100 };
+    Percent audioSFX{ 100 };
+    Percent audioUI{ 100 };
 
     std::array<char, 8> gameLang{};
 
@@ -69,18 +76,9 @@ struct OptionsGFX {
 struct OptionsAudio {
     ui::Option<std::pmr::string> m_driverNameUI{ 0 };
     ui::Option<std::pmr::string> m_deviceNameUI{ 0 };
-    ui::Option<float> m_masterUI{ 0
-        , std::pmr::vector<float>{ 1.0f, 0.95f, 0.9f, 0.85f, 0.8f, 0.75f, 0.7f, 0.65f, 0.6f, 0.55f, 0.5f, 0.45f, 0.4f, 0.35f, 0.3f, 0.25f, 0.2f, 0.15f, 0.1f, 0.05f, 0.0f }
-        , &toString<float>
-    };
-    ui::Option<float> m_sfxUI{ 0
-        , std::pmr::vector<float>{ 1.0f, 0.95f, 0.9f, 0.85f, 0.8f, 0.75f, 0.7f, 0.65f, 0.6f, 0.55f, 0.5f, 0.45f, 0.4f, 0.35f, 0.3f, 0.25f, 0.2f, 0.15f, 0.1f, 0.05f, 0.0f }
-        , &toString<float>
-    };
-    ui::Option<float> m_uiUI{ 0
-        , std::pmr::vector<float>{ 1.0f, 0.95f, 0.9f, 0.85f, 0.8f, 0.75f, 0.7f, 0.65f, 0.6f, 0.55f, 0.5f, 0.45f, 0.4f, 0.35f, 0.3f, 0.25f, 0.2f, 0.15f, 0.1f, 0.05f, 0.0f }
-        , &toString<float>
-    };
+    ui::Option<Percent> m_masterUI{ 20, Percent::makeRange( 5 ) };
+    ui::Option<Percent> m_sfxUI{ 20, Percent::makeRange( 5 ) };
+    ui::Option<Percent> m_uiUI{ 20, Percent::makeRange( 5 ) };
 
     void settings2ui( const GameSettings& );
     void ui2settings( GameSettings& ) const;

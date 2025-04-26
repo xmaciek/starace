@@ -3,6 +3,21 @@
 #include <algorithm>
 #include <cassert>
 
+Percent::operator std::pmr::u32string () const
+{
+    auto r = std::to_string( value );
+    r.append( "%" );
+    return std::pmr::u32string{ r.begin(), r.end() };
+}
+
+std::pmr::vector<Percent> Percent::makeRange( uint32_t step, uint32_t extra )
+{
+    uint32_t count = extra + 100 / step;
+    std::pmr::vector<Percent> r( count );
+    std::ranges::generate( r, [v=uint8_t(0), step]() mutable { auto r = v; v += step; return Percent{ r }; } );
+    return r;
+}
+
 template <>
 std::pmr::u32string OptionsGFX::toString( const AntiAlias& aa )
 {

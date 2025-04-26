@@ -13,6 +13,9 @@
 namespace ui {
 
 template <typename T>
+concept HasU32StringCastOperator = requires ( const T& t ) { static_cast<std::pmr::u32string>( t ); };
+
+template <typename T>
 class Option : public DataModel {
 public:
     using FnToString = std::function<std::pmr::u32string(const T&)>;
@@ -36,26 +39,30 @@ public:
     , m_toString{ []( bool b ) { return std::pmr::u32string{ g_uiProperty.localize( b ? "on"_hash : "off"_hash ) }; } }
     {}
 
-    inline Option( size_type currentIndex
-        , std::pmr::vector<T>&& values
-        , FnToString&& toString
-    ) noexcept
+    inline Option( size_type currentIndex, std::pmr::vector<T>&& values ) noexcept
+    requires HasU32StringCastOperator<T>
+    : m_currentIndex{ currentIndex }
+    , m_values( std::move( values ) )
+    , m_toString( []( const T& t ) { return static_cast<std::pmr::u32string>( t ); } )
+    {}
+
+    inline Option( size_type currentIndex, std::pmr::vector<T>&& values, FnToString&& toString ) noexcept
     : m_currentIndex{ currentIndex }
     , m_values( std::move( values ) )
     , m_toString( std::move( toString ) )
     {}
 
     inline Option( size_type currentIndex ) noexcept
-    requires requires ( const T& t ) { static_cast<std::pmr::u32string>( t ); }
-    : Option( currentIndex, []( const T& t ) { return static_cast<std::pmr::u32string>( t ); } )
-    {
-    }
+    requires ( std::is_same_v<T, std::pmr::string> )
+    : m_currentIndex{ currentIndex }
+    , m_toString( []( const auto& s ) { return std::pmr::u32string{ s.begin(), s.end() }; } )
+    {}
 
     inline Option( size_type currentIndex ) noexcept
-    requires ( std::is_same_v<T, std::pmr::string> )
-    : Option( currentIndex, []( const auto& s ) { return std::pmr::u32string{ s.begin(), s.end() }; } )
-    {
-    }
+    requires HasU32StringCastOperator<T>
+    : m_currentIndex{ currentIndex }
+    , m_toString( []( const T& t ) { return static_cast<std::pmr::u32string>( t ); } )
+    {}
 
     inline Option( size_type currentIndex, FnToString&& fn ) noexcept
     : m_currentIndex{ currentIndex }
@@ -74,7 +81,6 @@ public:
     {
         auto it = std::ranges::find( m_values, t );
         if ( it == m_values.end() ) {
-            assert( !"value not found in model" );
             it = m_values.begin();
         }
         select( (size_type)std::distance( m_values.begin(), it ) );
