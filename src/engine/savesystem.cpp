@@ -69,7 +69,7 @@ static std::filesystem::path getSaveDirectory( [[maybe_unused]] std::string_view
 #if defined( __linux__ )
     std::filesystem::path ret{};
     const char* config = std::getenv( "XDG_CONFIG_HOME" );
-    if ( config ) {
+    if ( config && config[ 0 ] ) {
         ret = config;
         ret /= gameName;
         return ret;
