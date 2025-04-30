@@ -2,6 +2,7 @@
 
 #include <extra/unicode.hpp>
 #include <platform/windows.hpp>
+#include <platform/linux.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -66,7 +67,7 @@ static SaveSystem::Slot fileNameToSlot( const std::filesystem::path& path )
 
 static std::filesystem::path getSaveDirectory( [[maybe_unused]] std::string_view gameName )
 {
-#if defined( __linux__ )
+#if PLATFORM_LINUX
     std::filesystem::path ret{};
     const char* config = std::getenv( "XDG_CONFIG_HOME" );
     if ( config && config[ 0 ] ) {
@@ -83,7 +84,7 @@ static std::filesystem::path getSaveDirectory( [[maybe_unused]] std::string_view
     }
     assert( !"config dir not found" );
     return ret;
-#elif defined( _WIN64 )
+#elif PLATFORM_WINDOWS
     wchar_t* path = nullptr;
     const HRESULT pathOK = SHGetKnownFolderPath( FOLDERID_SavedGames, 0, 0, &path );
     assert( pathOK == S_OK );
