@@ -39,26 +39,6 @@ public:
     ~Game();
 
 private:
-    enum class Scene : uint32_t {
-        eInit,
-        eLoading,
-        eGame,
-        eGameBriefing,
-        eGamePaused,
-        eGameResult,
-        eMissionSelection,
-        eDead,
-        eWin,
-        eCustomize,
-        eMainMenu,
-        eSettings,
-        eSettingsDisplay,
-        eSettingsAudio,
-        eSettingsGame,
-        max,
-    };
-    std::atomic<Scene> m_currentScene = Scene::eInit;
-
     input::Remapper m_remapper{};
     ui::Font m_uiAtlas{};
     ui::Font m_inputPS4{};
@@ -135,7 +115,7 @@ private:
     uint32_t viewportHeight() const;
     uint32_t viewportWidth() const;
     float viewportAspect() const;
-    void changeScreen( Scene, Audio::Slot sound = {} );
+    void changeScreen( Hash::value_type, Audio::Slot sound = {} );
     void clearMapData();
     void createMapData( const MapCreateInfo&, const ModelProto& );
     void pause();

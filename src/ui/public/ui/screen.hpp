@@ -26,6 +26,7 @@ class Screen {
     math::vec2 m_viewport{ 1, 1 };
     math::vec2 m_offset{};
     float m_anim = 0.0f;
+    Hash::value_type m_scene = 0;
     Hash::value_type m_name = 0;
     std::pmr::vector<UniquePointer<Widget>> m_widgets{};
 
@@ -68,6 +69,7 @@ public:
     void resize( math::vec2 );
 
     inline Hash::value_type name() const { return m_name; }
+    inline Hash::value_type scene() const { return m_scene; }
     void show( math::vec2 size );
     void refreshInput();
     void lockitChanged();

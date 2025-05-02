@@ -2,6 +2,7 @@ width = 1280
 height = 720
 glow = 1
 name = settings.display
+scene = menu
 
 Label = { x = 48 y = 50 text = settings.display font = large }
 

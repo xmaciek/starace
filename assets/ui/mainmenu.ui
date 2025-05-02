@@ -2,6 +2,7 @@ width = 1280
 height = 720
 glow = 1
 name = mainMenu
+scene = menu
 
 Label = {
     text = title

@@ -120,7 +120,7 @@ void Game::onInit()
         .texture = m_textures[ "textures/atlas_ui.dds" ],
     };
     m_screens.emplace_back( m_io->viewWait( "ui/loading.ui" ) );
-    changeScreen( Scene::eLoading );
+    changeScreen( "loading"_hash );
 
     m_io->mount( "data.pak" );
 
@@ -157,7 +157,7 @@ void Game::onInit()
     applyGameSettings();
     setupUI();
     onResize( viewportWidth(), viewportHeight() );
-    changeScreen( Scene::eMainMenu );
+    changeScreen( "mainMenu"_hash );
 }
 
 void Game::setupUI()
@@ -299,16 +299,16 @@ void Game::setupUI()
     m_gameUiDataModels.insert( "$var:jetSpeed"_hash, &m_gameplayUIData.m_jetSpeed );
     m_gameUiDataModels.insert( "$var:missionResult"_hash, &m_uiMissionResult );
     m_gameUiDataModels.insert( "$var:missionScore"_hash, &m_uiMissionScore );
-    m_gameCallbacks.insert( "$function:goto_missionBriefing"_hash,  [this](){ changeScreen( Scene::eGameBriefing, m_click ); } );
-    m_gameCallbacks.insert( "$function:goto_newgame"_hash, [this](){ changeScreen( Scene::eMissionSelection, m_click ); } );
-    m_gameCallbacks.insert( "$function:goto_customize"_hash, [this](){ changeScreen( Scene::eCustomize, m_click ); } );
-    m_gameCallbacks.insert( "$function:goto_titlemenu"_hash, [this](){ changeScreen( Scene::eMainMenu, m_click ); } );
-    m_gameCallbacks.insert( "$function:goto_settings"_hash, [this](){ changeScreen( Scene::eSettings, m_click ); } );
-    m_gameCallbacks.insert( "$function:goto_settings_display"_hash, [this](){ changeScreen( Scene::eSettingsDisplay, m_click ); } );
-    m_gameCallbacks.insert( "$function:goto_settings_audio"_hash, [this](){ changeScreen( Scene::eSettingsAudio, m_click ); } );
-    m_gameCallbacks.insert( "$function:goto_settings_game"_hash, [this](){ changeScreen( Scene::eSettingsGame, m_click ); } );
+    m_gameCallbacks.insert( "$function:goto_missionBriefing"_hash,  [this](){ changeScreen( "missionBriefing"_hash, m_click ); } );
+    m_gameCallbacks.insert( "$function:goto_newgame"_hash, [this](){ changeScreen( "missionSelect"_hash, m_click ); } );
+    m_gameCallbacks.insert( "$function:goto_customize"_hash, [this](){ changeScreen( "customize"_hash, m_click ); } );
+    m_gameCallbacks.insert( "$function:goto_titlemenu"_hash, [this](){ changeScreen( "mainMenu"_hash, m_click ); } );
+    m_gameCallbacks.insert( "$function:goto_settings"_hash, [this](){ changeScreen( "settings"_hash, m_click ); } );
+    m_gameCallbacks.insert( "$function:goto_settings_display"_hash, [this](){ changeScreen( "settings.display"_hash, m_click ); } );
+    m_gameCallbacks.insert( "$function:goto_settings_audio"_hash, [this](){ changeScreen( "settings.audio"_hash, m_click ); } );
+    m_gameCallbacks.insert( "$function:goto_settings_game"_hash, [this](){ changeScreen( "settings.game"_hash, m_click ); } );
     m_gameCallbacks.insert( "$function:quit"_hash, [this](){ quit(); } );
-    m_gameCallbacks.insert( "$function:resume"_hash, [this]{ changeScreen( Scene::eGame, m_click ); } );
+    m_gameCallbacks.insert( "$function:resume"_hash, [this]{ changeScreen( "gameplay"_hash, m_click ); } );
     m_gameCallbacks.insert( "$function:applyDisplay"_hash, [this]()
     {
         if ( !m_optionsGFX.hasChanges( m_gameSettings ) ) return;
@@ -318,7 +318,7 @@ void Game::setupUI()
     });
     m_gameCallbacks.insert( "$function:exitDisplay"_hash, [this]()
     {
-        if ( !m_optionsGFX.hasChanges( m_gameSettings ) ) return changeScreen( Scene::eSettings, m_click );
+        if ( !m_optionsGFX.hasChanges( m_gameSettings ) ) return changeScreen( "settings"_hash, m_click );
         auto* screen = currentScreen();
         assert( screen );
         auto msg = screen->messageBox( "settings.display.unsaved"_hash );
@@ -326,7 +326,7 @@ void Game::setupUI()
         msg->addButton( "yes"_hash, ui::Action::eMenuConfirm, [this]()
         {
             m_optionsGFX.settings2ui( m_gameSettings );
-            changeScreen( Scene::eSettings, m_click );
+            changeScreen( "settings"_hash, m_click );
         } );
         msg->addButton( "no"_hash, ui::Action::eMenuCancel, [screen]() { screen->addModalWidget( {} ); } );
         screen->addModalWidget( std::move( msg ) );
@@ -340,7 +340,7 @@ void Game::setupUI()
     } );
     m_gameCallbacks.insert( "$function:exitAudio"_hash, [this]()
     {
-        if ( !m_optionsAudio.hasChanges( m_gameSettings ) ) return changeScreen( Scene::eSettings, m_click );
+        if ( !m_optionsAudio.hasChanges( m_gameSettings ) ) return changeScreen( "settings"_hash, m_click );
         auto* screen = currentScreen();
         assert( screen );
         auto msg = screen->messageBox( "settings.audio.unsaved"_hash );
@@ -348,7 +348,7 @@ void Game::setupUI()
         msg->addButton( "yes"_hash, ui::Action::eMenuConfirm, [this]()
         {
             m_optionsAudio.settings2ui( m_gameSettings );
-            changeScreen( Scene::eSettings, m_click );
+            changeScreen( "settings"_hash, m_click );
         } );
         msg->addButton( "no"_hash, ui::Action::eMenuCancel, [screen]() { screen->addModalWidget( {} ); } );
         screen->addModalWidget( std::move( msg ) );
@@ -362,7 +362,7 @@ void Game::setupUI()
     });
     m_gameCallbacks.insert( "$function:exitGameSettings"_hash, [this]()
     {
-        if ( !m_optionsGame.hasChanges( m_gameSettings ) ) return changeScreen( Scene::eSettings, m_click );
+        if ( !m_optionsGame.hasChanges( m_gameSettings ) ) return changeScreen( "settings"_hash, m_click );
         auto* screen = currentScreen();
         assert( screen );
         auto msg = screen->messageBox( "settings.game.unsaved"_hash );
@@ -370,7 +370,7 @@ void Game::setupUI()
         msg->addButton( "yes"_hash, ui::Action::eMenuConfirm, [this]()
         {
             m_optionsGame.settings2ui( m_gameSettings );
-            changeScreen( Scene::eSettings, m_click );
+            changeScreen( "settings"_hash, m_click );
         } );
         msg->addButton( "no"_hash, ui::Action::eMenuCancel, [screen]() { screen->addModalWidget( {} ); } );
         screen->addModalWidget( std::move( msg ) );
@@ -421,11 +421,9 @@ ui::Screen* Game::currentScreen()
 
 void Game::onRender( Renderer* renderer )
 {
-    ZoneScoped;
-    const auto scene = m_currentScene.load();
-    if ( scene == Scene::eInit ) [[unlikely]] {
-        return;
-    }
+    ui::Screen* screen = currentScreen();
+    assert( screen );
+    if ( screen->scene() == 0 ) return;
 
     const auto [ width, height, aspect ] = viewport();
     const auto [ view, projection ] = getCameraMatrix();
@@ -444,33 +442,21 @@ void Game::onRender( Renderer* renderer )
         .colorFocus = color::lightSkyBlue,
     };
 
-    switch ( scene ) {
-    case Scene::eGame:
-    case Scene::eGamePaused:
-    case Scene::eDead:
-    case Scene::eWin:
+    switch ( screen->scene() ) {
+    case "gameplay"_hash:
+    case "pause"_hash:
         renderGameScreen( rctx );
         break;
-
-    case Scene::eMissionSelection:
-    case Scene::eCustomize:
-    case Scene::eMainMenu:
-    case Scene::eSettings:
-    case Scene::eSettingsDisplay:
-    case Scene::eSettingsAudio:
-    case Scene::eSettingsGame:
+    case "menu"_hash:
         renderMenuScreen( rctx, r );
         break;
-
-    [[unlikely]] default:
+    default:
+        assert( !"unhandled scene" );
         break;
     }
 
-    ui::Screen* screen = currentScreen();
-    assert( screen );
     screen->render( r );
 
-    if ( scene == Scene::eLoading ) [[unlikely]] return;
     const PushConstant<Pipeline::eGammaCorrection> pushConstant{
         .m_power = m_gameSettings.gamma,
     };
@@ -484,36 +470,40 @@ void Game::onRender( Renderer* renderer )
 void Game::onUpdate( float deltaTime )
 {
     ZoneScoped;
+    ui::Screen* screen = currentScreen();
+    if ( !screen ) [[unlikely]] {
+        return;
+    }
+
     UpdateContext uctx{ .deltaTime = deltaTime, };
     ui::UpdateContext uictx{ .deltaTime = deltaTime, };
 
-    switch ( m_currentScene.load() ) {
-    [[unlikely]] case Scene::eInit:
-        return;
-    [[unlikely]] case Scene::eLoading:
-        break;
-
-    case Scene::eGame:
+    switch ( screen->scene() ) {
+    case "gameplay"_hash:
         updateGame( uctx );
         break;
-    default:
+    case "menu"_hash:
         m_dustUi.update( uctx );
         break;
+    case "pause"_hash:
+        break;
+    case 0:
+        break;
+    default:
+        assert( !"unhandled scene" );
+        break;
     }
-
-    ui::Screen* screen = currentScreen();
-    assert( screen );
     screen->update( uictx );
 }
 
 void Game::pause()
 {
-    changeScreen( Scene::eGamePaused );
+    changeScreen( "pause"_hash );
 }
 
 void Game::unpause()
 {
-    changeScreen( Scene::eGame );
+    changeScreen( "gameplay"_hash );
 }
 
 void Game::updateGame( UpdateContext& updateContext )
@@ -522,10 +512,10 @@ void Game::updateGame( UpdateContext& updateContext )
     m_player.setInput( m_playerInput );
 
     if ( m_player.status() == Player::Status::eDead ) {
-        changeScreen( Scene::eDead );
+        changeScreen( "lose"_hash );
     }
     if ( m_enemies.empty() ) {
-        changeScreen( Scene::eWin );
+        changeScreen( "win"_hash );
     }
 
     std::pmr::vector<Signal> signals( m_enemies.size() );
@@ -685,13 +675,9 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
     m_gameplayUIData.m_playerWeaponIconSecondary = w2.displayIcon;
 }
 
-void Game::changeScreen( Scene scene, Audio::Slot sound )
+void Game::changeScreen( Hash::value_type screenId, Audio::Slot sound )
 {
     ZoneScoped;
-    if ( sound ) {
-        m_audio->play( sound, Audio::Channel::eUI );
-    }
-    SDL_ShowCursor( scene != Scene::eGame );
     auto setScreen = [this]( auto hash )
     {
         auto it = std::ranges::find_if( m_screens, [hash]( const auto& sc ) { return sc.name() == hash; } );
@@ -699,41 +685,32 @@ void Game::changeScreen( Scene scene, Audio::Slot sound )
         m_currentScreen = &*it;
     };
 
-    m_currentScene = scene;
-    switch ( scene ) {
-    case Scene::eLoading: setScreen( "loading"_hash ); break;
-    case Scene::eMainMenu: setScreen( "mainMenu"_hash ); break;
-    case Scene::eCustomize: setScreen( "customize"_hash ); break;
-    case Scene::eSettings: setScreen( "settings"_hash ); break;
-    case Scene::eSettingsDisplay: setScreen( "settings.display"_hash ); break;
-    case Scene::eSettingsAudio: setScreen( "settings.audio"_hash ); break;
-    case Scene::eSettingsGame: setScreen( "settings.game"_hash ); break;
-    case Scene::eGame: setScreen( "gameplay"_hash ); break;
-    case Scene::eGamePaused: setScreen( "pause"_hash ); break;
-    case Scene::eDead:
+    if ( sound ) {
+        m_audio->play( sound, Audio::Channel::eUI );
+    }
+
+    SDL_ShowCursor( screenId != "gameplay"_hash );
+    switch ( screenId ) {
+    case "lose"_hash:
         m_uiMissionResult = std::pmr::u32string{ g_uiProperty.localize( "missionLost"_hash ) };
         m_uiMissionScore = std::pmr::u32string { g_uiProperty.localize( "yourScore"_hash ) } + intToUTF32( m_score );
         setScreen( "result"_hash );
         break;
-
-    case Scene::eWin:
+    case "win"_hash:
         m_uiMissionResult = std::pmr::u32string{ g_uiProperty.localize( "missionWin"_hash ) };
         m_uiMissionScore = std::pmr::u32string{ g_uiProperty.localize( "yourScore"_hash ) } + intToUTF32( m_score );
         setScreen( "result"_hash );
         break;
-
-    case Scene::eGameBriefing:
+    case "missionBriefing"_hash:
         createMapData( m_mapsContainer[ m_currentMission ], m_jetsContainer[ m_currentJet ] );
-        changeScreen( Scene::eGamePaused );
+        setScreen( "pause"_hash );
         break;
-
-    case Scene::eMissionSelection:
+    case "missionSelect"_hash:
         clearMapData();
-        setScreen( "missionSelect"_hash );
+        setScreen( screenId );
         break;
-
     default:
-        assert( !"unhandled enum" );
+        setScreen( screenId );
         break;
     }
 
@@ -970,14 +947,13 @@ void Game::onAction( input::Action a )
     default: break;
     }
 
-    do {
-        ui::Screen* screen = currentScreen();
-        if ( !screen ) break;
-        if ( !a.testEnumRange<(Action::Enum)ui::Action::base, (Action::Enum)ui::Action::end>() ) break;
+    ui::Screen* screen = currentScreen();
+    assert( screen );
+    if ( a.testEnumRange<(Action::Enum)ui::Action::base, (Action::Enum)ui::Action::end>() ) {
         screen->onAction( ui::Action{ .a = a.toA<ui::Action::Enum>(), .value = a.value } );
-    } while ( 0 );
+    }
 
-    if ( m_currentScene.load() == Scene::eGame ) {
+    if ( screen->scene() == "gameplay"_hash ) {
         switch ( action ) {
         case GameAction::eJetTarget:
             if ( a.digital() ) { retarget(); }
@@ -1007,12 +983,11 @@ void Game::onMouseEvent( const MouseEvent& mouseEvent )
     case MouseEvent::eMove: break;
     }
     ui::Screen* screen = currentScreen();
-    if ( screen ) {
-        if ( inputSourceChanges ) {
-            screen->refreshInput();
-        }
-        screen->onMouseEvent( mouseEvent );
+    if ( !screen ) return;
+    if ( inputSourceChanges ) {
+        screen->refreshInput();
     }
+    screen->onMouseEvent( mouseEvent );
 }
 
 void Game::renderGameScreen( RenderContext rctx )

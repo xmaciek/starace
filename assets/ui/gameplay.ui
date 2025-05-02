@@ -1,6 +1,7 @@
 width = 1280
 height = 720
 name = gameplay
+scene = gameplay
 
 Image = {
     x = 120
