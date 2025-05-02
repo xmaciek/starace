@@ -151,7 +151,7 @@ struct Compiler {
         return 0;
     }
 
-    static uint32_t line( ccmd::Vm* vm, void* ctx )
+    static uint32_t line( [[maybe_unused]] ccmd::Vm* vm, void* ctx )
     {
         assert( vm ); assert( ctx );
         auto instance = reinterpret_cast<Compiler*>( ctx );
