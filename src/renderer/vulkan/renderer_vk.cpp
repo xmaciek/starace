@@ -152,9 +152,11 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
 
         static constexpr std::array colorFormatWishlist{
             Info{ VK_FORMAT_B10G11R11_UFLOAT_PACK32,  VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT },
-            Info{ VK_FORMAT_R16G16B16A16_UNORM,       VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT },
-            Info{ VK_FORMAT_B8G8R8A8_UNORM,           VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT },
-            Info{ VK_FORMAT_R8G8B8A8_UNORM,           VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT },
+            // NOTE: false positive validation error, in compute shader the operations will CONVERT the data, but the validation will not let me do that
+            // https://www.khronos.org/opengl/wiki/Layout_Qualifier_(GLSL)#Image_formats
+            // Info{ VK_FORMAT_R16G16B16A16_UNORM,       VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT },
+            // Info{ VK_FORMAT_B8G8R8A8_UNORM,           VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT },
+            // Info{ VK_FORMAT_R8G8B8A8_UNORM,           VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT },
         };
         static constexpr std::array depthFormatWishlist{
             Info{ VK_FORMAT_D24_UNORM_S8_UINT,    VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT },
