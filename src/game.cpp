@@ -132,7 +132,6 @@ void Game::onInit()
     g_uiProperty.m_pipelineGlow = setupPipeline( m_renderer, m_io, ui::GLOW );
     g_uiProperty.m_pipelineBlurDesaturate = setupPipeline( m_renderer, m_io, ui::BLUR_DESATURATE );
 
-    m_enemies.reserve( 100 );
     auto addAction = [r=&m_remapper]( const auto& p )
     {
         auto [eid, act] = p;
@@ -513,23 +512,21 @@ void Game::updateGame( UpdateContext& updateContext )
     if ( m_player.status() == Player::Status::eDead ) {
         changeScreen( "lose"_hash );
     }
-    if ( m_enemies.empty() ) {
+    if ( m_gameScene.enemies().empty() ) {
         changeScreen( "win"_hash );
     }
 
-    std::pmr::vector<Signal> signals( m_enemies.size() );
-    std::transform( m_enemies.begin(), m_enemies.end(), signals.begin(), []( const auto& p ) { return p->signal(); } );
+    std::pmr::vector<Signal> signals( m_gameScene.enemies().size() );
+    std::ranges::transform( m_gameScene.enemies(), signals.begin(), []( const Enemy& p ) { return p.signal(); } );
     updateContext.signals = signals;
 
     m_lookAtTarget.setTarget( m_playerInput.lookAt ? 1.0f : 0.0f );
     m_lookAtTarget.update( updateContext.deltaTime );
     m_player.update( updateContext );
-    Enemy::updateAll( updateContext, m_enemies );
     m_gameScene.update( updateContext, m_player.position(), m_player.velocity() );
     {
         auto soundsToPlay = m_player.shoot( m_gameScene.projectiles() );
         for ( auto&& s : soundsToPlay ) { if ( s ) m_audio->play( s, Audio::Channel::eSFX ); }
-        for ( auto&& e : m_enemies ) { e->shoot( m_gameScene.projectiles() ); }
     }
 
     {
@@ -557,15 +554,6 @@ void Game::updateGame( UpdateContext& updateContext )
                 break;
 
             case Player::COLLIDE_ID:
-                for ( auto& e : m_enemies ) {
-                    assert( e );
-                    if ( !intersectLineSphere( b.m_position, b.m_prevPosition, e->position(), 15.0_m ) ) break;
-                    e->setDamage( b.m_damage );
-                    m_score += b.m_score;
-                    b.m_type = Bullet::Type::eDead;
-                    m_gameScene.explosions().emplace_back( makeExplosion( b, e->position(), 0.5f ) );
-                    break;
-                }
                 break;
             default:
                 assert( !"unreachable" );
@@ -574,16 +562,9 @@ void Game::updateGame( UpdateContext& updateContext )
             }
         };
         std::ranges::for_each( m_gameScene.projectiles(), testCollision );
-
     }
 
-    auto extraExplosions = [this]( const auto& e ) -> bool
-    {
-        if ( e->status() != SAObject::Status::eDead ) return false;
-        m_gameScene.explosions().emplace_back( e->position(), e->velocity(), color::yellowBlaster, m_plasma, 64.0_m, 0.0f, 1.0f );
-        return true;
-    };
-    std::erase_if( m_enemies, extraExplosions );
+
 
     m_targeting.setSignals( std::move( signals ) );
     m_targeting.setTarget( m_player.targetSignal(), m_player.targetingState() );
@@ -601,7 +582,7 @@ void Game::updateGame( UpdateContext& updateContext )
 
 void Game::retarget()
 {
-    if ( m_enemies.empty() ) {
+    if ( m_gameScene.enemies().empty() ) {
         return;
     }
 
@@ -617,21 +598,20 @@ void Game::retarget()
     math::vec3 jetPos = m_player.position();
     math::vec3 jetDir = m_player.direction();
     Signal s{};
-    auto proc = [f=std::numeric_limits<float>::max(), jetPos, jetDir, &s]( auto& obj ) mutable
+    auto proc = [f=std::numeric_limits<float>::max(), jetPos, jetDir, &s]( const Enemy& e ) mutable
     {
-        float angle = math::angle( math::normalize( obj->position() - jetPos ), jetDir );
+        float angle = math::angle( math::normalize( e.position() - jetPos ), jetDir );
         if ( angle > f ) return;
         f = angle;
-        s = obj->signal();
+        s = e.signal();
     };
-    std::for_each( m_enemies.begin(), m_enemies.end(), std::move( proc ) );
+    std::ranges::for_each( m_gameScene.enemies(), std::move( proc ) );
     m_player.setTarget( s );
 }
 
 void Game::clearMapData()
 {
     ZoneScoped;
-    m_enemies.clear();
 }
 
 void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelData )
@@ -651,20 +631,19 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
         .weapons{ w1, w2, w1 },
     } );
 
-    assert( m_enemies.empty() );
-    m_enemies.resize( mapInfo.enemies );
-    std::ranges::generate( m_enemies, [this, &callsigns, cs=0u]() mutable
+    auto& enemies = m_gameScene.enemies();
+    enemies.resize( mapInfo.enemies );
+    std::ranges::generate( enemies, [this, &callsigns, cs=0u]() mutable
     {
         Enemy::CreateInfo ci{
             .weapon = m_enemyWeapon,
             .model = &m_enemyModel,
+            .target = &m_player,
             .callsign = callsigns[ cs++ ],
         };
-        UniquePointer<Enemy> ptr{ &m_poolEnemies, ci };
-        ptr->setTarget( &m_player );
-        return ptr;
+        return Enemy{ ci };
     });
-    m_player.setTarget( m_enemies.front()->signal() );
+    m_player.setTarget( enemies.front().signal() );
     m_gameplayUIData.m_playerWeaponIconPrimary = w1.displayIcon;
     m_gameplayUIData.m_playerWeaponIconSecondary = w2.displayIcon;
 }
@@ -1022,7 +1001,6 @@ void Game::render3D( RenderContext rctx )
     std::tie( rctx.cameraPosition, rctx.cameraUp, std::ignore ) = getCamera();
 
     m_gameScene.render( rctx );
-    Enemy::renderAll( rctx, m_enemies );
     m_player.render( rctx );
 
     switch ( m_gameSettings.antialias ) {

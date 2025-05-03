@@ -2,6 +2,7 @@
 
 #include "bullet.hpp"
 #include "explosion.hpp"
+#include "enemy.hpp"
 #include "skybox.hpp"
 #include "space_dust.hpp"
 #include "update_context.hpp"
@@ -17,6 +18,7 @@ class GameScene {
     SpaceDust m_spacedust{};
     std::pmr::vector<Bullet> m_bullets{};
     std::pmr::vector<Explosion> m_explosions{};
+    std::pmr::vector<Enemy> m_enemies{};
 
     Texture m_plasma{};
 
@@ -30,4 +32,5 @@ public:
 
     std::pmr::vector<Explosion>& explosions();
     std::pmr::vector<Bullet>& projectiles();
+    std::pmr::vector<Enemy>& enemies();
 };

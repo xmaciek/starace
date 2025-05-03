@@ -1,7 +1,6 @@
 #pragma once
 
 #include "autolerp.hpp"
-#include "enemy.hpp"
 #include "game_options.hpp"
 #include "game_scene.hpp"
 #include "player.hpp"
@@ -17,7 +16,6 @@
 #include <extra/csg.hpp>
 #include <renderer/texture.hpp>
 #include <shared/hash.hpp>
-#include <shared/pool.hpp>
 #include <ui/atlas.hpp>
 #include <ui/data_model.hpp>
 #include <ui/font.hpp>
@@ -59,8 +57,6 @@ private:
 
     Audio::Slot m_click{};
 
-    Pool<Enemy, 100> m_poolEnemies{};
-    std::pmr::vector<UniquePointer<Enemy>> m_enemies{};
     std::pmr::vector<MapCreateInfo> m_mapsContainer{};
     std::pmr::vector<ModelProto> m_jetsContainer{};
     std::pmr::map<std::filesystem::path, Mesh> m_meshes{};

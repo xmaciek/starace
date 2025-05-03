@@ -23,14 +23,16 @@ public:
     struct CreateInfo {
         WeaponCreateInfo weapon{};
         Model* model = nullptr;
+        SAObject* target = nullptr;
         uint16_t callsign = 0xFFFF;
     };
     virtual ~Enemy() override = default;
+    Enemy() = default;
     Enemy( const CreateInfo& );
 
     void shoot( std::pmr::vector<Bullet>& );
     Signal signal() const;
 
-    static void renderAll( const RenderContext&, std::span<const UniquePointer<Enemy>> );
-    static void updateAll( const UpdateContext&, std::span<UniquePointer<Enemy>> );
+    static void renderAll( const RenderContext&, std::span<const Enemy> );
+    static void updateAll( const UpdateContext&, std::span<Enemy> );
 };

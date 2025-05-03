@@ -13,6 +13,7 @@ Enemy::Enemy( const CreateInfo& ci )
 , m_model{ *ci.model }
 , m_callsign { ci.callsign }
 {
+    m_target = ci.target;
     m_position = math::vec3{
         randomRange( -10.0f, 10.0f ),
         randomRange( -10.0f, 10.0f ),
@@ -48,34 +49,34 @@ Signal Enemy::signal() const
     };
 }
 
-void Enemy::renderAll( const RenderContext& rctx, std::span<const UniquePointer<Enemy>> span )
+void Enemy::renderAll( const RenderContext& rctx, std::span<const Enemy> span )
 {
     ZoneScoped;
     auto r = rctx;
-    for ( const auto& ptr : span ) {
-        assert( ptr->status() == Status::eAlive );
-        const math::vec3 screenPos = project3dTo2d( rctx.camera3d, ptr->m_position, rctx.viewport );
+    for ( auto&& e : span ) {
+        assert( e.status() == Status::eAlive );
+        const math::vec3 screenPos = project3dTo2d( rctx.camera3d, e.m_position, rctx.viewport );
         if ( !isOnScreen( screenPos, rctx.viewport ) ) { continue; }
 
-        r.model = math::translate( rctx.model, ptr->m_position ) * math::toMat4( ptr->quat() );
-        ptr->m_model.render( r );
+        r.model = math::translate( rctx.model, e.m_position ) * math::toMat4( e.quat() );
+        e.m_model.render( r );
     }
 }
 
-void Enemy::updateAll( const UpdateContext& uctx, std::span<UniquePointer<Enemy>> e )
+void Enemy::updateAll( const UpdateContext& uctx, std::span<Enemy> enemies )
 {
-    auto update = [&uctx]( auto& p )
+    auto update = [&uctx]( auto& e )
     {
-        assert( p->status() != Status::eDead );
-        p->m_weapon.update( uctx );
-        p->m_direction = interceptTarget( p->m_direction, p->m_position, p->m_target->position(), 30.0_deg * uctx.deltaTime );
-        p->m_position += p->velocity() * uctx.deltaTime;
-        p->m_health -= std::min( p->m_health, p->m_pendingDamage );
-        p->m_pendingDamage = 0;
-        if ( p->m_health == 0 ) {
-            p->m_status = Status::eDead;
+        assert( e.status() != Status::eDead );
+        e.m_weapon.update( uctx );
+        e.m_direction = interceptTarget( e.m_direction, e.m_position, e.m_target->position(), 30.0_deg * uctx.deltaTime );
+        e.m_position += e.velocity() * uctx.deltaTime;
+        e.m_health -= std::min( e.m_health, e.m_pendingDamage );
+        e.m_pendingDamage = 0;
+        if ( e.m_health == 0 ) {
+            e.m_status = Status::eDead;
         }
     };
-    std::for_each( e.begin(), e.end(), update );
+    std::ranges::for_each( enemies, update );
 }
 
