@@ -421,7 +421,6 @@ void Game::onRender( Renderer* renderer )
 {
     ui::Screen* screen = currentScreen();
     assert( screen );
-    if ( screen->scene() == 0 ) return;
 
     const auto [ width, height, aspect ] = viewport();
     const auto [ view, projection ] = getCameraMatrix();
@@ -448,12 +447,14 @@ void Game::onRender( Renderer* renderer )
     case "menu"_hash:
         renderMenuScreen( rctx, r );
         break;
+    case 0: break;
     default:
         assert( !"unhandled scene" );
         break;
     }
 
     screen->render( r );
+    if ( screen->scene() == 0 ) [[unlikely]] return;
 
     const PushConstant<Pipeline::eGammaCorrection> pushConstant{
         .m_power = m_gameSettings.gamma,
