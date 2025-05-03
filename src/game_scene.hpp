@@ -1,5 +1,6 @@
 #pragma once
 
+#include "bullet.hpp"
 #include "explosion.hpp"
 #include "skybox.hpp"
 #include "space_dust.hpp"
@@ -14,15 +15,19 @@
 class GameScene {
     Skybox m_skybox{};
     SpaceDust m_spacedust{};
-    std::pmr::vector<Explosion> m_explosions;
+    std::pmr::vector<Bullet> m_bullets{};
+    std::pmr::vector<Explosion> m_explosions{};
+
+    Texture m_plasma{};
 
 public:
     ~GameScene() noexcept = default;
     GameScene() noexcept = default;
-    GameScene( const std::array<Texture, 6>& t ) noexcept;
+    GameScene( const std::array<Texture, 6>& t, Texture plasma ) noexcept;
 
     void render( const RenderContext& );
     void update( const UpdateContext&, math::vec3 jetPos, math::vec3 jetVel );
 
     std::pmr::vector<Explosion>& explosions();
+    std::pmr::vector<Bullet>& projectiles();
 };

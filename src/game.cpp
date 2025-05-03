@@ -133,7 +133,6 @@ void Game::onInit()
     g_uiProperty.m_pipelineBlurDesaturate = setupPipeline( m_renderer, m_io, ui::BLUR_DESATURATE );
 
     m_enemies.reserve( 100 );
-    m_bullets.reserve( 2000 );
     auto addAction = [r=&m_remapper]( const auto& p )
     {
         auto [eid, act] = p;
@@ -525,13 +524,12 @@ void Game::updateGame( UpdateContext& updateContext )
     m_lookAtTarget.setTarget( m_playerInput.lookAt ? 1.0f : 0.0f );
     m_lookAtTarget.update( updateContext.deltaTime );
     m_player.update( updateContext );
-    Bullet::updateAll( updateContext, m_bullets, m_gameScene.explosions(), m_plasma );
     Enemy::updateAll( updateContext, m_enemies );
     m_gameScene.update( updateContext, m_player.position(), m_player.velocity() );
     {
-        auto soundsToPlay = m_player.shoot( m_bullets );
+        auto soundsToPlay = m_player.shoot( m_gameScene.projectiles() );
         for ( auto&& s : soundsToPlay ) { if ( s ) m_audio->play( s, Audio::Channel::eSFX ); }
-        for ( auto&& e : m_enemies ) { e->shoot( m_bullets ); }
+        for ( auto&& e : m_enemies ) { e->shoot( m_gameScene.projectiles() ); }
     }
 
     {
@@ -548,11 +546,11 @@ void Game::updateGame( UpdateContext& updateContext )
             };
         };
 
-        for ( auto& b : m_bullets ) {
-            if ( b.m_type == Bullet::Type::eDead ) continue;
+        auto testCollision = [this, jetPos, makeExplosion]( Bullet& b )
+        {
             switch ( b.m_collideId ) {
             case Enemy::COLLIDE_ID:
-                if ( !intersectLineSphere( b.m_position, b.m_prevPosition, jetPos, 15.0_m ) ) continue;
+                if ( !intersectLineSphere( b.m_position, b.m_prevPosition, jetPos, 15.0_m ) ) break;
                 m_player.setDamage( b.m_damage );
                 b.m_type = Bullet::Type::eDead;
                 m_gameScene.explosions().emplace_back( makeExplosion( b, jetPos, 0.5f ) );
@@ -561,7 +559,7 @@ void Game::updateGame( UpdateContext& updateContext )
             case Player::COLLIDE_ID:
                 for ( auto& e : m_enemies ) {
                     assert( e );
-                    if ( !intersectLineSphere( b.m_position, b.m_prevPosition, e->position(), 15.0_m ) ) continue;
+                    if ( !intersectLineSphere( b.m_position, b.m_prevPosition, e->position(), 15.0_m ) ) break;
                     e->setDamage( b.m_damage );
                     m_score += b.m_score;
                     b.m_type = Bullet::Type::eDead;
@@ -574,21 +572,18 @@ void Game::updateGame( UpdateContext& updateContext )
                 b.m_type = Bullet::Type::eDead;
                 break;
             }
-        }
+        };
+        std::ranges::for_each( m_gameScene.projectiles(), testCollision );
 
-        std::erase_if( m_bullets, []( const Bullet& b ) { return b.m_type == Bullet::Type::eDead; } );
     }
 
+    auto extraExplosions = [this]( const auto& e ) -> bool
     {
-        auto isDead = []( const auto& it ) -> bool { return it->status() == SAObject::Status::eDead; };
-        for ( auto& e : m_enemies ) {
-            if ( isDead( e ) ) {
-                m_gameScene.explosions().emplace_back( e->position(), e->velocity(), color::yellowBlaster, m_plasma, 64.0_m, 0.0f, 1.0f );
-                continue;
-            }
-        }
-        std::erase_if( m_enemies, isDead );
-    }
+        if ( e->status() != SAObject::Status::eDead ) return false;
+        m_gameScene.explosions().emplace_back( e->position(), e->velocity(), color::yellowBlaster, m_plasma, 64.0_m, 0.0f, 1.0f );
+        return true;
+    };
+    std::erase_if( m_enemies, extraExplosions );
 
     m_targeting.setSignals( std::move( signals ) );
     m_targeting.setTarget( m_player.targetSignal(), m_player.targetingState() );
@@ -637,14 +632,13 @@ void Game::clearMapData()
 {
     ZoneScoped;
     m_enemies.clear();
-    m_bullets.clear();
 }
 
 void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelData )
 {
     ZoneScoped;
     m_score = 0;
-    m_gameScene = GameScene{ mapInfo.texture };
+    m_gameScene = GameScene{ mapInfo.texture, m_plasma };
 
     std::pmr::vector<uint16_t> callsigns( m_callsigns.size() );
     std::iota( callsigns.begin(), callsigns.end(), 0 );
@@ -1029,7 +1023,6 @@ void Game::render3D( RenderContext rctx )
 
     m_gameScene.render( rctx );
     Enemy::renderAll( rctx, m_enemies );
-    Bullet::renderAll( rctx, m_bullets, m_plasma );
     m_player.render( rctx );
 
     switch ( m_gameSettings.antialias ) {

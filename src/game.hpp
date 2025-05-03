@@ -1,7 +1,6 @@
 #pragma once
 
 #include "autolerp.hpp"
-#include "bullet.hpp"
 #include "enemy.hpp"
 #include "game_options.hpp"
 #include "game_scene.hpp"
@@ -60,7 +59,6 @@ private:
 
     Audio::Slot m_click{};
 
-    std::pmr::vector<Bullet> m_bullets{};
     Pool<Enemy, 100> m_poolEnemies{};
     std::pmr::vector<UniquePointer<Enemy>> m_enemies{};
     std::pmr::vector<MapCreateInfo> m_mapsContainer{};
