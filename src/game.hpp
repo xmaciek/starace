@@ -3,7 +3,6 @@
 #include "autolerp.hpp"
 #include "game_options.hpp"
 #include "game_scene.hpp"
-#include "player.hpp"
 #include "map_create_info.hpp"
 #include "model_proto.hpp"
 #include "space_dust.hpp"
@@ -48,9 +47,7 @@ private:
     uint32_t m_currentJet = 0;
     uint32_t m_weapon1 = 0;
     uint32_t m_weapon2 = 1;
-    uint32_t m_score = 0;
     Model m_enemyModel{};
-    Player m_player{};
     GameScene m_gameScene{};
     std::pmr::list<ui::Screen> m_screens;
     ui::Screen* m_currentScreen = nullptr;
@@ -72,9 +69,6 @@ private:
     SpaceDust m_dustUi{};
 
     Targeting m_targeting{};
-    AutoLerp<float> m_lookAtTarget{ 0.0f, 1.0f, 3.0f };
-
-    Player::Input m_playerInput{};
 
     ui::GenericDataModel m_dataMissionSelect{};
 
@@ -110,14 +104,9 @@ private:
     uint32_t viewportWidth() const;
     float viewportAspect() const;
     void changeScreen( Hash::value_type, Audio::Slot sound = {} );
-    void clearMapData();
     void createMapData( const MapCreateInfo&, const ModelProto& );
-    void pause();
 
     ui::Screen* currentScreen();
-
-    std::tuple<math::vec3, math::vec3, math::vec3> getCamera() const;
-    std::tuple<math::mat4, math::mat4> getCameraMatrix() const;
 
     void setupUI();
 
@@ -127,9 +116,6 @@ private:
     void renderGameScreen( RenderContext );
     void renderMenuScreen( RenderContext, ui::RenderContext ) const;
 
-    void retarget();
-    void setCamera();
-    void unpause();
     void updateGame( UpdateContext& );
 
     void onAction( input::Action );

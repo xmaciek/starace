@@ -86,7 +86,6 @@ Game::Game( int argc, char** argv )
 Game::~Game()
 {
     ZoneScoped;
-    clearMapData();
 }
 
 void Game::onExit()
@@ -306,7 +305,7 @@ void Game::setupUI()
     m_gameCallbacks.insert( "$function:goto_settings_audio"_hash, [this](){ changeScreen( "settings.audio"_hash, m_click ); } );
     m_gameCallbacks.insert( "$function:goto_settings_game"_hash, [this](){ changeScreen( "settings.game"_hash, m_click ); } );
     m_gameCallbacks.insert( "$function:quit"_hash, [this](){ quit(); } );
-    m_gameCallbacks.insert( "$function:resume"_hash, [this]{ changeScreen( "gameplay"_hash, m_click ); } );
+    m_gameCallbacks.insert( "$function:resume"_hash, [this]{ changeScreen( "gameplay"_hash, m_click ); m_gameScene.setPause( false ); } );
     m_gameCallbacks.insert( "$function:applyDisplay"_hash, [this]()
     {
         if ( !m_optionsGFX.hasChanges( m_gameSettings ) ) return;
@@ -423,7 +422,7 @@ void Game::onRender( Renderer* renderer )
     assert( screen );
 
     const auto [ width, height, aspect ] = viewport();
-    const auto [ view, projection ] = getCameraMatrix();
+    const auto [ view, projection ] = m_gameScene.getCameraMatrix( aspect );
     RenderContext rctx{
         .renderer = renderer,
         .projection = math::ortho( 0.0f, static_cast<float>( width ), 0.0f, static_cast<float>( height ), -100.0f, 100.0f ),
@@ -475,16 +474,14 @@ void Game::onUpdate( float deltaTime )
     }
 
     UpdateContext uctx{ .deltaTime = deltaTime, };
-    ui::UpdateContext uictx{ .deltaTime = deltaTime, };
 
     switch ( screen->scene() ) {
     case "gameplay"_hash:
+    case "pause"_hash:
         updateGame( uctx );
         break;
     case "menu"_hash:
         m_dustUi.update( uctx );
-        break;
-    case "pause"_hash:
         break;
     case 0:
         break;
@@ -492,141 +489,58 @@ void Game::onUpdate( float deltaTime )
         assert( !"unhandled scene" );
         break;
     }
+    ui::UpdateContext uictx{ .deltaTime = deltaTime, };
     screen->update( uictx );
-}
-
-void Game::pause()
-{
-    changeScreen( "pause"_hash );
-}
-
-void Game::unpause()
-{
-    changeScreen( "gameplay"_hash );
 }
 
 void Game::updateGame( UpdateContext& updateContext )
 {
     ZoneScoped;
-    m_player.setInput( m_playerInput );
 
-    if ( m_player.status() == Player::Status::eDead ) {
+    if ( m_gameScene.isPause() ) return;
+    if ( m_gameScene.player().status() == Player::Status::eDead ) {
         changeScreen( "lose"_hash );
+        m_gameScene.setPause( true );
+        return;
     }
     if ( m_gameScene.enemies().empty() ) {
         changeScreen( "win"_hash );
+        m_gameScene.setPause( true );
+        return;
     }
 
     std::pmr::vector<Signal> signals( m_gameScene.enemies().size() );
     std::ranges::transform( m_gameScene.enemies(), signals.begin(), []( const Enemy& p ) { return p.signal(); } );
     updateContext.signals = signals;
 
-    m_lookAtTarget.setTarget( m_playerInput.lookAt ? 1.0f : 0.0f );
-    m_lookAtTarget.update( updateContext.deltaTime );
-    m_player.update( updateContext );
-    m_gameScene.update( updateContext, m_player.position(), m_player.velocity() );
-    {
-        auto soundsToPlay = m_player.shoot( m_gameScene.projectiles() );
-        for ( auto&& s : soundsToPlay ) { if ( s ) m_audio->play( s, Audio::Channel::eSFX ); }
-    }
-
-    {
-        const math::vec3 jetPos = m_player.position();
-        auto makeExplosion = [plasma = m_plasma]( const Bullet& b, const math::vec3& p, float duration ) -> Explosion
-        {
-            return Explosion{
-                .m_position = p + ( b.m_position - p ) * 15.0_m,
-                .m_velocity = b.m_direction * b.m_speed * 0.1f,
-                .m_color = color::white,
-                .m_texture = plasma,
-                .m_size = 16.0_m,
-                .m_duration = duration
-            };
-        };
-
-        auto testCollision = [this, jetPos, makeExplosion]( Bullet& b )
-        {
-            switch ( b.m_collideId ) {
-            case Enemy::COLLIDE_ID:
-                if ( !intersectLineSphere( b.m_position, b.m_prevPosition, jetPos, 15.0_m ) ) break;
-                m_player.setDamage( b.m_damage );
-                b.m_type = Bullet::Type::eDead;
-                m_gameScene.explosions().emplace_back( makeExplosion( b, jetPos, 0.5f ) );
-                break;
-
-            case Player::COLLIDE_ID:
-                break;
-            default:
-                assert( !"unreachable" );
-                b.m_type = Bullet::Type::eDead;
-                break;
-            }
-        };
-        std::ranges::for_each( m_gameScene.projectiles(), testCollision );
-    }
-
+    m_gameScene.update( updateContext );
 
 
     m_targeting.setSignals( std::move( signals ) );
-    m_targeting.setTarget( m_player.targetSignal(), m_player.targetingState() );
+    m_targeting.setTarget( m_gameScene.player().targetSignal(), m_gameScene.player().targetingState() );
     m_targeting.update( updateContext );
-    m_gameplayUIData.m_playerHP = static_cast<float>( m_player.health() ) / 100.0f;
-    const math::vec2 reloadState = m_player.reloadState();
+    m_gameplayUIData.m_playerHP = static_cast<float>( m_gameScene.player().health() ) / 100.0f;
+    const math::vec2 reloadState = m_gameScene.player().reloadState();
     m_gameplayUIData.m_playerReloadPrimary = reloadState.x;
     m_gameplayUIData.m_playerReloadSecondary = reloadState.y;
-    m_gameplayUIData.m_jetSpeed = m_player.speed() / 1600_kmph;
-    auto [ primary, secondary ] = m_player.weaponClip();
+    m_gameplayUIData.m_jetSpeed = m_gameScene.player().speed() / 1600_kmph;
+    auto [ primary, secondary ] = m_gameScene.player().weaponClip();
     m_gameplayUIData.m_playerWeaponPrimaryCount = primary;
     m_gameplayUIData.m_playerWeaponSecondaryCount = secondary;
 
 }
 
-void Game::retarget()
-{
-    if ( m_gameScene.enemies().empty() ) {
-        return;
-    }
-
-    struct TgtInfo {
-        Signal s;
-        float dist;
-        bool operator < ( const TgtInfo& rhs ) const noexcept
-        {
-            return dist < rhs.dist;
-        }
-    };
-
-    math::vec3 jetPos = m_player.position();
-    math::vec3 jetDir = m_player.direction();
-    Signal s{};
-    auto proc = [f=std::numeric_limits<float>::max(), jetPos, jetDir, &s]( const Enemy& e ) mutable
-    {
-        float angle = math::angle( math::normalize( e.position() - jetPos ), jetDir );
-        if ( angle > f ) return;
-        f = angle;
-        s = e.signal();
-    };
-    std::ranges::for_each( m_gameScene.enemies(), std::move( proc ) );
-    m_player.setTarget( s );
-}
-
-void Game::clearMapData()
-{
-    ZoneScoped;
-}
-
 void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelData )
 {
     ZoneScoped;
-    m_score = 0;
-    m_gameScene = GameScene{ mapInfo.texture, m_plasma };
+    m_gameScene = GameScene{ m_audio, mapInfo.texture, m_plasma };
 
     std::pmr::vector<uint16_t> callsigns( m_callsigns.size() );
     std::iota( callsigns.begin(), callsigns.end(), 0 );
     std::shuffle( callsigns.begin(), callsigns.end(), Random{ std::random_device()() } );
     const auto& w1 = m_weapons[ m_weapon1 ];
     const auto& w2 = m_weapons[ m_weapon2 ];
-    m_player = Player( Player::CreateInfo{
+    m_gameScene.player() = Player( Player::CreateInfo{
         .model = modelData.model,
         .vectorThrust = true,
         .weapons{ w1, w2, w1 },
@@ -639,12 +553,12 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
         Enemy::CreateInfo ci{
             .weapon = m_enemyWeapon,
             .model = &m_enemyModel,
-            .target = &m_player,
+            .target = &m_gameScene.player(),
             .callsign = callsigns[ cs++ ],
         };
         return Enemy{ ci };
     });
-    m_player.setTarget( enemies.front().signal() );
+    m_gameScene.player().setTarget( enemies.front().signal() );
     m_gameplayUIData.m_playerWeaponIconPrimary = w1.displayIcon;
     m_gameplayUIData.m_playerWeaponIconSecondary = w2.displayIcon;
 }
@@ -657,6 +571,8 @@ void Game::changeScreen( Hash::value_type screenId, Audio::Slot sound )
         auto it = std::ranges::find_if( m_screens, [hash]( const auto& sc ) { return sc.name() == hash; } );
         assert( it != m_screens.end() );
         m_currentScreen = &*it;
+        auto [ w, h, a ] = viewport();
+        m_currentScreen->show( { w, h } );
     };
 
     if ( sound ) {
@@ -667,31 +583,22 @@ void Game::changeScreen( Hash::value_type screenId, Audio::Slot sound )
     switch ( screenId ) {
     case "lose"_hash:
         m_uiMissionResult = std::pmr::u32string{ g_uiProperty.localize( "missionLost"_hash ) };
-        m_uiMissionScore = std::pmr::u32string { g_uiProperty.localize( "yourScore"_hash ) } + intToUTF32( m_score );
+        m_uiMissionScore = std::pmr::u32string { g_uiProperty.localize( "yourScore"_hash ) } + intToUTF32( m_gameScene.score() );
         setScreen( "result"_hash );
         break;
     case "win"_hash:
         m_uiMissionResult = std::pmr::u32string{ g_uiProperty.localize( "missionWin"_hash ) };
-        m_uiMissionScore = std::pmr::u32string{ g_uiProperty.localize( "yourScore"_hash ) } + intToUTF32( m_score );
+        m_uiMissionScore = std::pmr::u32string{ g_uiProperty.localize( "yourScore"_hash ) } + intToUTF32( m_gameScene.score() );
         setScreen( "result"_hash );
         break;
     case "missionBriefing"_hash:
         createMapData( m_mapsContainer[ m_currentMission ], m_jetsContainer[ m_currentJet ] );
         setScreen( "pause"_hash );
         break;
-    case "missionSelect"_hash:
-        clearMapData();
-        setScreen( screenId );
-        break;
     default:
         setScreen( screenId );
         break;
     }
-
-    ui::Screen* screen = currentScreen();
-    assert( screen );
-    auto [ w, h, a ] = viewport();
-    screen->show( { w, h } );
 }
 
 void Game::loadDDS( const Asset& asset )
@@ -909,35 +816,24 @@ void Game::onAction( input::Action a )
     using namespace input;
     ZoneScoped;
 
-    const GameAction action = a.toA<GameAction>();
-    switch ( action ) {
-    case GameAction::eJetPitch: m_playerInput.pitch = -a.analog(); break;
-    case GameAction::eJetYaw: m_playerInput.yaw = -a.analog(); break;
-    case GameAction::eJetRoll: m_playerInput.roll = a.analog(); break;
-    case GameAction::eJetShoot1: m_playerInput.shoot1 = a.digital(); break;
-    case GameAction::eJetShoot2: m_playerInput.shoot2 = a.digital(); break;
-    case GameAction::eJetSpeed: m_playerInput.speed = a.analog(); break;
-    case GameAction::eJetLookAt: m_playerInput.lookAt = a.digital(); break;
-    default: break;
-    }
-
     ui::Screen* screen = currentScreen();
     assert( screen );
     if ( a.testEnumRange<(Action::Enum)ui::Action::base, (Action::Enum)ui::Action::end>() ) {
         screen->onAction( ui::Action{ .a = a.toA<ui::Action::Enum>(), .value = a.value } );
+        return;
     }
 
-    if ( screen->scene() == "gameplay"_hash ) {
-        switch ( action ) {
-        case GameAction::eJetTarget:
-            if ( a.digital() ) { retarget(); }
-            return;
-        case GameAction::eGamePause:
-            if ( a.digital() ) { pause(); }
-            return;
-        default:
-            return;
-        }
+    if ( screen->scene() != "gameplay"_hash ) return;
+    const GameAction action = a.toA<GameAction>();
+    switch ( action ) {
+    case GameAction::eGamePause:
+        if ( !a.digital() || !a.value ) break;
+        m_gameScene.setPause( true );
+        changeScreen( "pause"_hash );
+        break;
+    default:
+        m_gameScene.onAction( a );
+        break;
     }
 }
 
@@ -970,39 +866,12 @@ void Game::renderGameScreen( RenderContext rctx )
     m_targeting.render( rctx );
 }
 
-std::tuple<math::vec3, math::vec3, math::vec3> Game::getCamera() const
-{
-    math::vec3 jetPos = m_player.position();
-    math::vec3 jetCamPos = jetPos + m_player.cameraPosition() * m_player.rotation();
-    math::vec3 jetCamUp = math::vec3{ 0, 1, 0 } * m_player.rotation();
-    math::vec3 jetCamTgt = jetCamPos + m_player.cameraDirection();
-
-    Signal tgt = m_player.targetSignal();
-    math::vec3 lookAtTgt = tgt ? tgt.position : jetCamTgt;
-    math::vec3 lookAtPos = math::vec3{ 0.0f, -20.0_m, 0.0f } * m_player.rotation() + jetPos - math::normalize( lookAtTgt - jetPos ) * 42.8_m;
-
-    math::vec3 retPos = math::lerp( jetCamPos, lookAtPos, m_lookAtTarget.value() );
-    math::vec3 retTgt = math::lerp( jetCamTgt, lookAtTgt, m_lookAtTarget.value() );
-
-    return { retPos, jetCamUp, retTgt };
-}
-
-std::tuple<math::mat4, math::mat4> Game::getCameraMatrix() const
-{
-    const auto [ cameraPos, cameraUp, cameraTgt ] = getCamera();
-    return {
-        math::lookAt( cameraPos, cameraTgt, cameraUp ),
-        math::perspective( math::radians( 55.0f + m_player.speed() * 3 ), viewportAspect(), 0.001f, 2000.0f )
-    };
-}
-
 void Game::render3D( RenderContext rctx )
 {
-    std::tie( rctx.view, rctx.projection ) = getCameraMatrix();
-    std::tie( rctx.cameraPosition, rctx.cameraUp, std::ignore ) = getCamera();
+    std::tie( rctx.view, rctx.projection ) = m_gameScene.getCameraMatrix( viewportAspect() );
+    std::tie( rctx.cameraPosition, rctx.cameraUp, std::ignore ) = m_gameScene.getCamera();
 
     m_gameScene.render( rctx );
-    m_player.render( rctx );
 
     switch ( m_gameSettings.antialias ) {
     case AntiAlias::eFXAA:
