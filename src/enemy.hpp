@@ -23,7 +23,6 @@ public:
     struct CreateInfo {
         WeaponCreateInfo weapon{};
         Model* model = nullptr;
-        SAObject* target = nullptr;
         uint16_t callsign = 0xFFFF;
     };
     virtual ~Enemy() override = default;

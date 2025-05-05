@@ -37,9 +37,9 @@ void SAObject::setPosition( const math::vec3& v )
     m_position = v;
 }
 
-void SAObject::setTarget( SAObject* t )
+void SAObject::setTarget( Signal s )
 {
-    m_target = t;
+    m_target = s;
 }
 
 void SAObject::kill()
@@ -68,7 +68,3 @@ Signal SAObject::scanSignals( math::vec3 position, std::span<const Signal> signa
     return *std::min_element( signals.begin(), signals.end(), std::move( proc ) );
 }
 
-SAObject* SAObject::target() const
-{
-    return m_target;
-}

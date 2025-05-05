@@ -13,7 +13,6 @@ Enemy::Enemy( const CreateInfo& ci )
 , m_model{ *ci.model }
 , m_callsign { ci.callsign }
 {
-    m_target = ci.target;
     m_position = math::vec3{
         randomRange( -10.0f, 10.0f ),
         randomRange( -10.0f, 10.0f ),
@@ -34,7 +33,7 @@ math::quat Enemy::quat() const
 void Enemy::shoot( std::pmr::vector<Bullet>& vec )
 {
     if ( !m_weapon.ready() ) return;
-    if ( !AutoAim{}.matches( position(), direction(), m_target->position() ) ) return;
+    if ( !AutoAim{}.matches( position(), direction(), m_target.position ) ) return;
     auto& b = vec.emplace_back( m_weapon.fire(), position(), direction() );
     b.m_collideId = COLLIDE_ID;
     b.m_quat = quat();
@@ -69,7 +68,7 @@ void Enemy::updateAll( const UpdateContext& uctx, std::span<Enemy> enemies )
     {
         assert( e.status() != Status::eDead );
         e.m_weapon.update( uctx );
-        e.m_direction = interceptTarget( e.m_direction, e.m_position, e.m_target->position(), 30.0_deg * uctx.deltaTime );
+        e.m_direction = interceptTarget( e.m_direction, e.m_position, e.m_target.position, 30.0_deg * uctx.deltaTime );
         e.m_position += e.velocity() * uctx.deltaTime;
         e.m_health -= std::min( e.m_health, e.m_pendingDamage );
         e.m_pendingDamage = 0;

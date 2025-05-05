@@ -72,7 +72,6 @@ private:
     PointInfo m_points{};
     Input m_input{};
 
-    Signal m_targetSignal{};
     math::vec3 m_targetVelocity{};
 
     math::vec3 weaponPoint( uint32_t ) const;
@@ -91,14 +90,13 @@ public:
     math::quat rotation() const;
     void render( RenderContext ) const;
     void update( const UpdateContext& );
-    void lockTarget( SAObject* );
     void processCollision( std::vector<Bullet*>& );
-    void untarget( const SAObject* );
     void setInput( const Input& );
-    void setTarget( Signal );
+    virtual void setTarget( Signal ) override;
 
     float targetingState() const;
-    inline Signal targetSignal() const { return m_targetSignal; }
+    Signal target() const;
+    Signal signal() const;
 
     math::vec3 cameraPosition() const;
     math::vec3 cameraDirection() const;

@@ -517,7 +517,7 @@ void Game::updateGame( UpdateContext& updateContext )
 
 
     m_targeting.setSignals( std::move( signals ) );
-    m_targeting.setTarget( m_gameScene.player().targetSignal(), m_gameScene.player().targetingState() );
+    m_targeting.setTarget( m_gameScene.player().target(), m_gameScene.player().targetingState() );
     m_targeting.update( updateContext );
     m_gameplayUIData.m_playerHP = static_cast<float>( m_gameScene.player().health() ) / 100.0f;
     const math::vec2 reloadState = m_gameScene.player().reloadState();
@@ -553,7 +553,6 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
         Enemy::CreateInfo ci{
             .weapon = m_enemyWeapon,
             .model = &m_enemyModel,
-            .target = &m_gameScene.player(),
             .callsign = callsigns[ cs++ ],
         };
         return Enemy{ ci };

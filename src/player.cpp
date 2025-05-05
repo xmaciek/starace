@@ -124,22 +124,35 @@ void Player::update( const UpdateContext& uctx )
 
 void Player::scanSignals( std::span<const Signal> signals, float dt )
 {
-    auto tgt = SAObject::scanSignals( m_targetSignal.position, signals );
+    auto tgt = SAObject::scanSignals( m_target.position, signals );
     if ( !tgt ) return;
 
-    m_targetVelocity = ( tgt.position - m_targetSignal.position ) / dt;
-    m_targetSignal = tgt;
+    m_targetVelocity = ( tgt.position - m_target.position ) / dt;
+    m_target = tgt;
 }
 
 void Player::setTarget( Signal v )
 {
-    m_targetSignal = v;
+    m_target = v;
     m_targetVelocity = {};
+}
+
+Signal Player::target() const
+{
+    return m_target;
+}
+
+Signal Player::signal() const
+{
+    return Signal{
+        .position = position(),
+        .team = 1,
+    };
 }
 
 float Player::targetingState() const
 {
-    const math::vec3 p = m_targetSignal.position;
+    const math::vec3 p = m_target.position;
     return static_cast<float>( AutoAim{}.matches( position(), direction(), p ) );
 }
 
@@ -169,13 +182,13 @@ Bullet Player::weapon( uint32_t weaponNum )
     AutoAim aa{};
     WeaponCreateInfo wci = m_weapons[ weaponNum ].fire();
     math::vec3 projectilePosition = math::rotate( quat(), m_model.weapon( weaponNum ) ) + position();
-    math::vec3 projectileDirection = wci.type == Bullet::Type::eBlaster && aa.matches( position(), direction(), m_targetSignal.position )
-        ? aa( wci.speed, projectilePosition, m_targetSignal.position, m_targetVelocity )
+    math::vec3 projectileDirection = wci.type == Bullet::Type::eBlaster && aa.matches( position(), direction(), m_target.position )
+        ? aa( wci.speed, projectilePosition, m_target.position, m_targetVelocity )
         : direction();
 
     Bullet b{ wci, projectilePosition, projectileDirection };
     b.m_collideId = COLLIDE_ID;
-    b.m_target = m_targetSignal;
+    b.m_target = m_target;
     b.m_quat = math::quatLookAt( b.m_direction, math::rotate( quat(), math::vec3{ 0.0f, 1.0f, 0.0f } ) );
     return b;
 }

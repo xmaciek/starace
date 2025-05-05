@@ -49,6 +49,7 @@ void GameScene::update( const UpdateContext& uctx )
     math::vec3 jetPos = m_player.position();
     math::vec3 jetVel = m_player.velocity();
 
+    std::ranges::for_each( m_enemies, [s=m_player.signal()]( Enemy& e ) { e.setTarget( s ); } );
     Enemy::updateAll( uctx, m_enemies );
     Explosion::updateAll( uctx, m_explosions );
 
@@ -164,7 +165,7 @@ std::tuple<math::vec3, math::vec3, math::vec3> GameScene::getCamera() const
     math::vec3 jetCamUp = math::vec3{ 0, 1, 0 } * m_player.rotation();
     math::vec3 jetCamTgt = jetCamPos + m_player.cameraDirection();
 
-    Signal tgt = m_player.targetSignal();
+    Signal tgt = m_player.target();
     math::vec3 lookAtTgt = tgt ? tgt.position : jetCamTgt;
     math::vec3 lookAtPos = math::vec3{ 0.0f, -20.0_m, 0.0f } * m_player.rotation() + jetPos - math::normalize( lookAtTgt - jetPos ) * 42.8_m;
 

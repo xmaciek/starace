@@ -31,9 +31,8 @@ public:
     void kill();
     void setDamage( uint8_t d );
     void setStatus( Status s );
-    void setTarget( SAObject* t );
     void setPosition( const math::vec3& );
-    SAObject* target() const;
+    virtual void setTarget( Signal );
 
     static inline float pointsToMultiplier( uint8_t point ) noexcept
     {
@@ -46,7 +45,7 @@ public:
 protected:
     math::vec3 m_direction{};
     math::vec3 m_position{};
-    SAObject* m_target = nullptr;
+    Signal m_target{};
     float m_speed = 0.0f;
     uint16_t m_pendingDamage = 0;
     uint16_t m_health = 0;
