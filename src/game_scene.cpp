@@ -5,10 +5,11 @@
 
 #include <profiler.hpp>
 
-GameScene::GameScene( Audio* a, const std::array<Texture, 6>& t, Texture plasma ) noexcept
-: m_skybox{ t }
-, m_plasma{ plasma }
-, m_audio{ a }
+GameScene::GameScene( const CreateInfo& ci ) noexcept
+: m_skybox{ ci.skybox }
+, m_player{ ci.player }
+, m_plasma{ ci.plasma }
+, m_audio{ ci.audio }
 {
     ZoneScoped;
     m_explosions.reserve( 3000 );
@@ -16,6 +17,16 @@ GameScene::GameScene( Audio* a, const std::array<Texture, 6>& t, Texture plasma 
     m_spacedust.setVelocity( math::vec3{ 0.0f, 0.0f, 26.0_m } );
     m_spacedust.setCenter( {} );
     m_spacedust.setLineWidth( 2.0f );
+
+    m_enemies.resize( 20 );
+    std::ranges::generate( m_enemies, [&ci, i=0u]() mutable
+    {
+        return Enemy::CreateInfo{
+            .weapon = ci.enemyWeapon,
+            .model = ci.enemyModel,
+            .callsign = ci.enemyCallsigns[ i++ ],
+        };
+    } );
 }
 
 void GameScene::render( const RenderContext& rctx )
@@ -182,6 +193,13 @@ std::tuple<math::mat4, math::mat4> GameScene::getCameraMatrix( float aspect ) co
         math::lookAt( cameraPos, cameraTgt, cameraUp ),
         math::perspective( math::radians( 55.0f + m_player.speed() * 3 ), aspect, 0.001f, 2000.0f )
     };
+}
+
+std::pmr::vector<Signal> GameScene::signals() const
+{
+    std::pmr::vector<Signal> r( m_enemies.size() );
+    std::ranges::transform( m_enemies, r.begin(), []( const Enemy& p ) { return p.signal(); } );
+    return r;
 }
 
 std::pmr::vector<Bullet>& GameScene::projectiles()

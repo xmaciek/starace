@@ -34,9 +34,19 @@ class GameScene {
     void retarget();
 
 public:
+    struct CreateInfo {
+        Audio* audio{};
+        std::array<Texture, 6> skybox{};
+        Texture plasma{};
+        Model* enemyModel{};
+        WeaponCreateInfo enemyWeapon{};
+        std::span<uint16_t> enemyCallsigns{};
+        Player::CreateInfo player{};
+    };
+
     ~GameScene() noexcept = default;
     GameScene() noexcept = default;
-    GameScene( Audio*, const std::array<Texture, 6>& t, Texture plasma ) noexcept;
+    GameScene( const CreateInfo& ) noexcept;
 
     void render( const RenderContext& );
     void update( const UpdateContext& );
@@ -50,6 +60,7 @@ public:
     void setPause( bool );
     bool isPause() const;
     uint32_t score() const;
+    std::pmr::vector<Signal> signals() const;
 
     std::tuple<math::mat4, math::mat4> getCameraMatrix( float aspect ) const;
     std::tuple<math::vec3, math::vec3, math::vec3> getCamera() const;

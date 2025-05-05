@@ -509,12 +509,9 @@ void Game::updateGame( UpdateContext& updateContext )
         return;
     }
 
-    std::pmr::vector<Signal> signals( m_gameScene.enemies().size() );
-    std::ranges::transform( m_gameScene.enemies(), signals.begin(), []( const Enemy& p ) { return p.signal(); } );
+    auto signals = m_gameScene.signals();
     updateContext.signals = signals;
-
     m_gameScene.update( updateContext );
-
 
     m_targeting.setSignals( std::move( signals ) );
     m_targeting.setTarget( m_gameScene.player().target(), m_gameScene.player().targetingState() );
@@ -533,31 +530,26 @@ void Game::updateGame( UpdateContext& updateContext )
 void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelData )
 {
     ZoneScoped;
-    m_gameScene = GameScene{ m_audio, mapInfo.texture, m_plasma };
 
     std::pmr::vector<uint16_t> callsigns( m_callsigns.size() );
     std::iota( callsigns.begin(), callsigns.end(), 0 );
     std::shuffle( callsigns.begin(), callsigns.end(), Random{ std::random_device()() } );
+
     const auto& w1 = m_weapons[ m_weapon1 ];
     const auto& w2 = m_weapons[ m_weapon2 ];
-    m_gameScene.player() = Player( Player::CreateInfo{
-        .model = modelData.model,
-        .vectorThrust = true,
-        .weapons{ w1, w2, w1 },
-    } );
+    m_gameScene = GameScene{ GameScene::CreateInfo{
+        .audio = m_audio,
+        .skybox = mapInfo.texture,
+        .plasma = m_plasma,
+        .enemyModel = &m_enemyModel,
+        .enemyWeapon = m_enemyWeapon,
+        .enemyCallsigns = callsigns,
+        .player = Player::CreateInfo{
+            .model = modelData.model,
+            .weapons{ w1, w2, w1 },
+        },
+    } };
 
-    auto& enemies = m_gameScene.enemies();
-    enemies.resize( mapInfo.enemies );
-    std::ranges::generate( enemies, [this, &callsigns, cs=0u]() mutable
-    {
-        Enemy::CreateInfo ci{
-            .weapon = m_enemyWeapon,
-            .model = &m_enemyModel,
-            .callsign = callsigns[ cs++ ],
-        };
-        return Enemy{ ci };
-    });
-    m_gameScene.player().setTarget( enemies.front().signal() );
     m_gameplayUIData.m_playerWeaponIconPrimary = w1.displayIcon;
     m_gameplayUIData.m_playerWeaponIconSecondary = w2.displayIcon;
 }

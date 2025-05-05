@@ -45,7 +45,6 @@ public:
     struct CreateInfo {
         Model model{};
         float modelScale = 1.0f;
-        bool vectorThrust = false;
         PointInfo points{};
         std::array<WeaponCreateInfo, MAX_SUPPORTED_WEAPON_COUNT> weapons{};
     };
