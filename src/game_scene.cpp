@@ -2,6 +2,7 @@
 
 #include "colors.hpp"
 #include "utils.hpp"
+#include "utils.hpp"
 
 #include <profiler.hpp>
 
@@ -19,12 +20,17 @@ GameScene::GameScene( const CreateInfo& ci ) noexcept
     m_spacedust.setLineWidth( 2.0f );
 
     m_enemies.resize( 20 );
-    std::ranges::generate( m_enemies, [&ci, i=0u]() mutable
+
+    std::pmr::vector<uint16_t> callsigns( ci.enemyCallsignCount );
+    std::iota( callsigns.begin(), callsigns.end(), 0 );
+    std::shuffle( callsigns.begin(), callsigns.end(), Random{ std::random_device()() } );
+
+    std::ranges::generate( m_enemies, [&ci, &callsigns, i=0u]() mutable
     {
         return Enemy::CreateInfo{
             .weapon = ci.enemyWeapon,
             .model = ci.enemyModel,
-            .callsign = ci.enemyCallsigns[ i++ ],
+            .callsign = callsigns[ i++ ],
         };
     } );
 }

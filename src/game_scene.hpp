@@ -40,7 +40,7 @@ public:
         Texture plasma{};
         Model* enemyModel{};
         WeaponCreateInfo enemyWeapon{};
-        std::span<uint16_t> enemyCallsigns{};
+        size_t enemyCallsignCount{};
         Player::CreateInfo player{};
     };
 

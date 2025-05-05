@@ -530,11 +530,6 @@ void Game::updateGame( UpdateContext& updateContext )
 void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelData )
 {
     ZoneScoped;
-
-    std::pmr::vector<uint16_t> callsigns( m_callsigns.size() );
-    std::iota( callsigns.begin(), callsigns.end(), 0 );
-    std::shuffle( callsigns.begin(), callsigns.end(), Random{ std::random_device()() } );
-
     const auto& w1 = m_weapons[ m_weapon1 ];
     const auto& w2 = m_weapons[ m_weapon2 ];
     m_gameScene = GameScene{ GameScene::CreateInfo{
@@ -543,7 +538,7 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
         .plasma = m_plasma,
         .enemyModel = &m_enemyModel,
         .enemyWeapon = m_enemyWeapon,
-        .enemyCallsigns = callsigns,
+        .enemyCallsignCount = m_callsigns.size(),
         .player = Player::CreateInfo{
             .model = modelData.model,
             .weapons{ w1, w2, w1 },
