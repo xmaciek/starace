@@ -3,6 +3,7 @@
 #include "autolerp.hpp"
 #include "game_options.hpp"
 #include "game_scene.hpp"
+#include "menu_scene.hpp"
 #include "map_create_info.hpp"
 #include "model_proto.hpp"
 #include "space_dust.hpp"
@@ -49,6 +50,7 @@ private:
     uint32_t m_weapon2 = 1;
     Model m_enemyModel{};
     GameScene m_gameScene{};
+    MenuScene m_menuScene{};
     std::pmr::list<ui::Screen> m_screens;
     ui::Screen* m_currentScreen = nullptr;
 
@@ -65,8 +67,6 @@ private:
 
     Texture m_plasma{};
     std::pmr::vector<csg::Callsign> m_callsigns{};
-
-    SpaceDust m_dustUi{};
 
     Targeting m_targeting{};
 
@@ -112,9 +112,7 @@ private:
 
     // purposefully copy argument
     void render3D( RenderContext );
-    void renderBackground( ui::RenderContext ) const;
     void renderGameScreen( RenderContext );
-    void renderMenuScreen( RenderContext, ui::RenderContext ) const;
 
     void updateGame( UpdateContext& );
 

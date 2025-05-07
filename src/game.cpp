@@ -143,13 +143,10 @@ void Game::onInit()
         r->add( static_cast<input::Action::Enum>( eid ), min, max );
     } );
 
-    m_dustUi.setVelocity( math::vec3{ 0.0f, 0.0f, 26.0_m } );
-    m_dustUi.setCenter( {} );
-    m_dustUi.setLineWidth( 2.0f );
-
     m_click = m_sounds[ "sounds/click.wav" ];
     m_plasma = m_textures[ "textures/plasma.dds" ];
     m_enemyModel = Model{ m_meshes[ "models/a2.objc" ], m_textures[ "textures/a2.dds" ] };
+    m_menuScene.setModel( &m_jetsContainer[ 0 ].model );
 
     applyGameSettings();
     setupUI();
@@ -205,6 +202,7 @@ void Game::setupUI()
     {
         assert( i < m_jetsContainer.size() );
         m_currentJet = i;
+        m_menuScene.setModel( &m_jetsContainer[ i ].model );
     };
     m_optionsCustomize.m_jet.m_current = [this]() { return m_currentJet; };
     m_optionsCustomize.m_jet.m_revision = [this]() { return m_currentJet; };
@@ -387,6 +385,12 @@ void Game::setupUI()
     m_screens.emplace_back( m_io->viewWait( "ui/settings_game.ui" ) );
     m_screens.emplace_back( m_io->viewWait( "ui/mainmenu.ui" ) );
 
+    m_menuScene = MenuScene{ MenuScene::CreateInfo{
+        .uiAtlasTexture = g_uiProperty.atlasTexture(),
+        .uiAtlasExtent = m_uiAtlas.extent(),
+        .uiSlice = m_uiAtlas[ "background"_hash ] / m_uiAtlas.extent(),
+    } };
+    m_menuScene.setModel( &m_jetsContainer[ 0 ].model );
     Targeting::CreateInfo tci{
         .callsigns = m_callsigns,
     };
@@ -426,7 +430,7 @@ void Game::onRender( Renderer* renderer )
         renderGameScreen( rctx );
         break;
     case "menu"_hash:
-        renderMenuScreen( rctx, r );
+        m_menuScene.render( rctx );
         break;
     case 0: break;
     default:
@@ -450,7 +454,7 @@ void Game::onRender( Renderer* renderer )
 
     const PushConstant<Pipeline::eGammaCorrection> gp{ .m_power = m_gameSettings.gamma, };
     const DispatchInfo dispatchInfo{ .m_pipeline = g_pipelines[ Pipeline::eGammaCorrection ], };
-    m_renderer->dispatch( dispatchInfo, &pushConstant );
+    m_renderer->dispatch( dispatchInfo, &gp );
 }
 
 void Game::onUpdate( float deltaTime )
@@ -469,7 +473,7 @@ void Game::onUpdate( float deltaTime )
         updateGame( uctx );
         break;
     case "menu"_hash:
-        m_dustUi.update( uctx );
+        m_menuScene.update( uctx );
         break;
     case 0:
         break;
@@ -847,52 +851,6 @@ void Game::render3D( RenderContext rctx )
 
     m_gameScene.render( rctx );
 
-}
-
-void Game::renderBackground( ui::RenderContext rctx ) const
-{
-    ZoneScoped;
-    [[maybe_unused]]
-    const auto [ w, h, a ] = viewport();
-    const math::vec2 uv = math::vec2{ w, h } / m_uiAtlas.extent();
-
-    PushBuffer pushBuffer{
-        .m_pipeline = g_pipelines[ Pipeline::eBackground ],
-        .m_verticeCount = 4,
-    };
-    pushBuffer.m_fragmentTexture[ 1 ] = g_uiProperty.atlasTexture();
-
-    PushConstant<Pipeline::eBackground> pushConstant{
-        .m_model = rctx.model,
-        .m_view = rctx.view,
-        .m_projection = rctx.projection,
-        .m_color = rctx.colorMain,
-        .m_uvSlice = m_uiAtlas[ "background"_hash ] / m_uiAtlas.extent(),
-        .m_xyuv{
-            math::vec4{ 0, 0, 0, 0 },
-            math::vec4{ 0, h, 0, uv.y },
-            math::vec4{ w, h, uv.x, uv.y },
-            math::vec4{ w, 0, uv.x, 0 }
-        },
-    };
-    rctx.renderer->push( pushBuffer, &pushConstant );
-}
-
-void Game::renderMenuScreen( RenderContext rctx, ui::RenderContext r ) const
-{
-    renderBackground( r );
-    rctx.projection = math::perspective(
-        55.0_deg
-        , viewportAspect()
-        , 0.001f
-        , 2000.0f
-    );
-    const math::vec3 cameraPos = math::normalize( math::vec3{ -4, -3, -3 } ) * 24.0_m;
-    rctx.view = math::lookAt( cameraPos, math::vec3{}, math::vec3{ 0, 1, 0 } );
-
-    auto& jet = m_jetsContainer[ m_currentJet ].model;
-    jet.render( rctx );
-    m_dustUi.render( rctx );
 }
 
 void Game::onActuator( input::Actuator a )

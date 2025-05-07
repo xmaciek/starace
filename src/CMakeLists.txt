@@ -39,6 +39,8 @@ target_sources( starace PRIVATE
     game_scene.hpp
     main.cpp
     map_create_info.hpp
+    menu_scene.hpp
+    menu_scene.cpp
     mesh.cpp
     mesh.hpp
     model.cpp
