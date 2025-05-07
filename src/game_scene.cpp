@@ -9,6 +9,7 @@
 GameScene::GameScene( const CreateInfo& ci ) noexcept
 : m_skybox{ ci.skybox }
 , m_player{ ci.player }
+, m_targeting{ Targeting::CreateInfo{ .callsigns = ci.enemyCallsigns } }
 , m_plasma{ ci.plasma }
 , m_audio{ ci.audio }
 {
@@ -21,7 +22,7 @@ GameScene::GameScene( const CreateInfo& ci ) noexcept
 
     m_enemies.resize( 20 );
 
-    std::pmr::vector<uint16_t> callsigns( ci.enemyCallsignCount );
+    std::pmr::vector<uint16_t> callsigns( ci.enemyCallsigns.size() );
     std::iota( callsigns.begin(), callsigns.end(), 0 );
     std::shuffle( callsigns.begin(), callsigns.end(), Random{ std::random_device()() } );
 
@@ -35,15 +36,19 @@ GameScene::GameScene( const CreateInfo& ci ) noexcept
     } );
 }
 
-void GameScene::render( const RenderContext& rctx )
+void GameScene::render( RenderContext rctx )
 {
     ZoneScoped;
+    auto rr = rctx;
+    std::tie( rctx.view, rctx.projection ) = getCameraMatrix( rctx.viewport.x / rctx.viewport.y );
+    std::tie( rctx.cameraPosition, rctx.cameraUp, std::ignore ) = getCamera();
     m_skybox.render( rctx );
     Enemy::renderAll( rctx, m_enemies );
     m_player.render( rctx );
     Explosion::renderAll( rctx, m_explosions );
     Bullet::renderAll( rctx, m_bullets, m_plasma );
     m_spacedust.render( rctx );
+    m_targeting.render( rr );
 }
 
 static void forEachQuadratic( auto& container1, auto& container2, auto&& fn )
@@ -54,11 +59,13 @@ static void forEachQuadratic( auto& container1, auto& container2, auto&& fn )
         fn( i, j );
 }
 
-void GameScene::update( const UpdateContext& uctx )
+void GameScene::update( UpdateContext uctx )
 {
     ZoneScoped;
     if ( m_pause ) [[unlikely]] return;
 
+    auto sgs = signals();
+    uctx.signals = sgs;
     m_look.setTarget( m_playerInput.lookAt ? 1.0f : 0.0f );
     m_look.update( uctx.deltaTime );
     m_player.setInput( m_playerInput );
@@ -117,6 +124,9 @@ void GameScene::update( const UpdateContext& uctx )
     std::erase_if( m_enemies, extraExplosions );
     std::ranges::for_each( m_enemies, [this]( Enemy& e ) { e.shoot( m_bullets ); } );
 
+    m_targeting.setSignals( std::move( sgs ) );
+    m_targeting.setTarget( m_player.target(), m_player.targetingState() );
+    m_targeting.update( uctx );
 
     auto soundsToPlay = m_player.shoot( m_bullets );
     for ( auto&& s : soundsToPlay ) { if ( s ) m_audio->play( s, Audio::Channel::eSFX ); }

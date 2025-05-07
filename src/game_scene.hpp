@@ -9,6 +9,7 @@
 #include "space_dust.hpp"
 #include "update_context.hpp"
 #include "game_action.hpp"
+#include "targeting.hpp"
 
 #include <audio/audio.hpp>
 #include <renderer/texture.hpp>
@@ -21,6 +22,7 @@ class GameScene {
     bool m_pause = true;
     Skybox m_skybox{};
     Player m_player{};
+    Targeting m_targeting{};
     std::pmr::vector<Bullet> m_bullets{};
     std::pmr::vector<Explosion> m_explosions{};
     std::pmr::vector<Enemy> m_enemies{};
@@ -40,7 +42,7 @@ public:
         Texture plasma{};
         Model* enemyModel{};
         WeaponCreateInfo enemyWeapon{};
-        size_t enemyCallsignCount{};
+        std::span<const csg::Callsign> enemyCallsigns{};
         Player::CreateInfo player{};
     };
 
@@ -48,8 +50,8 @@ public:
     GameScene() noexcept = default;
     GameScene( const CreateInfo& ) noexcept;
 
-    void render( const RenderContext& );
-    void update( const UpdateContext& );
+    void render( RenderContext );
+    void update( UpdateContext );
     void onAction( input::Action );
 
     std::pmr::vector<Explosion>& explosions();

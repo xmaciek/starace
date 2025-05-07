@@ -391,10 +391,6 @@ void Game::setupUI()
         .uiSlice = m_uiAtlas[ "background"_hash ] / m_uiAtlas.extent(),
     } };
     m_menuScene.setModel( &m_jetsContainer[ 0 ].model );
-    Targeting::CreateInfo tci{
-        .callsigns = m_callsigns,
-    };
-    m_targeting = Targeting{ tci };
 }
 
 ui::Screen* Game::currentScreen()
@@ -415,19 +411,11 @@ void Game::onRender( Renderer* renderer )
         .camera3d = projection * view,
         .viewport = { width, height },
     };
-    const ui::RenderContext r{
-        .renderer = rctx.renderer,
-        .model = rctx.model,
-        .view = rctx.view,
-        .projection = rctx.projection,
-        .colorMain = color::dodgerBlue,
-        .colorFocus = color::lightSkyBlue,
-    };
 
     switch ( screen->scene() ) {
     case "gameplay"_hash:
     case "pause"_hash:
-        renderGameScreen( rctx );
+        m_gameScene.render( rctx );
         break;
     case "menu"_hash:
         m_menuScene.render( rctx );
@@ -438,6 +426,14 @@ void Game::onRender( Renderer* renderer )
         break;
     }
 
+    const ui::RenderContext r{
+        .renderer = rctx.renderer,
+        .model = rctx.model,
+        .view = rctx.view,
+        .projection = rctx.projection,
+        .colorMain = color::dodgerBlue,
+        .colorFocus = color::lightSkyBlue,
+    };
     screen->render( r );
     if ( screen->scene() == 0 ) [[unlikely]] return;
 
@@ -501,13 +497,7 @@ void Game::updateGame( UpdateContext& updateContext )
         return;
     }
 
-    auto signals = m_gameScene.signals();
-    updateContext.signals = signals;
     m_gameScene.update( updateContext );
-
-    m_targeting.setSignals( std::move( signals ) );
-    m_targeting.setTarget( m_gameScene.player().target(), m_gameScene.player().targetingState() );
-    m_targeting.update( updateContext );
     m_gameplayUIData.m_playerHP = static_cast<float>( m_gameScene.player().health() ) / 100.0f;
     const math::vec2 reloadState = m_gameScene.player().reloadState();
     m_gameplayUIData.m_playerReloadPrimary = reloadState.x;
@@ -530,7 +520,7 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
         .plasma = m_plasma,
         .enemyModel = &m_enemyModel,
         .enemyWeapon = m_enemyWeapon,
-        .enemyCallsignCount = m_callsigns.size(),
+        .enemyCallsigns = m_callsigns,
         .player = Player::CreateInfo{
             .model = modelData.model,
             .weapons{ w1, w2, w1 },
@@ -836,21 +826,6 @@ void Game::onMouseEvent( const MouseEvent& mouseEvent )
         screen->refreshInput();
     }
     screen->onMouseEvent( mouseEvent );
-}
-
-void Game::renderGameScreen( RenderContext rctx )
-{
-    render3D( rctx );
-    m_targeting.render( rctx );
-}
-
-void Game::render3D( RenderContext rctx )
-{
-    std::tie( rctx.view, rctx.projection ) = m_gameScene.getCameraMatrix( viewportAspect() );
-    std::tie( rctx.cameraPosition, rctx.cameraUp, std::ignore ) = m_gameScene.getCamera();
-
-    m_gameScene.render( rctx );
-
 }
 
 void Game::onActuator( input::Actuator a )

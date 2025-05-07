@@ -7,7 +7,6 @@
 #include "map_create_info.hpp"
 #include "model_proto.hpp"
 #include "space_dust.hpp"
-#include "targeting.hpp"
 #include "texture.hpp"
 
 #include <config/config.hpp>
@@ -68,8 +67,6 @@ private:
     Texture m_plasma{};
     std::pmr::vector<csg::Callsign> m_callsigns{};
 
-    Targeting m_targeting{};
-
     ui::GenericDataModel m_dataMissionSelect{};
 
     GameSettings m_gameSettings{};
@@ -109,10 +106,6 @@ private:
     ui::Screen* currentScreen();
 
     void setupUI();
-
-    // purposefully copy argument
-    void render3D( RenderContext );
-    void renderGameScreen( RenderContext );
 
     void updateGame( UpdateContext& );
 

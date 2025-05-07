@@ -17,7 +17,7 @@
 class Targeting {
     AutoLerp<float> m_state{ 0.0f, 1.0f, 6.0f/*4.0f*/ };
     std::pmr::vector<Signal> m_signals{};
-    std::span<csg::Callsign> m_callsigns{};
+    std::span<const csg::Callsign> m_callsigns{};
     std::array<math::vec4, 4> m_xyuvTarget{};
     std::array<math::vec4, 4> m_xyuvTarget2{};
     std::array<math::vec4, 4> m_xyuvReticle{};
@@ -27,7 +27,7 @@ class Targeting {
 
 public:
     struct CreateInfo {
-        std::span<csg::Callsign> callsigns{};
+        std::span<const csg::Callsign> callsigns{};
     };
 
     Targeting() noexcept = default;
