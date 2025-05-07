@@ -437,13 +437,19 @@ void Game::onRender( Renderer* renderer )
     screen->render( r );
     if ( screen->scene() == 0 ) [[unlikely]] return;
 
-    const PushConstant<Pipeline::eGammaCorrection> pushConstant{
-        .m_power = m_gameSettings.gamma,
-    };
+    switch ( m_gameSettings.antialias ) {
+    case AntiAlias::eFXAA:
+    case AntiAlias::eVRSAA: {
+        const PushConstant<Pipeline::eAntiAliasFXAA> aa{};
+        const DispatchInfo daa{ .m_pipeline = g_pipelines[ Pipeline::eAntiAliasFXAA ] };
+        rctx.renderer->dispatch( daa, &aa );
+    } break;
+    default:
+        break;
+    }
 
-    const DispatchInfo dispatchInfo{
-        .m_pipeline = g_pipelines[ Pipeline::eGammaCorrection ],
-    };
+    const PushConstant<Pipeline::eGammaCorrection> gp{ .m_power = m_gameSettings.gamma, };
+    const DispatchInfo dispatchInfo{ .m_pipeline = g_pipelines[ Pipeline::eGammaCorrection ], };
     m_renderer->dispatch( dispatchInfo, &pushConstant );
 }
 
@@ -841,16 +847,6 @@ void Game::render3D( RenderContext rctx )
 
     m_gameScene.render( rctx );
 
-    switch ( m_gameSettings.antialias ) {
-    case AntiAlias::eFXAA:
-    case AntiAlias::eVRSAA: {
-        const PushConstant<Pipeline::eAntiAliasFXAA> aa{};
-        const DispatchInfo daa{ .m_pipeline = g_pipelines[ Pipeline::eAntiAliasFXAA ] };
-        rctx.renderer->dispatch( daa, &aa );
-    } break;
-    default:
-        break;
-    }
 }
 
 void Game::renderBackground( ui::RenderContext rctx ) const
@@ -897,17 +893,6 @@ void Game::renderMenuScreen( RenderContext rctx, ui::RenderContext r ) const
     auto& jet = m_jetsContainer[ m_currentJet ].model;
     jet.render( rctx );
     m_dustUi.render( rctx );
-
-    switch ( m_gameSettings.antialias ) {
-    case AntiAlias::eFXAA:
-    case AntiAlias::eVRSAA: {
-        const PushConstant<Pipeline::eAntiAliasFXAA> aa{};
-        const DispatchInfo daa{ .m_pipeline = g_pipelines[ Pipeline::eAntiAliasFXAA ] };
-        rctx.renderer->dispatch( daa, &aa );
-    } break;
-    default:
-        break;
-    }
 }
 
 void Game::onActuator( input::Actuator a )
