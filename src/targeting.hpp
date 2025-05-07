@@ -27,9 +27,6 @@ class Targeting {
 
 public:
     struct CreateInfo {
-        std::array<Hash::value_type, 4> targetSprites{};
-        std::array<Hash::value_type, 4> targetSprites2{};
-        std::array<Hash::value_type, 4> reticleSprites{};
         std::span<csg::Callsign> callsigns{};
     };
 

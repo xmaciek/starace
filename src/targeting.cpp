@@ -12,6 +12,27 @@
 
 #include <array>
 
+static constexpr std::array targetSprites{
+    "reticle.t.topleft"_hash,
+    "reticle.t.topright"_hash,
+    "reticle.t.botleft"_hash,
+    "reticle.t.botright"_hash,
+};
+
+static constexpr std::array targetSprites2{
+    "reticle.t.up"_hash,
+    "reticle.t.down"_hash,
+    "reticle.t.left"_hash,
+    "reticle.t.right"_hash,
+};
+
+static constexpr std::array reticleSprites{
+    "reticle.r.topleft"_hash,
+    "reticle.r.topright"_hash,
+    "reticle.r.botleft"_hash,
+    "reticle.r.botright"_hash,
+};
+
 Targeting::Targeting( const Targeting::CreateInfo& ci )
 : m_callsigns{ ci.callsigns }
 {
@@ -20,9 +41,9 @@ Targeting::Targeting( const Targeting::CreateInfo& ci )
     {
         return std::get<0>( g_uiProperty.sprite( hash ) );
     };
-    std::transform( ci.targetSprites.begin(), ci.targetSprites.end(), m_xyuvTarget.begin(), unpack );
-    std::transform( ci.targetSprites2.begin(), ci.targetSprites2.end(), m_xyuvTarget2.begin(), unpack );
-    std::transform( ci.reticleSprites.begin(), ci.reticleSprites.end(), m_xyuvReticle.begin(), unpack );
+    std::ranges::transform( targetSprites, m_xyuvTarget.begin(), unpack );
+    std::ranges::transform( targetSprites2, m_xyuvTarget2.begin(), unpack );
+    std::ranges::transform( reticleSprites, m_xyuvReticle.begin(), unpack );
 }
 
 void Targeting::render( const RenderContext& rctx ) const

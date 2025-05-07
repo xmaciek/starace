@@ -388,24 +388,6 @@ void Game::setupUI()
     m_screens.emplace_back( m_io->viewWait( "ui/mainmenu.ui" ) );
 
     Targeting::CreateInfo tci{
-        .targetSprites{
-            "reticle.t.topleft"_hash,
-            "reticle.t.topright"_hash,
-            "reticle.t.botleft"_hash,
-            "reticle.t.botright"_hash,
-        },
-        .targetSprites2{
-            "reticle.t.up"_hash,
-            "reticle.t.down"_hash,
-            "reticle.t.left"_hash,
-            "reticle.t.right"_hash,
-        },
-        .reticleSprites{
-            "reticle.r.topleft"_hash,
-            "reticle.r.topright"_hash,
-            "reticle.r.botleft"_hash,
-            "reticle.r.botright"_hash,
-        },
         .callsigns = m_callsigns,
     };
     m_targeting = Targeting{ tci };
