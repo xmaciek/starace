@@ -96,9 +96,18 @@ Instance::Instance( std::pmr::vector<const char*> extensions ) noexcept
         platform::showFatalError( "Fatal Error", "Failed to find vkGetInstanceProcAddr in vulkan library" );
     }
 
+    auto makeErrorMessage = [libName]( auto name )
+    {
+        std::string ret{ "Failed to find " };
+        ret.append( name );
+        ret.append( " in " );
+        ret.append( libName );
+        ret.append( " library" );
+        return ret;
+    };
 #define GET_PROC( name ) \
     if ( name = reinterpret_cast<PFN_##name>( procAddr( #name ) ); !name ) \
-        platform::showFatalError( "Fatal Error", "Failed to find " #name " in vulkan library" )
+        platform::showFatalError( "Fatal Error", makeErrorMessage( #name ) )
 #define GET_PROC_OPTIONAL( name ) name = reinterpret_cast<PFN_##name>( procAddr( #name ) );
 
     GET_PROC( vkCreateInstance );
