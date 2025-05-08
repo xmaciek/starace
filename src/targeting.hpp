@@ -23,7 +23,6 @@ class Targeting {
     std::array<math::vec4, 4> m_xyuvReticle{};
     Signal m_targetSignal{};
     Texture m_texture{};
-    bool m_enabled = true;
 
 public:
     struct CreateInfo {
@@ -34,9 +33,7 @@ public:
     Targeting( const CreateInfo& );
 
     void render( const RenderContext& ) const;
-    void hide();
     void update( const UpdateContext& );
     void setSignals( std::pmr::vector<Signal>&& );
     void setTarget( Signal, float );
-    inline operator bool () const { return m_enabled; }
 };

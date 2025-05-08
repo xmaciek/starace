@@ -48,10 +48,6 @@ Targeting::Targeting( const Targeting::CreateInfo& ci )
 
 void Targeting::render( const RenderContext& rctx ) const
 {
-    if ( !m_enabled ) {
-        return;
-    }
-
     PushData pushData{
         .m_pipeline = g_uiProperty.pipelineSpriteSequenceColors(),
         .m_verticeCount = 6,
@@ -155,11 +151,6 @@ void Targeting::render( const RenderContext& rctx ) const
 void Targeting::setSignals( std::pmr::vector<Signal>&& vec )
 {
     m_signals = std::move( vec );
-}
-
-void Targeting::hide()
-{
-    m_enabled = false;
 }
 
 void Targeting::update( const UpdateContext& uctx )
