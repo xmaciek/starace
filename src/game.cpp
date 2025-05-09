@@ -419,7 +419,7 @@ void Game::onRender( Renderer* renderer )
         m_gameScene.render( rctx );
         break;
     case "menu"_hash:
-        m_menuScene.render( rctx );
+        m_menuScene.render( renderer, math::vec2{ width, height } );
         break;
     case 0: break;
     default:

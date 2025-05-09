@@ -23,6 +23,6 @@ public:
 
     inline void setModel( Model* m ) { m_model = m; }
     void update( const UpdateContext& );
-    void render( RenderContext ) const;
+    void render( Renderer* renderer, math::vec2 viewport ) const;
 
 };

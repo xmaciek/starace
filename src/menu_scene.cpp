@@ -3,6 +3,7 @@
 #include "units.hpp"
 #include "colors.hpp"
 #include "game_pipeline.hpp"
+#include <engine/math.hpp>
 
 #include <profiler.hpp>
 
@@ -16,11 +17,11 @@ MenuScene::MenuScene( const CreateInfo& ci )
     m_spaceDust.setLineWidth( 2.0f );
 }
 
-void MenuScene::render( RenderContext rctx ) const
+void MenuScene::render( Renderer* renderer, math::vec2 viewport ) const
 {
     ZoneScoped;
-    const float w = rctx.viewport.x;
-    const float h = rctx.viewport.y;
+    const float w = viewport.x;
+    const float h = viewport.y;
     const float a = w / h;
     const math::vec2 uv = math::vec2{ w, h } / m_uiAtlasExtent;
 
@@ -31,9 +32,9 @@ void MenuScene::render( RenderContext rctx ) const
     pushBuffer.m_fragmentTexture[ 1 ] = m_uiAtlasTexture;
 
     PushConstant<Pipeline::eBackground> pushConstant{
-        .m_model = rctx.model,
-        .m_view = rctx.view,
-        .m_projection = rctx.projection,
+        .m_model = math::mat4( 1 ),
+        .m_view = math::mat4( 1 ),
+        .m_projection = math::ortho( 0.0f, w, 0.0f, h, -1.0f, 1.0f ),
         .m_color = color::dodgerBlue,
         .m_uvSlice = m_uiSlice,
         .m_xyuv{
@@ -43,18 +44,17 @@ void MenuScene::render( RenderContext rctx ) const
             math::vec4{ w, 0, uv.x, 0 }
         },
     };
-    rctx.renderer->push( pushBuffer, &pushConstant );
+    renderer->push( pushBuffer, &pushConstant );
 
-    assert( m_model );
-    rctx.projection = math::perspective(
-        55.0_deg
-        , a
-        , 0.001f
-        , 2000.0f
-    );
     const math::vec3 cameraPos = math::normalize( math::vec3{ -4, -3, -3 } ) * 24.0_m;
-    rctx.view = math::lookAt( cameraPos, math::vec3{}, math::vec3{ 0, 1, 0 } );
 
+    RenderContext rctx{
+        .renderer = renderer,
+        .view = math::lookAt( cameraPos, math::vec3{}, math::vec3{ 0, 1, 0 } ),
+        .projection = math::perspective( 55.0_deg, a, 0.001f, 2000.0f ),
+        .viewport = viewport,
+    };
+    assert( m_model );
     m_model->render( rctx );
     m_spaceDust.render( rctx );
 }
