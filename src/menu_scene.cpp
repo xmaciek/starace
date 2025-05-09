@@ -17,7 +17,7 @@ MenuScene::MenuScene( const CreateInfo& ci )
     m_spaceDust.setLineWidth( 2.0f );
 }
 
-void MenuScene::render( Renderer* renderer, math::vec2 viewport ) const
+void MenuScene::render( Renderer* renderer, math::vec2 viewport )
 {
     ZoneScoped;
     const float w = viewport.x;

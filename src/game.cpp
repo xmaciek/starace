@@ -405,18 +405,10 @@ void Game::onRender( Renderer* renderer )
     if ( !screen ) [[unlikely]] return;
 
     const auto [ width, height, aspect ] = viewport();
-    const auto [ view, projection ] = m_gameScene.getCameraMatrix( aspect );
-    RenderContext rctx{
-        .renderer = renderer,
-        .projection = math::ortho( 0.0f, static_cast<float>( width ), 0.0f, static_cast<float>( height ), -100.0f, 100.0f ),
-        .camera3d = projection * view,
-        .viewport = { width, height },
-    };
-
     switch ( screen->scene() ) {
     case "gameplay"_hash:
     case "pause"_hash:
-        m_gameScene.render( rctx );
+        m_gameScene.render( renderer, math::vec2{ width, height } );
         break;
     case "menu"_hash:
         m_menuScene.render( renderer, math::vec2{ width, height } );

@@ -50,7 +50,7 @@ public:
     GameScene() noexcept = default;
     GameScene( const CreateInfo& ) noexcept;
 
-    void render( RenderContext );
+    void render( Renderer*, math::vec2 viewport );
     void update( UpdateContext );
     void onAction( input::Action );
 

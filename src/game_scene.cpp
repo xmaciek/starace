@@ -36,11 +36,18 @@ GameScene::GameScene( const CreateInfo& ci ) noexcept
     } );
 }
 
-void GameScene::render( RenderContext rctx )
+void GameScene::render( Renderer* renderer, math::vec2 viewport )
 {
     ZoneScoped;
+    RenderContext rctx{
+        .renderer = renderer,
+        .projection = math::ortho( 0.0f, viewport.x, 0.0f, viewport.y, -100.0f, 100.0f ),
+        .viewport = viewport,
+    };
     auto rr = rctx;
-    std::tie( rctx.view, rctx.projection ) = getCameraMatrix( rctx.viewport.x / rctx.viewport.y );
+    std::tie( rctx.view, rctx.projection ) = getCameraMatrix( viewport.x / viewport.y );
+    rctx.camera3d = rctx.projection * rctx.view;
+    rr.camera3d = rctx.camera3d;
     std::tie( rctx.cameraPosition, rctx.cameraUp, std::ignore ) = getCamera();
     m_skybox.render( rctx );
     Enemy::renderAll( rctx, m_enemies );
