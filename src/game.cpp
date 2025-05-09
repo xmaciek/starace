@@ -427,15 +427,7 @@ void Game::onRender( Renderer* renderer )
         break;
     }
 
-    const ui::RenderContext r{
-        .renderer = rctx.renderer,
-        .model = rctx.model,
-        .view = rctx.view,
-        .projection = rctx.projection,
-        .colorMain = color::dodgerBlue,
-        .colorFocus = color::lightSkyBlue,
-    };
-    screen->render( r );
+    screen->render( renderer, math::vec2( width, height ) );
     if ( screen->scene() == 0 ) [[unlikely]] return;
 
     switch ( m_gameSettings.antialias ) {

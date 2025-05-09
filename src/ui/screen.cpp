@@ -262,13 +262,19 @@ Screen::Screen( std::span<const uint8_t> fileContent ) noexcept
     }
 }
 
-void Screen::render( const RenderContext& rctx ) const
+void Screen::render( Renderer* renderer, math::vec2 viewport ) const
 {
     ZoneScoped;
+    ui::RenderContext rctx{
+        .renderer = renderer,
+        .projection = math::ortho( 0.0f, viewport.x, 0.0f, viewport.y, -1.0f, 1.0f ),
+        .colorMain{ 0.118f, 0.565f, 1.0f, 1.0f },
+        .colorFocus{ 0.529f, 0.807f, 0.98f, 1.0f },
+    };
+
     if ( m_glow ) m_glow->render( rctx );
-    auto r = rctx;
-    r.projection = math::ortho( 0.0f, m_viewport.x, 0.0f, m_viewport.y, -1.0f, 1.0f );
-    const math::mat4 view = math::translate( r.view, math::vec3{ m_offset.x, m_offset.y, 0.0f } );
+    rctx.projection = math::ortho( 0.0f, m_viewport.x, 0.0f, m_viewport.y, -1.0f, 1.0f );
+    const math::mat4 view = math::translate( rctx.view, math::vec3{ m_offset.x, m_offset.y, 0.0f } );
 
     auto startPosistionForWidget = []( const auto& wgt, float viewportX, float extentX )
     {
@@ -281,12 +287,12 @@ void Screen::render( const RenderContext& rctx ) const
     for ( const auto& it : m_widgets ) {
         const float startPos = startPosistionForWidget( it, m_viewport.x, m_extent.x );
         const float animX = math::nonlerp( startPos, 0.0f, m_anim );
-        r.view = math::translate( view, math::vec3{ animX, 0.0f, 0.0f } );
-        it->onRender( r );
+        rctx.view = math::translate( view, math::vec3{ animX, 0.0f, 0.0f } );
+        it->onRender( rctx );
     }
 
-    if ( m_footer ) m_footer->onRender( r );
-    if ( m_modalWidget ) m_modalWidget->onRender( r );
+    if ( m_footer ) m_footer->onRender( rctx );
+    if ( m_modalWidget ) m_modalWidget->onRender( rctx );
 }
 
 void Screen::updateInputRepeat( float dt )

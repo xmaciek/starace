@@ -65,7 +65,7 @@ public:
     void onAction( ui::Action );
     void onMouseEvent( const MouseEvent& );
     void update( const UpdateContext& );
-    void render( const RenderContext& ) const;
+    void render( Renderer*, math::vec2 viewport ) const;
     void resize( math::vec2 );
 
     inline Hash::value_type name() const { return m_name; }
