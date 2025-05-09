@@ -402,6 +402,7 @@ void Game::onRender( Renderer* renderer )
 {
     ui::Screen* screen = currentScreen();
     assert( screen );
+    if ( !screen ) [[unlikely]] return;
 
     const auto [ width, height, aspect ] = viewport();
     const auto [ view, projection ] = m_gameScene.getCameraMatrix( aspect );
@@ -442,7 +443,7 @@ void Game::onRender( Renderer* renderer )
     case AntiAlias::eVRSAA: {
         const PushConstant<Pipeline::eAntiAliasFXAA> aa{};
         const DispatchInfo daa{ .m_pipeline = g_pipelines[ Pipeline::eAntiAliasFXAA ] };
-        rctx.renderer->dispatch( daa, &aa );
+        renderer->dispatch( daa, &aa );
     } break;
     default:
         break;
@@ -450,7 +451,7 @@ void Game::onRender( Renderer* renderer )
 
     const PushConstant<Pipeline::eGammaCorrection> gp{ .m_power = m_gameSettings.gamma, };
     const DispatchInfo dispatchInfo{ .m_pipeline = g_pipelines[ Pipeline::eGammaCorrection ], };
-    m_renderer->dispatch( dispatchInfo, &gp );
+    renderer->dispatch( dispatchInfo, &gp );
 }
 
 void Game::onUpdate( float deltaTime )
