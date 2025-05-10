@@ -268,50 +268,50 @@ void Game::setupUI()
     m_optionsAudio.settings2ui( m_gameSettings );
     m_optionsGame.settings2ui( m_gameSettings );
 
-    m_gameUiDataModels.insert( "$data:settings.display.fullscreen"_hash, &m_optionsGFX.m_fullscreenUI );
-    m_gameUiDataModels.insert( "$data:settings.display.gamma"_hash, &m_optionsGFX.m_gammaUI );
-    m_gameUiDataModels.insert( "$data:settings.display.resolution"_hash, &m_optionsGFX.m_resolutionUI );
-    m_gameUiDataModels.insert( "$data:settings.display.vsync"_hash, &m_optionsGFX.m_vsyncUI );
-    m_gameUiDataModels.insert( "$data:settings.display.antialias"_hash, &m_optionsGFX.m_antialiasUI );
-    m_gameUiDataModels.insert( "$data:settings.display.fpsLimiter"_hash, &m_optionsGFX.m_fpsLimiterUI );
-    m_gameUiDataModels.insert( "$data:settings.audio.driver"_hash, &m_optionsAudio.m_driverNameUI );
-    m_gameUiDataModels.insert( "$data:settings.audio.device"_hash, &m_optionsAudio.m_deviceNameUI );
-    m_gameUiDataModels.insert( "$data:settings.audio.master"_hash, &m_optionsAudio.m_masterUI );
-    m_gameUiDataModels.insert( "$data:settings.audio.ui"_hash, &m_optionsAudio.m_uiUI );
-    m_gameUiDataModels.insert( "$data:settings.audio.sfx"_hash, &m_optionsAudio.m_sfxUI );
-    m_gameUiDataModels.insert( "$data:settings.game.language"_hash, &m_optionsGame.m_languageUI );
-    m_gameUiDataModels.insert( "$data:weaponPrimary"_hash, &m_optionsCustomize.m_weaponPrimary );
-    m_gameUiDataModels.insert( "$data:weaponSecondary"_hash, &m_optionsCustomize.m_weaponSecondary );
-    m_gameUiDataModels.insert( "$data:jet"_hash, &m_optionsCustomize.m_jet );
-    m_gameUiDataModels.insert( "$data:missionSelect"_hash, &m_dataMissionSelect );
-    m_gameUiDataModels.insert( "$var:playerHP"_hash, &m_gameplayUIData.m_playerHP );
-    m_gameUiDataModels.insert( "$var:playerReloadPrimary"_hash, &m_gameplayUIData.m_playerReloadPrimary );
-    m_gameUiDataModels.insert( "$var:playerWeaponPrimaryCount"_hash, &m_gameplayUIData.m_playerWeaponPrimaryCount );
-    m_gameUiDataModels.insert( "$var:playerWeaponSecondaryCount"_hash, &m_gameplayUIData.m_playerWeaponSecondaryCount );
-    m_gameUiDataModels.insert( "$var:playerReloadSecondary"_hash, &m_gameplayUIData.m_playerReloadSecondary );
-    m_gameUiDataModels.insert( "$var:playerWeaponPrimary"_hash, &m_gameplayUIData.m_playerWeaponIconPrimary );
-    m_gameUiDataModels.insert( "$var:playerWeaponSecondary"_hash, &m_gameplayUIData.m_playerWeaponIconSecondary );
-    m_gameUiDataModels.insert( "$var:jetSpeed"_hash, &m_gameplayUIData.m_jetSpeed );
-    m_gameUiDataModels.insert( "$var:missionResult"_hash, &m_uiMissionResult );
-    m_gameUiDataModels.insert( "$var:missionScore"_hash, &m_uiMissionScore );
-    m_gameCallbacks.insert( "$function:goto_missionBriefing"_hash,  [this](){ changeScreen( "missionBriefing"_hash, m_click ); } );
-    m_gameCallbacks.insert( "$function:goto_newgame"_hash, [this](){ changeScreen( "missionSelect"_hash, m_click ); } );
-    m_gameCallbacks.insert( "$function:goto_customize"_hash, [this](){ changeScreen( "customize"_hash, m_click ); } );
-    m_gameCallbacks.insert( "$function:goto_titlemenu"_hash, [this](){ changeScreen( "mainMenu"_hash, m_click ); } );
-    m_gameCallbacks.insert( "$function:goto_settings"_hash, [this](){ changeScreen( "settings"_hash, m_click ); } );
-    m_gameCallbacks.insert( "$function:goto_settings_display"_hash, [this](){ changeScreen( "settings.display"_hash, m_click ); } );
-    m_gameCallbacks.insert( "$function:goto_settings_audio"_hash, [this](){ changeScreen( "settings.audio"_hash, m_click ); } );
-    m_gameCallbacks.insert( "$function:goto_settings_game"_hash, [this](){ changeScreen( "settings.game"_hash, m_click ); } );
-    m_gameCallbacks.insert( "$function:quit"_hash, [this](){ quit(); } );
-    m_gameCallbacks.insert( "$function:resume"_hash, [this]{ changeScreen( "gameplay"_hash, m_click ); m_gameScene.setPause( false ); } );
-    m_gameCallbacks.insert( "$function:applyDisplay"_hash, [this]()
+    g_uiProperty.addDataModel( "$data:settings.display.fullscreen"_hash, &m_optionsGFX.m_fullscreenUI );
+    g_uiProperty.addDataModel( "$data:settings.display.gamma"_hash, &m_optionsGFX.m_gammaUI );
+    g_uiProperty.addDataModel( "$data:settings.display.resolution"_hash, &m_optionsGFX.m_resolutionUI );
+    g_uiProperty.addDataModel( "$data:settings.display.vsync"_hash, &m_optionsGFX.m_vsyncUI );
+    g_uiProperty.addDataModel( "$data:settings.display.antialias"_hash, &m_optionsGFX.m_antialiasUI );
+    g_uiProperty.addDataModel( "$data:settings.display.fpsLimiter"_hash, &m_optionsGFX.m_fpsLimiterUI );
+    g_uiProperty.addDataModel( "$data:settings.audio.driver"_hash, &m_optionsAudio.m_driverNameUI );
+    g_uiProperty.addDataModel( "$data:settings.audio.device"_hash, &m_optionsAudio.m_deviceNameUI );
+    g_uiProperty.addDataModel( "$data:settings.audio.master"_hash, &m_optionsAudio.m_masterUI );
+    g_uiProperty.addDataModel( "$data:settings.audio.ui"_hash, &m_optionsAudio.m_uiUI );
+    g_uiProperty.addDataModel( "$data:settings.audio.sfx"_hash, &m_optionsAudio.m_sfxUI );
+    g_uiProperty.addDataModel( "$data:settings.game.language"_hash, &m_optionsGame.m_languageUI );
+    g_uiProperty.addDataModel( "$data:weaponPrimary"_hash, &m_optionsCustomize.m_weaponPrimary );
+    g_uiProperty.addDataModel( "$data:weaponSecondary"_hash, &m_optionsCustomize.m_weaponSecondary );
+    g_uiProperty.addDataModel( "$data:jet"_hash, &m_optionsCustomize.m_jet );
+    g_uiProperty.addDataModel( "$data:missionSelect"_hash, &m_dataMissionSelect );
+    g_uiProperty.addDataModel( "$var:playerHP"_hash, &m_gameplayUIData.m_playerHP );
+    g_uiProperty.addDataModel( "$var:playerReloadPrimary"_hash, &m_gameplayUIData.m_playerReloadPrimary );
+    g_uiProperty.addDataModel( "$var:playerWeaponPrimaryCount"_hash, &m_gameplayUIData.m_playerWeaponPrimaryCount );
+    g_uiProperty.addDataModel( "$var:playerWeaponSecondaryCount"_hash, &m_gameplayUIData.m_playerWeaponSecondaryCount );
+    g_uiProperty.addDataModel( "$var:playerReloadSecondary"_hash, &m_gameplayUIData.m_playerReloadSecondary );
+    g_uiProperty.addDataModel( "$var:playerWeaponPrimary"_hash, &m_gameplayUIData.m_playerWeaponIconPrimary );
+    g_uiProperty.addDataModel( "$var:playerWeaponSecondary"_hash, &m_gameplayUIData.m_playerWeaponIconSecondary );
+    g_uiProperty.addDataModel( "$var:jetSpeed"_hash, &m_gameplayUIData.m_jetSpeed );
+    g_uiProperty.addDataModel( "$var:missionResult"_hash, &m_uiMissionResult );
+    g_uiProperty.addDataModel( "$var:missionScore"_hash, &m_uiMissionScore );
+    g_uiProperty.addCallback( "$function:goto_missionBriefing"_hash,  [this](){ changeScreen( "missionBriefing"_hash, m_click ); } );
+    g_uiProperty.addCallback( "$function:goto_newgame"_hash, [this](){ changeScreen( "missionSelect"_hash, m_click ); } );
+    g_uiProperty.addCallback( "$function:goto_customize"_hash, [this](){ changeScreen( "customize"_hash, m_click ); } );
+    g_uiProperty.addCallback( "$function:goto_titlemenu"_hash, [this](){ changeScreen( "mainMenu"_hash, m_click ); } );
+    g_uiProperty.addCallback( "$function:goto_settings"_hash, [this](){ changeScreen( "settings"_hash, m_click ); } );
+    g_uiProperty.addCallback( "$function:goto_settings_display"_hash, [this](){ changeScreen( "settings.display"_hash, m_click ); } );
+    g_uiProperty.addCallback( "$function:goto_settings_audio"_hash, [this](){ changeScreen( "settings.audio"_hash, m_click ); } );
+    g_uiProperty.addCallback( "$function:goto_settings_game"_hash, [this](){ changeScreen( "settings.game"_hash, m_click ); } );
+    g_uiProperty.addCallback( "$function:quit"_hash, [this](){ quit(); } );
+    g_uiProperty.addCallback( "$function:resume"_hash, [this]{ changeScreen( "gameplay"_hash, m_click ); m_gameScene.setPause( false ); } );
+    g_uiProperty.addCallback( "$function:applyDisplay"_hash, [this]()
     {
         if ( !m_optionsGFX.hasChanges( m_gameSettings ) ) return;
         m_optionsGFX.ui2settings( m_gameSettings );
         m_saveSystem->save( 0, m_gameSettings );
         applyDisplay();
     });
-    m_gameCallbacks.insert( "$function:exitDisplay"_hash, [this]()
+    g_uiProperty.addCallback( "$function:exitDisplay"_hash, [this]()
     {
         if ( !m_optionsGFX.hasChanges( m_gameSettings ) ) return changeScreen( "settings"_hash, m_click );
         auto* screen = currentScreen();
@@ -326,14 +326,14 @@ void Game::setupUI()
         msg->addButton( "no"_hash, ui::Action::eMenuCancel, [screen]() { screen->addModalWidget( {} ); } );
         screen->addModalWidget( std::move( msg ) );
     });
-    m_gameCallbacks.insert( "$function:applyAudio"_hash, [this]()
+    g_uiProperty.addCallback( "$function:applyAudio"_hash, [this]()
     {
         if ( !m_optionsAudio.hasChanges( m_gameSettings ) ) return;
         m_optionsAudio.ui2settings( m_gameSettings );
         m_saveSystem->save( 0, m_gameSettings );
         applyAudio();
     } );
-    m_gameCallbacks.insert( "$function:exitAudio"_hash, [this]()
+    g_uiProperty.addCallback( "$function:exitAudio"_hash, [this]()
     {
         if ( !m_optionsAudio.hasChanges( m_gameSettings ) ) return changeScreen( "settings"_hash, m_click );
         auto* screen = currentScreen();
@@ -348,14 +348,14 @@ void Game::setupUI()
         msg->addButton( "no"_hash, ui::Action::eMenuCancel, [screen]() { screen->addModalWidget( {} ); } );
         screen->addModalWidget( std::move( msg ) );
     } );
-    m_gameCallbacks.insert( "$function:applyGameSettings"_hash, [this]()
+    g_uiProperty.addCallback( "$function:applyGameSettings"_hash, [this]()
     {
         if ( !m_optionsGame.hasChanges( m_gameSettings ) ) return;
         m_optionsGame.ui2settings( m_gameSettings );
         m_saveSystem->save( 0, m_gameSettings );
         applyGameSettings();
     });
-    m_gameCallbacks.insert( "$function:exitGameSettings"_hash, [this]()
+    g_uiProperty.addCallback( "$function:exitGameSettings"_hash, [this]()
     {
         if ( !m_optionsGame.hasChanges( m_gameSettings ) ) return changeScreen( "settings"_hash, m_click );
         auto* screen = currentScreen();
@@ -370,9 +370,6 @@ void Game::setupUI()
         msg->addButton( "no"_hash, ui::Action::eMenuCancel, [screen]() { screen->addModalWidget( {} ); } );
         screen->addModalWidget( std::move( msg ) );
     });
-
-    g_uiProperty.m_gameCallbacks = m_gameCallbacks.makeView();
-    g_uiProperty.m_dataModels = m_gameUiDataModels.makeView();
 
     m_screens.emplace_back( m_io->viewWait( "ui/customize.ui" ) );
     m_screens.emplace_back( m_io->viewWait( "ui/gameplay.ui" ) );

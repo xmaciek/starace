@@ -141,7 +141,7 @@ public:
         return m_currentSize;
     }
 
-    const TValue* operator [] ( const TKey& k ) const noexcept
+    const TValue* find( const TKey& k ) const noexcept
     {
         assert( std::is_sorted( keyBegin(), keyEnd() ) );
         auto it = std::lower_bound( keyBegin(), keyEnd(), k );
@@ -150,7 +150,7 @@ public:
         return valueBegin() + dist;
     }
 
-    TValue* operator [] ( const TKey& k ) noexcept
+    TValue* find( const TKey& k ) noexcept
     {
         assert( std::is_sorted( keyBegin(), keyEnd() ) );
         auto it = std::lower_bound( keyBegin(), keyEnd(), k );

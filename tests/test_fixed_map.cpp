@@ -29,25 +29,25 @@ TEST( FixedMap, find )
     fm.insert( 1, 7 );
     EXPECT_EQ( fm.size(), 3 );
     {
-        int* f = fm[ 2 ];
+        int* f = fm.find( 2 );
         ASSERT_NE( f, nullptr );
         EXPECT_EQ( *f, 6 );
     }
     {
-        int* f = fm[ 1 ];
+        int* f = fm.find( 1 );
         ASSERT_NE( f, nullptr );
         EXPECT_EQ( *f, 7 );
     }
 
     fm.pushBack( 4, 3 );
     {
-        int* f = fm[ 4 ];
+        int* f = fm.find( 4 );
         ASSERT_NE( f, nullptr );
         EXPECT_EQ( *f, 3 );
     }
     fm.insert( 3, 4 );
     {
-        int* f = fm[ 3 ];
+        int* f = fm.find( 3 );
         ASSERT_NE( f, nullptr );
         EXPECT_EQ( *f, 4 );
     }
@@ -61,7 +61,7 @@ TEST( FixedMap, notfind )
     fm.insert( 2, 6 );
     fm.insert( 1, 7 );
     EXPECT_EQ( fm.size(), 3 );
-    int* f = fm[ 3 ];
+    int* f = fm.find( 3 );
     EXPECT_EQ( f, nullptr );
 }
 
@@ -107,10 +107,10 @@ TEST( FixedMap, copy )
     fm.insert( 2, 2 );
 
     FixedMap<int, int, 2> copied = fm;
-    int* a1 = fm[ 1 ];
-    int* b1 = fm[ 2 ];
-    int* a2 = copied[ 1 ];
-    int* b2 = copied[ 2 ];
+    int* a1 = fm.find( 1 );
+    int* b1 = fm.find( 2 );
+    int* a2 = copied.find( 1 );
+    int* b2 = copied.find( 2 );
     ASSERT_NE( a1, nullptr );
     ASSERT_NE( a2, nullptr );
     ASSERT_NE( b1, nullptr );

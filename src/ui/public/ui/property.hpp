@@ -39,8 +39,8 @@ class Property {
     const Font* m_atlas = nullptr;
     std::pmr::vector<Lockit> m_lockit{};
     uint32_t m_currentLang = 0;
-    FixedMapView<Hash::value_type, ui::DataModel*> m_dataModels{};
-    FixedMapView<Hash::value_type, std::function<void()>> m_gameCallbacks{};
+    FixedMap<Hash::value_type, ui::DataModel*, 64> m_dataModels{};
+    FixedMap<Hash::value_type, std::function<void()>, 64> m_gameCallbacks{};
 
     UniquePointer<Widget> m_pendingModalWidget{};
 
@@ -94,12 +94,22 @@ public:
         return *callback;
     }
 
+    inline void addCallback( Hash::value_type h, std::function<void()>&& f )
+    {
+        m_gameCallbacks.insert( h, std::move( f ) );
+    }
+
     inline ui::DataModel* dataModel( Hash::value_type h ) const
     {
         auto dataModel = m_dataModels.find( h );
         assert( dataModel );
         assert( *dataModel );
         return *dataModel;
+    }
+
+    inline void addDataModel( Hash::value_type h, DataModel* model )
+    {
+        m_dataModels.insert( h, model );
     }
 
     inline const ui::Font* atlas() const { return m_atlas; }

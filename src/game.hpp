@@ -79,10 +79,6 @@ private:
     ui::Var<std::pmr::u32string> m_uiMissionResult{ U"BUG ME" };
     ui::Var<std::pmr::u32string> m_uiMissionScore{ U"BUG ME" };
 
-    FixedMap<Hash::value_type, ui::DataModel*, 64> m_gameUiDataModels{};
-    FixedMap<Hash::value_type, std::function<void()>, 64> m_gameCallbacks{};
-    FixedMap<Hash::value_type, std::pmr::u32string, 64> m_localizationMap{};
-
     void loadDDS( const Asset& );
     void loadOBJC( const Asset& );
     void loadMAP( const Asset& );
