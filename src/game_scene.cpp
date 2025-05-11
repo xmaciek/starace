@@ -85,7 +85,6 @@ void GameScene::update( UpdateContext uctx )
     Explosion::updateAll( uctx, m_explosions );
 
     Bullet::updateAll( uctx, m_bullets, m_explosions, m_plasma );
-    std::erase_if( m_bullets, []( const Bullet& b ) { return b.m_type == Bullet::Type::eDead; } );
 
     uint32_t score = 0;
 
@@ -142,6 +141,7 @@ void GameScene::update( UpdateContext uctx )
     m_spacedust.setVelocity( -jetVel );
     m_spacedust.update( uctx );
     m_score += score;
+    std::erase_if( m_bullets, []( const Bullet& b ) { return b.m_type == Bullet::Type::eDead; } );
 }
 
 void GameScene::onAction( input::Action a )
