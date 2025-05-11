@@ -23,7 +23,7 @@ public:
     struct CreateInfo {
         Texture texture{};
         Hash::value_type data{};
-        Hash::value_type spriteId{};
+        Hash::value_type path{};
         Hash::value_type color = "white"_hash;
         math::vec2 position{};
         math::vec2 size{};

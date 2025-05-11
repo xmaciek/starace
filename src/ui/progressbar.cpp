@@ -14,7 +14,7 @@ Progressbar::Progressbar( const Progressbar::CreateInfo& ci ) noexcept
 , m_count{ ci.count }
 {
     m_dataModel = g_uiProperty.dataModel( ci.data );
-    auto sprite = g_uiProperty.sprite( ci.spriteId );
+    auto sprite = g_uiProperty.sprite( ci.path );
     m_uvwh = sprite;
     m_texture = sprite;
     m_spriteSize = { sprite.w, sprite.h };

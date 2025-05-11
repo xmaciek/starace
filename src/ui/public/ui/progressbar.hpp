@@ -24,7 +24,7 @@ public:
         math::vec2 position{};
         math::vec2 size{ 128.0f, 16.0f };
         Hash::value_type data{};
-        Hash::value_type spriteId{};
+        Hash::value_type path{};
         float spriteSpacing{};
         uint32_t count = 0;
         Anchor anchor = Anchor::fTop | Anchor::fLeft;

@@ -27,8 +27,8 @@ Image::Image( const CreateInfo& ci ) noexcept
             setTexture( s );
         }
     }
-    else if ( ci.spriteId ) {
-        auto s = g_uiProperty.sprite( ci.spriteId );
+    else if ( ci.path ) {
+        auto s = g_uiProperty.sprite( ci.path );
         m_uvwh = s;
         setTexture( s );
     }

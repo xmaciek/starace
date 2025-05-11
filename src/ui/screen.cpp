@@ -52,7 +52,7 @@ template <typename T> void setCount( void* ci, const cfg::Entry& e ) { reinterpr
 template <typename T> void setData( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->data = Hash{}( e.toString() ); };
 template <typename T> void setText( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->text = Hash{}( e.toString() ); };
 template <typename T> void setFont( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->font = Hash{}( e.toString() ); };
-template <typename T> void setSpriteId( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->spriteId = Hash{}( e.toString() ); };
+template <typename T> void setPath( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->path = Hash{}( e.toString() ); };
 template <typename T> void setSpriteSpacing( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->spriteSpacing = e.toFloat(); };
 template <typename T> void setColor( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->color = Hash{}( e.toString() ); };
 template <typename T> void setTrigger( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->trigger = Hash{}( e.toString() ); };
@@ -87,7 +87,7 @@ inline constexpr std::array PROGRESSBAR_FIELDS = {
     F{ "width"_hash, &setW<Progressbar> },
     F{ "height"_hash, &setH<Progressbar> },
     F{ "data"_hash, &setData<Progressbar> },
-    F{ "spriteId"_hash, &setSpriteId<Progressbar> },
+    F{ "path"_hash, &setPath<Progressbar> },
     F{ "spriteSpacing"_hash, &setSpriteSpacing<Progressbar> },
     F{ "count"_hash, &setCount<Progressbar> },
     F{ "anchor"_hash, &setAnchor<Progressbar> },
@@ -95,7 +95,7 @@ inline constexpr std::array PROGRESSBAR_FIELDS = {
 
 inline constexpr std::array IMAGE_FIELDS = {
     F{ "data"_hash, &setData<Image> },
-    F{ "spriteId"_hash, &setSpriteId<Image> },
+    F{ "path"_hash, &setPath<Image> },
     F{ "width"_hash, &setW<Image> },
     F{ "height"_hash, &setH<Image> },
     F{ "x"_hash, &setX<Image> },
