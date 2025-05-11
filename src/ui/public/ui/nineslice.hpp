@@ -1,8 +1,8 @@
 #pragma once
 
-#include <ui/atlas.hpp>
 #include <ui/widget.hpp>
 
+#include <shared/hash.hpp>
 #include <engine/math.hpp>
 #include <renderer/texture.hpp>
 
@@ -10,7 +10,7 @@ namespace ui {
 
 class NineSlice : public Widget {
 public:
-    using SpriteArray = std::array<Atlas::hash_type, 9>;
+    using SpriteArray = std::array<Hash::value_type, 9>;
 
 protected:
     float m_top = 0.0f;

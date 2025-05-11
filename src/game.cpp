@@ -398,7 +398,6 @@ ui::Screen* Game::currentScreen()
 void Game::onRender( Renderer* renderer )
 {
     ui::Screen* screen = currentScreen();
-    assert( screen );
     if ( !screen ) [[unlikely]] return;
 
     const auto [ width, height, aspect ] = viewport();

@@ -10,7 +10,7 @@
 #include <memory_resource>
 #include <string>
 
-static constexpr std::array<ui::Atlas::hash_type, 9> SLICES = {
+static constexpr std::array<Hash::value_type, 9> SLICES = {
     "topLeft"_hash,
     "top"_hash,
     "topRight"_hash,

@@ -5,7 +5,6 @@
 #include "units.hpp"
 
 #include <renderer/renderer.hpp>
-#include <ui/atlas.hpp>
 #include <ui/pipeline.hpp>
 #include <ui/property.hpp>
 #include <ui/label.hpp>

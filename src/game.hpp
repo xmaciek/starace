@@ -15,7 +15,6 @@
 #include <extra/csg.hpp>
 #include <renderer/texture.hpp>
 #include <shared/hash.hpp>
-#include <ui/atlas.hpp>
 #include <ui/data_model.hpp>
 #include <ui/font.hpp>
 #include <input/remapper.hpp>

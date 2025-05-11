@@ -21,7 +21,6 @@ class Game;
 
 namespace ui {
 class DataModel;
-class Atlas;
 class Font;
 
 class Property {

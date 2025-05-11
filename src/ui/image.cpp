@@ -1,6 +1,5 @@
 #include <ui/image.hpp>
 
-#include <ui/atlas.hpp>
 #include <ui/pipeline.hpp>
 #include <ui/property.hpp>
 
