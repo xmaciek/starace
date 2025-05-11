@@ -44,13 +44,12 @@ void NineSlice::render( const RenderContext& rctx ) const
     };
 
     const auto& atlasRef = *g_uiProperty.atlas();
-    math::vec2 atlasExtent = atlasRef.extent();
     NineSlice2 gen{ mid, g_uiProperty.atlas(), m_spriteIds };
 
     for ( auto i = 0u; i < 9u; ++i ) {
         auto& sprite = pushConstant.m_sprites[ i ];
         sprite.m_xywh = gen( i );
-        sprite.m_uvwh = atlasRef[ m_spriteIds[ i ] ] / atlasExtent;
+        sprite.m_uvwh = atlasRef.find( m_spriteIds[ i ] );
     }
     rctx.renderer->push( pushData, &pushConstant );
 }

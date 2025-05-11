@@ -15,7 +15,7 @@ AnimFrame::AnimFrame( const CreateInfo& ci ) noexcept
     if ( ci.data ) { m_dataModel = g_uiProperty.dataModel( ci.data ); }
     for ( auto&& it : ci.frames ) {
         if ( !it ) continue;
-        std::tie( m_uvwh[ m_count++ ], std::ignore, std::ignore, std::ignore ) = g_uiProperty.sprite( it );
+        m_uvwh[ m_count++ ] = g_uiProperty.sprite( it );
     }
     m_texture = g_uiProperty.atlasTexture();
     assert( m_count );

@@ -22,12 +22,15 @@ Image::Image( const CreateInfo& ci ) noexcept
             setTexture( tex );
         }
         else if ( Hash::value_type sprite = m_dataModel->sprite( m_dataModel->current() ); sprite ) {
-            std::tie( m_uvwh, std::ignore, std::ignore, m_texture ) = g_uiProperty.sprite( sprite );
-            setTexture( m_texture );
+            auto s = g_uiProperty.sprite( sprite );
+            m_uvwh = s;
+            setTexture( s );
         }
     }
     else if ( ci.spriteId ) {
-        std::tie( m_uvwh, std::ignore, std::ignore, m_texture ) = g_uiProperty.sprite( ci.spriteId );
+        auto s = g_uiProperty.sprite( ci.spriteId );
+        m_uvwh = s;
+        setTexture( s );
     }
     else {
         assert( !"expected data model or sprite id when creating image" );
@@ -71,8 +74,9 @@ void Image::update( const UpdateContext& )
         setTexture( tex );
     }
     else if ( Hash::value_type sprite = m_dataModel->sprite( m_dataModel->current() ); sprite ) {
-        std::tie( m_uvwh, std::ignore, std::ignore, m_texture ) = g_uiProperty.sprite( sprite );
-        setTexture( m_texture );
+        auto s = g_uiProperty.sprite( sprite );
+        m_uvwh = s;
+        setTexture( s );
     }
 }
 

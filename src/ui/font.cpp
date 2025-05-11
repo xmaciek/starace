@@ -282,20 +282,27 @@ math::vec2 Font::extent() const
 }
 
 
-Font::Sprite Font::operator [] ( Hash::value_type h ) const
+Font::Sprite Font::find( Hash::value_type h ) const
 {
-    auto [ g, _, _2, _3 ] = getGlyph( h );
-    return Sprite{ g.position[ 0 ], g.position[ 1 ], g.size[ 0 ], g.size[ 1 ] };
+    return find( static_cast<char32_t>( h ) );
 }
 
-Font::Sprite::operator math::vec4 () const noexcept
+Font::Sprite Font::find( char32_t c ) const
 {
-    return math::vec4{ x, y, w, h };
-}
-
-math::vec4 Font::Sprite::operator / ( const math::vec2& extent ) const noexcept
-{
-    return math::vec4{ x, y, w, h } / math::vec4{ extent.x, extent.y, extent.x, extent.y };
+    const auto [ g, t, extent, _ ] = getGlyph( c );
+    math::vec4 geometry{ g.position[ 0 ], g.position[ 1 ], g.size[ 0 ], g.size[ 1 ] };
+    geometry.x /= extent.x;
+    geometry.y /= extent.y;
+    geometry.z /= extent.x;
+    geometry.w /= extent.y;
+    return Sprite{
+        .xyuv = geometry,
+        .texture = t,
+        .x = g.position[ 0 ],
+        .y = g.position[ 1 ],
+        .w = g.size[ 0 ],
+        .h = g.size[ 1 ],
+    };
 }
 
 }

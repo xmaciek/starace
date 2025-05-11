@@ -26,10 +26,9 @@ NineSlice2::NineSlice2( const math::vec4& xywh, const Font* atlas, const std::ar
 , m_spriteIds{ ids }
 {
     assert( atlas );
-    const auto& atlasRef = *atlas;
-    auto s0 = atlasRef[ m_spriteIds[ 0u ] ];
-    auto s2 = atlasRef[ m_spriteIds[ 2u ] ];
-    auto s6 = atlasRef[ m_spriteIds[ 6u ] ];
+    auto s0 = atlas->find( m_spriteIds[ 0u ] );
+    auto s2 = atlas->find( m_spriteIds[ 2u ] );
+    auto s6 = atlas->find( m_spriteIds[ 6u ] );
 
     m_w[ 0 ] = s0.w;
     m_w[ 1 ] = xywh.z - ( s0.w + s2.w );
@@ -49,7 +48,7 @@ math::vec4 NineSlice2::operator () () noexcept
     const uint32_t spriteId = currentVert / 6u;
     const uint32_t vertId = currentVert % 6u;
 
-    const math::vec4 uvwh = (*m_atlas)[ m_spriteIds[ spriteId ] ] / m_atlas->extent();
+    const math::vec4 uvwh = m_atlas->find( m_spriteIds[ spriteId ] );
 
     math::vec4 xywh = (*this)( spriteId );
 

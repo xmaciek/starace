@@ -14,10 +14,10 @@ Progressbar::Progressbar( const Progressbar::CreateInfo& ci ) noexcept
 , m_count{ ci.count }
 {
     m_dataModel = g_uiProperty.dataModel( ci.data );
-    uint16_t w;
-    uint16_t h;
-    std::tie( m_uvwh, w, h, m_texture ) = g_uiProperty.sprite( ci.spriteId );
-    m_spriteSize = { w, h };
+    auto sprite = g_uiProperty.sprite( ci.spriteId );
+    m_uvwh = sprite;
+    m_texture = sprite;
+    m_spriteSize = { sprite.w, sprite.h };
     auto s = size();
     float aspectRatio = s.y / m_spriteSize.y;
     m_spriteSize *= aspectRatio;

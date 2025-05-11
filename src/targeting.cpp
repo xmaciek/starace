@@ -36,9 +36,9 @@ Targeting::Targeting( const Targeting::CreateInfo& ci )
 : m_callsigns{ ci.callsigns }
 {
     m_texture = g_uiProperty.atlasTexture();
-    auto unpack = []( Hash::value_type hash )
+    auto unpack = []( Hash::value_type hash ) -> math::vec4
     {
-        return std::get<0>( g_uiProperty.sprite( hash ) );
+        return g_uiProperty.sprite( hash );
     };
     std::ranges::transform( targetSprites, m_xyuvTarget.begin(), unpack );
     std::ranges::transform( targetSprites2, m_xyuvTarget2.begin(), unpack );

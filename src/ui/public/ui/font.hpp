@@ -42,12 +42,14 @@ public:
         float scale = 1.0f;
     };
     struct Sprite {
-        uint16_t x;
-        uint16_t y;
-        uint16_t w;
-        uint16_t h;
-        operator math::vec4 () const noexcept;
-        math::vec4 operator / ( const math::vec2& ) const noexcept;
+        math::vec4 xyuv{};
+        Texture texture{};
+        uint16_t x{};
+        uint16_t y{};
+        uint16_t w{};
+        uint16_t h{};
+        inline operator math::vec4 () const { return xyuv; }
+        inline operator Texture () const { return texture; }
     };
 
     ~Font() = default;
@@ -61,7 +63,9 @@ public:
     Texture texture() const;
     float height() const;
     math::vec2 extent() const;
-    Sprite operator [] ( Hash::value_type ) const;
+
+    Sprite find( Hash::value_type ) const;
+    Sprite find( char32_t ) const;
 
     struct RenderText {
         PushData pushData{};

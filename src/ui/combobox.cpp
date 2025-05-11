@@ -139,11 +139,10 @@ void ComboBoxList::render( const RenderContext& rctx ) const
     auto gibLine = []( float y, float w, float h, auto color, auto left, auto mid, auto right ) -> std::tuple<S,S,S>
     {
         const Font& atlasRef = *g_uiProperty.atlas();
-        math::vec2 atlasExtent = atlasRef.extent();
         return {
-            { .m_color = color, .m_xywh{ 4.0f, y, 8.0f, h },        .m_uvwh = atlasRef[ left ] / atlasExtent },
-            { .m_color = color, .m_xywh{ 12.0f, y, w - 24.0f, h },  .m_uvwh = atlasRef[ mid ] / atlasExtent },
-            { .m_color = color, .m_xywh{ w - 12.0f, y, 8.0f, h },   .m_uvwh = atlasRef[ right ] / atlasExtent },
+            { .m_color = color, .m_xywh{ 4.0f, y, 8.0f, h },        .m_uvwh = atlasRef.find( left ) },
+            { .m_color = color, .m_xywh{ 12.0f, y, w - 24.0f, h },  .m_uvwh = atlasRef.find( mid ) },
+            { .m_color = color, .m_xywh{ w - 12.0f, y, 8.0f, h },   .m_uvwh = atlasRef.find( right ) },
         };
     };
 
@@ -157,11 +156,10 @@ void ComboBoxList::render( const RenderContext& rctx ) const
         = gibLine( yOffset, width, m_botHeight, rctx.colorMain, "botLeft2"_hash, "bot"_hash, "botRight2"_hash );
 
     const Font& atlasRef = *g_uiProperty.atlas();
-    math::vec2 atlasExtent = atlasRef.extent();
     pushConstant.m_sprites[ 6 ] = {
         .m_color = rctx.colorFocus,
         .m_xywh{ 12.0f, m_topPadding + m_lineHeight * static_cast<float>( m_index.currentVisible() ), width - 24.0f, m_lineHeight },
-        .m_uvwh = atlasRef[ "mid"_hash ] / atlasExtent,
+        .m_uvwh = atlasRef.find( "mid"_hash ),
     };
     rctx.renderer->push( pushData, &pushConstant );
 

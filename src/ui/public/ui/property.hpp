@@ -2,6 +2,7 @@
 
 #include <ui/widget.hpp>
 #include <ui/lockit.hpp>
+#include <ui/font.hpp>
 
 #include <engine/math.hpp>
 #include <renderer/texture.hpp>
@@ -21,7 +22,6 @@ class Game;
 
 namespace ui {
 class DataModel;
-class Font;
 
 class Property {
     friend Game;
@@ -131,7 +131,7 @@ public:
         }
     }
 
-    std::tuple<math::vec4, uint16_t, uint16_t, Texture> sprite( Hash::value_type ) const;
+    Font::Sprite sprite( Hash::value_type ) const;
 
 };
 

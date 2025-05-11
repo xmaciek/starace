@@ -53,15 +53,13 @@ void SpinBox::render( const RenderContext& r ) const
     left.x += nonlerp2( 0.0f, -5.0f, m_animL );
     right.x += nonlerp2( 0.0f, 5.0f, m_animR );
 
-    const auto& atlasRef = *g_uiProperty.atlas();
-    math::vec2 altasExtent = atlasRef.extent();
     pushConstant.m_sprites[ 0 ].m_color = m_focusL ? rctx.colorFocus : rctx.colorMain;
     pushConstant.m_sprites[ 0 ].m_xywh = left;
-    pushConstant.m_sprites[ 0 ].m_uvwh = atlasRef[ "arrowLeft"_hash ] / altasExtent;
+    pushConstant.m_sprites[ 0 ].m_uvwh = g_uiProperty.sprite( "arrowLeft"_hash );
 
     pushConstant.m_sprites[ 1 ].m_color = m_focusR ? rctx.colorFocus : rctx.colorMain;
     pushConstant.m_sprites[ 1 ].m_xywh = right;
-    pushConstant.m_sprites[ 1 ].m_uvwh =  atlasRef[ "arrowRight"_hash ] / altasExtent;
+    pushConstant.m_sprites[ 1 ].m_uvwh =  g_uiProperty.sprite( "arrowRight"_hash );
 
     rctx.renderer->push( pushData, &pushConstant );
 }
@@ -109,7 +107,7 @@ math::vec4 SpinBox::arrowLeft() const
 {
     const math::vec2 s = size();
     static constexpr auto arrowHash = "arrowLeft"_hash;
-    auto arrow = (*g_uiProperty.atlas())[ arrowHash ];
+    auto arrow = g_uiProperty.sprite( arrowHash );
     return math::vec4{
         s.x * 0.5f,
         s.y * 0.5f - static_cast<float>( arrow.h ) * 0.5f,
@@ -122,7 +120,7 @@ math::vec4 SpinBox::arrowRight() const
 {
     const math::vec2 s = size();
     static constexpr auto arrowHash = "arrowRight"_hash;
-    auto arrow = (*g_uiProperty.atlas())[ arrowHash ];
+    auto arrow = g_uiProperty.sprite( arrowHash );
     return math::vec4{
         s.x - static_cast<float>( arrow.w ) - 4.0f,
         s.y * 0.5f - static_cast<float>( arrow.h ) * 0.5f,

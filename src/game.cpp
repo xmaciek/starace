@@ -385,7 +385,7 @@ void Game::setupUI()
     m_menuScene = MenuScene{ MenuScene::CreateInfo{
         .uiAtlasTexture = g_uiProperty.atlasTexture(),
         .uiAtlasExtent = m_uiAtlas.extent(),
-        .uiSlice = m_uiAtlas[ "background"_hash ] / m_uiAtlas.extent(),
+        .uiSlice = m_uiAtlas.find( "background"_hash ),
     } };
     m_menuScene.setModel( &m_jetsContainer[ 0 ].model );
 }
