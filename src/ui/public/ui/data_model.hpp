@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ui/sprite.hpp>
 #include <renderer/texture.hpp>
 #include <shared/hash.hpp>
 

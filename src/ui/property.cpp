@@ -3,7 +3,7 @@
 
 namespace ui {
 
-Font::Sprite Property::sprite( Hash::value_type hash ) const
+Sprite Property::sprite( Hash::value_type hash ) const
 {
     assert( m_atlas );
     return m_atlas->find( hash );

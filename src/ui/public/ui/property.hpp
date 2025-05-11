@@ -2,7 +2,7 @@
 
 #include <ui/widget.hpp>
 #include <ui/lockit.hpp>
-#include <ui/font.hpp>
+#include <ui/sprite.hpp>
 
 #include <engine/math.hpp>
 #include <renderer/texture.hpp>
@@ -22,6 +22,7 @@ class Game;
 
 namespace ui {
 class DataModel;
+class Font;
 
 class Property {
     friend Game;
@@ -131,7 +132,7 @@ public:
         }
     }
 
-    Font::Sprite sprite( Hash::value_type ) const;
+    Sprite sprite( Hash::value_type ) const;
 
 };
 

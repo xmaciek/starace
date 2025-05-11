@@ -282,12 +282,12 @@ math::vec2 Font::extent() const
 }
 
 
-Font::Sprite Font::find( Hash::value_type h ) const
+Sprite Font::find( Hash::value_type h ) const
 {
     return find( static_cast<char32_t>( h ) );
 }
 
-Font::Sprite Font::find( char32_t c ) const
+Sprite Font::find( char32_t c ) const
 {
     const auto [ g, t, extent, _ ] = getGlyph( c );
     math::vec4 geometry{ g.position[ 0 ], g.position[ 1 ], g.size[ 0 ], g.size[ 1 ] };

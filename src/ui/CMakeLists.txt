@@ -43,6 +43,7 @@ target_sources( ui
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/screen.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/scroll_index.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/spinbox.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/sprite.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/spritegen.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/tab_order.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/var.hpp
