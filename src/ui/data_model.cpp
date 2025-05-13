@@ -29,12 +29,7 @@ float DataModel::atF( size_type ) const
     return {};
 }
 
-Texture DataModel::texture( size_type ) const
-{
-    return {};
-}
-
-Hash::value_type DataModel::sprite( size_type ) const
+Sprite DataModel::texture( size_type ) const
 {
     return {};
 }
@@ -84,9 +79,9 @@ void GenericDataModel::refresh( size_type i )
     }
 }
 
-Texture GenericDataModel::texture( size_type i ) const
+Sprite GenericDataModel::texture( size_type i ) const
 {
-    return m_texture ? m_texture( i ) : Texture{};
+    return m_texture ? m_texture( i ) : Sprite{};
 }
 
 GenericDataModel::size_type GenericDataModel::current() const

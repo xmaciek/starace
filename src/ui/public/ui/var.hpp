@@ -35,9 +35,6 @@ public:
 
     Var& operator = ( T value ) noexcept
     {
-        if ( value == m_value ) {
-            return *this;
-        }
         m_value = std::forward<T>( value );
         m_current++;
         m_revision++;
@@ -79,9 +76,9 @@ public:
         else return {};
     }
 
-    virtual Hash::value_type sprite( size_type ) const override
+    virtual Sprite texture( size_type ) const override
     {
-        if constexpr ( std::is_same_v<T, Hash::value_type> ) {
+        if constexpr ( std::is_same_v<T, Sprite> ) {
             return m_value;
         }
         else return {};

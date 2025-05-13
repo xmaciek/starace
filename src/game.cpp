@@ -238,10 +238,10 @@ void Game::setupUI()
         assert( i < m_mapsContainer.size() );
         m_currentMission = i;
     };
-    m_dataMissionSelect.m_texture = [this]( auto i ) -> Texture
+    m_dataMissionSelect.m_texture = [this]( auto i ) -> ui::Sprite
     {
         assert( i < m_mapsContainer.size() );
-        return m_mapsContainer[ i ].preview;
+        return ui::Sprite{ .xyuv{ 0.0f, 0.0f, 1.0f, 1.0f }, .texture = m_mapsContainer[ i ].preview };
     };
 
     m_optionsGFX.m_resolutionUI = ui::Option<DisplayMode>{ 0, displayModes(), &OptionsGFX::toString<DisplayMode> };
@@ -371,6 +371,8 @@ void Game::setupUI()
         screen->addModalWidget( std::move( msg ) );
     });
 
+    m_gameplayUIData.m_playerWeaponIconPrimary = g_uiProperty.sprite( "icon.laser"_hash );
+    m_gameplayUIData.m_playerWeaponIconSecondary = g_uiProperty.sprite( "icon.laser"_hash );
     m_screens.emplace_back( m_io->viewWait( "ui/customize.ui" ) );
     m_screens.emplace_back( m_io->viewWait( "ui/gameplay.ui" ) );
     m_screens.emplace_back( m_io->viewWait( "ui/result.ui" ) );
@@ -508,8 +510,8 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
         },
     } };
 
-    m_gameplayUIData.m_playerWeaponIconPrimary = w1.displayIcon;
-    m_gameplayUIData.m_playerWeaponIconSecondary = w2.displayIcon;
+    m_gameplayUIData.m_playerWeaponIconPrimary = g_uiProperty.sprite( w1.displayIcon );
+    m_gameplayUIData.m_playerWeaponIconSecondary = g_uiProperty.sprite( w2.displayIcon );
 }
 
 void Game::changeScreen( Hash::value_type screenId, Audio::Slot sound )

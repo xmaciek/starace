@@ -18,20 +18,9 @@ Image::Image( const CreateInfo& ci ) noexcept
     if ( ci.data ) {
         m_dataModel = g_uiProperty.dataModel( ci.data );
         m_revision = m_dataModel->revision();
-        if ( auto tex = m_dataModel->texture( m_dataModel->current() ); tex ) {
-            setTexture( tex );
-        }
-        else if ( Hash::value_type sprite = m_dataModel->sprite( m_dataModel->current() ); sprite ) {
-            auto s = g_uiProperty.sprite( sprite );
-            m_uvwh = s;
-            setTexture( s );
-        }
+        setTexture( m_dataModel->texture( m_dataModel->current() ) );
     }
-    else if ( ci.path ) {
-        auto s = g_uiProperty.sprite( ci.path );
-        m_uvwh = s;
-        setTexture( s );
-    }
+    else if ( ci.path ) setTexture( g_uiProperty.sprite( ci.path ) );
     else {
         assert( !"expected data model or sprite id when creating image" );
     }
@@ -40,12 +29,12 @@ Image::Image( const CreateInfo& ci ) noexcept
 void Image::render( const RenderContext& rctx ) const
 {
     using PushConstant = PushConstant<Pipeline::eSpriteSequence>;
-    assert( m_texture );
+    assert( m_sprite );
     PushData pushData{
         .m_pipeline = m_pipelineSlot,
         .m_verticeCount = PushConstant::VERTICES,
     };
-    pushData.m_fragmentTexture[ 1 ] = m_texture;
+    pushData.m_fragmentTexture[ 1 ] = m_sprite;
 
     PushConstant pushConstant{
         .m_model = rctx.model,
@@ -54,7 +43,7 @@ void Image::render( const RenderContext& rctx ) const
         .m_color = m_color,
     };
     pushConstant.m_sprites[ 0 ].m_xywh = math::vec4{ 0.0f, 0.0f, m_size.x, m_size.y };
-    pushConstant.m_sprites[ 0 ].m_uvwh = m_uvwh;
+    pushConstant.m_sprites[ 0 ].m_uvwh = m_sprite;
     pushConstant.m_sprites[ 0 ].m_sampleRGBA = m_sampleRGBA;
     rctx.renderer->push( pushData, &pushConstant );
 }
@@ -69,15 +58,7 @@ void Image::update( const UpdateContext& )
         return;
     }
     m_revision = rev;
-    if ( Texture tex = m_dataModel->texture( m_dataModel->current() ); tex ) {
-        m_uvwh = math::vec4{ 0.0f, 0.0f, 1.0f, 1.0f };
-        setTexture( tex );
-    }
-    else if ( Hash::value_type sprite = m_dataModel->sprite( m_dataModel->current() ); sprite ) {
-        auto s = g_uiProperty.sprite( sprite );
-        m_uvwh = s;
-        setTexture( s );
-    }
+    setTexture( m_dataModel->texture( m_dataModel->current() ) );
 }
 
 void Image::setColor( math::vec4 c )
@@ -85,11 +66,11 @@ void Image::setColor( math::vec4 c )
     m_color = c;
 }
 
-void Image::setTexture( Texture t )
+void Image::setTexture( Sprite s )
 {
-    assert( t );
-    m_texture = t;
-    m_sampleRGBA = Renderer::instance()->channelCount( t ) == 4;
+    assert( s.texture );
+    m_sprite = s;
+    m_sampleRGBA = Renderer::instance()->channelCount( s ) == 4;
 }
 
 }

@@ -111,8 +111,8 @@ struct GameplayUIData {
     ui::Var<float> m_playerReloadSecondary{ 0.0f };
     ui::Var<uint32_t> m_playerWeaponPrimaryCount{ 0 };
     ui::Var<uint32_t> m_playerWeaponSecondaryCount{ 0 };
-    ui::Var<Hash::value_type> m_playerWeaponIconPrimary{ 0 };
-    ui::Var<Hash::value_type> m_playerWeaponIconSecondary{ 0 };
+    ui::Var<ui::Sprite> m_playerWeaponIconPrimary{};
+    ui::Var<ui::Sprite> m_playerWeaponIconSecondary{};
 };
 
 inline void copySecure( const auto& string, auto& arr )
