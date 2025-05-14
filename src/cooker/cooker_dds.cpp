@@ -363,6 +363,7 @@ int main( int argc, const char** argv )
     args.read( "--src", argSrc ) || cooker::error( "--src <file/path.tga> \u2012 argument not specified" );
     args.read( "--dst", argDst ) || cooker::error( "--dst <file/path.dds> \u2012 argument not specified" );
     const bool argMipgen = args.read( "--mipgen" );
+    const bool argCubemap = args.read( "--cubemap" );
     const Format argsFormat = [&args]()
     {
         std::string_view argsFormat{};
@@ -405,6 +406,7 @@ int main( int argc, const char** argv )
         }
     }
     const uint32_t arrayCount = static_cast<uint32_t>( images.size() );
+    if ( argCubemap && arrayCount % 6 ) cooker::error( "cubemap requires 6 images" );
     std::pmr::list<Image> mips{};
     uint32_t mipCount = 0;
     for ( auto&& image : images ) {
@@ -421,6 +423,7 @@ int main( int argc, const char** argv )
 
     using Flags = dds::Header::Flags;
     using Caps = dds::Header::Caps;
+    using Caps2 = dds::Header::Caps2;
     dds::Header header{
         .flags = Flags::fCaps | Flags::fWidth | Flags::fHeight | Flags::fPixelFormat,
         .height = mips.front().height,
@@ -448,6 +451,11 @@ int main( int argc, const char** argv )
 
     if ( dxgiHeader.arraySize > 1 ) {
         header.caps |= Caps::fComplex;
+    }
+
+    if ( argCubemap ) {
+        header.caps2 = Caps2::eFullCube;
+        dxgiHeader.arraySize /= 6;
     }
 
     auto ofs = cooker::openWrite( argDst );

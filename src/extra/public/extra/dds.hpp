@@ -114,6 +114,20 @@ struct Header {
         fMipMap = 0x400000,
         fTexture = 0x1000,
     };
+    enum Caps2 : uint32_t {
+        fCubemap = 0x200,
+        fCubemapPositiveX = 0x400,
+        fCubemapNegativeX = 0x800,
+        fCubemapPositiveY = 0x1000,
+        fCubemapNegativeY = 0x2000,
+        fCubemapPositiveZ = 0x4000,
+        fCubemapNegativeZ = 0x8000,
+        fVolume = 0x200000,
+        eFullCube = fCubemap
+            | fCubemapPositiveX | fCubemapNegativeX
+            | fCubemapPositiveY | fCubemapNegativeY
+            | fCubemapPositiveZ | fCubemapNegativeZ,
+    };
 
     uint32_t magic = MAGIC;
     uint32_t size = 124;
@@ -125,8 +139,8 @@ struct Header {
     uint32_t mipMapCount = 0;
     uint32_t reserved[ 11 ]{};
     PixelFormat pixelFormat{};
-    Caps caps = {};
-    uint32_t caps2 = 0;
+    Caps caps{};
+    Caps2 caps2{};
     uint32_t caps3 = 0;
     uint32_t caps4 = 0;
     uint32_t reserved2 = 0;
