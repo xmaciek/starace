@@ -26,10 +26,11 @@ Engine::~Engine() noexcept
     SDL_Quit();
 }
 
-Engine::Engine( int, char** ) noexcept
+Engine::Engine( const CreateInfo& ci ) noexcept
 {
     ZoneScoped;
-    m_saveSystem = std::make_unique<SaveSystem>( "starace" );
+    assert( !ci.gameName.empty() );
+    m_saveSystem = std::make_unique<SaveSystem>( ci.gameName );
     m_ioPtr = std::make_unique<Filesystem>();
     m_io = m_ioPtr.get();
 
@@ -46,7 +47,7 @@ Engine::Engine( int, char** ) noexcept
 
     {
         ZoneScopedN( "create window" );
-        m_window = SDL_CreateWindow( "Starace"
+        m_window = SDL_CreateWindow( ci.gameName.data()
             , SDL_WINDOWPOS_CENTERED
             , SDL_WINDOWPOS_CENTERED
             , desktop.w
@@ -58,8 +59,16 @@ Engine::Engine( int, char** ) noexcept
         assert( m_window );
     }
 
+    const Renderer::CreateInfo rci{
+        .window = m_window,
+        .vsync = VSync::eOn,
+        .gameName = ci.gameName,
+        .versionMajor = ci.versionMajor,
+        .versionMinor = ci.versionMinor,
+        .versionPatch = ci.versionPatch,
+    };
     assert( Renderer::create );
-    m_renderer = Renderer::create( { .window = m_window, .vsync = VSync::eOn } );
+    m_renderer = Renderer::create( rci );
     m_rendererPtr = std::unique_ptr<Renderer>( m_renderer );
 
     m_audio = Audio::create();

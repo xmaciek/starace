@@ -1,5 +1,7 @@
 #pragma once
 
+#include <renderer/renderer.hpp>
+
 #include "vk.hpp"
 
 #include <vector>
@@ -13,7 +15,7 @@ class Instance {
 public:
     ~Instance() noexcept;
     Instance() noexcept = default;
-    Instance( std::pmr::vector<const char*> extensions ) noexcept;
+    Instance( const Renderer::CreateInfo&, std::pmr::vector<const char*> extensions ) noexcept;
 
     Instance( Instance&& ) noexcept;
     Instance( const Instance& ) = delete;

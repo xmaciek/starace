@@ -48,8 +48,17 @@ protected:
     Audio* m_audio = nullptr;
     Renderer* m_renderer = nullptr;
 
+    struct CreateInfo {
+        std::string_view gameName{};
+        uint32_t versionMajor{};
+        uint32_t versionMinor{};
+        uint32_t versionPatch{};
+        int argc{};
+        char const* const* argv{};
+    };
+
     ~Engine() noexcept;
-    Engine( int, char** ) noexcept;
+    Engine( const CreateInfo& ) noexcept;
 
     std::tuple<uint32_t, uint32_t, float> viewport() const;
     void setViewport( uint32_t w, uint32_t h );

@@ -69,7 +69,7 @@ constexpr std::tuple<GameAction, input::Actuator, input::Actuator> inputActions2
 };
 
 Game::Game( int argc, char** argv )
-: Engine{ argc, argv }
+: Engine{ Engine::CreateInfo{ .gameName = "starace", .versionMajor = 1, .versionMinor = 1, .argc = argc, .argv = argv } }
 {
     ZoneScoped;
     loadSettings();

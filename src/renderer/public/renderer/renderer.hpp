@@ -11,6 +11,7 @@
 #include <memory_resource>
 #include <vector>
 #include <span>
+#include <string_view>
 
 struct DispatchInfo {
     PipelineSlot m_pipeline = 0;
@@ -47,14 +48,18 @@ public:
 
     virtual uint32_t channelCount( Texture ) const = 0;
 
-protected:
-    friend class Engine;
-    friend class RendererSetup;
-
     struct CreateInfo{
         SDL_Window* window = nullptr;
         VSync vsync = {};
+        std::string_view gameName{};
+        uint32_t versionMajor{};
+        uint32_t versionMinor{};
+        uint32_t versionPatch{};
     };
+
+protected:
+    friend class Engine;
+    friend class RendererSetup;
 
     using FNCreate = Renderer*(const Renderer::CreateInfo&);
     static inline constinit FNCreate* create = nullptr;

@@ -78,10 +78,10 @@ Instance::~Instance() noexcept
     if ( m_dll ) { dlclose( m_dll ); }
 }
 
-Instance::Instance( std::pmr::vector<const char*> extensions ) noexcept
+Instance::Instance( const Renderer::CreateInfo& ci, std::pmr::vector<const char*> extensions ) noexcept
 {
     ZoneScoped;
-
+    assert( !ci.gameName.empty() );
     const char* envName = std::getenv( "STARACE_VULKAN_LIBRARY" );
     const char* libName = envName ? envName : LIB_NAME;
     m_dll = dlopen( libName, FLAGS );
@@ -116,9 +116,9 @@ Instance::Instance( std::pmr::vector<const char*> extensions ) noexcept
 
     const VkApplicationInfo appInfo{
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-        .pApplicationName = "Starace",
-        .applicationVersion = VK_MAKE_VERSION( 1, 0, 0 ),
-        .pEngineName = "Starace",
+        .pApplicationName = ci.gameName.data(),
+        .applicationVersion = VK_MAKE_VERSION( ci.versionMajor, ci.versionMinor, ci.versionPatch ),
+        .pEngineName = "starace",
         .engineVersion = VK_MAKE_VERSION( 1, 0, 0 ),
         .apiVersion = VK_API_VERSION_1_3,
     };
