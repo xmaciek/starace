@@ -106,23 +106,8 @@ struct RLE {
     }
 };
 
-static Image convertTga( const std::filesystem::path& srcFile )
+static Image convertTGA( const tga::Header& header, std::ifstream& ifs, size_t fileSize, const auto& srcFile )
 {
-    std::ifstream ifs( srcFile, std::ios::binary | std::ios::ate );
-    ifs.is_open() || cooker::error( "cannot open file:", srcFile );
-
-    size_t fileSize = static_cast<size_t>( ifs.tellg() );
-    ( fileSize >= sizeof( tga::Header ) ) || cooker::error( "file too short", srcFile );
-
-    tga::Header header{};
-    ifs.seekg( 0 );
-    ifs.read( reinterpret_cast<char*>( &header ), sizeof( tga::Header ) );
-    fileSize -= sizeof( tga::Header );
-
-    if ( header.imageDescriptor & ~tga::ImageDescriptor::fTopLeft ) {
-        cooker::error( "TGA expected to be top left origin", srcFile );
-    }
-
     std::pmr::vector<uint8_t> ret;
 
     switch ( header.imageType ) {
@@ -193,6 +178,42 @@ static Image convertTga( const std::filesystem::path& srcFile )
     default:
         cooker::error( "unhandled image type:", srcFile );
     }
+}
+
+static Image readTGA( const std::filesystem::path& srcFile )
+{
+    std::ifstream ifs( srcFile, std::ios::binary | std::ios::ate );
+    ifs.is_open() || cooker::error( "cannot open file:", srcFile );
+
+    size_t fileSize = static_cast<size_t>( ifs.tellg() );
+    ( fileSize >= sizeof( tga::Header ) ) || cooker::error( "file too short", srcFile );
+
+    tga::Header header{};
+    ifs.seekg( 0 );
+    ifs.read( reinterpret_cast<char*>( &header ), sizeof( tga::Header ) );
+    fileSize -= sizeof( tga::Header );
+
+
+    Image img = convertTGA( header, ifs, fileSize, srcFile );
+    if ( header.imageDescriptor & tga::ImageDescriptor::fTopLeft ) return img;
+
+    uint32_t laneWidth = 0;
+    switch ( img.format ) {
+    case Format::B8G8R8A8_UNORM: laneWidth = img.width * 4; break;
+    case Format::R8_UNORM: laneWidth = img.width; break;
+    default:
+        cooker::error( "very fatal error, dont know how to handle image type for y-flipping", srcFile );
+    }
+
+    void* tmp = alloca( laneWidth );
+    for ( auto i = 0u; i < img.height / 2; ++i ) {
+        auto a = img.pixels.data() + laneWidth * i;
+        auto b = ( img.pixels.data() + img.pixels.size() ) - laneWidth * ( i + 1 );
+        std::memcpy( tmp, a, laneWidth );
+        std::memcpy( a, b, laneWidth );
+        std::memcpy( b, tmp, laneWidth );
+    }
+    return img;
 }
 
 void compressToBC4( Image& img )
@@ -394,7 +415,7 @@ int main( int argc, const char** argv )
         uint32_t pendingHeight = 0;
         Format pendingFormat{};
         for ( auto&& file : src ) {
-            images.emplace_back() = convertTga( file );
+            images.emplace_back() = readTGA( file );
             if ( images.back().pixels.empty() ) cooker::error( "image must have pixels" );
             uint32_t width = std::exchange( pendingWidth, images.back().width );
             uint32_t height = std::exchange( pendingHeight, images.back().height );
