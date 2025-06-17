@@ -68,10 +68,10 @@ static Image unmap( std::ifstream& ifs, const tga::Header& header, Format format
     return { .format = format, .width = header.width, .height = header.height, .pixels = std::move( ret ) };
 }
 
-template <typename TIn, typename TRet>
+template <typename T>
 struct RLE {
     std::span<const uint8_t> m_data{};
-    TIn m_color{};
+    T m_value{};
     int16_t m_pixelCount = -1;
     bool m_compressed = false;
 
@@ -79,7 +79,7 @@ struct RLE {
     : m_data{ data }
     {}
 
-    TRet operator () ()
+    void operator () ( T& value )
     {
         if ( m_pixelCount == -1 ) {
             if ( m_data.size() < 1 ) cooker::error( "unexpected end of RLE stream", __LINE__ );
@@ -87,9 +87,9 @@ struct RLE {
             m_compressed = m_pixelCount & 128;
             m_pixelCount &= ~128;
             if ( m_compressed ) {
-                if ( m_data.size() < sizeof( TIn ) + 1 ) cooker::error( "unexpected end of RLE stream", __LINE__ );
-                std::memcpy( &m_color, m_data.data() + 1, sizeof( TIn ) );
-                m_data = m_data.subspan( sizeof( TIn ) + 1 );
+                if ( m_data.size() < sizeof( T ) + 1 ) cooker::error( "unexpected end of RLE stream", __LINE__ );
+                std::memcpy( &m_value, m_data.data() + 1, sizeof( T ) );
+                m_data = m_data.subspan( sizeof( T ) + 1 );
             }
             else {
                 m_data = m_data.subspan( 1 );
@@ -97,12 +97,15 @@ struct RLE {
         }
 
         m_pixelCount--;
-        if ( m_compressed ) return doConvert<TIn, TRet>( m_color );
-        TIn ret{};
-        if ( m_data.size() < sizeof( TIn ) ) cooker::error( "unexpected end of RLE stream", __LINE__ );
-        std::memcpy( &ret, m_data.data(), sizeof( TIn ) );
-        m_data = m_data.subspan( sizeof( TIn ) );
-        return doConvert<TIn, TRet>( ret );
+        if ( m_compressed ) {
+            value = m_value;
+            return;
+        }
+        T ret{};
+        if ( m_data.size() < sizeof( T ) ) cooker::error( "unexpected end of RLE stream", __LINE__ );
+        std::memcpy( &ret, m_data.data(), sizeof( T ) );
+        m_data = m_data.subspan( sizeof( T ) );
+        value = ret;
     }
 };
 
@@ -129,25 +132,19 @@ static Image convertTGA( const tga::Header& header, std::ifstream& ifs, size_t f
     case tga::ImageType::eGrayscale: {
         switch ( header.bitsPerPixel ) {
         case 8:
-            ret.resize( header.width * header.height );
-            ifs.read( reinterpret_cast<char*>( ret.data() ), static_cast<std::streamsize>( ret.size() ) );
+            ret = cooker::read( ifs, header.width * header.height );
             return { .format = Format::R8_UNORM, .width = header.width, .height = header.height, .pixels = std::move( ret ) };
 
         case 32:
-            ret.resize( sizeof( uint32_t ) * header.width * header.height );
-            ifs.read( reinterpret_cast<char*>( ret.data() ), static_cast<std::streamsize>( ret.size() ) );
+            ret = cooker::read( ifs, sizeof( BGRA ) * header.width * header.height );
             return { .format = Format::B8G8R8A8_UNORM, .width = header.width, .height = header.height, .pixels = std::move( ret ) };
 
         case 24: {
-            ret.resize( sizeof( uint32_t ) * header.width * header.height );
-            std::pmr::vector<uint8_t> tmp;
-            tmp.resize( fileSize );
-            ifs.read( reinterpret_cast<char*>( tmp.data() ), static_cast<std::streamsize>( fileSize ) );
-
-            const BGR* srcBegin = reinterpret_cast<const BGR*>( tmp.data() );
-            const BGR* srcEnd = srcBegin + header.width * header.height;
-            BGRA* dataOut = reinterpret_cast<BGRA*>( ret.data() );
-            std::transform( srcBegin, srcEnd, dataOut, &doConvert<BGR, BGRA> );
+            ret.resize( sizeof( BGRA ) * header.width * header.height );
+            std::pmr::vector<uint8_t> content = cooker::read( ifs, fileSize );
+            auto out = cooker::cast<BGRA>( ret );
+            auto in = cooker::cast<BGR>( content );
+            std::ranges::transform( in, out.begin(), &doConvert<BGR, BGRA> );
             return { .format = Format::B8G8R8A8_UNORM, .width = header.width, .height = header.height, .pixels = std::move( ret ) };
         }
         default:
@@ -158,18 +155,18 @@ static Image convertTGA( const tga::Header& header, std::ifstream& ifs, size_t f
         default: cooker::error( "unhandled RLE bit count:", (uint32_t)header.bitsPerPixel );
         case 24: {
             ret.resize( sizeof( BGRA ) * header.width * header.height );
-            std::pmr::vector<uint8_t> tmp;
-            tmp.resize( fileSize );
-            ifs.read( reinterpret_cast<char*>( tmp.data() ), static_cast<std::streamsize>( fileSize ) );
-            std::generate_n( reinterpret_cast<BGRA*>( ret.data() ), header.width * header.height, RLE<BGR, BGRA>{ tmp } );
+            auto retT = cooker::cast<BGRA>( ret );
+            std::pmr::vector<uint8_t> content = cooker::read( ifs, fileSize );
+            std::pmr::vector<BGR> tmp( header.width * header.height );
+            std::ranges::for_each( tmp, RLE<BGR>( content ) );
+            std::ranges::transform( tmp, retT.begin(), &doConvert<BGR, BGRA> );
             return { .format = Format::B8G8R8A8_UNORM, .width = header.width, .height = header.height, .pixels = std::move( ret ) };
         }
         case 32: {
             ret.resize( sizeof( BGRA ) * header.width * header.height );
-            std::pmr::vector<uint8_t> tmp;
-            tmp.resize( fileSize );
-            ifs.read( reinterpret_cast<char*>( tmp.data() ), static_cast<std::streamsize>( fileSize ) );
-            std::generate_n( reinterpret_cast<BGRA*>( ret.data() ), header.width * header.height, RLE<BGRA, BGRA>{ tmp } );
+            auto retT = cooker::cast<BGRA>( ret );
+            std::pmr::vector<uint8_t> content = cooker::read( ifs, fileSize );
+            std::ranges::for_each( retT, RLE<BGRA>( content ) );
             return { .format = Format::B8G8R8A8_UNORM, .width = header.width, .height = header.height, .pixels = std::move( ret ) };
         }
         }

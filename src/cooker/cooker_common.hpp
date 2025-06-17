@@ -65,6 +65,14 @@ std::pmr::string readText( std::string_view path )
     return ret;
 }
 
+[[nodiscard]]
+std::pmr::vector<uint8_t> read( std::ifstream& ifs, size_t size )
+{
+    std::pmr::vector<uint8_t> tmp( size );
+    ifs.read( reinterpret_cast<char*>( tmp.data() ), static_cast<std::streamsize>( size ) );
+    return tmp;
+}
+
 template <typename T>
 requires ( std::is_trivially_copyable_v<T> )
 void write( std::ofstream& ofs, const T& t )
@@ -86,5 +94,12 @@ void write( std::ofstream& ofs, const std::pmr::vector<T>& t )
     ofs.write( reinterpret_cast<const char*>( t.data() ), (std::streamsize)( sizeof( T ) * t.size() ) );
 }
 
+template <typename T>
+requires ( std::is_trivially_copyable_v<T> )
+std::span<T> cast( std::span<uint8_t> data )
+{
+    if ( data.size() % sizeof( T ) ) cooker::error( "not enough data to cast" );
+    return std::span<T>{ reinterpret_cast<T*>( data.data() ), data.size() / sizeof( T ) };
+}
 
 }
