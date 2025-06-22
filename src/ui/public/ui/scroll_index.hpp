@@ -12,7 +12,6 @@ private:
     value_type m_offset = 0;
     value_type m_maxOffset = 0;
     value_type m_index = 0;
-    value_type m_max = 0;
     value_type m_maxVisible = 8;
 
 public:

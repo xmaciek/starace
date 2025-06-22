@@ -5,7 +5,6 @@
 namespace ui {
 
 ScrollIndex::ScrollIndex( value_type current, value_type max ) noexcept
-: m_max{ max }
 {
     m_maxVisible = std::min( m_maxVisible, max );
     m_maxOffset = max - m_maxVisible;
