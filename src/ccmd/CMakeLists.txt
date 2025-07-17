@@ -8,6 +8,10 @@ target_sources( ccmd PRIVATE
 
 set_vs_directory( ccmd "libs" )
 
+target_link_libraries( ccmd
+    cxx::flags
+)
+
 set_target_properties( ccmd PROPERTIES
     INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/public/
     INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/public/

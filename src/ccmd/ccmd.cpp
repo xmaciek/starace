@@ -133,7 +133,7 @@ struct WordSplitter {
         ret = std::string_view{ begin, end };
         auto distance = std::distance( line.begin(), end );
         distance += ( end != line.end() && isQuote( *end ) );
-        line.remove_prefix( distance );
+        line.remove_prefix( static_cast<uint32_t>( distance ) );
         return true;
     }
 
