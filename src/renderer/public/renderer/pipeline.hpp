@@ -14,6 +14,7 @@ struct PipelineCreateInfo {
     enum class CullMode : uint8_t { eNone, eFront, eBack };
     enum class FrontFace : uint8_t { eCW, eCCW };
     enum class InputType : uint8_t { eNone, eF2, eF3 };
+    enum class BlendMode : uint8_t { eNone, eAlpha, eAdditive };
     struct Assembly {
         InputType m_input{};
         uint8_t m_location{};
@@ -28,12 +29,12 @@ struct PipelineCreateInfo {
     std::span<const uint8_t> m_computeShaderData{};
     uint32_t m_userHint = 0;
     uint32_t m_pushConstantSize = 0;
-    bool m_enableBlend : 1 = false;
     bool m_enableDepthTest : 1 = false;
     bool m_enableDepthWrite : 1 = false;
     Topology m_topology{};
     CullMode m_cullMode{};
     FrontFace m_frontFace{};
+    BlendMode m_blendMode{};
     uint8_t m_vertexStride = 0;
     std::array<Assembly, 3> m_vertexAssembly{};
     uint8_t m_vertexUniform{};

@@ -160,6 +160,33 @@ static std::tuple<PipelineVK::DescriptorWrites, uint32_t> prepareDescriptorWrite
     return { descriptorWrties, count };
 }
 
+static VkPipelineColorBlendAttachmentState blendAttachment( PipelineCreateInfo::BlendMode blendMode )
+{
+    VkPipelineColorBlendAttachmentState ret{
+        .blendEnable = VK_TRUE,
+        .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
+        .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+        .colorBlendOp = VK_BLEND_OP_ADD,
+        .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+        .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
+        .alphaBlendOp = VK_BLEND_OP_ADD,
+        .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
+    };
+    using enum PipelineCreateInfo::BlendMode;
+    switch ( blendMode ) {
+    default: assert( !"unknown blend mode" ); [[fallthrough]];
+    case eNone:
+        ret.blendEnable = VK_FALSE;
+        break;
+    case eAlpha:
+        break;
+    case eAdditive:
+        ret.dstColorBlendFactor = VK_BLEND_FACTOR_ONE;
+        break;
+    }
+    return ret;
+};
+
 PipelineVK::PipelineVK(
     const PipelineCreateInfo& pci
     , const Device& device
@@ -229,17 +256,7 @@ PipelineVK::PipelineVK(
     const auto depthStencilColor = depthStencilInfo( pci.m_enableDepthTest, false, false );
     const auto depthStencilPrepass = depthStencilInfo( pci.m_enableDepthTest, pci.m_enableDepthWrite, true );
 
-    const VkPipelineColorBlendAttachmentState colorBlendAttachment{
-        .blendEnable = pci.m_enableBlend ? VK_TRUE : VK_FALSE,
-        .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
-        .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
-        .colorBlendOp = VK_BLEND_OP_ADD,
-        .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
-        .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
-        .alphaBlendOp = VK_BLEND_OP_ADD,
-        .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
-    };
-
+    const auto colorBlendAttachment = blendAttachment( pci.m_blendMode );
     const VkPipelineColorBlendStateCreateInfo colorBlending{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
         .logicOpEnable = VK_FALSE,

@@ -70,10 +70,10 @@ PipelineCreateInfo{
     .m_vertexShader = "shaders/sprite_sequence.vert.spv",
     .m_fragmentShader = "shaders/sprite_sequence.frag.spv",
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eSpriteSequence> ),
-    .m_enableBlend = true,
     .m_topology = PipelineCreateInfo::Topology::eTriangleList,
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
+    .m_blendMode = PipelineCreateInfo::BlendMode::eAlpha,
     .m_vertexUniform = 0b1,
     .m_fragmentImage = 0b110,
 };
@@ -83,10 +83,10 @@ PipelineCreateInfo{
     .m_vertexShader = "shaders/sprite_sequence_colors.vert.spv",
     .m_fragmentShader = "shaders/sprite_sequence_colors.frag.spv",
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eSpriteSequenceColors> ),
-    .m_enableBlend = true,
     .m_topology = PipelineCreateInfo::Topology::eTriangleList,
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
+    .m_blendMode = PipelineCreateInfo::BlendMode::eAlpha,
     .m_vertexUniform = 0b1,
     .m_fragmentImage = 0b10,
 };
@@ -97,10 +97,10 @@ PipelineCreateInfo{
     .m_fragmentShader = "shaders/glow.frag.spv",
     .m_userHint = static_cast<uint32_t>( Pipeline::eGlow ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eGlow> ),
-    .m_enableBlend = true,
     .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
+    .m_blendMode = PipelineCreateInfo::BlendMode::eAlpha,
     .m_vertexUniform = 0b1,
 };
 
