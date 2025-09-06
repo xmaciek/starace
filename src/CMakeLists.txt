@@ -1,18 +1,18 @@
 find_package( Threads REQUIRED )
 
-add_subdirectory( cooker )
-
 add_subdirectory( audio )
 add_subdirectory( ccmd )
 add_subdirectory( config )
+add_subdirectory( cooker )
 add_subdirectory( engine )
 add_subdirectory( extra )
+add_subdirectory( input )
 add_subdirectory( platform )
+add_subdirectory( profiler )
 add_subdirectory( renderer )
 add_subdirectory( shared )
-add_subdirectory( profiler )
 add_subdirectory( ui )
-add_subdirectory( input )
+add_subdirectory( unicode )
 
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
 

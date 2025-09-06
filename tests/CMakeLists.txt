@@ -14,6 +14,7 @@ target_link_libraries( tests
     extra
     engine
     ccmd
+    unicode
 )
 
 target_sources( tests

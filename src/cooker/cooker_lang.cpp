@@ -2,7 +2,7 @@
 
 #include <extra/args.hpp>
 #include <extra/lang.hpp>
-#include <extra/unicode.hpp>
+#include <unicode/unicode.hpp>
 
 #include <algorithm>
 #include <cstdint>

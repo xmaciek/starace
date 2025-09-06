@@ -14,3 +14,7 @@ set_target_properties( config PROPERTIES
     INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/public/
     INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/public/
 )
+
+target_link_libraries( config
+    unicode
+)

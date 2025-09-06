@@ -1,7 +1,7 @@
 #include <input/remapper.hpp>
 
 #include <extra/fnta.hpp>
-#include <extra/unicode.hpp>
+#include <unicode/unicode.hpp>
 
 #include <cassert>
 #include <algorithm>

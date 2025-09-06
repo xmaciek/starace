@@ -30,4 +30,5 @@ target_link_libraries( engine
     profiler
     renderer_vk
     shared
+    unicode
 )
