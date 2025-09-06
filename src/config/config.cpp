@@ -9,7 +9,7 @@
 namespace cfg {
 std::string_view Entry::toString() const
 {
-    return { value.begin(), value.end() };
+    return { m_value.begin(), m_value.end() };
 }
 
 std::pmr::u32string Entry::toString32() const
@@ -38,7 +38,7 @@ std::pmr::u32string Entry::toString32() const
         return ret;
     };
 
-    auto gibUTF32 = [ptr = value.begin()]() mutable noexcept -> char32_t
+    auto gibUTF32 = [ptr = m_value.begin()]() mutable noexcept -> char32_t
     {
         auto countBytesUTF8 = []( char c )
         {
@@ -91,7 +91,7 @@ std::pmr::u32string Entry::toString32() const
         return ret;
     };
 
-    auto count = utf8length( value.begin(), value.end() );
+    auto count = utf8length( m_value.begin(), m_value.end() );
     std::pmr::u32string ret;
     ret.resize( count );
     std::generate( ret.begin(), ret.end(), gibUTF32 );
@@ -102,30 +102,30 @@ std::pmr::u32string Entry::toString32() const
 float Entry::toFloat() const
 {
     float f = 0.0f;
-    std::from_chars( value.c_str(), value.c_str() + value.size(), f );
+    std::from_chars( m_value.c_str(), m_value.c_str() + m_value.size(), f );
     return f;
 }
 
 const Entry* Entry::begin() const
 {
-    return data.data();
+    return m_data.data();
 }
 
 const Entry* Entry::end() const
 {
-    return data.data() + data.size();
+    return m_data.data() + m_data.size();
 }
 
-std::string_view Entry::operator * () const
+std::string_view Entry::name() const
 {
-    return name;
+    return m_name;
 }
 
 const Entry& Entry::operator [] ( std::string_view name ) const
 {
     static Entry e;
-    const auto& v = data;
-    auto cmp = [name]( const Entry& ent ) { return *ent == name; };
+    const auto& v = m_data;
+    auto cmp = [name]( const Entry& ent ) { return ent.m_name == name; };
     auto it = std::find_if( v.begin(), v.end(), cmp );
     return ( it == v.cend() ) ? e : *it;
 }
@@ -176,7 +176,7 @@ Entry Entry::fromData( std::span<const char> data )
                 if ( strEnd == it.end() ) { return {}; }
 
                 if ( *strEnd != '"' ) { return {}; }
-                stack.top()->value = std::pmr::string{ strBegin, strEnd };
+                stack.top()->m_value = std::pmr::string{ strBegin, strEnd };
                 stack.pop();
                 expectedToken = eNameOrPop;
                 it.advance( std::distance( it.begin(), strEnd + 1 ) );
@@ -187,7 +187,7 @@ Entry Entry::fromData( std::span<const char> data )
 
         case eValue:
             if ( token.userEnum != TokenIterator::c_unknown ) { return {}; }
-            stack.top()->value = std::pmr::string{ token.data, token.data + token.length };
+            stack.top()->m_value = std::pmr::string{ token.data, token.data + token.length };
             stack.pop();
             expectedToken = eNameOrPop;
             continue;
@@ -202,8 +202,8 @@ Entry Entry::fromData( std::span<const char> data )
 
         case eName:
             if ( token.userEnum != TokenIterator::c_unknown ) { return {}; }
-            stack.top()->data.push_back( { .name = std::pmr::string{ token.data, token.data + token.length } } );
-            stack.push( &(stack.top()->data.back()) );
+            stack.top()->m_data.push_back( { .m_name = std::pmr::string{ token.data, token.data + token.length } } );
+            stack.push( &(stack.top()->m_data.back()) );
             expectedToken = eAssign;
             continue;
 

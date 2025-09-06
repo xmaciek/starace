@@ -9,26 +9,13 @@ std::span<const char> operator ""_span ( const char* str, unsigned long len ) no
     return { str, str + len };
 }
 
-[[maybe_unused]]
-std::ostream& operator << ( std::ostream& cout, const cfg::Entry& e )
-{
-    static int level = 0;
-    cout << level;
-    for ( int i = 0; i < level; ++i ) cout << "\t";
-    level++;
-    cout << " " << e.name << " = " << e.value << "\n";
-    for ( const auto& it : e.data ) cout << it;
-    level--;
-    return cout;
-}
-
 TEST( Config, simple )
 {
     auto sv = "a = b"_span;
     cfg::Entry entry = cfg::Entry::fromData( sv );
 
-    EXPECT_EQ( *entry, ""sv );
-    EXPECT_EQ( *(entry[ "a"sv ]), "a"sv );
+    EXPECT_EQ( entry.name(), ""sv );
+    EXPECT_EQ( entry[ "a"sv ].name(), "a"sv );
     EXPECT_EQ( entry[ "a"sv ].toString(), "b"sv );
 }
 
@@ -37,7 +24,7 @@ TEST( Config, nested1 )
     auto sv = "a = { b = c }"_span;
     cfg::Entry entry = cfg::Entry::fromData( sv );
 
-    EXPECT_EQ( *(entry[ "a"sv ][ "b"sv ]), "b"sv );
+    EXPECT_EQ( entry[ "a"sv ][ "b"sv ].name(), "b"sv );
     EXPECT_EQ( entry[ "a"sv ][ "b"sv ].toString(), "c"sv );
 }
 
@@ -94,10 +81,10 @@ TEST( Config, iterator )
     cfg::Entry entry = cfg::Entry::fromData( sv );
 
     const auto* it = entry.begin();
-    EXPECT_EQ( **it, "a"sv );
+    EXPECT_EQ( it->name(), "a"sv );
     EXPECT_EQ( it->toString(), "b"sv );
     it++;
-    EXPECT_EQ( **it, "c"sv );
+    EXPECT_EQ( it->name(), "c"sv );
     EXPECT_EQ( it->toString(), "d"sv );
 }
 
@@ -105,7 +92,7 @@ TEST( Config, broken )
 {
     auto sv = "{ a = { b = c } }"_span;
     cfg::Entry entry = cfg::Entry::fromData( sv );
-    EXPECT_TRUE( entry.name.empty() );
+    EXPECT_TRUE( entry.name().empty() );
 }
 
 TEST( Config, quotes )
@@ -114,7 +101,7 @@ TEST( Config, quotes )
     cfg::Entry entry = cfg::Entry::fromData( sv );
 
     const auto* it = entry.begin();
-    EXPECT_EQ( **it, "a"sv );
+    EXPECT_EQ( it->name(), "a"sv );
     EXPECT_EQ( it->toString(), "q u o t e s"sv );
 }
 
@@ -124,19 +111,19 @@ TEST( Config, quotes2 )
     cfg::Entry entry = cfg::Entry::fromData( sv );
 
     const auto* it = entry.begin();
-    EXPECT_EQ( **it, "a"sv );
+    EXPECT_EQ( it->name(), "a"sv );
     EXPECT_EQ( it->toString(), "in q u o t e s"sv );
 
     it++;
-    EXPECT_EQ( **it, "b"sv );
+    EXPECT_EQ( it->name(), "b"sv );
     EXPECT_EQ( it->toString(), "c"sv );
 
     it++;
-    EXPECT_EQ( **it, "d"sv );
+    EXPECT_EQ( it->name(), "d"sv );
     EXPECT_EQ( it->toString(), ""sv );
 
     it++;
-    EXPECT_EQ( **it, "e"sv );
+    EXPECT_EQ( it->name(), "e"sv );
     EXPECT_EQ( it->toString(), "f"sv );
 }
 

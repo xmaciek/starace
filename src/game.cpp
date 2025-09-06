@@ -616,7 +616,7 @@ void Game::loadWPN( const Asset& asset )
     WeaponCreateInfo weap{};
     bool isHidden = false;
     for ( const auto& property : entry ) {
-        switch ( hash( *property ) ) {
+        switch ( hash( property.name() ) ) {
         case "damage"_hash: weap.damage = property.toInt<uint8_t>(); continue;
         case "delay"_hash: weap.delay = property.toFloat(); continue;
         case "reload"_hash: weap.reload = property.toFloat(); continue;

@@ -184,7 +184,7 @@ UniquePointer<Widget> makeWidget( std::pmr::memory_resource* allocator, const cf
 
     std::pmr::vector<const cfg::Entry*> unknownField;
     for ( auto&& property : entry ) {
-        const auto h = hash( *property );
+        const auto h = hash( property.name() );
         bool propertyHandled = false;
         for ( auto&& [ hh, set ] : fields ) {
             if ( hh != h ) continue;
@@ -199,7 +199,7 @@ UniquePointer<Widget> makeWidget( std::pmr::memory_resource* allocator, const cf
 
     UniquePointer<T> ret{ allocator, ci };
     for ( auto&& property : unknownField ) {
-        const auto h = hash( **property );
+        const auto h = hash( property->name() );
         for ( auto&& [ hh, makeWgt, ff ] : WIDGETS ) {
             if ( h != hh ) continue;
             ret.get()->emplace_child( makeWgt( allocator, *property, ff, tabOrder ) );
@@ -229,11 +229,11 @@ static UniquePointer<Widget> makeFooter( std::pmr::memory_resource* alloc, const
         .size = size,
     };
     for ( auto&& property : entry ) {
-        switch ( hash( *property ) ) {
+        switch ( hash( property.name() ) ) {
         case "Button"_hash: {
             auto& button = entries.emplace_back();
             for ( auto&& props : property ) {
-                switch ( hash( *props ) ) {
+                switch ( hash( props.name() ) ) {
                 case "text"_hash: button.textId = hash( props.toString() ); continue;
                 case "input"_hash: button.action = makeInput( hash( props.toString() ) ); continue;
                 case "trigger"_hash: button.triggerId = hash( props.toString() ); continue;
@@ -257,7 +257,7 @@ Screen::Screen( std::span<const uint8_t> fileContent ) noexcept
     auto entry = cfg::Entry::fromData( fileContent );
     Hash hash{};
     for ( const auto& property : entry ) {
-        const auto h = hash( *property );
+        const auto h = hash( property.name() );
         switch ( h ) {
         case "Footer"_hash: m_footer = makeFooter( alloc, property
             , math::vec2{ 48.0f, m_extent.y - 48.0f * 2.0f }

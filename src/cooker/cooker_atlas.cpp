@@ -70,7 +70,7 @@ int main( int argc, const char** argv )
     uint32_t remapOffset = 0;
     Hash hash;
     for ( auto&& it : entry ) {
-        Hash::value_type hh = hash( *it );
+        Hash::value_type hh = hash( it.name() );
         switch ( hh ) {
         case "width"_hash: header.width = it.toInt<uint16_t>(); continue;
         case "height"_hash: header.height = it.toInt<uint16_t>(); continue;
@@ -80,7 +80,7 @@ int main( int argc, const char** argv )
 
         auto& glyph = glyphs.emplace_back();
         for ( auto&& property : it ) {
-            switch ( hash( *property ) ) {
+            switch ( hash( property.name() ) ) {
             case "x"_hash: glyph.data.position[ 0 ] = property.toInt<uint16_t>(); continue;
             case "y"_hash: glyph.data.position[ 1 ] = property.toInt<uint16_t>(); continue;
             case "px"_hash: glyph.data.padding[ 0 ] = property.toInt<int16_t>(); continue;

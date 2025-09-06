@@ -15,9 +15,9 @@ public:
     static Entry fromData( std::span<const uint8_t> );
     static Entry fromData( std::pmr::vector<uint8_t>&& );
 
-    std::pmr::string name{};
-    std::pmr::string value{};
-    std::pmr::vector<Entry> data{};
+    std::pmr::string m_name{};
+    std::pmr::string m_value{};
+    std::pmr::vector<Entry> m_data{};
 
     const Entry& operator [] ( std::string_view ) const;
     const Entry* begin() const;
@@ -35,14 +35,14 @@ public:
         }
         else {
             T t{};
-            std::from_chars( value.c_str(), value.c_str() + value.size(), t );
+            std::from_chars( m_value.c_str(), m_value.c_str() + m_value.size(), t );
             return t;
         }
     }
 
     float toFloat() const;
 
-    std::string_view operator * () const;
+    std::string_view name() const;
 };
 
 }
