@@ -61,25 +61,6 @@ template <typename T, size_t Tidx> void setFrame( void* ci, const cfg::Entry& e 
 using F = std::tuple<Hash::value_type, void(*)( void*, const cfg::Entry& )>;
 using W = std::tuple<Hash::value_type, UniquePointer<Widget>(*)( std::pmr::memory_resource*, const cfg::Entry&, std::span<const F>, uint16_t& ),std::span<const F>>;
 
-template <typename T>
-UniquePointer<Widget> makeWidget( std::pmr::memory_resource* allocator, const cfg::Entry& entry, std::span<const F> fields, uint16_t& tabOrder )
-{
-    typename T::CreateInfo ci{};
-    if constexpr ( TabOrdering<T>::value ) {
-        ci.tabOrder = tabOrder++;
-    }
-    Hash hash{};
-
-    for ( auto&& property : entry ) {
-        const auto h = hash( *property );
-        for ( auto&& [ hh, set ] : fields ) {
-            if ( hh != h ) continue;
-            set( &ci, property );
-        }
-    }
-
-    return UniquePointer<T>{ allocator, ci };
-}
 
 inline constexpr std::array PROGRESSBAR_FIELDS = {
     F{ "x"_hash, &setX<Progressbar> },
@@ -178,6 +159,9 @@ inline constexpr std::array ANIMFRAME_FIELDS = {
 };
 
 
+template <typename T>
+static UniquePointer<Widget> makeWidget( std::pmr::memory_resource*, const cfg::Entry&, std::span<const F>, uint16_t& );
+
 inline constexpr std::array WIDGETS = {
     W{ "Button"_hash, &makeWidget<Button>, BUTTON_FIELDS },
     W{ "ComboBox"_hash, &makeWidget<ComboBox>, COMBOBOX_FIELDS },
@@ -188,6 +172,42 @@ inline constexpr std::array WIDGETS = {
     W{ "SpinBox"_hash, &makeWidget<SpinBox>, SPINBOX_FIELDS },
     W{ "AnimFrame"_hash, &makeWidget<AnimFrame>, ANIMFRAME_FIELDS },
 };
+
+template <typename T>
+UniquePointer<Widget> makeWidget( std::pmr::memory_resource* allocator, const cfg::Entry& entry, std::span<const F> fields, uint16_t& tabOrder )
+{
+    typename T::CreateInfo ci{};
+    if constexpr ( TabOrdering<T>::value ) {
+        ci.tabOrder = tabOrder++;
+    }
+    Hash hash{};
+
+    std::pmr::vector<const cfg::Entry*> unknownField;
+    for ( auto&& property : entry ) {
+        const auto h = hash( *property );
+        bool propertyHandled = false;
+        for ( auto&& [ hh, set ] : fields ) {
+            if ( hh != h ) continue;
+            set( &ci, property );
+            propertyHandled = true;
+            break;
+        }
+        if ( !propertyHandled ) {
+            unknownField.emplace_back( &property );
+        }
+    }
+
+    UniquePointer<T> ret{ allocator, ci };
+    for ( auto&& property : unknownField ) {
+        const auto h = hash( **property );
+        for ( auto&& [ hh, makeWgt, ff ] : WIDGETS ) {
+            if ( h != hh ) continue;
+            ret.get()->emplace_child( makeWgt( allocator, *property, ff, tabOrder ) );
+            break;
+        }
+    }
+    return ret;
+}
 
 static UniquePointer<Widget> makeFooter( std::pmr::memory_resource* alloc, const cfg::Entry& entry, math::vec2 position, math::vec2 size  )
 {

@@ -52,6 +52,12 @@ public:
         return reinterpret_cast<T*>( w.get() );
     }
 
+    inline Widget* emplace_child( UniquePointer<Widget>&& ptr )
+    {
+        auto& w = m_children.emplace_back( std::move( ptr ) );
+        return w.get();
+    }
+
     void onRender( RenderContext ) const;
 
 protected:
