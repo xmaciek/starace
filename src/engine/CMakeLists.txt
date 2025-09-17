@@ -12,6 +12,7 @@ target_sources( engine
     ${CMAKE_CURRENT_SOURCE_DIR}/public/engine/savesystem.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/engine/engine.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/engine/math.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/engine/resource_map.hpp
 )
 set_vs_directory( engine "libs" )
 

@@ -73,7 +73,7 @@ Game::Game( int argc, char** argv )
 {
     ZoneScoped;
     loadSettings();
-    m_io->setCallback( ".dds", this, &Game::loadDDS );
+    m_io->setCallback( ".dds", this, &Engine::loadDDS );
     m_io->setCallback( ".objc", this, &Game::loadOBJC );
     m_io->setCallback( ".wav", this, &Game::loadWAV );
     m_io->setCallback( ".lang", this, &Game::loadLANG );
@@ -550,13 +550,6 @@ void Game::changeScreen( Hash::value_type screenId, Audio::Slot sound )
         setScreen( screenId );
         break;
     }
-}
-
-void Game::loadDDS( Asset&& asset )
-{
-    auto&& [ it, inserted ] = m_textures.insert( std::make_pair( asset.path, Texture{} ) );
-    if ( !inserted ) return;
-    it->second = parseTexture( asset.data );
 }
 
 void Game::loadOBJC( Asset&& asset )

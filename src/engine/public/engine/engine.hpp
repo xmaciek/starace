@@ -5,8 +5,10 @@
 #include <engine/fps_limiter.hpp>
 #include <engine/mouse_event.hpp>
 #include <engine/savesystem.hpp>
+#include <engine/resource_map.hpp>
 #include <audio/audio.hpp>
 #include <renderer/renderer.hpp>
+#include <renderer/texture.hpp>
 #include <shared/track_allocator.hpp>
 
 #include <SDL_events.h>
@@ -47,6 +49,9 @@ protected:
     Filesystem* m_io = nullptr;
     Audio* m_audio = nullptr;
     Renderer* m_renderer = nullptr;
+
+    ResourceMap<Texture> m_textures{};
+    void loadDDS( Asset&& );
 
     struct CreateInfo {
         std::string_view gameName{};

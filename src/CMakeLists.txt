@@ -58,8 +58,6 @@ target_sources( starace PRIVATE
     space_dust.hpp
     targeting.cpp
     targeting.hpp
-    texture.cpp
-    texture.hpp
     ui_options_models.hpp
     units.hpp
     update_context.hpp

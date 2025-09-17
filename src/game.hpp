@@ -7,7 +7,6 @@
 #include "map_create_info.hpp"
 #include "model_proto.hpp"
 #include "space_dust.hpp"
-#include "texture.hpp"
 
 #include <config/config.hpp>
 #include <engine/engine.hpp>
@@ -57,7 +56,6 @@ private:
     std::pmr::vector<MapCreateInfo> m_mapsContainer{};
     std::pmr::vector<ModelProto> m_jetsContainer{};
     std::pmr::map<std::filesystem::path, Mesh> m_meshes{};
-    std::pmr::map<std::filesystem::path, Texture> m_textures{};
     std::pmr::map<std::filesystem::path, Audio::Slot> m_sounds{};
 
     std::pmr::vector<WeaponCreateInfo> m_weapons{};
@@ -78,7 +76,6 @@ private:
     ui::Var<std::pmr::u32string> m_uiMissionResult{ U"BUG ME" };
     ui::Var<std::pmr::u32string> m_uiMissionScore{ U"BUG ME" };
 
-    void loadDDS( Asset&& );
     void loadOBJC( Asset&& );
     void loadMAP( Asset&& );
     void loadJET( Asset&& );
