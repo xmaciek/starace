@@ -73,14 +73,14 @@ Game::Game( int argc, char** argv )
 {
     ZoneScoped;
     loadSettings();
-    m_io->setCallback( ".dds", [this]( const auto& asset ){ loadDDS( asset ); } );
-    m_io->setCallback( ".objc", [this]( const auto& asset ){ loadOBJC( asset ); } );
-    m_io->setCallback( ".wav", [this]( const auto& asset ){ loadWAV( asset ); } );
-    m_io->setCallback( ".lang", [this]( const auto& asset ){ loadLANG( asset ); } );
-    m_io->setCallback( ".map", [this]( const auto& asset ){ loadMAP( asset ); } );
-    m_io->setCallback( ".jet", [this]( const auto& asset ){ loadJET( asset ); } );
-    m_io->setCallback( ".wpn", [this]( const auto& asset ){ loadWPN( asset ); } );
-    m_io->setCallback( ".csg", [this]( const auto& asset ){ loadCSG( asset ); } );
+    m_io->setCallback( ".dds", this, &Game::loadDDS );
+    m_io->setCallback( ".objc", this, &Game::loadOBJC );
+    m_io->setCallback( ".wav", this, &Game::loadWAV );
+    m_io->setCallback( ".lang", this, &Game::loadLANG );
+    m_io->setCallback( ".map", this, &Game::loadMAP );
+    m_io->setCallback( ".jet", this, &Game::loadJET );
+    m_io->setCallback( ".wpn", this, &Game::loadWPN );
+    m_io->setCallback( ".csg", this, &Game::loadCSG );
 }
 
 Game::~Game()
@@ -552,21 +552,21 @@ void Game::changeScreen( Hash::value_type screenId, Audio::Slot sound )
     }
 }
 
-void Game::loadDDS( const Asset& asset )
+void Game::loadDDS( Asset&& asset )
 {
     auto&& [ it, inserted ] = m_textures.insert( std::make_pair( asset.path, Texture{} ) );
     if ( !inserted ) return;
     it->second = parseTexture( asset.data );
 }
 
-void Game::loadOBJC( const Asset& asset )
+void Game::loadOBJC( Asset&& asset )
 {
     auto&& [ it, inserted ] = m_meshes.insert( std::make_pair( asset.path, Mesh{} ) );
     if ( !inserted ) return;
     it->second = Mesh{ asset.data, m_renderer };
 }
 
-void Game::loadMAP( const Asset& asset )
+void Game::loadMAP( Asset&& asset )
 {
     using std::string_view_literals::operator""sv;
     ZoneScoped;
@@ -583,7 +583,7 @@ void Game::loadMAP( const Asset& asset )
     ci.enemies = entry[ "enemies"sv ].toInt<uint32_t>();
 }
 
-void Game::loadJET( const Asset& asset )
+void Game::loadJET( Asset&& asset )
 {
     using std::string_view_literals::operator""sv;
     ZoneScoped;
@@ -595,7 +595,7 @@ void Game::loadJET( const Asset& asset )
     jet.name = entry[ "name"sv ].toString32();
 }
 
-void Game::loadWPN( const Asset& asset )
+void Game::loadWPN( Asset&& asset )
 {
     ZoneScoped;
     auto makeType = []( std::string_view sv )
@@ -640,7 +640,7 @@ void Game::loadWPN( const Asset& asset )
     else m_weapons.emplace_back( weap );
 }
 
-void Game::loadLANG( const Asset& asset )
+void Game::loadLANG( Asset&& asset )
 {
     ZoneScoped;
     auto& ll = g_uiProperty.m_lockit.emplace_back( asset.data );
@@ -650,7 +650,7 @@ void Game::loadLANG( const Asset& asset )
     } );
 }
 
-void Game::loadWAV( const Asset& asset )
+void Game::loadWAV( Asset&& asset )
 {
     ZoneScoped;
     auto [ it, inserted ] = m_sounds.insert( std::make_pair( asset.path, Audio::Slot{} ) );
@@ -658,18 +658,19 @@ void Game::loadWAV( const Asset& asset )
     it->second = m_audio->load( asset.data );
 }
 
-void Game::loadCSG( const Asset& asset )
+void Game::loadCSG( Asset&& asset )
 {
     csg::Header header;
-    assert( asset.data.size() >= sizeof( header ) );
-    std::memcpy( &header, asset.data.data(), sizeof( header ) );
+    if ( !asset.read( header ) ) {
+        assert( !"callsign file corrupted, not enough data to read header" );
+        return;
+    }
     assert( header.magic == header.MAGIC );
     assert( header.version == header.VERSION );
-    auto data = asset.data.subspan( sizeof( header ) );
     std::pmr::vector<csg::Callsign> callsigns{};
     auto size = m_callsigns.size();
     m_callsigns.resize( size + header.count );
-    std::memcpy( m_callsigns.data() + size, data.data(), header.count * sizeof( csg::Callsign ) );
+    std::memcpy( m_callsigns.data() + size, asset.data.data(), header.count * sizeof( csg::Callsign ) );
 }
 
 void Game::applyDisplay()

@@ -78,14 +78,14 @@ private:
     ui::Var<std::pmr::u32string> m_uiMissionResult{ U"BUG ME" };
     ui::Var<std::pmr::u32string> m_uiMissionScore{ U"BUG ME" };
 
-    void loadDDS( const Asset& );
-    void loadOBJC( const Asset& );
-    void loadMAP( const Asset& );
-    void loadJET( const Asset& );
-    void loadWPN( const Asset& );
-    void loadLANG( const Asset& );
-    void loadWAV( const Asset& );
-    void loadCSG( const Asset& );
+    void loadDDS( Asset&& );
+    void loadOBJC( Asset&& );
+    void loadMAP( Asset&& );
+    void loadJET( Asset&& );
+    void loadWPN( Asset&& );
+    void loadLANG( Asset&& );
+    void loadWAV( Asset&& );
+    void loadCSG( Asset&& );
 
     void loadSettings();
     void applyDisplay();
