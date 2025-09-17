@@ -544,3 +544,12 @@ void Engine::loadDDS( Asset&& asset )
     [[maybe_unused]] // TODO duplicates
     auto&& [ it, inserted ] = m_textures.insert( std::make_pair( asset.path, tex ) );
 }
+
+void Engine::loadWAV( Asset&& asset )
+{
+    ZoneScoped;
+    auto soundID = m_audio->load( asset.data );
+    assert( soundID );
+    [[maybe_unused]] // TODO duplicates
+    auto&& [ it, inserted ] = m_sounds.insert( std::make_pair( asset.path, soundID ) );
+}

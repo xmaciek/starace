@@ -73,9 +73,9 @@ Game::Game( int argc, char** argv )
 {
     ZoneScoped;
     loadSettings();
-    m_io->setCallback( ".dds", this, &Engine::loadDDS );
-    m_io->setCallback( ".objc", this, &Game::loadOBJC );
+    m_io->setCallback( ".dds", this, &Game::loadDDS );
     m_io->setCallback( ".wav", this, &Game::loadWAV );
+    m_io->setCallback( ".objc", this, &Game::loadOBJC );
     m_io->setCallback( ".lang", this, &Game::loadLANG );
     m_io->setCallback( ".map", this, &Game::loadMAP );
     m_io->setCallback( ".jet", this, &Game::loadJET );
@@ -641,14 +641,6 @@ void Game::loadLANG( Asset&& asset )
         .id = ll.id(),
         .display = std::pmr::u32string{ ll.find( "lockit"_hash ) },
     } );
-}
-
-void Game::loadWAV( Asset&& asset )
-{
-    ZoneScoped;
-    auto [ it, inserted ] = m_sounds.insert( std::make_pair( asset.path, Audio::Slot{} ) );
-    if ( !inserted ) return;
-    it->second = m_audio->load( asset.data );
 }
 
 void Game::loadCSG( Asset&& asset )

@@ -53,6 +53,9 @@ protected:
     ResourceMap<Texture> m_textures{};
     void loadDDS( Asset&& );
 
+    ResourceMap<Audio::Slot> m_sounds{};
+    void loadWAV( Asset&& );
+
     struct CreateInfo {
         std::string_view gameName{};
         uint32_t versionMajor{};

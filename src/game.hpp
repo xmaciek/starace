@@ -56,7 +56,6 @@ private:
     std::pmr::vector<MapCreateInfo> m_mapsContainer{};
     std::pmr::vector<ModelProto> m_jetsContainer{};
     std::pmr::map<std::filesystem::path, Mesh> m_meshes{};
-    std::pmr::map<std::filesystem::path, Audio::Slot> m_sounds{};
 
     std::pmr::vector<WeaponCreateInfo> m_weapons{};
     WeaponCreateInfo m_enemyWeapon{};
@@ -81,7 +80,6 @@ private:
     void loadJET( Asset&& );
     void loadWPN( Asset&& );
     void loadLANG( Asset&& );
-    void loadWAV( Asset&& );
     void loadCSG( Asset&& );
 
     void loadSettings();
