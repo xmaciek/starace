@@ -78,9 +78,9 @@ public:
     virtual ~Widget() noexcept = default;
     Widget() noexcept = default;
     Widget( const Widget& ) = delete;
-    Widget( Widget&& ) = delete;
+    Widget( Widget&& ) = default;
     Widget& operator = ( const Widget& ) = delete;
-    Widget& operator = ( Widget&& ) = delete;
+    Widget& operator = ( Widget&& ) = default;
 
     inline Widget( Anchor a ) noexcept
     : m_anchor{ a }

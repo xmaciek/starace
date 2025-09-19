@@ -273,13 +273,18 @@ Screen::Screen( std::span<const uint8_t> fileContent ) noexcept
         }
         for ( auto&& [ hh, makeWgt, fields ] : WIDGETS ) {
             if ( h != hh ) continue;
-            m_widgets.emplace_back( makeWgt( alloc, property, fields, tabOrderCount ) );
+            m_children.emplace_back( makeWgt( alloc, property, fields, tabOrderCount ) );
         }
     }
     if ( tabOrderCount != 0 ) {
         m_tabOrder = TabOrder<>{ 0, 0, tabOrderCount };
         changeFocus( Widget::INVALID_TAB, 0 );
     }
+}
+
+void Screen::render( const RenderContext& ) const
+{
+    assert( !"stupid c++/clang cannot delete virtual function if samely named function with different parameters exists" );
 }
 
 void Screen::render( Renderer* renderer, math::vec2 viewport ) const
@@ -304,7 +309,7 @@ void Screen::render( Renderer* renderer, math::vec2 viewport ) const
         return ( left < right ) ? -viewportX : viewportX;
     };
 
-    for ( const auto& it : m_widgets ) {
+    for ( const auto& it : m_children ) {
         const float startPos = startPosistionForWidget( it, m_viewport.x, m_extent.x );
         const float animX = math::nonlerp( startPos, 0.0f, m_anim );
         rctx.view = math::translate( view, math::vec3{ animX, 0.0f, 0.0f } );
@@ -357,16 +362,14 @@ void Screen::update( const UpdateContext& uctx )
         m_modalWidget = std::move( w );
     }
     m_anim = std::clamp( m_anim + uctx.deltaTime * 5.0f, 0.0f, 1.0f );
-    for ( const auto& it : m_widgets ) {
-        it->onUpdate( uctx );
-    }
+    Widget::update( uctx );
     if ( m_footer ) m_footer->onUpdate( uctx );
     if ( m_modalWidget ) m_modalWidget->onUpdate( uctx );
 
     updateInputRepeat( uctx.deltaTime );
 }
 
-void Screen::onMouseEvent( const MouseEvent& e )
+EventProcessing Screen::onMouseEvent( const MouseEvent& e )
 {
     MouseEvent event = e;
     event.position /= m_resize;
@@ -377,19 +380,20 @@ void Screen::onMouseEvent( const MouseEvent& e )
         if ( mouseProcessing == EventProcessing::eStop ) {
             m_modalWidget = {};
         }
-        return;
+        return EventProcessing::eStop;
     }
     uint16_t prevWidget = *m_tabOrder;
     m_tabOrder.invalidate();
-    for ( const auto& it : m_widgets ) {
+    for ( const auto& it : m_children ) {
         auto mouseProcessing = it->onEvent( event );
         if ( mouseProcessing == EventProcessing::eContinue ) continue;
         m_tabOrder = it->tabOrder();
         changeFocus( prevWidget, *m_tabOrder );
-        return;
+        return EventProcessing::eStop;
     }
 
     if ( m_footer ) m_footer->onEvent( event );
+    return EventProcessing::eStop;
 }
 
 Widget* Screen::findWidgetByTabOrder( uint16_t tabOrder )
@@ -398,10 +402,8 @@ Widget* Screen::findWidgetByTabOrder( uint16_t tabOrder )
         return nullptr;
     }
 
-    auto wgt = std::find_if( m_widgets.begin(), m_widgets.end()
-        , [tabOrder]( const auto& wgt ) { return wgt->tabOrder() == tabOrder; }
-    );
-    return ( wgt != m_widgets.end() ) ? wgt->get() : nullptr;
+    auto wgt = std::ranges::find_if( m_children, [tabOrder]( const auto& wgt ) { return wgt->tabOrder() == tabOrder; } );
+    return ( wgt != m_children.end() ) ? wgt->get() : nullptr;
 }
 
 void Screen::changeFocus( uint16_t from, uint16_t to )
@@ -414,7 +416,7 @@ void Screen::changeFocus( uint16_t from, uint16_t to )
     if ( wgt ) { wgt->setFocused( true ); }
 }
 
-void Screen::onAction( ui::Action action )
+EventProcessing Screen::onAction( ui::Action action )
 {
     ZoneScoped;
     auto testRepeat = []( int16_t value, RepeatDirection& e, RepeatDirection eConst, float& delay )
@@ -429,14 +431,14 @@ void Screen::onAction( ui::Action action )
     case ui::Action::eMenuRight: testRepeat( action.value, m_repeatDirection, eRight, m_inputRepeatDelay ); break;
     default: break;
     }
-    if ( action.value == 0 ) { return; }
+    if ( action.value == 0 ) { return EventProcessing::eStop; }
 
     if ( m_modalWidget ) {
         auto actionProcessing = m_modalWidget->onAction( action );
         if ( actionProcessing == EventProcessing::eStop ) {
             m_modalWidget = {};
         }
-        return;
+        return EventProcessing::eStop;;
     }
 
     const uint16_t prevIndex = *m_tabOrder;
@@ -457,10 +459,11 @@ void Screen::onAction( ui::Action action )
         break;
     }
     if ( eventResult && ( *eventResult == EventProcessing::eStop ) ) {
-        return;
+        return EventProcessing::eStop;
     }
 
     if ( m_footer ) m_footer->onAction( action );
+    return EventProcessing::eStop;
 }
 
 void Screen::resize( math::vec2 s )
@@ -485,13 +488,13 @@ void Screen::show( math::vec2 size )
 
 void Screen::refreshInput()
 {
-    std::ranges::for_each( m_widgets, []( auto& ptr ) { ptr->refreshInput(); } );
+    Widget::refreshInput();
     if ( m_footer ) { m_footer->refreshInput(); }
 }
 
 void Screen::lockitChanged()
 {
-    std::ranges::for_each( m_widgets, []( auto& ptr ) { ptr->lockitChanged(); } );
+    Widget::lockitChanged();
     if ( m_footer ) { m_footer->lockitChanged(); }
 }
 

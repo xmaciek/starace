@@ -19,7 +19,7 @@ struct RenderContext;
 struct UpdateContext;
 class Widget;
 
-class Screen {
+class Screen final : public Widget {
     TabOrder<> m_tabOrder{};
     math::vec2 m_extent{ 1, 1 };
     math::vec2 m_resize{ 1, 1 };
@@ -28,7 +28,6 @@ class Screen {
     float m_anim = 0.0f;
     Hash::value_type m_scene = 0;
     Hash::value_type m_name = 0;
-    std::pmr::vector<UniquePointer<Widget>> m_widgets{};
 
     UniquePointer<Widget> m_glow{};
     UniquePointer<Widget> m_modalWidget{};
@@ -52,6 +51,7 @@ class Screen {
 
     std::pmr::memory_resource* allocator();
 
+
 public:
     ~Screen() noexcept = default;
     Screen() noexcept = default;
@@ -62,17 +62,19 @@ public:
     Screen& operator = ( Screen&& ) noexcept = default;
     Screen& operator = ( const Screen& ) = delete;
 
-    void onAction( ui::Action );
-    void onMouseEvent( const MouseEvent& );
-    void update( const UpdateContext& );
-    void render( Renderer*, math::vec2 viewport ) const;
+    virtual EventProcessing onAction( ui::Action ) override;
+    virtual EventProcessing onMouseEvent( const MouseEvent& ) override;
+    virtual void update( const UpdateContext& ) override;
+    virtual void refreshInput() override;
+    virtual void lockitChanged() override;
+
     void resize( math::vec2 );
+    void show( math::vec2 size );
+    void render( Renderer*, math::vec2 viewport ) const;
+    virtual void render( const RenderContext& ) const override;
 
     inline Hash::value_type name() const { return m_name; }
     inline Hash::value_type scene() const { return m_scene; }
-    void show( math::vec2 size );
-    void refreshInput();
-    void lockitChanged();
 
     [[nodiscard]]
     UniquePointer<MessageBox> messageBox( Hash::value_type );
