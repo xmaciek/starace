@@ -9,6 +9,7 @@ enum ImageType : uint8_t {
     eColorMap = 1,
     eTrueColor = 2,
     eGrayscale = 3,
+    fRLE = 8,
     eColorMapRLE = 9,
     eTrueColorRLE = 10,
     eGrayscaleRLE = 11,

@@ -75,6 +75,20 @@ std::pmr::vector<uint8_t> read( std::ifstream& ifs, size_t size )
 
 template <typename T>
 requires ( std::is_trivially_copyable_v<T> )
+void read( std::ifstream& ifs, T& t )
+{
+    ifs.read( reinterpret_cast<char*>( &t ), (std::streamsize)sizeof( T ) );
+}
+
+template <typename T>
+requires ( std::is_trivially_copyable_v<T> )
+void read( std::ifstream& ifs, std::pmr::vector<T>& t )
+{
+    ifs.read( reinterpret_cast<char*>( t.data() ), (std::streamsize)( sizeof( T ) * t.size() ) );
+}
+
+template <typename T>
+requires ( std::is_trivially_copyable_v<T> )
 void write( std::ofstream& ofs, const T& t )
 {
     ofs.write( reinterpret_cast<const char*>( &t ), (std::streamsize)sizeof( T ) );

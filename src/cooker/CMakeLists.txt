@@ -15,7 +15,7 @@ declare_cooker( cooker_pak )
 
 target_sources( cooker_atlas PRIVATE cooker_atlas.cpp )
 target_sources( cooker_callsign PRIVATE cooker_callsign.cpp )
-target_sources( cooker_dds PRIVATE cooker_dds.cpp cooker_dds.hpp )
+target_sources( cooker_dds PRIVATE cooker_dds.cpp cooker_dds.hpp cooker_tga.hpp )
 target_sources( cooker_font PRIVATE cooker_font.cpp cooker_dds.hpp )
 target_sources( cooker_lang PRIVATE cooker_lang.cpp )
 target_sources( cooker_obj PRIVATE cooker_obj.cpp )

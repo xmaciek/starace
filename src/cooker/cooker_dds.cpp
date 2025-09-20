@@ -1,8 +1,8 @@
 #include "cooker_dds.hpp"
 #include "cooker_common.hpp"
+#include "cooker_tga.hpp"
 
 #include <extra/dds.hpp>
-#include <extra/tga.hpp>
 #include <extra/args.hpp>
 
 #include <algorithm>
@@ -21,197 +21,6 @@
 #include <vector>
 
 using Format = dds::dxgi::Format;
-
-struct Image {
-    Format format;
-    uint32_t width = 0;
-    uint32_t height = 0;
-    std::pmr::vector<uint8_t> pixels;
-};
-
-using B = uint8_t;
-struct BGR { uint8_t b, g, r; };
-struct BGRA { uint8_t b, g, r, a; };
-
-template <typename TFrom, typename TTo>
-TTo doConvert( const TFrom& );
-
-template <typename TFrom, typename TTo>
-requires ( std::is_same_v<TFrom, TTo> )
-TTo doConvert( const TFrom& t ) { return t; }
-
-template <> B doConvert<BGRA, B>( const BGRA& c ) { return c.b; };
-template <> B doConvert<BGR, B>( const BGR& c ) { return c.b; };
-template <> BGRA doConvert<BGR, BGRA>( const BGR& c ) { return BGRA{ c.b, c.g, c.r, 0xFF }; };
-
-template <typename TFrom, typename TTo>
-static Image unmap( std::ifstream& ifs, const tga::Header& header, Format format )
-{
-    [[maybe_unused]]
-    uint16_t colorMapOffset = 0; std::memcpy( &colorMapOffset, header.colorMap, 2 );
-    uint16_t colorMapCount = 0; std::memcpy( &colorMapCount, header.colorMap + 2, 2 );
-    std::pmr::vector<TFrom> colorMap( (std::size_t)colorMapCount );
-    ifs.read( reinterpret_cast<char*>( colorMap.data() ), static_cast<std::streamsize>( colorMapCount * sizeof( TFrom ) ) );
-    std::pmr::vector<uint8_t> indexes;
-    indexes.resize( header.width * header.height );
-    ifs.read( reinterpret_cast<char*>( indexes.data() ), static_cast<std::streamsize>( indexes.size() ) );
-    ifs.close();
-    std::pmr::vector<TTo> colorMap2;
-    if constexpr ( std::is_same_v<TFrom, TTo> ) { std::swap( colorMap, colorMap2 ); }
-    else {
-        colorMap2.resize( colorMap.size() );
-        std::transform( colorMap.begin(), colorMap.end(), colorMap2.begin(), &doConvert<TFrom, TTo> );
-    }
-    std::pmr::vector<uint8_t> ret( header.width * header.height * sizeof( TTo ) );
-    std::span<TTo> retSpan{ (TTo*)ret.data(), (TTo*)ret.data() + header.width * header.height };
-    std::transform( indexes.begin(), indexes.end(), retSpan.begin(), [&colorMap2]( uint8_t i ) { return colorMap2[ (uint32_t)i ]; } );
-    return { .format = format, .width = header.width, .height = header.height, .pixels = std::move( ret ) };
-}
-
-template <typename T>
-struct RLE {
-    std::span<const uint8_t> m_data{};
-    T m_value{};
-    int16_t m_pixelCount = -1;
-    bool m_compressed = false;
-
-    RLE( std::span<const uint8_t> data )
-    : m_data{ data }
-    {}
-
-    void operator () ( T& value )
-    {
-        if ( m_pixelCount == -1 ) {
-            if ( m_data.size() < 1 ) cooker::error( "unexpected end of RLE stream", __LINE__ );
-            m_pixelCount = m_data.front();
-            m_compressed = m_pixelCount & 128;
-            m_pixelCount &= ~128;
-            if ( m_compressed ) {
-                if ( m_data.size() < sizeof( T ) + 1 ) cooker::error( "unexpected end of RLE stream", __LINE__ );
-                std::memcpy( &m_value, m_data.data() + 1, sizeof( T ) );
-                m_data = m_data.subspan( sizeof( T ) + 1 );
-            }
-            else {
-                m_data = m_data.subspan( 1 );
-            }
-        }
-
-        m_pixelCount--;
-        if ( m_compressed ) {
-            value = m_value;
-            return;
-        }
-        T ret{};
-        if ( m_data.size() < sizeof( T ) ) cooker::error( "unexpected end of RLE stream", __LINE__ );
-        std::memcpy( &ret, m_data.data(), sizeof( T ) );
-        m_data = m_data.subspan( sizeof( T ) );
-        value = ret;
-    }
-};
-
-static Image convertTGA( const tga::Header& header, std::ifstream& ifs, size_t fileSize, const auto& srcFile )
-{
-    std::pmr::vector<uint8_t> ret;
-
-    switch ( header.imageType ) {
-    case tga::ImageType::eColorMap: {
-        uint32_t id = header.colorMap[ 4 ];
-        id <<= 8;
-        id |= header.bitsPerPixel;
-        switch ( id ) {
-        case 0x8'08: return unmap<B,B>( ifs, header, Format::R8_UNORM );
-        case 0x18'08: return unmap<BGR, B>( ifs, header, Format::R8_UNORM );
-        case 0x18'20: return unmap<BGR, BGRA>( ifs, header, Format::B8G8R8A8_UNORM );
-        case 0x20'08: return unmap<BGRA, B>( ifs, header, Format::R8_UNORM );
-        case 0x20'20: return unmap<BGRA, BGRA>( ifs, header, Format::B8G8R8A8_UNORM );
-        default: cooker::error( "colomap pixel type mismatch" );
-        }
-    }
-
-    case tga::ImageType::eTrueColor:
-    case tga::ImageType::eGrayscale: {
-        switch ( header.bitsPerPixel ) {
-        case 8:
-            ret = cooker::read( ifs, header.width * header.height );
-            return { .format = Format::R8_UNORM, .width = header.width, .height = header.height, .pixels = std::move( ret ) };
-
-        case 32:
-            ret = cooker::read( ifs, sizeof( BGRA ) * header.width * header.height );
-            return { .format = Format::B8G8R8A8_UNORM, .width = header.width, .height = header.height, .pixels = std::move( ret ) };
-
-        case 24: {
-            ret.resize( sizeof( BGRA ) * header.width * header.height );
-            std::pmr::vector<uint8_t> content = cooker::read( ifs, fileSize );
-            auto out = cooker::cast<BGRA>( ret );
-            auto in = cooker::cast<BGR>( content );
-            std::ranges::transform( in, out.begin(), &doConvert<BGR, BGRA> );
-            return { .format = Format::B8G8R8A8_UNORM, .width = header.width, .height = header.height, .pixels = std::move( ret ) };
-        }
-        default:
-            cooker::error( "unknown pixel format, todo maybe later:", srcFile );
-        }
-    case tga::ImageType::eTrueColorRLE:
-        switch ( header.bitsPerPixel ) {
-        default: cooker::error( "unhandled RLE bit count:", (uint32_t)header.bitsPerPixel );
-        case 24: {
-            ret.resize( sizeof( BGRA ) * header.width * header.height );
-            auto retT = cooker::cast<BGRA>( ret );
-            std::pmr::vector<uint8_t> content = cooker::read( ifs, fileSize );
-            std::pmr::vector<BGR> tmp( header.width * header.height );
-            std::ranges::for_each( tmp, RLE<BGR>( content ) );
-            std::ranges::transform( tmp, retT.begin(), &doConvert<BGR, BGRA> );
-            return { .format = Format::B8G8R8A8_UNORM, .width = header.width, .height = header.height, .pixels = std::move( ret ) };
-        }
-        case 32: {
-            ret.resize( sizeof( BGRA ) * header.width * header.height );
-            auto retT = cooker::cast<BGRA>( ret );
-            std::pmr::vector<uint8_t> content = cooker::read( ifs, fileSize );
-            std::ranges::for_each( retT, RLE<BGRA>( content ) );
-            return { .format = Format::B8G8R8A8_UNORM, .width = header.width, .height = header.height, .pixels = std::move( ret ) };
-        }
-        }
-    }
-
-    default:
-        cooker::error( "unhandled image type:", srcFile );
-    }
-}
-
-static Image readTGA( const std::filesystem::path& srcFile )
-{
-    std::ifstream ifs( srcFile, std::ios::binary | std::ios::ate );
-    ifs.is_open() || cooker::error( "cannot open file:", srcFile );
-
-    size_t fileSize = static_cast<size_t>( ifs.tellg() );
-    ( fileSize >= sizeof( tga::Header ) ) || cooker::error( "file too short", srcFile );
-
-    tga::Header header{};
-    ifs.seekg( 0 );
-    ifs.read( reinterpret_cast<char*>( &header ), sizeof( tga::Header ) );
-    fileSize -= sizeof( tga::Header );
-
-
-    Image img = convertTGA( header, ifs, fileSize, srcFile );
-    if ( header.imageDescriptor & tga::ImageDescriptor::fTopLeft ) return img;
-
-    uint32_t laneWidth = 0;
-    switch ( img.format ) {
-    case Format::B8G8R8A8_UNORM: laneWidth = img.width * 4; break;
-    case Format::R8_UNORM: laneWidth = img.width; break;
-    default:
-        cooker::error( "very fatal error, dont know how to handle image type for y-flipping", srcFile );
-    }
-
-    void* tmp = alloca( laneWidth );
-    for ( auto i = 0u; i < img.height / 2; ++i ) {
-        auto a = img.pixels.data() + laneWidth * i;
-        auto b = ( img.pixels.data() + img.pixels.size() ) - laneWidth * ( i + 1 );
-        std::memcpy( tmp, a, laneWidth );
-        std::memcpy( a, b, laneWidth );
-        std::memcpy( b, tmp, laneWidth );
-    }
-    return img;
-}
 
 void compressToBC4( Image& img )
 {
@@ -412,7 +221,7 @@ int main( int argc, const char** argv )
         uint32_t pendingHeight = 0;
         Format pendingFormat{};
         for ( auto&& file : src ) {
-            images.emplace_back() = readTGA( file );
+            images.emplace_back() = tga::read( file );
             if ( images.back().pixels.empty() ) cooker::error( "image must have pixels" );
             uint32_t width = std::exchange( pendingWidth, images.back().width );
             uint32_t height = std::exchange( pendingHeight, images.back().height );
