@@ -22,17 +22,137 @@
 
 using Format = dds::dxgi::Format;
 
+namespace detail {
+
+struct B8G8R8A8 {
+    uint32_t b : 8;
+    uint32_t g : 8;
+    uint32_t r : 8;
+    uint32_t a : 8;
+};
+
+struct B5G6R5 {
+    uint16_t b : 5;
+    uint16_t g : 6;
+    uint16_t r : 5;
+};
+
+template <size_t TWeight>
+static inline B5G6R5 lerp( B5G6R5 a, B5G6R5 b )
+{
+    return {
+        .b = dds::lerp<TWeight>( a.b, b.b ),
+        .g = dds::lerp<TWeight>( a.g, b.g ),
+        .r = dds::lerp<TWeight>( a.r, b.r ),
+    };
+}
+
+static inline uint16_t dot( B5G6R5 a, B5G6R5 b )
+{
+    uint16_t ret = 0;
+    ret += a.b * b.b;
+    ret += a.g * b.g;
+    ret += a.r * b.r;
+    return ret;
+}
+
+static inline uint16_t dot( B5G6R5 a )
+{
+    return dot( a, a );
+}
+
+}
+
+struct BC1 {
+    union { detail::B5G6R5 c1; uint16_t r1; };
+    union { detail::B5G6R5 c2; uint16_t r2; };
+    uint32_t indexes;
+};
+
+inline BC1 compressor_bc1( std::span<const detail::B5G6R5, 16> block )
+{
+    std::array<uint16_t, 16> dots;
+    std::ranges::transform( block, dots.begin(), []( auto a ) { return detail::dot( a ); } );
+    auto [ min, max ] = std::ranges::minmax_element( dots );
+
+    BC1 ret{
+        .c1 = block[ std::distance( dots.begin(), max ) ],
+        .c2 = block[ std::distance( dots.begin(), min ) ],
+    };
+
+    if ( ret.r1 < ret.r2 ) std::swap( ret.r1, ret.r2 );
+
+    const std::array<uint16_t, 4> lut{
+        detail::dot( ret.c1 ),
+        detail::dot( ret.c2 ),
+        detail::dot( detail::lerp<42>( ret.c2, ret.c1 ) ),
+        detail::dot( detail::lerp<21>( ret.c2, ret.c1 ) ),
+    };
+    auto nearestIndice = [&lut]( uint16_t ref ) -> uint8_t
+    {
+        int dist = 0xFFFF;
+        uint8_t indice = 0;
+        for ( uint8_t i = 0; i < lut.size(); ++i ) {
+            int d = std::abs( (int)ref - (int)lut[ i ] );
+            if ( d == 0 ) return i;
+            if ( d >= dist ) continue;
+            dist = d;
+            indice = i;
+        }
+        return indice;
+    };
+
+    for ( auto it = dots.rbegin(); it != dots.rend(); ++it ) {
+        ret.indexes <<= 2;
+        ret.indexes |= nearestIndice(* it );
+    }
+
+    return ret;
+};
+
+
+void compressToBC1( Image& img )
+{
+    using namespace detail;
+    if ( img.format != Format::B8G8R8A8_UNORM ) cooker::error( "Expected format B8G8R8A8" );
+    if ( img.pixels.empty() ) cooker::error( "no pixels to convert" );
+
+    auto src = cooker::cast<B8G8R8A8>( img.pixels );
+    std::pmr::vector<B5G6R5> tmp( src.size() );
+    auto convert = []( auto c ) -> B5G6R5
+    {
+        return {
+            .b = (uint16_t)( c.b >> 3 ),
+            .g = (uint16_t)( c.g >> 2 ),
+            .r = (uint16_t)( c.r >> 3 ),
+        };
+    };
+    std::ranges::transform( src, tmp.begin(), convert );
+    const uint32_t blockCount = (uint32_t)tmp.size() / 16;
+
+    using Swizzler = dds::Swizzler<B5G6R5>;
+    std::pmr::vector<Swizzler::BlockType> swizzled( blockCount );
+    std::ranges::generate( swizzled, Swizzler{ tmp, img.width } );
+
+    std::pmr::vector<uint8_t> imageOut( sizeof( BC1 ) * blockCount );
+    auto bc1 = cooker::cast<BC1>( imageOut );
+    std::ranges::transform( swizzled, bc1.begin(), &compressor_bc1 );
+
+    std::swap( img.pixels, imageOut );
+    img.format = Format::BC1_UNORM;
+}
+
 void compressToBC4( Image& img )
 {
     if ( img.format != Format::R8_UNORM ) cooker::error( "Expected format R8" );
     if ( img.pixels.empty() ) cooker::error( "no pixels to convert" );
 
+    using Swizzler = dds::Swizzler<uint8_t>;
     const uint32_t blockCount = (uint32_t)img.pixels.size() / 16;
     std::pmr::vector<uint8_t> imageOut( sizeof( dds::BC4 ) * blockCount );
-    std::pmr::vector<dds::Swizzler<>::BlockType> tmp( blockCount );
+    std::pmr::vector<Swizzler::BlockType> tmp( blockCount );
 
-    dds::Swizzler<uint8_t> swizzler{ img.pixels, img.width };
-    std::generate( tmp.begin(), tmp.end(), swizzler );
+    std::generate( tmp.begin(), tmp.end(), Swizzler{ img.pixels, img.width } );
     std::transform( tmp.begin(), tmp.end(), reinterpret_cast<dds::BC4*>( imageOut.data() ), &dds::compressor_bc4 );
     std::swap( img.pixels, imageOut );
     img.format = Format::BC4_UNORM;
@@ -195,6 +315,7 @@ int main( int argc, const char** argv )
     {
         std::string_view argsFormat{};
         if ( !args.read( "--format", argsFormat ) ) return Format::UNKNOWN;
+        if ( argsFormat == "BC1" ) return Format::BC1_UNORM;
         if ( argsFormat == "BC4" ) return Format::BC4_UNORM;
         cooker::error( "--format has unsupported value \u2012", argsFormat );
     }();
@@ -244,7 +365,8 @@ int main( int argc, const char** argv )
     }
     images.clear();
     switch ( argsFormat ) {
-    case Format::BC4_UNORM: std::for_each( mips.begin(), mips.end(), &compressToBC4 ); break;
+        case Format::BC1_UNORM: std::ranges::for_each( mips, &compressToBC1 ); break;
+        case Format::BC4_UNORM: std::ranges::for_each( mips, &compressToBC4 ); break;
     default: break;
     };
 

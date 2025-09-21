@@ -22,7 +22,7 @@ struct BC4 {
     uint64_t aindexes : 48;
 };
 
-template <typename TPixel = uint8_t>
+template <typename TPixel>
 struct Swizzler {
     using PixelType = TPixel;
     using BlockType = std::array<PixelType, 16>;
@@ -31,8 +31,8 @@ struct Swizzler {
     uint32_t blocksInRow = 0;
     uint32_t col = 0;
 
-    Swizzler( std::span<const uint8_t> d, uint32_t width )
-    : data{ reinterpret_cast<const PixelType*>( d.data() ), d.size() / sizeof( PixelType ) }
+    Swizzler( std::span<const TPixel> d, uint32_t width )
+    : data{ d }
     , blocksInRow( width / 4 )
     {
         assert( width % 4 == 0 );
