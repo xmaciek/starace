@@ -362,7 +362,7 @@ void Screen::update( const UpdateContext& uctx )
         m_modalWidget = std::move( w );
     }
     m_anim = std::clamp( m_anim + uctx.deltaTime * 5.0f, 0.0f, 1.0f );
-    Widget::update( uctx );
+    std::ranges::for_each( m_children, [&uctx]( auto& w ){ w->onUpdate( uctx ); } );
     if ( m_footer ) m_footer->onUpdate( uctx );
     if ( m_modalWidget ) m_modalWidget->onUpdate( uctx );
 
