@@ -2,7 +2,7 @@
 
 #include <ui/widget.hpp>
 #include <ui/data_model.hpp>
-#include <renderer/texture.hpp>
+#include <ui/sprite.hpp>
 #include <shared/hash.hpp>
 
 #include <cstdint>
@@ -10,9 +10,8 @@ namespace ui {
 
 class AnimFrame : public Widget {
     math::vec4 m_color{ 1.0f, 1.0f, 1.0f, 1.0f };
-    std::array<math::vec4, 16> m_uvwh{};
+    std::array<Sprite, 16> m_uvwh{};
     DataModel* m_dataModel = nullptr;
-    Texture m_texture{};
     DataModel::size_type m_revision = 0xFFFF;
     uint32_t m_index{};
     uint32_t m_count{};

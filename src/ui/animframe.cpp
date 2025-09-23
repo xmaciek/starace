@@ -17,7 +17,6 @@ AnimFrame::AnimFrame( const CreateInfo& ci ) noexcept
         if ( !it ) continue;
         m_uvwh[ m_count++ ] = g_uiProperty.sprite( it );
     }
-    m_texture = g_uiProperty.atlasTexture();
     assert( m_count );
 }
 
@@ -27,7 +26,7 @@ void AnimFrame::render( const RenderContext& rctx ) const
         .m_pipeline = g_uiProperty.pipelineSpriteSequence(),
         .m_verticeCount = 6u,
     };
-    pushData.m_fragmentTexture[ 1 ] = m_texture;
+    pushData.m_fragmentTexture[ 1 ] = m_uvwh[ m_index ].texture;
 
     using PushConstant = ui::PushConstant<ui::Pipeline::eSpriteSequence>;
     PushConstant pushConstant{
