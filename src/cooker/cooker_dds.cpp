@@ -76,8 +76,8 @@ inline BC1 compressor_bc1( std::span<const detail::B5G6R5, 16> block )
     auto [ min, max ] = std::ranges::minmax_element( dots );
 
     BC1 ret{
-        .c1 = block[ std::distance( dots.begin(), max ) ],
-        .c2 = block[ std::distance( dots.begin(), min ) ],
+        .c1 = block[ (size_t)std::distance( dots.begin(), max ) ],
+        .c2 = block[ (size_t)std::distance( dots.begin(), min ) ],
     };
 
     if ( ret.r1 < ret.r2 ) std::swap( ret.r1, ret.r2 );
