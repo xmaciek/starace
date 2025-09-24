@@ -20,7 +20,10 @@ class Renderer;
 
 namespace ui {
 
+class Property;
+
 class Font {
+    friend Property;
     const Font* m_upstream{};
     const input::Remapper* m_remapper{};
     uint32_t m_width = 0;

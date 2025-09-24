@@ -13,12 +13,12 @@
 
 template <typename TKey, typename TValue>
 class FixedMapView {
+public:
     using difference_type = std::intptr_t;
 
     std::span<TKey> m_keys{};
     std::span<TValue> m_values{};
 
-public:
     ~FixedMapView() noexcept = default;
     FixedMapView() noexcept = default;
     FixedMapView( std::span<TKey> keys, std::span<TValue> values ) noexcept

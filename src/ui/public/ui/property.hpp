@@ -17,6 +17,7 @@
 #include <memory_resource>
 #include <string>
 #include <tuple>
+#include <engine/resource_map.hpp>
 
 class Game;
 
@@ -43,6 +44,7 @@ class Property {
     FixedMap<Hash::value_type, std::function<void()>, 64> m_gameCallbacks{};
 
     UniquePointer<Widget> m_pendingModalWidget{};
+    ResourceMap<Sprite> m_sprites{};
 
 
 public:
@@ -132,6 +134,7 @@ public:
         }
     }
 
+    void addSprites( const Font* );
     Sprite sprite( Hash::value_type ) const;
 
 };

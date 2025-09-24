@@ -118,6 +118,7 @@ void Game::onInit()
         .fontAtlas = m_io->viewWait( "misc/ui_atlas.fnta" ),
         .texture = m_textures[ "textures/atlas_ui.dds" ],
     };
+    g_uiProperty.addSprites( &m_uiAtlas );
     m_screens.emplace_back( m_io->viewWait( "ui/loading.ui" ) );
     changeScreen( "loading"_hash );
 
