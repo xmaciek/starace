@@ -59,7 +59,8 @@ function( cook_callsign )
 endfunction()
 
 
-cook_atlas( SRC "ui_atlas.txt" DST "ui_atlas.fnta" PACK init )
+cook_atlas( SRC "ui_atlas.txt" DST "ui_atlas.fnta" )
+cook_atlas( SRC "init.txt" DST "init.fnta" PACK init )
 cook_atlas( SRC "xbox_atlas.txt" DST "xbox_atlas.fnta" REMAP )
 cook_atlas( SRC "ps4_atlas.txt" DST "ps4_atlas.fnta" REMAP )
 cook_callsign( SRC "callsigns.txt" DST "callsigns.csg" )

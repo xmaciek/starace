@@ -113,12 +113,12 @@ void Game::onInit()
 
     m_io->mount( "init.pak" );
     g_uiProperty.m_pipelineSpriteSequence = setupPipeline( m_renderer, m_io, ui::SPRITE_SEQUENCE );
-    g_uiProperty.m_atlas = &m_uiAtlas;
-    m_uiAtlas = ui::Font::CreateInfo{
-        .fontAtlas = m_io->viewWait( "misc/ui_atlas.fnta" ),
-        .texture = m_textures[ "textures/atlas_ui.dds" ],
+    ui::Font f = ui::Font::CreateInfo{
+        .fontAtlas = m_io->viewWait( "misc/init.fnta" ),
+        .texture = m_textures[ "textures/init.dds" ],
     };
-    g_uiProperty.addSprites( &m_uiAtlas );
+    g_uiProperty.addSprites( &f );
+
     m_screens.emplace_back( m_io->viewWait( "ui/loading.ui" ) );
     changeScreen( "loading"_hash );
 
@@ -157,7 +157,12 @@ void Game::onInit()
 
 void Game::setupUI()
 {
-
+    m_uiAtlas = ui::Font::CreateInfo{
+        .fontAtlas = m_io->viewWait( "misc/ui_atlas.fnta" ),
+        .texture = m_textures[ "textures/ui_atlas.dds" ],
+    };
+    g_uiProperty.m_atlas = &m_uiAtlas;
+    g_uiProperty.addSprites( &m_uiAtlas );
     m_inputPS4 = ui::Font::CreateInfo{
         .fontAtlas = m_io->viewWait( "misc/ps4_atlas.fnta" ),
         .texture = m_textures[ "textures/ps4_atlas.dds" ],

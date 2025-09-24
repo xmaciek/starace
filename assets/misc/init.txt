@@ -1,0 +1,11 @@
+width = 128
+height = 256
+
+load0 = { x = 0  y = 0  w = 64 h = 64 }
+load1 = { x = 64 y = 0  w = 64 h = 64 }
+load2 = { x = 0  y = 64  w = 64 h = 64 }
+load3 = { x = 64 y = 64  w = 64 h = 64 }
+load4 = { x = 0  y = 128  w = 64 h = 64 }
+load5 = { x = 64 y = 128  w = 64 h = 64 }
+load6 = { x = 0  y = 192  w = 64 h = 64 }
+load7 = { x = 64 y = 192  w = 64 h = 64 }
