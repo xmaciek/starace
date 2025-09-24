@@ -125,7 +125,7 @@ void ComboBoxList::render( const RenderContext& rctx ) const
         .m_verticeCount = PushConstant::VERTICES,
         .m_instanceCount = 7u,
     };
-    pushData.m_fragmentTexture[ 1 ] = g_uiProperty.atlasTexture();
+    pushData.m_fragmentTexture[ 0 ] = g_uiProperty.atlasTexture();
     PushConstant pushConstant{
         .m_model = rctx.model,
         .m_view = rctx.view,

@@ -34,7 +34,7 @@ void SpinBox::render( const RenderContext& r ) const
         .m_verticeCount = PushConstant::VERTICES,
         .m_instanceCount = 2u,
     };
-    pushData.m_fragmentTexture[ 1 ] = g_uiProperty.atlasTexture();
+    pushData.m_fragmentTexture[ 0 ] = g_uiProperty.atlasTexture();
 
     PushConstant pushConstant{
         .m_model = rctx.model,

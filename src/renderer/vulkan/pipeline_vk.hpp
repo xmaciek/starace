@@ -13,19 +13,15 @@
 #include <vector>
 
 class PipelineVK {
-public:
-    using DescriptorWrites = std::array<VkWriteDescriptorSet, 8>;
-
 private:
     VkDevice m_device = VK_NULL_HANDLE;
     VkPipelineLayout m_layout = VK_NULL_HANDLE;
     VkPipeline m_pipeline = VK_NULL_HANDLE;
     VkPipeline m_pipelineDepthPrepass = VK_NULL_HANDLE;
-    DescriptorWrites m_descriptorWrites{};
+    std::array<VkWriteDescriptorSet, 2> m_descriptorWrites{};
     uint32_t m_pushConstantSize = 0;
     uint32_t m_vertexStride = 0;
     uint32_t m_descriptorSetId = 0;
-    uint32_t m_descriptorWriteCount = 0;
     bool m_depthWrite = false;
     bool m_useLines = false;
 
@@ -53,7 +49,8 @@ public:
     uint32_t vertexStride() const;
     uint32_t descriptorSetId() const;
     uint32_t descriptorWriteCount() const;
-    DescriptorWrites descriptorWrites() const;
+    uint32_t descriptorWriteOffset() const;
+    inline auto descriptorWrites() const { return m_descriptorWrites; }
 
     bool depthWrite() const;
     bool useLines() const;

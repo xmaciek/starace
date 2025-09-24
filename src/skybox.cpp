@@ -99,32 +99,32 @@ void Skybox::render( const RenderContext& rctx ) const
     pushConstant.m_view = rctx.view;
     pushConstant.m_projection = rctx.projection;
 
-    pushBuffer.m_fragmentTexture[ 1 ] = m_texture[ Wall::eBack ];
+    pushBuffer.m_fragmentTexture[ 0 ] = m_texture[ Wall::eBack ];
     std::copy_n( wall1.begin(), 4, pushConstant.m_vertices.begin() );
     std::copy_n( uv1.begin(), 4, pushConstant.m_uv.begin() );
     rctx.renderer->push( pushBuffer, &pushConstant );
 
-    pushBuffer.m_fragmentTexture[ 1 ] = m_texture[ Wall::eFront ];
+    pushBuffer.m_fragmentTexture[ 0 ] = m_texture[ Wall::eFront ];
     std::copy_n( wall2.begin(), 4, pushConstant.m_vertices.begin() );
     std::copy_n( uv2.begin(), 4, pushConstant.m_uv.begin() );
     rctx.renderer->push( pushBuffer, &pushConstant );
 
-    pushBuffer.m_fragmentTexture[ 1 ] = m_texture[ Wall::eLeft ];
+    pushBuffer.m_fragmentTexture[ 0 ] = m_texture[ Wall::eLeft ];
     std::copy_n( wall3.begin(), 4, pushConstant.m_vertices.begin() );
     std::copy_n( uv3.begin(), 4, pushConstant.m_uv.begin() );
     rctx.renderer->push( pushBuffer, &pushConstant );
 
-    pushBuffer.m_fragmentTexture[ 1 ] = m_texture[ Wall::eRight ];
+    pushBuffer.m_fragmentTexture[ 0 ] = m_texture[ Wall::eRight ];
     std::copy_n( wall4.begin(), 4, pushConstant.m_vertices.begin() );
     std::copy_n( uv4.begin(), 4, pushConstant.m_uv.begin() );
     rctx.renderer->push( pushBuffer, &pushConstant );
 
-    pushBuffer.m_fragmentTexture[ 1 ] = m_texture[ Wall::eTop ];
+    pushBuffer.m_fragmentTexture[ 0 ] = m_texture[ Wall::eTop ];
     std::copy_n( wall5.begin(), 4, pushConstant.m_vertices.begin() );
     std::copy_n( uv5.begin(), 4, pushConstant.m_uv.begin() );
     rctx.renderer->push( pushBuffer, &pushConstant );
 
-    pushBuffer.m_fragmentTexture[ 1 ] = m_texture[ Wall::eBottom ];
+    pushBuffer.m_fragmentTexture[ 0 ] = m_texture[ Wall::eBottom ];
     std::copy_n( wall6.begin(), 4, pushConstant.m_vertices.begin() );
     std::copy_n( uv6.begin(), 4, pushConstant.m_uv.begin() );
     rctx.renderer->push( pushBuffer, &pushConstant );

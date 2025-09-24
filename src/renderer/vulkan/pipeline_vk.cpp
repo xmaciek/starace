@@ -26,7 +26,6 @@ PipelineVK::PipelineVK( PipelineVK&& rhs ) noexcept
     std::swap( m_vertexStride, rhs.m_vertexStride );
     std::swap( m_descriptorSetId, rhs.m_descriptorSetId );
     std::swap( m_descriptorWrites, rhs.m_descriptorWrites );
-    std::swap( m_descriptorWriteCount, rhs.m_descriptorWriteCount );
     std::swap( m_depthWrite, rhs.m_depthWrite );
     std::swap( m_useLines, rhs.m_useLines );
 }
@@ -41,7 +40,6 @@ PipelineVK& PipelineVK::operator = ( PipelineVK&& rhs ) noexcept
     std::swap( m_vertexStride, rhs.m_vertexStride );
     std::swap( m_descriptorSetId, rhs.m_descriptorSetId );
     std::swap( m_descriptorWrites, rhs.m_descriptorWrites );
-    std::swap( m_descriptorWriteCount, rhs.m_descriptorWriteCount );
     std::swap( m_depthWrite, rhs.m_depthWrite );
     std::swap( m_useLines, rhs.m_useLines );
     return *this;
@@ -132,34 +130,6 @@ static VkPipelineDepthStencilStateCreateInfo depthStencilInfo( bool depthTest, b
     };
 }
 
-static std::tuple<PipelineVK::DescriptorWrites, uint32_t> prepareDescriptorWrites( const PipelineCreateInfo& pci )
-{
-    PipelineVK::DescriptorWrites descriptorWrties{};
-    uint32_t count = 0;
-    auto push = [&descriptorWrties, &count]( uint8_t bindBits, auto type )
-    {
-        uint32_t idxn = 0;
-        while ( bindBits ) {
-            uint32_t idx = idxn++;
-            uint8_t bit = bindBits & 0b1;
-            bindBits >>= 1;
-            if ( !bit ) continue;
-            descriptorWrties[ count++ ] = {
-                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                .dstBinding = idx,
-                .dstArrayElement = 0,
-                .descriptorCount = 1,
-                .descriptorType = type,
-            };
-        }
-    };
-    push( pci.m_vertexUniform, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER );
-    push( pci.m_fragmentImage, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER );
-    push( pci.m_computeUniform, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER );
-    push( pci.m_computeImage, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE );
-    return { descriptorWrties, count };
-}
-
 static VkPipelineColorBlendAttachmentState blendAttachment( PipelineCreateInfo::BlendMode blendMode )
 {
     VkPipelineColorBlendAttachmentState ret{
@@ -227,7 +197,21 @@ PipelineVK::PipelineVK(
         [[maybe_unused]]
         const VkResult pipelineOK = vkCreateComputePipelines( device, nullptr, 1, &info, nullptr, &m_pipeline );
         assert( pipelineOK == VK_SUCCESS );
-        std::tie( m_descriptorWrites, m_descriptorWriteCount ) = prepareDescriptorWrites( pci );
+
+        m_descriptorWrites[ 0 ] = {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstBinding = 0,
+            .dstArrayElement = 0,
+            .descriptorCount = pci.m_computeUniformCount,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        };
+        m_descriptorWrites[ 1 ] = {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstBinding = 1,
+            .dstArrayElement = 0,
+            .descriptorCount = pci.m_computeImageCount,
+            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+        };
         return;
     }
 
@@ -369,7 +353,21 @@ PipelineVK::PipelineVK(
     assert( pipelineOK == VK_SUCCESS );
     m_pipeline = pipelines[ 0 ];
     m_pipelineDepthPrepass = pipelines[ 1 ];
-    std::tie( m_descriptorWrites, m_descriptorWriteCount ) = prepareDescriptorWrites( pci );
+
+    m_descriptorWrites[ 0 ] = {
+        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+        .dstBinding = 0,
+        .dstArrayElement = 0,
+        .descriptorCount = pci.m_vertexUniformCount,
+        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    };
+    m_descriptorWrites[ 1 ] = {
+        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+        .dstBinding = 1,
+        .dstArrayElement = 0,
+        .descriptorCount = pci.m_fragmentImageCount,
+        .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+    };
 }
 
 PipelineVK::operator VkPipeline () const
@@ -416,11 +414,12 @@ uint32_t PipelineVK::descriptorSetId() const
 
 uint32_t PipelineVK::descriptorWriteCount() const
 {
-    return m_descriptorWriteCount;
+    return std::min( m_descriptorWrites[ 0 ].descriptorCount, 1u )
+        + std::min( m_descriptorWrites[ 1 ].descriptorCount, 1u )
+    ;
 }
 
-PipelineVK::DescriptorWrites PipelineVK::descriptorWrites() const
+uint32_t PipelineVK::descriptorWriteOffset() const
 {
-    return m_descriptorWrites;
+    return m_descriptorWrites[ 0 ].descriptorCount == 0;
 }
-

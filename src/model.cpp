@@ -39,7 +39,7 @@ void Model::render( const RenderContext& rctx ) const
     PushData pushData{
         .m_pipeline = g_pipelines[ Pipeline::eMesh ],
     };
-    pushData.m_fragmentTexture[ 1 ] = m_texture;
+    pushData.m_fragmentTexture[ 0 ] = m_texture;
     auto renderMesh = [&pushData, &pushConstant, &rctx]( Buffer b )
     {
         if ( !b ) return;

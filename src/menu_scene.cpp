@@ -29,7 +29,7 @@ void MenuScene::render( Renderer* renderer, math::vec2 viewport )
         .m_pipeline = g_pipelines[ Pipeline::eBackground ],
         .m_verticeCount = 4,
     };
-    pushBuffer.m_fragmentTexture[ 1 ] = m_uiAtlasTexture;
+    pushBuffer.m_fragmentTexture[ 0 ] = m_uiAtlasTexture;
 
     PushConstant<Pipeline::eBackground> pushConstant{
         .m_model = math::mat4( 1 ),

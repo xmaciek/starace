@@ -166,8 +166,8 @@ PipelineCreateInfo{
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
     .m_blendMode = PipelineCreateInfo::BlendMode::eAlpha,
-    .m_vertexUniform = 0b1,
-    .m_fragmentImage = 0b10,
+    .m_vertexUniformCount = 1,
+    .m_fragmentImageCount = 1,
 },
 
 PipelineCreateInfo{
@@ -181,8 +181,8 @@ PipelineCreateInfo{
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
     .m_blendMode = PipelineCreateInfo::BlendMode::eAlpha,
-    .m_vertexUniform = 0b1,
-    .m_fragmentImage = 0b10,
+    .m_vertexUniformCount = 1,
+    .m_fragmentImageCount = 1,
 },
 
 PipelineCreateInfo{
@@ -193,7 +193,7 @@ PipelineCreateInfo{
     .m_enableDepthTest = true,
     .m_topology = PipelineCreateInfo::Topology::eLineList,
     .m_blendMode = PipelineCreateInfo::BlendMode::eAlpha,
-    .m_vertexUniform = 0b1,
+    .m_vertexUniformCount = 1,
 },
 
 PipelineCreateInfo{
@@ -212,8 +212,8 @@ PipelineCreateInfo{
         PipelineCreateInfo::Assembly{ PipelineCreateInfo::InputType::eF2, 1, 12 },
         PipelineCreateInfo::Assembly{ PipelineCreateInfo::InputType::eF3, 2, 20 }
     },
-    .m_vertexUniform = 0b1,
-    .m_fragmentImage = 0b10,
+    .m_vertexUniformCount = 1,
+    .m_fragmentImageCount = 1,
 },
 
 PipelineCreateInfo{
@@ -232,8 +232,8 @@ PipelineCreateInfo{
         PipelineCreateInfo::Assembly{ PipelineCreateInfo::InputType::eF2, 1, 12 },
         PipelineCreateInfo::Assembly{ PipelineCreateInfo::InputType::eF3, 2, 20 }
     },
-    .m_vertexUniform = 0b1,
-    .m_fragmentImage = 0b10,
+    .m_vertexUniformCount = 1,
+    .m_fragmentImageCount = 1,
 },
 
 PipelineCreateInfo{
@@ -252,7 +252,7 @@ PipelineCreateInfo{
         PipelineCreateInfo::Assembly{ PipelineCreateInfo::InputType::eF3, 0, 0 },
         PipelineCreateInfo::Assembly{ PipelineCreateInfo::InputType::eF2, 1, 12 },
     },
-    .m_vertexUniform = 0b1,
+    .m_vertexUniformCount = 1,
 },
 
 PipelineCreateInfo{
@@ -266,8 +266,8 @@ PipelineCreateInfo{
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
     .m_blendMode = PipelineCreateInfo::BlendMode::eAdditive,
-    .m_vertexUniform = 0b1,
-    .m_fragmentImage = 0b10,
+    .m_vertexUniformCount = 1,
+    .m_fragmentImageCount = 1,
 },
 
 PipelineCreateInfo{
@@ -281,22 +281,22 @@ PipelineCreateInfo{
     .m_cullMode = PipelineCreateInfo::CullMode::eNone,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
     .m_blendMode = PipelineCreateInfo::BlendMode::eAlpha,
-    .m_vertexUniform = 0b1,
+    .m_vertexUniformCount = 1,
 },
 
 PipelineCreateInfo{
     .m_computeShader = "shaders/gamma.comp.spv",
     .m_userHint = static_cast<uint32_t>( Pipeline::eGammaCorrection ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eGammaCorrection> ),
-    .m_computeUniform = 0b1,
-    .m_computeImage = 0b110,
+    .m_computeUniformCount = 1,
+    .m_computeImageCount = 2,
 },
 
 PipelineCreateInfo{
     .m_computeShader = "shaders/antialias_fxaa.comp.spv",
     .m_userHint = static_cast<uint32_t>( Pipeline::eAntiAliasFXAA ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eAntiAliasFXAA> ),
-    .m_computeImage = 0b110,
+    .m_computeImageCount = 2,
 },
 
 PipelineCreateInfo{
@@ -309,7 +309,7 @@ PipelineCreateInfo{
     .m_cullMode = PipelineCreateInfo::CullMode::eNone,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
     .m_blendMode = PipelineCreateInfo::BlendMode::eAlpha,
-    .m_vertexUniform = 0b1,
+    .m_vertexUniformCount = 1,
 },
 
 PipelineCreateInfo{
@@ -327,8 +327,8 @@ PipelineCreateInfo{
         PipelineCreateInfo::Assembly{ PipelineCreateInfo::InputType::eF3, 0, 0 },
         PipelineCreateInfo::Assembly{ PipelineCreateInfo::InputType::eF2, 1, 12 },
     },
-    .m_vertexUniform = 0b1,
-    .m_fragmentImage = 0b10,
+    .m_vertexUniformCount = 1,
+    .m_fragmentImageCount = 1,
 },
 
 };

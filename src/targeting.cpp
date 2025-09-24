@@ -51,7 +51,7 @@ void Targeting::render( const RenderContext& rctx ) const
         .m_pipeline = g_uiProperty.pipelineSpriteSequenceColors(),
         .m_verticeCount = 6,
     };
-    pushData.m_fragmentTexture[ 1 ] = m_texture;
+    pushData.m_fragmentTexture[ 0 ] = m_texture;
     using Sprite = ui::PushConstant<ui::Pipeline::eSpriteSequenceColors>::Sprite;
     ui::PushConstant<ui::Pipeline::eSpriteSequenceColors> pushConstant{
         .m_model = rctx.model,

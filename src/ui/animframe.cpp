@@ -26,7 +26,7 @@ void AnimFrame::render( const RenderContext& rctx ) const
         .m_pipeline = g_uiProperty.pipelineSpriteSequence(),
         .m_verticeCount = 6u,
     };
-    pushData.m_fragmentTexture[ 1 ] = m_uvwh[ m_index ].texture;
+    pushData.m_fragmentTexture[ 0 ] = m_uvwh[ m_index ].texture;
 
     using PushConstant = ui::PushConstant<ui::Pipeline::eSpriteSequence>;
     PushConstant pushConstant{

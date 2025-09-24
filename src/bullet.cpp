@@ -53,7 +53,7 @@ void Bullet::renderAll( const RenderContext& rctx, std::span<Bullet> span, Textu
         assert( bullet.m_mesh );
         assert( bullet.m_texture );
         if ( lastMesh != bullet.m_mesh || lastTexture != bullet.m_texture || idx == PushConstant::INSTANCES ) {
-            pd.m_fragmentTexture[ 1 ] = lastTexture;
+            pd.m_fragmentTexture[ 0 ] = lastTexture;
             pd.m_vertexBuffer = lastMesh;
             pd.m_instanceCount = idx;
             if ( lastMesh && lastTexture ) {
@@ -66,7 +66,7 @@ void Bullet::renderAll( const RenderContext& rctx, std::span<Bullet> span, Textu
         pc.m_projectiles[ idx++ ] = PushConstant::Projectile{ bullet.m_quat, math::vec4{ bullet.m_position, meter } };
     }
     if ( idx != 0 ) {
-        pd.m_fragmentTexture[ 1 ] = lastTexture;
+        pd.m_fragmentTexture[ 0 ] = lastTexture;
         pd.m_vertexBuffer = lastMesh;
         pd.m_instanceCount = idx;
         rctx.renderer->push( pd, &pc );

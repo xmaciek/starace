@@ -37,10 +37,10 @@ struct PipelineCreateInfo {
     BlendMode m_blendMode{};
     uint8_t m_vertexStride = 0;
     std::array<Assembly, 3> m_vertexAssembly{};
-    uint8_t m_vertexUniform{};
-    uint8_t m_fragmentImage{};
-    uint8_t m_computeUniform{};
-    uint8_t m_computeImage{};
+    uint8_t m_vertexUniformCount = 0;
+    uint8_t m_fragmentImageCount = 0;
+    uint8_t m_computeUniformCount = 0;
+    uint8_t m_computeImageCount = 0;
 };
 
 

@@ -36,7 +36,7 @@ void Progressbar::render( const RenderContext& rctx ) const
         .m_verticeCount = PushConstant::VERTICES,
         .m_instanceCount = m_count,
     };
-    pushData.m_fragmentTexture[ 1 ] = m_texture;
+    pushData.m_fragmentTexture[ 0 ] = m_texture;
 
     PushConstant pushConstant{
         .m_model = rctx.model,

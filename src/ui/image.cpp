@@ -34,7 +34,7 @@ void Image::render( const RenderContext& rctx ) const
         .m_pipeline = m_pipelineSlot,
         .m_verticeCount = PushConstant::VERTICES,
     };
-    pushData.m_fragmentTexture[ 1 ] = m_sprite;
+    pushData.m_fragmentTexture[ 0 ] = m_sprite;
 
     PushConstant pushConstant{
         .m_model = rctx.model,

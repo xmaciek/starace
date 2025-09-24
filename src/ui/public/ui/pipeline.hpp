@@ -74,8 +74,8 @@ PipelineCreateInfo{
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
     .m_blendMode = PipelineCreateInfo::BlendMode::eAlpha,
-    .m_vertexUniform = 0b1,
-    .m_fragmentImage = 0b110,
+    .m_vertexUniformCount = 1,
+    .m_fragmentImageCount = 2,
 };
 
 [[maybe_unused]] inline constexpr auto SPRITE_SEQUENCE_COLORS =
@@ -87,8 +87,8 @@ PipelineCreateInfo{
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
     .m_blendMode = PipelineCreateInfo::BlendMode::eAlpha,
-    .m_vertexUniform = 0b1,
-    .m_fragmentImage = 0b10,
+    .m_vertexUniformCount = 1,
+    .m_fragmentImageCount = 1,
 };
 
 [[maybe_unused]] inline constexpr auto GLOW =
@@ -101,7 +101,7 @@ PipelineCreateInfo{
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
     .m_blendMode = PipelineCreateInfo::BlendMode::eAlpha,
-    .m_vertexUniform = 0b1,
+    .m_vertexUniformCount = 1,
 };
 
 [[maybe_unused]] inline constexpr auto BLUR_DESATURATE =
@@ -109,7 +109,7 @@ PipelineCreateInfo{
     .m_computeShader = "shaders/blur_desaturate.comp.spv",
     .m_userHint = static_cast<uint32_t>( Pipeline::eBlurDesaturate ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eBlurDesaturate> ),
-    .m_computeUniform = 0b1,
-    .m_computeImage = 0b110,
+    .m_computeUniformCount = 1,
+    .m_computeImageCount = 2,
 };
 }

@@ -805,38 +805,33 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
         vkCmdBindPipeline( fr.m_cmdColorPass, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline );
     }
 
-    union BindInfo {
-        VkDescriptorBufferInfo bufferInfo;
-        VkDescriptorImageInfo imageInfo;
-    };
 
-    std::array<BindInfo, 8> bindInfo{};
-    PipelineVK::DescriptorWrites descriptorWrites = currentPipeline.descriptorWrites();
-    const uint32_t descriptorWriteCount = currentPipeline.descriptorWriteCount();
+    auto find = [this]( Texture t )
+    {
+        if ( !t ) [[likely]]
+            return m_defaultTexture->imageInfo();
 
-    for ( uint32_t i = 0; i < descriptorWriteCount; ++i ) {
-        descriptorWrites[ i ].dstSet = descriptorSet;
-        switch ( descriptorWrites[ i ].descriptorType ) {
-        case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
-            bindInfo[ i ].bufferInfo = uniformInfo;
-            descriptorWrites[ i ].pBufferInfo = &bindInfo[ i ].bufferInfo;
-            break;
-
-        case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER: {
-            const uint32_t texIdx = textureIdToIndex( pushBuffer.m_fragmentTexture[ descriptorWrites[ i ].dstBinding ] );
-            const TextureVK* texture = m_defaultTexture;
-            if ( texIdx != INVALID_INDEX ) [[likely]] {
-                texture = m_textureSlots[ texIdx ];
-            }
-            bindInfo[ i ].imageInfo = texture->imageInfo();
-            descriptorWrites[ i ].pImageInfo = &bindInfo[ i ].imageInfo;
-        } break;
-        default:
-            assert( !"here be dragons" );
-            return;
+        const uint32_t texIdx = textureIdToIndex( t );
+        if ( texIdx != INVALID_INDEX ) [[likely]] {
+            return m_textureSlots[ texIdx ].load()->imageInfo();
         }
-    }
-    vkUpdateDescriptorSets( m_device, descriptorWriteCount, descriptorWrites.data(), 0, nullptr );
+        return m_defaultTexture->imageInfo();
+    };
+    std::array<VkDescriptorImageInfo, 8> imageInfo;
+    std::ranges::transform( pushBuffer.m_fragmentTexture, imageInfo.begin(), find );
+
+
+    std::array<VkWriteDescriptorSet,2 > setWrite = currentPipeline.descriptorWrites();
+    const uint32_t descriptorWriteCount = currentPipeline.descriptorWriteCount();
+    const uint32_t offset = currentPipeline.descriptorWriteOffset();
+
+    setWrite[ 0 ].pBufferInfo = &uniformInfo;
+    setWrite[ 0 ].dstSet = descriptorSet;
+
+    setWrite[ 1 ].pImageInfo = imageInfo.data();
+    setWrite[ 1 ].dstSet = descriptorSet;
+
+    vkUpdateDescriptorSets( m_device, descriptorWriteCount, setWrite.data() + offset, 0, nullptr );
 
     if ( depthWrite ) vkCmdBindDescriptorSets( fr.m_cmdDepthPrepass, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
     vkCmdBindDescriptorSets( fr.m_cmdColorPass, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
@@ -885,39 +880,21 @@ void RendererVK::dispatch( [[maybe_unused]] const DispatchInfo& dispatchInfo, [[
     const VkDescriptorSet descriptorSet = descriptorPool.next();
     assert( descriptorSet != VK_NULL_HANDLE );
 
-    union BindInfo {
-        VkDescriptorBufferInfo bufferInfo;
-        VkDescriptorImageInfo imageInfo;
-    };
-
-    const Image* rtgt[] = {
-        &fr.m_renderTarget,
-        &fr.m_renderTargetTmp,
-    };
-    uint32_t rtgtId = 0;
-
-    std::array<BindInfo, 32> bindInfo{};
-    PipelineVK::DescriptorWrites descriptorWrites = currentPipeline.descriptorWrites();
+    std::array<VkWriteDescriptorSet, 2> setWrite = currentPipeline.descriptorWrites();
     const uint32_t descriptorWriteCount = currentPipeline.descriptorWriteCount();
-    for ( uint32_t i = 0; i < descriptorWriteCount; ++i ) {
-        descriptorWrites[ i ].dstSet = descriptorSet;
-        switch ( descriptorWrites[ i ].descriptorType ) {
-        case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
-            bindInfo[ i ].bufferInfo = uniformInfo;
-            descriptorWrites[ i ].pBufferInfo = &bindInfo[ i ].bufferInfo;
-            break;
+    const uint32_t offset = currentPipeline.descriptorWriteOffset();
 
-        case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
-            assert( rtgtId < 2 );
-            bindInfo[ i ].imageInfo = rtgt[ rtgtId++ ]->imageInfo();
-            descriptorWrites[ i ].pImageInfo = &bindInfo[ i ].imageInfo;
-        break;
-        default:
-            assert( !"here be dragons" );
-            return;
-        }
-    }
-    vkUpdateDescriptorSets( m_device, descriptorWriteCount, descriptorWrites.data(), 0, nullptr );
+    setWrite[ 0 ].pBufferInfo = &uniformInfo;
+    setWrite[ 0 ].dstSet = descriptorSet;
+
+    std::array<VkDescriptorImageInfo, 2> imageInfo{
+        fr.m_renderTarget.imageInfo(),
+        fr.m_renderTargetTmp.imageInfo(),
+    };
+    setWrite[ 1 ].pImageInfo = imageInfo.data();
+    setWrite[ 1 ].dstSet = descriptorSet;
+
+    vkUpdateDescriptorSets( m_device, descriptorWriteCount, setWrite.data() + offset, 0, nullptr );
 
     fr.m_renderTarget.transfer( fr.m_cmdColorPass, constants::computeReadWrite );
     fr.m_renderTargetTmp.transfer( fr.m_cmdColorPass, constants::computeReadWrite );

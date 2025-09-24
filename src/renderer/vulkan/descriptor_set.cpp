@@ -61,26 +61,20 @@ static VkDescriptorSetLayout createLayout( VkDevice device, const PipelineCreate
 
     std::pmr::vector<VkDescriptorSetLayoutBinding> layoutBinding;
     layoutBinding.reserve( 16 );
-    auto push = [&layoutBinding]( uint8_t bindBits, auto type, auto stage )
+    auto push = [&layoutBinding]( uint8_t bind, uint8_t count, auto type, auto stage )
     {
-        uint32_t idxn = 0;
-        while ( bindBits ) {
-            uint32_t idx = idxn++;
-            uint8_t bit = bindBits & 0b1;
-            bindBits >>= 1;
-            if ( !bit ) continue;
-            layoutBinding.emplace_back( VkDescriptorSetLayoutBinding{
-                .binding = idx,
-                .descriptorType = type,
-                .descriptorCount = 1,
-                .stageFlags = static_cast<VkShaderStageFlags>( stage ),
-            } );
-        }
+        if ( !count ) return;
+        layoutBinding.emplace_back( VkDescriptorSetLayoutBinding{
+            .binding = bind,
+            .descriptorType = type,
+            .descriptorCount = count,
+            .stageFlags = static_cast<VkShaderStageFlags>( stage ),
+        } );
     };
-    push( pci.m_vertexUniform, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT );
-    push( pci.m_fragmentImage, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT );
-    push( pci.m_computeUniform, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT );
-    push( pci.m_computeImage, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT );
+    push( 0, pci.m_vertexUniformCount, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT );
+    push( 1, pci.m_fragmentImageCount, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT );
+    push( 0, pci.m_computeUniformCount, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT );
+    push( 1, pci.m_computeImageCount, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT );
 
     const VkDescriptorSetLayoutCreateInfo layoutInfo{
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
@@ -100,10 +94,10 @@ DescriptorSet::DescriptorSet( VkDevice device, const PipelineCreateInfo& pci ) n
 {
     ZoneScoped;
     m_layout = createLayout( m_device, pci );
-    m_uniformCount = (uint32_t)std::popcount( pci.m_vertexUniform ) + (uint32_t)std::popcount( pci.m_computeUniform );
-    m_imagesCount = (uint32_t)std::popcount( pci.m_fragmentImage ) + (uint32_t)std::popcount( pci.m_computeImage );
+    m_uniformCount = pci.m_computeShader ? pci.m_computeUniformCount : pci.m_vertexUniformCount;
+    m_imagesCount = pci.m_computeShader ? pci.m_computeImageCount : pci.m_fragmentImageCount;
     if ( m_imagesCount > 0 ) {
-        m_imageType = pci.m_fragmentImage ? VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER : VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        m_imageType = pci.m_computeShader ? VK_DESCRIPTOR_TYPE_STORAGE_IMAGE : VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     }
     expandCapacityBy( 50 );
 }
@@ -168,10 +162,10 @@ void DescriptorSet::reset()
 uint64_t DescriptorSet::createBindingID( const PipelineCreateInfo& pci )
 {
     uint64_t ret = 0;
-    ret |= pci.m_vertexUniform; ret <<= 8;
-    ret |= pci.m_fragmentImage; ret <<= 8;
-    ret |= pci.m_computeUniform; ret <<= 8;
-    ret |= pci.m_computeImage;
+    ret |= pci.m_vertexUniformCount; ret <<= 8;
+    ret |= pci.m_fragmentImageCount; ret <<= 8;
+    ret |= pci.m_computeUniformCount; ret <<= 8;
+    ret |= pci.m_computeImageCount;
     return ret;
 }
 
