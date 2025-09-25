@@ -9,6 +9,7 @@
 #include <audio/audio.hpp>
 #include <renderer/renderer.hpp>
 #include <renderer/texture.hpp>
+#include <renderer/pipeline.hpp>
 #include <shared/track_allocator.hpp>
 
 #include <SDL_events.h>
@@ -84,6 +85,8 @@ protected:
     std::pmr::vector<DisplayMode> displayModes( uint32_t monitor = 0 ) const;
     void setDisplayMode( const DisplayMode& );
     void setTargetFPS( uint32_t, FpsLimiter::Mode );
+
+    void createPipelines( std::span<const PipelineCreateInfo>, std::function<void(std::pair<uint32_t, PipelineSlot>)> );
 
 private:
     void gameThread();

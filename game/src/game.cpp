@@ -124,9 +124,7 @@ void Game::onInit()
 
     m_io->mount( "data.pak" );
 
-    for ( const auto& p : g_pipelineCreateInfo ) {
-        g_pipelines[ static_cast<Pipeline>( p.m_userHint ) ] = setupPipeline( m_renderer, m_io, p );
-    }
+    createPipelines( g_pipelineCreateInfo, []( auto p ) { g_pipelines[ static_cast<Pipeline>( p.first ) ] = p.second; } );
 
     g_uiProperty.m_pipelineSpriteSequenceColors = setupPipeline( m_renderer, m_io, ui::SPRITE_SEQUENCE_COLORS );
     g_uiProperty.m_pipelineGlow = setupPipeline( m_renderer, m_io, ui::GLOW );
