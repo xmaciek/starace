@@ -110,6 +110,41 @@ function( cook_dds )
     pak_file_cooked( ${COOK_DDS_PACK} "${file_out}" "texture.${COOK_DDS_DST}" )
 endfunction()
 
+function( cook_atlas )
+    cmake_parse_arguments( COOK_ATLAS "REMAP" "SRC;DST;PACK" "" ${ARGN} )
+    if ( NOT DEFINED COOK_ATLAS_SRC )
+        message( FATAL_ERROR "SRC not provided" )
+    endif()
+    if ( NOT DEFINED COOK_ATLAS_DST )
+        message( FATAL_ERROR "DST file not provided" )
+    endif()
+    if ( NOT DEFINED COOK_ATLAS_PACK )
+        set( COOK_ATLAS_PACK ${DEFAULT_PACK} )
+    endif()
+
+    if ( COOK_ATLAS_REMAP )
+        set( COOK_ATLAS_REMAP "--remap" )
+    else()
+        set( COOK_ATLAS_REMAP "" )
+    endif()
+
+    add_custom_target( atlas.${COOK_ATLAS_DST}
+        DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${COOK_ATLAS_DST}"
+    )
+
+    set_vs_directory( atlas.${COOK_ATLAS_DST} "assets/misc" )
+    pak_file_cooked( ${COOK_ATLAS_PACK} "${CMAKE_CURRENT_BINARY_DIR}/${COOK_ATLAS_DST}" atlas.${COOK_ATLAS_DST} )
+
+    add_custom_command(
+        OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${COOK_ATLAS_DST}"
+        DEPENDS cooker_atlas "${CMAKE_CURRENT_SOURCE_DIR}/${COOK_ATLAS_SRC}"
+        COMMAND cooker_atlas
+            -i "${CMAKE_CURRENT_SOURCE_DIR}/${COOK_ATLAS_SRC}"
+            -o "${CMAKE_CURRENT_BINARY_DIR}/${COOK_ATLAS_DST}"
+            ${COOK_ATLAS_REMAP}
+    )
+endfunction()
+
 function( cook_font )
     set( oneValueArgs TARGET SRC SIZE )
     cmake_parse_arguments( COOK_FONT "" "${oneValueArgs}" "RANGES" ${ARGN} )
