@@ -1,4 +1,5 @@
 add_library( engine STATIC )
+find_package( Threads REQUIRED )
 
 target_sources( engine
     PRIVATE
@@ -23,6 +24,7 @@ set_target_properties( engine PROPERTIES
 
 target_link_libraries( engine
     cxx::flags
+    Threads::Threads
     glm::glm
     SDL2::SDL2
     audio
