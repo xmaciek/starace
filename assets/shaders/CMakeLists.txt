@@ -1,26 +1,3 @@
-function( compileShader )
-    cmake_parse_arguments( COOK_SHADER "" "FILE;PACK" "" ${ARGN} )
-    if ( NOT COOK_SHADER_FILE )
-        message( FATAL_ERROR "FILE argument not specified" )
-    endif()
-    if ( NOT COOK_SHADER_PACK )
-        set( COOK_SHADER_PACK ${DEFAULT_PACK} )
-    endif()
-
-    #set( OPTIMIZE_LEVEL "-O0" "-g" ) # debug
-    set( OPTIMIZE_LEVEL "-O" ) # optimized
-
-    set( file_out "${CMAKE_CURRENT_BINARY_DIR}/${COOK_SHADER_FILE}.spv" )
-    add_custom_target( "shader.${COOK_SHADER_FILE}" DEPENDS "${file_out}" )
-    add_custom_command(
-        OUTPUT "${file_out}"
-        DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${COOK_SHADER_FILE}"
-        COMMAND Vulkan::glslc ${OPTIMIZE_LEVEL} "${CMAKE_CURRENT_SOURCE_DIR}/${COOK_SHADER_FILE}" -o "${file_out}"
-    )
-    set_vs_directory( "shader.${COOK_SHADER_FILE}" "assets/shaders" )
-    pak_file_cooked( ${COOK_SHADER_PACK} "${file_out}" "shader.${COOK_SHADER_FILE}" )
-endfunction()
-
 compileShader( FILE afterglow.frag )
 compileShader( FILE afterglow.vert )
 compileShader( FILE albedo.frag )
