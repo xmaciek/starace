@@ -64,6 +64,52 @@ function( cook_lang )
     pak_file_cooked( ${DEFAULT_PACK} "${file_out}" "lang.${COOK_LANG_DST}" )
 endfunction()
 
+function( cook_dds )
+    cmake_parse_arguments( COOK_DDS "MIPGEN;CUBEMAP" "DST;FORMAT;PACK" "SRC" ${ARGN} )
+    if ( COOK_DDS_MIPGEN )
+        set( COOK_DDS_MIPGEN "--mipgen" )
+    endif()
+    if ( COOK_DDS_CUBEMAP )
+        set( COOK_DDS_CUBEMAP "--cubemap" )
+    endif()
+    if ( COOK_DDS_FORMAT )
+        set( COOK_DDS_FORMAT_PARAM "--format" )
+    endif()
+
+    if ( NOT COOK_DDS_SRC )
+        message( FATAL_ERROR "SRC argument not specified" )
+    endif()
+    if( NOT COOK_DDS_DST )
+        message( FATAL_ERROR "DST argument not specified" )
+    endif()
+    if ( NOT COOK_DDS_PACK )
+        set( COOK_DDS_PACK ${DEFAULT_PACK} )
+    endif()
+
+    set( file_out "${CMAKE_CURRENT_BINARY_DIR}/${COOK_DDS_DST}" )
+    add_custom_target( "texture.${COOK_DDS_DST}" DEPENDS "${file_out}" )
+
+    set( expaned_src )
+    foreach ( src ${COOK_DDS_SRC} )
+        list( APPEND expaned_src "${CMAKE_CURRENT_SOURCE_DIR}/${src}" )
+    endforeach()
+    list( JOIN expaned_src "," srcArg )
+
+    add_custom_command(
+        OUTPUT "${file_out}"
+        DEPENDS cooker_dds
+        DEPENDS "${expaned_src}"
+        COMMAND cooker_dds
+            --src "${srcArg}"
+            --dst "${file_out}"
+            ${COOK_DDS_MIPGEN}
+            ${COOK_DDS_CUBEMAP}
+            ${COOK_DDS_FORMAT_PARAM} ${COOK_DDS_FORMAT}
+    )
+    set_vs_directory( "texture.${COOK_DDS_DST}" "assets/textures" )
+    pak_file_cooked( ${COOK_DDS_PACK} "${file_out}" "texture.${COOK_DDS_DST}" )
+endfunction()
+
 function( cook_font )
     set( oneValueArgs TARGET SRC SIZE )
     cmake_parse_arguments( COOK_FONT "" "${oneValueArgs}" "RANGES" ${ARGN} )
