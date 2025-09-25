@@ -76,7 +76,7 @@ PipelineCreateInfo{
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
     .m_blendMode = PipelineCreateInfo::BlendMode::eAlpha,
     .m_vertexUniformCount = 1,
-    .m_fragmentImageCount = 2,
+    .m_fragmentImageCount = 8,
 },
 
 PipelineCreateInfo{
