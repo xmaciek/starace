@@ -134,6 +134,8 @@ public:
         }
     }
 
+    std::function<void(std::pair<uint32_t, PipelineSlot>)> setupPipeline();
+
     void addSprites( const Font* );
     Sprite sprite( Hash::value_type ) const;
 

@@ -103,16 +103,10 @@ void Game::onResize( uint32_t w, uint32_t h )
 void Game::onInit()
 {
     ZoneScoped;
-    auto setupPipeline = []( auto* renderer, auto* io, auto ci ) -> PipelineSlot
-    {
-        if ( ci.m_vertexShader ) ci.m_vertexShaderData = io->viewWait( ci.m_vertexShader );
-        if ( ci.m_fragmentShader ) ci.m_fragmentShaderData = io->viewWait( ci.m_fragmentShader );
-        if ( ci.m_computeShader ) ci.m_computeShaderData = io->viewWait( ci.m_computeShader );
-        return renderer->createPipeline( ci );
-    };
 
     m_io->mount( "init.pak" );
-    g_uiProperty.m_pipelineSpriteSequence = setupPipeline( m_renderer, m_io, ui::SPRITE_SEQUENCE );
+    createPipelines( ui::PIPELINES, g_uiProperty.setupPipeline() );
+
     ui::Font f = ui::Font::CreateInfo{
         .fontAtlas = m_io->viewWait( "misc/init.fnta" ),
         .texture = m_textures[ "textures/init.dds" ],
@@ -123,12 +117,7 @@ void Game::onInit()
     changeScreen( "loading"_hash );
 
     m_io->mount( "data.pak" );
-
     createPipelines( g_pipelineCreateInfo, []( auto p ) { g_pipelines[ static_cast<Pipeline>( p.first ) ] = p.second; } );
-
-    g_uiProperty.m_pipelineSpriteSequenceColors = setupPipeline( m_renderer, m_io, ui::SPRITE_SEQUENCE_COLORS );
-    g_uiProperty.m_pipelineGlow = setupPipeline( m_renderer, m_io, ui::GLOW );
-    g_uiProperty.m_pipelineBlurDesaturate = setupPipeline( m_renderer, m_io, ui::BLUR_DESATURATE );
 
     auto addAction = [r=&m_remapper]( const auto& p )
     {

@@ -35,4 +35,19 @@ void Property::addSprites( const Font* font )
     std::ranges::for_each( font->m_glyphMap.m_keys, convert );
 }
 
+std::function<void(std::pair<uint32_t, PipelineSlot>)> Property::setupPipeline()
+{
+    return [this]( std::pair<uint32_t, PipelineSlot> p )
+    {
+        switch ( static_cast<Pipeline>( p.first ) ) {
+        case eSpriteSequence: m_pipelineSpriteSequence = p.second; break;
+        case eSpriteSequenceColors: m_pipelineSpriteSequenceColors = p.second; break;
+        case eGlow: m_pipelineGlow = p.second; break;
+        case eBlurDesaturate: m_pipelineBlurDesaturate = p.second; break;
+        default:
+            assert( !"unhandled enum for ui pipelines" );
+        };
+    };
+}
+
 }
