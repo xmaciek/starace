@@ -1,5 +1,7 @@
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
 
+add_subdirectory( cooker )
+
 add_executable( starace WIN32 )
 set_target_properties( starace PROPERTIES OUTPUT_NAME "starace" )
 target_sources( starace PRIVATE
