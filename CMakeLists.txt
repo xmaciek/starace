@@ -20,7 +20,7 @@ set( DEFAULT_PACK data )
 
 add_subdirectory( game )
 add_subdirectory( sdk )
-add_subdirectory( src )
+add_subdirectory( engine )
 add_subdirectory( tests )
 make_pak( data )
 make_pak( init )
