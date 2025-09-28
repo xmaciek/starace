@@ -3,7 +3,7 @@
 #include <extra/dds.hpp>
 #include <extra/tga.hpp>
 
-#include "cooker_common.hpp"
+#include <cooker/common.hpp>
 
 #include <fstream>
 #include <filesystem>

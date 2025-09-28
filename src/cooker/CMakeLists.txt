@@ -1,27 +1,37 @@
-function( declare_cooker name )
-    add_executable( ${name} )
-    target_sources( ${name} PRIVATE cooker_common.hpp )
-    target_link_libraries( ${name} cxx::flags extra )
-    set_vs_directory( ${name} cooker )
-endfunction()
+add_library( cooker_common INTERFACE )
+target_sources( cooker_common
+    PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/cooker/common.hpp
+)
+set_vs_directory( cooker_common "libs" )
+set_target_properties( cooker_common PROPERTIES
+    INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/public/
+    INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/public/
+)
 
-declare_cooker( cooker_atlas )
-declare_cooker( cooker_callsign )
-declare_cooker( cooker_dds )
-declare_cooker( cooker_font )
-declare_cooker( cooker_lang )
-declare_cooker( cooker_obj )
-declare_cooker( cooker_pak )
-
-target_sources( cooker_atlas PRIVATE cooker_atlas.cpp )
-target_sources( cooker_callsign PRIVATE cooker_callsign.cpp )
-target_sources( cooker_dds PRIVATE cooker_dds.cpp cooker_dds.hpp cooker_tga.hpp )
-target_sources( cooker_font PRIVATE cooker_font.cpp cooker_dds.hpp )
-target_sources( cooker_lang PRIVATE cooker_lang.cpp )
-target_sources( cooker_obj PRIVATE cooker_obj.cpp )
-target_sources( cooker_pak PRIVATE cooker_pak.cpp )
-target_link_libraries( cooker_atlas config shared unicode )
-target_link_libraries( cooker_font Freetype::Freetype )
-target_link_libraries( cooker_lang shared unicode )
-target_link_libraries( cooker_callsign unicode )
-target_link_libraries( cooker_obj ccmd )
+declare_cooker( NAME cooker_atlas
+    SRC cooker_atlas.cpp
+    LINK config shared unicode
+)
+declare_cooker( NAME cooker_callsign
+    SRC cooker_callsign.cpp
+    LINK unicode
+)
+declare_cooker( NAME cooker_dds
+    SRC cooker_dds.cpp cooker_dds.hpp cooker_tga.hpp
+)
+declare_cooker( NAME cooker_font
+    SRC cooker_font.cpp cooker_dds.hpp
+    LINK Freetype::Freetype
+)
+declare_cooker( NAME cooker_lang
+    SRC cooker_lang.cpp
+    LINK shared unicode
+)
+declare_cooker( NAME cooker_obj
+    SRC cooker_obj.cpp
+    LINK ccmd
+)
+declare_cooker( NAME cooker_pak
+    SRC cooker_pak.cpp
+)

@@ -1,5 +1,5 @@
+#include <cooker/common.hpp>
 #include "cooker_dds.hpp"
-#include "cooker_common.hpp"
 #include "cooker_tga.hpp"
 
 #include <extra/dds.hpp>
