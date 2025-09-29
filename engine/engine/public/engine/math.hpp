@@ -9,9 +9,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <cmath>
 #include <numbers>
-#include <utility>
 
 namespace math {
 
@@ -49,7 +47,7 @@ using glm::sqrt;
 using glm::tan;
 using glm::toMat4;
 using glm::translate;
-using std::fmod;
+using glm::mod;
 
 inline float angle( const auto& a, const auto&b )
 {
@@ -64,7 +62,7 @@ inline float manhattan( vec3 a, vec3 b )
 
 inline float length( float f )
 {
-    return glm::abs( f );
+    return abs( f );
 }
 
 template <typename T = float>
@@ -93,7 +91,7 @@ inline auto slerp( const T& a, const T& b, float n )
 template <typename T>
 inline T nonlerp( const T& a, const T& b, float n )
 {
-    return math::lerp( a, b, smoothstep( 0.0f, 1.0f, n ) );
+    return lerp( a, b, smoothstep( 0.0f, 1.0f, n ) );
 }
 
 inline float normalize( float f )
