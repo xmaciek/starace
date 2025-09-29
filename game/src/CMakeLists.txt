@@ -17,7 +17,6 @@ target_sources( starace PRIVATE
     game.cpp
     game.hpp
     game_action.hpp
-    game_callbacks.hpp
     game_options.cpp
     game_options.hpp
     game_pipeline.hpp
