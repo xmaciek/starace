@@ -1,23 +1,21 @@
 #pragma once
 
 #include <ui/widget.hpp>
+#include <ui/pipeline.hpp>
 
 #include <shared/hash.hpp>
 #include <engine/math.hpp>
 #include <renderer/texture.hpp>
 
+#include <array>
+
 namespace ui {
 
 class NineSlice : public Widget {
-public:
-    using SpriteArray = std::array<Hash::value_type, 9>;
-
 protected:
-    float m_top = 0.0f;
-    float m_bot = 0.0f;
-    float m_left = 0.0f;
-    float m_right = 0.0f;
-    SpriteArray m_spriteIds{};
+    using Uniform = PushConstant<Pipeline::eSpriteSequence>;
+    std::array<Uniform::Sprite, 9> m_sprites{};
+    std::array<Texture, 9> m_textures{};
 
 public:
     struct CreateInfo {
