@@ -38,7 +38,7 @@ struct PushConstant<Pipeline::eSpriteSequence> {
 template <>
 struct PushConstant<Pipeline::eSpriteSequenceColors> {
     static constexpr uint32_t INSTANCES = 64;
-    static constexpr uint32_t VERTICES = 6;
+    static constexpr uint32_t VERTICES = 4;
     struct Sprite {
         math::vec4 m_color;
         math::vec4 m_xywh;
@@ -84,7 +84,7 @@ PipelineCreateInfo{
     .m_fragmentShader = "shaders/sprite_sequence_colors.frag.spv",
     .m_userHint = static_cast<uint32_t>( Pipeline::eSpriteSequenceColors ),
     .m_pushConstantSize = sizeof( PushConstant<Pipeline::eSpriteSequenceColors> ),
-    .m_topology = PipelineCreateInfo::Topology::eTriangleList,
+    .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
     .m_blendMode = PipelineCreateInfo::BlendMode::eAlpha,
