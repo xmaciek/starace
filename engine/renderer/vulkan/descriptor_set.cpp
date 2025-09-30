@@ -60,7 +60,7 @@ static VkDescriptorSetLayout createLayout( VkDevice device, const PipelineCreate
     assert( device );
 
     std::pmr::vector<VkDescriptorSetLayoutBinding> layoutBinding;
-    layoutBinding.reserve( 16 );
+    layoutBinding.reserve( 2 );
     auto push = [&layoutBinding]( uint8_t bind, uint8_t count, auto type, auto stage )
     {
         if ( !count ) return;
