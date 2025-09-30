@@ -15,8 +15,38 @@ namespace ui {
 
 NineSlice::NineSlice( const CreateInfo& ci ) noexcept
 : Widget{ ci.position, ci.size, ci.anchor }
-, m_spriteIds{ ci.spriteArray }
 {
+    switch ( ci.style ) {
+    default:
+        assert( !"unknown NineSlice style" );
+        [[fallthrough]];
+    case "box"_hash:
+        m_spriteIds = {
+            "topLeft"_hash,
+            "top"_hash,
+            "topRight"_hash,
+            "left"_hash,
+            "mid"_hash,
+            "right"_hash,
+            "botLeft"_hash,
+            "bot"_hash,
+            "botRight"_hash,
+        };
+        break;
+    case "button"_hash:
+        m_spriteIds = {
+            "topLeft"_hash,
+            "top"_hash,
+            "topRight"_hash,
+            "left"_hash,
+            "mid"_hash,
+            "right"_hash,
+            "botLeft2"_hash,
+            "bot"_hash,
+            "botRight2"_hash,
+        };
+        break;
+    }
 }
 
 

@@ -20,22 +20,10 @@ protected:
     SpriteArray m_spriteIds{};
 
 public:
-    static constexpr inline SpriteArray DEFAULT_SPRITE_ARRAY = {
-        "topLeft"_hash,
-        "top"_hash,
-        "topRight"_hash,
-        "left"_hash,
-        "mid"_hash,
-        "right"_hash,
-        "botLeft"_hash,
-        "bot"_hash,
-        "botRight"_hash,
-    };
-
     struct CreateInfo {
         math::vec2 position{};
         math::vec2 size{};
-        SpriteArray spriteArray = DEFAULT_SPRITE_ARRAY;
+        Hash::value_type style = "box"_hash;
         Anchor anchor = Anchor::fTop | Anchor::fLeft;
     };
 

@@ -3,22 +3,10 @@
 #include <ui/property.hpp>
 #include <engine/math.hpp>
 
-static constexpr std::array<Hash::value_type, 9> SLICES = {
-    "topLeft"_hash,
-    "top"_hash,
-    "topRight"_hash,
-    "left"_hash,
-    "mid"_hash,
-    "right"_hash,
-    "botLeft2"_hash,
-    "bot"_hash,
-    "botRight2"_hash,
-};
-
 namespace ui {
 
 Button::Button( const CreateInfo& ci ) noexcept
-: NineSlice{ NineSlice::CreateInfo{ .position = ci.position, .size = ci.size, .spriteArray = SLICES, .anchor = ci.anchor } }
+: NineSlice{ NineSlice::CreateInfo{ .position = ci.position, .size = ci.size, .style = "button"_hash, .anchor = ci.anchor } }
 , m_trigger{ ci.trigger }
 {
     m_label = emplace_child<Label>( Label::CreateInfo{ .text = ci.text, .font = "medium"_hash, .position = ci.size * 0.5f, .anchor = Anchor::fCenter | Anchor::fMiddle, } );
