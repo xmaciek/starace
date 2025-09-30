@@ -2,7 +2,6 @@
 
 #include <ui/property.hpp>
 #include <ui/pipeline.hpp>
-#include <ui/spritegen.hpp>
 
 #include <renderer/renderer.hpp>
 

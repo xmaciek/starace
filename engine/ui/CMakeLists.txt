@@ -20,7 +20,6 @@ target_sources( ui
     screen.cpp
     scroll_index.cpp
     spinbox.cpp
-    spritegen.cpp
     widget.cpp
 
     PUBLIC
@@ -44,7 +43,6 @@ target_sources( ui
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/scroll_index.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/spinbox.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/sprite.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/spritegen.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/tab_order.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/var.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/widget.hpp

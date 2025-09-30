@@ -1,7 +1,6 @@
 #include <ui/combobox.hpp>
 
 #include <ui/font.hpp>
-#include <ui/spritegen.hpp>
 #include <ui/pipeline.hpp>
 #include <ui/property.hpp>
 
