@@ -6,9 +6,7 @@ const vec2 vertmult[] = {
     vec2( 0.0, 0.0 ),
     vec2( 0.0, 1.0 ),
     vec2( 1.0, 1.0 ),
-    vec2( 1.0, 1.0 ),
     vec2( 1.0, 0.0 ),
-    vec2( 0.0, 0.0 ),
 };
 
 struct Sprite {
@@ -25,7 +23,7 @@ layout( binding = 0 ) uniform ubo {
     Sprite sprites[ INSTANCES ];
 };
 
-layout( location = 0 ) out vec4 outColor;
+layout( location = 0 ) out flat vec4 outColor;
 layout( location = 1 ) out vec2 outUV;
 layout( location = 2 ) out flat uint outWhichAtlas;
 layout( location = 3 ) out flat uint outSampleRGBA;
