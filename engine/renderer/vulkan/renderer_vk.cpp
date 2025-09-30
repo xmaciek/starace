@@ -817,11 +817,11 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
         }
         return m_defaultTexture->imageInfo();
     };
-    std::array<VkDescriptorImageInfo, 8> imageInfo;
+    std::array<VkDescriptorImageInfo, PushData::MAX_TEXTURES> imageInfo;
     std::ranges::transform( pushBuffer.m_fragmentTexture, imageInfo.begin(), find );
 
 
-    std::array<VkWriteDescriptorSet,2 > setWrite = currentPipeline.descriptorWrites();
+    std::array<VkWriteDescriptorSet, 2> setWrite = currentPipeline.descriptorWrites();
     const uint32_t descriptorWriteCount = currentPipeline.descriptorWriteCount();
     const uint32_t offset = currentPipeline.descriptorWriteOffset();
 

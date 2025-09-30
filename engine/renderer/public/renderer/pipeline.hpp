@@ -45,12 +45,15 @@ struct PipelineCreateInfo {
 
 
 struct PushData {
+    enum : uint32_t {
+        MAX_TEXTURES = 9,
+    };
     PipelineSlot m_pipeline{};
     uint32_t m_verticeCount = 0;
     uint32_t m_instanceCount = 1;
     float m_lineWidth = 1.0f;
     Buffer m_vertexBuffer{};
-    std::array<Texture, 8> m_fragmentTexture{};
+    std::array<Texture, MAX_TEXTURES> m_fragmentTexture{};
 };
 
 using PushBuffer = PushData;
