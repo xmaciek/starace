@@ -43,7 +43,7 @@ std::function<void(std::pair<uint32_t, PipelineSlot>)> Property::setupPipeline()
         case eSpriteSequence: m_pipelineSpriteSequence = p.second; break;
         case eSpriteSequenceColors: m_pipelineSpriteSequenceColors = p.second; break;
         case eGlow: m_pipelineGlow = p.second; break;
-        case eBlurDesaturate: m_pipelineBlurDesaturate = p.second; break;
+        case eBlur: m_pipelineBlur = p.second; break;
         default:
             assert( !"unhandled enum for ui pipelines" );
         };

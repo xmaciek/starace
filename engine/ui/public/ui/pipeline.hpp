@@ -11,7 +11,7 @@ enum class Pipeline : uint32_t {
     eSpriteSequence,
     eSpriteSequenceColors,
     eGlow,
-    eBlurDesaturate,
+    eBlur,
 };
 using enum Pipeline;
 
@@ -61,7 +61,7 @@ struct PushConstant<Pipeline::eGlow> {
 };
 
 template <>
-struct PushConstant<Pipeline::eBlurDesaturate> {
+struct PushConstant<Pipeline::eBlur> {
     alignas( 16 ) uint32_t m_direction{};
 };
 
@@ -105,9 +105,9 @@ PipelineCreateInfo{
 },
 
 PipelineCreateInfo{
-    .m_computeShader = "shaders/blur_desaturate.comp.spv",
-    .m_userHint = static_cast<uint32_t>( Pipeline::eBlurDesaturate ),
-    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eBlurDesaturate> ),
+    .m_computeShader = "shaders/blur.comp.spv",
+    .m_userHint = static_cast<uint32_t>( Pipeline::eBlur ),
+    .m_pushConstantSize = sizeof( PushConstant<Pipeline::eBlur> ),
     .m_computeUniformCount = 1,
     .m_computeImageCount = 2,
 },

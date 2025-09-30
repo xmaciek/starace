@@ -1,4 +1,4 @@
-compileShader( FILE blur_desaturate.comp PACK init )
+compileShader( FILE blur.comp PACK init )
 compileShader( FILE glow.frag PACK init  )
 compileShader( FILE glow.vert PACK init  )
 compileShader( FILE sprite_sequence.frag PACK init )

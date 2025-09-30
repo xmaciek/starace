@@ -30,7 +30,7 @@ class Property {
     PipelineSlot m_pipelineSpriteSequence{};
     PipelineSlot m_pipelineSpriteSequenceColors{};
     PipelineSlot m_pipelineGlow{};
-    PipelineSlot m_pipelineBlurDesaturate{};
+    PipelineSlot m_pipelineBlur{};
     using InputSource = input::Actuator::Source;
     InputSource m_inputSource{};
 
@@ -64,7 +64,7 @@ public:
     inline PipelineSlot pipelineSpriteSequence() const { return m_pipelineSpriteSequence; }
     inline PipelineSlot pipelineSpriteSequenceColors() const { return m_pipelineSpriteSequenceColors; }
     inline PipelineSlot pipelineGlow() const { return m_pipelineGlow; }
-    inline PipelineSlot pipelineBlurDesaturate() const { return m_pipelineBlurDesaturate; }
+    inline PipelineSlot pipelineBlur() const { return m_pipelineBlur; }
 
     inline bool setInputSource( InputSource s ) { return std::exchange( m_inputSource, s ) != s; }
     inline InputSource inputSource() const { return m_inputSource; }

@@ -12,7 +12,7 @@ MessageBox::MessageBox( const CreateInfo& ci )
     .size = ci.size,
     .anchor = Anchor::fMiddle | Anchor::fCenter,
 } }
-, m_blur{ g_uiProperty.pipelineBlurDesaturate() }
+, m_blur{ g_uiProperty.pipelineBlur() }
 {
     m_text = emplace_child<Label>( Label::CreateInfo{ .text = ci.text, .font = "medium"_hash, .position = ci.size * 0.5f, .anchor = Anchor::fMiddle | Anchor::fCenter, } );
 }
@@ -30,7 +30,7 @@ EventProcessing MessageBox::onAction( ui::Action a )
 
 void MessageBox::render( const RenderContext& rctx ) const
 {
-    using PushConstant = PushConstant<Pipeline::eBlurDesaturate>;
+    using PushConstant = PushConstant<Pipeline::eBlur>;
     const DispatchInfo di{ .m_pipeline = m_blur };
     const PushConstant horizontal{ .m_direction = 0 };
     const PushConstant vertical{ .m_direction = 1 };

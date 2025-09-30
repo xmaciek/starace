@@ -5,7 +5,6 @@ layout( local_size_x = 8, local_size_y = 8 ) in;
 layout( binding = 0 ) uniform ubo { uint direction; };
 layout( r11f_g11f_b10f, binding = 1 ) uniform image2D img[ 2 ];
 
-const vec3 LUMA = vec3( 0.299, 0.587, 0.114 );
 const uint RADIUS = 11;
 
 const ivec2 OFFSET[ 2 ][ RADIUS ] = { {
@@ -61,7 +60,5 @@ void main()
         blur += read( OFFSET[ direction ][ i ] ) * OFFSET_MUL[ i ];
     }
 
-    float l = clamp( dot( blur.rgb, LUMA ), 0.0, 1.0 );
-    vec3 color = mix( blur.rgb, vec3( l, l, l ), 0.5 );
-    imageStore( img[ 1 ], ivec2( gl_GlobalInvocationID.xy ), vec4( color, 1.0 ) );
+    imageStore( img[ 1 ], ivec2( gl_GlobalInvocationID.xy ), vec4( blur.rgb, 1.0 ) );
 }
