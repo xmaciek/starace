@@ -23,7 +23,7 @@ public:
     virtual ~Renderer() noexcept = default;
     Renderer() noexcept = default;
 
-    static Renderer* instance();
+    static Renderer* instance() { return s_instance; }
 
     enum class Feature : uint32_t {
         eVSyncMailbox,
@@ -58,12 +58,12 @@ public:
     };
 
 protected:
-    friend class Engine;
-    friend class RendererSetup;
+    friend Engine;
 
     using FNCreate = Renderer*(const Renderer::CreateInfo&);
-    static inline constinit FNCreate* create = nullptr;
-    static inline constinit SDL_WindowFlags windowFlag{};
+    static FNCreate* create;
+    static SDL_WindowFlags windowFlag;
+    static Renderer* s_instance;
 
     virtual void beginFrame() = 0;
     virtual void endFrame() = 0;

@@ -12,17 +12,13 @@
 #include <cassert>
 #include <cstring>
 
-static class RendererSetup {
-public:
-    RendererSetup()
-    {
-        Renderer::windowFlag = SDL_WINDOW_VULKAN;
-        Renderer::create = []( const Renderer::CreateInfo& ci ) -> Renderer*
-        {
-            return new RendererVK{ ci };
-        };
-    }
-} setup{};
+
+SDL_WindowFlags Renderer::windowFlag = SDL_WINDOW_VULKAN;
+Renderer::FNCreate* Renderer::create = []( const Renderer::CreateInfo& ci ) -> Renderer*
+{
+    return new RendererVK{ ci };
+};
+Renderer* Renderer::s_instance = nullptr;
 
 struct ResourceDeleter {
     void operator () ( TextureVK* t ) { assert( t ); delete t; }
@@ -57,8 +53,6 @@ static constexpr Texture textureIndexToId( uint32_t index, uint32_t channelCount
     assert( channelCount <= 4 );
     return TEXTURE_ID_CHECK | channelCount << 16 | index;
 }
-
-static Renderer* g_instance = nullptr;
 
 constexpr std::size_t operator ""_MiB( unsigned long long v ) noexcept
 {
@@ -121,19 +115,13 @@ struct FormatSupportTest {
 };
 
 
-Renderer* Renderer::instance()
-{
-    assert( g_instance );
-    return g_instance;
-}
-
 RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
 : m_window{ createInfo.window }
 {
     ZoneScoped;
-    assert( !g_instance );
-    g_instance = this;
 
+    assert( !Renderer::s_instance );
+    Renderer::s_instance = this;
     m_instance = Instance{ createInfo, windowExtensions( createInfo.window ) };
 
     if ( !SDL_Vulkan_CreateSurface( m_window, m_instance, &m_surface ) ) {
