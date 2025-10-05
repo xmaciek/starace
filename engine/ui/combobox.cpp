@@ -15,6 +15,7 @@ namespace ui {
 class ComboBoxList : public Widget {
     DataModel* m_model = nullptr;
     ScrollIndex m_index{};
+    Sprite m_hover{};
     float m_lineHeight = 0.0f;
     float m_topPadding = 0.0f;
     float m_botHeight = 8.0f;
@@ -111,7 +112,7 @@ ComboBoxList::ComboBoxList( const ComboBoxList::CreateInfo& ci ) noexcept
     m_index = ScrollIndex{ m_model->current(), m_model->size() };
     auto count = visibleCount();
     float midHeight = m_topPadding + m_lineHeight * static_cast<float>( count );
-
+    m_hover = g_uiProperty.sprite( "mid"_hash );
     setSize( math::vec2{ ci.size.x, midHeight + m_botHeight } );
 }
 
@@ -122,9 +123,9 @@ void ComboBoxList::render( const RenderContext& rctx ) const
     PushData pushData{
         .m_pipeline = g_uiProperty.pipelineSpriteSequenceColors(),
         .m_verticeCount = PushConstant::VERTICES,
-        .m_instanceCount = 7u,
+        .m_instanceCount = 1u,
     };
-    pushData.m_fragmentTexture[ 0 ] = g_uiProperty.atlasTexture();
+    pushData.m_fragmentTexture[ 0 ] = m_hover.texture;
     PushConstant pushConstant{
         .m_model = rctx.model,
         .m_view = rctx.view,
@@ -132,33 +133,16 @@ void ComboBoxList::render( const RenderContext& rctx ) const
     };
 
     auto count = visibleCount();
-    float midSize = m_topPadding + m_lineHeight * static_cast<float>( count );
 
-    using S = PushConstant::Sprite;
-    auto gibLine = []( float y, float w, float h, auto color, auto left, auto mid, auto right ) -> std::tuple<S,S,S>
-    {
-        const Font& atlasRef = *g_uiProperty.atlas();
-        return {
-            { .m_color = color, .m_xywh{ 4.0f, y, 8.0f, h },        .m_uvwh = atlasRef.find( left ) },
-            { .m_color = color, .m_xywh{ 12.0f, y, w - 24.0f, h },  .m_uvwh = atlasRef.find( mid ) },
-            { .m_color = color, .m_xywh{ w - 12.0f, y, 8.0f, h },   .m_uvwh = atlasRef.find( right ) },
-        };
-    };
+    NineSlice::CreateInfo bgci{ .position{ 4.0f, 0.0f }, .size = size(), };
+    bgci.size.x -= 8.0f;
+    NineSlice bg{ bgci };
+    bg.onRender( rctx );
 
-
-    float yOffset = 0.0f;
-    std::tie( pushConstant.m_sprites[ 0 ], pushConstant.m_sprites[ 1 ], pushConstant.m_sprites[ 2 ] )
-        = gibLine( yOffset, width, midSize, rctx.colorMain, "left"_hash, "mid"_hash, "right"_hash );
-    yOffset += midSize;
-
-    std::tie( pushConstant.m_sprites[ 3 ], pushConstant.m_sprites[ 4 ], pushConstant.m_sprites[ 5 ] )
-        = gibLine( yOffset, width, m_botHeight, rctx.colorMain, "botLeft2"_hash, "bot"_hash, "botRight2"_hash );
-
-    const Font& atlasRef = *g_uiProperty.atlas();
-    pushConstant.m_sprites[ 6 ] = {
+    pushConstant.m_sprites[ 0 ] = {
         .m_color = rctx.colorFocus,
         .m_xywh{ 12.0f, m_topPadding + m_lineHeight * static_cast<float>( m_index.currentVisible() ), width - 24.0f, m_lineHeight },
-        .m_uvwh = atlasRef.find( "mid"_hash ),
+        .m_uvwh = m_hover,
     };
     rctx.renderer->push( pushData, &pushConstant );
 
