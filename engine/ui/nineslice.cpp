@@ -96,7 +96,6 @@ NineSlice::NineSlice( const CreateInfo& ci ) noexcept
         sprite.m_xywh = gen( i );
         sprite.m_uvwh = sprites[ i ];
         sprite.m_whichAtlas = (uint32_t)std::distance( m_textures.begin(), std::ranges::find( m_textures, sprites[ i ].texture ) );
-        // sprite.m_sampleRGBA = TODO
     }
 
 }
@@ -120,6 +119,11 @@ void NineSlice::render( const RenderContext& rctx ) const
 
     std::ranges::copy( m_textures, pushData.m_fragmentTexture.begin() );
     std::ranges::copy( m_sprites, pushConstant.m_sprites.begin() );
+    std::for_each( pushConstant.m_sprites.begin(), pushConstant.m_sprites.begin() + 9,
+    [&pushData, r=rctx.renderer]( auto& s )
+    {
+        s.m_sampleRGBA = r->channelCount( pushData.m_fragmentTexture[ s.m_whichAtlas ] ) == 4;
+    } );
 
     rctx.renderer->push( pushData, &pushConstant );
 }

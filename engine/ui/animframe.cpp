@@ -40,6 +40,7 @@ void AnimFrame::render( const RenderContext& rctx ) const
     pushConstant.m_sprites[ 0 ] = PushConstant::Sprite{
         .m_xywh{ 0.0f, 0.0f, s.x, s.y },
         .m_uvwh = m_uvwh[ m_index ],
+        .m_sampleRGBA = rctx.renderer->channelCount( pushData.m_fragmentTexture[ 0 ] ) == 4,
     };
 
     rctx.renderer->push( pushData, &pushConstant );
