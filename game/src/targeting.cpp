@@ -35,8 +35,7 @@ static constexpr std::array reticleSprites{
 Targeting::Targeting( const Targeting::CreateInfo& ci )
 : m_callsigns{ ci.callsigns }
 {
-    m_texture = g_uiProperty.atlasTexture();
-    auto unpack = []( Hash::value_type hash ) -> math::vec4
+    auto unpack = []( Hash::value_type hash )
     {
         return g_uiProperty.sprite( hash );
     };
@@ -45,82 +44,86 @@ Targeting::Targeting( const Targeting::CreateInfo& ci )
     std::ranges::transform( reticleSprites, m_xyuvReticle.begin(), unpack );
 }
 
+static const std::array<math::vec4, 4> A{
+    math::vec4{ -68.0f, -68.0f, 16.0f, 16.0f },
+    math::vec4{  52.0f, -68.0f, 16.0f, 16.0f },
+    math::vec4{ -68.0f,  52.0f, 16.0f, 16.0f },
+    math::vec4{  52.0f,  52.0f, 16.0f, 16.0f },
+};
+static const std::array<math::vec4, 4> B{
+    math::vec4{ -16.0f, -16.0, 16.0f, 16.0f },
+    math::vec4{   0.0f, -16.0, 16.0f, 16.0f },
+    math::vec4{ -16.0f,   0.0, 16.0f, 16.0f },
+    math::vec4{   0.0f,   0.0, 16.0f, 16.0f },
+};
+
+static const std::array<math::vec4, 4> C{
+    math::vec4{ -8.0f, 150.0, 16.0f, 16.0f },
+    math::vec4{ -8.0f, -166.0, 16.0f, 16.0f },
+    math::vec4{ -166.0f, -8.0, 16.0f, 16.0f },
+    math::vec4{ 150.0f, -8.0, 16.0f, 16.0f },
+};
+
+static const std::array<math::vec4, 4> D{
+    math::vec4{ -8.0f, 8.0, 16.0f, 16.0f },
+    math::vec4{ -8.0f, -24.0, 16.0f, 16.0f },
+    math::vec4{ -24.0f, -8.0, 16.0f, 16.0f },
+    math::vec4{ 8.0f, -8.0, 16.0f, 16.0f },
+};
+
+static std::array<math::vec4, 4> lerp( const auto& a, const auto& b, float n )
+{
+    std::array<math::vec4, 4> ret;
+    for ( uint32_t i = 0; i < 4; ++i ) ret[ i ] = math::lerp( a[ i ], b[ i ], n );
+    return ret;
+}
+
 void Targeting::render( const RenderContext& rctx ) const
 {
+    using PushConstant = ui::PushConstant<ui::Pipeline::eSpriteSequenceColors>;
+    static_assert( PushConstant::INSTANCES >= 8 );
+    using Sprite = PushConstant::Sprite;
     PushData pushData{
         .m_pipeline = g_uiProperty.pipelineSpriteSequenceColors(),
-        .m_verticeCount = 6,
+        .m_verticeCount = PushConstant::VERTICES,
+        .m_instanceCount = 4,
     };
-    pushData.m_fragmentTexture[ 0 ] = m_texture;
-    using Sprite = ui::PushConstant<ui::Pipeline::eSpriteSequenceColors>::Sprite;
-    ui::PushConstant<ui::Pipeline::eSpriteSequenceColors> pushConstant{
+    PushConstant pushConstant{
         .m_model = rctx.model,
         .m_view = rctx.view,
         .m_projection = rctx.projection,
     };
-    auto pushSprite = [&pushData, &pushConstant, &rctx]( math::vec4 xywh, math::vec4 uvwh, math::vec2 pos2d, math::vec4 color )
+    auto pushReticle = [&pushData, &pushConstant, &rctx]( const std::array<ui::Sprite, 4>& sprite, const std::array<math::vec4, 4>& geo, math::vec2 pos2d, math::vec4 color )
     {
-        xywh.x += pos2d.x;
-        xywh.y += rctx.viewport.y - pos2d.y;
-        pushConstant.m_sprites[ pushData.m_instanceCount++ ] = Sprite{ .m_color = color, .m_xywh = xywh, .m_uvwh = uvwh, };
-        if ( pushData.m_instanceCount != pushConstant.INSTANCES ) [[likely]] return;
+        math::vec4 offset{ pos2d.x, rctx.viewport.y - pos2d.y, 0.0f, 0.0f };
+        std::array<Texture, 4> tex;
+        std::ranges::transform( sprite, tex.begin(), []( const auto& s ) { return s.texture; } );
+        std::fill( std::unique( tex.begin(), tex.end() ), tex.end(), Texture{} );
+        std::ranges::copy( tex, pushData.m_fragmentTexture.begin() );
+
+        std::array<uint32_t, 4> tex2;
+        std::ranges::transform( sprite, tex2.begin(), [&tex]( const auto& s )
+        {
+            return (uint32_t)std::distance( tex.begin(), std::ranges::find( tex, s.texture ) );
+        });
+        for ( uint32_t i = 0; i < 4; ++i ) {
+            pushConstant.m_sprites[ i ] = Sprite{
+                .m_color = color,
+                .m_xywh = geo[ i ] + offset,
+                .m_uvwh = sprite[ i ],
+                .m_whichAtlas = tex2[ i ],
+            };
+        }
         rctx.renderer->push( pushData, &pushConstant );
-        pushData.m_instanceCount = 0;
-    };
-    // const float rotAngle = math::lerp( 0.0f, 45.0_deg, m_state.value() );
-    // math::mat4 modelMat = rctx.model;
-    // modelMat = math::translate( modelMat, math::vec3{ pos2d.x, rctx.viewport.y - pos2d.y, 0.0f } );
-    // modelMat = math::rotate( modelMat, rotAngle, axis::z );
-
-    static const std::array<math::vec4, 4> a{
-        math::vec4{ -68.0f, -68.0f, 16.0f, 16.0f },
-        math::vec4{  52.0f, -68.0f, 16.0f, 16.0f },
-        math::vec4{ -68.0f,  52.0f, 16.0f, 16.0f },
-        math::vec4{  52.0f,  52.0f, 16.0f, 16.0f },
-    };
-    static const std::array<math::vec4, 4> b{
-        math::vec4{ -16.0f, -16.0, 16.0f, 16.0f },
-        math::vec4{   0.0f, -16.0, 16.0f, 16.0f },
-        math::vec4{ -16.0f,   0.0, 16.0f, 16.0f },
-        math::vec4{   0.0f,   0.0, 16.0f, 16.0f },
     };
 
-    static const std::array<math::vec4, 4> c{
-        math::vec4{ -8.0f, 150.0, 16.0f, 16.0f },
-        math::vec4{ -8.0f, -166.0, 16.0f, 16.0f },
-        math::vec4{ -166.0f, -8.0, 16.0f, 16.0f },
-        math::vec4{ 150.0f, -8.0, 16.0f, 16.0f },
-    };
-
-    static const std::array<math::vec4, 4> d{
-        math::vec4{ -8.0f, 8.0, 16.0f, 16.0f },
-        math::vec4{ -8.0f, -24.0, 16.0f, 16.0f },
-        math::vec4{ -24.0f, -8.0, 16.0f, 16.0f },
-        math::vec4{ 8.0f, -8.0, 16.0f, 16.0f },
-    };
-
-    if ( const math::vec3 pos2d = project3dTo2d( rctx.camera3d, m_targetSignal.position, rctx.viewport ); isOnScreen( pos2d, rctx.viewport ) ) {
-        const float value = m_state.value();
-        static const math::vec4 white0 = color::white * math::vec4{ 1.0f, 1.0f, 1.0f, 0.0f };
-        const math::vec4 targetColor = math::lerp( color::winScreen, color::crimson, value );
-        const math::vec4 targetColor2 = math::lerp( white0, color::crimson, value );
-        const math::vec2 position{ pos2d.x, pos2d.y };
-        pushSprite( math::lerp( c[ 0 ], d[ 0 ], value ), m_xyuvTarget2[ 0 ], position, targetColor2 );
-        pushSprite( math::lerp( c[ 1 ], d[ 1 ], value ), m_xyuvTarget2[ 1 ], position, targetColor2 );
-        pushSprite( math::lerp( c[ 2 ], d[ 2 ], value ), m_xyuvTarget2[ 2 ], position, targetColor2 );
-        pushSprite( math::lerp( c[ 3 ], d[ 3 ], value ), m_xyuvTarget2[ 3 ], position, targetColor2 );
-        pushSprite( math::lerp( a[ 0 ], b[ 0 ], value ), m_xyuvTarget[ 0 ], position, targetColor );
-        pushSprite( math::lerp( a[ 1 ], b[ 1 ], value ), m_xyuvTarget[ 1 ], position, targetColor );
-        pushSprite( math::lerp( a[ 2 ], b[ 2 ], value ), m_xyuvTarget[ 2 ], position, targetColor );
-        pushSprite( math::lerp( a[ 3 ], b[ 3 ], value ), m_xyuvTarget[ 3 ], position, targetColor );
-    }
     const ui::RenderContext rr{
         .renderer = rctx.renderer,
         .model = rctx.model,
         .view = rctx.view,
         .projection = rctx.projection,
     };
-    auto pushReticle = [this, &rr, targ = &a, &rctx, &pushSprite]( Signal signal )
+    auto renderSignal = [this, &rr, &rctx, &pushReticle, value=m_state.value()]( Signal signal )
     {
         const math::vec3 pos2d = project3dTo2d( rctx.camera3d, signal.position, rctx.viewport );
         if ( !isOnScreen( pos2d, rctx.viewport ) ) return;
@@ -134,17 +137,18 @@ void Targeting::render( const RenderContext& rctx ) const
         txt.insert( txt.end(), l.begin(), l.end() );
         lbl.setText( std::move( txt ) );
         lbl.onRender( rr );
-        if ( m_targetSignal.callsign == signal.callsign ) return;
+        if ( m_targetSignal.callsign != signal.callsign ) [[likely]] {
+            pushReticle( m_xyuvReticle, A, math::vec2{ pos2d.x, pos2d.y }, color::lightSteelBlue );
+            return;
+        }
+        static const math::vec4 white0 = color::white * math::vec4{ 1.0f, 1.0f, 1.0f, 0.0f };
+        const math::vec4 targetColor = math::lerp( color::winScreen, color::crimson, value );
+        const math::vec4 targetColor2 = math::lerp( white0, color::crimson, value );
         const math::vec2 position{ pos2d.x, pos2d.y };
-        pushSprite( (*targ)[ 0 ], m_xyuvReticle[ 0 ], position, color::lightSteelBlue );
-        pushSprite( (*targ)[ 1 ], m_xyuvReticle[ 1 ], position, color::lightSteelBlue );
-        pushSprite( (*targ)[ 2 ], m_xyuvReticle[ 2 ], position, color::lightSteelBlue );
-        pushSprite( (*targ)[ 3 ], m_xyuvReticle[ 3 ], position, color::lightSteelBlue );
+        pushReticle( m_xyuvTarget2, lerp( C, D, value ), position, targetColor2 );
+        pushReticle( m_xyuvTarget, lerp( A, B, value ), position, targetColor );
     };
-    std::for_each( m_signals.begin(), m_signals.end(), std::move( pushReticle ) );
-    if ( pushData.m_instanceCount != 0 ) [[likely]] {
-        rctx.renderer->push( pushData, &pushConstant );
-    }
+    std::ranges::for_each( m_signals, std::move( renderSignal ) );
 }
 
 void Targeting::setSignals( std::pmr::vector<Signal>&& vec )

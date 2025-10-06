@@ -34,7 +34,6 @@ public:
 
 private:
     input::Remapper m_remapper{};
-    ui::Font m_uiAtlas{};
     ui::Font m_inputPS4{};
     ui::Font m_inputXbox{};
     ui::Font m_fontSmall{};

@@ -43,6 +43,8 @@ struct PushConstant<Pipeline::eSpriteSequenceColors> {
         math::vec4 m_color;
         math::vec4 m_xywh;
         math::vec4 m_uvwh;
+        uint32_t m_whichAtlas;
+        uint32_t m_sampleRGBA;
     };
     math::mat4 m_model{};
     math::mat4 m_view{};
@@ -89,7 +91,7 @@ PipelineCreateInfo{
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
     .m_blendMode = PipelineCreateInfo::BlendMode::eAlpha,
     .m_vertexUniformCount = 1,
-    .m_fragmentImageCount = 1,
+    .m_fragmentImageCount = 9,
 },
 
 PipelineCreateInfo{

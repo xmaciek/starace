@@ -17,8 +17,8 @@ protected:
     bool m_focusL : 1 = false;
     bool m_focusR : 1 = false;
 
-    math::vec4 arrowLeft() const;
-    math::vec4 arrowRight() const;
+    Sprite m_arrowLeft{};
+    Sprite m_arrowRight{};
 
 public:
     struct CreateInfo {

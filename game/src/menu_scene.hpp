@@ -5,18 +5,16 @@
 #include "render_context.hpp"
 #include "space_dust.hpp"
 
+#include <ui/sprite.hpp>
+
 class MenuScene {
-    Texture m_uiAtlasTexture{};
-    math::vec2 m_uiAtlasExtent{};
-    math::vec4 m_uiSlice{};
+    ui::Sprite m_background{};
     Model* m_model{};
     SpaceDust m_spaceDust{};
 
 public:
     struct CreateInfo {
-        Texture uiAtlasTexture{};
-        math::vec2 uiAtlasExtent{};
-        math::vec4 uiSlice{};
+        ui::Sprite background{};
     };
     MenuScene() = default;
     MenuScene( const CreateInfo& );

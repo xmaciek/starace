@@ -142,12 +142,12 @@ void Game::onInit()
 
 void Game::setupUI()
 {
-    m_uiAtlas = ui::Font::CreateInfo{
+    ui::Font uiAtlas = ui::Font::CreateInfo{
         .fontAtlas = m_io->viewWait( "misc/ui_atlas.fnta" ),
         .texture = m_textures[ "textures/ui_atlas.dds" ],
     };
-    g_uiProperty.m_atlas = &m_uiAtlas;
-    g_uiProperty.addSprites( &m_uiAtlas );
+    g_uiProperty.addSprites( &uiAtlas );
+
     m_inputPS4 = ui::Font::CreateInfo{
         .fontAtlas = m_io->viewWait( "misc/ps4_atlas.fnta" ),
         .texture = m_textures[ "textures/ps4_atlas.dds" ],
@@ -376,9 +376,7 @@ void Game::setupUI()
     m_screens.emplace_back( m_io->viewWait( "ui/mainmenu.ui" ) );
 
     m_menuScene = MenuScene{ MenuScene::CreateInfo{
-        .uiAtlasTexture = g_uiProperty.atlasTexture(),
-        .uiAtlasExtent = m_uiAtlas.extent(),
-        .uiSlice = m_uiAtlas.find( "background"_hash ),
+        .background = g_uiProperty.sprite( "background"_hash ),
     } };
     m_menuScene.setModel( &m_jetsContainer[ 0 ].model );
 }

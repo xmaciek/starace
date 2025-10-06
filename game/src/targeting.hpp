@@ -9,6 +9,7 @@
 #include <renderer/texture.hpp>
 #include <shared/hash.hpp>
 #include <extra/csg.hpp>
+#include <ui/sprite.hpp>
 
 #include <array>
 #include <memory_resource>
@@ -18,11 +19,10 @@ class Targeting {
     AutoLerp<float> m_state{ 0.0f, 1.0f, 6.0f/*4.0f*/ };
     std::pmr::vector<Signal> m_signals{};
     std::span<const csg::Callsign> m_callsigns{};
-    std::array<math::vec4, 4> m_xyuvTarget{};
-    std::array<math::vec4, 4> m_xyuvTarget2{};
-    std::array<math::vec4, 4> m_xyuvReticle{};
+    std::array<ui::Sprite, 4> m_xyuvTarget{};
+    std::array<ui::Sprite, 4> m_xyuvTarget2{};
+    std::array<ui::Sprite, 4> m_xyuvReticle{};
     Signal m_targetSignal{};
-    Texture m_texture{};
 
 public:
     struct CreateInfo {

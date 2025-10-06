@@ -8,12 +8,6 @@ Sprite Property::sprite( Hash::value_type hash ) const
     return m_sprites[ hash ];
 }
 
-
-Texture Property::atlasTexture() const
-{
-    return m_atlas->texture();
-}
-
 void Property::addSprites( const Font* font )
 {
     assert( font );

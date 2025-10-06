@@ -37,7 +37,6 @@ class Property {
     const Font* m_fontSmall = nullptr;
     const Font* m_fontMedium = nullptr;
     const Font* m_fontLarge = nullptr;
-    const Font* m_atlas = nullptr;
     std::pmr::vector<Lockit> m_lockit{};
     uint32_t m_currentLang = 0;
     FixedMap<Hash::value_type, ui::DataModel*, 64> m_dataModels{};
@@ -54,8 +53,6 @@ public:
         DataModel* model = nullptr;
         inline operator bool () const noexcept { return !!model; };
     };
-
-    Texture atlasTexture() const;
 
     inline const Font* fontSmall() const { return m_fontSmall; }
     inline const Font* fontMedium() const { return m_fontMedium; }
@@ -114,7 +111,6 @@ public:
         m_dataModels.insert( h, model );
     }
 
-    inline const ui::Font* atlas() const { return m_atlas; }
     inline const ui::Font* font( Hash::value_type h ) const
     {
         switch ( h ) {
