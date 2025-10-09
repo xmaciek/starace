@@ -12,31 +12,17 @@
 #include <vector>
 #include <type_traits>
 
-static std::string preparePakPath( const std::string& str, int includeDirectoryCount )
+static std::string preparePakPath( const std::string& str, uint32_t includeDirectoryCount )
 {
     auto stat = std::filesystem::status( str );
     std::filesystem::exists( stat ) || cooker::error( "path don't exists:", str );
     std::filesystem::is_regular_file( stat ) || cooker::error( "path is not file:", str );
 
-    auto rit = std::find_if( str.rbegin(), str.rend(), [includeDirectoryCount]( char c ) mutable
-    {
-        switch ( c ) {
-        case '/':
-        case '\\': // TODO test pathing on windows
-        return includeDirectoryCount-- == 0;
-        default: return false;
-        }
-    } );
-    auto seekit = std::distance( rit, str.rend() );
-    auto it = str.begin();
-    std::advance( it, seekit );
-    auto dist = std::distance( it, str.end() );
-    ( static_cast<uint32_t>( dist ) < sizeof( pak::Entry::name ) ) || cooker::error( "path too long to fit into Header.path field", str );
+    auto pakName = cooker::baseName( str, includeDirectoryCount );
+    if ( pakName.size() >= sizeof( pak::Entry::name ) )
+        cooker::error( "path too long to fit into Header.path field", str );
 
-    std::string ret;
-    ret.resize( static_cast<std::string::size_type>( dist ) );
-    std::copy( it, str.end(), ret.begin() );
-    return ret;
+    return std::string( pakName );
 }
 
 std::vector<std::pair<std::string, std::string>> preparePathPairs( std::string_view list )

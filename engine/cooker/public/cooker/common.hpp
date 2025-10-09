@@ -1,13 +1,14 @@
 #pragma once
 
+#include <algorithm>
 #include <cstdint>
 #include <cstdlib>
-#include <string_view>
-#include <iostream>
 #include <fstream>
-#include <span>
+#include <iostream>
 #include <memory_resource>
+#include <span>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace cooker {
@@ -114,6 +115,22 @@ std::span<T> cast( std::span<uint8_t> data )
 {
     if ( data.size() % sizeof( T ) ) cooker::error( "not enough data to cast" );
     return std::span<T>{ reinterpret_cast<T*>( data.data() ), data.size() / sizeof( T ) };
+}
+
+[[nodiscard]]
+std::string_view baseName( std::string_view str, uint32_t includeDirectoryCount )
+{
+    auto rit = std::find_if( str.rbegin(), str.rend(), [includeDirectoryCount]( char c ) mutable
+    {
+        switch ( c ) {
+        case '/':
+        case '\\': // TODO test pathing on windows
+        return includeDirectoryCount-- == 0;
+        default: return false;
+        }
+    } );
+    auto dist = (size_t)std::distance( rit, str.rend() );
+    return str.substr( dist );
 }
 
 }
