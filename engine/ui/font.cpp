@@ -131,7 +131,7 @@ Font::RenderText Font::composeText( const math::vec4& color, std::u32string_view
     RenderText ret{
         .pushData{
             .m_pipeline = g_uiProperty.pipelineSpriteSequence(),
-            .m_verticeCount = 6,
+            .m_verticeCount = ui::PushConstant<ui::Pipeline::eSpriteSequence>::VERTICES,
             .m_instanceCount = 0,
         },
         .pushConstant{

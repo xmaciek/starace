@@ -94,6 +94,7 @@ struct PushConstant<Pipeline::eAfterglow> {
 template <>
 struct PushConstant<Pipeline::eParticleBlob> {
     static constexpr uint32_t INSTANCES = 320;
+    static constexpr uint32_t VERTICES = 6;
     struct Particle {
         alignas( 16 ) math::vec4 m_position{};
         alignas( 16 ) math::vec4 m_uvxywh{};
