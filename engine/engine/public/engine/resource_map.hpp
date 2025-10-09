@@ -24,14 +24,17 @@ public:
 
     T operator [] ( std::string_view sv ) const
     {
-        auto it = m_map.find( Hash{}( sv ) );
-        return it == m_map.end() ? T{} : it->second;
+        return find( Hash{}( sv ) );
     }
 
     T operator [] ( Hash::value_type h ) const
     {
+        return find( h );
+    }
+
+    auto find( Hash::value_type h ) const
+    {
         auto it = m_map.find( h );
         return it == m_map.end() ? T{} : it->second;
     }
-
 };

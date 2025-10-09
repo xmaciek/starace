@@ -32,6 +32,7 @@ int main( int argc, const char** argv )
             "Required arguments:\n"
             "\t-i \"src/atlas.txt\" \u2012 source text file describing atlas\n"
             "\t-o \"dst/atlas.fnta\" \u2012 destination of cooked atlas dataset\n"
+            "\t-t \"asset/texture.dds\" \u2012 sets texture to use\n"
             "\nOptional Arguments:\n"
             "\t-h --help \u2012 prints this message and exit\n"
             ;
@@ -40,9 +41,11 @@ int main( int argc, const char** argv )
 
     std::string_view argsSrcAtlas{};
     std::string_view argsDstAtlas{};
+    std::string_view argsAtlasTexture{};
 
     args.read( "-i", argsSrcAtlas ) || cooker::error( "\t-i \"src/atlas.txt\" \u2012 argument not specified" );
     args.read( "-o", argsDstAtlas ) || cooker::error( "\t-o \"dst/atlas.fnta\" \u2012 argument not specified" );
+    args.read( "-t", argsAtlasTexture ) || cooker::error( "\t-t \"asset/texture.dds\" \u2012 argument not specified" );
     const bool argsRemap = args.read( "--remap" );
 
     std::ifstream ifs{ (std::string)argsSrcAtlas, std::ios::binary | std::ios::ate };
@@ -65,6 +68,7 @@ int main( int argc, const char** argv )
     fnta::Header header{
         .width = 256,
         .height = 256,
+        .textureHash = Hash{}( cooker::baseName( argsAtlasTexture, 1 ) ),
     };
 
     uint32_t remapOffset = 0;

@@ -111,12 +111,13 @@ function( cook_dds )
 endfunction()
 
 function( cook_atlas )
-    cmake_parse_arguments( COOK_ATLAS "REMAP" "SRC;DST;PACK" "" ${ARGN} )
+    cmake_parse_arguments( COOK_ATLAS "REMAP" "SRC;DST;TEXTURE;PACK" "" ${ARGN} )
     if ( NOT DEFINED COOK_ATLAS_SRC )
         message( FATAL_ERROR "SRC not provided" )
-    endif()
-    if ( NOT DEFINED COOK_ATLAS_DST )
+    elseif ( NOT DEFINED COOK_ATLAS_DST )
         message( FATAL_ERROR "DST file not provided" )
+    elseif ( NOT DEFINED COOK_ATLAS_TEXTURE )
+        message( FATAL_ERROR "TEXTURE file not provided" )
     endif()
     if ( NOT DEFINED COOK_ATLAS_PACK )
         set( COOK_ATLAS_PACK ${DEFAULT_PACK} )
@@ -141,6 +142,7 @@ function( cook_atlas )
         COMMAND cooker_atlas
             -i "${CMAKE_CURRENT_SOURCE_DIR}/${COOK_ATLAS_SRC}"
             -o "${CMAKE_CURRENT_BINARY_DIR}/${COOK_ATLAS_DST}"
+            -t "${COOK_ATLAS_TEXTURE}"
             ${COOK_ATLAS_REMAP}
     )
 endfunction()

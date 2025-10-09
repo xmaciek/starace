@@ -70,6 +70,7 @@ Game::Game( int argc, char** argv )
 : Engine{ Engine::CreateInfo{ .gameName = "starace", .versionMajor = 1, .versionMinor = 1, .argc = argc, .argv = argv } }
 {
     ZoneScoped;
+    g_uiProperty.m_textures = &m_textures;
     loadSettings();
     m_io->setCallback( ".dds", this, &Game::loadDDS );
     m_io->setCallback( ".wav", this, &Game::loadWAV );
@@ -79,6 +80,7 @@ Game::Game( int argc, char** argv )
     m_io->setCallback( ".jet", this, &Game::loadJET );
     m_io->setCallback( ".wpn", this, &Game::loadWPN );
     m_io->setCallback( ".csg", this, &Game::loadCSG );
+    m_io->setCallback( ".atlas", []( Asset&& a ) { g_uiProperty.loadATLAS( a.data ); } );
 }
 
 Game::~Game()
@@ -104,12 +106,6 @@ void Game::onInit()
 
     m_io->mount( "init.pak" );
     createPipelines( ui::PIPELINES, g_uiProperty.setupPipeline() );
-
-    ui::Font f = ui::Font::CreateInfo{
-        .fontAtlas = m_io->viewWait( "misc/init.fnta" ),
-        .texture = m_textures[ "textures/init.dds" ],
-    };
-    g_uiProperty.addSprites( &f );
 
     m_screens.emplace_back( m_io->viewWait( "ui/loading.ui" ) );
     changeScreen( "loading"_hash );
@@ -142,12 +138,6 @@ void Game::onInit()
 
 void Game::setupUI()
 {
-    ui::Font uiAtlas = ui::Font::CreateInfo{
-        .fontAtlas = m_io->viewWait( "misc/ui_atlas.fnta" ),
-        .texture = m_textures[ "textures/ui_atlas.dds" ],
-    };
-    g_uiProperty.addSprites( &uiAtlas );
-
     m_inputPS4 = ui::Font::CreateInfo{
         .fontAtlas = m_io->viewWait( "misc/ps4_atlas.fnta" ),
         .texture = m_textures[ "textures/ps4_atlas.dds" ],

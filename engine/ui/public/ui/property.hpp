@@ -44,6 +44,7 @@ class Property {
 
     UniquePointer<Widget> m_pendingModalWidget{};
     ResourceMap<Sprite> m_sprites{};
+    ResourceMap<Texture>* m_textures = nullptr;
 
 
 public:
@@ -135,6 +136,7 @@ public:
     void addSprites( const Font* );
     Sprite sprite( Hash::value_type ) const;
 
+    void loadATLAS( std::span<const uint8_t> );
 };
 
 } // namespace ui
