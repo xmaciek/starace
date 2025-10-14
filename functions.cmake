@@ -148,10 +148,9 @@ function( cook_atlas )
 endfunction()
 
 function( cook_font )
-    set( oneValueArgs TARGET SRC SIZE )
-    cmake_parse_arguments( COOK_FONT "" "${oneValueArgs}" "RANGES" ${ARGN} )
-    if ( NOT DEFINED COOK_FONT_TARGET )
-        message( FATAL_ERROR "TARGET not provided" )
+    cmake_parse_arguments( COOK_FONT "" "NAME;SRC;SIZE" "RANGES" ${ARGN} )
+    if ( NOT DEFINED COOK_FONT_NAME )
+        message( FATAL_ERROR "NAME not provided" )
     endif()
     if ( NOT DEFINED COOK_FONT_SRC )
         message( FATAL_ERROR "SRC file not provided" )
@@ -163,7 +162,7 @@ function( cook_font )
         message( FATAL_ERROR "RANGES not specified" )
     endif()
 
-    set( tgt "${COOK_FONT_TARGET}_${COOK_FONT_SIZE}" )
+    set( tgt "${COOK_FONT_NAME}" )
     set( out.dds "${tgt}.dds" )
     set( out.font "${tgt}.fnta" )
     add_custom_target( font.${tgt}
@@ -182,6 +181,7 @@ function( cook_font )
             --out "${CMAKE_CURRENT_BINARY_DIR}/${out.font}"
             --dds "${CMAKE_CURRENT_BINARY_DIR}/${out.dds}"
             --ranges "\"${COOK_FONT_RANGES}\""
+            --name "${COOK_FONT_NAME}"
     )
 endfunction()
 

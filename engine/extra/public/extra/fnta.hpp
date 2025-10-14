@@ -17,13 +17,15 @@ struct Input {
 
 struct Header {
     static constexpr inline uint32_t MAGIC = 'ATNF';
-    static constexpr inline uint32_t VERSION = 3;
+    static constexpr inline uint32_t VERSION = 4;
     uint32_t magic = MAGIC;
     uint32_t version = VERSION;
     uint32_t count = 0;
     uint32_t width = 0;
     uint32_t height = 0;
     uint32_t lineHeight = 0;
+    float scale = 1.0f;
+    uint32_t nameHash = 0;
     uint32_t textureHash = 0;
 };
 

@@ -51,11 +51,8 @@ void Property::loadATLAS( std::span<const uint8_t> data )
     assert( data.size() >= sizeof( h ) );
     std::memcpy( &h, data.data(), sizeof( h ) );
 
-    auto tex = m_textures->find( h.textureHash );
-    assert( tex );
     ui::Font f = ui::Font::CreateInfo{
         .fontAtlas = data,
-        .texture = tex,
     };
     g_uiProperty.addSprites( &f );
 }

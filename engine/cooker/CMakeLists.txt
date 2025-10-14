@@ -18,7 +18,7 @@ declare_cooker( NAME cooker_dds
 )
 declare_cooker( NAME cooker_font
     SRC cooker_font.cpp cooker_dds.hpp
-    LINK Freetype::Freetype
+    LINK Freetype::Freetype shared
 )
 declare_cooker( NAME cooker_lang
     SRC cooker_lang.cpp

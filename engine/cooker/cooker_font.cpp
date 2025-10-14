@@ -5,6 +5,7 @@
 #include <extra/dds.hpp>
 #include <extra/fnta.hpp>
 #include <extra/args.hpp>
+#include <shared/hash.hpp>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -198,6 +199,7 @@ int main( int argc, const char** argv )
             "\t--src \"src/font/file/path.ext\" \u2012 source font file\n"
             "\t--out \"dst/font/atlas.fnta\" \u2012 destination of cooked atlas dataset\n"
             "\t--dds \"dst/font/image.dds\" \u2012 destination of cooked atlas image\n"
+            "\t--name \"theName\" \u2012 destination of font name\n"
             "\t--ranges \"#begin1,#end1,#begin2,#end2;#beginN,#endN\" \u2012 \"20,7F;A1,180\" \u2012 specifies UTF32 hexadecimal glyph ranges, comma or semicolon separated\n"
             "\nOptional Arguments:\n"
             "\t-h --help \u2012 prints this message and exit\n"
@@ -208,6 +210,7 @@ int main( int argc, const char** argv )
     std::string_view argsSrcFont{};
     std::string_view argsDstFont{};
     std::string_view argsDstDDS{};
+    std::string_view argsName{};
     std::pmr::vector<uint32_t> argsRanges{};
 
     ( args.read( "--px", size ) && ( size > 0 ) ) || cooker::error( "--px \"unsigned integer\" > 0 \u2012 argument not specified or invalid" );
@@ -215,6 +218,7 @@ int main( int argc, const char** argv )
     args.read( "--out", argsDstFont ) || cooker::error( "--out \"dst/font/atlas.fnta\" \u2012 argument not specified" );
     args.read( "--dds", argsDstDDS ) || cooker::error( "--dds \"dst/font/image.dds\" \u2012 argument not specified" );
     args.read( "--ranges", argsRanges, ",;", 16 ) || cooker::error( "--ranges \"#begin1,#end1,#begin2,#end2;#beginN,#endN\" \u2012 20,7F;A1,180 \u2012 argument not specified (either comma or semicolon separated)" );
+    args.read( "--name", argsName ) || cooker::error( "--name \"theName\" \u2012 argument not specified" );
 
     auto ranges = splitRanges( argsRanges );
     auto fontData = loadFontFile( argsSrcFont );
@@ -391,11 +395,16 @@ int main( int argc, const char** argv )
     ofs.write( (const char*)texture.data(), static_cast<std::streamsize>( texture.size() * (uint32_t)sizeof(dds::BC4) ) );
     ofs.close();
 
+    Hash hash{};
+
     fnta::Header fntaHeader{
         .count = (uint32_t)charset.size(),
         .width = surfWidth,
         .height = surfHeight,
         .lineHeight = size,
+        .scale = 0.5f,
+        .nameHash = hash( argsName ),
+        .textureHash = hash( cooker::baseName( argsDstDDS, 1 ) ),
     };
     ofs = std::ofstream( (std::string)argsDstFont, std::ios::binary );
     if ( !ofs.is_open() ) {

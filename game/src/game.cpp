@@ -71,6 +71,7 @@ Game::Game( int argc, char** argv )
 {
     ZoneScoped;
     g_uiProperty.m_textures = &m_textures;
+    g_uiProperty.m_remapper = &m_remapper;
     loadSettings();
     m_io->setCallback( ".dds", this, &Game::loadDDS );
     m_io->setCallback( ".wav", this, &Game::loadWAV );
@@ -140,33 +141,22 @@ void Game::setupUI()
 {
     m_inputPS4 = ui::Font::CreateInfo{
         .fontAtlas = m_io->viewWait( "misc/ps4_atlas.fnta" ),
-        .texture = m_textures[ "textures/ps4_atlas.dds" ],
     };
     m_inputXbox = ui::Font::CreateInfo{
         .fontAtlas = m_io->viewWait( "misc/xbox_atlas.fnta" ),
         .upstream = &m_inputPS4,
-        .texture = m_textures[ "textures/xbox_atlas.dds" ],
     };
     m_fontSmall = ui::Font::CreateInfo{
-        .fontAtlas = m_io->viewWait( "fonts/dejavu_24.fnta" ),
+        .fontAtlas = m_io->viewWait( "fonts/small.fnta" ),
         .upstream = &m_inputXbox,
-        .remapper = &m_remapper,
-        .texture = m_textures[ "fonts/dejavu_24.dds" ],
-        .scale = 0.5f,
     };
     m_fontMedium = ui::Font::CreateInfo{
-        .fontAtlas = m_io->viewWait( "fonts/dejavu_36.fnta" ),
+        .fontAtlas = m_io->viewWait( "fonts/medium.fnta" ),
         .upstream = &m_inputXbox,
-        .remapper = &m_remapper,
-        .texture = m_textures[ "fonts/dejavu_36.dds" ],
-        .scale = 0.5f,
     };
     m_fontLarge = ui::Font::CreateInfo{
-        .fontAtlas = m_io->viewWait( "fonts/dejavu_64.fnta" ),
+        .fontAtlas = m_io->viewWait( "fonts/large.fnta" ),
         .upstream = &m_inputXbox,
-        .remapper = &m_remapper,
-        .texture = m_textures[ "fonts/dejavu_64.dds" ],
-        .scale = 0.5f,
     };
 
     g_uiProperty.m_fontSmall = &m_fontSmall;

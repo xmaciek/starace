@@ -11,6 +11,7 @@
 #include <shared/hash.hpp>
 #include <shared/pmr_pointer.hpp>
 #include <input/actuator.hpp>
+#include <input/remapper.hpp>
 
 #include <cassert>
 #include <functional>
@@ -33,6 +34,7 @@ class Property {
     PipelineSlot m_pipelineBlur{};
     using InputSource = input::Actuator::Source;
     InputSource m_inputSource{};
+    input::Remapper* m_remapper = nullptr;
 
     const Font* m_fontSmall = nullptr;
     const Font* m_fontMedium = nullptr;
@@ -66,6 +68,7 @@ public:
 
     inline bool setInputSource( InputSource s ) { return std::exchange( m_inputSource, s ) != s; }
     inline InputSource inputSource() const { return m_inputSource; }
+    inline auto remapper() const { return m_remapper; }
 
     inline std::u32string_view localize( Hash::value_type key ) const
     {
@@ -136,6 +139,7 @@ public:
     void addSprites( const Font* );
     Sprite sprite( Hash::value_type ) const;
 
+    inline Texture findTexture( Hash::value_type hh ) { return m_textures->find( hh ); }
     void loadATLAS( std::span<const uint8_t> );
 };
 

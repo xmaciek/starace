@@ -36,14 +36,9 @@ namespace ui {
 
 Font::Font( const CreateInfo& ci )
 : m_upstream{ ci.upstream }
-, m_remapper{ ci.remapper }
-, m_scale{ ci.scale }
-, m_texture{ ci.texture }
 {
     ZoneScoped;
     assert( !ci.fontAtlas.empty() );
-    assert( ci.scale > 0.0f );
-    assert( ci.texture );
 
     using Header = fnta::Header;
     const uint8_t* ptr = ci.fontAtlas.data();
@@ -82,9 +77,11 @@ Font::Font( const CreateInfo& ci )
     std::span<const fnta::Glyph> glyphSpan{ glyphsBegin, glyphsEnd };
     m_width = header.width;
     m_height = header.height;
+    m_scale = header.scale;
     m_lineHeight = header.lineHeight;
     m_glyphMap = GlyphMap{ charSpan, glyphSpan };
-
+    m_texture = g_uiProperty.findTexture( header.textureHash );
+    assert( m_texture );
 }
 
 Font::Font( Font&& rhs )
@@ -96,7 +93,6 @@ Font::Font( Font&& rhs )
     std::swap( m_scale, rhs.m_scale );
     std::swap( m_texture, rhs.m_texture );
     std::swap( m_glyphMap, rhs.m_glyphMap );
-    std::swap( m_remapper, rhs.m_remapper );
 }
 
 Font& Font::operator = ( Font&& rhs )
@@ -108,7 +104,6 @@ Font& Font::operator = ( Font&& rhs )
     std::swap( m_scale, rhs.m_scale );
     std::swap( m_texture, rhs.m_texture );
     std::swap( m_glyphMap, rhs.m_glyphMap );
-    std::swap( m_remapper, rhs.m_remapper );
     return *this;
 }
 
@@ -226,8 +221,7 @@ Font::RenderText Font::composeText( const math::vec4& color, std::u32string_view
         }
         else {
             std::array<char32_t, 20> remapped;
-            assert( m_remapper );
-            uint32_t remappedCount = m_remapper->apply( g_uiProperty.inputSource(), chr, remapped );
+            uint32_t remappedCount = g_uiProperty.remapper()->apply( g_uiProperty.inputSource(), chr, remapped );
             for ( uint32_t j = 0; j < remappedCount; ++j ) {
                 appendRenderText( cursor, ret.pushData, ret.pushConstant, remapped[ j ] );
             }
