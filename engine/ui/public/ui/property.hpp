@@ -3,6 +3,7 @@
 #include <ui/widget.hpp>
 #include <ui/lockit.hpp>
 #include <ui/sprite.hpp>
+#include <ui/font_map.hpp>
 
 #include <engine/math.hpp>
 #include <renderer/texture.hpp>
@@ -35,10 +36,7 @@ class Property {
     using InputSource = input::Actuator::Source;
     InputSource m_inputSource{};
     input::Remapper* m_remapper = nullptr;
-
-    const Font* m_fontSmall = nullptr;
-    const Font* m_fontMedium = nullptr;
-    const Font* m_fontLarge = nullptr;
+    FontMap m_fontMap{};
     std::pmr::vector<Lockit> m_lockit{};
     uint32_t m_currentLang = 0;
     FixedMap<Hash::value_type, ui::DataModel*, 64> m_dataModels{};
@@ -57,10 +55,6 @@ public:
         inline operator bool () const noexcept { return !!model; };
     };
 
-    inline const Font* fontSmall() const { return m_fontSmall; }
-    inline const Font* fontMedium() const { return m_fontMedium; }
-    inline const Font* fontLarge() const { return m_fontLarge; }
-
     inline PipelineSlot pipelineSpriteSequence() const { return m_pipelineSpriteSequence; }
     inline PipelineSlot pipelineSpriteSequenceColors() const { return m_pipelineSpriteSequenceColors; }
     inline PipelineSlot pipelineGlow() const { return m_pipelineGlow; }
@@ -69,6 +63,7 @@ public:
     inline bool setInputSource( InputSource s ) { return std::exchange( m_inputSource, s ) != s; }
     inline InputSource inputSource() const { return m_inputSource; }
     inline auto remapper() const { return m_remapper; }
+    inline auto& fontMap() const { return m_fontMap; }
 
     inline std::u32string_view localize( Hash::value_type key ) const
     {
@@ -115,14 +110,9 @@ public:
         m_dataModels.insert( h, model );
     }
 
-    inline const ui::Font* font( Hash::value_type h ) const
+    inline const Font* font( Hash::value_type h ) const
     {
-        switch ( h ) {
-        case "small"_hash: return m_fontSmall;
-        default: assert( !"font not found" ); [[fallthrough]];
-        case "medium"_hash: return m_fontMedium;
-        case "large"_hash: return m_fontLarge;
-        }
+        return m_fontMap.findFont( h );
     }
 
     inline math::vec4 color( Hash::value_type h ) const
@@ -141,6 +131,7 @@ public:
 
     inline Texture findTexture( Hash::value_type hh ) { return m_textures->find( hh ); }
     void loadATLAS( std::span<const uint8_t> );
+    void loadFNTA( std::span<const uint8_t> );
 };
 
 } // namespace ui

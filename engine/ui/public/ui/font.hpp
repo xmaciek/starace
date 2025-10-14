@@ -20,14 +20,16 @@ class Renderer;
 namespace ui {
 
 class Property;
+class FontMap;
 
 class Font {
     friend Property;
-    const Font* m_upstream{};
+    friend FontMap;
     uint32_t m_width = 0;
     uint32_t m_height = 0;
     uint32_t m_lineHeight = 0;
     float m_scale = 1.0f;
+    Hash::value_type m_name{};
     Texture m_texture{};
     using Glyph = fnta::Glyph;
     using GlyphMap = FixedMapView<const char32_t, const Glyph>;
@@ -52,6 +54,7 @@ public:
     Texture texture() const;
     float height() const;
     math::vec2 extent() const;
+    bool hasCodepoint( char32_t ) const;
 
     Sprite find( Hash::value_type ) const;
     Sprite find( char32_t ) const;

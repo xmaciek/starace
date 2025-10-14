@@ -106,7 +106,7 @@ ComboBoxList::ComboBoxList( const ComboBoxList::CreateInfo& ci ) noexcept
     assert( ci.model );
     setPosition( ci.position + ci.size * math::vec2{ 0.0f, 1.0f } );
 
-    float fSize = static_cast<float>( g_uiProperty.fontSmall()->height() );
+    float fSize = static_cast<float>( g_uiProperty.font( "small"_hash )->height() );
     m_lineHeight = fSize + 4.0f;
     m_topPadding = fSize * 0.5f;
     m_index = ScrollIndex{ m_model->current(), m_model->size() };

@@ -82,6 +82,7 @@ Game::Game( int argc, char** argv )
     m_io->setCallback( ".wpn", this, &Game::loadWPN );
     m_io->setCallback( ".csg", this, &Game::loadCSG );
     m_io->setCallback( ".atlas", []( Asset&& a ) { g_uiProperty.loadATLAS( a.data ); } );
+    m_io->setCallback( ".fnta", []( Asset&& a ) { g_uiProperty.loadFNTA( a.data ); } );
 }
 
 Game::~Game()
@@ -139,30 +140,6 @@ void Game::onInit()
 
 void Game::setupUI()
 {
-    m_inputPS4 = ui::Font::CreateInfo{
-        .fontAtlas = m_io->viewWait( "misc/ps4_atlas.fnta" ),
-    };
-    m_inputXbox = ui::Font::CreateInfo{
-        .fontAtlas = m_io->viewWait( "misc/xbox_atlas.fnta" ),
-        .upstream = &m_inputPS4,
-    };
-    m_fontSmall = ui::Font::CreateInfo{
-        .fontAtlas = m_io->viewWait( "fonts/small.fnta" ),
-        .upstream = &m_inputXbox,
-    };
-    m_fontMedium = ui::Font::CreateInfo{
-        .fontAtlas = m_io->viewWait( "fonts/medium.fnta" ),
-        .upstream = &m_inputXbox,
-    };
-    m_fontLarge = ui::Font::CreateInfo{
-        .fontAtlas = m_io->viewWait( "fonts/large.fnta" ),
-        .upstream = &m_inputXbox,
-    };
-
-    g_uiProperty.m_fontSmall = &m_fontSmall;
-    g_uiProperty.m_fontMedium = &m_fontMedium;
-    g_uiProperty.m_fontLarge = &m_fontLarge;
-
     m_optionsCustomize.m_jet.m_size = [this](){ return static_cast<ui::DataModel::size_type>( m_jetsContainer.size() ); };
     m_optionsCustomize.m_jet.m_at = [this]( auto i )
     {

@@ -44,13 +44,14 @@ std::function<void(std::pair<uint32_t, PipelineSlot>)> Property::setupPipeline()
     };
 }
 
+void Property::loadFNTA( std::span<const uint8_t> data )
+{
+    g_uiProperty.m_fontMap.addFont( data );
+}
+
 void Property::loadATLAS( std::span<const uint8_t> data )
 {
     assert( m_textures );
-    fnta::Header h{};
-    assert( data.size() >= sizeof( h ) );
-    std::memcpy( &h, data.data(), sizeof( h ) );
-
     ui::Font f = ui::Font::CreateInfo{
         .fontAtlas = data,
     };

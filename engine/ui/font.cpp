@@ -35,7 +35,6 @@ static std::tuple<math::vec4, math::vec4> composeSprite( const fnta::Glyph& glyp
 namespace ui {
 
 Font::Font( const CreateInfo& ci )
-: m_upstream{ ci.upstream }
 {
     ZoneScoped;
     assert( !ci.fontAtlas.empty() );
@@ -79,6 +78,7 @@ Font::Font( const CreateInfo& ci )
     m_height = header.height;
     m_scale = header.scale;
     m_lineHeight = header.lineHeight;
+    m_name = header.nameHash;
     m_glyphMap = GlyphMap{ charSpan, glyphSpan };
     m_texture = g_uiProperty.findTexture( header.textureHash );
     assert( m_texture );
@@ -86,24 +86,24 @@ Font::Font( const CreateInfo& ci )
 
 Font::Font( Font&& rhs )
 {
-    std::swap( m_upstream, rhs.m_upstream );
     std::swap( m_width, rhs.m_width );
     std::swap( m_height, rhs.m_height );
     std::swap( m_lineHeight, rhs.m_lineHeight );
     std::swap( m_scale, rhs.m_scale );
     std::swap( m_texture, rhs.m_texture );
     std::swap( m_glyphMap, rhs.m_glyphMap );
+    std::swap( m_name, rhs.m_name );
 }
 
 Font& Font::operator = ( Font&& rhs )
 {
-    std::swap( m_upstream, rhs.m_upstream );
     std::swap( m_width, rhs.m_width );
     std::swap( m_height, rhs.m_height );
     std::swap( m_lineHeight, rhs.m_lineHeight );
     std::swap( m_scale, rhs.m_scale );
     std::swap( m_texture, rhs.m_texture );
     std::swap( m_glyphMap, rhs.m_glyphMap );
+    std::swap( m_name, rhs.m_name );
     return *this;
 }
 
@@ -266,8 +266,7 @@ std::tuple<Font::Glyph, Texture, math::vec2, uint32_t> Font::getGlyph( char32_t 
 {
     const Glyph* g = m_glyphMap.find( ch );
     if ( g ) [[likely]] return std::make_tuple( *g, m_texture, extent(), m_lineHeight );
-    if ( !m_upstream ) return {};
-    return m_upstream->getGlyph( ch );
+    return g_uiProperty.fontMap().getGlyph( m_name, ch );
 }
 
 math::vec2 Font::extent() const
@@ -275,6 +274,10 @@ math::vec2 Font::extent() const
     return math::vec2{ m_width ? m_width : 1, m_height ? m_height : 1 };
 }
 
+bool Font::hasCodepoint( char32_t cp ) const
+{
+    return std::ranges::binary_search( m_glyphMap.m_keys, cp );
+}
 
 Sprite Font::find( Hash::value_type h ) const
 {
