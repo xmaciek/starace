@@ -196,13 +196,14 @@ function( compileShader )
 
     #set( OPTIMIZE_LEVEL "-O0" "-g" ) # debug
     set( OPTIMIZE_LEVEL "-O" ) # optimized
+    set( VULKAN_VER "--target-env=vulkan1.3" )
 
     set( file_out "${CMAKE_CURRENT_BINARY_DIR}/${COOK_SHADER_FILE}.spv" )
     add_custom_target( "shader.${COOK_SHADER_FILE}" DEPENDS "${file_out}" )
     add_custom_command(
         OUTPUT "${file_out}"
         DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${COOK_SHADER_FILE}"
-        COMMAND Vulkan::glslc ${OPTIMIZE_LEVEL} "${CMAKE_CURRENT_SOURCE_DIR}/${COOK_SHADER_FILE}" -o "${file_out}"
+        COMMAND Vulkan::glslc ${VULKAN_VER} ${OPTIMIZE_LEVEL} "${CMAKE_CURRENT_SOURCE_DIR}/${COOK_SHADER_FILE}" -o "${file_out}"
     )
     set_vs_directory( "shader.${COOK_SHADER_FILE}" "assets/shaders" )
     pak_file_cooked( ${COOK_SHADER_PACK} "${file_out}" "shader.${COOK_SHADER_FILE}" )

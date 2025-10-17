@@ -32,6 +32,18 @@ static constexpr VkPhysicalDeviceFeatures DEVICE_FEATURES{
     .samplerAnisotropy = VK_TRUE,
 };
 
+struct ExtraFeatures {
+    void* first = nullptr;
+    void** pNext = nullptr;
+    inline void add( auto& data )
+    {
+        if ( !first ) first = &data;
+        if ( pNext ) *pNext = &data;
+        pNext = &data.pNext;
+    }
+    inline void* list() { return first; }
+};
+
 Device::Device( VkPhysicalDevice phys, std::span<const char*> layers, std::span<const VkDeviceQueueCreateInfo> queues )
 {
     ZoneScoped;
@@ -51,12 +63,12 @@ Device::Device( VkPhysicalDevice phys, std::span<const char*> layers, std::span<
     required( VK_KHR_SWAPCHAIN_EXTENSION_NAME );
     required( VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME );
 
-    void** pNext = nullptr;
+    ExtraFeatures extraFeatures{};
     VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRendering{
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES,
         .dynamicRendering = VK_TRUE,
     };
-    pNext = &dynamicRendering.pNext;
+    extraFeatures.add( dynamicRendering );
 
     VkPhysicalDeviceFragmentShadingRateFeaturesKHR vrs{
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_FEATURES_KHR,
@@ -66,13 +78,18 @@ Device::Device( VkPhysicalDevice phys, std::span<const char*> layers, std::span<
     };
     if ( wishlist( VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME ) ) {
         m_features[ Feature::eVRS ] = true;
-        *pNext = &vrs;
-        pNext = &vrs.pNext;
+        extraFeatures.add( vrs );
     };
+
+    VkPhysicalDeviceShaderDemoteToHelperInvocationFeatures demoteHelper{
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DEMOTE_TO_HELPER_INVOCATION_FEATURES,
+        .shaderDemoteToHelperInvocation = VK_TRUE,
+    };
+    extraFeatures.add( demoteHelper );
 
     const VkDeviceCreateInfo deviceCreateInfo{
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-        .pNext = &dynamicRendering,
+        .pNext = extraFeatures.list(),
         .queueCreateInfoCount = static_cast<uint32_t>( queues.size() ),
         .pQueueCreateInfos = queues.data(),
         .enabledLayerCount = static_cast<uint32_t>( layers.size() ),
