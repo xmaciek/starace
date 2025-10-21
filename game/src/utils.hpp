@@ -9,6 +9,7 @@
 #include <random>
 #include <string>
 #include <type_traits>
+#include <optional>
 
 using Random = std::minstd_rand;
 
@@ -42,7 +43,7 @@ std::pmr::u32string intToUTF32( T t )
     return toString( t );
 }
 
-bool intersectLineSphere( const math::vec3& p1, const math::vec3& p2, const math::vec3& ps, float radius ) noexcept;
+std::optional<math::vec3> intersectLineSphere( const math::vec3& p1, const math::vec3& p2, const math::vec3& ps, float radius ) noexcept;
 
 math::vec3 interceptTarget( const math::vec3& dir, const math::vec3& pos, const math::vec3& tgtPos, float turnrate ) noexcept;
 

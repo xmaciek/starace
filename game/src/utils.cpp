@@ -36,23 +36,15 @@ bool isOnScreen( const math::mat4& mvp, const math::vec3& point, const math::vec
     return isOnScreen( vec, viewport );
 }
 
-bool intersectLineSphere( const math::vec3& p1, const math::vec3& p2, const math::vec3& ps, float radius ) noexcept
+std::optional<math::vec3> intersectLineSphere( const math::vec3& p1, const math::vec3& p2, const math::vec3& ps, float radius ) noexcept
 {
-    const math::vec3 dir = ps - p1;
-    const math::vec3 ray = p2 - p1;
-    const float tmp = math::dot( dir, ray );
-
-    if ( tmp <= 0 ) {
-        return math::length( dir ) < radius;
-    }
-
-    const float tmp2 = math::dot( ray, ray );
-    if ( tmp2 <= tmp ) {
-        return math::length( dir ) < radius;
-    }
-
-    const math::vec3 pb = p1 + ( ray * ( tmp / tmp2 ) );
-    return math::length( ps - pb ) < radius;
+    float distance = 0.0f;
+    auto dir = math::normalize( p2 - p1 );
+    if ( !math::intersectRaySphere( p1, dir, ps, radius * radius, distance ) )
+        return {};
+    if ( distance > math::length( p1 - p2 ) )
+        return {};
+    return p1 + dir * distance;
 }
 
 math::vec3 interceptTarget( const math::vec3& dir, const math::vec3& pos, const math::vec3& tgtPos, float turnrate ) noexcept

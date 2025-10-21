@@ -6,6 +6,7 @@
 #include <glm/mat4x4.hpp>
 #include <glm/gtx/closest_point.hpp>
 #include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/intersect.hpp>
 
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -31,9 +32,11 @@ using glm::cos;
 using glm::cross;
 using glm::distance;
 using glm::dot;
+using glm::intersectRaySphere;
 using glm::inverse;
 using glm::length;
 using glm::lookAt;
+using glm::mod;
 using glm::normalize;
 using glm::ortho;
 using glm::perspective;
@@ -47,7 +50,6 @@ using glm::sqrt;
 using glm::tan;
 using glm::toMat4;
 using glm::translate;
-using glm::mod;
 
 inline float angle( const auto& a, const auto&b )
 {

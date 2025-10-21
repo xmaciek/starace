@@ -102,21 +102,23 @@ void GameScene::update( UpdateContext uctx )
     auto testCollide = [&score, this, makeExplosion]( Enemy& e, Bullet& b )
     {
         if ( b.m_collideId == Enemy::COLLIDE_ID ) return;
-        if ( !intersectLineSphere( b.m_position, b.m_prevPosition, e.position(), 15.0_m ) ) return;
+        auto position = intersectLineSphere( b.m_position, b.m_prevPosition, e.position(), 6.0_m );
+        if ( !position ) return;
         e.setDamage( std::exchange( b.m_damage, 0 ) ); // can hit multiple times
         score += b.m_score;
         b.m_type = Bullet::Type::eDead;
-        m_explosions.emplace_back( makeExplosion( b, e.position(), 0.5f ) );
+        m_explosions.emplace_back( makeExplosion( b, *position, 0.5f ) );
     };
     forEachQuadratic( m_enemies, m_bullets, testCollide );
 
     auto testCollide2 = [this, makeExplosion, jetPos]( Bullet& b )
     {
         if ( b.m_collideId == Player::COLLIDE_ID ) return;
-        if ( !intersectLineSphere( b.m_position, b.m_prevPosition, jetPos, 15.0_m ) ) return;
+        auto position = intersectLineSphere( b.m_position, b.m_prevPosition, jetPos, 6.0_m );
+        if ( !position ) return;
         m_player.setDamage( b.m_damage );
         b.m_type = Bullet::Type::eDead;
-        m_explosions.emplace_back( makeExplosion( b, jetPos, 0.5f ) );
+        m_explosions.emplace_back( makeExplosion( b, *position, 0.5f ) );
     };
     std::ranges::for_each( m_bullets, testCollide2 );
 
