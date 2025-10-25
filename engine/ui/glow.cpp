@@ -10,7 +10,7 @@ namespace ui {
 void Glow::render( const RenderContext& rctx ) const
 {
     using PushConstant = PushConstant<Pipeline::eGlow>;
-    PushBuffer pushBuffer{
+    RenderInfo ri{
         .m_pipeline = m_pipeline,
         .m_verticeCount = PushConstant::VERTICES,
     };
@@ -32,7 +32,8 @@ void Glow::render( const RenderContext& rctx ) const
     pushConstant.m_xyuv[ 2 ] = math::vec4{ xw, yh, 1.0f, 1.0f };
     pushConstant.m_xyuv[ 3 ] = math::vec4{ xw, y, 1.0f, 0.0f };
 
-    rctx.renderer->push( pushBuffer, &pushConstant );
+    ri.m_uniform = pushConstant;
+    rctx.renderer->render( ri );
 }
 
 }

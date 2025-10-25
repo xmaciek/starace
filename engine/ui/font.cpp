@@ -239,7 +239,7 @@ Font::RenderText Font::composeText( const math::vec4& color, std::u32string_view
     return ret;
 }
 
-void Font::appendRenderText( math::vec2& cursor, PushData& pushData, ui::PushConstant<ui::Pipeline::eSpriteSequence>& pushConstant, char32_t chr ) const
+void Font::appendRenderText( math::vec2& cursor, RenderInfo& pushData, ui::PushConstant<ui::Pipeline::eSpriteSequence>& pushConstant, char32_t chr ) const
 {
     assert( pushData.m_instanceCount < pushConstant.INSTANCES );
     const auto [ glyph, texture, size, lineHeight ] = getGlyph( chr );

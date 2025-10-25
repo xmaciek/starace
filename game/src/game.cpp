@@ -370,16 +370,22 @@ void Game::onRender( Renderer* renderer )
     case AntiAlias::eFXAA:
     case AntiAlias::eVRSAA: {
         const PushConstant<Pipeline::eAntiAliasFXAA> aa{};
-        const DispatchInfo daa{ .m_pipeline = g_pipelines[ Pipeline::eAntiAliasFXAA ] };
-        renderer->dispatch( daa, &aa );
+        const DispatchInfo daa{
+            .m_pipeline = g_pipelines[ Pipeline::eAntiAliasFXAA ],
+            .m_uniform = aa,
+        };
+        renderer->dispatch( daa );
     } break;
     default:
         break;
     }
 
     const PushConstant<Pipeline::eGammaCorrection> gp{ .m_power = m_gameSettings.gamma, };
-    const DispatchInfo dispatchInfo{ .m_pipeline = g_pipelines[ Pipeline::eGammaCorrection ], };
-    renderer->dispatch( dispatchInfo, &gp );
+    const DispatchInfo dispatchInfo{
+        .m_pipeline = g_pipelines[ Pipeline::eGammaCorrection ],
+        .m_uniform = gp,
+    };
+    renderer->dispatch( dispatchInfo );
 }
 
 void Game::onUpdate( float deltaTime )

@@ -83,23 +83,26 @@ void Targeting::render( const RenderContext& rctx ) const
     using PushConstant = ui::PushConstant<ui::Pipeline::eSpriteSequenceColors>;
     static_assert( PushConstant::INSTANCES >= 8 );
     using Sprite = PushConstant::Sprite;
-    PushData pushData{
-        .m_pipeline = g_uiProperty.pipelineSpriteSequenceColors(),
-        .m_verticeCount = PushConstant::VERTICES,
-        .m_instanceCount = 4,
-    };
+
     PushConstant pushConstant{
         .m_model = rctx.model,
         .m_view = rctx.view,
         .m_projection = rctx.projection,
     };
-    auto pushReticle = [&pushData, &pushConstant, &rctx]( const std::array<ui::Sprite, 4>& sprite, const std::array<math::vec4, 4>& geo, math::vec2 pos2d, math::vec4 color )
+    RenderInfo ri{
+        .m_pipeline = g_uiProperty.pipelineSpriteSequenceColors(),
+        .m_verticeCount = PushConstant::VERTICES,
+        .m_instanceCount = 4,
+        .m_uniform = pushConstant,
+    };
+
+    auto pushReticle = [&ri, &pushConstant, &rctx]( const std::array<ui::Sprite, 4>& sprite, const std::array<math::vec4, 4>& geo, math::vec2 pos2d, math::vec4 color )
     {
         math::vec4 offset{ pos2d.x, rctx.viewport.y - pos2d.y, 0.0f, 0.0f };
         std::array<Texture, 4> tex;
         std::ranges::transform( sprite, tex.begin(), []( const auto& s ) { return s.texture; } );
         std::fill( std::unique( tex.begin(), tex.end() ), tex.end(), Texture{} );
-        std::ranges::copy( tex, pushData.m_fragmentTexture.begin() );
+        std::ranges::copy( tex, ri.m_fragmentTexture.begin() );
 
         std::array<uint32_t, 4> tex2;
         std::ranges::transform( sprite, tex2.begin(), [&tex]( const auto& s )
@@ -114,7 +117,7 @@ void Targeting::render( const RenderContext& rctx ) const
                 .m_whichAtlas = tex2[ i ],
             };
         }
-        rctx.renderer->push( pushData, &pushConstant );
+        rctx.renderer->render( ri );
     };
 
     const ui::RenderContext rr{

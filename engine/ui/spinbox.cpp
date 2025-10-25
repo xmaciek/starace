@@ -50,14 +50,14 @@ void SpinBox::render( const RenderContext& r ) const
     rctx.colorMain = isFocused() ? rctx.colorFocus : rctx.colorMain;
     NineSlice::render( rctx );
 
-    PushData pushData{
+    RenderInfo ri{
         .m_pipeline = g_uiProperty.pipelineSpriteSequenceColors(),
         .m_verticeCount = PushConstant::VERTICES,
         .m_instanceCount = 2u,
     };
     const bool diffTex = m_arrowLeft.texture != m_arrowRight.texture;
-    pushData.m_fragmentTexture[ 0 ] = m_arrowLeft.texture;
-    pushData.m_fragmentTexture[ 1 ] = diffTex ? m_arrowRight.texture : Texture{};
+    ri.m_fragmentTexture[ 0 ] = m_arrowLeft.texture;
+    ri.m_fragmentTexture[ 1 ] = diffTex ? m_arrowRight.texture : Texture{};
 
     PushConstant pushConstant{
         .m_model = rctx.model,
@@ -79,7 +79,8 @@ void SpinBox::render( const RenderContext& r ) const
     pushConstant.m_sprites[ 1 ].m_whichAtlas = diffTex;
     pushConstant.m_sprites[ 1 ].m_sampleRGBA = rctx.renderer->channelCount( m_arrowRight.texture ) == 4;
 
-    rctx.renderer->push( pushData, &pushConstant );
+    ri.m_uniform = pushConstant;
+    rctx.renderer->render( ri );
 }
 
 EventProcessing SpinBox::onMouseEvent( const MouseEvent& event )

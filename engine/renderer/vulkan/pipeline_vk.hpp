@@ -19,7 +19,6 @@ private:
     VkPipeline m_pipeline = VK_NULL_HANDLE;
     VkPipeline m_pipelineDepthPrepass = VK_NULL_HANDLE;
     std::array<VkWriteDescriptorSet, 2> m_descriptorWrites{};
-    uint32_t m_pushConstantSize = 0;
     uint32_t m_vertexStride = 0;
     uint32_t m_descriptorSetId = 0;
     bool m_depthWrite = false;
@@ -45,7 +44,6 @@ public:
     VkPipeline depthPrepass() const;
 
     VkPipelineLayout layout() const;
-    uint32_t pushConstantSize() const;
     uint32_t vertexStride() const;
     uint32_t descriptorSetId() const;
     uint32_t descriptorWriteCount() const;

@@ -60,12 +60,12 @@ public:
     Sprite find( char32_t ) const;
 
     struct RenderText {
-        PushData pushData{};
+        RenderInfo pushData{};
         ui::PushConstant<ui::Pipeline::eSpriteSequence> pushConstant;
         math::vec2 extent;
     };
     RenderText composeText( const math::vec4& color, std::u32string_view, const math::vec2& geometry = math::vec2{ 320.0f, 100.0f } ) const;
-    void appendRenderText( math::vec2&, PushData&, ui::PushConstant<ui::Pipeline::eSpriteSequence>&, char32_t ) const;
+    void appendRenderText( math::vec2&, RenderInfo&, ui::PushConstant<ui::Pipeline::eSpriteSequence>&, char32_t ) const;
 };
 
 }

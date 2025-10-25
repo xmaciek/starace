@@ -7,6 +7,7 @@
 
 #include <SDL.h>
 
+#include <cstddef>
 #include <cstdint>
 #include <memory_resource>
 #include <vector>
@@ -14,7 +15,37 @@
 #include <string_view>
 
 struct DispatchInfo {
+    struct Uniform {
+        const void* ptr{};
+        size_t size{};
+        inline Uniform() = default;
+        inline Uniform( const Uniform& ) = default;
+        inline Uniform& operator = ( const Uniform& ) = default;
+        inline Uniform( const auto& u ) : ptr{ &u }, size{ sizeof( u ) } {}
+    };
     PipelineSlot m_pipeline = 0;
+    Uniform m_uniform{};
+};
+
+struct RenderInfo {
+    struct Uniform {
+        const void* ptr{};
+        size_t size{};
+        inline Uniform() = default;
+        inline Uniform( const Uniform& ) = default;
+        inline Uniform& operator = ( const Uniform& ) = default;
+        inline Uniform( const auto& u ) : ptr{ &u }, size{ sizeof( u ) } {}
+    };
+    enum : uint32_t {
+        MAX_TEXTURES = 9,
+    };
+    PipelineSlot m_pipeline{};
+    uint32_t m_verticeCount = 0;
+    uint32_t m_instanceCount = 1;
+    float m_lineWidth = 1.0f;
+    Uniform m_uniform{};
+    Buffer m_vertexBuffer{};
+    std::array<Texture, MAX_TEXTURES> m_fragmentTexture{};
 };
 
 class Engine;
@@ -41,8 +72,8 @@ public:
     [[nodiscard]] virtual Texture createTexture( const TextureCreateInfo&, std::span<const uint8_t> ) = 0;
     virtual void deleteTexture( Texture ) = 0;
 
-    virtual void push( const PushBuffer&, const void* constant ) = 0;
-    virtual void dispatch( const DispatchInfo&, const void* constant ) = 0;
+    virtual void render( const RenderInfo& ) = 0;
+    virtual void dispatch( const DispatchInfo& ) = 0;
 
     virtual void setResolution( uint32_t width, uint32_t height ) = 0;
 

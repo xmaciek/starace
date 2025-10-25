@@ -46,15 +46,16 @@ void Player::render( RenderContext rctx ) const
 
     m_model.render( rctx );
 
-    PushData bd{
-        .m_pipeline = g_pipelines[ Pipeline::eBeamBlob ],
-        .m_verticeCount = 12,
-        .m_instanceCount = 0,
-    };
     PushConstant<Pipeline::eBeamBlob> bc{
         .m_model = model,
         .m_view = rctx.view,
         .m_projection = rctx.projection,
+    };
+    RenderInfo bd{
+        .m_pipeline = g_pipelines[ Pipeline::eBeamBlob ],
+        .m_verticeCount = 12,
+        .m_instanceCount = 0,
+        .m_uniform = bc,
     };
     for ( uint32_t i = 0; i < MAX_SUPPORTED_WEAPON_COUNT; ++i ) {
         if ( m_weapons[ i ].m_ci.type != Bullet::Type::eLaser ) continue;
@@ -68,7 +69,7 @@ void Player::render( RenderContext rctx ) const
         };
     }
     if ( bd.m_instanceCount ) {
-        rctx.renderer->push( bd, &bc );
+        rctx.renderer->render( bd );
     }
 }
 

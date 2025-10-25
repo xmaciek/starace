@@ -103,7 +103,7 @@ public:
     virtual void deleteBuffer( Buffer ) override;
     virtual void deleteTexture( Texture ) override;
     virtual void present() override;
-    virtual void push( const PushBuffer& buffer, const void* constant ) override;
-    virtual void dispatch( const DispatchInfo&, const void* constant ) override;
+    virtual void render( const RenderInfo& ) override;
+    virtual void dispatch( const DispatchInfo& ) override;
     virtual void setResolution( uint32_t width, uint32_t height ) override;
 };

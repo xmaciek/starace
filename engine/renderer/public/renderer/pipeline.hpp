@@ -28,7 +28,6 @@ struct PipelineCreateInfo {
     std::span<const uint8_t> m_fragmentShaderData{};
     std::span<const uint8_t> m_computeShaderData{};
     uint32_t m_userHint = 0;
-    uint32_t m_pushConstantSize = 0;
     bool m_enableDepthTest : 1 = false;
     bool m_enableDepthWrite : 1 = false;
     Topology m_topology{};
@@ -42,18 +41,3 @@ struct PipelineCreateInfo {
     uint8_t m_computeUniformCount = 0;
     uint8_t m_computeImageCount = 0;
 };
-
-
-struct PushData {
-    enum : uint32_t {
-        MAX_TEXTURES = 9,
-    };
-    PipelineSlot m_pipeline{};
-    uint32_t m_verticeCount = 0;
-    uint32_t m_instanceCount = 1;
-    float m_lineWidth = 1.0f;
-    Buffer m_vertexBuffer{};
-    std::array<Texture, MAX_TEXTURES> m_fragmentTexture{};
-};
-
-using PushBuffer = PushData;

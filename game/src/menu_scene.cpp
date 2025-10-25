@@ -19,12 +19,6 @@ void MenuScene::render( Renderer* renderer, math::vec2 viewport )
 {
     ZoneScoped;
 
-    PushBuffer pushBuffer{
-        .m_pipeline = g_pipelines[ Pipeline::eBackground ],
-        .m_verticeCount = 4,
-    };
-    pushBuffer.m_fragmentTexture[ 0 ] = m_background.texture;
-
     PushConstant<Pipeline::eBackground> pushConstant{
         .m_model = math::mat4( 1 ),
         .m_view = math::mat4( 1 ),
@@ -34,7 +28,13 @@ void MenuScene::render( Renderer* renderer, math::vec2 viewport )
         .m_geometry = m_background.geometry(),
         .m_viewport = viewport,
     };
-    renderer->push( pushBuffer, &pushConstant );
+    RenderInfo ri{
+        .m_pipeline = g_pipelines[ Pipeline::eBackground ],
+        .m_verticeCount = 4,
+        .m_uniform = pushConstant,
+    };
+    ri.m_fragmentTexture[ 0 ] = m_background.texture;
+    renderer->render( ri );
 
     const math::vec3 cameraPos = math::normalize( math::vec3{ -4, -3, -3 } ) * 24.0_m;
     RenderContext rctx{

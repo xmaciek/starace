@@ -30,11 +30,11 @@ void Image::render( const RenderContext& rctx ) const
 {
     using PushConstant = PushConstant<Pipeline::eSpriteSequence>;
     assert( m_sprite );
-    PushData pushData{
+    RenderInfo ri{
         .m_pipeline = m_pipelineSlot,
         .m_verticeCount = PushConstant::VERTICES,
     };
-    pushData.m_fragmentTexture[ 0 ] = m_sprite;
+    ri.m_fragmentTexture[ 0 ] = m_sprite;
 
     PushConstant pushConstant{
         .m_model = rctx.model,
@@ -45,7 +45,8 @@ void Image::render( const RenderContext& rctx ) const
     pushConstant.m_sprites[ 0 ].m_xywh = math::vec4{ 0.0f, 0.0f, m_size.x, m_size.y };
     pushConstant.m_sprites[ 0 ].m_uvwh = m_sprite;
     pushConstant.m_sprites[ 0 ].m_sampleRGBA = m_sampleRGBA;
-    rctx.renderer->push( pushData, &pushConstant );
+    ri.m_uniform = pushConstant;
+    rctx.renderer->render( ri );
 }
 
 void Image::update( const UpdateContext& )

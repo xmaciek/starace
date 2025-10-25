@@ -22,11 +22,11 @@ AnimFrame::AnimFrame( const CreateInfo& ci ) noexcept
 
 void AnimFrame::render( const RenderContext& rctx ) const
 {
-    PushData pushData{
+    RenderInfo ri{
         .m_pipeline = g_uiProperty.pipelineSpriteSequence(),
         .m_verticeCount = 6u,
     };
-    pushData.m_fragmentTexture[ 0 ] = m_uvwh[ m_index ].texture;
+    ri.m_fragmentTexture[ 0 ] = m_uvwh[ m_index ].texture;
 
     using PushConstant = ui::PushConstant<ui::Pipeline::eSpriteSequence>;
     PushConstant pushConstant{
@@ -40,10 +40,11 @@ void AnimFrame::render( const RenderContext& rctx ) const
     pushConstant.m_sprites[ 0 ] = PushConstant::Sprite{
         .m_xywh{ 0.0f, 0.0f, s.x, s.y },
         .m_uvwh = m_uvwh[ m_index ],
-        .m_sampleRGBA = rctx.renderer->channelCount( pushData.m_fragmentTexture[ 0 ] ) == 4,
+        .m_sampleRGBA = rctx.renderer->channelCount( ri.m_fragmentTexture[ 0 ] ) == 4,
     };
 
-    rctx.renderer->push( pushData, &pushConstant );
+    ri.m_uniform = pushConstant;
+    rctx.renderer->render( ri );
 }
 
 void AnimFrame::update( const UpdateContext& uctx )

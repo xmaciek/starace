@@ -31,12 +31,12 @@ Progressbar::Progressbar( const Progressbar::CreateInfo& ci ) noexcept
 void Progressbar::render( const RenderContext& rctx ) const
 {
     using PushConstant = PushConstant<Pipeline::eSpriteSequenceColors>;
-    PushData pushData{
+    RenderInfo ri{
         .m_pipeline = g_uiProperty.pipelineSpriteSequenceColors(),
         .m_verticeCount = PushConstant::VERTICES,
         .m_instanceCount = m_count,
     };
-    pushData.m_fragmentTexture[ 0 ] = m_texture;
+    ri.m_fragmentTexture[ 0 ] = m_texture;
 
     PushConstant pushConstant{
         .m_model = rctx.model,
@@ -58,7 +58,8 @@ void Progressbar::render( const RenderContext& rctx ) const
     };
     std::generate_n( pushConstant.m_sprites.begin(), m_count, Gen );
 
-    rctx.renderer->push( pushData, &pushConstant );
+    ri.m_uniform = pushConstant;
+    rctx.renderer->render( ri );
 }
 
 void Progressbar::update( const UpdateContext& )

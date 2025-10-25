@@ -120,12 +120,12 @@ void ComboBoxList::render( const RenderContext& rctx ) const
 {
     using PushConstant = PushConstant<Pipeline::eSpriteSequenceColors>;
     const float width = size().x;
-    PushData pushData{
+    RenderInfo ri{
         .m_pipeline = g_uiProperty.pipelineSpriteSequenceColors(),
         .m_verticeCount = PushConstant::VERTICES,
         .m_instanceCount = 1u,
     };
-    pushData.m_fragmentTexture[ 0 ] = m_hover.texture;
+    ri.m_fragmentTexture[ 0 ] = m_hover.texture;
     PushConstant pushConstant{
         .m_model = rctx.model,
         .m_view = rctx.view,
@@ -144,7 +144,8 @@ void ComboBoxList::render( const RenderContext& rctx ) const
         .m_xywh{ 12.0f, m_topPadding + m_lineHeight * static_cast<float>( m_index.currentVisible() ), width - 24.0f, m_lineHeight },
         .m_uvwh = m_hover,
     };
-    rctx.renderer->push( pushData, &pushConstant );
+    ri.m_uniform = pushConstant;
+    rctx.renderer->render( ri );
 
     Label::CreateInfo ci{
         .font = "small"_hash,

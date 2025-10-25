@@ -38,8 +38,9 @@ void Bullet::renderAll( const RenderContext& rctx, std::span<Bullet> span, Textu
         .m_view = rctx.view,
         .m_projection = rctx.projection,
     };
-    PushData pd{
+    RenderInfo pd{
         .m_pipeline = g_pipelines[ Pipeline::eProjectile ],
+        .m_uniform = pc,
     };
 
     const math::mat4 mvp = rctx.projection * rctx.view * rctx.model;
@@ -57,7 +58,7 @@ void Bullet::renderAll( const RenderContext& rctx, std::span<Bullet> span, Textu
             pd.m_vertexBuffer = lastMesh;
             pd.m_instanceCount = idx;
             if ( lastMesh && lastTexture ) {
-                rctx.renderer->push( pd, &pc );
+                rctx.renderer->render( pd );
             }
             idx = 0;
         }
@@ -69,7 +70,7 @@ void Bullet::renderAll( const RenderContext& rctx, std::span<Bullet> span, Textu
         pd.m_fragmentTexture[ 0 ] = lastTexture;
         pd.m_vertexBuffer = lastMesh;
         pd.m_instanceCount = idx;
-        rctx.renderer->push( pd, &pc );
+        rctx.renderer->render( pd );
     }
 }
 

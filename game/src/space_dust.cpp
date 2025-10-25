@@ -64,13 +64,6 @@ void SpaceDust::render( const RenderContext& rctx ) const
 {
     ZoneScoped;
 
-    PushBuffer pushBuffer{
-        .m_pipeline = g_pipelines[ Pipeline::eSpaceDust ],
-        .m_verticeCount = 2u,
-        .m_instanceCount = static_cast<uint32_t>( m_particles.size() ),
-        .m_lineWidth = m_lineWidth * ( rctx.viewport.y / 720.0f ),
-    };
-
     PushConstant<Pipeline::eSpaceDust> pushConstant{
         .m_model = rctx.model,
         .m_view = rctx.view,
@@ -78,9 +71,16 @@ void SpaceDust::render( const RenderContext& rctx ) const
         .m_color = math::vec4{ 1.0f, 1.0f, 1.0f, 0.4f },
         .m_particleOffset = math::vec4{ m_velocity * 0.05f, 0.0f },
     };
+    RenderInfo ri{
+        .m_pipeline = g_pipelines[ Pipeline::eSpaceDust ],
+        .m_verticeCount = 2u,
+        .m_instanceCount = static_cast<uint32_t>( m_particles.size() ),
+        .m_lineWidth = m_lineWidth * ( rctx.viewport.y / 720.0f ),
+        .m_uniform = pushConstant,
+    };
 
     assert( m_particles.size() <= pushConstant.m_particles.size() );
 
-    std::copy( m_particles.begin(), m_particles.end(), pushConstant.m_particles.begin() );
-    rctx.renderer->push( pushBuffer, &pushConstant );
+    std::ranges::copy( m_particles, pushConstant.m_particles.begin() );
+    rctx.renderer->render( ri );
 }

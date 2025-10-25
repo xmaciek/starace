@@ -33,7 +33,8 @@ void Label::render( const RenderContext& rctx ) const
     m_renderText.pushConstant.m_model = rctx.model;
     m_renderText.pushConstant.m_view = rctx.view;
     m_renderText.pushConstant.m_projection = rctx.projection;
-    rctx.renderer->push( m_renderText.pushData, &m_renderText.pushConstant );
+    m_renderText.pushData.m_uniform = m_renderText.pushConstant;
+    rctx.renderer->render( m_renderText.pushData );
 }
 
 void Label::refreshInput()

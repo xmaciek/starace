@@ -749,13 +749,13 @@ void RendererVK::present()
     vkQueueWaitIdle( queue );
 }
 
-void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
+void RendererVK::render( const RenderInfo& ri )
 {
-    assert( pushBuffer.m_pipeline < m_pipelines.size() );
-    assert( pushBuffer.m_instanceCount > 0 );
+    assert( ri.m_pipeline < m_pipelines.size() );
+    assert( ri.m_instanceCount > 0 );
 
     Frame& fr = m_frames[ m_currentFrame ];
-    PipelineVK& currentPipeline = m_pipelines[ pushBuffer.m_pipeline ];
+    PipelineVK& currentPipeline = m_pipelines[ ri.m_pipeline ];
 
     switch ( fr.m_state ) {
     case Frame::State::eCompute: {
@@ -775,15 +775,15 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
 
     const bool rebindPipeline = m_lastPipeline != &currentPipeline;
     const bool depthWrite = currentPipeline.depthWrite();
-    const bool updateLineWidth = currentPipeline.useLines() && pushBuffer.m_lineWidth != m_lastLineWidth;
-    const bool bindBuffer = pushBuffer.m_vertexBuffer;
-    uint32_t verticeCount = pushBuffer.m_verticeCount;
+    const bool updateLineWidth = currentPipeline.useLines() && ri.m_lineWidth != m_lastLineWidth;
+    const bool bindBuffer = ri.m_vertexBuffer;
+    uint32_t verticeCount = ri.m_verticeCount;
 
     auto& descriptorPool = fr.m_descriptorSets[ currentPipeline.descriptorSetId() ];
 
     m_lastPipeline = &currentPipeline;
 
-    const VkDescriptorBufferInfo uniformInfo = fr.m_uniformBuffer.copy( constant, currentPipeline.pushConstantSize() );
+    const VkDescriptorBufferInfo uniformInfo = fr.m_uniformBuffer.copy( ri.m_uniform.ptr, ri.m_uniform.size );
     const VkDescriptorSet descriptorSet = descriptorPool.next();
     assert( descriptorSet != VK_NULL_HANDLE );
 
@@ -805,8 +805,8 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
         }
         return m_defaultTexture->imageInfo();
     };
-    std::array<VkDescriptorImageInfo, PushData::MAX_TEXTURES> imageInfo;
-    std::ranges::transform( pushBuffer.m_fragmentTexture, imageInfo.begin(), find );
+    std::array<VkDescriptorImageInfo, RenderInfo::MAX_TEXTURES> imageInfo;
+    std::ranges::transform( ri.m_fragmentTexture, imageInfo.begin(), find );
 
 
     std::array<VkWriteDescriptorSet, 2> setWrite = currentPipeline.descriptorWrites();
@@ -825,13 +825,13 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
     vkCmdBindDescriptorSets( fr.m_cmdColorPass, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
 
     if ( currentPipeline.useLines() && ( updateLineWidth || rebindPipeline ) ) [[unlikely]] {
-        m_lastLineWidth = pushBuffer.m_lineWidth;
-        if ( depthWrite ) vkCmdSetLineWidth( fr.m_cmdDepthPrepass, pushBuffer.m_lineWidth );
-        vkCmdSetLineWidth( fr.m_cmdColorPass, pushBuffer.m_lineWidth );
+        m_lastLineWidth = ri.m_lineWidth;
+        if ( depthWrite ) vkCmdSetLineWidth( fr.m_cmdDepthPrepass, ri.m_lineWidth );
+        vkCmdSetLineWidth( fr.m_cmdColorPass, ri.m_lineWidth );
     }
 
     if ( bindBuffer ) {
-        const uint32_t bufferIndex = bufferIdToIndex( pushBuffer.m_vertexBuffer );
+        const uint32_t bufferIndex = bufferIdToIndex( ri.m_vertexBuffer );
         assert( bufferIndex != INVALID_INDEX );
         const BufferVK* b = m_bufferSlots[ bufferIndex ];
         assert( b );
@@ -842,11 +842,11 @@ void RendererVK::push( const PushBuffer& pushBuffer, const void* constant )
         vkCmdBindVertexBuffers( fr.m_cmdColorPass, 0, 1, buffers.data(), offsets.data() );
     }
 
-    if ( depthWrite ) vkCmdDraw( fr.m_cmdDepthPrepass, verticeCount, pushBuffer.m_instanceCount, 0, 0 );
-    vkCmdDraw( fr.m_cmdColorPass, verticeCount, pushBuffer.m_instanceCount, 0, 0 );
+    if ( depthWrite ) vkCmdDraw( fr.m_cmdDepthPrepass, verticeCount, ri.m_instanceCount, 0, 0 );
+    vkCmdDraw( fr.m_cmdColorPass, verticeCount, ri.m_instanceCount, 0, 0 );
 }
 
-void RendererVK::dispatch( [[maybe_unused]] const DispatchInfo& dispatchInfo, [[maybe_unused]] const void* constant )
+void RendererVK::dispatch( const DispatchInfo& dispatchInfo )
 {
     assert( dispatchInfo.m_pipeline < m_pipelines.size() );
 
@@ -864,7 +864,7 @@ void RendererVK::dispatch( [[maybe_unused]] const DispatchInfo& dispatchInfo, [[
     }
 
     auto& descriptorPool = fr.m_descriptorSets[ currentPipeline.descriptorSetId() ];
-    const VkDescriptorBufferInfo uniformInfo = fr.m_uniformBuffer.copy( constant, currentPipeline.pushConstantSize() );
+    const VkDescriptorBufferInfo uniformInfo = fr.m_uniformBuffer.copy( dispatchInfo.m_uniform.ptr, dispatchInfo.m_uniform.size );
     const VkDescriptorSet descriptorSet = descriptorPool.next();
     assert( descriptorSet != VK_NULL_HANDLE );
 

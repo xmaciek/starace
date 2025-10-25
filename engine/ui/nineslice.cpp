@@ -104,7 +104,7 @@ void NineSlice::render( const RenderContext& rctx ) const
 {
     ZoneScoped;
 
-    PushData pushData{
+    RenderInfo ri{
         .m_pipeline = g_uiProperty.pipelineSpriteSequence(),
         .m_verticeCount = Uniform::VERTICES,
         .m_instanceCount = 9,
@@ -117,15 +117,16 @@ void NineSlice::render( const RenderContext& rctx ) const
         .m_color = isFocused() ? rctx.colorFocus : rctx.colorMain,
     };
 
-    std::ranges::copy( m_textures, pushData.m_fragmentTexture.begin() );
+    std::ranges::copy( m_textures, ri.m_fragmentTexture.begin() );
     std::ranges::copy( m_sprites, pushConstant.m_sprites.begin() );
     std::for_each( pushConstant.m_sprites.begin(), pushConstant.m_sprites.begin() + 9,
-    [&pushData, r=rctx.renderer]( auto& s )
+    [&ri, r=rctx.renderer]( auto& s )
     {
-        s.m_sampleRGBA = r->channelCount( pushData.m_fragmentTexture[ s.m_whichAtlas ] ) == 4;
+        s.m_sampleRGBA = r->channelCount( ri.m_fragmentTexture[ s.m_whichAtlas ] ) == 4;
     } );
 
-    rctx.renderer->push( pushData, &pushConstant );
+    ri.m_uniform = pushConstant;
+    rctx.renderer->render( ri );
 }
 
 }

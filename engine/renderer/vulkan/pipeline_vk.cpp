@@ -22,7 +22,6 @@ PipelineVK::PipelineVK( PipelineVK&& rhs ) noexcept
     std::swap( m_layout, rhs.m_layout );
     std::swap( m_pipeline, rhs.m_pipeline );
     std::swap( m_pipelineDepthPrepass, rhs.m_pipelineDepthPrepass );
-    std::swap( m_pushConstantSize, rhs.m_pushConstantSize );
     std::swap( m_vertexStride, rhs.m_vertexStride );
     std::swap( m_descriptorSetId, rhs.m_descriptorSetId );
     std::swap( m_descriptorWrites, rhs.m_descriptorWrites );
@@ -36,7 +35,6 @@ PipelineVK& PipelineVK::operator = ( PipelineVK&& rhs ) noexcept
     std::swap( m_layout, rhs.m_layout );
     std::swap( m_pipeline, rhs.m_pipeline );
     std::swap( m_pipelineDepthPrepass, rhs.m_pipelineDepthPrepass );
-    std::swap( m_pushConstantSize, rhs.m_pushConstantSize );
     std::swap( m_vertexStride, rhs.m_vertexStride );
     std::swap( m_descriptorSetId, rhs.m_descriptorSetId );
     std::swap( m_descriptorWrites, rhs.m_descriptorWrites );
@@ -166,7 +164,6 @@ PipelineVK::PipelineVK(
     , uint32_t descriptorSetId
 ) noexcept
 : m_device{ device }
-, m_pushConstantSize{ pci.m_pushConstantSize }
 , m_vertexStride{ pci.m_vertexStride }
 , m_descriptorSetId{ descriptorSetId }
 , m_depthWrite{ pci.m_enableDepthWrite }
@@ -379,11 +376,6 @@ VkPipelineLayout PipelineVK::layout() const
 {
     assert( m_layout );
     return m_layout;
-}
-
-uint32_t PipelineVK::pushConstantSize() const
-{
-    return m_pushConstantSize;
 }
 
 uint32_t PipelineVK::vertexStride() const

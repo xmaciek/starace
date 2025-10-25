@@ -17,18 +17,20 @@ void Explosion::renderAll( const RenderContext& rctx, const std::pmr::vector<Exp
     if ( explosions.empty() ) return;
 
     using ParticleBlob = PushConstant<Pipeline::eParticleBlob>;
-    PushBuffer pushBuffer{
-        .m_pipeline = g_pipelines[ Pipeline::eParticleBlob ],
-        .m_verticeCount = PushConstant<Pipeline::eParticleBlob>::VERTICES,
-    };
-    pushBuffer.m_fragmentTexture[ 0 ] = explosions.front().m_texture; // TODO sort + split by texture
-
     ParticleBlob pushConstant{
         .m_view = rctx.view,
         .m_projection = rctx.projection,
         .m_cameraPosition = rctx.cameraPosition,
         .m_cameraUp = rctx.cameraUp,
     };
+    RenderInfo ri{
+        .m_pipeline = g_pipelines[ Pipeline::eParticleBlob ],
+        .m_verticeCount = PushConstant<Pipeline::eParticleBlob>::VERTICES,
+        .m_uniform = pushConstant,
+    };
+    ri.m_fragmentTexture[ 0 ] = explosions.front().m_texture; // TODO sort + split by texture
+
+
 
     auto makeParticle = []( const Explosion& expl ) -> ParticleBlob::Particle
     {
@@ -49,8 +51,8 @@ void Explosion::renderAll( const RenderContext& rctx, const std::pmr::vector<Exp
         auto end = it;
         std::advance( end, count );
         std::transform( it, end, pushConstant.m_particles.begin(), makeParticle );
-        pushBuffer.m_instanceCount = count;
-        rctx.renderer->push( pushBuffer, &pushConstant );
+        ri.m_instanceCount = count;
+        rctx.renderer->render( ri );
 
         it = end;
         count = std::min( static_cast<uint32_t>( std::distance( it, explosions.end() ) ), ParticleBlob::INSTANCES );

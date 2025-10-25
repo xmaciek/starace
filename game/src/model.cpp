@@ -36,15 +36,16 @@ void Model::render( const RenderContext& rctx ) const
         .m_projection = rctx.projection,
     };
 
-    PushData pushData{
+    RenderInfo ri{
         .m_pipeline = g_pipelines[ Pipeline::eMesh ],
+        .m_uniform = pushConstant,
     };
-    pushData.m_fragmentTexture[ 0 ] = m_texture;
-    auto renderMesh = [&pushData, &pushConstant, &rctx]( Buffer b )
+    ri.m_fragmentTexture[ 0 ] = m_texture;
+    auto renderMesh = [&ri, &rctx]( Buffer b )
     {
         if ( !b ) return;
-        pushData.m_vertexBuffer = b;
-        rctx.renderer->push( pushData, &pushConstant );
+        ri.m_vertexBuffer = b;
+        rctx.renderer->render( ri );
     };
     renderMesh( m_tail );
     renderMesh( m_hull );
@@ -61,17 +62,18 @@ void Model::render( const RenderContext& rctx ) const
             .m_colorOutter1 = colorscheme::ion[ 3 ],
             .m_colorOutter2 = colorscheme::ion[ 2 ],
         };
-        pushData.m_pipeline = g_pipelines[ Pipeline::eThruster2 ];
-        pushData.m_vertexBuffer = m_thruster;
-        rctx.renderer->push( pushData, &p );
+        ri.m_pipeline = g_pipelines[ Pipeline::eThruster2 ];
+        ri.m_vertexBuffer = m_thruster;
+        ri.m_uniform = p;
+        rctx.renderer->render( ri );
     }
     if ( m_thrusterAfterglowCount == 0 ) return;
     assert( m_thrusterAfterglowCount <= m_thrusterAfterglow.size() );
 
-    pushData.m_pipeline = g_pipelines[ Pipeline::eAfterglow ];
-    pushData.m_verticeCount = PushConstant<Pipeline::eAfterglow>::VERTICES;
-    pushData.m_instanceCount = PushConstant<Pipeline::eAfterglow>::INSTANCES;
-    pushData.m_vertexBuffer = {};
+    ri.m_pipeline = g_pipelines[ Pipeline::eAfterglow ];
+    ri.m_verticeCount = PushConstant<Pipeline::eAfterglow>::VERTICES;
+    ri.m_instanceCount = PushConstant<Pipeline::eAfterglow>::INSTANCES;
+    ri.m_vertexBuffer = {};
 
     static const std::array zSizeCutoff{
         math::vec4{ 0.01_m, 3.0_m, 0.1f, 0.0f },
@@ -86,10 +88,11 @@ void Model::render( const RenderContext& rctx ) const
         .m_zSizeCutoff = zSizeCutoff,
         .m_colorScheme = colorscheme::ion,
     };
+    ri.m_uniform = aci;
 
     for ( uint32_t i = 0; i < m_thrusterAfterglowCount; ++i ) {
         aci.m_modelOffset = m_thrusterAfterglow[ i ] * (float)meter;
-        rctx.renderer->push( pushData, &aci );
+        rctx.renderer->render( ri );
     }
 
 }

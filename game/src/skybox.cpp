@@ -90,42 +90,44 @@ static const std::array<math::vec4,4> uv6 {
 void Skybox::render( const RenderContext& rctx ) const
 {
     using Wall = MapCreateInfo::Wall;
-    PushBuffer pushBuffer{
-        .m_pipeline = g_pipelines[ Pipeline::eTriangleFan3dTexture ],
-        .m_verticeCount = 4,
-    };
+
     PushConstant<Pipeline::eTriangleFan3dTexture> pushConstant{};
     pushConstant.m_model = rctx.model;
     pushConstant.m_view = rctx.view;
     pushConstant.m_projection = rctx.projection;
+    RenderInfo ri{
+        .m_pipeline = g_pipelines[ Pipeline::eTriangleFan3dTexture ],
+        .m_verticeCount = 4,
+        .m_uniform = pushConstant,
+    };
 
-    pushBuffer.m_fragmentTexture[ 0 ] = m_texture[ Wall::eBack ];
+    ri.m_fragmentTexture[ 0 ] = m_texture[ Wall::eBack ];
     std::copy_n( wall1.begin(), 4, pushConstant.m_vertices.begin() );
     std::copy_n( uv1.begin(), 4, pushConstant.m_uv.begin() );
-    rctx.renderer->push( pushBuffer, &pushConstant );
+    rctx.renderer->render( ri );
 
-    pushBuffer.m_fragmentTexture[ 0 ] = m_texture[ Wall::eFront ];
+    ri.m_fragmentTexture[ 0 ] = m_texture[ Wall::eFront ];
     std::copy_n( wall2.begin(), 4, pushConstant.m_vertices.begin() );
     std::copy_n( uv2.begin(), 4, pushConstant.m_uv.begin() );
-    rctx.renderer->push( pushBuffer, &pushConstant );
+    rctx.renderer->render( ri );
 
-    pushBuffer.m_fragmentTexture[ 0 ] = m_texture[ Wall::eLeft ];
+    ri.m_fragmentTexture[ 0 ] = m_texture[ Wall::eLeft ];
     std::copy_n( wall3.begin(), 4, pushConstant.m_vertices.begin() );
     std::copy_n( uv3.begin(), 4, pushConstant.m_uv.begin() );
-    rctx.renderer->push( pushBuffer, &pushConstant );
+    rctx.renderer->render( ri );
 
-    pushBuffer.m_fragmentTexture[ 0 ] = m_texture[ Wall::eRight ];
+    ri.m_fragmentTexture[ 0 ] = m_texture[ Wall::eRight ];
     std::copy_n( wall4.begin(), 4, pushConstant.m_vertices.begin() );
     std::copy_n( uv4.begin(), 4, pushConstant.m_uv.begin() );
-    rctx.renderer->push( pushBuffer, &pushConstant );
+    rctx.renderer->render( ri );
 
-    pushBuffer.m_fragmentTexture[ 0 ] = m_texture[ Wall::eTop ];
+    ri.m_fragmentTexture[ 0 ] = m_texture[ Wall::eTop ];
     std::copy_n( wall5.begin(), 4, pushConstant.m_vertices.begin() );
     std::copy_n( uv5.begin(), 4, pushConstant.m_uv.begin() );
-    rctx.renderer->push( pushBuffer, &pushConstant );
+    rctx.renderer->render( ri );
 
-    pushBuffer.m_fragmentTexture[ 0 ] = m_texture[ Wall::eBottom ];
+    ri.m_fragmentTexture[ 0 ] = m_texture[ Wall::eBottom ];
     std::copy_n( wall6.begin(), 4, pushConstant.m_vertices.begin() );
     std::copy_n( uv6.begin(), 4, pushConstant.m_uv.begin() );
-    rctx.renderer->push( pushBuffer, &pushConstant );
+    rctx.renderer->render( ri );
 }

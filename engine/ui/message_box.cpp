@@ -31,11 +31,13 @@ EventProcessing MessageBox::onAction( ui::Action a )
 void MessageBox::render( const RenderContext& rctx ) const
 {
     using PushConstant = PushConstant<Pipeline::eBlur>;
-    const DispatchInfo di{ .m_pipeline = m_blur };
     const PushConstant horizontal{ .m_direction = 0 };
     const PushConstant vertical{ .m_direction = 1 };
-    rctx.renderer->dispatch( di, &horizontal );
-    rctx.renderer->dispatch( di, &vertical );
+    const DispatchInfo dih{ .m_pipeline = m_blur, .m_uniform = horizontal };
+    const DispatchInfo div{ .m_pipeline = m_blur, .m_uniform = vertical };
+
+    rctx.renderer->dispatch( dih );
+    rctx.renderer->dispatch( div );
     Super::render( rctx );
 }
 
