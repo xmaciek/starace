@@ -62,6 +62,7 @@ uint32_t argc( Vm* );
 bool argv( Vm*, uint32_t, bool& );
 bool argv( Vm*, uint32_t, float& );
 bool argv( Vm*, uint32_t, int32_t& );
+bool argv( Vm*, uint32_t, uint8_t& );
 bool argv( Vm*, uint32_t, uint32_t& );
 bool argv( Vm*, uint32_t, std::pmr::string& );
 

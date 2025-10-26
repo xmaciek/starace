@@ -391,6 +391,11 @@ bool argv( Vm* vm, uint32_t i, int32_t& value )
     return ::argv<int32_t>( vm, i, value );
 }
 
+bool argv( Vm* vm, uint32_t i, uint8_t& value )
+{
+    return ::argv<uint8_t>( vm, i, value );
+}
+
 bool argv( Vm* vm, uint32_t i, uint32_t& value )
 {
     return ::argv<uint32_t>( vm, i, value );
