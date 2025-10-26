@@ -166,24 +166,6 @@ PipelineCreateInfo{
 },
 
 PipelineCreateInfo{
-    .m_vertexShader = "shaders/thruster2.vert.spv",
-    .m_fragmentShader = "shaders/thruster2.frag.spv",
-    .m_userHint = static_cast<uint32_t>( Pipeline::eThruster2 ),
-    .m_enableDepthTest = true,
-    .m_enableDepthWrite = false,
-    .m_topology = PipelineCreateInfo::Topology::eTriangleList,
-    .m_cullMode = PipelineCreateInfo::CullMode::eBack,
-    .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_blendMode = PipelineCreateInfo::BlendMode::eAlpha,
-    .m_vertexStride = sizeof( float ) * 8,
-    .m_vertexAssembly{
-        PipelineCreateInfo::Assembly{ PipelineCreateInfo::InputType::eF3, 0, 0 },
-        PipelineCreateInfo::Assembly{ PipelineCreateInfo::InputType::eF2, 1, 12 },
-    },
-    .m_vertexUniformCount = 1,
-},
-
-PipelineCreateInfo{
     .m_vertexShader = "shaders/particles_blob.vert.spv",
     .m_fragmentShader = "shaders/particles_blob.frag.spv",
     .m_userHint = static_cast<uint32_t>( Pipeline::eParticleBlob ),

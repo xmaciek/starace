@@ -1,0 +1,11 @@
+blendMode alpha
+depthTest 1
+fragmentShader shaders/thruster2.frag.spv
+frontFace ccw
+name thruster2
+topology triangleList
+vertexShader shaders/thruster2.vert.spv
+vertexStride 32
+vertexUniform 1
+vertexAssembly f3 0 0
+vertexAssembly f2 1 12
