@@ -178,16 +178,4 @@ PipelineCreateInfo{
     .m_computeImageCount = 2,
 },
 
-PipelineCreateInfo{
-    .m_vertexShader = "shaders/beam_blob.vert.spv",
-    .m_fragmentShader = "shaders/beam_blob.frag.spv",
-    .m_userHint = static_cast<uint32_t>( Pipeline::eBeamBlob ),
-    .m_enableDepthTest = true,
-    .m_topology = PipelineCreateInfo::Topology::eTriangleList,
-    .m_cullMode = PipelineCreateInfo::CullMode::eNone,
-    .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_blendMode = PipelineCreateInfo::BlendMode::eAlpha,
-    .m_vertexUniformCount = 1,
-},
-
 };

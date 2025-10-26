@@ -1,0 +1,9 @@
+blendMode alpha
+depthTest 1
+fragmentShader shaders/beam_blob.frag.spv
+fragmentImage 1
+frontFace ccw
+name beam
+topology triangleList
+vertexShader shaders/beam_blob.vert.spv
+vertexUniform 1

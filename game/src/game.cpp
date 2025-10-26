@@ -121,6 +121,7 @@ void Game::onInit()
     g_pipelines[ Pipeline::eThruster2 ] = m_materials[ "thruster2"_hash ];
     g_pipelines[ Pipeline::eParticleBlob ] = m_materials[ "particles"_hash ];
     g_pipelines[ Pipeline::eAfterglow ] = m_materials[ "afterglow"_hash ];
+    g_pipelines[ Pipeline::eBeamBlob ] = m_materials[ "beam"_hash ];
 
     auto addAction = [r=&m_remapper]( const auto& p )
     {
