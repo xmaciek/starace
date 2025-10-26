@@ -94,10 +94,11 @@ DescriptorSet::DescriptorSet( VkDevice device, const PipelineCreateInfo& pci ) n
 {
     ZoneScoped;
     m_layout = createLayout( m_device, pci );
-    m_uniformCount = pci.m_computeShader ? pci.m_computeUniformCount : pci.m_vertexUniformCount;
-    m_imagesCount = pci.m_computeShader ? pci.m_computeImageCount : pci.m_fragmentImageCount;
+    bool compute = !pci.m_computeShaderData.empty();
+    m_uniformCount = compute ? pci.m_computeUniformCount : pci.m_vertexUniformCount;
+    m_imagesCount = compute ? pci.m_computeImageCount : pci.m_fragmentImageCount;
     if ( m_imagesCount > 0 ) {
-        m_imageType = pci.m_computeShader ? VK_DESCRIPTOR_TYPE_STORAGE_IMAGE : VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        m_imageType = compute ? VK_DESCRIPTOR_TYPE_STORAGE_IMAGE : VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     }
     expandCapacityBy( 50 );
 }

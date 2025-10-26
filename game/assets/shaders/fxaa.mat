@@ -1,0 +1,3 @@
+computeImage 2
+computeShader shaders/antialias_fxaa.comp.spv
+name fxaa

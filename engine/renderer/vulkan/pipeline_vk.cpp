@@ -183,7 +183,7 @@ PipelineVK::PipelineVK(
     const VkResult layoutOK = vkCreatePipelineLayout( m_device, &pipelineLayoutInfo, nullptr, &m_layout );
     assert( layoutOK == VK_SUCCESS );
 
-    if ( pci.m_computeShader ) {
+    if ( pci.m_computeShaderData.size() ) {
         const Shader shader{ device, pci.m_computeShaderData };
         const VkComputePipelineCreateInfo info{
             .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,

@@ -158,10 +158,4 @@ PipelineCreateInfo{
     .m_computeImageCount = 2,
 },
 
-PipelineCreateInfo{
-    .m_computeShader = "shaders/antialias_fxaa.comp.spv",
-    .m_userHint = static_cast<uint32_t>( Pipeline::eAntiAliasFXAA ),
-    .m_computeImageCount = 2,
-},
-
 };

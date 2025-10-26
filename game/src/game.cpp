@@ -123,6 +123,7 @@ void Game::onInit()
     g_pipelines[ Pipeline::eAfterglow ] = m_materials[ "afterglow"_hash ];
     g_pipelines[ Pipeline::eBeamBlob ] = m_materials[ "beam"_hash ];
     g_pipelines[ Pipeline::eTriangleFan3dTexture ] = m_materials[ "fan3d"_hash ];
+    g_pipelines[ Pipeline::eAntiAliasFXAA ] = m_materials[ "fxaa"_hash ];
 
     auto addAction = [r=&m_remapper]( const auto& p )
     {
