@@ -166,19 +166,6 @@ PipelineCreateInfo{
 },
 
 PipelineCreateInfo{
-    .m_vertexShader = "shaders/afterglow.vert.spv",
-    .m_fragmentShader = "shaders/afterglow.frag.spv",
-    .m_userHint = static_cast<uint32_t>( Pipeline::eAfterglow ),
-    .m_enableDepthTest = true,
-    .m_enableDepthWrite = false,
-    .m_topology = PipelineCreateInfo::Topology::eTriangleList,
-    .m_cullMode = PipelineCreateInfo::CullMode::eNone,
-    .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_blendMode = PipelineCreateInfo::BlendMode::eAlpha,
-    .m_vertexUniformCount = 1,
-},
-
-PipelineCreateInfo{
     .m_computeShader = "shaders/gamma.comp.spv",
     .m_userHint = static_cast<uint32_t>( Pipeline::eGammaCorrection ),
     .m_computeUniformCount = 1,
