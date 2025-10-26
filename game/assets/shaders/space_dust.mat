@@ -1,0 +1,7 @@
+blendMode alpha
+depthTest 1
+fragmentShader "shaders/space_dust.frag.spv"
+name space_dust
+topology lineList
+vertexShader "shaders/space_dust.vert.spv"
+vertexUniform 1

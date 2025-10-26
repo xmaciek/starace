@@ -17,6 +17,7 @@ public:
     struct CreateInfo {
         ui::Sprite background{};
         PipelineSlot pipeline{};
+        PipelineSlot spaceDustPipeline{};
     };
     MenuScene() = default;
     MenuScene( const CreateInfo& );

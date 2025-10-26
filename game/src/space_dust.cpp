@@ -72,7 +72,7 @@ void SpaceDust::render( const RenderContext& rctx ) const
         .m_particleOffset = math::vec4{ m_velocity * 0.05f, 0.0f },
     };
     RenderInfo ri{
-        .m_pipeline = g_pipelines[ Pipeline::eSpaceDust ],
+        .m_pipeline = m_pipeline,
         .m_verticeCount = 2u,
         .m_instanceCount = static_cast<uint32_t>( m_particles.size() ),
         .m_lineWidth = m_lineWidth * ( rctx.viewport.y / 720.0f ),

@@ -19,6 +19,7 @@ GameScene::GameScene( const CreateInfo& ci ) noexcept
     m_spacedust.setVelocity( math::vec3{ 0.0f, 0.0f, 26.0_m } );
     m_spacedust.setCenter( {} );
     m_spacedust.setLineWidth( 2.0f );
+    m_spacedust.setPipeline( ci.spaceDustPipeline );
 
     m_enemies.resize( 20 );
 

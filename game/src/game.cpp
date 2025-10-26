@@ -337,6 +337,7 @@ void Game::setupUI()
     m_menuScene = MenuScene{ MenuScene::CreateInfo{
         .background = g_uiProperty.sprite( "background"_hash ),
         .pipeline = m_materials[ "background"_hash ],
+        .spaceDustPipeline = m_materials[ "space_dust"_hash ],
     } };
     m_menuScene.setModel( &m_jetsContainer[ 0 ].model );
 }
@@ -463,6 +464,7 @@ void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelD
             .model = modelData.model,
             .weapons{ w1, w2, w1 },
         },
+        .spaceDustPipeline = m_materials[ "space_dust"_hash ],
     } };
 
     m_gameplayUIData.m_playerWeaponIconPrimary = g_uiProperty.sprite( w1.displayIcon );

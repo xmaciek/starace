@@ -44,6 +44,7 @@ public:
         WeaponCreateInfo enemyWeapon{};
         std::span<const csg::Callsign> enemyCallsigns{};
         Player::CreateInfo player{};
+        PipelineSlot spaceDustPipeline{};
     };
 
     ~GameScene() noexcept = default;

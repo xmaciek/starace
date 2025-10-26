@@ -174,16 +174,6 @@ PipelineCreateInfo{
 },
 
 PipelineCreateInfo{
-    .m_vertexShader = "shaders/space_dust.vert.spv",
-    .m_fragmentShader = "shaders/space_dust.frag.spv",
-    .m_userHint = static_cast<uint32_t>( Pipeline::eSpaceDust ),
-    .m_enableDepthTest = true,
-    .m_topology = PipelineCreateInfo::Topology::eLineList,
-    .m_blendMode = PipelineCreateInfo::BlendMode::eAlpha,
-    .m_vertexUniformCount = 1,
-},
-
-PipelineCreateInfo{
     .m_vertexShader = "shaders/albedo.vert.spv",
     .m_fragmentShader = "shaders/albedo.frag.spv",
     .m_userHint = static_cast<uint32_t>( Pipeline::eAlbedo ),

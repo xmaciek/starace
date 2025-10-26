@@ -11,6 +11,7 @@ MenuScene::MenuScene( const CreateInfo& ci )
 : m_background{ ci.background }
 , m_pipeline{ ci.pipeline }
 {
+    m_spaceDust.setPipeline( ci.spaceDustPipeline );
     m_spaceDust.setVelocity( math::vec3{ 0.0f, 0.0f, 26.0_m } );
     m_spaceDust.setCenter( {} );
     m_spaceDust.setLineWidth( 2.0f );
