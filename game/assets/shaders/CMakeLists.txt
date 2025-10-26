@@ -1,7 +1,5 @@
 compileShader( FILE afterglow.frag )
 compileShader( FILE afterglow.vert )
-compileShader( FILE albedo.frag )
-compileShader( FILE albedo.vert )
 compileShader( FILE antialias_fxaa.comp )
 compileShader( FILE background.frag )
 compileShader( FILE background.vert )

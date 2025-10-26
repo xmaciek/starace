@@ -6,7 +6,6 @@
 enum class Pipeline : PipelineSlot {
     eTriangleFan3dTexture,
     eBackground,
-    eAlbedo,
     eMesh,
     eSpaceDust,
     eParticleBlob,
@@ -52,13 +51,6 @@ struct PushConstant<Pipeline::eSpaceDust> {
     math::vec4 m_color{};
     math::vec4 m_particleOffset{};
     std::array<math::vec4, INSTANCES> m_particles{};
-};
-
-template <>
-struct PushConstant<Pipeline::eAlbedo> {
-    math::mat4 m_model{};
-    math::mat4 m_view{};
-    math::mat4 m_projection{};
 };
 
 template <>
@@ -169,25 +161,6 @@ PipelineCreateInfo{
     .m_cullMode = PipelineCreateInfo::CullMode::eBack,
     .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
     .m_blendMode = PipelineCreateInfo::BlendMode::eAlpha,
-    .m_vertexUniformCount = 1,
-    .m_fragmentImageCount = 1,
-},
-
-PipelineCreateInfo{
-    .m_vertexShader = "shaders/albedo.vert.spv",
-    .m_fragmentShader = "shaders/albedo.frag.spv",
-    .m_userHint = static_cast<uint32_t>( Pipeline::eAlbedo ),
-    .m_enableDepthTest = true,
-    .m_enableDepthWrite = true,
-    .m_topology = PipelineCreateInfo::Topology::eTriangleList,
-    .m_cullMode = PipelineCreateInfo::CullMode::eBack,
-    .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_vertexStride = sizeof( float ) * 8,
-    .m_vertexAssembly{
-        PipelineCreateInfo::Assembly{ PipelineCreateInfo::InputType::eF3, 0, 0 },
-        PipelineCreateInfo::Assembly{ PipelineCreateInfo::InputType::eF2, 1, 12 },
-        PipelineCreateInfo::Assembly{ PipelineCreateInfo::InputType::eF3, 2, 20 }
-    },
     .m_vertexUniformCount = 1,
     .m_fragmentImageCount = 1,
 },
