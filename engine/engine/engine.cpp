@@ -3,6 +3,7 @@
 #include <extra/dds.hpp>
 
 #include "controller_state.hpp"
+#include "material_setup.hpp"
 
 #include <SDL.h>
 #include <profiler.hpp>
@@ -480,6 +481,11 @@ void Engine::createPipelines( std::span<const PipelineCreateInfo> infos, std::fu
         PipelineSlot p = m_renderer->createPipeline( ci );
         cb( std::make_pair( ci.m_userHint, p ) );
     }
+}
+
+void Engine::loadMAT( Asset&& asset )
+{
+    MaterialSetup{ &m_materials, m_renderer, m_io }( std::move( asset ) );
 }
 
 void Engine::loadDDS( Asset&& asset )

@@ -57,6 +57,9 @@ protected:
     ResourceMap<Audio::Slot> m_sounds{};
     void loadWAV( Asset&& );
 
+    ResourceMap<PipelineSlot> m_materials{};
+    void loadMAT( Asset&& );
+
     struct CreateInfo {
         std::string_view gameName{};
         uint32_t versionMajor{};

@@ -73,6 +73,8 @@ Game::Game( int argc, char** argv )
     g_uiProperty.m_textures = &m_textures;
     g_uiProperty.m_remapper = &m_remapper;
     loadSettings();
+    m_io->setCallback( ".spv", []( Asset&& ) {} ); // HACK for loading dependant file in .mat
+    m_io->setCallback( ".mat", this, &Game::loadMAT );
     m_io->setCallback( ".dds", this, &Game::loadDDS );
     m_io->setCallback( ".wav", this, &Game::loadWAV );
     m_io->setCallback( ".objc", this, &Game::loadOBJC );
@@ -334,6 +336,7 @@ void Game::setupUI()
 
     m_menuScene = MenuScene{ MenuScene::CreateInfo{
         .background = g_uiProperty.sprite( "background"_hash ),
+        .pipeline = m_materials[ "background"_hash ],
     } };
     m_menuScene.setModel( &m_jetsContainer[ 0 ].model );
 }

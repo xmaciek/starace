@@ -1,0 +1,9 @@
+blendMode alpha
+cullMode back
+fragmentImage 1
+fragmentShader shaders/background.frag.spv
+frontFace ccw
+name background
+topology triangleFan
+vertexShader shaders/background.vert.spv
+vertexUniform 1

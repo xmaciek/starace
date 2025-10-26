@@ -9,6 +9,7 @@
 
 MenuScene::MenuScene( const CreateInfo& ci )
 : m_background{ ci.background }
+, m_pipeline{ ci.pipeline }
 {
     m_spaceDust.setVelocity( math::vec3{ 0.0f, 0.0f, 26.0_m } );
     m_spaceDust.setCenter( {} );
@@ -29,7 +30,7 @@ void MenuScene::render( Renderer* renderer, math::vec2 viewport )
         .m_viewport = viewport,
     };
     RenderInfo ri{
-        .m_pipeline = g_pipelines[ Pipeline::eBackground ],
+        .m_pipeline = m_pipeline,
         .m_verticeCount = 4,
         .m_uniform = pushConstant,
     };

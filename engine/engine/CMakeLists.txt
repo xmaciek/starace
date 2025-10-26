@@ -7,6 +7,8 @@ target_sources( engine
     savesystem.cpp
     engine.cpp
     controller_state.hpp
+    material_setup.hpp
+    material_setup.cpp
 
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/public/engine/filesystem.hpp
@@ -28,6 +30,7 @@ target_link_libraries( engine
     glm::glm
     SDL2::SDL2
     audio
+    ccmd
     extra
     input
     profiler

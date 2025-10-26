@@ -10,11 +10,13 @@
 class MenuScene {
     ui::Sprite m_background{};
     Model* m_model{};
+    PipelineSlot m_pipeline{};
     SpaceDust m_spaceDust{};
 
 public:
     struct CreateInfo {
         ui::Sprite background{};
+        PipelineSlot pipeline{};
     };
     MenuScene() = default;
     MenuScene( const CreateInfo& );
