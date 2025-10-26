@@ -182,5 +182,7 @@ void MaterialSetup::operator () ( Asset&& a )
     auto pip = m_renderer->createPipeline( pci );
     assert( pip );
     assert( pci.m_userHint );
-    m_map->insert( std::make_pair( pci.m_userHint, pip ) );
+    [[maybe_unused]]
+    auto [ it, inserted ] = m_map->insert( std::make_pair( pci.m_userHint, pip ) );
+    assert( inserted );
 }
