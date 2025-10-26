@@ -148,14 +148,3 @@ struct PipelineAtlas {
 [[maybe_unused]]
 inline constinit PipelineAtlas g_pipelines{};
 
-[[maybe_unused]]
-inline constexpr std::array g_pipelineCreateInfo = {
-
-PipelineCreateInfo{
-    .m_computeShader = "shaders/gamma.comp.spv",
-    .m_userHint = static_cast<uint32_t>( Pipeline::eGammaCorrection ),
-    .m_computeUniformCount = 1,
-    .m_computeImageCount = 2,
-},
-
-};

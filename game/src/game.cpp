@@ -115,7 +115,6 @@ void Game::onInit()
     changeScreen( "loading"_hash );
 
     m_io->mount( "data.pak" );
-    createPipelines( g_pipelineCreateInfo, []( auto p ) { g_pipelines[ static_cast<Pipeline>( p.first ) ] = p.second; } );
     g_pipelines[ Pipeline::eMesh ] = m_materials[ "mesh"_hash ];
     g_pipelines[ Pipeline::eProjectile ] = m_materials[ "projectile"_hash ];
     g_pipelines[ Pipeline::eThruster2 ] = m_materials[ "thruster2"_hash ];
@@ -124,6 +123,7 @@ void Game::onInit()
     g_pipelines[ Pipeline::eBeamBlob ] = m_materials[ "beam"_hash ];
     g_pipelines[ Pipeline::eTriangleFan3dTexture ] = m_materials[ "fan3d"_hash ];
     g_pipelines[ Pipeline::eAntiAliasFXAA ] = m_materials[ "fxaa"_hash ];
+    g_pipelines[ Pipeline::eGammaCorrection ] = m_materials[ "gamma"_hash ];
 
     auto addAction = [r=&m_remapper]( const auto& p )
     {

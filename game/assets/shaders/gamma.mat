@@ -1,0 +1,4 @@
+computeImage 2
+computeShader shaders/gamma.comp.spv
+computeUniform 1
+name gamma
