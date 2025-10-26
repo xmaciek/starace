@@ -117,6 +117,7 @@ void Game::onInit()
     m_io->mount( "data.pak" );
     createPipelines( g_pipelineCreateInfo, []( auto p ) { g_pipelines[ static_cast<Pipeline>( p.first ) ] = p.second; } );
     g_pipelines[ Pipeline::eMesh ] = m_materials[ "mesh"_hash ];
+    g_pipelines[ Pipeline::eProjectile ] = m_materials[ "projectile"_hash ];
 
     auto addAction = [r=&m_remapper]( const auto& p )
     {

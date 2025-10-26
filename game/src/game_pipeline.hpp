@@ -235,22 +235,4 @@ PipelineCreateInfo{
     .m_vertexUniformCount = 1,
 },
 
-PipelineCreateInfo{
-    .m_vertexShader = "shaders/projectile.vert.spv",
-    .m_fragmentShader = "shaders/projectile.frag.spv",
-    .m_userHint = static_cast<uint32_t>( Pipeline::eProjectile ),
-    .m_enableDepthTest = true,
-    .m_topology = PipelineCreateInfo::Topology::eTriangleList,
-    .m_cullMode = PipelineCreateInfo::CullMode::eNone,
-    .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_blendMode = PipelineCreateInfo::BlendMode::eAlpha,
-    .m_vertexStride = sizeof( float ) * 8,
-    .m_vertexAssembly{
-        PipelineCreateInfo::Assembly{ PipelineCreateInfo::InputType::eF3, 0, 0 },
-        PipelineCreateInfo::Assembly{ PipelineCreateInfo::InputType::eF2, 1, 12 },
-    },
-    .m_vertexUniformCount = 1,
-    .m_fragmentImageCount = 1,
-},
-
 };
