@@ -1,0 +1,10 @@
+blendMode alpha
+cullMode back
+depthTest 1
+fragmentShader shaders/particles_blob.frag.spv
+fragmentImage 1
+frontFace ccw
+name particles
+topology triangleList
+vertexShader shaders/particles_blob.vert.spv
+vertexUniform 1
