@@ -1,0 +1,11 @@
+blendMode alpha
+cullMode back
+depthTest 1
+depthWrite 1
+fragmentImage 1
+fragmentShader shaders/trianglefan_texture.frag.spv
+frontFace ccw
+name fan3d
+topology triangleFan
+vertexShader shaders/trianglefan_texture.vert.spv
+vertexUniform 1

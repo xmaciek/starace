@@ -152,20 +152,6 @@ inline constinit PipelineAtlas g_pipelines{};
 inline constexpr std::array g_pipelineCreateInfo = {
 
 PipelineCreateInfo{
-    .m_vertexShader = "shaders/trianglefan_texture.vert.spv",
-    .m_fragmentShader = "shaders/trianglefan_texture.frag.spv",
-    .m_userHint = static_cast<uint32_t>( Pipeline::eTriangleFan3dTexture ),
-    .m_enableDepthTest = true,
-    .m_enableDepthWrite = true,
-    .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
-    .m_cullMode = PipelineCreateInfo::CullMode::eBack,
-    .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_blendMode = PipelineCreateInfo::BlendMode::eAlpha,
-    .m_vertexUniformCount = 1,
-    .m_fragmentImageCount = 1,
-},
-
-PipelineCreateInfo{
     .m_computeShader = "shaders/gamma.comp.spv",
     .m_userHint = static_cast<uint32_t>( Pipeline::eGammaCorrection ),
     .m_computeUniformCount = 1,
