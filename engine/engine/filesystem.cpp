@@ -114,32 +114,37 @@ void Filesystem::mount( const std::filesystem::path& path )
         } );
     }
 
-    // NOTE: I have no guarantees default allocator will give me 16 byte aligned pointer
-    decltype( Mount::m_blob ) blob( preallocSize + 16 );
-    decltype( Mount::m_toc ) map;
-    auto* ptr = blob.data();
-    std::ranges::for_each( entries, [this, &ifs, &map, &ptr]( const auto& entry )
+
+    Filesystem::Mount* mount{};
+    {
+        std::scoped_lock sl{ m_bottleneckFs };
+        mount = &m_mounts.emplace_front();
+        // NOTE: I have no guarantees default allocator will give me 16 byte aligned pointer
+        mount->m_blob.resize( preallocSize + 16 );
+    }
+    auto* ptr = mount->m_blob.data();
+
+    std::ranges::for_each( entries, [this, mount, &ifs, &ptr]( const auto& entry )
     {
         std::string_view name{ std::begin( entry.name ) };
         ptr = align16( ptr );
         ifs.seekg( entry.offset );
-        [[maybe_unused]]
-        auto [ it, inserted ] = map.insert( std::make_pair( name, std::span<uint8_t>{ ptr, entry.size } ) );
-        assert( inserted );
+        std::span<uint8_t> data{ ptr, entry.size };
         ptr += entry.size;
-        readRaw( ifs, it->second );
-
+        readRaw( ifs, data );
+        {
+            std::scoped_lock sl{ m_bottleneckFs };
+            [[maybe_unused]]
+            auto [ it, inserted ] = mount->m_toc.insert( std::make_pair( name, data ) );
+            assert( inserted );
+        }
         std::scoped_lock sl{ m_bottleneckCb };
         auto cb = std::ranges::find_if( m_callbacks, [name]( const auto& a ) { return name.ends_with( a.first ); } );
         if ( cb == m_callbacks.end() ) return;
         // TODO: move to async once file dependency is solved
-        std::invoke( cb->second, Asset{ name, it->second } );
+        std::invoke( cb->second, Asset{ name, data } );
     } );
 
-    std::scoped_lock sl{ m_bottleneckFs };
-    auto& mount = m_mounts.emplace_front();
-    mount.m_blob = std::move( blob );
-    mount.m_toc = std::move( map );
 }
 
 void Filesystem::setCallback( std::string_view ext, Callback&& cb )
