@@ -26,5 +26,6 @@ target_sources( tests
     test_hash.cpp
     test_max_score_element.cpp
     test_savesystem.cpp
+    test_stack_vector.cpp
     test_unicode.cpp
 )

@@ -6,6 +6,7 @@
 #include "vk.hpp"
 
 #include <renderer/pipeline.hpp>
+#include <shared/stack_vector.hpp>
 
 #include <cstdint>
 #include <memory_resource>
@@ -18,11 +19,13 @@ private:
     VkPipelineLayout m_layout = VK_NULL_HANDLE;
     VkPipeline m_pipeline = VK_NULL_HANDLE;
     VkPipeline m_pipelineDepthPrepass = VK_NULL_HANDLE;
-    std::array<VkWriteDescriptorSet, 2> m_descriptorWrites{};
+    StackVector<VkWriteDescriptorSet, 2> m_descriptorWrites{};
     uint32_t m_vertexStride = 0;
     uint32_t m_descriptorSetId = 0;
     bool m_depthWrite = false;
     bool m_useLines = false;
+    bool m_hasUniform = false;
+    bool m_hasImage = false;
 
 public:
     ~PipelineVK() noexcept;
@@ -46,9 +49,7 @@ public:
     VkPipelineLayout layout() const;
     uint32_t vertexStride() const;
     uint32_t descriptorSetId() const;
-    uint32_t descriptorWriteCount() const;
-    uint32_t descriptorWriteOffset() const;
-    inline auto descriptorWrites() const { return m_descriptorWrites; }
+    void updateDescriptorSet( VkDescriptorSet, const VkDescriptorBufferInfo&, std::span<const VkDescriptorImageInfo> );
 
     bool depthWrite() const;
     bool useLines() const;

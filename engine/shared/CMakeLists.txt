@@ -8,6 +8,7 @@ target_sources( shared
     ${CMAKE_CURRENT_SOURCE_DIR}/public/shared/max_score_element.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/shared/pool.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/shared/rotary_index.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/shared/stack_vector.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/shared/track_allocator.hpp
 )
 set_vs_directory( shared "libs" )

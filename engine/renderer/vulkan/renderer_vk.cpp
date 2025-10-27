@@ -806,20 +806,9 @@ void RendererVK::render( const RenderInfo& ri )
         return m_defaultTexture->imageInfo();
     };
     std::array<VkDescriptorImageInfo, RenderInfo::MAX_TEXTURES> imageInfo;
+    // TODO: limit to image count in pipeline
     std::ranges::transform( ri.m_fragmentTexture, imageInfo.begin(), find );
-
-
-    std::array<VkWriteDescriptorSet, 2> setWrite = currentPipeline.descriptorWrites();
-    const uint32_t descriptorWriteCount = currentPipeline.descriptorWriteCount();
-    const uint32_t offset = currentPipeline.descriptorWriteOffset();
-
-    setWrite[ 0 ].pBufferInfo = &uniformInfo;
-    setWrite[ 0 ].dstSet = descriptorSet;
-
-    setWrite[ 1 ].pImageInfo = imageInfo.data();
-    setWrite[ 1 ].dstSet = descriptorSet;
-
-    vkUpdateDescriptorSets( m_device, descriptorWriteCount, setWrite.data() + offset, 0, nullptr );
+    currentPipeline.updateDescriptorSet( descriptorSet, uniformInfo, imageInfo );
 
     if ( depthWrite ) vkCmdBindDescriptorSets( fr.m_cmdDepthPrepass, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
     vkCmdBindDescriptorSets( fr.m_cmdColorPass, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
@@ -868,21 +857,11 @@ void RendererVK::dispatch( const DispatchInfo& dispatchInfo )
     const VkDescriptorSet descriptorSet = descriptorPool.next();
     assert( descriptorSet != VK_NULL_HANDLE );
 
-    std::array<VkWriteDescriptorSet, 2> setWrite = currentPipeline.descriptorWrites();
-    const uint32_t descriptorWriteCount = currentPipeline.descriptorWriteCount();
-    const uint32_t offset = currentPipeline.descriptorWriteOffset();
-
-    setWrite[ 0 ].pBufferInfo = &uniformInfo;
-    setWrite[ 0 ].dstSet = descriptorSet;
-
     std::array<VkDescriptorImageInfo, 2> imageInfo{
         fr.m_renderTarget.imageInfo(),
         fr.m_renderTargetTmp.imageInfo(),
     };
-    setWrite[ 1 ].pImageInfo = imageInfo.data();
-    setWrite[ 1 ].dstSet = descriptorSet;
-
-    vkUpdateDescriptorSets( m_device, descriptorWriteCount, setWrite.data() + offset, 0, nullptr );
+    currentPipeline.updateDescriptorSet( descriptorSet, uniformInfo, imageInfo );
 
     fr.m_renderTarget.transfer( fr.m_cmdColorPass, constants::computeReadWrite );
     fr.m_renderTargetTmp.transfer( fr.m_cmdColorPass, constants::computeReadWrite );

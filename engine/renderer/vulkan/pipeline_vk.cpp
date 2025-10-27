@@ -27,6 +27,8 @@ PipelineVK::PipelineVK( PipelineVK&& rhs ) noexcept
     std::swap( m_descriptorWrites, rhs.m_descriptorWrites );
     std::swap( m_depthWrite, rhs.m_depthWrite );
     std::swap( m_useLines, rhs.m_useLines );
+    std::swap( m_hasUniform, rhs.m_hasUniform );
+    std::swap( m_hasImage, rhs.m_hasImage );
 }
 
 PipelineVK& PipelineVK::operator = ( PipelineVK&& rhs ) noexcept
@@ -40,6 +42,8 @@ PipelineVK& PipelineVK::operator = ( PipelineVK&& rhs ) noexcept
     std::swap( m_descriptorWrites, rhs.m_descriptorWrites );
     std::swap( m_depthWrite, rhs.m_depthWrite );
     std::swap( m_useLines, rhs.m_useLines );
+    std::swap( m_hasUniform, rhs.m_hasUniform );
+    std::swap( m_hasImage, rhs.m_hasImage );
     return *this;
 }
 
@@ -168,6 +172,8 @@ PipelineVK::PipelineVK(
 , m_descriptorSetId{ descriptorSetId }
 , m_depthWrite{ pci.m_enableDepthWrite }
 , m_useLines{ usesLines( pci.m_topology ) }
+, m_hasUniform{ pci.m_vertexUniformCount || pci.m_computeUniformCount }
+, m_hasImage{ pci.m_fragmentImageCount || pci.m_computeImageCount }
 {
     ZoneScoped;
     assert( device );
@@ -195,20 +201,22 @@ PipelineVK::PipelineVK(
         const VkResult pipelineOK = vkCreateComputePipelines( device, nullptr, 1, &info, nullptr, &m_pipeline );
         assert( pipelineOK == VK_SUCCESS );
 
-        m_descriptorWrites[ 0 ] = {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstBinding = 0,
-            .dstArrayElement = 0,
-            .descriptorCount = pci.m_computeUniformCount,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-        };
-        m_descriptorWrites[ 1 ] = {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstBinding = 1,
-            .dstArrayElement = 0,
-            .descriptorCount = pci.m_computeImageCount,
-            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-        };
+        if ( m_hasUniform )
+            m_descriptorWrites.push_back( {
+                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                .dstBinding = 0,
+                .dstArrayElement = 0,
+                .descriptorCount = pci.m_computeUniformCount,
+                .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            } );
+        if ( m_hasImage )
+            m_descriptorWrites.push_back( {
+                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                .dstBinding = 1,
+                .dstArrayElement = 0,
+                .descriptorCount = pci.m_computeImageCount,
+                .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+            } );
         return;
     }
 
@@ -246,24 +254,21 @@ PipelineVK::PipelineVK(
         .pAttachments = &colorBlendAttachment,
     };
 
-    const std::array dynamicStatesDepth{
-        VK_DYNAMIC_STATE_VIEWPORT,
-        VK_DYNAMIC_STATE_SCISSOR,
-        VK_DYNAMIC_STATE_LINE_WIDTH,
-    };
-    std::pmr::vector<VkDynamicState> dynamicStatesColor{
-        VK_DYNAMIC_STATE_VIEWPORT,
-        VK_DYNAMIC_STATE_SCISSOR,
-    };
-    if ( useLines() ) dynamicStatesColor.emplace_back( VK_DYNAMIC_STATE_LINE_WIDTH );
-    if ( device.hasFeature( Device::eVRS ) ) dynamicStatesColor.emplace_back( VK_DYNAMIC_STATE_FRAGMENT_SHADING_RATE_KHR );
-
+    StackVector<VkDynamicState, 3> dynamicStatesDepth;
+    dynamicStatesDepth.push_back( VK_DYNAMIC_STATE_VIEWPORT );
+    dynamicStatesDepth.push_back( VK_DYNAMIC_STATE_SCISSOR );
+    if ( useLines() ) dynamicStatesDepth.push_back( VK_DYNAMIC_STATE_LINE_WIDTH );
     const VkPipelineDynamicStateCreateInfo dynamicStateDepth{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
-        .dynamicStateCount = static_cast<uint32_t>( dynamicStatesDepth.size() - !useLines() ),
+        .dynamicStateCount = static_cast<uint32_t>( dynamicStatesDepth.size() ),
         .pDynamicStates = dynamicStatesDepth.data(),
     };
 
+    StackVector<VkDynamicState, 4> dynamicStatesColor;
+    dynamicStatesColor.push_back( VK_DYNAMIC_STATE_VIEWPORT );
+    dynamicStatesColor.push_back( VK_DYNAMIC_STATE_SCISSOR );
+    if ( useLines() ) dynamicStatesColor.push_back( VK_DYNAMIC_STATE_LINE_WIDTH );
+    if ( device.hasFeature( Device::eVRS ) ) dynamicStatesColor.push_back( VK_DYNAMIC_STATE_FRAGMENT_SHADING_RATE_KHR );
     const VkPipelineDynamicStateCreateInfo dynamicStateColor{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
         .dynamicStateCount = static_cast<uint32_t>( dynamicStatesColor.size() ),
@@ -351,20 +356,22 @@ PipelineVK::PipelineVK(
     m_pipeline = pipelines[ 0 ];
     m_pipelineDepthPrepass = pipelines[ 1 ];
 
-    m_descriptorWrites[ 0 ] = {
-        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-        .dstBinding = 0,
-        .dstArrayElement = 0,
-        .descriptorCount = pci.m_vertexUniformCount,
-        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-    };
-    m_descriptorWrites[ 1 ] = {
-        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-        .dstBinding = 1,
-        .dstArrayElement = 0,
-        .descriptorCount = pci.m_fragmentImageCount,
-        .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-    };
+    if ( m_hasUniform )
+        m_descriptorWrites.push_back( {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstBinding = 0,
+            .dstArrayElement = 0,
+            .descriptorCount = pci.m_vertexUniformCount,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        } );
+    if ( m_hasImage )
+        m_descriptorWrites.push_back( {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstBinding = 1,
+            .dstArrayElement = 0,
+            .descriptorCount = pci.m_fragmentImageCount,
+            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+        } );
 }
 
 PipelineVK::operator VkPipeline () const
@@ -404,14 +411,24 @@ uint32_t PipelineVK::descriptorSetId() const
     return m_descriptorSetId;
 }
 
-uint32_t PipelineVK::descriptorWriteCount() const
-{
-    return std::min( m_descriptorWrites[ 0 ].descriptorCount, 1u )
-        + std::min( m_descriptorWrites[ 1 ].descriptorCount, 1u )
-    ;
-}
 
-uint32_t PipelineVK::descriptorWriteOffset() const
+void PipelineVK::updateDescriptorSet( VkDescriptorSet set, const VkDescriptorBufferInfo& buf, std::span<const VkDescriptorImageInfo> img )
 {
-    return m_descriptorWrites[ 0 ].descriptorCount == 0;
+    if ( m_hasUniform ) {
+        auto& write = m_descriptorWrites.front();
+        write.dstSet = set;
+        write.pBufferInfo = &buf;
+    }
+    if ( m_hasImage ) {
+        auto& write = m_descriptorWrites.back();
+        write.dstSet = set;
+        write.pImageInfo = img.data();
+    }
+    if ( m_hasUniform || m_hasImage ) {
+        vkUpdateDescriptorSets( m_device
+        , static_cast<uint32_t>( m_descriptorWrites.size() )
+        , m_descriptorWrites.data()
+        , 0
+        , nullptr );
+    }
 }
