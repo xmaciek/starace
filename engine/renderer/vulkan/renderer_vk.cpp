@@ -779,7 +779,7 @@ void RendererVK::render( const RenderInfo& ri )
     const bool bindBuffer = ri.m_vertexBuffer;
     uint32_t verticeCount = ri.m_verticeCount;
 
-    auto& descriptorPool = fr.m_descriptorSets[ currentPipeline.descriptorSetId() ];
+    auto& descriptorPool = fr.m_descriptorSets[ currentPipeline.descriptorSetPoolId() ];
 
     m_lastPipeline = &currentPipeline;
 
@@ -852,7 +852,7 @@ void RendererVK::dispatch( const DispatchInfo& dispatchInfo )
         break;
     }
 
-    auto& descriptorPool = fr.m_descriptorSets[ currentPipeline.descriptorSetId() ];
+    auto& descriptorPool = fr.m_descriptorSets[ currentPipeline.descriptorSetPoolId() ];
     const VkDescriptorBufferInfo uniformInfo = fr.m_uniformBuffer.copy( dispatchInfo.m_uniform.ptr, dispatchInfo.m_uniform.size );
     const VkDescriptorSet descriptorSet = descriptorPool.next();
     assert( descriptorSet != VK_NULL_HANDLE );

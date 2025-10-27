@@ -23,7 +23,7 @@ PipelineVK::PipelineVK( PipelineVK&& rhs ) noexcept
     std::swap( m_pipeline, rhs.m_pipeline );
     std::swap( m_pipelineDepthPrepass, rhs.m_pipelineDepthPrepass );
     std::swap( m_vertexStride, rhs.m_vertexStride );
-    std::swap( m_descriptorSetId, rhs.m_descriptorSetId );
+    std::swap( m_descriptorSetPoolId, rhs.m_descriptorSetPoolId );
     std::swap( m_descriptorWrites, rhs.m_descriptorWrites );
     std::swap( m_depthWrite, rhs.m_depthWrite );
     std::swap( m_useLines, rhs.m_useLines );
@@ -38,7 +38,7 @@ PipelineVK& PipelineVK::operator = ( PipelineVK&& rhs ) noexcept
     std::swap( m_pipeline, rhs.m_pipeline );
     std::swap( m_pipelineDepthPrepass, rhs.m_pipelineDepthPrepass );
     std::swap( m_vertexStride, rhs.m_vertexStride );
-    std::swap( m_descriptorSetId, rhs.m_descriptorSetId );
+    std::swap( m_descriptorSetPoolId, rhs.m_descriptorSetPoolId );
     std::swap( m_descriptorWrites, rhs.m_descriptorWrites );
     std::swap( m_depthWrite, rhs.m_depthWrite );
     std::swap( m_useLines, rhs.m_useLines );
@@ -165,11 +165,11 @@ PipelineVK::PipelineVK(
     , VkFormat depthFormat
     , VkFormat colorFormat
     , VkDescriptorSetLayout layout
-    , uint32_t descriptorSetId
+    , uint32_t descriptorSetPoolId
 ) noexcept
 : m_device{ device }
 , m_vertexStride{ pci.m_vertexStride }
-, m_descriptorSetId{ descriptorSetId }
+, m_descriptorSetPoolId{ descriptorSetPoolId }
 , m_depthWrite{ pci.m_enableDepthWrite }
 , m_useLines{ usesLines( pci.m_topology ) }
 , m_hasUniform{ pci.m_vertexUniformCount || pci.m_computeUniformCount }
@@ -406,9 +406,9 @@ VkPipeline PipelineVK::depthPrepass() const
     return m_pipelineDepthPrepass;
 }
 
-uint32_t PipelineVK::descriptorSetId() const
+uint32_t PipelineVK::descriptorSetPoolId() const
 {
-    return m_descriptorSetId;
+    return m_descriptorSetPoolId;
 }
 
 
