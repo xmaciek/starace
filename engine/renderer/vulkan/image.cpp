@@ -52,7 +52,7 @@ VkDescriptorImageInfo Image::imageInfo() const
 {
     return {
         .imageView = m_imageView,
-        .imageLayout = VK_IMAGE_LAYOUT_GENERAL,
+        .imageLayout = m_currentLocation.m_layout,
     };
 }
 

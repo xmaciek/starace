@@ -857,14 +857,14 @@ void RendererVK::dispatch( const DispatchInfo& dispatchInfo )
     const VkDescriptorSet descriptorSet = descriptorPool.next();
     assert( descriptorSet != VK_NULL_HANDLE );
 
+    fr.m_renderTarget.transfer( fr.m_cmdColorPass, constants::computeReadWrite );
+    fr.m_renderTargetTmp.transfer( fr.m_cmdColorPass, constants::computeReadWrite );
     std::array<VkDescriptorImageInfo, 2> imageInfo{
         fr.m_renderTarget.imageInfo(),
         fr.m_renderTargetTmp.imageInfo(),
     };
     currentPipeline.updateDescriptorSet( descriptorSet, uniformInfo, imageInfo );
 
-    fr.m_renderTarget.transfer( fr.m_cmdColorPass, constants::computeReadWrite );
-    fr.m_renderTargetTmp.transfer( fr.m_cmdColorPass, constants::computeReadWrite );
     vkCmdBindDescriptorSets( fr.m_cmdColorPass, VK_PIPELINE_BIND_POINT_COMPUTE, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
     vkCmdBindPipeline( fr.m_cmdColorPass, VK_PIPELINE_BIND_POINT_COMPUTE, currentPipeline );
 
