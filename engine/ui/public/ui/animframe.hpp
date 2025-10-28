@@ -4,8 +4,10 @@
 #include <ui/data_model.hpp>
 #include <ui/sprite.hpp>
 #include <shared/hash.hpp>
+#include <renderer/pipeline.hpp>
 
 #include <cstdint>
+
 namespace ui {
 
 class AnimFrame : public Widget {
@@ -16,6 +18,7 @@ class AnimFrame : public Widget {
     uint32_t m_index{};
     uint32_t m_count{};
     float m_spinner = 0.0f;
+    PipelineSlot m_pipeline{};
 
 public:
     struct CreateInfo {

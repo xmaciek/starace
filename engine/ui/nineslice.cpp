@@ -78,6 +78,7 @@ namespace ui {
 NineSlice::NineSlice( const CreateInfo& ci ) noexcept
 : Widget{ ci.position, ci.size, ci.anchor }
 {
+    m_pipeline = g_uiProperty.findMaterial( "spriteSequence"_hash );
     std::array<Hash::value_type, 9> hashes;
     switch ( ci.style ) {
     default: assert( !"unknown NineSlice style" ); [[fallthrough]];
@@ -105,7 +106,7 @@ void NineSlice::render( const RenderContext& rctx ) const
     ZoneScoped;
 
     RenderInfo ri{
-        .m_pipeline = g_uiProperty.pipelineSpriteSequence(),
+        .m_pipeline = m_pipeline,
         .m_verticeCount = Uniform::VERTICES,
         .m_instanceCount = 9,
     };

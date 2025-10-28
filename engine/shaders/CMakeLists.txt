@@ -8,3 +8,4 @@ compileShader( FILE sprite_sequence_colors.vert PACK init )
 
 pak_file( init blur.mat )
 pak_file( init glow.mat )
+pak_file( init sprite_sequence.mat )

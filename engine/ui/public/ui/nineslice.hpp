@@ -6,6 +6,7 @@
 #include <shared/hash.hpp>
 #include <engine/math.hpp>
 #include <renderer/texture.hpp>
+#include <renderer/pipeline.hpp>
 
 #include <array>
 
@@ -14,6 +15,7 @@ namespace ui {
 class NineSlice : public Widget {
 protected:
     using Uniform = PushConstant<Pipeline::eSpriteSequence>;
+    PipelineSlot m_pipeline{};
     std::array<Uniform::Sprite, 9> m_sprites{};
     std::array<Texture, 9> m_textures{};
 

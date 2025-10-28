@@ -12,6 +12,7 @@ AnimFrame::AnimFrame( const CreateInfo& ci ) noexcept
 : Widget{ ci.position, ci.size, ci.anchor }
 , m_color{ g_uiProperty.color( ci.color ) }
 {
+    m_pipeline = g_uiProperty.findMaterial( "spriteSequence"_hash );
     if ( ci.data ) { m_dataModel = g_uiProperty.dataModel( ci.data ); }
     for ( auto&& it : ci.frames ) {
         if ( !it ) continue;
@@ -23,7 +24,7 @@ AnimFrame::AnimFrame( const CreateInfo& ci ) noexcept
 void AnimFrame::render( const RenderContext& rctx ) const
 {
     RenderInfo ri{
-        .m_pipeline = g_uiProperty.pipelineSpriteSequence(),
+        .m_pipeline = m_pipeline,
         .m_verticeCount = 6u,
     };
     ri.m_fragmentTexture[ 0 ] = m_uvwh[ m_index ].texture;

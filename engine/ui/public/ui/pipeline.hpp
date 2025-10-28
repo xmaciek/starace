@@ -68,17 +68,6 @@ struct PushConstant<Pipeline::eBlur> {
 };
 
 [[maybe_unused]] inline constexpr std::array PIPELINES = {
-PipelineCreateInfo{
-    .m_vertexShader = "shaders/sprite_sequence.vert.spv",
-    .m_fragmentShader = "shaders/sprite_sequence.frag.spv",
-    .m_userHint = static_cast<uint32_t>( Pipeline::eSpriteSequence ),
-    .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
-    .m_cullMode = PipelineCreateInfo::CullMode::eBack,
-    .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_blendMode = PipelineCreateInfo::BlendMode::eAlpha,
-    .m_vertexUniformCount = 1,
-    .m_fragmentImageCount = 9,
-},
 
 PipelineCreateInfo{
     .m_vertexShader = "shaders/sprite_sequence_colors.vert.spv",

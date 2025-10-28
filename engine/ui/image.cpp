@@ -14,7 +14,7 @@ Image::Image( const CreateInfo& ci ) noexcept
 : Widget{ ci.position, ci.size, ci.anchor }
 , m_color{ g_uiProperty.color( ci.color ) }
 {
-    m_pipelineSlot = g_uiProperty.pipelineSpriteSequence();
+    m_pipelineSlot = g_uiProperty.findMaterial( "spriteSequence"_hash );
     if ( ci.data ) {
         m_dataModel = g_uiProperty.dataModel( ci.data );
         m_revision = m_dataModel->revision();
