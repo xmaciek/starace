@@ -41,6 +41,7 @@ SpinBox::SpinBox( const CreateInfo& ci ) noexcept
     m_label->setPosition( math::vec2{ 16.0f, s.y * 0.5f } );
     m_value->setPosition( math::vec2{ s.x * 0.75f - 2.0f, s.y * 0.5f } );
     setTabOrder( ci.tabOrder );
+    m_pipeline = g_uiProperty.findMaterial( "spriteSequenceColors"_hash );
 }
 
 void SpinBox::render( const RenderContext& r ) const
@@ -51,7 +52,7 @@ void SpinBox::render( const RenderContext& r ) const
     NineSlice::render( rctx );
 
     RenderInfo ri{
-        .m_pipeline = g_uiProperty.pipelineSpriteSequenceColors(),
+        .m_pipeline = m_pipeline,
         .m_verticeCount = PushConstant::VERTICES,
         .m_instanceCount = 2u,
     };

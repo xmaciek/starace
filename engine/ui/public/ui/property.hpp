@@ -29,7 +29,6 @@ class Font;
 
 class Property {
     friend Game;
-    PipelineSlot m_pipelineSpriteSequenceColors{};
     using InputSource = input::Actuator::Source;
     InputSource m_inputSource{};
     input::Remapper* m_remapper = nullptr;
@@ -52,8 +51,6 @@ public:
         DataModel* model = nullptr;
         inline operator bool () const noexcept { return !!model; };
     };
-
-    inline PipelineSlot pipelineSpriteSequenceColors() const { return m_pipelineSpriteSequenceColors; }
 
     inline bool setInputSource( InputSource s ) { return std::exchange( m_inputSource, s ) != s; }
     inline InputSource inputSource() const { return m_inputSource; }
@@ -118,8 +115,6 @@ public:
         case "white"_hash: return { 1.0f, 1.0f, 1.0f, 1.0f };
         }
     }
-
-    std::function<void(std::pair<uint32_t, PipelineSlot>)> setupPipeline();
 
     void addSprites( const Font* );
     Sprite sprite( Hash::value_type ) const;

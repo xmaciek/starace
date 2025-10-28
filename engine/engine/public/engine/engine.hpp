@@ -89,8 +89,6 @@ protected:
     void setDisplayMode( const DisplayMode& );
     void setTargetFPS( uint32_t, FpsLimiter::Mode );
 
-    void createPipelines( std::span<const PipelineCreateInfo>, std::function<void(std::pair<uint32_t, PipelineSlot>)> );
-
 private:
     void gameThread();
     void processEvents();

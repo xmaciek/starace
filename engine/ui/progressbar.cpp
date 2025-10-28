@@ -13,6 +13,7 @@ Progressbar::Progressbar( const Progressbar::CreateInfo& ci ) noexcept
 , m_spacing{ ci.spriteSpacing }
 , m_count{ ci.count }
 {
+    m_pipeline = g_uiProperty.findMaterial( "spriteSequenceColors"_hash );
     m_dataModel = g_uiProperty.dataModel( ci.data );
     auto sprite = g_uiProperty.sprite( ci.path );
     m_uvwh = sprite;
@@ -32,7 +33,7 @@ void Progressbar::render( const RenderContext& rctx ) const
 {
     using PushConstant = PushConstant<Pipeline::eSpriteSequenceColors>;
     RenderInfo ri{
-        .m_pipeline = g_uiProperty.pipelineSpriteSequenceColors(),
+        .m_pipeline = m_pipeline,
         .m_verticeCount = PushConstant::VERTICES,
         .m_instanceCount = m_count,
     };

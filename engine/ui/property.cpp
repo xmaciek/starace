@@ -29,18 +29,6 @@ void Property::addSprites( const Font* font )
     std::ranges::for_each( font->m_glyphMap.m_keys, convert );
 }
 
-std::function<void(std::pair<uint32_t, PipelineSlot>)> Property::setupPipeline()
-{
-    return [this]( std::pair<uint32_t, PipelineSlot> p )
-    {
-        switch ( static_cast<Pipeline>( p.first ) ) {
-        case eSpriteSequenceColors: m_pipelineSpriteSequenceColors = p.second; break;
-        default:
-            assert( !"unhandled enum for ui pipelines" );
-        };
-    };
-}
-
 void Property::loadFNTA( std::span<const uint8_t> data )
 {
     g_uiProperty.m_fontMap.addFont( data );

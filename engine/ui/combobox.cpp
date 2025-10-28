@@ -19,6 +19,7 @@ class ComboBoxList : public Widget {
     float m_lineHeight = 0.0f;
     float m_topPadding = 0.0f;
     float m_botHeight = 8.0f;
+    PipelineSlot m_pipeline{};
 
     DataModel::size_type visibleCount() const;
     DataModel::size_type selectedIndex() const;
@@ -104,6 +105,7 @@ ComboBoxList::ComboBoxList( const ComboBoxList::CreateInfo& ci ) noexcept
 , m_model{ ci.model }
 {
     assert( ci.model );
+    m_pipeline = g_uiProperty.findMaterial( "spriteSequenceColors"_hash );
     setPosition( ci.position + ci.size * math::vec2{ 0.0f, 1.0f } );
 
     float fSize = static_cast<float>( g_uiProperty.font( "small"_hash )->height() );
@@ -121,7 +123,7 @@ void ComboBoxList::render( const RenderContext& rctx ) const
     using PushConstant = PushConstant<Pipeline::eSpriteSequenceColors>;
     const float width = size().x;
     RenderInfo ri{
-        .m_pipeline = g_uiProperty.pipelineSpriteSequenceColors(),
+        .m_pipeline = m_pipeline,
         .m_verticeCount = PushConstant::VERTICES,
         .m_instanceCount = 1u,
     };

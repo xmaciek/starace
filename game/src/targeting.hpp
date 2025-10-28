@@ -7,6 +7,7 @@
 
 #include <engine/math.hpp>
 #include <renderer/texture.hpp>
+#include <renderer/pipeline.hpp>
 #include <shared/hash.hpp>
 #include <extra/csg.hpp>
 #include <ui/sprite.hpp>
@@ -16,6 +17,7 @@
 #include <vector>
 
 class Targeting {
+    PipelineSlot m_pipeline{};
     AutoLerp<float> m_state{ 0.0f, 1.0f, 6.0f/*4.0f*/ };
     std::pmr::vector<Signal> m_signals{};
     std::span<const csg::Callsign> m_callsigns{};

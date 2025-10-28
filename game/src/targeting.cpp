@@ -35,6 +35,7 @@ static constexpr std::array reticleSprites{
 Targeting::Targeting( const Targeting::CreateInfo& ci )
 : m_callsigns{ ci.callsigns }
 {
+    m_pipeline = g_uiProperty.findMaterial( "spriteSequenceColors"_hash );
     auto unpack = []( Hash::value_type hash )
     {
         return g_uiProperty.sprite( hash );
@@ -90,7 +91,7 @@ void Targeting::render( const RenderContext& rctx ) const
         .m_projection = rctx.projection,
     };
     RenderInfo ri{
-        .m_pipeline = g_uiProperty.pipelineSpriteSequenceColors(),
+        .m_pipeline = m_pipeline,
         .m_verticeCount = PushConstant::VERTICES,
         .m_instanceCount = 4,
         .m_uniform = pushConstant,

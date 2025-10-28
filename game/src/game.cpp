@@ -110,8 +110,6 @@ void Game::onInit()
     ZoneScoped;
 
     m_io->mount( "init.pak" );
-    createPipelines( ui::PIPELINES, g_uiProperty.setupPipeline() );
-
     m_screens.emplace_back( m_io->viewWait( "ui/loading.ui" ) );
     changeScreen( "loading"_hash );
 

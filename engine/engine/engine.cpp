@@ -471,18 +471,6 @@ void Engine::setDisplayMode( const DisplayMode& displayMode )
 
 }
 
-void Engine::createPipelines( std::span<const PipelineCreateInfo> infos, std::function<void(std::pair<uint32_t, PipelineSlot>)> cb )
-{
-    assert( cb );
-    for ( auto ci : infos ) {
-        if ( ci.m_vertexShader ) ci.m_vertexShaderData = m_io->viewWait( ci.m_vertexShader );
-        if ( ci.m_fragmentShader ) ci.m_fragmentShaderData = m_io->viewWait( ci.m_fragmentShader );
-        if ( ci.m_computeShader ) ci.m_computeShaderData = m_io->viewWait( ci.m_computeShader );
-        PipelineSlot p = m_renderer->createPipeline( ci );
-        cb( std::make_pair( ci.m_userHint, p ) );
-    }
-}
-
 void Engine::loadMAT( Asset&& asset )
 {
     MaterialSetup{ &m_materials, m_renderer, m_io }( std::move( asset ) );

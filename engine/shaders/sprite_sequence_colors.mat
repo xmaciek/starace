@@ -1,0 +1,9 @@
+blendMode alpha
+cullMode back
+fragmentImage 9
+fragmentShader shaders/sprite_sequence_colors.frag.spv
+frontFace ccw
+name spriteSequenceColors
+topology triangleFan
+vertexShader shaders/sprite_sequence_colors.vert.spv
+vertexUniform 1

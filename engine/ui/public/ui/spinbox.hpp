@@ -5,6 +5,8 @@
 #include <ui/nineslice.hpp>
 #include <ui/tab_order.hpp>
 
+#include <renderer/pipeline.hpp>
+
 namespace ui {
 
 class SpinBox : public NineSlice {
@@ -14,6 +16,7 @@ protected:
     DataModel* m_model = nullptr;
     float m_animL = 1.0f;
     float m_animR = 1.0f;
+    PipelineSlot m_pipeline{};
     bool m_focusL : 1 = false;
     bool m_focusR : 1 = false;
 
