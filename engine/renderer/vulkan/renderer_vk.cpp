@@ -264,7 +264,7 @@ PipelineSlot RendererVK::createPipeline( const PipelineCreateInfo& pci )
         , layout
         , descriptorId
     };
-    return slot;
+    return slot + 1;
 }
 
 RendererVK::~RendererVK()
@@ -751,11 +751,12 @@ void RendererVK::present()
 
 void RendererVK::render( const RenderInfo& ri )
 {
+    assert( ri.m_pipeline );
     assert( ri.m_pipeline < m_pipelines.size() );
     assert( ri.m_instanceCount > 0 );
 
     Frame& fr = m_frames[ m_currentFrame ];
-    PipelineVK& currentPipeline = m_pipelines[ ri.m_pipeline ];
+    PipelineVK& currentPipeline = m_pipelines[ ri.m_pipeline - 1 ];
 
     switch ( fr.m_state ) {
     case Frame::State::eCompute: {
@@ -837,10 +838,11 @@ void RendererVK::render( const RenderInfo& ri )
 
 void RendererVK::dispatch( const DispatchInfo& dispatchInfo )
 {
+    assert( dispatchInfo.m_pipeline );
     assert( dispatchInfo.m_pipeline < m_pipelines.size() );
 
     Frame& fr = m_frames[ m_currentFrame ];
-    PipelineVK& currentPipeline = m_pipelines[ dispatchInfo.m_pipeline ];
+    PipelineVK& currentPipeline = m_pipelines[ dispatchInfo.m_pipeline - 1 ];
 
     switch ( fr.m_state ) {
     case Frame::State::eGraphics:
