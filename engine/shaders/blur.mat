@@ -1,0 +1,4 @@
+computeImage 2
+computeShader shaders/blur.comp.spv
+computeUniform 1
+name blur

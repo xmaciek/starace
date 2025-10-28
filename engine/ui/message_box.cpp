@@ -12,9 +12,9 @@ MessageBox::MessageBox( const CreateInfo& ci )
     .size = ci.size,
     .anchor = Anchor::fMiddle | Anchor::fCenter,
 } }
-, m_blur{ g_uiProperty.pipelineBlur() }
 {
     m_text = emplace_child<Label>( Label::CreateInfo{ .text = ci.text, .font = "medium"_hash, .position = ci.size * 0.5f, .anchor = Anchor::fMiddle | Anchor::fCenter, } );
+    m_blur = g_uiProperty.findMaterial( "blur"_hash );
 }
 
 EventProcessing MessageBox::onAction( ui::Action a )

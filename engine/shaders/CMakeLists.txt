@@ -6,4 +6,5 @@ compileShader( FILE sprite_sequence.vert PACK init )
 compileShader( FILE sprite_sequence_colors.frag PACK init )
 compileShader( FILE sprite_sequence_colors.vert PACK init )
 
+pak_file( init blur.mat )
 pak_file( init glow.mat )

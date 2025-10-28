@@ -92,13 +92,6 @@ PipelineCreateInfo{
     .m_fragmentImageCount = 9,
 },
 
-PipelineCreateInfo{
-    .m_computeShader = "shaders/blur.comp.spv",
-    .m_userHint = static_cast<uint32_t>( Pipeline::eBlur ),
-    .m_computeUniformCount = 1,
-    .m_computeImageCount = 2,
-},
-
 };
 
 }
