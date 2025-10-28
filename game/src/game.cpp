@@ -72,6 +72,7 @@ Game::Game( int argc, char** argv )
     ZoneScoped;
     g_uiProperty.m_textures = &m_textures;
     g_uiProperty.m_remapper = &m_remapper;
+    g_uiProperty.m_materials = &m_materials;
     loadSettings();
     m_io->setCallback( ".spv", []( Asset&& ) {} ); // HACK for loading dependant file in .mat
     m_io->setCallback( ".mat", this, &Game::loadMAT );

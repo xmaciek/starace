@@ -93,17 +93,6 @@ PipelineCreateInfo{
 },
 
 PipelineCreateInfo{
-    .m_vertexShader = "shaders/glow.vert.spv",
-    .m_fragmentShader = "shaders/glow.frag.spv",
-    .m_userHint = static_cast<uint32_t>( Pipeline::eGlow ),
-    .m_topology = PipelineCreateInfo::Topology::eTriangleFan,
-    .m_cullMode = PipelineCreateInfo::CullMode::eBack,
-    .m_frontFace = PipelineCreateInfo::FrontFace::eCCW,
-    .m_blendMode = PipelineCreateInfo::BlendMode::eAlpha,
-    .m_vertexUniformCount = 1,
-},
-
-PipelineCreateInfo{
     .m_computeShader = "shaders/blur.comp.spv",
     .m_userHint = static_cast<uint32_t>( Pipeline::eBlur ),
     .m_computeUniformCount = 1,

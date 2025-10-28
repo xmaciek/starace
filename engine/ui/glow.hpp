@@ -9,7 +9,7 @@ class Glow : public Widget {
 public:
     PipelineSlot m_pipeline{};
     virtual ~Glow() noexcept override = default;
-    inline Glow( PipelineSlot p ) noexcept : m_pipeline{ p } {}
+    Glow() noexcept;
     virtual void render( const RenderContext& ) const override;
 };
 

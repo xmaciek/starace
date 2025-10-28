@@ -44,7 +44,8 @@ class Property {
 
     UniquePointer<Widget> m_pendingModalWidget{};
     ResourceMap<Sprite> m_sprites{};
-    ResourceMap<Texture>* m_textures = nullptr;
+    const ResourceMap<Texture>* m_textures = nullptr;
+    const ResourceMap<PipelineSlot>* m_materials = nullptr;
 
 
 public:
@@ -130,6 +131,7 @@ public:
     Sprite sprite( Hash::value_type ) const;
 
     inline Texture findTexture( Hash::value_type hh ) { return m_textures->find( hh ); }
+    inline PipelineSlot findMaterial( Hash::value_type hh ) { return m_materials->find( hh ); }
     void loadATLAS( std::span<const uint8_t> );
     void loadFNTA( std::span<const uint8_t> );
 };

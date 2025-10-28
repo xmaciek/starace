@@ -1,0 +1,8 @@
+blendMode alpha
+cullMode back
+fragmentShader shaders/glow.frag.spv
+frontFace ccw
+name glow
+topology triangleFan
+vertexShader shaders/glow.vert.spv
+vertexUniform 1

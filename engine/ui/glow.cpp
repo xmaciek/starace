@@ -7,6 +7,12 @@
 
 namespace ui {
 
+
+Glow::Glow() noexcept
+{
+    m_pipeline = g_uiProperty.findMaterial( "glow"_hash );
+}
+
 void Glow::render( const RenderContext& rctx ) const
 {
     using PushConstant = PushConstant<Pipeline::eGlow>;
