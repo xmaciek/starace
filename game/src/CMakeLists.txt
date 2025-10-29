@@ -30,7 +30,6 @@ target_sources( starace PRIVATE
     mesh.hpp
     model.cpp
     model.hpp
-    model_proto.hpp
     player.cpp
     player.hpp
     render_context.hpp

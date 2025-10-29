@@ -3,7 +3,6 @@
 #include "autolerp.hpp"
 #include "bullet.hpp"
 #include "model.hpp"
-#include "model_proto.hpp"
 #include "saobject.hpp"
 #include "units.hpp"
 

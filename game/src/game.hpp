@@ -5,7 +5,6 @@
 #include "game_scene.hpp"
 #include "menu_scene.hpp"
 #include "map_create_info.hpp"
-#include "model_proto.hpp"
 #include "space_dust.hpp"
 
 #include <config/config.hpp>
@@ -47,7 +46,11 @@ private:
     Audio::Slot m_click{};
 
     std::pmr::vector<MapCreateInfo> m_mapsContainer{};
-    std::pmr::vector<ModelProto> m_jetsContainer{};
+    struct JetInfo {
+        std::pmr::u32string name{};
+        Model model{};
+    };
+    std::pmr::vector<JetInfo> m_jetsContainer{};
     std::pmr::map<std::filesystem::path, Mesh> m_meshes{};
 
     std::pmr::vector<WeaponCreateInfo> m_weapons{};
@@ -84,7 +87,7 @@ private:
     uint32_t viewportWidth() const;
     float viewportAspect() const;
     void changeScreen( Hash::value_type, Audio::Slot sound = {} );
-    void createMapData( const MapCreateInfo&, const ModelProto& );
+    void createLevel();
 
     ui::Screen* currentScreen();
 

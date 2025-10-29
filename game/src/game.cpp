@@ -443,20 +443,19 @@ void Game::updateGame( UpdateContext& updateContext )
 
 }
 
-void Game::createMapData( const MapCreateInfo& mapInfo, const ModelProto& modelData )
+void Game::createLevel()
 {
-    ZoneScoped;
     const auto& w1 = m_weapons[ m_weapon1 ];
     const auto& w2 = m_weapons[ m_weapon2 ];
     m_gameScene = GameScene{ GameScene::CreateInfo{
         .audio = m_audio,
-        .skybox = mapInfo.texture,
+        .skybox = m_mapsContainer[ m_currentMission ].texture,
         .plasma = m_plasma,
         .enemyModel = &m_enemyModel,
         .enemyWeapon = m_enemyWeapon,
         .enemyCallsigns = m_callsigns,
         .player = Player::CreateInfo{
-            .model = modelData.model,
+            .model = m_jetsContainer[ m_currentJet ].model,
             .weapons{ w1, w2, w1 },
         },
         .spaceDustPipeline = m_materials[ "space_dust"_hash ],
@@ -495,7 +494,7 @@ void Game::changeScreen( Hash::value_type screenId, Audio::Slot sound )
         setScreen( "result"_hash );
         break;
     case "missionBriefing"_hash:
-        createMapData( m_mapsContainer[ m_currentMission ], m_jetsContainer[ m_currentJet ] );
+        createLevel();
         setScreen( "pause"_hash );
         break;
     default:
