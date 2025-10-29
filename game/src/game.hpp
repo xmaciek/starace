@@ -15,7 +15,6 @@
 #include <renderer/texture.hpp>
 #include <shared/hash.hpp>
 #include <ui/data_model.hpp>
-#include <ui/font.hpp>
 #include <input/remapper.hpp>
 #include <ui/screen.hpp>
 #include <ui/var.hpp>
@@ -34,11 +33,6 @@ public:
 
 private:
     input::Remapper m_remapper{};
-    ui::Font m_inputPS4{};
-    ui::Font m_inputXbox{};
-    ui::Font m_fontSmall{};
-    ui::Font m_fontMedium{};
-    ui::Font m_fontLarge{};
 
     uint32_t m_currentMission = 0;
     uint32_t m_currentJet = 0;
