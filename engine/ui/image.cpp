@@ -69,7 +69,6 @@ void Image::setColor( math::vec4 c )
 
 void Image::setTexture( Sprite s )
 {
-    assert( s.texture );
     m_sprite = s;
     m_sampleRGBA = Renderer::instance()->channelCount( s ) == 4;
 }

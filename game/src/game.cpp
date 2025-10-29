@@ -86,6 +86,7 @@ Game::Game( int argc, char** argv )
     m_io->setCallback( ".csg", this, &Game::loadCSG );
     m_io->setCallback( ".atlas", []( Asset&& a ) { g_uiProperty.loadATLAS( a.data ); } );
     m_io->setCallback( ".fnta", []( Asset&& a ) { g_uiProperty.loadFNTA( a.data ); } );
+    m_io->setCallback( ".ui", [this]( Asset&& a ) { m_screens.emplace_back( a.data ); } );
 }
 
 Game::~Game()
@@ -113,17 +114,6 @@ void Game::onInit()
     m_screens.emplace_back( m_io->viewWait( "ui/loading.ui" ) );
     changeScreen( "loading"_hash );
 
-    m_io->mount( "data.pak" );
-    g_pipelines[ Pipeline::eMesh ] = m_materials[ "mesh"_hash ];
-    g_pipelines[ Pipeline::eProjectile ] = m_materials[ "projectile"_hash ];
-    g_pipelines[ Pipeline::eThruster2 ] = m_materials[ "thruster2"_hash ];
-    g_pipelines[ Pipeline::eParticleBlob ] = m_materials[ "particles"_hash ];
-    g_pipelines[ Pipeline::eAfterglow ] = m_materials[ "afterglow"_hash ];
-    g_pipelines[ Pipeline::eBeamBlob ] = m_materials[ "beam"_hash ];
-    g_pipelines[ Pipeline::eTriangleFan3dTexture ] = m_materials[ "fan3d"_hash ];
-    g_pipelines[ Pipeline::eAntiAliasFXAA ] = m_materials[ "fxaa"_hash ];
-    g_pipelines[ Pipeline::eGammaCorrection ] = m_materials[ "gamma"_hash ];
-
     auto addAction = [r=&m_remapper]( const auto& p )
     {
         auto [eid, act] = p;
@@ -135,6 +125,18 @@ void Game::onInit()
         auto [eid, min, max] = p;
         r->add( static_cast<input::Action::Enum>( eid ), min, max );
     } );
+    setupUI();
+
+    m_io->mount( "data.pak" );
+    g_pipelines[ Pipeline::eMesh ] = m_materials[ "mesh"_hash ];
+    g_pipelines[ Pipeline::eProjectile ] = m_materials[ "projectile"_hash ];
+    g_pipelines[ Pipeline::eThruster2 ] = m_materials[ "thruster2"_hash ];
+    g_pipelines[ Pipeline::eParticleBlob ] = m_materials[ "particles"_hash ];
+    g_pipelines[ Pipeline::eAfterglow ] = m_materials[ "afterglow"_hash ];
+    g_pipelines[ Pipeline::eBeamBlob ] = m_materials[ "beam"_hash ];
+    g_pipelines[ Pipeline::eTriangleFan3dTexture ] = m_materials[ "fan3d"_hash ];
+    g_pipelines[ Pipeline::eAntiAliasFXAA ] = m_materials[ "fxaa"_hash ];
+    g_pipelines[ Pipeline::eGammaCorrection ] = m_materials[ "gamma"_hash ];
 
     m_click = m_sounds[ "sounds/click.wav" ];
     m_plasma = m_textures[ "textures/plasma.dds" ];
@@ -143,6 +145,12 @@ void Game::onInit()
 
     applyGameSettings();
     setupUI();
+    m_menuScene = MenuScene{ MenuScene::CreateInfo{
+        .background = g_uiProperty.sprite( "background"_hash ),
+        .pipeline = m_materials[ "background"_hash ],
+        .spaceDustPipeline = m_materials[ "space_dust"_hash ],
+    } };
+    m_menuScene.setModel( &m_jetsContainer[ 0 ].model );
     onResize( viewportWidth(), viewportHeight() );
     changeScreen( "mainMenu"_hash );
 }
@@ -327,26 +335,6 @@ void Game::setupUI()
         msg->addButton( "no"_hash, ui::Action::eMenuCancel, [screen]() { screen->addModalWidget( {} ); } );
         screen->addModalWidget( std::move( msg ) );
     });
-
-    m_gameplayUIData.m_playerWeaponIconPrimary = g_uiProperty.sprite( "icon.laser"_hash );
-    m_gameplayUIData.m_playerWeaponIconSecondary = g_uiProperty.sprite( "icon.laser"_hash );
-    m_screens.emplace_back( m_io->viewWait( "ui/customize.ui" ) );
-    m_screens.emplace_back( m_io->viewWait( "ui/gameplay.ui" ) );
-    m_screens.emplace_back( m_io->viewWait( "ui/result.ui" ) );
-    m_screens.emplace_back( m_io->viewWait( "ui/missionselect.ui" ) );
-    m_screens.emplace_back( m_io->viewWait( "ui/pause.ui" ) );
-    m_screens.emplace_back( m_io->viewWait( "ui/settings.ui" ) );
-    m_screens.emplace_back( m_io->viewWait( "ui/settings_display.ui" ) );
-    m_screens.emplace_back( m_io->viewWait( "ui/settings_audio.ui" ) );
-    m_screens.emplace_back( m_io->viewWait( "ui/settings_game.ui" ) );
-    m_screens.emplace_back( m_io->viewWait( "ui/mainmenu.ui" ) );
-
-    m_menuScene = MenuScene{ MenuScene::CreateInfo{
-        .background = g_uiProperty.sprite( "background"_hash ),
-        .pipeline = m_materials[ "background"_hash ],
-        .spaceDustPipeline = m_materials[ "space_dust"_hash ],
-    } };
-    m_menuScene.setModel( &m_jetsContainer[ 0 ].model );
 }
 
 ui::Screen* Game::currentScreen()
