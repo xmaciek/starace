@@ -3,47 +3,47 @@ add_library( ui STATIC )
 target_sources( ui
     PRIVATE
     animframe.cpp
+    animframe.hpp
     button.cpp
+    button.hpp
     combobox.cpp
+    combobox.hpp
     data_model.cpp
     font.cpp
     font_map.cpp
     footer.cpp
+    footer.hpp
     glow.cpp
     glow.hpp
     image.cpp
+    image.hpp
     label.cpp
     lockit.cpp
     message_box.cpp
     nineslice.cpp
     progressbar.cpp
+    progressbar.hpp
     property.cpp
     screen.cpp
     scroll_index.cpp
     spinbox.cpp
+    spinbox.hpp
     widget.cpp
 
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/anchor.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/animframe.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/button.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/combobox.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/data_model.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/font.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/font_map.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/footer.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/image.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/input.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/label.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/lockit.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/message_box.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/nineslice.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/pipeline.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/progressbar.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/property.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/screen.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/scroll_index.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/spinbox.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/sprite.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/tab_order.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/var.hpp

@@ -1,4 +1,4 @@
-#include <ui/progressbar.hpp>
+#include "progressbar.hpp"
 
 #include <ui/property.hpp>
 #include <ui/pipeline.hpp>

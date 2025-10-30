@@ -1,17 +1,17 @@
 #include <ui/screen.hpp>
 
+#include "animframe.hpp"
+#include "button.hpp"
+#include "combobox.hpp"
+#include "footer.hpp"
 #include "glow.hpp"
+#include "image.hpp"
+#include "progressbar.hpp"
+#include "spinbox.hpp"
 
-#include <ui/animframe.hpp>
-#include <ui/button.hpp>
-#include <ui/combobox.hpp>
-#include <ui/footer.hpp>
-#include <ui/image.hpp>
 #include <ui/label.hpp>
 #include <ui/nineslice.hpp>
-#include <ui/progressbar.hpp>
 #include <ui/property.hpp>
-#include <ui/spinbox.hpp>
 
 #include <config/config.hpp>
 

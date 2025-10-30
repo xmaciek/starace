@@ -1,4 +1,4 @@
-#include <ui/spinbox.hpp>
+#include "spinbox.hpp"
 
 #include <ui/property.hpp>
 #include <ui/pipeline.hpp>

@@ -1,4 +1,4 @@
-#include <ui/animframe.hpp>
+#include "animframe.hpp"
 
 #include <ui/property.hpp>
 #include <ui/pipeline.hpp>
