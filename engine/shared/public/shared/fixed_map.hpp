@@ -94,10 +94,14 @@ class FixedMap {
         ;
     }
 
+    template <typename T>
+    struct AlignedStorage {
+        alignas( alignof( T ) ) std::byte data[ sizeof( T ) ];
+    };
     using size_type = std::size_t;
     using difference_type = std::intptr_t;
-    using TKeyStorage = std::conditional_t<isTrivial<TKey>(), TKey, std::aligned_storage_t<sizeof(TKey), alignof(TKey)>>;
-    using TValueStorage = std::conditional_t<isTrivial<TValue>(), TValue, std::aligned_storage_t<sizeof(TValue), alignof(TValue)>>;
+    using TKeyStorage = std::conditional_t<isTrivial<TKey>(), TKey, AlignedStorage<TKey>>;
+    using TValueStorage = std::conditional_t<isTrivial<TValue>(), TValue, AlignedStorage<TValue>>;
     std::array<TKeyStorage, TCapacity> m_keyList{};
     std::array<TValueStorage, TCapacity> m_valueList{};
     size_type m_currentSize = 0;
