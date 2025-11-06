@@ -21,7 +21,7 @@ Footer::Footer( const Footer::CreateInfo& ci ) noexcept
     for ( auto&& entry : ci.entries ) {
         assert( idx < m_actions.size() );
         if ( idx == m_actions.size() ) break;
-        m_actions[ idx++ ] = ActionInfo{ entry.action, entry.textId, entry.triggerId };
+        m_actions[ idx++ ] = ActionInfo{ entry.action, entry.textId, entry.triggerId, entry.screenChange };
     }
 
     refreshText();
@@ -47,16 +47,15 @@ void Footer::lockitChanged()
 
 EventProcessing Footer::onAction( ui::Action a )
 {
-    for ( auto&& action : m_actions ) {
-        if ( action.triggerId == 0 ) continue;
-        if ( action.action != a.a ) continue;
-        auto callback = g_uiProperty.gameCallback( action.triggerId );
+    auto it = std::ranges::find_if( m_actions, [a]( const auto& action ) { return action.action == a.a; } );
+    if ( it == m_actions.end() ) return EventProcessing::eContinue;
+    if ( it->triggerId ) {
+        auto callback = g_uiProperty.gameCallback( it->triggerId );
         assert( callback );
         callback();
-        return EventProcessing::eStop;
     }
-
-    return EventProcessing::eContinue;
+    if ( it->screenChange ) g_uiProperty.changeScreen( it->screenChange );
+    return EventProcessing::eStop;
 }
 
 }

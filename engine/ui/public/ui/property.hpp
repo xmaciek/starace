@@ -37,6 +37,7 @@ class Property {
     std::pmr::vector<Lockit> m_lockit{};
     std::pmr::list<Screen> m_screens{};
     Screen* m_currentScreen = nullptr;
+    math::vec2 m_viewport{};
     uint32_t m_currentLang = 0;
     FixedMap<Hash::value_type, ui::DataModel*, 64> m_dataModels{};
     FixedMap<Hash::value_type, std::function<void()>, 64> m_gameCallbacks{};
@@ -126,6 +127,7 @@ public:
     inline PipelineSlot findMaterial( Hash::value_type hh ) { return m_materials->find( hh ); }
     inline Screen* currentScreen() const { return m_currentScreen; }
     void changeScreen( Hash::value_type, math::vec2 );
+    void changeScreen( Hash::value_type );
     uint32_t changeLockit( std::array<char, 8> );
 
     void loadATLAS( std::span<const uint8_t> );

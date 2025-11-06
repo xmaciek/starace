@@ -7,6 +7,7 @@ namespace ui {
 
 Button::Button( const CreateInfo& ci ) noexcept
 : NineSlice{ NineSlice::CreateInfo{ .position = ci.position, .size = ci.size, .style = "button"_hash, .anchor = ci.anchor } }
+, m_screenChange{ ci.screenChange }
 , m_trigger{ ci.trigger }
 {
     m_label = emplace_child<Label>( Label::CreateInfo{ .text = ci.text, .font = "medium"_hash, .position = ci.size * 0.5f, .anchor = Anchor::fCenter | Anchor::fMiddle, } );
@@ -21,6 +22,7 @@ void Button::trigger() const
         void operator () ( Hash::value_type h ) { if ( h ) (*this)( g_uiProperty.gameCallback( h ) ); }
     };
     std::visit( TriggerFire{}, m_trigger );
+    if ( m_screenChange ) g_uiProperty.changeScreen( m_screenChange );
 }
 
 void Button::setTrigger( std::function<void()>&& f )

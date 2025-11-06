@@ -33,8 +33,14 @@ void Property::changeScreen( Hash::value_type hash, math::vec2 viewport )
 {
     auto it = std::ranges::find_if( m_screens, [hash]( const auto& sc ) { return sc.name() == hash; } );
     assert( it != m_screens.end() );
+    m_viewport = viewport;
     m_currentScreen = &*it;
     m_currentScreen->show( viewport );
+}
+
+void Property::changeScreen( Hash::value_type hash )
+{
+    changeScreen( hash, m_viewport );
 }
 
 uint32_t Property::changeLockit( std::array<char, 8> id )

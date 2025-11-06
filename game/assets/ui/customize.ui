@@ -39,5 +39,5 @@ SpinBox = {
 }
 
 Footer = {
-    Button = { text = return    input = eMenuCancel     trigger = $function:goto_titlemenu }
+    Button = { text = return    input = eMenuCancel     goto = mainMenu }
 }

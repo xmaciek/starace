@@ -13,7 +13,7 @@ Label = {
 
 Button = {
     text = mission
-    trigger = $function:goto_newgame
+    goto = missionSelect
     x = 48
     y = 150
     width = 320
@@ -22,7 +22,7 @@ Button = {
 
 Button = {
     text = customize
-    trigger = $function:goto_customize
+    goto = customize
     x = 48
     y = 200
     width = 320
@@ -31,7 +31,7 @@ Button = {
 
 Button = {
     text = settings
-    trigger = $function:goto_settings
+    goto = settings
     x = 48
     y = 250
     width = 320

@@ -2,6 +2,7 @@
 
 #include <ui/label.hpp>
 #include <ui/nineslice.hpp>
+#include <shared/hash.hpp>
 
 #include <functional>
 #include <string_view>
@@ -12,12 +13,14 @@ namespace ui {
 class Button : public NineSlice {
 private:
     Label* m_label{};
+    Hash::value_type m_screenChange{};
     std::variant<std::monostate, Hash::value_type, std::function<void()>> m_trigger{};
 
 public:
     struct CreateInfo {
         Hash::value_type text{};
         Hash::value_type trigger{};
+        Hash::value_type screenChange{};
         math::vec2 position{};
         math::vec2 size{};
         uint16_t tabOrder{};

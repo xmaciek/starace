@@ -56,6 +56,7 @@ template <typename T> void setPath( void* ci, const cfg::Entry& e ) { reinterpre
 template <typename T> void setSpriteSpacing( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->spriteSpacing = e.toFloat(); };
 template <typename T> void setColor( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->color = Hash{}( e.toString() ); };
 template <typename T> void setTrigger( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->trigger = Hash{}( e.toString() ); };
+template <typename T> void setGoto( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->screenChange = Hash{}( e.toString() ); };
 template <typename T, size_t Tidx> void setFrame( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->frames[ Tidx ] = Hash{}( e.toString() ); };
 
 using F = std::tuple<Hash::value_type, void(*)( void*, const cfg::Entry& )>;
@@ -120,6 +121,7 @@ inline constexpr std::array BUTTON_FIELDS = {
     F{ "height"_hash, &setH<Button> },
     F{ "text"_hash, &setText<Button> },
     F{ "trigger"_hash, &setTrigger<Button> },
+    F{ "goto"_hash, &setGoto<Button> },
     F{ "width"_hash, &setW<Button> },
     F{ "x"_hash, &setX<Button> },
     F{ "y"_hash, &setY<Button> },
@@ -237,6 +239,7 @@ static UniquePointer<Widget> makeFooter( std::pmr::memory_resource* alloc, const
                 case "text"_hash: button.textId = hash( props.toString() ); continue;
                 case "input"_hash: button.action = makeInput( hash( props.toString() ) ); continue;
                 case "trigger"_hash: button.triggerId = hash( props.toString() ); continue;
+                case "goto"_hash: button.screenChange = hash( props.toString() ); continue;
                 default:
                     assert( !"Footer.Button unhandled property" );
                     continue;

@@ -24,6 +24,7 @@ public:
         Type type = Type::unknown;
         Hash::value_type textId = 0;
         Hash::value_type triggerId = 0;
+        Hash::value_type screenChange = 0;
         Action::Enum action{};
     };
 
@@ -46,6 +47,7 @@ private:
         Action::Enum action{};
         Hash::value_type textId = 0;
         Hash::value_type triggerId = 0;
+        Hash::value_type screenChange = 0;
     };
     static constexpr uint32_t MAX_ENTRIES = 4;
     std::array<ActionInfo, MAX_ENTRIES> m_actions{};

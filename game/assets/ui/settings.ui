@@ -6,10 +6,10 @@ scene = menu
 
 Label = { x = 48 y = 50 text = settings font = large }
 
-Button = { x = 48 y = 150 width = 320 height = 48 text = settings.audio trigger = $function:goto_settings_audio }
-Button = { x = 48 y = 200 width = 320 height = 48 text = settings.display trigger = $function:goto_settings_display }
-Button = { x = 48 y = 250 width = 320 height = 48 text = settings.game trigger = $function:goto_settings_game }
+Button = { x = 48 y = 150 width = 320 height = 48 text = settings.audio goto = settings.audio }
+Button = { x = 48 y = 200 width = 320 height = 48 text = settings.display goto = settings.display }
+Button = { x = 48 y = 250 width = 320 height = 48 text = settings.game goto = settings.game }
 
 Footer = {
-    Button = { text = return    input = eMenuCancel     trigger = $function:goto_titlemenu }
+    Button = { text = return    input = eMenuCancel     goto = mainMenu }
 }

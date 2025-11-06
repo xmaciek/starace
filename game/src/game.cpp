@@ -257,13 +257,6 @@ void Game::setupUI()
     g_uiProperty.addDataModel( "$var:missionResult"_hash, &m_uiMissionResult );
     g_uiProperty.addDataModel( "$var:missionScore"_hash, &m_uiMissionScore );
     g_uiProperty.addCallback( "$function:goto_missionBriefing"_hash,  [this](){ changeScreen( "missionBriefing"_hash, m_click ); } );
-    g_uiProperty.addCallback( "$function:goto_newgame"_hash, [this](){ changeScreen( "missionSelect"_hash, m_click ); } );
-    g_uiProperty.addCallback( "$function:goto_customize"_hash, [this](){ changeScreen( "customize"_hash, m_click ); } );
-    g_uiProperty.addCallback( "$function:goto_titlemenu"_hash, [this](){ changeScreen( "mainMenu"_hash, m_click ); } );
-    g_uiProperty.addCallback( "$function:goto_settings"_hash, [this](){ changeScreen( "settings"_hash, m_click ); } );
-    g_uiProperty.addCallback( "$function:goto_settings_display"_hash, [this](){ changeScreen( "settings.display"_hash, m_click ); } );
-    g_uiProperty.addCallback( "$function:goto_settings_audio"_hash, [this](){ changeScreen( "settings.audio"_hash, m_click ); } );
-    g_uiProperty.addCallback( "$function:goto_settings_game"_hash, [this](){ changeScreen( "settings.game"_hash, m_click ); } );
     g_uiProperty.addCallback( "$function:quit"_hash, [this](){ quit(); } );
     g_uiProperty.addCallback( "$function:resume"_hash, [this]{ changeScreen( "gameplay"_hash, m_click ); m_gameScene.setPause( false ); } );
     g_uiProperty.addCallback( "$function:applyDisplay"_hash, [this]()
