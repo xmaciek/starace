@@ -4,6 +4,7 @@
 #include <ui/lockit.hpp>
 #include <ui/sprite.hpp>
 #include <ui/font_map.hpp>
+#include <ui/screen.hpp>
 
 #include <engine/math.hpp>
 #include <renderer/texture.hpp>
@@ -34,6 +35,8 @@ class Property {
     input::Remapper* m_remapper = nullptr;
     FontMap m_fontMap{};
     std::pmr::vector<Lockit> m_lockit{};
+    std::pmr::list<Screen> m_screens{};
+    Screen* m_currentScreen = nullptr;
     uint32_t m_currentLang = 0;
     FixedMap<Hash::value_type, ui::DataModel*, 64> m_dataModels{};
     FixedMap<Hash::value_type, std::function<void()>, 64> m_gameCallbacks{};
@@ -121,8 +124,13 @@ public:
 
     inline Texture findTexture( Hash::value_type hh ) { return m_textures->find( hh ); }
     inline PipelineSlot findMaterial( Hash::value_type hh ) { return m_materials->find( hh ); }
+    inline Screen* currentScreen() const { return m_currentScreen; }
+    void changeScreen( Hash::value_type, math::vec2 );
+    uint32_t changeLockit( std::array<char, 8> );
+
     void loadATLAS( std::span<const uint8_t> );
     void loadFNTA( std::span<const uint8_t> );
+    void loadUI( std::span<const uint8_t> );
 };
 
 } // namespace ui

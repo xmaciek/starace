@@ -86,7 +86,7 @@ Game::Game( int argc, char** argv )
     m_io->setCallback( ".csg", this, &Game::loadCSG );
     m_io->setCallback( ".atlas", []( Asset&& a ) { g_uiProperty.loadATLAS( a.data ); } );
     m_io->setCallback( ".fnta", []( Asset&& a ) { g_uiProperty.loadFNTA( a.data ); } );
-    m_io->setCallback( ".ui", [this]( Asset&& a ) { m_screens.emplace_back( a.data ); } );
+    m_io->setCallback( ".ui", []( Asset&& a ) { g_uiProperty.loadUI( a.data ); } );
 }
 
 Game::~Game()
@@ -101,7 +101,7 @@ void Game::onExit()
 void Game::onResize( uint32_t w, uint32_t h )
 {
     ZoneScoped;
-    if ( auto* screen = currentScreen() ) {
+    if ( auto* screen = g_uiProperty.currentScreen() ) {
         screen->resize( { w, h } );
     }
 }
@@ -111,9 +111,7 @@ void Game::onInit()
     ZoneScoped;
 
     m_io->mount( "init.pak" );
-    m_screens.emplace_back( m_io->viewWait( "ui/loading.ui" ) );
     changeScreen( "loading"_hash );
-
     auto addAction = [r=&m_remapper]( const auto& p )
     {
         auto [eid, act] = p;
@@ -279,7 +277,7 @@ void Game::setupUI()
     g_uiProperty.addCallback( "$function:exitDisplay"_hash, [this]()
     {
         if ( !m_optionsGFX.hasChanges( m_gameSettings ) ) return changeScreen( "settings"_hash, m_click );
-        auto* screen = currentScreen();
+        auto* screen = g_uiProperty.currentScreen();
         assert( screen );
         auto msg = screen->messageBox( "settings.display.unsaved"_hash );
         assert( msg );
@@ -301,7 +299,7 @@ void Game::setupUI()
     g_uiProperty.addCallback( "$function:exitAudio"_hash, [this]()
     {
         if ( !m_optionsAudio.hasChanges( m_gameSettings ) ) return changeScreen( "settings"_hash, m_click );
-        auto* screen = currentScreen();
+        auto* screen = g_uiProperty.currentScreen();
         assert( screen );
         auto msg = screen->messageBox( "settings.audio.unsaved"_hash );
         assert( msg );
@@ -323,7 +321,7 @@ void Game::setupUI()
     g_uiProperty.addCallback( "$function:exitGameSettings"_hash, [this]()
     {
         if ( !m_optionsGame.hasChanges( m_gameSettings ) ) return changeScreen( "settings"_hash, m_click );
-        auto* screen = currentScreen();
+        auto* screen = g_uiProperty.currentScreen();
         assert( screen );
         auto msg = screen->messageBox( "settings.game.unsaved"_hash );
         assert( msg );
@@ -337,14 +335,9 @@ void Game::setupUI()
     });
 }
 
-ui::Screen* Game::currentScreen()
-{
-    return m_currentScreen;
-}
-
 void Game::onRender( Renderer* renderer )
 {
-    ui::Screen* screen = currentScreen();
+    ui::Screen* screen = g_uiProperty.currentScreen();
     if ( !screen ) [[unlikely]] return;
 
     const auto [ width, height, aspect ] = viewport();
@@ -390,7 +383,7 @@ void Game::onRender( Renderer* renderer )
 void Game::onUpdate( float deltaTime )
 {
     ZoneScoped;
-    ui::Screen* screen = currentScreen();
+    ui::Screen* screen = g_uiProperty.currentScreen();
     if ( !screen ) [[unlikely]] {
         return;
     }
@@ -468,14 +461,8 @@ void Game::createLevel()
 void Game::changeScreen( Hash::value_type screenId, Audio::Slot sound )
 {
     ZoneScoped;
-    auto setScreen = [this]( auto hash )
-    {
-        auto it = std::ranges::find_if( m_screens, [hash]( const auto& sc ) { return sc.name() == hash; } );
-        assert( it != m_screens.end() );
-        m_currentScreen = &*it;
-        auto [ w, h, a ] = viewport();
-        m_currentScreen->show( { w, h } );
-    };
+    auto [ w, h, a ] = viewport();
+    math::vec2 vp{ w, h };
 
     if ( sound ) {
         m_audio->play( sound, Audio::Channel::eUI );
@@ -486,19 +473,19 @@ void Game::changeScreen( Hash::value_type screenId, Audio::Slot sound )
     case "lose"_hash:
         m_uiMissionResult = std::pmr::u32string{ g_uiProperty.localize( "missionLost"_hash ) };
         m_uiMissionScore = std::pmr::u32string { g_uiProperty.localize( "yourScore"_hash ) } + intToUTF32( m_gameScene.score() );
-        setScreen( "result"_hash );
+        g_uiProperty.changeScreen( "result"_hash, vp );
         break;
     case "win"_hash:
         m_uiMissionResult = std::pmr::u32string{ g_uiProperty.localize( "missionWin"_hash ) };
         m_uiMissionScore = std::pmr::u32string{ g_uiProperty.localize( "yourScore"_hash ) } + intToUTF32( m_gameScene.score() );
-        setScreen( "result"_hash );
+        g_uiProperty.changeScreen( "result"_hash, vp );
         break;
     case "missionBriefing"_hash:
         createLevel();
-        setScreen( "pause"_hash );
+        g_uiProperty.changeScreen( "pause"_hash, vp );
         break;
     default:
-        setScreen( screenId );
+        g_uiProperty.changeScreen( screenId, vp );
         break;
     }
 }
@@ -635,14 +622,8 @@ void Game::applyGameSettings()
         std::ranges::copy( ll.id(), std::begin( m_gameSettings.gameLang ) );
     }
     else {
-        auto it = std::ranges::find_if( g_uiProperty.m_lockit, [id=m_gameSettings.gameLang]( const auto& l )
-        {
-            return l.id() == id;
-        } );
-        assert( it != g_uiProperty.m_lockit.end() );
-        g_uiProperty.m_currentLang = static_cast<uint32_t>( std::distance( g_uiProperty.m_lockit.begin(), it ) );
-        m_optionsGame.m_languageUI.select( (uint16_t)g_uiProperty.m_currentLang );
-        std::ranges::for_each( m_screens, []( auto& s ) { s.lockitChanged(); } );
+        auto id = g_uiProperty.changeLockit( m_gameSettings.gameLang );
+        m_optionsGame.m_languageUI.select( (uint16_t)id );
     }
 }
 
@@ -704,7 +685,7 @@ void Game::onAction( input::Action a )
     using namespace input;
     ZoneScoped;
 
-    ui::Screen* screen = currentScreen();
+    ui::Screen* screen = g_uiProperty.currentScreen();
     assert( screen );
     if ( a.testEnumRange<(Action::Enum)ui::Action::base, (Action::Enum)ui::Action::end>() ) {
         screen->onAction( ui::Action{ .a = a.toA<ui::Action::Enum>(), .value = a.value } );
@@ -740,7 +721,7 @@ void Game::onMouseEvent( const MouseEvent& mouseEvent )
         if ( mouseEvent.value == 0 ) return;
     case MouseEvent::eMove: break;
     }
-    ui::Screen* screen = currentScreen();
+    ui::Screen* screen = g_uiProperty.currentScreen();
     if ( !screen ) return;
     if ( inputSourceChanges ) {
         screen->refreshInput();
@@ -752,7 +733,7 @@ void Game::onActuator( input::Actuator a )
 {
     using namespace input;
     bool inputChanged = g_uiProperty.setInputSource( a.source );
-    if ( ui::Screen* screen = currentScreen(); inputChanged && screen ) {
+    if ( ui::Screen* screen = g_uiProperty.currentScreen(); inputChanged && screen ) {
         screen->refreshInput();
     }
 

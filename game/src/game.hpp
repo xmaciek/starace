@@ -15,7 +15,6 @@
 #include <shared/hash.hpp>
 #include <ui/data_model.hpp>
 #include <input/remapper.hpp>
-#include <ui/screen.hpp>
 #include <ui/var.hpp>
 
 #include <SDL.h>
@@ -40,9 +39,6 @@ private:
     Model m_enemyModel{};
     GameScene m_gameScene{};
     MenuScene m_menuScene{};
-    std::pmr::list<ui::Screen> m_screens;
-    ui::Screen* m_currentScreen = nullptr;
-
     Audio::Slot m_click{};
 
     std::pmr::vector<MapCreateInfo> m_mapsContainer{};
