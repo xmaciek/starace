@@ -48,7 +48,7 @@ uint32_t Property::changeLockit( std::array<char, 8> id )
 
 void Property::loadFNTA( std::span<const uint8_t> data )
 {
-    g_uiProperty.m_fontMap.addFont( data );
+    m_fontMap.addFont( data );
 }
 
 void Property::loadATLAS( std::span<const uint8_t> data )
@@ -57,7 +57,7 @@ void Property::loadATLAS( std::span<const uint8_t> data )
     ui::Font f = ui::Font::CreateInfo{
         .fontAtlas = data,
     };
-    g_uiProperty.addSprites( &f );
+    addSprites( &f );
 }
 
 void Property::loadUI( std::span<const uint8_t> data )
