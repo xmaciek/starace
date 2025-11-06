@@ -142,7 +142,6 @@ void Game::onInit()
     m_menuScene.setModel( &m_jetsContainer[ 0 ].model );
 
     applyGameSettings();
-    setupUI();
     m_menuScene = MenuScene{ MenuScene::CreateInfo{
         .background = g_uiProperty.sprite( "background"_hash ),
         .pipeline = m_materials[ "background"_hash ],
