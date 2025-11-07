@@ -198,12 +198,8 @@ void SDLAudio::setVolume( Audio::Channel c, float v )
 
 std::pmr::vector<std::pmr::string> SDLAudio::listDrivers()
 {
-    int driverCount = SDL_GetNumAudioDrivers();
-    std::pmr::vector<std::pmr::string> drivers{};
-    drivers.reserve( static_cast<size_t>( driverCount ) );
-    for ( int i = 0; i < driverCount; ++i ) {
-        drivers.emplace_back( SDL_GetAudioDriver( i ) );
-    }
+    std::pmr::vector<std::pmr::string> drivers( (size_t)SDL_GetNumAudioDrivers() );
+    std::ranges::generate( drivers, [i=0]() mutable { return SDL_GetAudioDriver( i++ ); } );
     return drivers;
 }
 
@@ -228,21 +224,18 @@ bool SDLAudio::selectDriver( std::string_view name )
 
 std::pmr::vector<std::pmr::string> SDLAudio::listDevices()
 {
-    int devCount = SDL_GetNumAudioDevices( false );
-    std::pmr::vector<std::pmr::string> devices{};
-    devices.reserve( static_cast<size_t>( devCount ) );
-    for ( int i = 0; i < devCount; ++i ) {
-        devices.emplace_back( SDL_GetAudioDeviceName( i, false ) );
-    }
-    std::reverse( devices.begin(), devices.end() );
+    int i = SDL_GetNumAudioDevices( false );
+    std::pmr::vector<std::pmr::string> devices( (size_t)i );
+    std::ranges::generate( devices, [i]() mutable { return SDL_GetAudioDeviceName( --i, false ); } );
     return devices;
 }
 
 bool SDLAudio::selectDevice( std::string_view name )
 {
     auto devices = listDevices();
-    auto it = std::find( devices.begin(), devices.end(), name );
+    auto it = std::ranges::find( devices, name );
     if ( it == devices.end() ) return false;
+
     const SDL_AudioSpec want{
         .freq = 48000_Hz,
         .format = AUDIO_S16LSB,
