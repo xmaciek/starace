@@ -7,13 +7,15 @@
 
 #include <SDL.h>
 
+#include <algorithm>
 #include <array>
 #include <atomic>
-#include <algorithm>
 #include <cassert>
 #include <memory_resource>
-#include <string_view>
+#include <mutex>
 #include <string>
+#include <string_view>
+#include <variant>
 #include <vector>
 
 constexpr unsigned long long operator""_Hz( unsigned long long hz ) noexcept
@@ -21,20 +23,29 @@ constexpr unsigned long long operator""_Hz( unsigned long long hz ) noexcept
     return hz;
 }
 
+class SDLAudio;
+
 using Buffer = std::pmr::vector<Uint8>;
 
-struct alignas( 8 ) PlaySpan {
-    uint32_t position;
-    Audio::Slot slot;
-    Audio::Channel channel;
-    bool isEnqueued;
+struct PlayerWav {
+    SDLAudio* m_instance{};
+    uint32_t m_position{};
+    Audio::Slot m_slot{};
+    Audio::Channel m_channel{};
+
+    void operator () ( std::span<Uint8> );
+    inline operator bool () const { return !!m_instance; }
 };
-static_assert( sizeof( PlaySpan ) == 8 );
+
+using Player = std::variant<PlayerWav>;
 
 class SDLAudio : public Audio {
+public:
     SDL_AudioSpec m_spec{};
     std::array<float, (size_t)Audio::Channel::count> m_volumeChannels{};
-    std::array<std::atomic<PlaySpan>, 64> m_nowPlaying{};
+
+    std::mutex m_bottleneck;
+    std::pmr::vector<Player> m_players;
 
     static constexpr uint64_t c_maxSlots = 8;
     Indexer<c_maxSlots> m_slotMachine{};
@@ -54,7 +65,6 @@ class SDLAudio : public Audio {
         return m_volumeChannels[ 0 ] * m_volumeChannels[ (size_t)c ];
     }
 
-public:
     virtual ~SDLAudio() override;
     SDLAudio();
 
@@ -72,6 +82,27 @@ Audio* Audio::create()
     return new SDLAudio();
 }
 
+
+void PlayerWav::operator () ( std::span<Uint8> stream )
+{
+    assert( m_instance );
+    assert( m_slot < m_instance->m_audioSlots.size() );
+    const Buffer& buffer = m_instance->m_audioSlots[ m_slot ];
+    const uint32_t bufferSize = static_cast<uint32_t>( buffer.size() );
+    assert( m_position < bufferSize );
+
+    const Uint32 sizeRemaining = static_cast<Uint32>( bufferSize - m_position );
+    const Uint32 playLength = std::min( static_cast<Uint32>( stream.size() ), sizeRemaining );
+    SDL_MixAudioFormat( stream.data()
+        , buffer.data() + m_position
+        , m_instance->m_spec.format
+        , playLength
+        , static_cast<decltype(SDL_MIX_MAXVOLUME)>( SDL_MIX_MAXVOLUME * m_instance->volume( m_channel ) )
+    );
+    m_position += playLength;
+    if ( m_position == bufferSize ) m_instance = nullptr;
+}
+
 SDLAudio::~SDLAudio()
 {
     ZoneScoped;
@@ -83,7 +114,7 @@ SDLAudio::~SDLAudio()
 SDLAudio::SDLAudio()
 {
     ZoneScoped;
-    std::fill( m_volumeChannels.begin(), m_volumeChannels.end(), 1.0f );
+    std::ranges::fill( m_volumeChannels, 1.0f );
     SDL_InitSubSystem( SDL_INIT_AUDIO );
 
     auto drivers = listDrivers();
@@ -100,37 +131,19 @@ std::pmr::memory_resource* SDLAudio::allocator()
     return std::pmr::get_default_resource();
 }
 
-void SDLAudio::callback( void* userData, Uint8* stream, int len )
+void SDLAudio::callback( void* userData, Uint8* data, int len )
 {
     ZoneScoped;
     assert( userData );
-    assert( stream );
+    assert( data );
 
-    std::fill_n( stream, len, (Uint8)0 );
+    std::fill_n( data, len, (Uint8)0 );
     SDLAudio* instance = reinterpret_cast<SDLAudio*>( userData );
-    auto& toPlay = instance->m_nowPlaying;
-    const auto format = instance->m_spec.format;
-
-    for ( auto& it : toPlay ) {
-        PlaySpan span = it.load();
-        if ( !span.isEnqueued ) continue;
-        if ( span.slot == c_invalidSlot ) continue;
-        assert( span.slot < instance->m_audioSlots.size() );
-        const Buffer& buffer = instance->m_audioSlots[ span.slot ];
-        const uint32_t bufferSize = static_cast<uint32_t>( buffer.size() );
-        assert( span.position < bufferSize );
-
-        const Uint32 sizeRemaining = static_cast<Uint32>( bufferSize - span.position );
-        const Uint32 playLength = std::min( static_cast<Uint32>( len ), sizeRemaining );
-        SDL_MixAudioFormat( stream
-            , buffer.data() + span.position
-            , format
-            , playLength
-            , static_cast<decltype(SDL_MIX_MAXVOLUME)>( SDL_MIX_MAXVOLUME * instance->volume( it.load().channel ) )
-        );
-        span.position += playLength;
-        it.store( span.position == bufferSize ? PlaySpan{} : span );
-    }
+    auto& toPlay = instance->m_players;
+    std::span<Uint8> stream( data, data + len );
+    std::scoped_lock bottleneck( instance->m_bottleneck );
+    std::ranges::for_each( toPlay, [stream]( auto& p ) { std::visit( [stream]( auto& pp ) { pp( stream ); }, p ); } );
+    std::erase_if( toPlay, []( const auto& p ) { return std::visit( []( const auto& pp ) -> bool { return !pp; }, p ); } );
 }
 
 Audio::Slot SDLAudio::load( std::span<const uint8_t> data )
@@ -177,17 +190,14 @@ void SDLAudio::play( Audio::Slot idx, Audio::Channel c )
     idx--;
     assert( idx < m_audioSlots.size() );
 
-    PlaySpan span{
-        .position = 0,
-        .slot = idx,
-        .channel = c,
-        .isEnqueued = true,
+    PlayerWav play{
+        .m_instance = this,
+        .m_position = 0,
+        .m_slot = idx,
+        .m_channel = c,
     };
-    for ( auto& it : m_nowPlaying ) {
-        PlaySpan empty{};
-        if ( it.compare_exchange_weak( empty, span ) ) return;
-    }
-    assert( !"too many sounds playing" );
+    std::scoped_lock bottleneck( m_bottleneck );
+    m_players.emplace_back( play );
 }
 
 void SDLAudio::setVolume( Audio::Channel c, float v )
