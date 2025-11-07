@@ -73,6 +73,8 @@ Game::Game( int argc, char** argv )
     g_uiProperty.m_textures = &m_textures;
     g_uiProperty.m_remapper = &m_remapper;
     g_uiProperty.m_materials = &m_materials;
+    g_uiProperty.m_sounds = &m_sounds;
+    g_uiProperty.m_audio = m_audio;
     loadSettings();
     m_io->setCallback( ".spv", []( Asset&& ) {} ); // HACK for loading dependant file in .mat
     m_io->setCallback( ".mat", this, &Game::loadMAT );
@@ -136,7 +138,6 @@ void Game::onInit()
     g_pipelines[ Pipeline::eAntiAliasFXAA ] = m_materials[ "fxaa"_hash ];
     g_pipelines[ Pipeline::eGammaCorrection ] = m_materials[ "gamma"_hash ];
 
-    m_click = m_sounds[ "sounds/click.wav" ];
     m_plasma = m_textures[ "textures/plasma.dds" ];
     m_enemyModel = Model{ m_meshes[ "models/a2.objc" ], m_textures[ "textures/a2.dds" ] };
     m_menuScene.setModel( &m_jetsContainer[ 0 ].model );
@@ -256,9 +257,9 @@ void Game::setupUI()
     g_uiProperty.addDataModel( "$var:jetSpeed"_hash, &m_gameplayUIData.m_jetSpeed );
     g_uiProperty.addDataModel( "$var:missionResult"_hash, &m_uiMissionResult );
     g_uiProperty.addDataModel( "$var:missionScore"_hash, &m_uiMissionScore );
-    g_uiProperty.addCallback( "$function:goto_missionBriefing"_hash,  [this](){ changeScreen( "missionBriefing"_hash, m_click ); } );
+    g_uiProperty.addCallback( "$function:goto_missionBriefing"_hash,  [this](){ changeScreen( "missionBriefing"_hash ); } );
     g_uiProperty.addCallback( "$function:quit"_hash, [this](){ quit(); } );
-    g_uiProperty.addCallback( "$function:resume"_hash, [this]{ changeScreen( "gameplay"_hash, m_click ); m_gameScene.setPause( false ); } );
+    g_uiProperty.addCallback( "$function:resume"_hash, [this]{ changeScreen( "gameplay"_hash ); m_gameScene.setPause( false ); } );
     g_uiProperty.addCallback( "$function:applyDisplay"_hash, [this]()
     {
         if ( !m_optionsGFX.hasChanges( m_gameSettings ) ) return;
@@ -268,7 +269,7 @@ void Game::setupUI()
     });
     g_uiProperty.addCallback( "$function:exitDisplay"_hash, [this]()
     {
-        if ( !m_optionsGFX.hasChanges( m_gameSettings ) ) return changeScreen( "settings"_hash, m_click );
+        if ( !m_optionsGFX.hasChanges( m_gameSettings ) ) return changeScreen( "settings"_hash );
         auto* screen = g_uiProperty.currentScreen();
         assert( screen );
         auto msg = screen->messageBox( "settings.display.unsaved"_hash );
@@ -276,7 +277,7 @@ void Game::setupUI()
         msg->addButton( "yes"_hash, ui::Action::eMenuConfirm, [this]()
         {
             m_optionsGFX.settings2ui( m_gameSettings );
-            changeScreen( "settings"_hash, m_click );
+            changeScreen( "settings"_hash );
         } );
         msg->addButton( "no"_hash, ui::Action::eMenuCancel, [screen]() { screen->addModalWidget( {} ); } );
         screen->addModalWidget( std::move( msg ) );
@@ -290,7 +291,7 @@ void Game::setupUI()
     } );
     g_uiProperty.addCallback( "$function:exitAudio"_hash, [this]()
     {
-        if ( !m_optionsAudio.hasChanges( m_gameSettings ) ) return changeScreen( "settings"_hash, m_click );
+        if ( !m_optionsAudio.hasChanges( m_gameSettings ) ) return changeScreen( "settings"_hash );
         auto* screen = g_uiProperty.currentScreen();
         assert( screen );
         auto msg = screen->messageBox( "settings.audio.unsaved"_hash );
@@ -298,7 +299,7 @@ void Game::setupUI()
         msg->addButton( "yes"_hash, ui::Action::eMenuConfirm, [this]()
         {
             m_optionsAudio.settings2ui( m_gameSettings );
-            changeScreen( "settings"_hash, m_click );
+            changeScreen( "settings"_hash );
         } );
         msg->addButton( "no"_hash, ui::Action::eMenuCancel, [screen]() { screen->addModalWidget( {} ); } );
         screen->addModalWidget( std::move( msg ) );
@@ -312,7 +313,7 @@ void Game::setupUI()
     });
     g_uiProperty.addCallback( "$function:exitGameSettings"_hash, [this]()
     {
-        if ( !m_optionsGame.hasChanges( m_gameSettings ) ) return changeScreen( "settings"_hash, m_click );
+        if ( !m_optionsGame.hasChanges( m_gameSettings ) ) return changeScreen( "settings"_hash );
         auto* screen = g_uiProperty.currentScreen();
         assert( screen );
         auto msg = screen->messageBox( "settings.game.unsaved"_hash );
@@ -320,7 +321,7 @@ void Game::setupUI()
         msg->addButton( "yes"_hash, ui::Action::eMenuConfirm, [this]()
         {
             m_optionsGame.settings2ui( m_gameSettings );
-            changeScreen( "settings"_hash, m_click );
+            changeScreen( "settings"_hash );
         } );
         msg->addButton( "no"_hash, ui::Action::eMenuCancel, [screen]() { screen->addModalWidget( {} ); } );
         screen->addModalWidget( std::move( msg ) );
@@ -450,15 +451,11 @@ void Game::createLevel()
     m_gameplayUIData.m_playerWeaponIconSecondary = g_uiProperty.sprite( w2.displayIcon );
 }
 
-void Game::changeScreen( Hash::value_type screenId, Audio::Slot sound )
+void Game::changeScreen( Hash::value_type screenId )
 {
     ZoneScoped;
     auto [ w, h, a ] = viewport();
     math::vec2 vp{ w, h };
-
-    if ( sound ) {
-        m_audio->play( sound, Audio::Channel::eUI );
-    }
 
     SDL_ShowCursor( screenId != "gameplay"_hash );
     switch ( screenId ) {

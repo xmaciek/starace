@@ -55,6 +55,7 @@ EventProcessing Footer::onAction( ui::Action a )
         callback();
     }
     if ( it->screenChange ) g_uiProperty.changeScreen( it->screenChange );
+    g_uiProperty.playSound( "sounds/click.wav"_hash );
     return EventProcessing::eStop;
 }
 

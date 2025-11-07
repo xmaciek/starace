@@ -29,6 +29,13 @@ void Property::addSprites( const Font* font )
     std::ranges::for_each( font->m_glyphMap.m_keys, convert );
 }
 
+void Property::playSound( Hash::value_type hh )
+{
+    auto sound = m_sounds->find( hh );
+    assert( sound );
+    m_audio->play( sound, Audio::Channel::eUI );
+}
+
 void Property::changeScreen( Hash::value_type hash, math::vec2 viewport )
 {
     auto it = std::ranges::find_if( m_screens, [hash]( const auto& sc ) { return sc.name() == hash; } );

@@ -64,5 +64,6 @@ target_link_libraries( ui
     input
     profiler
     renderer
+    audio
     shared
 )

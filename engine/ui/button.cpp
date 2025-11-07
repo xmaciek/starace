@@ -23,6 +23,7 @@ void Button::trigger() const
     };
     std::visit( TriggerFire{}, m_trigger );
     if ( m_screenChange ) g_uiProperty.changeScreen( m_screenChange );
+    g_uiProperty.playSound( "sounds/click.wav"_hash );
 }
 
 void Button::setTrigger( std::function<void()>&& f )

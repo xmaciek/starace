@@ -39,7 +39,6 @@ private:
     Model m_enemyModel{};
     GameScene m_gameScene{};
     MenuScene m_menuScene{};
-    Audio::Slot m_click{};
 
     std::pmr::vector<MapCreateInfo> m_mapsContainer{};
     struct JetInfo {
@@ -82,7 +81,7 @@ private:
     uint32_t viewportHeight() const;
     uint32_t viewportWidth() const;
     float viewportAspect() const;
-    void changeScreen( Hash::value_type, Audio::Slot sound = {} );
+    void changeScreen( Hash::value_type );
     void createLevel();
 
     ui::Screen* currentScreen();

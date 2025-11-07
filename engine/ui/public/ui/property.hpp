@@ -6,6 +6,7 @@
 #include <ui/font_map.hpp>
 #include <ui/screen.hpp>
 
+#include <audio/audio.hpp>
 #include <engine/math.hpp>
 #include <renderer/texture.hpp>
 #include <renderer/pipeline.hpp>
@@ -46,6 +47,8 @@ class Property {
     ResourceMap<Sprite> m_sprites{};
     const ResourceMap<Texture>* m_textures = nullptr;
     const ResourceMap<PipelineSlot>* m_materials = nullptr;
+    const ResourceMap<Audio::Slot>* m_sounds = nullptr;
+    Audio* m_audio = nullptr;
 
 
 public:
@@ -122,7 +125,7 @@ public:
 
     void addSprites( const Font* );
     Sprite sprite( Hash::value_type ) const;
-
+    void playSound( Hash::value_type );
     inline Texture findTexture( Hash::value_type hh ) { return m_textures->find( hh ); }
     inline PipelineSlot findMaterial( Hash::value_type hh ) { return m_materials->find( hh ); }
     inline Screen* currentScreen() const { return m_currentScreen; }
