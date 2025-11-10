@@ -7,11 +7,6 @@
 
 #include <algorithm>
 
-bool Explosion::isInvalid( const Explosion& e ) noexcept
-{
-    return ( e.m_state / e.m_duration ) >= 1.0f;
-}
-
 void Explosion::renderAll( const RenderContext& rctx, const std::pmr::vector<Explosion>& explosions )
 {
     if ( explosions.empty() ) return;
@@ -62,6 +57,6 @@ void Explosion::renderAll( const RenderContext& rctx, const std::pmr::vector<Exp
 
 void Explosion::updateAll( const UpdateContext& uctx, std::pmr::vector<Explosion>& vec )
 {
-    std::for_each( vec.begin(), vec.end(), [dt=uctx.deltaTime]( auto& e ) { e.m_state += dt; e.m_position += e.m_velocity * dt; } );
-    std::erase_if( vec, &isInvalid );
+    std::ranges::for_each( vec, [dt=uctx.deltaTime]( auto& e ) { e.m_state += dt; e.m_position += e.m_velocity * dt; } );
+    std::erase_if( vec, []( const auto& e ) { return e.m_state >= e.m_duration; } );
 }
