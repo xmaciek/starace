@@ -2,7 +2,6 @@
 
 #include <ui/data_model.hpp>
 #include <ui/property.hpp>
-#include "utils.hpp"
 
 #include <cassert>
 #include <memory_resource>

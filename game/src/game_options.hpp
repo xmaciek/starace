@@ -1,10 +1,11 @@
 #pragma once
 
-#include "ui_options_models.hpp"
+#include "utils.hpp"
 
-#include <shared/hash.hpp>
-#include <ui/var.hpp>
 #include <renderer/renderer.hpp>
+#include <shared/hash.hpp>
+#include <ui/option.hpp>
+#include <ui/var.hpp>
 
 #include <string>
 #include <memory_resource>

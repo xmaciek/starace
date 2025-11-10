@@ -40,6 +40,7 @@ target_sources( ui
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/lockit.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/message_box.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/nineslice.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/option.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/pipeline.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/property.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/screen.hpp
