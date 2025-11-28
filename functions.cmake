@@ -185,6 +185,7 @@ function( cook_font )
     )
 endfunction()
 
+option( DEBUG_SHADERS "Enable debug shaders" OFF )
 function( compileShader )
     cmake_parse_arguments( COOK_SHADER "" "FILE;PACK" "" ${ARGN} )
     if ( NOT COOK_SHADER_FILE )
@@ -194,8 +195,12 @@ function( compileShader )
         set( COOK_SHADER_PACK ${DEFAULT_PACK} )
     endif()
 
-    #set( OPTIMIZE_LEVEL "-O0" "-g" ) # debug
-    set( OPTIMIZE_LEVEL "-O" ) # optimized
+    if ( ${DEBUG_SHADERS} )
+        set( OPTIMIZE_LEVEL "-O0" "-g" )
+    else()
+        set( OPTIMIZE_LEVEL "-O" )
+    endif()
+
     set( VULKAN_VER "--target-env=vulkan1.3" )
 
     set( file_out "${CMAKE_CURRENT_BINARY_DIR}/${COOK_SHADER_FILE}.spv" )

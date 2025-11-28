@@ -13,6 +13,7 @@
             , "ENABLE_TRACY_PROFILER": "OFF"
             , "STRIP_SYMBOLS": "OFF"
             , "ENABLE_VULKAN_VALIDATION" : "1"
+            , "DEBUG_SHADERS" : "ON"
         }
     }
     , {
@@ -24,6 +25,7 @@
             "CMAKE_BUILD_TYPE": "Release"
             , "STRIP_SYMBOLS": "ON"
             , "ENABLE_VULKAN_VALIDATION" : "0"
+            , "DEBUG_SHADERS" : "OFF"
         }
     }
     , {
