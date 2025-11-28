@@ -55,6 +55,8 @@ static constexpr auto inputType( PipelineCreateInfo::InputType it )
     case eNone: return VK_FORMAT_UNDEFINED;
     case eF2: return VK_FORMAT_R32G32_SFLOAT;
     case eF3: return VK_FORMAT_R32G32B32_SFLOAT;
+    case eU: return VK_FORMAT_R32_UINT;
+    case eU2: return VK_FORMAT_R32G32_UINT;
     }
 }
 

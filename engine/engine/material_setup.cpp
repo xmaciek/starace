@@ -137,6 +137,8 @@ uint32_t vertexAssembly( ccmd::Vm* vm, void* ctx )
     switch ( Hash{}( val ) ) {
     case "f2"_hash: assembly.m_input = eF2; break;
     case "f3"_hash: assembly.m_input = eF3; break;
+    case "u"_hash: assembly.m_input = eU; break;
+    case "u2"_hash: assembly.m_input = eU2; break;
     default: assert( !"unknown inputType" ); return 1;
     }
     ccmd::argv( vm, 1, assembly.m_location );
