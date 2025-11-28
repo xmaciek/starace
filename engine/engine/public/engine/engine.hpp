@@ -44,6 +44,8 @@ private:
 
     std::mutex m_eventsBottleneck{};
     std::pmr::vector<SDL_Event> m_events{};
+    PipelineSlot m_gammaMaterial{};
+    float m_gammaValue = 2.2f;
 
 protected:
     std::unique_ptr<SaveSystem> m_saveSystem{};
@@ -88,6 +90,7 @@ protected:
     std::pmr::vector<DisplayMode> displayModes( uint32_t monitor = 0 ) const;
     void setDisplayMode( const DisplayMode& );
     void setTargetFPS( uint32_t, FpsLimiter::Mode );
+    inline void setGamma( float f ) { m_gammaValue = f; }
 
 private:
     void gameThread();

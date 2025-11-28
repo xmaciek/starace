@@ -11,7 +11,6 @@ enum class Pipeline : PipelineSlot {
     eParticleBlob,
     eThruster,
     eThruster2,
-    eGammaCorrection,
     eBeamBlob,
     eAntiAliasFXAA,
     eProjectile,
@@ -110,11 +109,6 @@ struct PushConstant<Pipeline::eProjectile> {
     math::mat4 m_view{};
     math::mat4 m_projection{};
     std::array<Projectile, INSTANCES> m_projectiles{};
-};
-
-template <>
-struct PushConstant<Pipeline::eGammaCorrection> {
-    float m_power = 2.2f;
 };
 
 template <>

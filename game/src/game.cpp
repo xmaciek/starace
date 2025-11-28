@@ -136,7 +136,6 @@ void Game::onInit()
     g_pipelines[ Pipeline::eBeamBlob ] = m_materials[ "beam"_hash ];
     g_pipelines[ Pipeline::eTriangleFan3dTexture ] = m_materials[ "fan3d"_hash ];
     g_pipelines[ Pipeline::eAntiAliasFXAA ] = m_materials[ "fxaa"_hash ];
-    g_pipelines[ Pipeline::eGammaCorrection ] = m_materials[ "gamma"_hash ];
 
     m_plasma = m_textures[ "textures/plasma.dds" ];
     m_enemyModel = Model{ m_meshes[ "models/a2.objc" ], m_textures[ "textures/a2.dds" ] };
@@ -364,13 +363,6 @@ void Game::onRender( Renderer* renderer )
     default:
         break;
     }
-
-    const PushConstant<Pipeline::eGammaCorrection> gp{ .m_power = m_gameSettings.gamma, };
-    const DispatchInfo dispatchInfo{
-        .m_pipeline = g_pipelines[ Pipeline::eGammaCorrection ],
-        .m_uniform = gp,
-    };
-    renderer->dispatch( dispatchInfo );
 }
 
 void Game::onUpdate( float deltaTime )
@@ -593,6 +585,7 @@ void Game::applyDisplay()
     m_renderer->setFeatureEnabled( Renderer::Feature::eVRSAA, m_gameSettings.antialias == AntiAlias::eVRSAA );
     setDisplayMode( displayMode );
     setTargetFPS( 200, m_gameSettings.fpsLimiter ? FpsLimiter::eSpinLock : FpsLimiter::eOff );
+    setGamma( m_gameSettings.gamma );
 }
 
 void Game::applyAudio()

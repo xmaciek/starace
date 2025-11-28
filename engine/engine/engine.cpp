@@ -125,6 +125,17 @@ void Engine::gameThread()
 
         m_renderer->beginFrame();
         onRender( m_renderer );
+        if ( m_gammaMaterial ) [[likely]] {
+            const DispatchInfo dispatchInfo{
+                .m_pipeline = m_gammaMaterial,
+                .m_uniform = m_gammaValue,
+            };
+            m_renderer->dispatch( dispatchInfo );
+        }
+        else {
+            m_gammaMaterial = m_materials.find( "gamma"_hash );
+        }
+
         m_renderer->endFrame();
 
         {
