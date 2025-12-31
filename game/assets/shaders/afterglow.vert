@@ -18,9 +18,6 @@ layout( binding = 0 ) uniform ubo {
     ColorScheme colorScheme;
 };
 
-layout( location = 0 ) in vec3 vertVert;
-layout( location = 1 ) in vec2 vertUV;
-
 layout( location = 0 ) out vec2 fragUV;
 layout( location = 1 ) out flat float fragCutoff;
 layout( location = 2 ) out flat ColorScheme fragColor;
