@@ -21,6 +21,7 @@ target_sources( ui
     lockit.cpp
     message_box.cpp
     nineslice.cpp
+    nineslice.hpp
     progressbar.cpp
     progressbar.hpp
     property.cpp
@@ -39,7 +40,6 @@ target_sources( ui
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/label.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/lockit.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/message_box.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/nineslice.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/option.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/pipeline.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/ui/property.hpp

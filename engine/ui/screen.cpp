@@ -6,11 +6,11 @@
 #include "footer.hpp"
 #include "glow.hpp"
 #include "image.hpp"
+#include "nineslice.hpp"
 #include "progressbar.hpp"
 #include "spinbox.hpp"
 
 #include <ui/label.hpp>
-#include <ui/nineslice.hpp>
 #include <ui/property.hpp>
 
 #include <config/config.hpp>

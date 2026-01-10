@@ -1,8 +1,8 @@
 #include "footer.hpp"
 
+#include "nineslice.hpp"
 #include <ui/property.hpp>
 #include <ui/font.hpp>
-#include <ui/nineslice.hpp>
 
 #include <renderer/renderer.hpp>
 

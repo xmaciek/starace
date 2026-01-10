@@ -1,8 +1,8 @@
 #include <ui/message_box.hpp>
 
 #include "button.hpp"
+#include "nineslice.hpp"
 #include <ui/label.hpp>
-#include <ui/nineslice.hpp>
 #include <ui/property.hpp>
 
 namespace ui {

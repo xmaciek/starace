@@ -1,7 +1,7 @@
 #pragma once
 
+#include "nineslice.hpp"
 #include <ui/label.hpp>
-#include <ui/nineslice.hpp>
 #include <ui/scroll_index.hpp>
 #include <ui/widget.hpp>
 

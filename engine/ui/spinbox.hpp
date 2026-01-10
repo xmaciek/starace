@@ -1,8 +1,8 @@
 #pragma once
 
+#include "nineslice.hpp"
 #include <ui/data_model.hpp>
 #include <ui/label.hpp>
-#include <ui/nineslice.hpp>
 #include <ui/tab_order.hpp>
 
 #include <renderer/pipeline.hpp>

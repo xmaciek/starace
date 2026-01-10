@@ -1,7 +1,7 @@
 #pragma once
 
+#include "nineslice.hpp"
 #include <ui/label.hpp>
-#include <ui/nineslice.hpp>
 #include <shared/hash.hpp>
 
 #include <functional>
