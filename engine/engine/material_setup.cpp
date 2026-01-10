@@ -176,6 +176,7 @@ void MaterialSetup::operator () ( Asset&& a )
     };
     auto bytecode = compile( std::string_view{ (const char*)a.data.data(), a.data.size() } );
     assert( !bytecode.empty() );
+    [[maybe_unused]]
     auto ec = run( cmds, bytecode );
     assert( ec == ErrorCode::eSuccess );
     if ( vertexShader.size() ) pci.m_vertexShaderData = m_filesystem->viewWait( vertexShader );
