@@ -2,18 +2,16 @@
 
 #include "button.hpp"
 #include <ui/label.hpp>
+#include <ui/nineslice.hpp>
 #include <ui/property.hpp>
 
 namespace ui {
 
 MessageBox::MessageBox( const CreateInfo& ci )
-: NineSlice{ NineSlice::CreateInfo{
-    .position = ci.position,
-    .size = ci.size,
-    .anchor = Anchor::fMiddle | Anchor::fCenter,
-} }
+: Widget{ ci.position, ci.size, Anchor::fMiddle | Anchor::fCenter  }
 {
-    m_text = emplace_child<Label>( Label::CreateInfo{ .text = ci.text, .font = "medium"_hash, .position = ci.size * 0.5f, .anchor = Anchor::fMiddle | Anchor::fCenter, } );
+    emplace_child<NineSlice>( NineSlice::CreateInfo{ .size = ci.size } );
+    emplace_child<Label>( Label::CreateInfo{ .text = ci.text, .font = "medium"_hash, .position = ci.size * 0.5f, .anchor = Anchor::fMiddle | Anchor::fCenter, } );
     m_blur = g_uiProperty.findMaterial( "blur"_hash );
 }
 
@@ -38,7 +36,6 @@ void MessageBox::render( const RenderContext& rctx ) const
 
     rctx.renderer->dispatch( dih );
     rctx.renderer->dispatch( div );
-    Super::render( rctx );
 }
 
 void MessageBox::addButton( Hash::value_type text, ui::Action::Enum action, std::function<void()>&& trigger )

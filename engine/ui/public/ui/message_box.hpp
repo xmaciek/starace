@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ui/nineslice.hpp>
+#include <ui/widget.hpp>
 #include <renderer/pipeline.hpp>
 #include <shared/hash.hpp>
 
@@ -11,16 +11,14 @@
 namespace ui {
 
 class Button;
-class Label;
 
-class MessageBox : public NineSlice {
-    using Super = NineSlice;
+class MessageBox : public Widget {
+    using Super = Widget;
     struct ButtonInfo {
         Button* btn{};
         ui::Action act{};
     };
 
-    Label* m_text{};
     std::array<ButtonInfo, 2> m_buttons{};
     uint32_t m_buttonCount = 0;
     PipelineSlot m_blur{};
