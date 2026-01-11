@@ -165,7 +165,8 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
     }
 
     m_queueManager.acquire( m_device );
-    m_swapchain = Swapchain( m_physicalDevice
+    m_swapchain = Swapchain( m_window
+        , m_physicalDevice
         , m_device
         , m_surface
         , { m_queueManager.graphicsFamily(), m_queueManager.presentFamily() }
@@ -539,7 +540,8 @@ void RendererVK::recreateSwapchain()
     VSync v = m_pendingVSyncChange ? *m_pendingVSyncChange : m_swapchain.vsync();
     m_pendingVSyncChange.reset();
 
-    m_swapchain = Swapchain( m_physicalDevice
+    m_swapchain = Swapchain( m_window
+        , m_physicalDevice
         , m_device
         , m_surface
         , { m_queueManager.graphicsFamily(), m_queueManager.presentFamily() }

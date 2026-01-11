@@ -8,6 +8,7 @@
 #include <memory_resource>
 #include <vector>
 
+struct SDL_Window;
 class Swapchain {
 private:
     VkDevice m_device = VK_NULL_HANDLE;
@@ -22,7 +23,7 @@ public:
     void destroyResources();
     ~Swapchain();
     Swapchain() = default;
-    Swapchain( VkPhysicalDevice, VkDevice, VkSurfaceKHR, std::array<uint32_t, 2> familyAccess, VSync, VkSwapchainKHR oldSwapchain = VK_NULL_HANDLE );
+    Swapchain( SDL_Window*, VkPhysicalDevice, VkDevice, VkSurfaceKHR, std::array<uint32_t, 2> familyAccess, VSync, VkSwapchainKHR oldSwapchain = VK_NULL_HANDLE );
     Swapchain( Swapchain&& ) noexcept;
     Swapchain& operator = ( Swapchain&& ) noexcept;
 

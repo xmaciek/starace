@@ -11,6 +11,8 @@
 #include <vector>
 #include <utility>
 
+#include <SDL_video.h>
+
 constexpr static bool operator == ( const VkSurfaceFormatKHR& lhs, const VkSurfaceFormatKHR& rhs ) noexcept
 {
     return lhs.format == rhs.format
@@ -127,7 +129,7 @@ static VkPresentModeKHR findBestPresentMode( VkPhysicalDevice device, VkSurfaceK
     return mapVSync( v );
 }
 
-Swapchain::Swapchain( VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, std::array<uint32_t,2> familyAccess, VSync vsync, VkSwapchainKHR oldSwapchain )
+Swapchain::Swapchain( SDL_Window* window, VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, std::array<uint32_t,2> familyAccess, VSync vsync, VkSwapchainKHR oldSwapchain )
 : m_device{ device }
 , m_vsync{ vsync }
 {
@@ -154,6 +156,17 @@ Swapchain::Swapchain( VkPhysicalDevice physicalDevice, VkDevice device, VkSurfac
     const VkPresentModeKHR presentMode = findBestPresentMode( physicalDevice, surface, vsync );
 
     m_extent = surfaceCaps.currentExtent;
+    // NOTE Wayland workaround
+    if ( m_extent.width == -1u || m_extent.height == -1u ) {
+        int w = 0;
+        int h = 0;
+        SDL_GetWindowSize( window, &w, &h );
+        m_extent.width = static_cast<uint32_t>( w );
+        m_extent.height = static_cast<uint32_t>( h );
+    }
+    m_extent.width = std::clamp( m_extent.width, surfaceCaps.minImageExtent.width, surfaceCaps.maxImageExtent.width );
+    m_extent.height = std::clamp( m_extent.height, surfaceCaps.minImageExtent.height, surfaceCaps.maxImageExtent.height );
+
     m_imageCount = std::clamp<uint32_t>( 3u, surfaceCaps.minImageCount, surfaceCaps.maxImageCount );
     const uint32_t familyCount = familyAccess[ 0 ] == familyAccess[ 1 ] ? 1u : 2u;
     const auto sharingMode = familyCount == 1 ? VK_SHARING_MODE_EXCLUSIVE : VK_SHARING_MODE_CONCURRENT;
