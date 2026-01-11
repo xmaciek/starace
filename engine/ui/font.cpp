@@ -149,21 +149,28 @@ Font::RenderText Font::composeText( const math::vec4& color, std::u32string_view
 
     enum Charset {
         eUnknown,
-        eLatin,
-        eHiragana,
-        eKatakana,
         eCJK,
+        eCyrilic,
+        eHiragana,
+        eJava,
+        eKatakana,
+        eLatin,
         ePUA,
+        eThai,
     };
     auto charset = []( char32_t chr )
     {
         if ( chr < 0x180 ) [[likely]] return Charset::eLatin;
-        if ( chr == 0 ) return Charset::eUnknown;
-        if ( chr >= 0xE000 && chr < 0xF900 ) return Charset::ePUA;
+        if ( chr == 0 ) [[likely]] return Charset::eUnknown;
+        if ( chr >= 0xE000 && chr < 0xF900 ) [[likely]] return Charset::ePUA;
+
+        if ( chr >= 0x0400 && chr < 0x0500 ) return Charset::eCyrilic;
+        if ( chr >= 0x0E01 && chr < 0x0E5C ) return Charset::eThai;
+        if ( chr >= 0x1E00 && chr < 0x1F00 ) return Charset::eLatin;
         if ( chr >= 0x3041 && chr < 0x30A0 ) return Charset::eHiragana;
-        if ( chr >= 0x30A0 && chr < 0x3100 ) return Charset::eKatakana;
-        if ( chr >= 0x31F0 && chr < 0x3200 ) return Charset::eKatakana;
+        if ( chr >= 0x30A0 && chr < 0x3200 ) return Charset::eKatakana;
         if ( chr >= 0x4E00 && chr < 0xA000 ) return Charset::eCJK;
+        if ( chr >= 0xA980 && chr < 0xA9E0 ) return Charset::eJava;
         return Charset::eUnknown;
     };
 

@@ -24,6 +24,8 @@
 #include <tuple>
 #include <vector>
 
+static constexpr float EXTRA_SLACK = 1.0f;
+
 static std::vector<std::pair<char32_t, char32_t>> splitRanges( std::span<uint32_t> args )
 {
     std::vector<std::pair<char32_t, char32_t>> ret;
@@ -75,7 +77,7 @@ struct BlitIterator {
         const difference_type begin = m_dstPitch * m_dstY + m_dstX;
         const difference_type offset = m_dstPitch * ( m_i / m_srcWidth ) + ( m_i % m_srcWidth );
         pointer address = m_data + begin + offset;
-        assert( address < m_end );
+        if ( address >= m_end ) cooker::error( "auto guess font bitmap size too small, bump 'EXTRA_SLACK' variable" );
         return *address;
     }
 
@@ -263,9 +265,6 @@ int main( int argc, const char** argv )
     for ( auto&& [ begin, end ] : ranges ) {
         genRange( charset, begin, end );
     }
-    // genRange( charset, 0x20, 0x7F ); // latin basic
-    // genRange( charset, 0xA1, 0x100 ); // latin supplement
-    // genRange( charset, 0x100, 0x180 ); // latin extended-A
 
     auto renderSlot = [&face, size]( char32_t ch ) -> Slot
     {
@@ -310,8 +309,7 @@ int main( int argc, const char** argv )
     for ( auto&& slot : slots ) {
         surfaceSizeNeeded += ( slot.pitch + AtlasComposer::TILE_PADDING ) * ( slot.rows + AtlasComposer::TILE_PADDING );
     }
-    float extraSlack = 1.0f; // TODO: if crash, extraSlack = (max of glyph area) / (average of glyph area)
-    surfaceSizeNeeded = (uint32_t)((double)surfaceSizeNeeded * extraSlack );
+    surfaceSizeNeeded = (uint32_t)((double)surfaceSizeNeeded * EXTRA_SLACK );
     uint32_t surfWidth = 64;
     uint32_t surfHeight = 64;
     while ( surfWidth * surfHeight < surfaceSizeNeeded ) {
@@ -364,7 +362,8 @@ int main( int argc, const char** argv )
     }
 
 
-    std::sort( slots.begin(), slots.end(), []( const auto& lhs, const auto& rhs ) { return lhs.ch < rhs.ch; });
+    std::ranges::sort( charset );
+    std::ranges::sort( slots, []( const auto& lhs, const auto& rhs ) { return lhs.ch < rhs.ch; });
 
     using Flags = dds::Header::Flags;
     using Caps = dds::Header::Caps;
