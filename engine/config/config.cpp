@@ -104,7 +104,7 @@ Entry Entry::fromData( std::span<const char> data )
                 stack.top()->m_value = std::pmr::string{ strBegin, strEnd };
                 stack.pop();
                 expectedToken = eNameOrPop;
-                it.advance( std::distance( it.begin(), strEnd + 1 ) );
+                it.advance( (uint32_t)std::distance( it.begin(), strEnd + 1 ) );
                 continue;
                 }
             }

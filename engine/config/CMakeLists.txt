@@ -16,5 +16,6 @@ set_target_properties( config PROPERTIES
 )
 
 target_link_libraries( config
+    cxx::flags
     unicode
 )
