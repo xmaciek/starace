@@ -80,8 +80,10 @@ uint32_t Remapper::apply( Actuator::Source source, char32_t chr, std::span<char3
         unicode::Transcoder transcoder{ sv };
         // TODO: std::copy
         auto length = std::clamp( (uint32_t)out.size() - 2u, 0u, transcoder.length() );
-        for ( ; length-- ; ) *(kit++) = *(transcoder++);
-        *kit = U']'; kit++;
+        std::for_each( kit, kit + length, transcoder );
+        std::advance( kit, length );
+        *kit = U']';
+        kit++;
         return (uint32_t)std::distance( out.begin(), kit );
     }
     case Source::ePS4: return mapController( it->m_max, PS4_REMAP_OFFSET, out );
