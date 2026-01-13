@@ -204,7 +204,7 @@ function( compileShader )
         set( OPTIMIZE_LEVEL "-O" )
     endif()
 
-    set( VULKAN_VER "--target-env=vulkan1.3" )
+    set( VULKAN_VER "--target-env=vulkan1.4" )
 
     set( file_out "${CMAKE_CURRENT_BINARY_DIR}/${COOK_SHADER_FILE}.spv" )
     add_custom_target( "shader.${COOK_SHADER_FILE}" DEPENDS "${file_out}" )

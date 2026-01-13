@@ -86,7 +86,7 @@ void RenderPass::resume( VkCommandBuffer cmd, const Image& depth, const Image& c
     const VkRenderingAttachmentInfoKHR depthAttachment{
         .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
         .imageView = depth.view(),
-        .imageLayout = m_depthOnly ? constants::depthWrite.m_layout : constants::depthWrite.m_layout,
+        .imageLayout = m_depthOnly ? constants::depthWrite.m_layout : constants::depthRead.m_layout,
         .resolveMode = VK_RESOLVE_MODE_NONE,
         .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
         .storeOp = m_depthOnly ? VK_ATTACHMENT_STORE_OP_STORE : VK_ATTACHMENT_STORE_OP_NONE_KHR,

@@ -120,7 +120,7 @@ Instance::Instance( const Renderer::CreateInfo& ci, std::pmr::vector<const char*
         .applicationVersion = VK_MAKE_VERSION( ci.versionMajor, ci.versionMinor, ci.versionPatch ),
         .pEngineName = "starace",
         .engineVersion = VK_MAKE_VERSION( 1, 0, 0 ),
-        .apiVersion = VK_API_VERSION_1_3,
+        .apiVersion = VK_API_VERSION_1_4,
     };
 
     m_layers = enabledLayers();

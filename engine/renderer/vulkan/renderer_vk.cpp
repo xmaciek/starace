@@ -635,6 +635,7 @@ void RendererVK::endFrame()
         break;
     }
 
+    fr.m_renderDepthTarget.transfer( fr.m_cmdDepthPrepass, constants::depthRead );
     [[maybe_unused]]
     const VkResult cmdEndD = vkEndCommandBuffer( fr.m_cmdDepthPrepass );
     assert( cmdEndD == VK_SUCCESS );
@@ -763,12 +764,16 @@ void RendererVK::render( const RenderInfo& ri )
     switch ( fr.m_state ) {
     case Frame::State::eCompute: {
         fr.m_state = Frame::State::eGraphics;
+        fr.m_renderDepthTarget.transfer( fr.m_cmdDepthPrepass, constants::depthWrite );
+        fr.m_renderTarget.transfer( fr.m_cmdColorPass, constants::fragmentWrite );
         m_depthPrepass.resume( fr.m_cmdDepthPrepass, fr.m_renderDepthTarget, fr.m_renderTarget );
         m_mainPass.resume( fr.m_cmdColorPass, fr.m_renderDepthTarget, fr.m_renderTarget );
     } break;
 
     case Frame::State::eNone: {
         fr.m_state = Frame::State::eGraphics;
+        fr.m_renderDepthTarget.transfer( fr.m_cmdDepthPrepass, constants::depthWrite );
+        fr.m_renderTarget.transfer( fr.m_cmdColorPass, constants::fragmentWrite );
         m_depthPrepass.begin( fr.m_cmdDepthPrepass, fr.m_renderDepthTarget, fr.m_renderTarget );
         m_mainPass.begin( fr.m_cmdColorPass, fr.m_renderDepthTarget, fr.m_renderTarget );
     } break;
@@ -851,6 +856,10 @@ void RendererVK::dispatch( const DispatchInfo& dispatchInfo )
         fr.m_state = Frame::State::eCompute;
         m_depthPrepass.end( fr.m_cmdDepthPrepass );
         m_mainPass.end( fr.m_cmdColorPass );
+        [[fallthrough]];
+    case Frame::State::eNone:
+        fr.m_renderTarget.transfer( fr.m_cmdColorPass, constants::computeReadWrite );
+        fr.m_renderTargetTmp.transfer( fr.m_cmdColorPass, constants::computeReadWrite );
         break;
     default:
         break;
@@ -861,8 +870,6 @@ void RendererVK::dispatch( const DispatchInfo& dispatchInfo )
     const VkDescriptorSet descriptorSet = descriptorPool.next();
     assert( descriptorSet != VK_NULL_HANDLE );
 
-    fr.m_renderTarget.transfer( fr.m_cmdColorPass, constants::computeReadWrite );
-    fr.m_renderTargetTmp.transfer( fr.m_cmdColorPass, constants::computeReadWrite );
     std::array<VkDescriptorImageInfo, 2> imageInfo{
         fr.m_renderTarget.imageInfo(),
         fr.m_renderTargetTmp.imageInfo(),
