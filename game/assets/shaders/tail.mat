@@ -1,0 +1,9 @@
+blendMode alpha
+depthTest 1
+fragmentImage 1
+fragmentShader shaders/tail.frag.spv
+frontFace ccw
+name tail
+topology triangleStrip
+vertexShader shaders/tail.vert.spv
+vertexUniform 1

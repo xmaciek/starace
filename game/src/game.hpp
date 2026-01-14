@@ -51,7 +51,6 @@ private:
     std::pmr::vector<WeaponCreateInfo> m_weapons{};
     WeaponCreateInfo m_enemyWeapon{};
 
-    Texture m_plasma{};
     std::pmr::vector<csg::Callsign> m_callsigns{};
 
     ui::GenericDataModel m_dataMissionSelect{};

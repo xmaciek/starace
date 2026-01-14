@@ -10,7 +10,7 @@
 using PipelineSlot = uint32_t;
 
 struct PipelineCreateInfo {
-    enum class Topology : uint8_t { eLineStrip, eLineList, eTriangleFan, eTriangleList, };
+    enum class Topology : uint8_t { eLineStrip, eLineList, eTriangleFan, eTriangleList, eTriangleStrip };
     enum class CullMode : uint8_t { eNone, eFront, eBack };
     enum class FrontFace : uint8_t { eCW, eCCW };
     enum class InputType : uint8_t { eNone, eF2, eF3, eU, eU2 };

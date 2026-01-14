@@ -114,6 +114,7 @@ uint32_t topology( ccmd::Vm* vm, void* ctx )
     case "lineList"_hash: instance->m_topology = eLineList; break;
     case "triangleFan"_hash: instance->m_topology = eTriangleFan; break;
     case "triangleList"_hash: instance->m_topology = eTriangleList; break;
+    case "triangleStrip"_hash: instance->m_topology = eTriangleStrip; break;
     default: assert( !"unknown topology" ); return 1;
     }
     return 0;

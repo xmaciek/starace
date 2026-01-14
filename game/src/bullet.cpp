@@ -10,7 +10,8 @@
 #include <cassert>
 
 Bullet::Bullet( const WeaponCreateInfo& bp, const math::vec3& position, const math::vec3& direction )
-: m_position{ position }
+: m_tail{ position }
+, m_position{ position }
 , m_direction{ direction }
 , m_prevPosition{ position }
 , m_target{ bp.target }
@@ -24,53 +25,49 @@ Bullet::Bullet( const WeaponCreateInfo& bp, const math::vec3& position, const ma
 {
 };
 
-void Bullet::renderAll( const RenderContext& rctx, std::span<Bullet> span, Texture )
+void Bullet::renderAll( const RenderContext& rctx, std::span<Bullet> span, Texture tail )
 {
     if ( span.empty() ) return;
 
-    std::sort( span.begin(), span.end(), []( const auto& lhs, const auto& rhs ) {
+    std::ranges::sort( span, []( const auto& lhs, const auto& rhs ) {
         if ( lhs.m_mesh != rhs.m_mesh ) return lhs.m_mesh < rhs.m_mesh;
         return lhs.m_texture < rhs.m_texture;
     } );
-    using PushConstant = PushConstant<Pipeline::eProjectile>;
-    PushConstant pc{
-        .m_model = rctx.model,
-        .m_view = rctx.view,
-        .m_projection = rctx.projection,
-    };
-    RenderInfo pd{
-        .m_pipeline = g_pipelines[ Pipeline::eProjectile ],
-        .m_uniform = pc,
-    };
+
+    InstancedRendering<PushConstant<Pipeline::eProjectile>> instanced{ rctx.renderer, g_pipelines[ Pipeline::eProjectile ] };
+    instanced.pushConstant.m_model = rctx.model;
+    instanced.pushConstant.m_view = rctx.view;
+    instanced.pushConstant.m_projection = rctx.projection;
+
+    InstancedRendering<PushConstant<Pipeline::eTail>> instancedTail{ rctx.renderer, g_pipelines[ Pipeline::eTail ] };
+    instancedTail.pushConstant.m_view = rctx.view;
+    instancedTail.pushConstant.m_projection = rctx.projection;
+    instancedTail.pushConstant.m_cameraDirection = rctx.cameraDirection;
+    instancedTail.pushConstant.m_cameraUp = rctx.cameraUp;
+    instancedTail.renderInfo.m_fragmentTexture[ 0 ] = tail;
+
 
     const math::mat4 mvp = rctx.projection * rctx.view * rctx.model;
     Buffer lastMesh{};
     Texture lastTexture{};
-    uint32_t idx = 0;
 
     for ( auto&& bullet : span ) {
         if ( bullet.m_type == Type::eLaser ) continue;
         if ( !isOnScreen( mvp, bullet.m_position, rctx.viewport ) ) continue;
         assert( bullet.m_mesh );
         assert( bullet.m_texture );
-        if ( lastMesh != bullet.m_mesh || lastTexture != bullet.m_texture || idx == PushConstant::INSTANCES ) {
-            pd.m_fragmentTexture[ 0 ] = lastTexture;
-            pd.m_vertexBuffer = lastMesh;
-            pd.m_instanceCount = idx;
-            if ( lastMesh && lastTexture ) {
-                rctx.renderer->render( pd );
-            }
-            idx = 0;
+        if ( ( lastMesh != bullet.m_mesh ) || ( lastTexture != bullet.m_texture ) ) {
+            instanced.renderInfo.m_fragmentTexture[ 0 ] = lastTexture;
+            instanced.renderInfo.m_vertexBuffer = lastMesh;
+            instanced.flush();
+            lastMesh = bullet.m_mesh;
+            lastTexture = bullet.m_texture;
+            instanced.renderInfo.m_fragmentTexture[ 0 ] = lastTexture;
+            instanced.renderInfo.m_vertexBuffer = lastMesh;
         }
-        lastMesh = bullet.m_mesh;
-        lastTexture = bullet.m_texture;
-        pc.m_projectiles[ idx++ ] = PushConstant::Projectile{ bullet.m_quat, math::vec4{ bullet.m_position, meter } };
-    }
-    if ( idx != 0 ) {
-        pd.m_fragmentTexture[ 0 ] = lastTexture;
-        pd.m_vertexBuffer = lastMesh;
-        pd.m_instanceCount = idx;
-        rctx.renderer->render( pd );
+        instanced.append( PushConstant<Pipeline::eProjectile>::Instance{ bullet.m_quat, math::vec4{ bullet.m_position, meter } } );
+        if ( bullet.m_type == Type::eTorpedo )
+            instancedTail.append( PushConstant<Pipeline::eTail>::Instance{ bullet.m_tail.points } );
     }
 }
 
@@ -90,7 +87,7 @@ void Bullet::updateAll( const UpdateContext& uctx, std::span<Bullet> span, std::
                     ret = sig;
                     dist = d;
                 };
-                std::for_each( uctx.signals.begin(), uctx.signals.end(), std::move( evalSignal ) );
+                std::ranges::for_each( uctx.signals, std::move( evalSignal ) );
                 bullet.m_target = ret;
                 const math::vec3 tgtDir = math::normalize( bullet.m_target.position - bullet.m_position );
                 const float angle = math::angle( bullet.m_direction, tgtDir );
@@ -99,6 +96,7 @@ void Bullet::updateAll( const UpdateContext& uctx, std::span<Bullet> span, std::
             }
             bullet.m_quat = math::quatLookAt( bullet.m_direction, { 0.0f, 1.0f, 0.0f } );
             // rocket trail
+            bullet.m_tail.prepend( bullet.m_position );
             explosions.emplace_back() = Explosion{
                 .m_position = bullet.m_position,
                 .m_velocity = -bullet.m_direction * bullet.m_speed * 0.1f,
@@ -123,7 +121,7 @@ void Bullet::updateAll( const UpdateContext& uctx, std::span<Bullet> span, std::
             bullet.m_type = Bullet::Type::eDead;
         }
     };
-    std::for_each( span.begin(), span.end(), update );
+    std::ranges::for_each( span, update );
 };
 
 Weapon::Weapon( const WeaponCreateInfo& ci )

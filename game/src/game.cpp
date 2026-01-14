@@ -132,12 +132,12 @@ void Game::onInit()
     g_pipelines[ Pipeline::eProjectile ] = m_materials[ "projectile"_hash ];
     g_pipelines[ Pipeline::eThruster2 ] = m_materials[ "thruster2"_hash ];
     g_pipelines[ Pipeline::eParticleBlob ] = m_materials[ "particles"_hash ];
+    g_pipelines[ Pipeline::eTail ] = m_materials[ "tail"_hash ];
     g_pipelines[ Pipeline::eAfterglow ] = m_materials[ "afterglow"_hash ];
     g_pipelines[ Pipeline::eBeamBlob ] = m_materials[ "beam"_hash ];
     g_pipelines[ Pipeline::eTriangleFan3dTexture ] = m_materials[ "fan3d"_hash ];
     g_pipelines[ Pipeline::eAntiAliasFXAA ] = m_materials[ "fxaa"_hash ];
 
-    m_plasma = m_textures[ "textures/plasma.dds" ];
     m_enemyModel = Model{ m_meshes[ "models/a2.objc" ], m_textures[ "textures/a2.dds" ] };
     m_menuScene.setModel( &m_jetsContainer[ 0 ].model );
 
@@ -428,7 +428,7 @@ void Game::createLevel()
     m_gameScene = GameScene{ GameScene::CreateInfo{
         .audio = m_audio,
         .skybox = m_mapsContainer[ m_currentMission ].texture,
-        .plasma = m_plasma,
+        .textures = &m_textures,
         .enemyModel = &m_enemyModel,
         .enemyWeapon = m_enemyWeapon,
         .enemyCallsigns = m_callsigns,

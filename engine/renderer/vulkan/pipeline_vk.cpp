@@ -107,6 +107,7 @@ static constexpr auto topology( PipelineCreateInfo::Topology tp )
     case eLineList: return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
     case eTriangleList: return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     case eTriangleFan: return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+    case eTriangleStrip: return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
     }
 }
 

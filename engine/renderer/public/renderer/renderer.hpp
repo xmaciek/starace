@@ -7,6 +7,7 @@
 
 #include <SDL.h>
 
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <memory_resource>
@@ -99,4 +100,43 @@ protected:
     virtual void beginFrame() = 0;
     virtual void endFrame() = 0;
     virtual void present() = 0;
+};
+
+
+template <typename TPushConstant>
+struct InstancedRendering {
+    Renderer* renderer{};
+    RenderInfo renderInfo{ .m_instanceCount = 0, };
+    TPushConstant pushConstant{};
+
+    InstancedRendering( Renderer* r, PipelineSlot p )
+    : renderer{ r }
+    {
+        renderInfo.m_pipeline = p;
+        renderInfo.m_verticeCount = pushConstant.VERTICES;
+        renderInfo.m_uniform = pushConstant;
+    }
+
+    ~InstancedRendering()
+    {
+        flush();
+    }
+
+    inline void flush()
+    {
+        assert( renderer );
+        assert( renderInfo.m_instanceCount <= pushConstant.INSTANCES );
+        if ( renderInfo.m_instanceCount == 0 ) [[unlikely]] return;
+        renderer->render( renderInfo );
+        renderInfo.m_instanceCount = 0;
+    }
+
+    inline void append( const typename TPushConstant::Instance& i )
+    {
+        assert( renderer );
+        assert( renderInfo.m_instanceCount < pushConstant.INSTANCES );
+        pushConstant.m_instances[ renderInfo.m_instanceCount++ ] = i;
+        if ( renderInfo.m_instanceCount < pushConstant.INSTANCES ) [[likely]] return;
+        flush();
+    }
 };

@@ -10,7 +10,8 @@ GameScene::GameScene( const CreateInfo& ci ) noexcept
 : m_skybox{ ci.skybox }
 , m_player{ ci.player }
 , m_targeting{ Targeting::CreateInfo{ .callsigns = ci.enemyCallsigns } }
-, m_plasma{ ci.plasma }
+, m_plasma{ ci.textures->find( "textures/plasma.dds"_hash ) }
+, m_tail{ ci.textures->find( "textures/tail.dds"_hash ) }
 , m_audio{ ci.audio }
 {
     ZoneScoped;
@@ -49,12 +50,12 @@ void GameScene::render( Renderer* renderer, math::vec2 viewport )
     std::tie( rctx.view, rctx.projection ) = getCameraMatrix( viewport.x / viewport.y );
     rctx.camera3d = rctx.projection * rctx.view;
     rr.camera3d = rctx.camera3d;
-    std::tie( rctx.cameraPosition, rctx.cameraUp, std::ignore ) = getCamera();
+    std::tie( rctx.cameraPosition, rctx.cameraUp, rctx.cameraDirection ) = getCamera();
     m_skybox.render( rctx );
     Enemy::renderAll( rctx, m_enemies );
     m_player.render( rctx );
     Explosion::renderAll( rctx, m_explosions );
-    Bullet::renderAll( rctx, m_bullets, m_plasma );
+    Bullet::renderAll( rctx, m_bullets, m_tail );
     m_spacedust.render( rctx );
     m_targeting.render( rr );
 }

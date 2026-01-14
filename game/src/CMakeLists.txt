@@ -40,6 +40,7 @@ target_sources( starace PRIVATE
     skybox.hpp
     space_dust.cpp
     space_dust.hpp
+    tail.hpp
     targeting.cpp
     targeting.hpp
     units.hpp

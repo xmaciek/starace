@@ -12,6 +12,7 @@
 #include "targeting.hpp"
 
 #include <audio/audio.hpp>
+#include <engine/resource_map.hpp>
 #include <renderer/texture.hpp>
 
 #include <memory_resource>
@@ -29,6 +30,7 @@ class GameScene {
     SpaceDust m_spacedust{};
     Player::Input m_playerInput{};
     Texture m_plasma{};
+    Texture m_tail{};
     Audio* m_audio{};
     AutoLerp<float> m_look{ 0.0f, 1.0f, 3.0f };
     uint32_t m_score = 0;
@@ -39,7 +41,7 @@ public:
     struct CreateInfo {
         Audio* audio{};
         std::array<Texture, 6> skybox{};
-        Texture plasma{};
+        const ResourceMap<Texture>* textures = nullptr;
         Model* enemyModel{};
         WeaponCreateInfo enemyWeapon{};
         std::span<const csg::Callsign> enemyCallsigns{};

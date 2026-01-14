@@ -3,6 +3,7 @@
 #include "saobject.hpp"
 #include "units.hpp"
 #include "explosion.hpp"
+#include "tail.hpp"
 
 #include <audio/audio.hpp>
 #include <engine/math.hpp>
@@ -28,6 +29,7 @@ public:
         eDead,
     };
 
+    Tail m_tail{};
     math::vec3 m_position{};
     math::vec3 m_direction{};
     math::quat m_quat{};

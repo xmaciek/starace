@@ -15,6 +15,7 @@ enum class Pipeline : PipelineSlot {
     eAntiAliasFXAA,
     eProjectile,
     eAfterglow,
+    eTail,
     count,
 };
 
@@ -99,16 +100,31 @@ struct PushConstant<Pipeline::eParticleBlob> {
 };
 
 template <>
+struct PushConstant<Pipeline::eTail> {
+    static constexpr uint32_t INSTANCES = 320;
+    static constexpr uint32_t VERTICES = 16;
+    struct Instance {
+        std::array<math::vec3, 8> position{};
+    };
+    math::mat4 m_view{};
+    math::mat4 m_projection{};
+    alignas( 16 ) math::vec3 m_cameraDirection{};
+    alignas( 16 ) math::vec3 m_cameraUp{};
+    std::array<Instance, INSTANCES> m_instances{};
+};
+
+template <>
 struct PushConstant<Pipeline::eProjectile> {
     static constexpr uint32_t INSTANCES = 64;
-    struct Projectile {
+    static constexpr uint32_t VERTICES = 0;
+    struct Instance {
         alignas( 16 ) math::quat m_quat{};
         alignas( 16 ) math::vec4 m_positionScale{};
     };
     math::mat4 m_model{};
     math::mat4 m_view{};
     math::mat4 m_projection{};
-    std::array<Projectile, INSTANCES> m_projectiles{};
+    std::array<Instance, INSTANCES> m_instances{};
 };
 
 template <>

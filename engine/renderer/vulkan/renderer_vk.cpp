@@ -839,6 +839,7 @@ void RendererVK::render( const RenderInfo& ri )
         vkCmdBindVertexBuffers( fr.m_cmdColorPass, 0, 1, buffers.data(), offsets.data() );
     }
 
+    assert( verticeCount );
     if ( depthWrite ) vkCmdDraw( fr.m_cmdDepthPrepass, verticeCount, ri.m_instanceCount, 0, 0 );
     vkCmdDraw( fr.m_cmdColorPass, verticeCount, ri.m_instanceCount, 0, 0 );
 }
