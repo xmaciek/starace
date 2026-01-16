@@ -16,6 +16,7 @@ enum class Pipeline : PipelineSlot {
     eProjectile,
     eAfterglow,
     eTail,
+    eSkybox,
     count,
 };
 
@@ -81,6 +82,15 @@ struct PushConstant<Pipeline::eAfterglow> {
     alignas( 16 ) math::vec3 m_modelOffset{};
     std::array<math::vec4, INSTANCES> m_zSizeCutoff{};
     std::array<math::vec4, 4> m_colorScheme;
+};
+
+template <>
+struct PushConstant<Pipeline::eSkybox> {
+    static constexpr uint32_t VERTICES = 4;
+    static constexpr uint32_t INSTANCES = 6;
+    math::mat4 m_model{};
+    math::mat4 m_view{};
+    math::mat4 m_projection{};
 };
 
 template <>

@@ -137,6 +137,7 @@ void Game::onInit()
     g_pipelines[ Pipeline::eBeamBlob ] = m_materials[ "beam"_hash ];
     g_pipelines[ Pipeline::eTriangleFan3dTexture ] = m_materials[ "fan3d"_hash ];
     g_pipelines[ Pipeline::eAntiAliasFXAA ] = m_materials[ "fxaa"_hash ];
+    g_pipelines[ Pipeline::eSkybox ] = m_materials[ "skybox"_hash ];
 
     m_enemyModel = Model{ m_meshes[ "models/a2.objc" ], m_textures[ "textures/a2.dds" ] };
     m_menuScene.setModel( &m_jetsContainer[ 0 ].model );

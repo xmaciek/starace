@@ -1,0 +1,10 @@
+cullMode back
+depthTest 1
+depthWrite 1
+fragmentShader shaders/skybox.frag.spv
+fragmentImage 6
+frontFace ccw
+name skybox
+topology triangleFan
+vertexShader shaders/skybox.vert.spv
+vertexUniform 1
