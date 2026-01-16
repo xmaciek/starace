@@ -4,7 +4,6 @@
 #include <engine/math.hpp>
 
 enum class Pipeline : PipelineSlot {
-    eTriangleFan3dTexture,
     eBackground,
     eMesh,
     eSpaceDust,
@@ -22,15 +21,6 @@ enum class Pipeline : PipelineSlot {
 
 template <Pipeline P>
 struct PushConstant;
-
-template <>
-struct PushConstant<Pipeline::eTriangleFan3dTexture> {
-    math::mat4 m_model{};
-    math::mat4 m_view{};
-    math::mat4 m_projection{};
-    std::array<math::vec4, 4> m_vertices{};
-    std::array<math::vec4, 4> m_uv{};
-};
 
 template <>
 struct PushConstant<Pipeline::eBackground> {

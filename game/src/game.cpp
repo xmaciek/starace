@@ -135,7 +135,6 @@ void Game::onInit()
     g_pipelines[ Pipeline::eTail ] = m_materials[ "tail"_hash ];
     g_pipelines[ Pipeline::eAfterglow ] = m_materials[ "afterglow"_hash ];
     g_pipelines[ Pipeline::eBeamBlob ] = m_materials[ "beam"_hash ];
-    g_pipelines[ Pipeline::eTriangleFan3dTexture ] = m_materials[ "fan3d"_hash ];
     g_pipelines[ Pipeline::eAntiAliasFXAA ] = m_materials[ "fxaa"_hash ];
     g_pipelines[ Pipeline::eSkybox ] = m_materials[ "skybox"_hash ];
 
