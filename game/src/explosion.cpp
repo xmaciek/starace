@@ -11,23 +11,17 @@ void Explosion::renderAll( const RenderContext& rctx, const std::pmr::vector<Exp
 {
     if ( explosions.empty() ) return;
 
-    using ParticleBlob = PushConstant<Pipeline::eParticleBlob>;
-    ParticleBlob pushConstant{
-        .m_view = rctx.view,
-        .m_projection = rctx.projection,
-        .m_cameraPosition = rctx.cameraPosition,
-        .m_cameraUp = rctx.cameraUp,
-    };
-    RenderInfo ri{
-        .m_pipeline = g_pipelines[ Pipeline::eParticleBlob ],
-        .m_verticeCount = PushConstant<Pipeline::eParticleBlob>::VERTICES,
-        .m_uniform = pushConstant,
-    };
-    ri.m_fragmentTexture[ 0 ] = explosions.front().m_texture; // TODO sort + split by texture
+    using Instanced = InstancedRendering<PushConstant<Pipeline::eParticleBlob>>;
+    Instanced instanced{ rctx.renderer, g_pipelines[ Pipeline::eParticleBlob ] };
+
+    instanced.pushConstant.m_view = rctx.view;
+    instanced.pushConstant.m_projection = rctx.projection;
+    instanced.pushConstant.m_cameraPosition = rctx.cameraPosition;
+    instanced.pushConstant.m_cameraUp = rctx.cameraUp;
+    instanced.renderInfo.m_fragmentTexture[ 0 ] = explosions.front().m_texture; // TODO sort + split by texture
 
 
-
-    auto makeParticle = []( const Explosion& expl ) -> ParticleBlob::Particle
+    auto makeParticle = []( const Explosion& expl ) -> Instanced::Instance
     {
         static const math::vec4 COLOR_OUT = color::crimson * math::vec4{ 1.0f, 1.0f, 1.0f, 0.0f };
         const auto& pos = expl.m_position;
@@ -40,19 +34,9 @@ void Explosion::renderAll( const RenderContext& rctx, const std::pmr::vector<Exp
         };
     };
 
-    auto it = explosions.begin();
-    uint32_t count = std::min( static_cast<uint32_t>( std::distance( it, explosions.end() ) ), ParticleBlob::INSTANCES );
-    while ( count > 0 ) {
-        auto end = it;
-        std::advance( end, count );
-        std::transform( it, end, pushConstant.m_particles.begin(), makeParticle );
-        ri.m_instanceCount = count;
-        rctx.renderer->render( ri );
-
-        it = end;
-        count = std::min( static_cast<uint32_t>( std::distance( it, explosions.end() ) ), ParticleBlob::INSTANCES );
-    }
-
+    std::ranges::for_each( explosions, [&instanced, makeParticle]( const auto& expl )
+        { instanced.append( makeParticle( expl ) ); }
+    );
 }
 
 void Explosion::updateAll( const UpdateContext& uctx, std::pmr::vector<Explosion>& vec )

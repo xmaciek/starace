@@ -87,16 +87,16 @@ template <>
 struct PushConstant<Pipeline::eParticleBlob> {
     static constexpr uint32_t INSTANCES = 320;
     static constexpr uint32_t VERTICES = 6;
-    struct Particle {
-        alignas( 16 ) math::vec4 m_position{};
-        alignas( 16 ) math::vec4 m_uvxywh{};
-        alignas( 16 ) math::vec4 m_color{};
+    struct Instance {
+        math::vec4 m_position{};
+        math::vec4 m_uvxywh{};
+        math::vec4 m_color{};
     };
     math::mat4 m_view{};
     math::mat4 m_projection{};
     alignas( 16 ) math::vec3 m_cameraPosition{};
     alignas( 16 ) math::vec3 m_cameraUp{};
-    alignas( 16 ) std::array<Particle, INSTANCES> m_particles{};
+    alignas( 16 ) std::array<Instance, INSTANCES> m_instances{};
 };
 
 template <>

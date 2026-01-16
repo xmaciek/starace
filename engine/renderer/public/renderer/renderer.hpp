@@ -105,6 +105,7 @@ protected:
 
 template <typename TPushConstant>
 struct InstancedRendering {
+    using Instance = typename TPushConstant::Instance;
     Renderer* renderer{};
     RenderInfo renderInfo{ .m_instanceCount = 0, };
     TPushConstant pushConstant{};
@@ -131,7 +132,7 @@ struct InstancedRendering {
         renderInfo.m_instanceCount = 0;
     }
 
-    inline void append( const typename TPushConstant::Instance& i )
+    inline void append( const Instance& i )
     {
         assert( renderer );
         assert( renderInfo.m_instanceCount < pushConstant.INSTANCES );
