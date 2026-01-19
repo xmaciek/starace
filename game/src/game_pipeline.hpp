@@ -133,8 +133,9 @@ struct PushConstant<Pipeline::eAntiAliasFXAA> {
 
 template <>
 struct PushConstant<Pipeline::eBeamBlob> {
-    static constexpr uint32_t INSTANCES = 320;
-    struct Beam {
+    static constexpr uint32_t INSTANCES = 3;
+    static constexpr uint32_t VERTICES = 12;
+    struct Instance {
         alignas( 16 ) math::vec3 m_position{};
         alignas( 16 ) math::quat m_quat{};
         alignas( 16 ) math::vec3 m_displacement{};
@@ -144,7 +145,7 @@ struct PushConstant<Pipeline::eBeamBlob> {
     math::mat4 m_model{};
     math::mat4 m_view{};
     math::mat4 m_projection{};
-    std::array<Beam, INSTANCES> m_beams{};
+    std::array<Instance, INSTANCES> m_instances{};
 };
 
 struct PipelineAtlas {

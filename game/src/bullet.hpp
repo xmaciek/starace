@@ -76,6 +76,7 @@ struct Weapon {
     float m_cooldown = 0.0f;
     float m_reload = 0.0f;
     uint16_t m_count = 0;
+    uint16_t m_hardpointId = 0;
 
     Weapon() = default;
     Weapon( const WeaponCreateInfo& );
@@ -83,4 +84,10 @@ struct Weapon {
     bool ready() const;
     WeaponCreateInfo fire();
     float reloadProgress() const;
+    inline auto nextHardpointId( auto max )
+    {
+        auto ret = m_hardpointId;
+        m_hardpointId = ( ret + 1 ) % max;
+        return ret;
+    }
 };

@@ -46,30 +46,37 @@ void Player::render( RenderContext rctx ) const
 
     m_model.render( rctx );
 
-    PushConstant<Pipeline::eBeamBlob> bc{
-        .m_model = model,
-        .m_view = rctx.view,
-        .m_projection = rctx.projection,
-    };
-    RenderInfo bd{
-        .m_pipeline = g_pipelines[ Pipeline::eBeamBlob ],
-        .m_verticeCount = 12,
-        .m_instanceCount = 0,
-        .m_uniform = bc,
-    };
-    for ( uint32_t i = 0; i < MAX_SUPPORTED_WEAPON_COUNT; ++i ) {
-        if ( m_weapons[ i ].m_ci.type != Bullet::Type::eLaser ) continue;
-        if ( !isShooting( i ) ) continue;
-        bc.m_beams[ bd.m_instanceCount++ ] = PushConstant<Pipeline::eBeamBlob>::Beam{
-            .m_position = weaponPoint( i ),
+    using Instanced = InstancedRendering<PushConstant<Pipeline::eBeamBlob>>;
+    Instanced beam{ rctx.renderer, g_pipelines[ Pipeline::eBeamBlob ] };
+    beam.pushConstant.m_model = model;
+    beam.pushConstant.m_view = rctx.view;
+    beam.pushConstant.m_projection = rctx.projection;
+
+    auto&& hardp = m_model.hardpoints();
+    if ( m_weapons[ 0 ].m_ci.type == Bullet::Type::eLaser && isShooting( 0 ) ) {
+        beam.append( Instanced::Instance{
+            .m_position = math::rotate( quat(), hardp.primary[ 0 ] * (float)meter ) + position(),
             .m_quat = quat(),
             .m_displacement{ 1.0_m, 1.0_m, 1000.0_m },
             .m_color1 = color::crimson,
             .m_color2 = color::white,
-        };
+        } );
+        beam.append( Instanced::Instance{
+            .m_position = math::rotate( quat(), hardp.primary[ 1 ] * (float)meter ) + position(),
+            .m_quat = quat(),
+            .m_displacement{ 1.0_m, 1.0_m, 1000.0_m },
+            .m_color1 = color::crimson,
+            .m_color2 = color::white,
+        } );
     }
-    if ( bd.m_instanceCount ) {
-        rctx.renderer->render( bd );
+    if ( m_weapons[ 1 ].m_ci.type == Bullet::Type::eLaser && isShooting( 1 ) ) {
+        beam.append( Instanced::Instance{
+            .m_position = math::rotate( quat(), hardp.secondary[ 0 ] * (float)meter ) + position(),
+            .m_quat = quat(),
+            .m_displacement{ 1.0_m, 1.0_m, 1000.0_m },
+            .m_color1 = color::crimson,
+            .m_color2 = color::white,
+        } );
     }
 }
 
@@ -161,7 +168,6 @@ bool Player::isShooting( uint32_t weaponNum ) const
     switch ( weaponNum ) {
     case 0: return m_input.shoot1;
     case 1: return m_input.shoot2;
-    case 2: return m_input.shoot1;
     [[unlikely]]
     default:
         assert( !"weapon index out of range" );
@@ -169,19 +175,21 @@ bool Player::isShooting( uint32_t weaponNum ) const
     }
 }
 
-math::vec3 Player::weaponPoint( uint32_t weaponNum ) const
-{
-    math::vec3 w = math::rotate( quat(), m_model.weapon( weaponNum ) );
-    w += position();
-    return w;
-}
-
 Bullet Player::weapon( uint32_t weaponNum )
 {
     assert( weaponNum < std::size( m_weapons ) );
     AutoAim aa{};
     WeaponCreateInfo wci = m_weapons[ weaponNum ].fire();
-    math::vec3 projectilePosition = math::rotate( quat(), m_model.weapon( weaponNum ) ) + position();
+    auto&& hardp = m_model.hardpoints();
+    math::vec3 projectilePosition{};
+    switch ( weaponNum ) {
+    case 0: projectilePosition = hardp.primary[ m_weapons[ weaponNum ].nextHardpointId( hardp.primary.size() ) ]; break;
+    case 1: projectilePosition = hardp.secondary[ m_weapons[ weaponNum ].nextHardpointId( hardp.secondary.size() ) ]; break;
+    default:
+        assert( !"weaponNum our of range" );
+        break;
+    }
+    projectilePosition = math::rotate( quat(), projectilePosition * (float)meter ) + position();
     math::vec3 projectileDirection = wci.type == Bullet::Type::eBlaster && aa.matches( position(), direction(), m_target.position )
         ? aa( wci.speed, projectilePosition, m_target.position, m_targetVelocity )
         : direction();

@@ -2,6 +2,7 @@
 
 #include <engine/math.hpp>
 #include <renderer/buffer.hpp>
+#include <shared/stack_vector.hpp>
 
 #include <array>
 #include <cstdint>
@@ -13,15 +14,18 @@
 
 class Renderer;
 
+struct Hardpoints {
+    StackVector<math::vec3, 2> primary{};
+    StackVector<math::vec3, 1> secondary{};
+};
+
 class Mesh {
     Renderer* m_renderer = nullptr;
     // TODO revisit with complying map __cpp_lib_generic_unordered_lookup, or drop key altogether
     std::pmr::unordered_map<std::pmr::string, Buffer> m_map{};
 public:
-    std::array<math::vec3, 2> m_hardpointsPrimary{}; // todo
-    std::array<math::vec3, 1> m_hardpointsSecondary{}; // todo
-    std::array<math::vec3, 2> m_thrusterAfterglow{}; // todo
-    uint32_t m_thrusterAfterglowCount = 0;
+    Hardpoints hardpoints{};
+    StackVector<math::vec3, 2> thrusterAfterglow{};
 
     ~Mesh() noexcept;
     Mesh() noexcept = default;

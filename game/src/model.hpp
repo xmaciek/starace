@@ -7,6 +7,7 @@
 #include <renderer/buffer.hpp>
 #include <renderer/texture.hpp>
 #include <renderer/renderer.hpp>
+#include <shared/stack_vector.hpp>
 
 #include <filesystem>
 #include <memory_resource>
@@ -16,9 +17,8 @@
 class Model {
 private:
     Texture m_texture{};
-    std::array<math::vec3, 3> m_weapons{};
-    std::array<math::vec3, 2> m_thrusterAfterglow{};
-    uint32_t m_thrusterAfterglowCount = 0;
+    Hardpoints m_hardpoints{};
+    StackVector<math::vec3, 2> m_thrusterAfterglow{};
 
 public:
     Buffer m_hull{};
@@ -30,7 +30,8 @@ public:
     Model() = default;
     Model( const Mesh&, Texture ) noexcept;
 
-    math::vec3 weapon( uint32_t ) const;
+    const Hardpoints& hardpoints() const { return m_hardpoints; }
+
     void render( const RenderContext& ) const;
 
 };

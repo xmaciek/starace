@@ -1,6 +1,6 @@
 #version 450
 
-const uint INSTANCES = 320;
+const uint INSTANCES = 3;
 
 struct Beam {
     vec3 position;

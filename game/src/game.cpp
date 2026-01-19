@@ -434,7 +434,7 @@ void Game::createLevel()
         .enemyCallsigns = m_callsigns,
         .player = Player::CreateInfo{
             .model = m_jetsContainer[ m_currentJet ].model,
-            .weapons{ w1, w2, w1 },
+            .weapons{ w1, w2 },
         },
         .spaceDustPipeline = m_materials[ "space_dust"_hash ],
     } };

@@ -18,7 +18,7 @@
 class Renderer;
 class Player : public SAObject {
 public:
-    static constexpr inline uint32_t MAX_SUPPORTED_WEAPON_COUNT = 3;
+    static constexpr inline uint32_t MAX_SUPPORTED_WEAPON_COUNT = 2;
     static constexpr inline uint16_t COLLIDE_ID = 'JT';
 
     struct Input {
@@ -72,7 +72,6 @@ private:
 
     math::vec3 m_targetVelocity{};
 
-    math::vec3 weaponPoint( uint32_t ) const;
     bool isShooting( uint32_t ) const;
     Bullet weapon( uint32_t );
     void scanSignals( std::span<const Signal>, float );

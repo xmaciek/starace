@@ -14,17 +14,14 @@ using std::operator ""sv;
 
 Model::Model( const Mesh& mesh, Texture t ) noexcept
 : m_texture{ t }
-, m_thrusterAfterglow{ mesh.m_thrusterAfterglow }
-, m_thrusterAfterglowCount{  mesh.m_thrusterAfterglowCount }
+, m_hardpoints{ mesh.hardpoints }
+, m_thrusterAfterglow{ mesh.thrusterAfterglow }
 , m_hull{ mesh[ "hull"sv ] }
 , m_thruster{ mesh[ "thruster"sv ] }
 , m_wings{ mesh[ "wings"sv ] }
 , m_tail{ mesh[ "tail"sv ] }
 , m_intake{ mesh[ "intake"sv ] }
 {
-    m_weapons[ 0 ] = mesh.m_hardpointsPrimary[ 0 ];
-    m_weapons[ 1 ] = mesh.m_hardpointsSecondary[ 0 ];
-    m_weapons[ 2 ] = mesh.m_hardpointsPrimary[ 1 ];
 }
 
 void Model::render( const RenderContext& rctx ) const
@@ -67,8 +64,7 @@ void Model::render( const RenderContext& rctx ) const
         ri.m_uniform = p;
         rctx.renderer->render( ri );
     }
-    if ( m_thrusterAfterglowCount == 0 ) return;
-    assert( m_thrusterAfterglowCount <= m_thrusterAfterglow.size() );
+    if ( m_thrusterAfterglow.empty() ) return;
 
     ri.m_pipeline = g_pipelines[ Pipeline::eAfterglow ];
     ri.m_verticeCount = PushConstant<Pipeline::eAfterglow>::VERTICES;
@@ -90,14 +86,9 @@ void Model::render( const RenderContext& rctx ) const
     };
     ri.m_uniform = aci;
 
-    for ( uint32_t i = 0; i < m_thrusterAfterglowCount; ++i ) {
-        aci.m_modelOffset = m_thrusterAfterglow[ i ] * (float)meter;
+    for ( auto&& it : m_thrusterAfterglow ) {
+        aci.m_modelOffset = it * (float)meter;
         rctx.renderer->render( ri );
     }
 
-}
-
-math::vec3 Model::weapon( uint32_t i ) const
-{
-    return m_weapons[ i >= 3 ? 0 : i ] * (float)meter;
 }
