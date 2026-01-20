@@ -36,6 +36,7 @@ struct PushConstant<Pipeline::eBackground> {
 template <>
 struct PushConstant<Pipeline::eSpaceDust> {
     static constexpr uint32_t INSTANCES = 100;
+    static constexpr uint32_t VERTICES = 2;
     math::mat4 m_model{};
     math::mat4 m_view{};
     math::mat4 m_projection{};

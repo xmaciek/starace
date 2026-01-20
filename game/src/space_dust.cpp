@@ -73,7 +73,7 @@ void SpaceDust::render( const RenderContext& rctx ) const
     };
     RenderInfo ri{
         .m_pipeline = m_pipeline,
-        .m_verticeCount = 2u,
+        .m_verticeCount = pushConstant.VERTICES,
         .m_instanceCount = static_cast<uint32_t>( m_particles.size() ),
         .m_lineWidth = m_lineWidth * ( rctx.viewport.y / 720.0f ),
         .m_uniform = pushConstant,
