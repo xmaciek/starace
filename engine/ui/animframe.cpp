@@ -23,13 +23,13 @@ AnimFrame::AnimFrame( const CreateInfo& ci ) noexcept
 
 void AnimFrame::render( const RenderContext& rctx ) const
 {
+    using PushConstant = ui::PushConstant<ui::Pipeline::eSpriteSequence>;
     RenderInfo ri{
         .m_pipeline = m_pipeline,
-        .m_verticeCount = 6u,
+        .m_verticeCount = PushConstant::VERTICES,
     };
     ri.m_fragmentTexture[ 0 ] = m_uvwh[ m_index ].texture;
 
-    using PushConstant = ui::PushConstant<ui::Pipeline::eSpriteSequence>;
     PushConstant pushConstant{
         .m_model = rctx.model,
         .m_view = rctx.view,
