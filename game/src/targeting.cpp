@@ -9,6 +9,8 @@
 #include <ui/property.hpp>
 #include <ui/label.hpp>
 
+#include <profiler.hpp>
+
 #include <array>
 
 static constexpr std::array targetSprites{
@@ -81,6 +83,7 @@ static std::array<math::vec4, 4> lerp( const auto& a, const auto& b, float n )
 
 void Targeting::render( const RenderContext& rctx ) const
 {
+    ZoneScoped;
     using PushConstant = ui::PushConstant<ui::Pipeline::eSpriteSequenceColors>;
     static_assert( PushConstant::INSTANCES >= 8 );
     using Sprite = PushConstant::Sprite;
