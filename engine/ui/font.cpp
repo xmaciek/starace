@@ -32,6 +32,29 @@ static std::tuple<math::vec4, math::vec4> composeSprite( const fnta::Glyph& glyp
     );
 }
 
+
+static std::pmr::u32string textUnmap( std::u32string_view s )
+{
+    std::pmr::u32string ret;
+    auto isAction = []( char32_t c ) { return c >= (char32_t)ui::Action::Enum::base && c < (char32_t)ui::Action::Enum::end; };
+    auto it = std::ranges::find_if( s, isAction );
+    if ( it == s.end() ) [[likely]] return ret;
+
+    std::array<char32_t, 20> remapped;
+    auto begin = s.begin();
+    do {
+        ret.append( begin, it );
+        uint32_t remappedCount = g_uiProperty.remapper()->apply( g_uiProperty.inputSource(), *it, remapped );
+        ret.append( remapped.begin(), remappedCount );
+        begin = it;
+        std::advance( begin, 1 );
+        it = std::find_if( begin, s.end(), isAction );
+    } while ( it != s.end() );
+    ret.append( begin, it );
+
+    return ret;
+}
+
 namespace ui {
 
 Font::Font( const CreateInfo& ci )
@@ -121,6 +144,9 @@ Texture Font::texture() const
 Font::RenderText Font::composeText( const math::vec4& color, std::u32string_view text, const math::vec2& geometry ) const
 {
     ZoneScoped;
+    std::pmr::u32string textRemapped = textUnmap( text );
+    if ( !textRemapped.empty() ) text = textRemapped;
+
     assert( text.size() < ui::PushConstant<ui::Pipeline::eSpriteSequence>::INSTANCES );
 
     RenderText ret{
@@ -223,16 +249,7 @@ Font::RenderText Font::composeText( const math::vec4& color, std::u32string_view
         [[likely]] default: break;
         }
 
-        if ( chr < (char32_t)Action::Enum::base || chr >= (char32_t)Action::Enum::end ) [[likely]] {
-            appendRenderText( cursor, ret.pushData, ret.pushConstant, chr );
-        }
-        else {
-            std::array<char32_t, 20> remapped;
-            uint32_t remappedCount = g_uiProperty.remapper()->apply( g_uiProperty.inputSource(), chr, remapped );
-            for ( uint32_t j = 0; j < remappedCount; ++j ) {
-                appendRenderText( cursor, ret.pushData, ret.pushConstant, remapped[ j ] );
-            }
-        }
+        appendRenderText( cursor, ret.pushData, ret.pushConstant, chr );
 
         if ( ( cursor.x > geometry.x ) && ( lastBreakCursorPos != 0 ) ) [[unlikely]] {
             ret.pushData.m_instanceCount = lastInstanceCount;
