@@ -59,13 +59,15 @@ public:
     Sprite find( Hash::value_type ) const;
     Sprite find( char32_t ) const;
 
+    using RenderInstance = ui::PushConstant<ui::Pipeline::eSpriteSequence>::Sprite;
     struct RenderText {
         RenderInfo pushData{};
-        ui::PushConstant<ui::Pipeline::eSpriteSequence> pushConstant;
+        std::pmr::vector<RenderInstance> data;
         math::vec2 extent;
     };
-    RenderText composeText( const math::vec4& color, std::u32string_view, const math::vec2& geometry = math::vec2{ 320.0f, 100.0f } ) const;
-    void appendRenderText( math::vec2&, RenderInfo&, ui::PushConstant<ui::Pipeline::eSpriteSequence>&, char32_t ) const;
+    RenderText composeText( std::u32string_view, const math::vec2& geometry = math::vec2{ 320.0f, 100.0f } ) const;
+
+    Texture appendRenderText( math::vec2&, RenderInstance&, char32_t ) const;
 };
 
 }

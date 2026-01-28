@@ -35,8 +35,7 @@ private:
     Hash::value_type m_locText{};
     DataModel::size_type m_revision = 0xFFFF;
     bool m_hasActions : 1 = false;
-    // TODO remove mutable
-    mutable Font::RenderText m_renderText{};
+    Font::RenderText m_renderText{};
 
 public:
     Label() = default;

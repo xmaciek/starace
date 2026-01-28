@@ -55,6 +55,17 @@ static std::pmr::u32string textUnmap( std::u32string_view s )
     return ret;
 }
 
+static uint32_t findOrAdd( auto& container, Texture t )
+{
+    auto it = std::ranges::find( container, t );
+    if ( it != container.end() ) return (uint32_t)std::distance( container.begin(), it );
+    it = std::ranges::find( container, Texture{} );
+    assert( it != container.end() );
+    uint32_t ret = std::min( (uint32_t)std::distance( container.begin(), it ), (uint32_t)container.size() - 1 );
+    container[ ret ] = t;
+    return ret;
+}
+
 namespace ui {
 
 Font::Font( const CreateInfo& ci )
@@ -141,22 +152,16 @@ Texture Font::texture() const
     return m_texture;
 }
 
-Font::RenderText Font::composeText( const math::vec4& color, std::u32string_view text, const math::vec2& geometry ) const
+Font::RenderText Font::composeText( std::u32string_view text, const math::vec2& geometry ) const
 {
     ZoneScoped;
     std::pmr::u32string textRemapped = textUnmap( text );
     if ( !textRemapped.empty() ) text = textRemapped;
 
-    assert( text.size() < ui::PushConstant<ui::Pipeline::eSpriteSequence>::INSTANCES );
-
     RenderText ret{
         .pushData{
             .m_pipeline = g_uiProperty.findMaterial( "spriteSequence"_hash ),
             .m_verticeCount = ui::PushConstant<ui::Pipeline::eSpriteSequence>::VERTICES,
-            .m_instanceCount = 0,
-        },
-        .pushConstant{
-            .m_color = color,
         },
     };
     if ( text.empty() ) [[unlikely]] return ret;
@@ -249,7 +254,9 @@ Font::RenderText Font::composeText( const math::vec4& color, std::u32string_view
         [[likely]] default: break;
         }
 
-        appendRenderText( cursor, ret.pushData, ret.pushConstant, chr );
+        auto&& sprite = ret.data.emplace_back();
+        Texture t = appendRenderText( cursor, sprite, chr );
+        sprite.m_whichAtlas = findOrAdd( ret.pushData.m_fragmentTexture, t );
 
         if ( ( cursor.x > geometry.x ) && ( lastBreakCursorPos != 0 ) ) [[unlikely]] {
             ret.pushData.m_instanceCount = lastInstanceCount;
@@ -260,30 +267,23 @@ Font::RenderText Font::composeText( const math::vec4& color, std::u32string_view
     }
     ret.extent.x = std::max( ret.extent.x, cursor.x );
     ret.extent.y = cursor.y + (float)m_lineHeight * m_scale;
+    ret.pushData.m_instanceCount = (uint32_t)ret.data.size();
     return ret;
 }
 
-void Font::appendRenderText( math::vec2& cursor, RenderInfo& pushData, ui::PushConstant<ui::Pipeline::eSpriteSequence>& pushConstant, char32_t chr ) const
+Texture Font::appendRenderText( math::vec2& cursor, RenderInstance& sprite, char32_t chr ) const
 {
-    assert( pushData.m_instanceCount < pushConstant.INSTANCES );
     const auto [ glyph, texture, size, lineHeight ] = getGlyph( chr );
     const float lineHeightMismatch = ( lineHeight && lineHeight != m_lineHeight ) ? (float)m_lineHeight / (float)lineHeight : 1.0f;
 
     if ( !glyph ) [[unlikely]] {
         cursor.x += static_cast<float>( glyph.advance[ 0 ] ) * lineHeightMismatch * m_scale;
-        return;
+        return {};
     };
 
-    auto& sprite = pushConstant.m_sprites[ pushData.m_instanceCount++ ];
     std::tie( sprite.m_xywh, sprite.m_uvwh ) = composeSprite( glyph, size, cursor, lineHeightMismatch, m_scale );
     cursor.x += static_cast<float>( glyph.advance[ 0 ] ) * lineHeightMismatch * m_scale;
-    auto it = std::ranges::find_if( pushData.m_fragmentTexture, [texture]( const auto& r ){ return r == texture; } );
-    if ( it == pushData.m_fragmentTexture.end() ) [[unlikely]] {
-        it = std::ranges::find_if( pushData.m_fragmentTexture, []( const auto& r ) { return r == 0; } );
-    }
-    sprite.m_whichAtlas = (uint32_t)std::distance( pushData.m_fragmentTexture.begin(), it );
-    pushData.m_fragmentTexture[ sprite.m_whichAtlas ] = texture;
-    return;
+    return texture;
 }
 
 std::tuple<Font::Glyph, Texture, math::vec2, uint32_t> Font::getGlyph( char32_t ch ) const

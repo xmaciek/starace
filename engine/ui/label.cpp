@@ -30,18 +30,25 @@ Label::Label( const Label::CreateInfo& ci )
 void Label::render( const RenderContext& rctx ) const
 {
     if ( m_renderText.pushData.m_instanceCount == 0 ) [[unlikely]] return;
-    m_renderText.pushConstant.m_model = rctx.model;
-    m_renderText.pushConstant.m_view = rctx.view;
-    m_renderText.pushConstant.m_projection = rctx.projection;
-    m_renderText.pushData.m_uniform = m_renderText.pushConstant;
-    rctx.renderer->render( m_renderText.pushData );
+    PushConstant<ui::Pipeline::eSpriteSequence> pushConstant;
+    pushConstant.m_model = rctx.model;
+    pushConstant.m_view = rctx.view;
+    pushConstant.m_projection = rctx.projection;
+    pushConstant.m_color = m_color;
+
+    RenderInfo ri = m_renderText.pushData;
+    ri.m_uniform = pushConstant;
+    assert( ri.m_instanceCount < pushConstant.INSTANCES );
+    assert( ri.m_instanceCount == m_renderText.data.size() );
+    std::ranges::copy( m_renderText.data, pushConstant.m_sprites.begin() );
+    rctx.renderer->render( ri );
 }
 
 void Label::refreshInput()
 {
     Widget::refreshInput();
     if ( m_hasActions ) {
-        m_renderText = m_font->composeText( m_color, m_text, m_labelExtent );
+        m_renderText = m_font->composeText( m_text, m_labelExtent );
         m_size = m_renderText.extent;
     }
 }
@@ -71,7 +78,7 @@ void Label::setText( std::pmr::u32string&& str )
         return c >= (char32_t)Action::base && c < (char32_t)Action::end;
     };
     m_hasActions = std::ranges::find_if( m_text, isAction ) != m_text.end();
-    m_renderText = m_font->composeText( m_color, m_text, m_labelExtent );
+    m_renderText = m_font->composeText( m_text, m_labelExtent );
     m_size = m_renderText.extent;
 }
 
