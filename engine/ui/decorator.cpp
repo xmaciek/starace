@@ -77,11 +77,28 @@ namespace ui {
 
 Decorator::Decorator( const CreateInfo& ci ) noexcept
 : Widget{ ci.position, ci.size, ci.anchor }
+, m_style{ ci.style }
 {
     m_pipeline = g_uiProperty.findMaterial( "spriteSequence"_hash );
     std::array<Hash::value_type, 9> hashes;
-    switch ( ci.style ) {
+    switch ( m_style ) {
     default: assert( !"unknown Decorator style" ); [[fallthrough]];
+    case "image"_hash: {
+        auto sprite = g_uiProperty.sprite( ci.path );
+        m_sprites.resize( 1 );
+        m_sprites[ 0 ] = { .m_xywh = math::vec4{ math::vec2{}, ci.size }, .m_uvwh = sprite };
+        m_textures.resize( 1 );
+        m_textures[ 0 ] = sprite.texture;
+        return;
+    }
+    case "flat"_hash: {
+        auto sprite = g_uiProperty.sprite( "white"_hash );
+        m_sprites.resize( 1 );
+        m_sprites[ 0 ] = { .m_xywh = math::vec4{ math::vec2{}, ci.size }, .m_uvwh = sprite };
+        m_textures.resize( 1 );
+        m_textures[ 0 ] = sprite.texture;
+        return;
+    }
     case "box"_hash: hashes = STYLE_BOX; break;
     case "button"_hash: hashes = STYLE_BUTTON; break;
     }
@@ -108,7 +125,7 @@ void Decorator::render( const RenderContext& rctx ) const
     RenderInfo ri{
         .m_pipeline = m_pipeline,
         .m_verticeCount = Uniform::VERTICES,
-        .m_instanceCount = 9,
+        .m_instanceCount = (uint32_t)m_sprites.size(),
     };
 
     Uniform pushConstant{
@@ -120,8 +137,7 @@ void Decorator::render( const RenderContext& rctx ) const
 
     std::ranges::copy( m_textures, ri.m_fragmentTexture.begin() );
     std::ranges::copy( m_sprites, pushConstant.m_sprites.begin() );
-    std::for_each( pushConstant.m_sprites.begin(), pushConstant.m_sprites.begin() + 9,
-    [&ri, r=rctx.renderer]( auto& s )
+    std::ranges::for_each( pushConstant.m_sprites, [&ri, r=rctx.renderer]( auto& s )
     {
         s.m_sampleRGBA = r->channelCount( ri.m_fragmentTexture[ s.m_whichAtlas ] ) == 4;
     } );

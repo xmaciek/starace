@@ -18,12 +18,13 @@ private:
 
 public:
     struct CreateInfo {
+        math::vec2 position{};
+        math::vec2 size{};
         Hash::value_type text{};
         Hash::value_type trigger{};
         Hash::value_type screenChange{};
-        math::vec2 position{};
-        math::vec2 size{};
         Hash::value_type style = "button"_hash;
+        Hash::value_type path = "white"_hash;
         uint16_t tabOrder{};
         Anchor anchor = Anchor::fTop | Anchor::fLeft;
     };

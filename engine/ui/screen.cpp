@@ -123,6 +123,7 @@ inline constexpr std::array BUTTON_FIELDS = {
     F{ "text"_hash, &setText<Button> },
     F{ "trigger"_hash, &setTrigger<Button> },
     F{ "style"_hash, &setStyle<Button> },
+    F{ "path"_hash, &setPath<Button> },
     F{ "goto"_hash, &setGoto<Button> },
     F{ "width"_hash, &setW<Button> },
     F{ "x"_hash, &setX<Button> },

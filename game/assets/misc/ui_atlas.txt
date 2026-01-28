@@ -1,6 +1,7 @@
 width = 256
 height = 256
 
+white = { x = 4 y = 36 w = 1 h = 1 }
 arrowLeft  = { x = 24  y = 0   w = 24  h = 32  }
 arrowRight = { x = 0   y = 0   w = 24  h = 32  }
 background = { x = 84  y = 0   w = 8   h = 8   }

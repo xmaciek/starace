@@ -45,9 +45,9 @@ void MessageBox::addButton( Hash::value_type text, ui::Action::Enum action, std:
     const float offset[ 2 ] = { 0.45f, 0.55f };
     const Anchor anchor[ 2 ] = { Anchor::fRight, Anchor::fLeft };
     m_buttons[ index ].btn = emplace_child<Button>( Button::CreateInfo{
-        .text = text,
         .position = size() * math::vec2{ offset[ index ], 0.95f },
         .size = size() * math::vec2{ 0.40f, 0.16f },
+        .text = text,
         .anchor = Anchor::fBottom | anchor[ index ],
     } );
     m_buttons[ index ].btn->setTrigger( std::move( trigger ) );
