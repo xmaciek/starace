@@ -13,6 +13,19 @@
 #include <memory_resource>
 #include <vector>
 
+static void unescape( std::string& text )
+{
+    for ( auto pos = text.find( '\\' ); pos != text.npos; pos = text.find( '\\', pos ) ) {
+        if ( pos == text.size() - 1 ) break;
+        switch ( text[ pos + 1 ] ) {
+        case 'n': text.replace( pos, 2, "\n" ); break;
+        case 't': text.replace( pos, 2, "\t" ); break;
+        case '\\': text.replace( pos, 2, "\\" ); break;
+        }
+        pos++;
+    }
+}
+
 static bool getLine( std::span<const char>& stream, std::span<const char>& out )
 {
     if ( stream.empty() ) return false;
@@ -64,7 +77,9 @@ struct ParserCSV {
             const auto valueEnd = std::find( it, line.end(), '"' );
             if ( valueEnd == line.end() ) cooker::error( "value must end with quotes, at line", lineCount );
 
-            unicode::Transcoder utf{ std::string_view{ valueBegin, valueEnd } };
+            std::string view{ valueBegin, valueEnd };
+            unescape( view );
+            unicode::Transcoder utf{ view };
             const auto offset = static_cast<uint32_t>( m_string.size() );
             const auto size = static_cast<uint32_t>( utf.length() );
             m_string.resize( offset + size + 1u );
