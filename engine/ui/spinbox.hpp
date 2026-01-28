@@ -1,6 +1,6 @@
 #pragma once
 
-#include "nineslice.hpp"
+#include "decorator.hpp"
 #include <ui/data_model.hpp>
 #include <ui/label.hpp>
 #include <ui/tab_order.hpp>
@@ -9,7 +9,7 @@
 
 namespace ui {
 
-class SpinBox : public NineSlice {
+class SpinBox : public Decorator {
 protected:
     Label* m_label{};
     Label* m_value{};

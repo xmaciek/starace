@@ -1,6 +1,6 @@
 #pragma once
 
-#include "nineslice.hpp"
+#include "decorator.hpp"
 #include <ui/label.hpp>
 #include <shared/hash.hpp>
 
@@ -10,7 +10,7 @@
 
 namespace ui {
 
-class Button : public NineSlice {
+class Button : public Decorator {
 private:
     Label* m_label{};
     Hash::value_type m_screenChange{};

@@ -3,10 +3,10 @@
 #include "animframe.hpp"
 #include "button.hpp"
 #include "combobox.hpp"
+#include "decorator.hpp"
 #include "footer.hpp"
 #include "glow.hpp"
 #include "image.hpp"
-#include "nineslice.hpp"
 #include "progressbar.hpp"
 #include "spinbox.hpp"
 
@@ -129,11 +129,11 @@ inline constexpr std::array BUTTON_FIELDS = {
     F{ "y"_hash, &setY<Button> },
 };
 
-inline constexpr std::array NINESLICE_FIELDS = {
-    F{ "height"_hash, &setH<NineSlice> },
-    F{ "width"_hash, &setW<NineSlice> },
-    F{ "x"_hash, &setX<NineSlice> },
-    F{ "y"_hash, &setY<NineSlice> },
+inline constexpr std::array DECORATOR_FIELDS = {
+    F{ "height"_hash, &setH<Decorator> },
+    F{ "width"_hash, &setW<Decorator> },
+    F{ "x"_hash, &setX<Decorator> },
+    F{ "y"_hash, &setY<Decorator> },
 };
 
 inline constexpr std::array ANIMFRAME_FIELDS = {
@@ -171,7 +171,7 @@ inline constexpr std::array WIDGETS = {
     W{ "ComboBox"_hash, &makeWidget<ComboBox>, COMBOBOX_FIELDS },
     W{ "Image"_hash, &makeWidget<Image>, IMAGE_FIELDS },
     W{ "Label"_hash, &makeWidget<Label>, LABEL_FIELDS },
-    W{ "NineSlice"_hash, &makeWidget<NineSlice>, NINESLICE_FIELDS },
+    W{ "NineSlice"_hash, &makeWidget<Decorator>, DECORATOR_FIELDS },
     W{ "Progressbar"_hash, &makeWidget<Progressbar>, PROGRESSBAR_FIELDS },
     W{ "SpinBox"_hash, &makeWidget<SpinBox>, SPINBOX_FIELDS },
     W{ "AnimFrame"_hash, &makeWidget<AnimFrame>, ANIMFRAME_FIELDS },

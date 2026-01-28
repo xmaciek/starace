@@ -30,7 +30,7 @@ ui::Sprite arrowRight( math::vec2 size )
 namespace ui {
 
 SpinBox::SpinBox( const CreateInfo& ci ) noexcept
-: NineSlice{ NineSlice::CreateInfo{ .position = ci.position, .size = ci.size, .anchor = Anchor::fTop| Anchor::fLeft } }
+: Decorator{ Decorator::CreateInfo{ .position = ci.position, .size = ci.size, .anchor = Anchor::fTop| Anchor::fLeft } }
 , m_model{ g_uiProperty.dataModel( ci.data ) }
 , m_arrowLeft{ arrowLeft( size() ) }
 , m_arrowRight{ arrowRight( size() ) }
@@ -49,7 +49,7 @@ void SpinBox::render( const RenderContext& r ) const
     auto rctx = r;
     using PushConstant = PushConstant<Pipeline::eSpriteSequenceColors>;
     rctx.colorMain = isFocused() ? rctx.colorFocus : rctx.colorMain;
-    NineSlice::render( rctx );
+    Decorator::render( rctx );
 
     RenderInfo ri{
         .m_pipeline = m_pipeline,

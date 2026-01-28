@@ -1,7 +1,7 @@
 #include <ui/message_box.hpp>
 
 #include "button.hpp"
-#include "nineslice.hpp"
+#include "decorator.hpp"
 #include <ui/label.hpp>
 #include <ui/property.hpp>
 
@@ -10,7 +10,7 @@ namespace ui {
 MessageBox::MessageBox( const CreateInfo& ci )
 : Widget{ ci.position, ci.size, Anchor::fMiddle | Anchor::fCenter  }
 {
-    emplace_child<NineSlice>( NineSlice::CreateInfo{ .size = ci.size } );
+    emplace_child<Decorator>( Decorator::CreateInfo{ .size = ci.size } );
     emplace_child<Label>( Label::CreateInfo{ .text = ci.text, .font = "medium"_hash, .position = ci.size * 0.5f, .anchor = Anchor::fMiddle | Anchor::fCenter, } );
     m_blur = g_uiProperty.findMaterial( "blur"_hash );
 }

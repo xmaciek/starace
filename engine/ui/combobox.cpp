@@ -43,7 +43,7 @@ public:
 };
 
 ComboBox::ComboBox( const ComboBox::CreateInfo& ci ) noexcept
-: NineSlice{ NineSlice::CreateInfo{ .position = ci.position, .size = ci.size, .anchor = Anchor::fTop| Anchor::fLeft } }
+: Decorator{ Decorator::CreateInfo{ .position = ci.position, .size = ci.size, .anchor = Anchor::fTop| Anchor::fLeft } }
 , m_data{ ci.data }
 {
     m_label = emplace_child<Label>( Label::CreateInfo{ .text = ci.text, .font = "medium"_hash, .anchor = Anchor::fLeft | Anchor::fMiddle, } );
@@ -97,7 +97,7 @@ void ComboBox::render( const RenderContext& r ) const
 {
     auto rctx = r;
     rctx.colorMain = isFocused() ? rctx.colorFocus : rctx.colorMain;
-    NineSlice::render( rctx );
+    Decorator::render( rctx );
 }
 
 ComboBoxList::ComboBoxList( const ComboBoxList::CreateInfo& ci ) noexcept
@@ -136,9 +136,9 @@ void ComboBoxList::render( const RenderContext& rctx ) const
 
     auto count = visibleCount();
 
-    NineSlice::CreateInfo bgci{ .position{ 4.0f, 0.0f }, .size = size(), };
+    Decorator::CreateInfo bgci{ .position{ 4.0f, 0.0f }, .size = size(), };
     bgci.size.x -= 8.0f;
-    NineSlice bg{ bgci };
+    Decorator bg{ bgci };
     bg.onRender( rctx );
 
     pushConstant.m_sprites[ 0 ] = {

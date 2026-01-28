@@ -1,6 +1,6 @@
 #pragma once
 
-#include "nineslice.hpp"
+#include "decorator.hpp"
 #include <ui/label.hpp>
 #include <ui/scroll_index.hpp>
 #include <ui/widget.hpp>
@@ -9,7 +9,7 @@ namespace ui {
 
 class DataModel;
 
-class ComboBox : public NineSlice {
+class ComboBox : public Decorator {
     Label* m_label{};
     Label* m_value{};
     Hash::value_type m_data{};

@@ -1,4 +1,4 @@
-#include "nineslice.hpp"
+#include "decorator.hpp"
 
 #include <ui/font.hpp>
 #include <ui/pipeline.hpp>
@@ -75,13 +75,13 @@ constexpr std::array<Hash::value_type, 9> STYLE_BUTTON{
 
 namespace ui {
 
-NineSlice::NineSlice( const CreateInfo& ci ) noexcept
+Decorator::Decorator( const CreateInfo& ci ) noexcept
 : Widget{ ci.position, ci.size, ci.anchor }
 {
     m_pipeline = g_uiProperty.findMaterial( "spriteSequence"_hash );
     std::array<Hash::value_type, 9> hashes;
     switch ( ci.style ) {
-    default: assert( !"unknown NineSlice style" ); [[fallthrough]];
+    default: assert( !"unknown Decorator style" ); [[fallthrough]];
     case "box"_hash: hashes = STYLE_BOX; break;
     case "button"_hash: hashes = STYLE_BUTTON; break;
     }
@@ -101,7 +101,7 @@ NineSlice::NineSlice( const CreateInfo& ci ) noexcept
 
 }
 
-void NineSlice::render( const RenderContext& rctx ) const
+void Decorator::render( const RenderContext& rctx ) const
 {
     ZoneScoped;
 

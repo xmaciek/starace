@@ -12,7 +12,7 @@
 
 namespace ui {
 
-class NineSlice : public Widget {
+class Decorator : public Widget {
 protected:
     using Uniform = PushConstant<Pipeline::eSpriteSequence>;
     PipelineSlot m_pipeline{};
@@ -27,9 +27,9 @@ public:
         Anchor anchor = Anchor::fTop | Anchor::fLeft;
     };
 
-    ~NineSlice() noexcept = default;
-    NineSlice() noexcept = default;
-    NineSlice( const CreateInfo& ) noexcept;
+    ~Decorator() noexcept = default;
+    Decorator() noexcept = default;
+    Decorator( const CreateInfo& ) noexcept;
 
     virtual void render( const RenderContext& ) const override;
 };

@@ -6,7 +6,7 @@
 namespace ui {
 
 Button::Button( const CreateInfo& ci ) noexcept
-: NineSlice{ NineSlice::CreateInfo{ .position = ci.position, .size = ci.size, .style = ci.style, .anchor = ci.anchor } }
+: Decorator{ Decorator::CreateInfo{ .position = ci.position, .size = ci.size, .style = ci.style, .anchor = ci.anchor } }
 , m_screenChange{ ci.screenChange }
 , m_trigger{ ci.trigger }
 {

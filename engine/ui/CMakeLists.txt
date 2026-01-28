@@ -20,8 +20,8 @@ target_sources( ui
     label.cpp
     lockit.cpp
     message_box.cpp
-    nineslice.cpp
-    nineslice.hpp
+    decorator.cpp
+    decorator.hpp
     progressbar.cpp
     progressbar.hpp
     property.cpp
