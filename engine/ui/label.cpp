@@ -38,10 +38,16 @@ void Label::render( const RenderContext& rctx ) const
 
     RenderInfo ri = m_renderText.pushData;
     ri.m_uniform = pushConstant;
-    assert( ri.m_instanceCount < pushConstant.INSTANCES );
-    assert( ri.m_instanceCount == m_renderText.data.size() );
-    std::ranges::copy( m_renderText.data, pushConstant.m_sprites.begin() );
-    rctx.renderer->render( ri );
+    using Span = std::span<const PushConstant<ui::Pipeline::eSpriteSequence>::Sprite>;
+    Span span = static_cast<Span>( m_renderText.data );
+    while ( !span.empty() ) {
+        auto n = std::min( pushConstant.INSTANCES, (uint32_t)span.size() );
+        auto view = span.subspan( 0, n );
+        std::ranges::copy( view, pushConstant.m_sprites.begin() );
+        ri.m_instanceCount = n;
+        rctx.renderer->render( ri );
+        span = span.subspan( n );
+    }
 }
 
 void Label::refreshInput()
