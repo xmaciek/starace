@@ -53,6 +53,7 @@ template <typename T> void setData( void* ci, const cfg::Entry& e ) { reinterpre
 template <typename T> void setText( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->text = Hash{}( e.toString() ); };
 template <typename T> void setFont( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->font = Hash{}( e.toString() ); };
 template <typename T> void setPath( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->path = Hash{}( e.toString() ); };
+template <typename T> void setStyle( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->style = Hash{}( e.toString() ); };
 template <typename T> void setSpriteSpacing( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->spriteSpacing = e.toFloat(); };
 template <typename T> void setColor( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->color = Hash{}( e.toString() ); };
 template <typename T> void setTrigger( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->trigger = Hash{}( e.toString() ); };
@@ -121,6 +122,7 @@ inline constexpr std::array BUTTON_FIELDS = {
     F{ "height"_hash, &setH<Button> },
     F{ "text"_hash, &setText<Button> },
     F{ "trigger"_hash, &setTrigger<Button> },
+    F{ "style"_hash, &setStyle<Button> },
     F{ "goto"_hash, &setGoto<Button> },
     F{ "width"_hash, &setW<Button> },
     F{ "x"_hash, &setX<Button> },
