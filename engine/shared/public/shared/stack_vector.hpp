@@ -5,8 +5,8 @@
 #include <cstddef>
 #include <type_traits>
 
-template <typename T, std::size_t S>
-requires ( S > 0
+template <typename T, std::size_t CAPACITY>
+requires ( CAPACITY > 0
     && std::is_trivially_constructible_v<T>
     && std::is_trivially_copyable_v<T>
     && std::is_trivially_destructible_v<T>
@@ -21,13 +21,16 @@ public:
 
 private:
     size_type m_size = 0;
-    std::array<value_type, S> m_data;
+    std::array<value_type, CAPACITY> m_data;
 
 public:
+    StackVector() = default;
+    StackVector( uint32_t s ) : m_size{ s } { assert( s <= capacity() ); }
+
     [[nodiscard]]
     bool empty() const { return m_size == 0; };
-    size_type size() const { assert( m_size <= S ); return m_size; }
-    size_type capacity() const { return S; }
+    size_type size() const { assert( m_size <= capacity() ); return m_size; }
+    size_type capacity() const { return CAPACITY; }
     void clear() { m_size = 0; }
 
     reference_type push_back( const T& t ) { m_data[ m_size ] = t; return m_data[ m_size++ ]; }
