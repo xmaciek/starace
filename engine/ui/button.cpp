@@ -10,7 +10,7 @@ Button::Button( const CreateInfo& ci ) noexcept
 , m_screenChange{ ci.screenChange }
 , m_trigger{ ci.trigger }
 {
-    m_label = emplace_child<Label>( Label::CreateInfo{ .text = ci.text, .font = "medium"_hash, .position = ci.size * 0.5f, .anchor = Anchor::fCenter | Anchor::fMiddle, } );
+    m_label = emplace_child<Label>( Label::CreateInfo{ .text = ci.text, .font = "medium"_hash, .position = ci.size * 0.5f, .size = ci.size, .anchor = Anchor::fCenter | Anchor::fMiddle, } );
     setTabOrder( ci.tabOrder );
 }
 
