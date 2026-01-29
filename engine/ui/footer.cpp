@@ -16,7 +16,7 @@ Footer::Footer( const Footer::CreateInfo& ci ) noexcept
 : Widget{ ci.position, ci.size }
 {
     emplace_child<Decorator>( Decorator::CreateInfo{ .size = size(), .style = "button"_hash, .anchor = Anchor::fTop | Anchor::fLeft } );
-    m_label = emplace_child<Label>( Label::CreateInfo{ .font = "medium"_hash, .position = math::vec2{ ci.size.x - 8.0f, ci.size.y * 0.5f - 2.0f }, .anchor = Anchor::fMiddle | Anchor::fRight } );
+    m_label = emplace_child<Label>( Label::CreateInfo{ .font = "medium"_hash, .position = math::vec2{ ci.size.x - 8.0f, ci.size.y * 0.5f }, .anchor = Anchor::fMiddle | Anchor::fRight } );
     uint32_t idx = 0;
     for ( auto&& entry : ci.entries ) {
         assert( idx < m_actions.size() );

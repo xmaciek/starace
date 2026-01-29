@@ -151,7 +151,7 @@ void ComboBoxList::render( const RenderContext& rctx ) const
 
     Label::CreateInfo ci{
         .font = "small"_hash,
-        .position{ width - 16.0f, m_topPadding },
+        .position{ width - 16.0f, m_topPadding + 2.0f },
         .anchor = Anchor::fRight | Anchor::fTop,
     };
 

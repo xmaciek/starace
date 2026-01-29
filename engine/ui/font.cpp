@@ -177,6 +177,7 @@ Font::RenderText Font::composeText( std::u32string_view text, const math::vec2& 
         cursor.x = 0.0f;
         cursor.y += lineHeight;
     };
+    breakLine();
 
     enum Charset {
         eUnknown,
@@ -266,7 +267,7 @@ Font::RenderText Font::composeText( std::u32string_view text, const math::vec2& 
         }
     }
     ret.extent.x = std::max( ret.extent.x, cursor.x );
-    ret.extent.y = cursor.y + (float)m_lineHeight * m_scale;
+    ret.extent.y = cursor.y;
     ret.pushData.m_instanceCount = (uint32_t)ret.data.size();
     return ret;
 }

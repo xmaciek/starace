@@ -87,18 +87,18 @@ int main( int argc, const char** argv )
             switch ( hash( property.name() ) ) {
             case "x"_hash: glyph.data.position[ 0 ] = property.toInt<uint16_t>(); continue;
             case "y"_hash: glyph.data.position[ 1 ] = property.toInt<uint16_t>(); continue;
-            case "px"_hash: glyph.data.padding[ 0 ] = property.toInt<int16_t>(); continue;
-            case "py"_hash: glyph.data.padding[ 1 ] = property.toInt<int16_t>(); continue;
             case "w"_hash: glyph.data.size[ 0 ] = property.toInt<uint16_t>(); continue;
             case "h"_hash: glyph.data.size[ 1 ] = property.toInt<uint16_t>(); continue;
+            case "py"_hash: glyph.data.padding[ 1 ] = (int16_t)-((int32_t)header.lineHeight - property.toInt<int32_t>()); continue;
             }
         }
         glyph.data.advance[ 0 ] = static_cast<int16_t>( glyph.data.size[ 0 ] );
         glyph.data.advance[ 1 ] = static_cast<int16_t>( glyph.data.size[ 1 ] );
         glyph.ch = hh;
     }
+    header.lineHeight -= header.lineHeight >> 2; // px to pt
     if ( argsRemap ) {
-        std::for_each( glyphs.begin(), glyphs.end(), [remapOffset]( auto& h )
+        std::ranges::for_each( glyphs, [remapOffset]( auto& h )
         {
             switch ( h.ch ) {
             case "x"_hash: h.ch = fnta::Input::X + remapOffset; break;
@@ -126,7 +126,7 @@ int main( int argc, const char** argv )
             }
         } );
     }
-    std::sort( glyphs.begin(), glyphs.end(), []( const auto& lhs, const auto& rhs ) { return lhs.ch < rhs.ch; } );
+    std::ranges::sort( glyphs, []( const auto& lhs, const auto& rhs ) { return lhs.ch < rhs.ch; } );
     header.count = (uint32_t)glyphs.size();
 
     auto ofs = cooker::openWrite( argsDstAtlas );

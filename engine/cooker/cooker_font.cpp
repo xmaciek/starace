@@ -153,7 +153,7 @@ struct Slot {
     std::vector<uint8_t> bitmap{};
 };
 
-static fnta::Glyph getGlyphMetrics( FT_GlyphSlot slot, uint32_t lineHeight )
+static fnta::Glyph getGlyphMetrics( FT_GlyphSlot slot )
 {
     assert( slot );
     auto metrics = slot->metrics;
@@ -165,7 +165,6 @@ static fnta::Glyph getGlyphMetrics( FT_GlyphSlot slot, uint32_t lineHeight )
     metrics.vertAdvance /= FONT_RESOLUTION_SCALE;
     metrics.horiBearingX /= FONT_RESOLUTION_SCALE;
     metrics.horiBearingY /= FONT_RESOLUTION_SCALE;
-    metrics.horiBearingY = lineHeight - metrics.horiBearingY;
 
     fnta::Glyph glyph{};
     glyph.size[ 0 ] = static_cast<uint16_t>( metrics.width );
@@ -173,7 +172,7 @@ static fnta::Glyph getGlyphMetrics( FT_GlyphSlot slot, uint32_t lineHeight )
     glyph.advance[ 0 ] = static_cast<int16_t>( metrics.horiAdvance );
     glyph.advance[ 1 ] = static_cast<int16_t>( metrics.vertAdvance );
     glyph.padding[ 0 ] = static_cast<int16_t>( metrics.horiBearingX );
-    glyph.padding[ 1 ] = static_cast<int16_t>( metrics.horiBearingY );
+    glyph.padding[ 1 ] = static_cast<int16_t>( -metrics.horiBearingY );
     return glyph;
 }
 
@@ -266,7 +265,7 @@ int main( int argc, const char** argv )
         genRange( charset, begin, end );
     }
 
-    auto renderSlot = [&face, size]( char32_t ch ) -> Slot
+    auto renderSlot = [&face]( char32_t ch ) -> Slot
     {
         const FT_UInt glyphIndex = FT_Get_Char_Index( face, ch );
         if ( glyphIndex == 0 ) {
@@ -286,7 +285,7 @@ int main( int argc, const char** argv )
 
         Slot ret{};
         ret.ch = ch;
-        ret.glyph = getGlyphMetrics( slot, size );
+        ret.glyph = getGlyphMetrics( slot );
         ret.pitch = (uint32_t)slot->bitmap.pitch;
         ret.rows = slot->bitmap.rows;
         auto* begin = reinterpret_cast<const uint8_t*>( slot->bitmap.buffer );
@@ -395,12 +394,11 @@ int main( int argc, const char** argv )
     ofs.close();
 
     Hash hash{};
-
     fnta::Header fntaHeader{
         .count = (uint32_t)charset.size(),
         .width = surfWidth,
         .height = surfHeight,
-        .lineHeight = size,
+        .lineHeight = size - ( size >> 2 ), // px to pt
         .scale = 0.5f,
         .nameHash = hash( argsName ),
         .textureHash = hash( cooker::baseName( argsDstDDS, 1 ) ),
