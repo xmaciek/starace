@@ -1,4 +1,4 @@
-blendMode alpha
+blendMode additive
 depthTest 1
 fragmentShader shaders/afterglow.frag.spv
 frontFace ccw
