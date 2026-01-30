@@ -1,6 +1,7 @@
 #pragma once
 
 #include <engine/math.hpp>
+#include <shared/random.hpp>
 
 #include <algorithm>
 #include <array>
@@ -10,8 +11,6 @@
 #include <string>
 #include <type_traits>
 #include <optional>
-
-using Random = std::minstd_rand;
 
 math::vec3 project3dTo2d( const math::mat4& mvp, const math::vec3& point, const math::vec2& viewport );
 bool isOnScreen( const math::vec3& point, const math::vec2& viewport );
