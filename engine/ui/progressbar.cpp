@@ -10,57 +10,39 @@ namespace ui {
 
 Progressbar::Progressbar( const Progressbar::CreateInfo& ci ) noexcept
 : Widget{ ci.position, ci.size, ci.anchor }
-, m_spacing{ ci.spriteSpacing }
 , m_count{ ci.count }
 {
     m_pipeline = g_uiProperty.findMaterial( "spriteSequenceColors"_hash );
     m_dataModel = g_uiProperty.dataModel( ci.data );
-    auto sprite = g_uiProperty.sprite( ci.path );
-    m_uvwh = sprite;
-    m_texture = sprite;
-    m_spriteSize = { sprite.w, sprite.h };
-    auto s = size();
-    float aspectRatio = s.y / m_spriteSize.y;
-    m_spriteSize *= aspectRatio;
-    m_spacing *= aspectRatio;
+    m_sprite = g_uiProperty.sprite( ci.path );
+    float aspect = size().y / (float)m_sprite.h;
+    m_wh = math::vec2{ (float)m_sprite.w * aspect, size().y };
+    m_spacing = m_wh.x + ci.spriteSpacing * aspect;
     if ( ci.count == 0 ) {
-        m_count = (uint16_t)( s.x / ( m_spriteSize.x + m_spacing ) );
+        m_count = (uint16_t)( size().x / m_spacing );
     }
     assert( m_count );
 }
 
+static const math::vec4 winScreen{ 0.0275f, 1.0f, 0.075f, 1.0f };
+static const math::vec4 crimson{ 0.863f, 0.078f,  0.234f, 1.0f };
+
 void Progressbar::render( const RenderContext& rctx ) const
 {
-    using PushConstant = PushConstant<Pipeline::eSpriteSequenceColors>;
-    RenderInfo ri{
-        .m_pipeline = m_pipeline,
-        .m_verticeCount = PushConstant::VERTICES,
-        .m_instanceCount = m_count,
-    };
-    ri.m_fragmentTexture[ 0 ] = m_texture;
+    using Instanced = InstancedRendering<PushConstant<Pipeline::eSpriteSequenceColors>>;
+    Instanced instanced{ rctx.renderer, m_pipeline };
+    instanced.renderInfo.m_fragmentTexture[ 0 ] = m_sprite.texture;
+    instanced.pushConstant.m_model = rctx.model;
+    instanced.pushConstant.m_view = rctx.view;
+    instanced.pushConstant.m_projection = rctx.projection;
 
-    PushConstant pushConstant{
-        .m_model = rctx.model,
-        .m_view = rctx.view,
-        .m_projection = rctx.projection,
-    };
-
-    const float xOffset = m_spriteSize.x + m_spacing;
-    auto Gen = [this, pos = math::vec2{}, i = 0u, value = m_value, xOffset]() mutable
-    {
-        const math::vec4 winScreen{ 0.0275f, 1.0f, 0.075f, 1.0f };
-        const math::vec4 crimson{ 0.863f, 0.078f,  0.234f, 1.0f };
-        auto j = i++;
-        return PushConstant::Sprite{
-            .m_color = (float)j < ( value * (float)m_count ) ? winScreen : crimson,
-            .m_xywh{ pos.x + ( j * xOffset ), pos.y, m_spriteSize.x, m_spriteSize.y },
-            .m_uvwh = m_uvwh,
-        };
-    };
-    std::generate_n( pushConstant.m_sprites.begin(), m_count, Gen );
-
-    ri.m_uniform = pushConstant;
-    rctx.renderer->render( ri );
+    for ( auto i = m_count; i--; ) {
+        instanced.append( Instanced::Instance{
+            .m_color = (float)i < ( m_value * (float)m_count ) ? winScreen : crimson,
+            .m_xywh{ math::vec2{ m_spacing * i, 0.0f }, m_wh },
+            .m_uvwh = m_sprite,
+        } );
+    }
 }
 
 void Progressbar::update( const UpdateContext& )

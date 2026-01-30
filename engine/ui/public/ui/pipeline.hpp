@@ -22,7 +22,7 @@ template <>
 struct PushConstant<Pipeline::eSpriteSequence> {
     static constexpr uint32_t INSTANCES = 16;
     static constexpr uint32_t VERTICES = 4;
-    struct Sprite {
+    struct Instance {
         math::vec4 m_xywh;
         math::vec4 m_uvwh;
         uint32_t m_whichAtlas;
@@ -32,14 +32,18 @@ struct PushConstant<Pipeline::eSpriteSequence> {
     math::mat4 m_view{};
     math::mat4 m_projection{};
     math::vec4 m_color{};
-    alignas( 16 ) std::array<Sprite, INSTANCES> m_sprites{};
+    using Sprite = Instance;
+    union {
+        alignas( 16 ) std::array<Instance, INSTANCES> m_instances{};
+        alignas( 16 ) std::array<Sprite, INSTANCES> m_sprites;
+    };
 };
 
 template <>
 struct PushConstant<Pipeline::eSpriteSequenceColors> {
     static constexpr uint32_t INSTANCES = 64;
     static constexpr uint32_t VERTICES = 4;
-    struct Sprite {
+    struct Instance {
         math::vec4 m_color;
         math::vec4 m_xywh;
         math::vec4 m_uvwh;
@@ -49,7 +53,11 @@ struct PushConstant<Pipeline::eSpriteSequenceColors> {
     math::mat4 m_model{};
     math::mat4 m_view{};
     math::mat4 m_projection{};
-    std::array<Sprite, INSTANCES> m_sprites{};
+    using Sprite = Instance;
+    union {
+        alignas( 16 ) std::array<Instance, INSTANCES> m_instances{};
+        alignas( 16 ) std::array<Sprite, INSTANCES> m_sprites;
+    };
 };
 
 template <>
