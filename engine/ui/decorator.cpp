@@ -81,20 +81,20 @@ Decorator::Decorator( const CreateInfo& ci ) noexcept
 {
     m_pipeline = g_uiProperty.findMaterial( "spriteSequence"_hash );
     std::array<Hash::value_type, 9> hashes;
+    auto path = ci.path;
     switch ( m_style ) {
     default: assert( !"unknown Decorator style" ); [[fallthrough]];
+    case "flat"_hash:
+        path = "white"_hash;
+        [[fallthrough]];
     case "image"_hash: {
-        auto sprite = g_uiProperty.sprite( ci.path );
+        auto sprite = g_uiProperty.sprite( path );
         m_sprites.resize( 1 );
-        m_sprites[ 0 ] = { .m_xywh = math::vec4{ math::vec2{}, ci.size }, .m_uvwh = sprite };
-        m_textures.resize( 1 );
-        m_textures[ 0 ] = sprite.texture;
-        return;
-    }
-    case "flat"_hash: {
-        auto sprite = g_uiProperty.sprite( "white"_hash );
-        m_sprites.resize( 1 );
-        m_sprites[ 0 ] = { .m_xywh = math::vec4{ math::vec2{}, ci.size }, .m_uvwh = sprite };
+        m_sprites[ 0 ] = {
+            .m_xywh = math::vec4{ math::vec2{}, ci.size },
+            .m_uvwh = sprite,
+            .m_sampleRGBA = textureIs4Channel( sprite.texture ),
+        };
         m_textures.resize( 1 );
         m_textures[ 0 ] = sprite.texture;
         return;
@@ -114,6 +114,7 @@ Decorator::Decorator( const CreateInfo& ci ) noexcept
         sprite.m_xywh = gen( i );
         sprite.m_uvwh = sprites[ i ];
         sprite.m_whichAtlas = (uint32_t)std::distance( m_textures.begin(), std::ranges::find( m_textures, sprites[ i ].texture ) );
+        sprite.m_sampleRGBA = textureIs4Channel( m_textures[ sprite.m_whichAtlas ] );
     }
 
 }
@@ -137,11 +138,6 @@ void Decorator::render( const RenderContext& rctx ) const
 
     std::ranges::copy( m_textures, ri.m_fragmentTexture.begin() );
     std::ranges::copy( m_sprites, pushConstant.m_sprites.begin() );
-    std::ranges::for_each( pushConstant.m_sprites, [&ri, r=rctx.renderer]( auto& s )
-    {
-        s.m_sampleRGBA = r->channelCount( ri.m_fragmentTexture[ s.m_whichAtlas ] ) == 4;
-    } );
-
     ri.m_uniform = pushConstant;
     rctx.renderer->render( ri );
 }

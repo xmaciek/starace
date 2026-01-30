@@ -25,6 +25,13 @@
 #include <variant>
 
 class RendererVK : public Renderer {
+public:
+    enum : uint32_t {
+        MAX_BUFFERS = 32,
+        MAX_PIPELINES = 32,
+        MAX_TEXTURES = 64,
+        STAGING_BUFFER_CACHE_COUNT = 4,
+    };
     SDL_Window* m_window = nullptr;
     Instance m_instance{};
     [[no_unique_address]] DebugMsg m_debugMsg{};
@@ -51,7 +58,6 @@ class RendererVK : public Renderer {
     RenderPass m_mainPass{};
     std::pmr::vector<Frame> m_frames{};
 
-    static constexpr uint32_t MAX_PIPELINES = 32;
     Indexer<MAX_PIPELINES> m_pipelineIndexer{};
     std::array<uint64_t, MAX_PIPELINES> m_pipelineDescriptorIds{};
     std::array<PipelineVK, MAX_PIPELINES> m_pipelines{};
@@ -59,17 +65,16 @@ class RendererVK : public Renderer {
 
     Texture m_defaultTextureId{};
     const TextureVK* m_defaultTexture = nullptr;
-    Indexer<64> m_textureIndexer{};
-    std::array<std::atomic<TextureVK*>, 64> m_textureSlots{};
+    Indexer<MAX_TEXTURES> m_textureIndexer{};
+    std::array<std::atomic<TextureVK*>, MAX_TEXTURES> m_textureSlots{};
 
-    Indexer<64> m_bufferIndexer{};
-    std::array<std::atomic<BufferVK*>, 64> m_bufferSlots{};
+    Indexer<MAX_BUFFERS> m_bufferIndexer{};
+    std::array<std::atomic<BufferVK*>, MAX_BUFFERS> m_bufferSlots{};
 
     std::mutex m_resourceDeleteBottleneck{};
     using ResourceDelete = std::variant<TextureVK*, BufferVK*>;
     std::pmr::vector<ResourceDelete> m_resourceDelete{};
 
-    static const constexpr inline uint32_t STAGING_BUFFER_CACHE_COUNT = 4;
     std::mutex m_stagingBuffersCacheBottleneck{};
     std::array<BufferVK, STAGING_BUFFER_CACHE_COUNT> m_stagingBuffersCache{};
 
@@ -97,7 +102,6 @@ public:
     virtual PipelineSlot createPipeline( const PipelineCreateInfo& ) override;
     virtual Buffer createBuffer( std::span<const uint8_t> ) override;
     virtual Texture createTexture( const TextureCreateInfo&, std::span<const uint8_t> ) override;
-    virtual uint32_t channelCount( Texture ) const override;
     virtual void beginFrame() override;
     virtual void endFrame() override;
     virtual void deleteBuffer( Buffer ) override;

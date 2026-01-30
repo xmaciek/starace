@@ -28,7 +28,6 @@ struct ResourceDeleter {
 // arbitrary values
 static constexpr uint32_t INVALID_INDEX = 0xFFFF'FFFFu;
 static constexpr uint32_t BUFFER_ID_CHECK = 0x1F00'0000u;
-static constexpr uint32_t TEXTURE_ID_CHECK = 0x2F00'0000u;
 static constexpr uint32_t INDEX_BITS = 0xFFFFu;
 static constexpr uint32_t DATA_BITS = 0xFF'0000u;
 template <uint32_t TMask>
@@ -45,14 +44,24 @@ static uint32_t id2Index( uint32_t id )
     return INVALID_INDEX;
 }
 
+struct TextureExtra {
+    enum : uint32_t { SENTINEL = 0x2Fu };
+    uint8_t sentinel = SENTINEL;
+    uint8_t channelCount = 0;
+    uint16_t index = 0;
+
+    operator Texture () const { return std::bit_cast<Texture>( *this ); }
+    operator bool () const
+    {
+        return sentinel == SENTINEL
+            && channelCount <= 4
+            && index < RendererVK::MAX_TEXTURES
+            ;
+    }
+};
+
 static constexpr auto& bufferIndexToId = index2Id<BUFFER_ID_CHECK>;
 static constexpr auto& bufferIdToIndex = id2Index<BUFFER_ID_CHECK>;
-static constexpr auto& textureIdToIndex = id2Index<TEXTURE_ID_CHECK>;
-static constexpr Texture textureIndexToId( uint32_t index, uint32_t channelCount )
-{
-    assert( channelCount <= 4 );
-    return TEXTURE_ID_CHECK | channelCount << 16 | index;
-}
 
 constexpr std::size_t operator ""_MiB( unsigned long long v ) noexcept
 {
@@ -225,7 +234,7 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
             .v = TextureAddressMode::eRepeat,
         };
         m_defaultTextureId = createTexture( tci, std::span<const uint8_t>{ reinterpret_cast<const uint8_t*>( &texels ), sizeof( texels ) } );
-        m_defaultTexture = m_textureSlots[ textureIdToIndex( m_defaultTextureId ) ];
+        m_defaultTexture = m_textureSlots[ std::bit_cast<TextureExtra>( m_defaultTextureId ).index ];
         assert( m_defaultTexture );
     }
 }
@@ -432,12 +441,7 @@ Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::span<const
     assert( !oldTex );
 
     releaseStagingBuffer( std::move( staging ) );
-    return textureIndexToId( idx, tex->channels() );
-}
-
-uint32_t RendererVK::channelCount( Texture t ) const
-{
-    return ( t & DATA_BITS ) >> std::countr_zero( DATA_BITS );
+    return TextureExtra{ .channelCount = (uint8_t)tex->channels(), .index = (uint16_t)idx };
 }
 
 void RendererVK::beginFrame()
@@ -488,14 +492,14 @@ void RendererVK::deleteBuffer( Buffer b )
 void RendererVK::deleteTexture( Texture t )
 {
     ZoneScoped;
-    const uint32_t textureIndex = textureIdToIndex( t );
-    assert( textureIndex != INVALID_INDEX );
-
-    TextureVK* tex = m_textureSlots[ textureIndex ].exchange( nullptr );
+    auto tex = std::bit_cast<TextureExtra>( t );
     assert( tex );
-    m_textureIndexer.release( textureIndex );
+
+    TextureVK* ptr = m_textureSlots[ tex.index ].exchange( nullptr );
+    assert( ptr );
+    m_textureIndexer.release( tex.index );
     Bottleneck bottleneck{ m_resourceDeleteBottleneck };
-    m_resourceDelete.emplace_back( tex );
+    m_resourceDelete.emplace_back( ptr );
 }
 
 BufferVK RendererVK::getStagingBuffer( uint32_t size )
@@ -807,9 +811,9 @@ void RendererVK::render( const RenderInfo& ri )
         if ( !t ) [[likely]]
             return m_defaultTexture->imageInfo();
 
-        const uint32_t texIdx = textureIdToIndex( t );
-        if ( texIdx != INVALID_INDEX ) [[likely]] {
-            return m_textureSlots[ texIdx ].load()->imageInfo();
+        const auto tex = std::bit_cast<TextureExtra>( t );
+        if ( tex ) [[likely]] {
+            return m_textureSlots[ tex.index ].load()->imageInfo();
         }
         return m_defaultTexture->imageInfo();
     };

@@ -70,7 +70,7 @@ void Image::setColor( math::vec4 c )
 void Image::setTexture( Sprite s )
 {
     m_sprite = s;
-    m_sampleRGBA = Renderer::instance()->channelCount( s ) == 4;
+    m_sampleRGBA = textureIs4Channel( s.texture );
 }
 
 }

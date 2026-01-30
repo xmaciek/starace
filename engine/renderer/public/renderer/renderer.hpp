@@ -78,8 +78,6 @@ public:
 
     virtual void setResolution( uint32_t width, uint32_t height ) = 0;
 
-    virtual uint32_t channelCount( Texture ) const = 0;
-
     struct CreateInfo{
         SDL_Window* window = nullptr;
         VSync vsync = {};
