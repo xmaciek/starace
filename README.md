@@ -11,8 +11,8 @@ And in general to have fun with it, so ~~don't~~ expect best commits made at 3am
 Hello Vulkan and few more improvements that should be there from the beginning :)
 
 ### Requirments:
-* C++20 compiler
-* Vulkan >= 1.3
+* C++26 compiler
+* Vulkan >= 1.4
 * SDL 2 >= 2.30 (comes with LunarG Vulkan SDK)
   * or sdl2-compat (Linux)
 * GLM >= 1.0.1 (comes with LunarG Vulkan SDK)
