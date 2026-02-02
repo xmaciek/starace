@@ -2,6 +2,7 @@
 
 #include <ui/widget.hpp>
 #include <ui/pipeline.hpp>
+#include <ui/sprite.hpp>
 
 #include <shared/hash.hpp>
 #include <shared/stack_vector.hpp>
@@ -18,8 +19,8 @@ protected:
     using Uniform = PushConstant<Pipeline::eSpriteSequence>;
     PipelineSlot m_pipeline{};
     Hash::value_type m_style{};
-    StackVector<Texture, 9> m_textures{ 9u };
-    StackVector<Uniform::Sprite, 9> m_sprites{ 9 };
+    StackVector<Texture, 9> m_textures{};
+    StackVector<Uniform::Sprite, 9> m_sprites{};
 
 public:
     struct CreateInfo {
@@ -35,6 +36,7 @@ public:
     Decorator( const CreateInfo& ) noexcept;
 
     virtual void render( const RenderContext& ) const override;
+    void setSprite( const Sprite& );
 };
 
 }

@@ -81,27 +81,15 @@ Decorator::Decorator( const CreateInfo& ci ) noexcept
 {
     m_pipeline = g_uiProperty.findMaterial( "spriteSequence"_hash );
     std::array<Hash::value_type, 9> hashes;
-    auto path = ci.path;
     switch ( m_style ) {
     default: assert( !"unknown Decorator style" ); [[fallthrough]];
-    case "flat"_hash:
-        path = "white"_hash;
-        [[fallthrough]];
-    case "image"_hash: {
-        auto sprite = g_uiProperty.sprite( path );
-        m_sprites.resize( 1 );
-        m_sprites[ 0 ] = {
-            .m_xywh = math::vec4{ math::vec2{}, ci.size },
-            .m_uvwh = sprite,
-            .m_sampleRGBA = textureIs4Channel( sprite.texture ),
-        };
-        m_textures.resize( 1 );
-        m_textures[ 0 ] = sprite.texture;
-        return;
-    }
+    case "flat"_hash: setSprite( g_uiProperty.sprite( "white"_hash ) ); return;
+    case "image"_hash: setSprite( g_uiProperty.sprite( ci.path ) ); return;
     case "box"_hash: hashes = STYLE_BOX; break;
     case "button"_hash: hashes = STYLE_BUTTON; break;
     }
+    m_textures.resize( 9 );
+    m_sprites.resize( 9 );
     std::array<Sprite, 9> sprites;
     std::ranges::transform( hashes, sprites.begin(), []( auto h ) { return g_uiProperty.sprite( h ); } );
     std::ranges::transform( sprites, m_textures.begin(), []( const auto& s ) { return s.texture; } );
@@ -117,6 +105,18 @@ Decorator::Decorator( const CreateInfo& ci ) noexcept
         sprite.m_sampleRGBA = textureIs4Channel( m_textures[ sprite.m_whichAtlas ] );
     }
 
+}
+
+void Decorator::setSprite( const Sprite& sprite )
+{
+    m_sprites.resize( 1 );
+    m_sprites[ 0 ] = {
+        .m_xywh = math::vec4{ math::vec2{}, size() },
+        .m_uvwh = sprite,
+        .m_sampleRGBA = textureIs4Channel( sprite.texture ),
+    };
+    m_textures.resize( 1 );
+    m_textures[ 0 ] = sprite.texture;
 }
 
 void Decorator::render( const RenderContext& rctx ) const
