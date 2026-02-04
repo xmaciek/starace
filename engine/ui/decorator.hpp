@@ -11,6 +11,7 @@
 #include <renderer/pipeline.hpp>
 
 #include <array>
+#include <optional>
 
 namespace ui {
 
@@ -21,6 +22,7 @@ protected:
     Hash::value_type m_style{};
     StackVector<Texture, 9> m_textures{};
     StackVector<Uniform::Sprite, 9> m_sprites{};
+    std::optional<math::vec4> m_color;
 
 public:
     struct CreateInfo {

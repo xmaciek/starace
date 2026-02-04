@@ -133,9 +133,16 @@ void Decorator::render( const RenderContext& rctx ) const
         .m_model = rctx.model,
         .m_view = rctx.view,
         .m_projection = rctx.projection,
-        .m_color = isFocused() ? rctx.colorFocus : rctx.colorMain,
     };
-
+    if ( m_color ) {
+        pushConstant.m_color = *m_color;
+    }
+    else if ( isFocused() ) {
+        pushConstant.m_color = rctx.colorFocus;
+    }
+    else {
+        pushConstant.m_color = rctx.colorMain;
+    }
     std::ranges::copy( m_textures, ri.m_fragmentTexture.begin() );
     std::ranges::copy( m_sprites, pushConstant.m_sprites.begin() );
     ri.m_uniform = pushConstant;

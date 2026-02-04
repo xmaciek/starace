@@ -1,8 +1,7 @@
 #pragma once
 
 #include <ui/data_model.hpp>
-#include <ui/widget.hpp>
-#include <ui/pipeline.hpp>
+#include "decorator.hpp"
 
 #include <shared/hash.hpp>
 #include <engine/math.hpp>
@@ -10,11 +9,7 @@
 
 namespace ui {
 
-class Image : public Widget {
-    Sprite m_sprite{};
-    math::vec4 m_color = math::vec4{ 1.0f, 1.0f, 1.0f, 1.0f };
-    uint32_t m_sampleRGBA = 0;
-    PipelineSlot m_pipelineSlot{};
+class Image : public Decorator {
     DataModel* m_dataModel = nullptr;
     DataModel::size_type m_revision = 0xFFFF;
 
@@ -30,7 +25,6 @@ public:
     ~Image() noexcept = default;
     Image( const CreateInfo& ) noexcept;
 
-    virtual void render( const RenderContext& ) const override;
     virtual void update( const UpdateContext& ) override;
     void setColor( math::vec4 );
     void setTexture( Sprite );
