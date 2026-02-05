@@ -93,13 +93,6 @@ EventProcessing ComboBox::onMouseEvent( const MouseEvent& event )
     return EventProcessing::eStop;
 }
 
-void ComboBox::render( const RenderContext& r ) const
-{
-    auto rctx = r;
-    rctx.colorMain = isFocused() ? rctx.colorFocus : rctx.colorMain;
-    Decorator::render( rctx );
-}
-
 ComboBoxList::ComboBoxList( const ComboBoxList::CreateInfo& ci ) noexcept
 : Widget{}
 , m_model{ ci.model }

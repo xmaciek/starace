@@ -28,7 +28,6 @@ public:
     ~ComboBox() noexcept = default;
     ComboBox( const CreateInfo& ) noexcept;
 
-    virtual void render( const RenderContext& ) const override;
     virtual EventProcessing onMouseEvent( const MouseEvent& ) override;
     virtual EventProcessing onAction( ui::Action ) override;
 };
