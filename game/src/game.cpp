@@ -138,6 +138,10 @@ void Game::onInit()
     g_pipelines[ Pipeline::eAntiAliasFXAA ] = m_materials[ "fxaa"_hash ];
     g_pipelines[ Pipeline::eSkybox ] = m_materials[ "skybox"_hash ];
 
+    assert( !m_mapsContainer.empty() );
+    m_gameplayUIData.m_missionSelectImage =
+        ui::Sprite{ .xyuv{ 0.0f, 0.0f, 1.0f, 1.0f }, .texture = m_mapsContainer[ 0 ].preview };
+
     m_enemyModel = Model{ m_meshes[ "models/a2.objc" ], m_textures[ "textures/a2.dds" ] };
     m_menuScene.setModel( &m_jetsContainer[ 0 ].model );
 
@@ -199,11 +203,8 @@ void Game::setupUI()
     {
         assert( i < m_mapsContainer.size() );
         m_currentMission = i;
-    };
-    m_dataMissionSelect.m_texture = [this]( auto i ) -> ui::Sprite
-    {
-        assert( i < m_mapsContainer.size() );
-        return ui::Sprite{ .xyuv{ 0.0f, 0.0f, 1.0f, 1.0f }, .texture = m_mapsContainer[ i ].preview };
+        m_gameplayUIData.m_missionSelectImage =
+            ui::Sprite{ .xyuv{ 0.0f, 0.0f, 1.0f, 1.0f }, .texture = m_mapsContainer[ i ].preview };
     };
 
     m_optionsGFX.m_resolutionUI = ui::Option<DisplayMode>{ 0, displayModes(), &OptionsGFX::toString<DisplayMode> };
@@ -246,6 +247,7 @@ void Game::setupUI()
     g_uiProperty.addDataModel( "$data:weaponSecondary"_hash, &m_optionsCustomize.m_weaponSecondary );
     g_uiProperty.addDataModel( "$data:jet"_hash, &m_optionsCustomize.m_jet );
     g_uiProperty.addDataModel( "$data:missionSelect"_hash, &m_dataMissionSelect );
+    g_uiProperty.addDataModel( "$data:missionSelectImage"_hash, &m_gameplayUIData.m_missionSelectImage );
     g_uiProperty.addDataModel( "$var:playerHP"_hash, &m_gameplayUIData.m_playerHP );
     g_uiProperty.addDataModel( "$var:playerReloadPrimary"_hash, &m_gameplayUIData.m_playerReloadPrimary );
     g_uiProperty.addDataModel( "$var:playerWeaponPrimaryCount"_hash, &m_gameplayUIData.m_playerWeaponPrimaryCount );

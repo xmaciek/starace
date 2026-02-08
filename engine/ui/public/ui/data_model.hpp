@@ -40,7 +40,6 @@ public:
 
     // TODO unionize
     virtual std::pmr::u32string at( size_type ) const;
-    virtual Sprite texture( size_type ) const;
 
     virtual void activate( size_type );
     virtual void select( size_type );
@@ -65,7 +64,6 @@ public:
     virtual size_type revision() const override;
     virtual size_type size() const override;
     virtual std::pmr::u32string at( size_type ) const override;
-    virtual Sprite texture( size_type ) const override;
 
     virtual void activate( size_type ) override;
     virtual void select( size_type ) override;

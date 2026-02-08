@@ -87,14 +87,6 @@ public:
         }
     }
 
-    virtual Sprite texture( size_type ) const override
-    {
-        if constexpr ( std::is_same_v<T, Sprite> ) {
-            return m_value;
-        }
-        else return {};
-    }
-
 };
 
 }

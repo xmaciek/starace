@@ -29,11 +29,6 @@ std::pmr::u32string DataModel::at( size_type ) const
     return {};
 }
 
-Sprite DataModel::texture( size_type ) const
-{
-    return {};
-}
-
 void DataModel::activate( size_type )
 {
 }
@@ -77,11 +72,6 @@ void GenericDataModel::refresh( size_type i )
     if ( m_refresh ) {
         m_refresh( i );
     }
-}
-
-Sprite GenericDataModel::texture( size_type i ) const
-{
-    return m_texture ? m_texture( i ) : Sprite{};
 }
 
 GenericDataModel::size_type GenericDataModel::current() const

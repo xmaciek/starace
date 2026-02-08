@@ -17,7 +17,7 @@ Image::Image( const CreateInfo& ci ) noexcept
     if ( ci.data ) {
         m_dataModel = g_uiProperty.dataModel( ci.data );
         m_revision = m_dataModel->revision();
-        setSprite( m_dataModel->texture( m_dataModel->current() ) );
+        setSprite( m_dataModel->data( m_dataModel->current() ).visit( GetSprite{} ) );
     }
     else if ( ci.path ) setSprite( g_uiProperty.sprite( ci.path ) );
     else {
@@ -35,7 +35,7 @@ void Image::update( const UpdateContext& )
         return;
     }
     m_revision = rev;
-    setSprite( m_dataModel->texture( m_dataModel->current() ) );
+    setSprite( m_dataModel->data( m_dataModel->current() ).visit( GetSprite{} ) );
 }
 
 }

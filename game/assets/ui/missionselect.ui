@@ -37,7 +37,7 @@ NineSlice = {
 }
 
 Image = {
-    data = $data:missionSelect
+    data = $data:missionSelectImage
     x = 744
     y = 72
     width = 464

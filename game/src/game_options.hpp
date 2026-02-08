@@ -114,6 +114,7 @@ struct GameplayUIData {
     ui::Var<uint32_t> m_playerWeaponSecondaryCount{ 0 };
     ui::Var<ui::Sprite> m_playerWeaponIconPrimary{};
     ui::Var<ui::Sprite> m_playerWeaponIconSecondary{};
+    ui::Var<ui::Sprite> m_missionSelectImage{};
 };
 
 inline void copySecure( const auto& string, auto& arr )
