@@ -24,11 +24,6 @@ Variant DataModel::data( size_type ) const
     return {};
 }
 
-std::pmr::u32string DataModel::at( size_type ) const
-{
-    return {};
-}
-
 void DataModel::activate( size_type )
 {
 }
@@ -47,7 +42,7 @@ GenericDataModel::size_type GenericDataModel::size() const
     return m_size();
 }
 
-std::pmr::u32string GenericDataModel::at( size_type i ) const
+Variant GenericDataModel::data( size_type i ) const
 {
     assert( m_at );
     return m_at( i );

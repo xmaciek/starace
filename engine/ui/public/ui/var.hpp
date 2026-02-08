@@ -75,18 +75,6 @@ public:
         }
     }
 
-    virtual std::pmr::u32string at( size_type ) const override
-    {
-        if constexpr ( std::is_same_v<T, std::pmr::u32string> ) {
-            return m_value;
-        }
-        else {
-            char tmp[ 21 ]{};
-            auto str = std::to_chars( std::begin( tmp ), std::end( tmp ), m_value );
-            return std::pmr::u32string{ std::begin( tmp ), str.ptr };
-        }
-    }
-
 };
 
 }

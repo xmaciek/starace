@@ -20,7 +20,7 @@ Label::Label( const Label::CreateInfo& ci )
     assert( m_font );
     if ( m_dataModel ) {
         m_revision = m_dataModel->revision();
-        setText( m_dataModel->at( m_dataModel->current() ) );
+        setText( m_dataModel->data( m_dataModel->current() ).visit( GetString{} ) );
     }
     else if ( m_locText ) {
         setText( g_uiProperty.localize( m_locText ) );
@@ -64,7 +64,7 @@ void Label::lockitChanged()
     Widget::lockitChanged();
     if ( m_dataModel ) {
         m_revision = m_dataModel->revision();
-        setText( m_dataModel->at( m_dataModel->current() ) );
+        setText( m_dataModel->data( m_dataModel->current() ).visit( GetString{} ) );
     }
     else if ( m_locText ) {
         setText( g_uiProperty.localize( m_locText ) );
@@ -94,7 +94,7 @@ void Label::update( const UpdateContext& )
     const auto rev = m_dataModel->revision();
     if ( rev == m_revision ) { return; }
     m_revision = rev;
-    setText( m_dataModel->at( m_dataModel->current() ) );
+    setText( m_dataModel->data( m_dataModel->current() ).visit( GetString{} ) );
 }
 
 DataModel* Label::dataModel() const

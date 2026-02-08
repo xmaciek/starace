@@ -38,9 +38,6 @@ public:
 
     virtual Variant data( size_type ) const;
 
-    // TODO unionize
-    virtual std::pmr::u32string at( size_type ) const;
-
     virtual void activate( size_type );
     virtual void select( size_type );
     virtual void refresh( size_type i = 1 );
@@ -55,7 +52,6 @@ public:
     std::function<void(size_type)> m_refresh{};
     std::function<size_type()> m_current{};
     std::function<size_type()> m_revision{};
-    std::function<Sprite(size_type)> m_texture{};
 
     ~GenericDataModel() noexcept = default;
     GenericDataModel() noexcept = default;
@@ -63,7 +59,7 @@ public:
     virtual size_type current() const override;
     virtual size_type revision() const override;
     virtual size_type size() const override;
-    virtual std::pmr::u32string at( size_type ) const override;
+    virtual Variant data( size_type ) const override;
 
     virtual void activate( size_type ) override;
     virtual void select( size_type ) override;

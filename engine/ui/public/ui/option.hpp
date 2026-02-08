@@ -110,7 +110,7 @@ public:
         return static_cast<size_type>( m_values.size() );
     }
 
-    virtual std::pmr::u32string at( size_type i ) const override
+    virtual Variant data( size_type i ) const override
     {
         if ( m_values.empty() ) return {};
         assert( i < m_values.size() );

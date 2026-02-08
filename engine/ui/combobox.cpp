@@ -150,7 +150,7 @@ void ComboBoxList::render( const RenderContext& rctx ) const
 
     for ( decltype( count ) i = 0; i < count; ++i ) {
         Label l{ ci };
-        l.setText( m_model->at( i + m_index.offset() ) );
+        l.setText( m_model->data( i + m_index.offset() ).visit( GetString{} ) );
         l.onRender( rctx );
         ci.position.y += m_lineHeight;
     }
