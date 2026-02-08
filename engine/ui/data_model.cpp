@@ -19,12 +19,12 @@ DataModel::size_type DataModel::size() const
     return {};
 }
 
-std::pmr::u32string DataModel::at( size_type ) const
+Variant DataModel::data( size_type ) const
 {
     return {};
 }
 
-float DataModel::atF( size_type ) const
+std::pmr::u32string DataModel::at( size_type ) const
 {
     return {};
 }

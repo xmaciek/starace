@@ -9,8 +9,22 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <variant>
 
 namespace ui {
+
+namespace detail {
+template <typename T>
+struct GetT {
+    inline T operator () ( const T& t ) const { return t; }
+    inline T operator () ( const auto& ) const { return {}; }
+};
+}
+
+using Variant = std::variant<std::monostate, std::pmr::u32string, Sprite, float>;
+using GetString = detail::GetT<std::pmr::u32string>;
+using GetFloat = detail::GetT<float>;
+using GetSprite = detail::GetT<Sprite>;
 
 class DataModel {
 public:
@@ -22,10 +36,11 @@ public:
     virtual size_type current() const;
     virtual size_type size() const;
 
+    virtual Variant data( size_type ) const;
+
     // TODO unionize
     virtual std::pmr::u32string at( size_type ) const;
     virtual Sprite texture( size_type ) const;
-    virtual float atF( size_type ) const;
 
     virtual void activate( size_type );
     virtual void select( size_type );

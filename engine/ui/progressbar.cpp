@@ -51,7 +51,7 @@ void Progressbar::update( const UpdateContext& )
     const auto rev = m_dataModel->revision();
     if ( rev == m_revision ) { return; }
     m_revision = rev;
-    m_value = m_dataModel->atF( m_dataModel->current() );
+    m_value = m_dataModel->data( m_dataModel->current() ).visit( GetFloat{} );
 }
 
 }

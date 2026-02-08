@@ -54,7 +54,7 @@ void AnimFrame::update( const UpdateContext& uctx )
         const auto rev = m_dataModel->revision();
         if ( rev == m_revision ) { return; }
         m_revision = rev;
-        m_spinner = m_dataModel->atF( m_dataModel->current() );
+        m_spinner = m_dataModel->data( m_dataModel->current() ).visit( GetFloat{} );
     } else {
         m_spinner = math::mod( m_spinner + uctx.deltaTime * 2.0f, 1.0f );
     }

@@ -57,6 +57,24 @@ public:
         m_revision += i;
     }
 
+    virtual Variant data( size_type ) const override
+    {
+        if constexpr ( std::is_same_v<T, std::pmr::u32string> ) {
+            return m_value;
+        }
+        else if constexpr ( std::is_same_v<T, Sprite> ) {
+            return m_value;
+        }
+        else if constexpr ( std::is_same_v<T, float> ) {
+            return m_value;
+        }
+        else {
+            char tmp[ 21 ]{};
+            auto str = std::to_chars( std::begin( tmp ), std::end( tmp ), m_value );
+            return std::pmr::u32string{ std::begin( tmp ), str.ptr };
+        }
+    }
+
     virtual std::pmr::u32string at( size_type ) const override
     {
         if constexpr ( std::is_same_v<T, std::pmr::u32string> ) {
@@ -67,14 +85,6 @@ public:
             auto str = std::to_chars( std::begin( tmp ), std::end( tmp ), m_value );
             return std::pmr::u32string{ std::begin( tmp ), str.ptr };
         }
-    }
-
-    virtual float atF( size_type ) const override
-    {
-        if constexpr ( std::is_same_v<T, float> ) {
-            return m_value;
-        }
-        else return {};
     }
 
     virtual Sprite texture( size_type ) const override
