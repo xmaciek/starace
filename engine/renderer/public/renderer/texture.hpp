@@ -19,8 +19,8 @@ enum class TextureFormat : uint8_t {
 };
 
 enum class TextureAddressMode : uint8_t {
-    eClamp,
     eRepeat,
+    eClamp,
     eMirror,
 };
 

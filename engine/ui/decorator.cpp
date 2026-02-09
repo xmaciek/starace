@@ -49,26 +49,26 @@ struct Generator {
 };
 
 constexpr std::array<Hash::value_type, 9> STYLE_BOX{
-    "topLeft"_hash,
+    "topLeftSquare"_hash,
     "top"_hash,
-    "topRight"_hash,
+    "topRightSquare"_hash,
     "left"_hash,
     "mid"_hash,
     "right"_hash,
-    "botLeft"_hash,
+    "botLeftSquare"_hash,
     "bot"_hash,
-    "botRight"_hash,
+    "botRightSquare"_hash,
 };
 constexpr std::array<Hash::value_type, 9> STYLE_BUTTON{
-    "topLeft"_hash,
+    "topLeftSquare"_hash,
     "top"_hash,
-    "topRight"_hash,
+    "topRightSquare"_hash,
     "left"_hash,
     "mid"_hash,
     "right"_hash,
-    "botLeft2"_hash,
+    "botLeftDiamond"_hash,
     "bot"_hash,
-    "botRight2"_hash,
+    "botRightDiamond"_hash,
 };
 
 }
@@ -80,14 +80,29 @@ Decorator::Decorator( const CreateInfo& ci ) noexcept
 , m_style{ ci.style }
 {
     m_pipeline = g_uiProperty.findMaterial( "spriteSequence"_hash );
-    std::array<Hash::value_type, 9> hashes;
     switch ( m_style ) {
     default: assert( !"unknown Decorator style" ); [[fallthrough]];
     case "flat"_hash: setSprite( g_uiProperty.sprite( "white"_hash ) ); return;
     case "image"_hash: setSprite( g_uiProperty.sprite( ci.path ) ); return;
-    case "box"_hash: hashes = STYLE_BOX; break;
-    case "button"_hash: hashes = STYLE_BUTTON; break;
+    case "box"_hash: setNineSlice( STYLE_BOX ); break;
+    case "button"_hash: setNineSlice( STYLE_BUTTON ); break;
     }
+}
+
+void Decorator::setSprite( const Sprite& sprite )
+{
+    m_sprites.resize( 1 );
+    m_sprites[ 0 ] = {
+        .m_xywh = math::vec4{ math::vec2{}, size() },
+        .m_uvwh = sprite,
+        .m_sampleRGBA = textureIs4Channel( sprite.texture ),
+    };
+    m_textures.resize( 1 );
+    m_textures[ 0 ] = sprite.texture;
+}
+
+void Decorator::setNineSlice( const std::array<Hash::value_type, 9>& hashes )
+{
     m_textures.resize( 9 );
     m_sprites.resize( 9 );
     std::array<Sprite, 9> sprites;
@@ -104,19 +119,6 @@ Decorator::Decorator( const CreateInfo& ci ) noexcept
         sprite.m_whichAtlas = (uint32_t)std::distance( m_textures.begin(), std::ranges::find( m_textures, sprites[ i ].texture ) );
         sprite.m_sampleRGBA = textureIs4Channel( m_textures[ sprite.m_whichAtlas ] );
     }
-
-}
-
-void Decorator::setSprite( const Sprite& sprite )
-{
-    m_sprites.resize( 1 );
-    m_sprites[ 0 ] = {
-        .m_xywh = math::vec4{ math::vec2{}, size() },
-        .m_uvwh = sprite,
-        .m_sampleRGBA = textureIs4Channel( sprite.texture ),
-    };
-    m_textures.resize( 1 );
-    m_textures[ 0 ] = sprite.texture;
 }
 
 void Decorator::render( const RenderContext& rctx ) const

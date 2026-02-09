@@ -39,6 +39,7 @@ public:
 
     virtual void render( const RenderContext& ) const override;
     void setSprite( const Sprite& );
+    void setNineSlice( const std::array<Hash::value_type, 9>& );
 };
 
 }

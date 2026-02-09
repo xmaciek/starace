@@ -300,7 +300,7 @@ void Screen::render( Renderer* renderer, math::vec2 viewport ) const
         .renderer = renderer,
         .projection = math::ortho( 0.0f, viewport.x, 0.0f, viewport.y, -1.0f, 1.0f ),
         .colorMain{ 0.118f, 0.565f, 1.0f, 1.0f },
-        .colorFocus{ 0.529f, 0.807f, 0.98f, 1.0f },
+        .colorFocus{ 0.69f, 0.769f, 1.0f, 1.0f },
     };
 
     if ( m_glow ) m_glow->render( rctx );

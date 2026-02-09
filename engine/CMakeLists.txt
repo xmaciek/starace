@@ -1,3 +1,4 @@
+add_subdirectory( assets )
 add_subdirectory( audio )
 add_subdirectory( ccmd )
 add_subdirectory( config )
