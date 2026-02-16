@@ -188,6 +188,7 @@ function( cook_font )
     )
 endfunction()
 
+find_package( Vulkan REQUIRED COMPONENTS glslc )
 option( DEBUG_SHADERS "Enable debug shaders" OFF )
 function( compileShader )
     cmake_parse_arguments( COOK_SHADER "" "FILE;PACK" "" ${ARGN} )

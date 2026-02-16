@@ -1,3 +1,4 @@
+find_package( Vulkan REQUIRED )
 add_library( renderer_vk STATIC )
 set_vs_directory( renderer_vk "libs" )
 

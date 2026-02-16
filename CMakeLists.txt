@@ -6,13 +6,12 @@ set( CMAKE_CXX_STANDARD 26 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
 set( CMAKE_CXX_EXTENSIONS OFF )
 
+list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" )
+
 add_custom_target( cook ALL )
 
-include( compiler.cmake )
-include( functions.cmake )
-
-find_package( Vulkan REQUIRED )
-
+include( compiler )
+include( functions )
 
 decl_pak( init )
 decl_pak( data )
