@@ -4,7 +4,7 @@
 #include "update_context.hpp"
 #include "signal.hpp"
 
-#include <engine/math.hpp>
+#include <math.hpp>
 
 #include <cstdint>
 #include <optional>

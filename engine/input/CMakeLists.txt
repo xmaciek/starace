@@ -17,9 +17,10 @@ set_target_properties( input PROPERTIES
 )
 
 target_link_libraries( input
-    profiler
-    extra
-    unicode
-    cxx::flags
     SDL2::SDL2
+    cxx::flags
+    extra
+    math
+    profiler
+    unicode
 )

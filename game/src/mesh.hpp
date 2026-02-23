@@ -1,6 +1,6 @@
 #pragma once
 
-#include <engine/math.hpp>
+#include <math.hpp>
 #include <renderer/buffer.hpp>
 #include <shared/stack_vector.hpp>
 

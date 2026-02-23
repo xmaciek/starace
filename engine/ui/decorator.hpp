@@ -6,7 +6,6 @@
 
 #include <shared/hash.hpp>
 #include <shared/stack_vector.hpp>
-#include <engine/math.hpp>
 #include <renderer/texture.hpp>
 #include <renderer/pipeline.hpp>
 

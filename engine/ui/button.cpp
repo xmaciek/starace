@@ -1,7 +1,6 @@
 #include "button.hpp"
 
 #include <ui/property.hpp>
-#include <engine/math.hpp>
 
 namespace ui {
 

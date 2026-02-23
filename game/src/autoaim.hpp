@@ -1,6 +1,6 @@
 #pragma once
 
-#include <engine/math.hpp>
+#include <math.hpp>
 
 class AutoAim {
     float m_angle = 15.0_deg;

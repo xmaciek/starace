@@ -14,13 +14,22 @@
 
 namespace math {
 
-using vec2 = glm::vec2;
-using vec3 = glm::vec3;
-using vec4 = glm::vec4;
-using mat4 = glm::mat4;
-using quat = glm::quat;
+using glm::vec2;
+using glm::vec3;
+using glm::vec4;
+using glm::mat4;
+using glm::quat;
 
+static_assert( alignof( vec2 ) == 8 );
+static_assert( alignof( vec3 ) == 16 );
 static_assert( alignof( vec4 ) == 16 );
+static_assert( alignof( mat4 ) == 16 );
+static_assert( alignof( quat ) == 16 );
+static_assert( sizeof( vec2 ) == 8 );
+static_assert( sizeof( vec3 ) == 16 );
+static_assert( sizeof( vec4 ) == 16 );
+static_assert( sizeof( mat4 ) == 64 );
+static_assert( sizeof( quat ) == 16 );
 
 static constexpr inline float pi = std::numbers::pi_v<float>;
 

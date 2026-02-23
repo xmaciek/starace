@@ -1,7 +1,7 @@
 #pragma once
 
 #include "units.hpp"
-#include <engine/math.hpp>
+#include <math.hpp>
 
 #include <algorithm>
 #include <array>

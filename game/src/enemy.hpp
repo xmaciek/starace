@@ -4,7 +4,7 @@
 #include "saobject.hpp"
 #include "model.hpp"
 
-#include <engine/math.hpp>
+#include <math.hpp>
 #include <shared/pmr_pointer.hpp>
 
 #include <span>

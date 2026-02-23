@@ -1,7 +1,7 @@
 #pragma once
 
 #include <renderer/pipeline.hpp>
-#include <engine/math.hpp>
+#include <math.hpp>
 
 enum class Pipeline : PipelineSlot {
     eBackground,

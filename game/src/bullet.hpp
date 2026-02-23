@@ -6,7 +6,7 @@
 #include "tail.hpp"
 
 #include <audio/audio.hpp>
-#include <engine/math.hpp>
+#include <math.hpp>
 #include <renderer/texture.hpp>
 #include <renderer/buffer.hpp>
 #include <shared/hash.hpp>

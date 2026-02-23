@@ -4,7 +4,6 @@
 #include "decorator.hpp"
 
 #include <shared/hash.hpp>
-#include <engine/math.hpp>
 #include <renderer/texture.hpp>
 
 namespace ui {

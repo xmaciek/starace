@@ -3,7 +3,7 @@
 #include "units.hpp"
 #include "colors.hpp"
 #include "game_pipeline.hpp"
-#include <engine/math.hpp>
+#include <math.hpp>
 
 #include <profiler.hpp>
 

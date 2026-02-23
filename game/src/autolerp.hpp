@@ -1,6 +1,6 @@
 #pragma once
 
-#include <engine/math.hpp>
+#include <math.hpp>
 
 template <typename T = float, typename TVelocity = float>
 class AutoLerp {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <engine/math.hpp>
+#include <math.hpp>
 #include <renderer/texture.hpp>
 
 #include <cstdint>

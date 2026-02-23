@@ -9,7 +9,7 @@
 
 #include <config/config.hpp>
 #include <engine/engine.hpp>
-#include <engine/math.hpp>
+#include <math.hpp>
 #include <extra/csg.hpp>
 #include <renderer/texture.hpp>
 #include <shared/hash.hpp>

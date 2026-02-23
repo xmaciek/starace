@@ -9,7 +9,7 @@
 #include <shared/pmr_pointer.hpp>
 
 #include <audio/audio.hpp>
-#include <engine/math.hpp>
+#include <math.hpp>
 
 #include <vector>
 #include <memory_resource>

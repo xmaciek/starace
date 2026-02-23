@@ -4,7 +4,7 @@
 #include <ui/sprite.hpp>
 
 #include <extra/fnta.hpp>
-#include <engine/math.hpp>
+#include <math.hpp>
 #include <renderer/pipeline.hpp>
 #include <renderer/texture.hpp>
 #include <shared/fixed_map.hpp>

@@ -3,7 +3,7 @@
 #include "mesh.hpp"
 #include "render_context.hpp"
 
-#include <engine/math.hpp>
+#include <math.hpp>
 #include <renderer/buffer.hpp>
 #include <renderer/texture.hpp>
 #include <renderer/renderer.hpp>

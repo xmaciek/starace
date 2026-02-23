@@ -4,6 +4,7 @@
 #include "utils.hpp"
 #include "units.hpp"
 
+#include <math.hpp>
 #include <renderer/renderer.hpp>
 #include <ui/pipeline.hpp>
 #include <ui/property.hpp>

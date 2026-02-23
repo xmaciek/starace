@@ -4,7 +4,7 @@
 #include "render_context.hpp"
 #include "update_context.hpp"
 
-#include <engine/math.hpp>
+#include <math.hpp>
 #include <renderer/texture.hpp>
 
 #include <vector>
