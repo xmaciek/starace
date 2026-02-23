@@ -154,6 +154,16 @@ void QueueManager::acquire( VkDevice device )
 {
     assert( device );
     auto indexes = composeIndexes( m_graphicsFamily, m_presentFamily, m_transferFamily );
+    [[maybe_unused]]
+    auto validateQueue = []( const auto& l, const auto& r ) -> bool
+    {
+        if ( l.family != r.family ) return l.mutexId != r.mutexId;
+        if ( l.queueId != r.queueId ) return l.mutexId != r.mutexId;
+        return l.mutexId == r.mutexId;
+    };
+    assert( validateQueue( indexes[ 0 ], indexes[ 1 ] ) );
+    assert( validateQueue( indexes[ 0 ], indexes[ 2 ] ) );
+    assert( validateQueue( indexes[ 1 ], indexes[ 2 ] ) );
 
     std::get<uint32_t>( m_graphics ) = indexes[ 0 ].mutexId;
     vkGetDeviceQueue( device, indexes[ 0 ].family, indexes[ 0 ].queueId, &std::get<VkQueue>( m_graphics ) );
@@ -163,6 +173,18 @@ void QueueManager::acquire( VkDevice device )
 
     std::get<uint32_t>( m_transfer ) = indexes[ 2 ].mutexId;
     vkGetDeviceQueue( device, indexes[ 2 ].family, indexes[ 2 ].queueId, &std::get<VkQueue>( m_transfer ) );
+
+    [[maybe_unused]]
+    auto validateQueue2 = []( const auto& l, const auto& r ) -> bool
+    {
+        auto [ l1, l2 ] = l;
+        auto [ r1, r2 ] = r;
+        if ( l1 == r1 ) return l2 == r2;
+        return l2 != r2;
+    };
+    assert( validateQueue2( m_graphics, m_present ) );
+    assert( validateQueue2( m_graphics, m_transfer ) );
+    assert( validateQueue2( m_present, m_transfer ) );
 }
 
 std::pmr::vector<VkDeviceQueueCreateInfo> QueueManager::createInfo() const
