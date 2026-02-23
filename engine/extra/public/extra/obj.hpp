@@ -8,7 +8,7 @@
 
 namespace obj {
 
-enum class DataType : uint32_t {
+enum class VertexAssembly : uint32_t {
     invalid,
     v = 'v',
     vtn = 'ntv',
@@ -28,7 +28,7 @@ struct Chunk {
     static constexpr uint32_t MAGIC = 'KNHC';
     uint32_t magic = MAGIC;
     char name[ 52 ]{};
-    DataType dataType = DataType::invalid;
+    VertexAssembly vertexAssembly = VertexAssembly::invalid;
     uint32_t floatCount = 0;
 
     Chunk() noexcept = default;

@@ -36,7 +36,7 @@ struct Object {
 
 struct FullObject : public Object {
     std::pmr::vector<float> data{};
-    obj::DataType dataType = obj::DataType::invalid;
+    obj::VertexAssembly dataType = obj::VertexAssembly::invalid;
     FullObject()
     {
         data.reserve( 0xFFFu );
@@ -167,8 +167,8 @@ struct Compiler {
 
         if ( instance->m_objects.empty() ) cooker::error( "requesting to add face to null object" );
         auto& o = instance->m_objects.back();
-        if ( o.dataType == obj::DataType::invalid ) { o.dataType = obj::DataType::vtn; };
-        if ( o.dataType != obj::DataType::vtn ) cooker::error( "mixing face with non-face element in object", o.name );
+        if ( o.dataType == obj::VertexAssembly::invalid ) { o.dataType = obj::VertexAssembly::vtn; };
+        if ( o.dataType != obj::VertexAssembly::vtn ) cooker::error( "mixing face with non-face element in object", o.name );
 
         auto doVert = [size=instance->m_vertex.size(), &o]( auto& u )
         {
@@ -223,8 +223,8 @@ struct Compiler {
 
         if ( instance->m_objects.empty() ) cooker::error( "requesting to add point to null object" );
         auto& o = instance->m_objects.back();
-        if ( o.dataType == obj::DataType::invalid ) { o.dataType = obj::DataType::v; };
-        if ( o.dataType != obj::DataType::v ) cooker::error( "mixing point with non-point element in object", o.name );
+        if ( o.dataType == obj::VertexAssembly::invalid ) { o.dataType = obj::VertexAssembly::v; };
+        if ( o.dataType != obj::VertexAssembly::v ) cooker::error( "mixing point with non-point element in object", o.name );
         uint32_t v = 0;
         ccmd::argv( vm, 0, v );
         if ( v == 0 ) cooker::error( "point cannot have index 0 in object", o.name );
