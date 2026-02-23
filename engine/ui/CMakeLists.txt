@@ -61,7 +61,6 @@ set_target_properties( ui PROPERTIES
 target_link_libraries( ui
     cxx::flags
     config
-    engine # for mist types, TODO remove
     math
     input
     profiler
