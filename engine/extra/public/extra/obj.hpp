@@ -34,6 +34,5 @@ struct Chunk {
     Chunk() noexcept = default;
 };
 
-std::pmr::vector<std::pair<Chunk, std::pmr::vector<float>>> load( const std::filesystem::path& );
 std::pmr::vector<std::pair<Chunk, std::pmr::vector<float>>> parse( std::pmr::vector<uint8_t>&& );
 } // namespace obj

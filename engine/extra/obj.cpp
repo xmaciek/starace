@@ -8,21 +8,6 @@
 
 namespace obj {
 
-std::pmr::vector<std::pair<Chunk, std::pmr::vector<float>>> load( const std::filesystem::path& path )
-{
-    ZoneScoped;
-    std::ifstream ifs( path, std::ios::binary | std::ios::ate );
-    assert( ifs.is_open() );
-
-    [[maybe_unused]]
-    const std::streamsize size = ifs.tellg();
-    ifs.seekg( 0 );
-    std::pmr::vector<uint8_t> data( static_cast<std::size_t>( size ) );
-    ifs.read( reinterpret_cast<char*>( data.data() ), size );
-    ifs.close();
-    return parse( std::move( data ) );
-}
-
 std::pmr::vector<std::pair<Chunk, std::pmr::vector<float>>> parse( std::pmr::vector<uint8_t>&& data )
 {
     ZoneScoped;
