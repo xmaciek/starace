@@ -1,7 +1,6 @@
 #pragma once
 
 #include <engine/math.hpp>
-#include <engine/mouse_event.hpp>
 #include <shared/pmr_pointer.hpp>
 #include <shared/hash.hpp>
 #include <ui/input.hpp>

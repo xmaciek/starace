@@ -1,15 +1,15 @@
 #pragma once
 
-#include <input/actuator.hpp>
+#include <audio/audio.hpp>
 #include <engine/filesystem.hpp>
 #include <engine/fps_limiter.hpp>
-#include <engine/mouse_event.hpp>
-#include <engine/savesystem.hpp>
 #include <engine/resource_map.hpp>
-#include <audio/audio.hpp>
+#include <engine/savesystem.hpp>
+#include <input/actuator.hpp>
+#include <input/mouse_event.hpp>
+#include <renderer/pipeline.hpp>
 #include <renderer/renderer.hpp>
 #include <renderer/texture.hpp>
-#include <renderer/pipeline.hpp>
 #include <shared/track_allocator.hpp>
 
 #include <SDL_events.h>
@@ -84,7 +84,7 @@ protected:
     virtual void onExit() = 0;
     virtual void onRender( Renderer* ) = 0;
     virtual void onUpdate( float ) = 0;
-    virtual void onMouseEvent( const MouseEvent& ) = 0;
+    virtual void onMouseEvent( const input::MouseEvent& ) = 0;
     virtual void onResize( uint32_t, uint32_t ) = 0;
 
     std::pmr::vector<DisplayMode> displayModes( uint32_t monitor = 0 ) const;

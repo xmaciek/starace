@@ -1,10 +1,13 @@
 #pragma once
 
 #include <input/action.hpp>
+#include <input/mouse_event.hpp>
 
 #include <cstdint>
 
 namespace ui {
+
+using input::MouseEvent;
 
 struct Action {
     enum class Enum : input::Action::Enum {

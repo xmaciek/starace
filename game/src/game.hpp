@@ -96,5 +96,5 @@ private:
     virtual void onRender( Renderer* ) override;
     virtual void onUpdate( float ) override;
     virtual void onResize( uint32_t, uint32_t ) override;
-    virtual void onMouseEvent( const MouseEvent& ) override;
+    virtual void onMouseEvent( const input::MouseEvent& ) override;
 };

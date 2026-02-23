@@ -690,7 +690,7 @@ void Game::onAction( input::Action a )
     }
 }
 
-void Game::onMouseEvent( const MouseEvent& mouseEvent )
+void Game::onMouseEvent( const input::MouseEvent& mouseEvent )
 {
     using namespace input;
     const bool inputSourceChanges = g_uiProperty.setInputSource( Actuator::Source::eKBM );

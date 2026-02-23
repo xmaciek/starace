@@ -4,6 +4,8 @@
 
 #include <cstdint>
 
+namespace input {
+
 struct MouseEvent {
     enum class Type : uint16_t {
         eMove,
@@ -17,3 +19,5 @@ struct MouseEvent {
     int16_t value{};
     math::vec2 position{};
 };
+
+}

@@ -6,6 +6,7 @@ target_sources( input
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/public/input/actuator.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/input/action.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/input/mouse_event.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/input/remapper.hpp
 )
 set_vs_directory( input "libs" )
