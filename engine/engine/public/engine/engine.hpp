@@ -3,13 +3,13 @@
 #include <audio/audio.hpp>
 #include <engine/filesystem.hpp>
 #include <engine/fps_limiter.hpp>
-#include <engine/resource_map.hpp>
 #include <engine/savesystem.hpp>
 #include <input/actuator.hpp>
 #include <input/mouse_event.hpp>
 #include <renderer/pipeline.hpp>
 #include <renderer/renderer.hpp>
 #include <renderer/texture.hpp>
+#include <shared/resource_map.hpp>
 #include <shared/track_allocator.hpp>
 
 #include <SDL_events.h>

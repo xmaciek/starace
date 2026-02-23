@@ -11,6 +11,7 @@ target_sources( shared
     ${CMAKE_CURRENT_SOURCE_DIR}/public/shared/rotary_index.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/shared/stack_vector.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/shared/track_allocator.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/public/shared/resource_map.hpp
 )
 set_vs_directory( shared "libs" )
 

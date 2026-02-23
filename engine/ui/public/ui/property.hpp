@@ -20,7 +20,7 @@
 #include <memory_resource>
 #include <string>
 #include <tuple>
-#include <engine/resource_map.hpp>
+#include <shared/resource_map.hpp>
 
 class Game;
 

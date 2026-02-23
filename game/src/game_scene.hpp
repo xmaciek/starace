@@ -12,7 +12,7 @@
 #include "targeting.hpp"
 
 #include <audio/audio.hpp>
-#include <engine/resource_map.hpp>
+#include <shared/resource_map.hpp>
 #include <renderer/texture.hpp>
 
 #include <memory_resource>

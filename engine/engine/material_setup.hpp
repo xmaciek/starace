@@ -1,8 +1,8 @@
 #pragma once
 
 #include <engine/filesystem.hpp>
-#include <engine/resource_map.hpp>
 #include <renderer/renderer.hpp>
+#include <shared/resource_map.hpp>
 
 struct MaterialSetup {
     ResourceMap<PipelineSlot>* m_map{};
