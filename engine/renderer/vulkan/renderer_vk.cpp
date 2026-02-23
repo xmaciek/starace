@@ -25,30 +25,11 @@ struct ResourceDeleter {
     void operator () ( BufferVK* b ) { assert( b ); delete b; }
 };
 
-// arbitrary values
-static constexpr uint32_t INVALID_INDEX = 0xFFFF'FFFFu;
-static constexpr uint32_t BUFFER_ID_CHECK = 0x1F00'0000u;
-static constexpr uint32_t INDEX_BITS = 0xFFFFu;
-static constexpr uint32_t DATA_BITS = 0xFF'0000u;
-template <uint32_t TMask>
-requires ( TMask > 0 && ( TMask & INDEX_BITS ) == 0 )
-static constexpr uint32_t index2Id( uint32_t index ) { return index | TMask; }
-
-template <uint32_t TMask>
-requires ( TMask > 0 && ( TMask & INDEX_BITS ) == 0 )
-static uint32_t id2Index( uint32_t id )
-{
-    const uint32_t MASK = INDEX_BITS | DATA_BITS;
-    if ( ( id & ~MASK ) == TMask ) [[likely]]
-        return id & INDEX_BITS;
-    return INVALID_INDEX;
-}
-
 struct TextureExtra {
-    enum : uint32_t { SENTINEL = 0x2Fu };
-    uint8_t sentinel = SENTINEL;
-    uint8_t channelCount = 0;
+    enum : uint8_t { SENTINEL = 0x2F };
     uint16_t index = 0;
+    uint8_t channelCount = 0;
+    uint8_t sentinel = SENTINEL;
 
     operator Texture () const { return std::bit_cast<Texture>( *this ); }
     operator bool () const
@@ -60,8 +41,20 @@ struct TextureExtra {
     }
 };
 
-static constexpr auto& bufferIndexToId = index2Id<BUFFER_ID_CHECK>;
-static constexpr auto& bufferIdToIndex = id2Index<BUFFER_ID_CHECK>;
+struct BufferExtra {
+    enum : uint8_t { SENTINEL = 0x1F };
+    uint16_t index = 0;
+    uint8_t padding = 0;
+    uint8_t sentinel = SENTINEL;
+
+    operator Buffer () const { return std::bit_cast<Buffer>( *this ); }
+    operator bool () const
+    {
+        return sentinel == SENTINEL
+            && index < RendererVK::MAX_BUFFERS
+            ;
+    }
+};
 
 constexpr std::size_t operator ""_MiB( unsigned long long v ) noexcept
 {
@@ -392,7 +385,7 @@ Buffer RendererVK::createBuffer( std::span<const uint8_t> data )
     [[maybe_unused]]
     BufferVK* oldBuff = m_bufferSlots[ idx ].exchange( buff );
     assert( !oldBuff );
-    return bufferIndexToId( idx );
+    return BufferExtra{ .index = (uint16_t)idx };
 }
 
 Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::span<const uint8_t> data )
@@ -441,7 +434,7 @@ Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::span<const
     assert( !oldTex );
 
     releaseStagingBuffer( std::move( staging ) );
-    return TextureExtra{ .channelCount = (uint8_t)tex->channels(), .index = (uint16_t)idx };
+    return TextureExtra{ .index = (uint16_t)idx, .channelCount = (uint8_t)tex->channels(), };
 }
 
 void RendererVK::beginFrame()
@@ -480,13 +473,13 @@ void RendererVK::beginFrame()
 void RendererVK::deleteBuffer( Buffer b )
 {
     ZoneScoped;
-    const uint32_t bufferIndex = bufferIdToIndex( b );
-    assert( bufferIndex != INVALID_INDEX );
-    BufferVK* buff = m_bufferSlots[ bufferIndex ].exchange( nullptr );
-    assert( buff );
-    m_bufferIndexer.release( bufferIndex );
+    auto buf = std::bit_cast<BufferExtra>( b );
+    assert( buf );
+    BufferVK* ptr = m_bufferSlots[ buf.index ].exchange( nullptr );
+    assert( ptr );
+    m_bufferIndexer.release( buf.index );
     Bottleneck bottleneck{ m_resourceDeleteBottleneck };
-    m_resourceDelete.emplace_back( buff );
+    m_resourceDelete.emplace_back( ptr );
 }
 
 void RendererVK::deleteTexture( Texture t )
@@ -832,9 +825,9 @@ void RendererVK::render( const RenderInfo& ri )
     }
 
     if ( bindBuffer ) {
-        const uint32_t bufferIndex = bufferIdToIndex( ri.m_vertexBuffer );
-        assert( bufferIndex != INVALID_INDEX );
-        const BufferVK* b = m_bufferSlots[ bufferIndex ];
+        const auto buffer = std::bit_cast<BufferExtra>( ri.m_vertexBuffer );
+        assert( buffer );
+        const BufferVK* b = m_bufferSlots[ buffer.index ];
         assert( b );
         std::array<VkBuffer, 1> buffers{ *b };
         const std::array<VkDeviceSize, 1> offsets{ 0 };

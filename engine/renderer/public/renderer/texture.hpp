@@ -3,7 +3,7 @@
 #include <cstdint>
 
 using Texture = uint32_t;
-inline uint32_t textureChannelCount( Texture t ) { return ( t >> 8 ) & 0b111; }
+inline uint32_t textureChannelCount( Texture t ) { return ( t >> 16 ) & 0b111; }
 inline uint32_t textureIs4Channel( Texture t ) { return textureChannelCount( t ) == 4; }
 
 enum class TextureFormat : uint8_t {
