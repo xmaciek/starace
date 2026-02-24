@@ -46,6 +46,7 @@ struct RenderInfo {
     float m_lineWidth = 1.0f;
     Uniform m_uniform{};
     Buffer m_vertexBuffer{};
+    Buffer m_indexBuffer{};
     std::array<Texture, MAX_TEXTURES> m_fragmentTexture{};
 };
 

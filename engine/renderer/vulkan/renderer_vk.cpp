@@ -784,6 +784,11 @@ void RendererVK::render( const RenderInfo& ri )
     const bool bindBuffer = ri.m_vertexBuffer;
     uint32_t verticeCount = ri.m_verticeCount;
 
+    enum : uint32_t {
+        fDepth = 0b1,
+        fIndexed = 0b10,
+    };
+    uint32_t cmd = depthWrite ? fDepth : 0;
     auto& descriptorPool = fr.m_descriptorSets[ currentPipeline.descriptorSetPoolId() ];
 
     m_lastPipeline = &currentPipeline;
@@ -824,21 +829,37 @@ void RendererVK::render( const RenderInfo& ri )
         vkCmdSetLineWidth( fr.m_cmdColorPass, ri.m_lineWidth );
     }
 
-    if ( bindBuffer ) {
-        const auto buffer = std::bit_cast<BufferExtra>( ri.m_vertexBuffer );
+    auto getBuffer = [this]( Buffer buf )
+    {
+        const auto buffer = std::bit_cast<BufferExtra>( buf );
         assert( buffer );
         const BufferVK* b = m_bufferSlots[ buffer.index ];
         assert( b );
         std::array<VkBuffer, 1> buffers{ *b };
         const std::array<VkDeviceSize, 1> offsets{ 0 };
-        verticeCount = b->sizeInBytes() / currentPipeline.vertexStride();
+        return std::make_tuple( buffers, offsets, b->sizeInBytes() );
+    };
+    if ( bindBuffer ) {
+        auto [ buffers, offsets, vCount ] = getBuffer( ri.m_vertexBuffer );
         if ( depthWrite ) vkCmdBindVertexBuffers( fr.m_cmdDepthPrepass, 0, 1, buffers.data(), offsets.data() );
         vkCmdBindVertexBuffers( fr.m_cmdColorPass, 0, 1, buffers.data(), offsets.data() );
+        verticeCount = vCount / currentPipeline.vertexStride();
+        if ( ri.m_indexBuffer ) {
+            auto [ ibuffers, ioffsets, ivCount ] = getBuffer( ri.m_indexBuffer );
+            if ( depthWrite ) vkCmdBindIndexBuffer( fr.m_cmdDepthPrepass, ibuffers.front(), ioffsets.front(), VK_INDEX_TYPE_UINT16 );
+            vkCmdBindIndexBuffer( fr.m_cmdColorPass, ibuffers.front(), ioffsets.front(), VK_INDEX_TYPE_UINT16 );
+            verticeCount = ivCount / sizeof( uint16_t );
+            cmd |= fIndexed;
+        }
     }
 
     assert( verticeCount );
-    if ( depthWrite ) vkCmdDraw( fr.m_cmdDepthPrepass, verticeCount, ri.m_instanceCount, 0, 0 );
-    vkCmdDraw( fr.m_cmdColorPass, verticeCount, ri.m_instanceCount, 0, 0 );
+    switch ( cmd ) {
+    case fDepth: vkCmdDraw( fr.m_cmdDepthPrepass, verticeCount, ri.m_instanceCount, 0, 0 ); [[fallthrough]];
+    case 0:      vkCmdDraw( fr.m_cmdColorPass, verticeCount, ri.m_instanceCount, 0, 0 ); break;
+    case fDepth | fIndexed: vkCmdDrawIndexed( fr.m_cmdDepthPrepass, verticeCount, ri.m_instanceCount, 0, 0, 0 ); [[fallthrough]];
+    case fIndexed:          vkCmdDrawIndexed( fr.m_cmdColorPass, verticeCount, ri.m_instanceCount, 0, 0, 0 ); break;
+    }
 }
 
 void RendererVK::dispatch( const DispatchInfo& dispatchInfo )
