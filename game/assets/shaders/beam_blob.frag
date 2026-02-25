@@ -1,5 +1,3 @@
-#version 450
-
 layout( location = 0 ) in flat vec4 inColor1;
 layout( location = 1 ) in flat vec4 inColor2;
 layout( location = 2 ) in float inU;

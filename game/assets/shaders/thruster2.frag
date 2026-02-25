@@ -1,5 +1,3 @@
-#version 450
-
 struct ColorScheme {
     vec4 inner1;
     vec4 inner2;

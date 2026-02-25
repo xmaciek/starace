@@ -1,5 +1,3 @@
-#version 450
-
 layout( binding = 0 ) uniform ubo {
     mat4 modelMatrix;
     mat4 viewMatrix;

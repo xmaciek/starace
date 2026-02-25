@@ -1,5 +1,3 @@
-#version 450
-
 layout( binding = 1 ) uniform sampler2D atlasTexture[ 9 ];
 
 layout( location = 0 ) in flat vec4 inColor;

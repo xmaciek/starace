@@ -1,5 +1,3 @@
-#version 450
-
 layout( binding = 1 ) uniform sampler2D tex[ 6 ];
 
 layout( location = 0 ) in vec2 inUV;

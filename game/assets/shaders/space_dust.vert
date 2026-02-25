@@ -1,5 +1,3 @@
-#version 450
-
 const uint INSTANCES = 100;
 
 layout( binding = 0 ) uniform ubo {

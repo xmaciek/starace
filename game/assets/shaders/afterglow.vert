@@ -1,5 +1,3 @@
-#version 450
-
 const uint INSTANCES = 4;
 
 struct ColorScheme {

@@ -1,5 +1,3 @@
-#version 450
-
 const uint INSTANCES = 64;
 
 struct Projectile {
