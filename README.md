@@ -1,11 +1,15 @@
 # StarAce
 Space shooter game for Linux
 
+
 ### About:
 This project is my bachelor/engineer diploma work made in late 2012 using OpenGL and sucessfuly passed in march 2013 with best grade.
 
 At the moment I treat it as a test bench to try out new ideas. To see what works for me and what not, what is convinient to use and what is not.
 And in general to have fun with it, so ~~don't~~ expect best commits made at 3am :)
+
+### Click to play video
+[![Preview](https://img.youtube.com/vi/WD0TSeVsQKE/0.jpg)](https://www.youtube.com/watch?v=WD0TSeVsQKE)
 
 ### Fast forward to present day
 Hello Vulkan and few more improvements that should be there from the beginning :)
