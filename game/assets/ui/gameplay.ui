@@ -48,7 +48,7 @@ Progressbar = {
 
 Label = {
     x = 1070
-    y = 597.5
+    y = 600
     data = $var:playerWeaponPrimaryCount
     font = medium
     anchor = midRight
@@ -79,7 +79,7 @@ Image = {
 
 Label = {
     x = 950
-    y = 637.5
+    y = 640
     data = $var:playerWeaponSecondaryCount
     font = medium
     anchor = midRight
