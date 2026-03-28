@@ -175,9 +175,6 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
         , createInfo.vsync
     );
 
-    m_mainPass = RenderPass{ m_device, RenderPass::eColor };
-    m_depthPrepass = RenderPass{ m_device, RenderPass::eDepth };
-
     {
         static constexpr VkSemaphoreCreateInfo semaphoreInfo{
             .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
@@ -202,6 +199,8 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
         it.m_cmdUniform = it.m_commandPool[ 0 ];
         it.m_cmdDepthPrepass = it.m_commandPool[ 1 ];
         it.m_cmdColorPass = it.m_commandPool[ 2 ];
+        it.m_mainPass = RenderPass{ m_device, RenderPass::eColor };
+        it.m_depthPrepass = RenderPass{ m_device, RenderPass::eDepth };
     }
     recreateRenderTargets( m_swapchain.extent() );
 
@@ -283,8 +282,6 @@ RendererVK::~RendererVK()
     std::ranges::for_each( m_pipelines, []( auto& p ) { p = {}; } );
     destroy<vkDestroySemaphore, VkSemaphore>( m_device, m_semaphoreRender );
     destroy<vkDestroySemaphore, VkSemaphore>( m_device, m_semaphoreAvailableImage );
-    m_depthPrepass = {};
-    m_mainPass = {};
     m_swapchain = {};
     if ( m_surface ) {
         vkDestroySurfaceKHR( m_instance, m_surface, nullptr );
@@ -315,13 +312,38 @@ void RendererVK::setFeatureEnabled( Feature f, bool b )
     switch ( f ) {
     case Feature::eVSyncMailbox: break;
     case Feature::eVRSAA:
-        m_mainPass.enableVRS( featureAvailable( f ) && b );
+        for ( auto&& fr : m_frames ) {
+            fr.m_mainPass.enableVRS( featureAvailable( f ) && b );
+        }
         refreshResolution();
         break;
     default:
         assert( !"unhandled enum" );
         break;
     }
+}
+
+void RendererVK::pushScissor( math::vec4 rect, math::vec2 viewportExtent )
+{
+    Frame& fr = m_frames[ m_currentFrame ];
+    auto rtgtExtent = fr.m_renderTarget.extent();
+    math::vec2 aspect = math::vec2{ rtgtExtent.width, rtgtExtent.height } / viewportExtent;
+    auto aspectedRect = rect * math::vec4{ aspect, aspect };
+    VkRect2D scissorRect{
+        VkOffset2D{
+            static_cast<int32_t>( aspectedRect.x ),
+            static_cast<int32_t>( aspectedRect.y ) }
+        , VkExtent2D{
+            static_cast<uint32_t>( aspectedRect.z ),
+            static_cast<uint32_t>( aspectedRect.w )
+        }
+    };
+    fr.pushScissor( scissorRect );
+}
+
+void RendererVK::popScissor()
+{
+    m_frames[ m_currentFrame ].popScissor();
 }
 
 static void beginRecording( VkCommandBuffer cmd )
@@ -459,12 +481,7 @@ void RendererVK::beginFrame()
 
     m_currentFrame = imageIndex;
     Frame& fr = m_frames[ imageIndex ];
-    fr.m_state = Frame::State::eNone;
-    fr.m_uniformBuffer.reset();
-    fr.m_commandPool.reset();
-    for ( auto& set : fr.m_descriptorSets ) {
-        set.reset();
-    }
+    fr.reset();
 
     beginRecording( fr.m_cmdColorPass );
     beginRecording( fr.m_cmdDepthPrepass );
@@ -569,7 +586,7 @@ void RendererVK::recreateRenderTargets( VkExtent2D resolution )
 {
     ZoneScoped;
     m_resolution = resolution;
-    if ( m_mainPass.m_vrs ) {
+    if ( m_frames[ 0 ].m_mainPass.m_vrs ) {
         resolution.width *= 2;
         resolution.height *= 2;
     }
@@ -622,22 +639,12 @@ void RendererVK::endFrame()
     m_lastPipeline = nullptr;
 
     Frame& fr = m_frames[ m_currentFrame ];
-    switch ( fr.m_state ) {
-    case Frame::State::eGraphics:
-        m_depthPrepass.end( fr.m_cmdDepthPrepass );
-        m_mainPass.end( fr.m_cmdColorPass );
-        break;
-    case Frame::State::eCompute:
-    [[unlikely]] default:
-        break;
-    }
+    fr.switchState( Frame::State::eNone );
 
-    fr.m_renderDepthTarget.transfer( fr.m_cmdDepthPrepass, constants::depthRead );
     [[maybe_unused]]
     const VkResult cmdEndD = vkEndCommandBuffer( fr.m_cmdDepthPrepass );
     assert( cmdEndD == VK_SUCCESS );
 
-    fr.m_renderTarget.transfer( fr.m_cmdColorPass, constants::copyFrom );
     transferImage( fr.m_cmdColorPass, m_swapchain.image( m_currentFrame ), constants::undefined, constants::copyTo );
 
     // resize if necessary
@@ -756,27 +763,9 @@ void RendererVK::render( const RenderInfo& ri )
     assert( ri.m_instanceCount > 0 );
 
     Frame& fr = m_frames[ m_currentFrame ];
+    fr.switchState( Frame::State::eGraphics );
+    fr.processPendingOperations();
     PipelineVK& currentPipeline = m_pipelines[ ri.m_pipeline - 1 ];
-
-    switch ( fr.m_state ) {
-    case Frame::State::eCompute: {
-        fr.m_state = Frame::State::eGraphics;
-        fr.m_renderDepthTarget.transfer( fr.m_cmdDepthPrepass, constants::depthWrite );
-        fr.m_renderTarget.transfer( fr.m_cmdColorPass, constants::fragmentWrite );
-        m_depthPrepass.resume( fr.m_cmdDepthPrepass, fr.m_renderDepthTarget, fr.m_renderTarget );
-        m_mainPass.resume( fr.m_cmdColorPass, fr.m_renderDepthTarget, fr.m_renderTarget );
-    } break;
-
-    case Frame::State::eNone: {
-        fr.m_state = Frame::State::eGraphics;
-        fr.m_renderDepthTarget.transfer( fr.m_cmdDepthPrepass, constants::depthWrite );
-        fr.m_renderTarget.transfer( fr.m_cmdColorPass, constants::fragmentWrite );
-        m_depthPrepass.begin( fr.m_cmdDepthPrepass, fr.m_renderDepthTarget, fr.m_renderTarget );
-        m_mainPass.begin( fr.m_cmdColorPass, fr.m_renderDepthTarget, fr.m_renderTarget );
-    } break;
-    [[likely]] default:
-        break;
-    }
 
     const bool rebindPipeline = m_lastPipeline != &currentPipeline;
     const bool depthWrite = currentPipeline.depthWrite();
@@ -868,21 +857,8 @@ void RendererVK::dispatch( const DispatchInfo& dispatchInfo )
     assert( dispatchInfo.m_pipeline < m_pipelines.size() );
 
     Frame& fr = m_frames[ m_currentFrame ];
+    fr.switchState( Frame::State::eCompute );
     PipelineVK& currentPipeline = m_pipelines[ dispatchInfo.m_pipeline - 1 ];
-
-    switch ( fr.m_state ) {
-    case Frame::State::eGraphics:
-        fr.m_state = Frame::State::eCompute;
-        m_depthPrepass.end( fr.m_cmdDepthPrepass );
-        m_mainPass.end( fr.m_cmdColorPass );
-        [[fallthrough]];
-    case Frame::State::eNone:
-        fr.m_renderTarget.transfer( fr.m_cmdColorPass, constants::computeReadWrite );
-        fr.m_renderTargetTmp.transfer( fr.m_cmdColorPass, constants::computeReadWrite );
-        break;
-    default:
-        break;
-    }
 
     auto& descriptorPool = fr.m_descriptorSets[ currentPipeline.descriptorSetPoolId() ];
     const VkDescriptorBufferInfo uniformInfo = fr.m_uniformBuffer.copy( dispatchInfo.m_uniform.ptr, dispatchInfo.m_uniform.size );

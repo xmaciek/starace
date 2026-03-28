@@ -54,8 +54,6 @@ public:
     uint32_t m_currentFrame = 0;
     uint32_t currentFrame();
 
-    RenderPass m_depthPrepass{};
-    RenderPass m_mainPass{};
     std::pmr::vector<Frame> m_frames{};
 
     Indexer<MAX_PIPELINES> m_pipelineIndexer{};
@@ -110,4 +108,6 @@ public:
     virtual void render( const RenderInfo& ) override;
     virtual void dispatch( const DispatchInfo& ) override;
     virtual void setResolution( uint32_t width, uint32_t height ) override;
+    virtual void pushScissor( math::vec4 rect, math::vec2 viewportExtent ) override;
+    virtual void popScissor() override;
 };

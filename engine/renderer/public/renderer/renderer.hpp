@@ -4,6 +4,7 @@
 #include <renderer/display_mode.hpp>
 #include <renderer/texture.hpp>
 #include <renderer/pipeline.hpp>
+#include <math.hpp>
 
 #include <SDL.h>
 
@@ -78,6 +79,8 @@ public:
     virtual void dispatch( const DispatchInfo& ) = 0;
 
     virtual void setResolution( uint32_t width, uint32_t height ) = 0;
+    virtual void pushScissor( math::vec4 rect, math::vec2 viewportExtent ) = 0;
+    virtual void popScissor() = 0;
 
     struct CreateInfo{
         SDL_Window* window = nullptr;

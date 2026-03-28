@@ -1,8 +1,15 @@
 #pragma once
 
+#include "vk.hpp"
 #include "descriptor_set.hpp"
 #include "image.hpp"
 #include "uniform.hpp"
+#include "command_pool.hpp"
+#include "renderpass.hpp"
+
+#include <vector>
+#include <memory_resource>
+#include <optional>
 
 struct Frame
 {
@@ -19,6 +26,16 @@ struct Frame
     Image m_renderTarget{};
     Image m_renderTargetTmp{};
     Uniform m_uniformBuffer{};
+    RenderPass m_depthPrepass{};
+    RenderPass m_mainPass{};
     std::array<DescriptorSet, 32> m_descriptorSets{};
+    std::optional<VkRect2D> m_pendingScissor{};
+    std::pmr::vector<VkRect2D> m_scissorStack{};
     CommandPool m_commandPool{};
+
+    void reset();
+    void processPendingOperations();
+    void pushScissor( const VkRect2D& );
+    void popScissor();
+    void switchState( State );
 };

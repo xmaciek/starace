@@ -17,6 +17,7 @@ target_link_libraries( renderer
     INTERFACE
     cxx::flags
     SDL2::SDL2
+    math
 )
 
 add_subdirectory( vulkan )

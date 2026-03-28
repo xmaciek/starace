@@ -17,6 +17,7 @@ target_sources( renderer_vk
     device_memory.cpp
     device_memory.hpp
     frame.hpp
+    frame.cpp
     image.cpp
     image.hpp
     instance.cpp

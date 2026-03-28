@@ -33,7 +33,7 @@ void RenderPass::begin( VkCommandBuffer cmd, const Image& depth, const Image& co
         .maxDepth = 1.0f,
     };
     vkCmdSetViewport( cmd, 0, 1, &viewport );
-    vkCmdSetScissor( cmd, 0, 1, &rect );
+
     if ( m_hasVRS ) {
         const VkExtent2D vrs = m_vrs ? VkExtent2D{ 2, 2 } : VkExtent2D{ 1, 1 };
         const VkFragmentShadingRateCombinerOpKHR combiner[]{
