@@ -18,6 +18,8 @@ target_sources( ui
     image.cpp
     image.hpp
     label.cpp
+    list.cpp
+    list.hpp
     lockit.cpp
     message_box.cpp
     decorator.cpp

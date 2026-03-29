@@ -24,6 +24,8 @@ struct RenderContext {
 
     math::vec4 colorMain{};
     math::vec4 colorFocus{};
+    math::vec2 viewport{};
+    math::vec2 viewportOffset{};
 };
 
 struct UpdateContext {
@@ -37,7 +39,7 @@ enum class EventProcessing : uint32_t {
 
 class Widget {
     friend Screen;
-    EventProcessing onEvent( const MouseEvent& );
+    std::pair<EventProcessing, uint16_t> onEvent( const MouseEvent& );
     void onUpdate( const UpdateContext& );
 
 public:
@@ -72,6 +74,7 @@ protected:
 
     static bool testRect( math::vec2 p, math::vec2 pos, math::vec2 size );
     static bool testRect( math::vec2 p, const math::vec4& xywh );
+    Widget* findWidgetByTabOrder( uint16_t );
 
 public:
     virtual ~Widget() noexcept = default;
@@ -98,6 +101,8 @@ public:
 
     virtual void update( const UpdateContext& );
     virtual void render( const RenderContext& ) const;
+    virtual void preRender( RenderContext& ) const;
+    virtual void postRender( RenderContext& ) const;
     virtual void refreshInput();
     virtual void lockitChanged();
     virtual EventProcessing onMouseEvent( const MouseEvent& );

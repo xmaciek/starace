@@ -44,7 +44,6 @@ class Screen final : public Widget {
     float m_inputRepeatDelay = 0.0f;
 
     void changeFocus( uint16_t from, uint16_t to );
-    Widget* findWidgetByTabOrder( uint16_t );
 
     void updateInputRepeat( float );
 

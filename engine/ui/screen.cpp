@@ -7,6 +7,7 @@
 #include "footer.hpp"
 #include "glow.hpp"
 #include "image.hpp"
+#include "list.hpp"
 #include "progressbar.hpp"
 #include "spinbox.hpp"
 
@@ -137,6 +138,13 @@ inline constexpr std::array DECORATOR_FIELDS = {
     F{ "y"_hash, &setY<Decorator> },
 };
 
+inline constexpr std::array LIST_FIELDS = {
+    F{ "height"_hash, &setH<List> },
+    F{ "width"_hash, &setW<List> },
+    F{ "x"_hash, &setX<List> },
+    F{ "y"_hash, &setY<List> },
+};
+
 inline constexpr std::array ANIMFRAME_FIELDS = {
     F{ "x"_hash, &setX<AnimFrame> },
     F{ "y"_hash, &setY<AnimFrame> },
@@ -176,6 +184,7 @@ inline constexpr std::array WIDGETS = {
     W{ "Progressbar"_hash, &makeWidget<Progressbar>, PROGRESSBAR_FIELDS },
     W{ "SpinBox"_hash, &makeWidget<SpinBox>, SPINBOX_FIELDS },
     W{ "AnimFrame"_hash, &makeWidget<AnimFrame>, ANIMFRAME_FIELDS },
+    W{ "List"_hash, &makeWidget<List>, LIST_FIELDS },
 };
 
 template <typename T>
@@ -301,6 +310,8 @@ void Screen::render( Renderer* renderer, math::vec2 viewport ) const
         .projection = math::ortho( 0.0f, viewport.x, 0.0f, viewport.y, -1.0f, 1.0f ),
         .colorMain{ 0.118f, 0.565f, 1.0f, 1.0f },
         .colorFocus{ 0.69f, 0.769f, 1.0f, 1.0f },
+        .viewport = m_viewport,
+        .viewportOffset = m_offset,
     };
 
     if ( m_glow ) m_glow->render( rctx );
@@ -382,7 +393,7 @@ EventProcessing Screen::onMouseEvent( const MouseEvent& e )
     event.position *= m_viewport;
     event.position -= m_offset;
     if ( m_modalWidget ) {
-        auto mouseProcessing = m_modalWidget->onEvent( event );
+        auto [ mouseProcessing, _ ] = m_modalWidget->onEvent( event );
         if ( mouseProcessing == EventProcessing::eStop ) {
             m_modalWidget = {};
         }
@@ -390,26 +401,17 @@ EventProcessing Screen::onMouseEvent( const MouseEvent& e )
     }
     uint16_t prevWidget = *m_tabOrder;
     m_tabOrder.invalidate();
-    for ( const auto& it : m_children ) {
-        auto mouseProcessing = it->onEvent( event );
+    for ( auto&& it : m_children ) {
+        assert( it );
+        auto [ mouseProcessing, idx ] = it->onEvent( event );
         if ( mouseProcessing == EventProcessing::eContinue ) continue;
-        m_tabOrder = it->tabOrder();
-        changeFocus( prevWidget, *m_tabOrder );
+        m_tabOrder = idx;
+        changeFocus( prevWidget, idx );
         return EventProcessing::eStop;
     }
 
     if ( m_footer ) m_footer->onEvent( event );
     return EventProcessing::eStop;
-}
-
-Widget* Screen::findWidgetByTabOrder( uint16_t tabOrder )
-{
-    if ( tabOrder == Widget::INVALID_TAB ) {
-        return nullptr;
-    }
-
-    auto wgt = std::ranges::find_if( m_children, [tabOrder]( const auto& wgt ) { return wgt->tabOrder() == tabOrder; } );
-    return ( wgt != m_children.end() ) ? wgt->get() : nullptr;
 }
 
 void Screen::changeFocus( uint16_t from, uint16_t to )

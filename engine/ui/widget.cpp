@@ -4,7 +4,7 @@
 
 namespace ui {
 
-EventProcessing Widget::onEvent( const MouseEvent& e )
+std::pair<EventProcessing, uint16_t> Widget::onEvent( const MouseEvent& e )
 {
     const math::vec2 pos = position() + offsetByAnchor();
 
@@ -12,17 +12,29 @@ EventProcessing Widget::onEvent( const MouseEvent& e )
     ev.position -= pos;
     for ( auto&& it : m_children ) {
         auto ret = it->onEvent( ev );
-        if ( ret == EventProcessing::eStop ) return ret;
+        if ( ret.first == EventProcessing::eStop ) return ret;
     }
-    return onMouseEvent( e );
+    return std::make_pair( onMouseEvent( e ), tabOrder() );
 }
 
 void Widget::onRender( RenderContext rctx ) const
 {
     const math::vec2 pos = position() + offsetByAnchor();
+    rctx.viewportOffset += pos;
     rctx.model = math::translate( rctx.model, math::vec3{ pos.x, pos.y, 0.0f } );
+    preRender( rctx );
     render( rctx );
     for ( auto&& it : m_children ) it->onRender( rctx );
+    postRender( rctx );
+    rctx.viewportOffset -= pos;
+}
+
+void Widget::preRender( RenderContext& ) const
+{
+}
+
+void Widget::postRender( RenderContext& ) const
+{
 }
 
 void Widget::onUpdate( const UpdateContext& uctx )
@@ -39,6 +51,22 @@ void Widget::refreshInput()
 void Widget::lockitChanged()
 {
     std::ranges::for_each( m_children, []( auto& wgt ) { wgt->lockitChanged(); } );
+}
+
+Widget* Widget::findWidgetByTabOrder( uint16_t idx )
+{
+    Widget* ret = nullptr;
+    std::ranges::find_if( m_children, [idx, &ret]( auto& wgt )
+    {
+        ret = wgt->findWidgetByTabOrder( idx );
+        return !!ret;
+    }
+    );
+
+    if ( ret ) return ret;
+    if ( tabOrder() != idx ) return nullptr;
+    if ( idx == INVALID_TAB ) return nullptr;
+    return this;
 }
 
 void Widget::setPosition( math::vec2 v )
