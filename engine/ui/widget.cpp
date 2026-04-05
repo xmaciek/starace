@@ -29,6 +29,12 @@ void Widget::onRender( RenderContext rctx ) const
     rctx.viewportOffset -= pos;
 }
 
+Widget* Widget::emplace_child( UniquePointer<Widget>&& ptr )
+{
+    auto& w = m_children.emplace_back( std::move( ptr ) );
+    return w.get();
+}
+
 void Widget::preRender( RenderContext& ) const
 {
 }

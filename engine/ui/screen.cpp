@@ -49,6 +49,19 @@ template <typename T> void setAnchor( void* ci, const cfg::Entry& e )
     };
     reinterpret_cast<typename T::CreateInfo*>( ci )->anchor = convert( e );
 };
+template <typename T> void setLayoutDirection( void* ci, const cfg::Entry& e )
+{
+    auto convert = []( const auto& e )
+    {
+        Hash hash{};
+        switch ( hash( e.toString() ) ) {
+        default: assert( !"unknown LayoutDirection value" ); [[fallthrough]];
+        case "vertical"_hash: return LayoutDirection::eVerticalDown;
+        case "horizontal"_hash: return LayoutDirection::eHorizontalRight;
+        }
+    };
+    reinterpret_cast<typename T::CreateInfo*>( ci )->layoutDirection = convert( e );
+};
 template <typename T> void setCount( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->count = e.toInt<uint32_t>(); };
 template <typename T> void setData( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->data = Hash{}( e.toString() ); };
 template <typename T> void setText( void* ci, const cfg::Entry& e ) { reinterpret_cast<typename T::CreateInfo*>( ci )->text = Hash{}( e.toString() ); };
@@ -143,6 +156,7 @@ inline constexpr std::array LIST_FIELDS = {
     F{ "width"_hash, &setW<List> },
     F{ "x"_hash, &setX<List> },
     F{ "y"_hash, &setY<List> },
+    F{ "layout"_hash, &setLayoutDirection<List> },
 };
 
 inline constexpr std::array ANIMFRAME_FIELDS = {
