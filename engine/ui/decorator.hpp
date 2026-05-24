@@ -16,12 +16,12 @@ namespace ui {
 
 class Decorator : public Widget {
 protected:
-    using Uniform = PushConstant<Pipeline::eSpriteSequence>;
-    PipelineSlot m_pipeline{};
-    Hash::value_type m_style{};
-    StackVector<Texture, 9> m_textures{};
-    StackVector<Uniform::Sprite, 9> m_sprites{};
+    PushConstant<Pipeline::e9Slice>::Instance m_data{};
     std::optional<math::vec4> m_color;
+    PipelineSlot m_pipeline{};
+    Texture m_texture{};
+
+    math::vec4 color( const RenderContext& ) const;
 
 public:
     struct CreateInfo {
@@ -37,8 +37,8 @@ public:
     Decorator( const CreateInfo& ) noexcept;
 
     virtual void render( const RenderContext& ) const override;
-    void setSprite( const Sprite& );
-    void setNineSlice( const std::array<Hash::value_type, 9>& );
+
+    void setSprite( const Sprite&, float range = 0.0f );
 };
 
 }

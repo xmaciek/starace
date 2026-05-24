@@ -10,6 +10,7 @@ namespace ui {
 enum class Pipeline : uint32_t {
     eSpriteSequence,
     eSpriteSequenceColors,
+    e9Slice,
     eGlow,
     eBlur,
 };
@@ -58,6 +59,24 @@ struct PushConstant<Pipeline::eSpriteSequenceColors> {
         alignas( 16 ) std::array<Instance, INSTANCES> m_instances{};
         alignas( 16 ) std::array<Sprite, INSTANCES> m_sprites;
     };
+};
+
+template <>
+struct PushConstant<Pipeline::e9Slice> {
+    static constexpr uint32_t INSTANCES = 1;
+    static constexpr uint32_t VERTICES = 4;
+    struct Instance {
+        math::vec4 m_xywh;
+        math::vec4 m_uvwh;
+        math::vec2 m_spriteExtent;
+        uint32_t m_sampleRGBA;
+        float m_range;
+    };
+    math::mat4 m_model{};
+    math::mat4 m_view{};
+    math::mat4 m_projection{};
+    math::vec4 m_color;
+    std::array<Instance, INSTANCES> m_instances{};
 };
 
 template <>

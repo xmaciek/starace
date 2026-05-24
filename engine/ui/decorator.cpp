@@ -10,144 +10,59 @@
 
 #include <cassert>
 
-namespace {
-struct Generator {
-    std::array<float, 3> m_w{};
-    std::array<float, 3> m_h{};
-
-    Generator( const math::vec2& wh, const ui::Sprite& s0, const ui::Sprite& s2, const ui::Sprite& s6 ) noexcept
-    {
-        m_w[ 0 ] = s0.w;
-        m_w[ 1 ] = wh.x - ( s0.w + s2.w );
-        m_w[ 2 ] = s2.w;
-
-        m_h[ 0 ] = s0.h;
-        m_h[ 1 ] = wh.y - ( s0.h + s6.h );
-        m_h[ 2 ] = s6.h;
-    }
-
-    math::vec4 operator () ( uint32_t i ) const noexcept
-    {
-        switch ( i ) {
-        case 0: return math::vec4{ 0.0f,                0.0f, m_w[ 0 ], m_h[ 0 ] }; break;
-        case 1: return math::vec4{ m_w[ 0 ],            0.0f, m_w[ 1 ], m_h[ 0 ] }; break;
-        case 2: return math::vec4{ m_w[ 0 ] + m_w[ 1 ], 0.0f, m_w[ 2 ], m_h[ 0 ] }; break;
-
-        case 3: return math::vec4{ 0.0f,                m_h[ 0 ], m_w[ 0 ], m_h[ 1 ] }; break;
-        case 4: return math::vec4{ m_w[ 0 ],            m_h[ 0 ], m_w[ 1 ], m_h[ 1 ] }; break;
-        case 5: return math::vec4{ m_w[ 0 ] + m_w[ 1 ], m_h[ 0 ], m_w[ 2 ], m_h[ 1 ] }; break;
-
-        case 6: return math::vec4{ 0.0f,                m_h[ 0 ] + m_h[ 1 ], m_w[ 0 ], m_h[ 2 ] }; break;
-        case 7: return math::vec4{ m_w[ 0 ],            m_h[ 0 ] + m_h[ 1 ], m_w[ 1 ], m_h[ 2 ] }; break;
-        case 8: return math::vec4{ m_w[ 0 ] + m_w[ 1 ], m_h[ 0 ] + m_h[ 1 ], m_w[ 2 ], m_h[ 2 ] }; break;
-
-        default:
-            assert( !"sprite id out of bounds" );
-            return {};
-        }
-    }
-};
-
-constexpr std::array<Hash::value_type, 9> STYLE_BOX{
-    "topLeftSquare"_hash,
-    "top"_hash,
-    "topRightSquare"_hash,
-    "left"_hash,
-    "mid"_hash,
-    "right"_hash,
-    "botLeftSquare"_hash,
-    "bot"_hash,
-    "botRightSquare"_hash,
-};
-constexpr std::array<Hash::value_type, 9> STYLE_BUTTON{
-    "topLeftSquare"_hash,
-    "top"_hash,
-    "topRightSquare"_hash,
-    "left"_hash,
-    "mid"_hash,
-    "right"_hash,
-    "botLeftDiamond"_hash,
-    "bot"_hash,
-    "botRightDiamond"_hash,
-};
-
-}
-
 namespace ui {
 
 Decorator::Decorator( const CreateInfo& ci ) noexcept
 : Widget{ ci.position, ci.size, ci.anchor }
-, m_style{ ci.style }
 {
-    m_pipeline = g_uiProperty.findMaterial( "spriteSequence"_hash );
-    switch ( m_style ) {
+    m_pipeline = g_uiProperty.findMaterial( "9slice"_hash );
+    switch ( ci.style ) {
     default: assert( !"unknown Decorator style" ); [[fallthrough]];
     case "flat"_hash: setSprite( g_uiProperty.sprite( "white"_hash ) ); return;
     case "image"_hash: setSprite( g_uiProperty.sprite( ci.path ) ); return;
-    case "box"_hash: setNineSlice( STYLE_BOX ); break;
-    case "button"_hash: setNineSlice( STYLE_BUTTON ); break;
+    case "box"_hash:
+    case "button"_hash:
+        setSprite( g_uiProperty.sprite( ci.style ), 0.4375f );
+        return;
     }
 }
 
-void Decorator::setSprite( const Sprite& sprite )
+void Decorator::setSprite( const Sprite& sprite, float range )
 {
-    m_sprites.resize( 1 );
-    m_sprites[ 0 ] = {
+    m_data = {
         .m_xywh = math::vec4{ math::vec2{}, size() },
         .m_uvwh = sprite,
+        .m_spriteExtent{ sprite.w, sprite.h },
         .m_sampleRGBA = textureIs4Channel( sprite.texture ),
+        .m_range = range,
     };
-    m_textures.resize( 1 );
-    m_textures[ 0 ] = sprite.texture;
+    m_texture = sprite.texture;
 }
 
-void Decorator::setNineSlice( const std::array<Hash::value_type, 9>& hashes )
+math::vec4 Decorator::color( const RenderContext& rctx ) const
 {
-    m_textures.resize( 9 );
-    m_sprites.resize( 9 );
-    std::array<Sprite, 9> sprites;
-    std::ranges::transform( hashes, sprites.begin(), []( auto h ) { return g_uiProperty.sprite( h ); } );
-    std::ranges::transform( sprites, m_textures.begin(), []( const auto& s ) { return s.texture; } );
-    std::ranges::sort( m_textures );
-    std::fill( std::unique( m_textures.begin(), m_textures.end() ), m_textures.end(), Texture{} );
-
-    Generator gen{ size(), sprites[ 0 ], sprites[ 2 ], sprites[ 6 ] };
-    for ( uint32_t i = 0; i < 9; ++i ) {
-        auto& sprite = m_sprites[ i ];
-        sprite.m_xywh = gen( i );
-        sprite.m_uvwh = sprites[ i ];
-        sprite.m_whichAtlas = (uint32_t)std::distance( m_textures.begin(), std::ranges::find( m_textures, sprites[ i ].texture ) );
-        sprite.m_sampleRGBA = textureIs4Channel( m_textures[ sprite.m_whichAtlas ] );
-    }
+    if ( m_color ) return *m_color;
+    if ( isFocused() ) return rctx.colorFocus;
+    return rctx.colorMain;
 }
 
 void Decorator::render( const RenderContext& rctx ) const
 {
     ZoneScoped;
 
-    RenderInfo ri{
-        .m_pipeline = m_pipeline,
-        .m_verticeCount = Uniform::VERTICES,
-        .m_instanceCount = (uint32_t)m_sprites.size(),
-    };
-
-    Uniform pushConstant{
+    PushConstant<Pipeline::e9Slice> pushConstant{
         .m_model = rctx.model,
         .m_view = rctx.view,
         .m_projection = rctx.projection,
+        .m_color = color( rctx ),
+        .m_instances{ m_data },
     };
-    if ( m_color ) {
-        pushConstant.m_color = *m_color;
-    }
-    else if ( isFocused() ) {
-        pushConstant.m_color = rctx.colorFocus;
-    }
-    else {
-        pushConstant.m_color = rctx.colorMain;
-    }
-    std::ranges::copy( m_textures, ri.m_fragmentTexture.begin() );
-    std::ranges::copy( m_sprites, pushConstant.m_sprites.begin() );
-    ri.m_uniform = pushConstant;
+    RenderInfo ri{
+        .m_pipeline = m_pipeline,
+        .m_verticeCount = PushConstant<Pipeline::e9Slice>::VERTICES,
+        .m_uniform = pushConstant,
+        .m_fragmentTexture = { m_texture },
+    };
     rctx.renderer->render( ri );
 }
 

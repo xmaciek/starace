@@ -1,0 +1,9 @@
+blendMode alpha
+cullMode back
+fragmentImage 1
+fragmentShader shaders/9slice.frag.spv
+frontFace ccw
+name 9slice
+topology triangleFan
+vertexShader shaders/9slice.vert.spv
+vertexUniform 1
