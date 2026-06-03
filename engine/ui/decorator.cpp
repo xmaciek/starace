@@ -20,10 +20,7 @@ Decorator::Decorator( const CreateInfo& ci ) noexcept
     default: assert( !"unknown Decorator style" ); [[fallthrough]];
     case "flat"_hash: setSprite( g_uiProperty.sprite( "white"_hash ) ); return;
     case "image"_hash: setSprite( g_uiProperty.sprite( ci.path ) ); return;
-    case "box"_hash:
-    case "button"_hash:
-        setSprite( g_uiProperty.sprite( ci.style ), 0.4375f );
-        return;
+    case "box"_hash: setSprite( g_uiProperty.sprite( ci.path ), 0.4375f ); return;
     }
 }
 

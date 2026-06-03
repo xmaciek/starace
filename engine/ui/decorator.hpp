@@ -28,7 +28,7 @@ public:
         math::vec2 position{};
         math::vec2 size{};
         Hash::value_type style = "box"_hash;
-        Hash::value_type path = "white"_hash;
+        Hash::value_type path = "box"_hash;
         Anchor anchor = Anchor::fTop | Anchor::fLeft;
     };
 
