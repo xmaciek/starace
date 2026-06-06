@@ -352,7 +352,7 @@ int main( int argc, const char** argv )
         std::copy( slot.bitmap.begin(), slot.bitmap.end(), dst );
     }
 
-    std::vector<dds::BC4> texture( pixels.size() / 16 );
+    std::pmr::vector<dds::BC4> texture( pixels.size() / 16 );
     {
         using Swizzler = dds::Swizzler<uint8_t>;
         std::vector<Swizzler::BlockType> blocks( texture.size() );
@@ -383,14 +383,10 @@ int main( int argc, const char** argv )
         .dimension = dds::dxgi::Dimension::eTexture2D,
         .arraySize = 1,
     };
-    std::ofstream ofs{ (std::string)argsDstDDS, std::ios::binary };
-    if ( !ofs.is_open() ) {
-        cooker::error( "Cannot open file for write:", argsDstDDS );
-    }
-
-    ofs.write( (const char*)&ddsHeader, sizeof( ddsHeader ) );
-    ofs.write( (const char*)&dxgiHeader, sizeof( dxgiHeader ) );
-    ofs.write( (const char*)texture.data(), static_cast<std::streamsize>( texture.size() * (uint32_t)sizeof(dds::BC4) ) );
+    auto ofs = cooker::openWrite( argsDstDDS );
+    cooker::write( ofs, ddsHeader );
+    cooker::write( ofs, dxgiHeader );
+    cooker::write( ofs, texture );
     ofs.close();
 
     Hash hash{};
@@ -403,16 +399,13 @@ int main( int argc, const char** argv )
         .nameHash = hash( argsName ),
         .textureHash = hash( cooker::baseName( argsDstDDS, 1 ) ),
     };
-    ofs = std::ofstream( (std::string)argsDstFont, std::ios::binary );
-    if ( !ofs.is_open() ) {
-        cooker::error( "Cannot open font atlas to write:", argsDstFont );
-    }
-    ofs.write( (const char*)&fntaHeader, sizeof( fntaHeader ) );
-    ofs.write( (const char*)charset.data(), (std::streamsize)charset.size() * 4 );
+
+    ofs = cooker::openWrite( argsDstFont );
+    cooker::write( ofs, fntaHeader );
+    cooker::write( ofs, charset );
     for ( auto&& slot : slots ) {
         ofs.write( (const char*)&slot.glyph, sizeof( slot.glyph ) );
     }
-    ofs.close();
 
     return 0;
 }

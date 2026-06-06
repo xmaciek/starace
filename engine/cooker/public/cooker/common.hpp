@@ -104,6 +104,13 @@ void write( std::ofstream& ofs, std::span<const T> t )
 
 template <typename T>
 requires ( std::is_trivially_copyable_v<T> )
+void write( std::ofstream& ofs, const std::basic_string<T>& t )
+{
+    ofs.write( reinterpret_cast<const char*>( t.data() ), (std::streamsize)( sizeof( T ) * t.size() ) );
+}
+
+template <typename T>
+requires ( std::is_trivially_copyable_v<T> )
 void write( std::ofstream& ofs, const std::pmr::vector<T>& t )
 {
     ofs.write( reinterpret_cast<const char*>( t.data() ), (std::streamsize)( sizeof( T ) * t.size() ) );
