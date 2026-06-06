@@ -295,9 +295,9 @@ int main( int argc, const char** argv )
         return ret;
     };
     std::deque<Slot> slots( charset.size() );
-    std::transform( charset.begin(), charset.end(), slots.begin(), renderSlot );
+    std::ranges::transform( charset, slots.begin(), renderSlot );
 
-    std::sort( slots.begin(), slots.end(), []( const auto& lhs, const auto& rhs )
+    std::ranges::sort( slots, []( const auto& lhs, const auto& rhs )
     {
         if ( lhs.rows != rhs.rows ) return lhs.rows > rhs.rows;
         if ( lhs.pitch != rhs.pitch ) return lhs.pitch > rhs.pitch;
@@ -324,7 +324,7 @@ int main( int argc, const char** argv )
         width -= tightSlots.back().pitch + AtlasComposer::TILE_PADDING;
     retry:
         auto cmp = [width]( const Slot& g ) { return width >= g.pitch + AtlasComposer::TILE_PADDING; };
-        auto it = std::find_if( slots.begin(), slots.end(), cmp );
+        auto it = std::ranges::find_if( slots, cmp );
         if ( it == slots.end() ) continue;
 
         width -= it->pitch + AtlasComposer::TILE_PADDING;
@@ -349,15 +349,15 @@ int main( int argc, const char** argv )
         if ( slot.pitch == 0 ) {
             continue;
         }
-        std::copy( slot.bitmap.begin(), slot.bitmap.end(), dst );
+        std::ranges::copy( slot.bitmap, dst );
     }
 
     std::pmr::vector<dds::BC4> texture( pixels.size() / 16 );
     {
         using Swizzler = dds::Swizzler<uint8_t>;
         std::vector<Swizzler::BlockType> blocks( texture.size() );
-        std::generate( blocks.begin(), blocks.end(), Swizzler{ pixels, surfWidth } );
-        std::transform( blocks.begin(), blocks.end(), texture.begin(), &dds::compressor_bc4 );
+        std::ranges::generate( blocks, Swizzler{ pixels, surfWidth } );
+        std::ranges::transform( blocks, texture.begin(), &dds::compressor_bc4 );
     }
 
 
