@@ -114,7 +114,7 @@ Image::Image( VkPhysicalDevice physDevice
         .tiling = VK_IMAGE_TILING_OPTIMAL,
         .usage = usageFlags,
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        .initialLayout = m_currentLocation.m_layout,
     };
 
     [[maybe_unused]]
