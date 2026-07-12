@@ -62,7 +62,8 @@ void Widget::lockitChanged()
 Widget* Widget::findWidgetByTabOrder( uint16_t idx )
 {
     Widget* ret = nullptr;
-    std::ranges::find_if( m_children, [idx, &ret]( auto& wgt )
+    [[maybe_unused]]
+    auto _ = std::ranges::find_if( m_children, [idx, &ret]( auto& wgt )
     {
         ret = wgt->findWidgetByTabOrder( idx );
         return !!ret;
