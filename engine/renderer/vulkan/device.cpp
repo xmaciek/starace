@@ -44,7 +44,7 @@ struct ExtraFeatures {
     inline void* list() { return first; }
 };
 
-Device::Device( VkPhysicalDevice phys, std::span<const char*> layers, std::span<const VkDeviceQueueCreateInfo> queues )
+Device::Device( VkPhysicalDevice phys, std::span<const VkDeviceQueueCreateInfo> queues )
 {
     ZoneScoped;
     assert( phys );
@@ -92,8 +92,6 @@ Device::Device( VkPhysicalDevice phys, std::span<const char*> layers, std::span<
         .pNext = extraFeatures.list(),
         .queueCreateInfoCount = static_cast<uint32_t>( queues.size() ),
         .pQueueCreateInfos = queues.data(),
-        .enabledLayerCount = static_cast<uint32_t>( layers.size() ),
-        .ppEnabledLayerNames = layers.data(),
         .enabledExtensionCount = static_cast<uint32_t>( enableExtensions.size() ),
         .ppEnabledExtensionNames = enableExtensions.data(),
         .pEnabledFeatures = &DEVICE_FEATURES,

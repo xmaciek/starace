@@ -123,14 +123,14 @@ Instance::Instance( const Renderer::CreateInfo& ci, std::pmr::vector<const char*
         .apiVersion = VK_API_VERSION_1_4,
     };
 
-    m_layers = enabledLayers();
+    auto layers = enabledLayers();
     enabledExtensions( extensions );
 
     const VkInstanceCreateInfo instanceCreateInfo{
         .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
         .pApplicationInfo = &appInfo,
-        .enabledLayerCount = static_cast<uint32_t>( m_layers.size() ),
-        .ppEnabledLayerNames = m_layers.data(),
+        .enabledLayerCount = static_cast<uint32_t>( layers.size() ),
+        .ppEnabledLayerNames = layers.data(),
         .enabledExtensionCount = static_cast<uint32_t>( extensions.size() ),
         .ppEnabledExtensionNames = extensions.data(),
     };
@@ -150,11 +150,6 @@ Instance::operator VkInstance () const noexcept
     return m_instance;
 }
 
-std::pmr::vector<const char*> Instance::layers() const noexcept
-{
-    return m_layers;
-}
-
 PFN_vkVoidFunction Instance::procAddr( const char* name ) const noexcept
 {
     assert( vkGetInstanceProcAddr );
@@ -165,14 +160,12 @@ Instance::Instance( Instance&& rhs ) noexcept
 {
     std::swap( m_instance, rhs.m_instance );
     std::swap( m_dll, rhs.m_dll );
-    std::swap( m_layers, rhs.m_layers );
 }
 
 Instance& Instance::operator = ( Instance&& rhs ) noexcept
 {
     std::swap( m_instance, rhs.m_instance );
     std::swap( m_dll, rhs.m_dll );
-    std::swap( m_layers, rhs.m_layers );
     return *this;
 }
 

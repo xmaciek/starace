@@ -10,7 +10,6 @@
 class Instance {
     VkInstance m_instance{};
     void* m_dll{};
-    std::pmr::vector<const char*> m_layers{};
 
 public:
     ~Instance() noexcept;
@@ -25,6 +24,5 @@ public:
 
     operator VkInstance () const noexcept;
 
-    std::pmr::vector<const char*> layers() const noexcept;
     PFN_vkVoidFunction procAddr( const char* ) const noexcept;
 };

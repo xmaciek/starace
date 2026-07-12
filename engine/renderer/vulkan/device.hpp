@@ -20,7 +20,7 @@ private:
 public:
     ~Device();
     Device() = default;
-    Device( VkPhysicalDevice, std::span<const char*> layers, std::span<const VkDeviceQueueCreateInfo> queues );
+    Device( VkPhysicalDevice, std::span<const VkDeviceQueueCreateInfo> queues );
     Device( const Device& ) = delete;
     Device& operator = ( const Device& ) = delete;
     Device( Device&& );

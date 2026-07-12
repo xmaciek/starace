@@ -159,12 +159,7 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
     }
 
     m_queueManager = QueueManager{ m_physicalDevice, m_surface };
-
-    {
-        auto layers = m_instance.layers();
-        auto queues = m_queueManager.createInfo();
-        m_device = Device{ m_physicalDevice, layers, queues };
-    }
+    m_device = Device{ m_physicalDevice, m_queueManager.createInfo() };
 
     m_queueManager.acquire( m_device );
     m_swapchain = Swapchain( m_window
@@ -590,6 +585,9 @@ void RendererVK::recreateRenderTargets( VkExtent2D resolution )
         resolution.width *= 2;
         resolution.height *= 2;
     }
+
+    auto cmd = m_frames[ 0 ].m_cmdColorPass;
+    beginRecording( cmd );
     for ( auto& it : m_frames ) {
         it.m_renderDepthTarget = Image{
             m_physicalDevice
@@ -602,6 +600,8 @@ void RendererVK::recreateRenderTargets( VkExtent2D resolution )
             , Image::RTGT_DEPTH.memoryFlags
             , Image::RTGT_DEPTH.aspectFlags
         };
+        it.m_renderDepthTarget.transfer( cmd, constants::depthRead );
+
         it.m_renderTarget = Image{
             m_physicalDevice
             , m_device
@@ -613,6 +613,8 @@ void RendererVK::recreateRenderTargets( VkExtent2D resolution )
             , Image::RTGT_COLOR.memoryFlags
             , Image::RTGT_COLOR.aspectFlags
         };
+        it.m_renderTarget.transfer( cmd, constants::copyFrom );
+
         it.m_renderTargetTmp = Image{
             m_physicalDevice
             , m_device
@@ -624,6 +626,26 @@ void RendererVK::recreateRenderTargets( VkExtent2D resolution )
             , Image::RTGT_COLOR.memoryFlags
             , Image::RTGT_COLOR.aspectFlags
         };
+        it.m_renderTargetTmp.transfer( cmd, constants::copyFrom );
+    }
+    {
+        [[maybe_unused]]
+        const VkResult cmdEndD = vkEndCommandBuffer( cmd );
+        assert( cmdEndD == VK_SUCCESS );
+        const VkSubmitInfo submitInfo{
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+            .waitSemaphoreCount = 0,
+            .commandBufferCount = 1,
+            .pCommandBuffers = &cmd,
+        };
+        auto [ queue, bottleneck ] = m_queueManager.graphics();
+        assert( queue );
+        assert( bottleneck );
+        Bottleneck lock{ *bottleneck };
+        [[maybe_unused]]
+        const VkResult submitOK = vkQueueSubmit( queue, 1, &submitInfo, VK_NULL_HANDLE );
+        assert( submitOK == VK_SUCCESS );
+        vkQueueWaitIdle( queue );
     }
     vkDeviceWaitIdle( m_device );
 }
@@ -673,7 +695,8 @@ void RendererVK::endFrame()
     const VkResult cmdEnd = vkEndCommandBuffer( fr.m_cmdColorPass );
     assert( cmdEnd == VK_SUCCESS );
 
-    VkSemaphore renderSemaphores[]{ m_semaphoreRender };
+    std::array renderSemaphores{ m_semaphoreRender };
+    std::array presentSemaphores{ m_semaphoreAvailableImage };
     VkPipelineStageFlags waitStages[]{ VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 
 
@@ -691,12 +714,13 @@ void RendererVK::endFrame()
 
     const VkSubmitInfo submitInfo{
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-        .waitSemaphoreCount = 0,
+        .waitSemaphoreCount = (uint32_t)presentSemaphores.size(),
+        .pWaitSemaphores = presentSemaphores.data(),
         .pWaitDstStageMask = waitStages,
         .commandBufferCount = cmds.size(),
         .pCommandBuffers = cmds.data(),
-        .signalSemaphoreCount = 1,
-        .pSignalSemaphores = renderSemaphores,
+        .signalSemaphoreCount = (uint32_t)renderSemaphores.size(),
+        .pSignalSemaphores = renderSemaphores.data(),
     };
 
     {
@@ -722,7 +746,7 @@ void RendererVK::endFrame()
 void RendererVK::present()
 {
     ZoneScoped;
-    std::array waitSemaphores{ m_semaphoreRender, m_semaphoreAvailableImage };
+    std::array waitSemaphores{ m_semaphoreRender };
     VkSwapchainKHR swapchain[] = { m_swapchain };
     const VkPresentInfoKHR presentInfo{
         .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
@@ -733,17 +757,21 @@ void RendererVK::present()
         .pImageIndices = &m_currentFrame,
     };
 
-    auto [ queue, bottleneck ] = m_queueManager.present();
-    Bottleneck lock{ *bottleneck };
-    switch ( vkQueuePresentKHR( queue, &presentInfo ) ) {
-    [[likely]]
-    case VK_SUCCESS: break;
-    case VK_ERROR_OUT_OF_DATE_KHR:
-    case VK_SUBOPTIMAL_KHR:
-        recreateSwapchain();
-        break;
-    default:
-        assert( !"failed to present" );
+    {
+        auto [ queue, bottleneck ] = m_queueManager.present();
+        Bottleneck lock{ *bottleneck };
+        switch ( vkQueuePresentKHR( queue, &presentInfo ) ) {
+        [[likely]]
+        case VK_SUCCESS: break;
+        case VK_ERROR_OUT_OF_DATE_KHR:
+        case VK_SUBOPTIMAL_KHR:
+            recreateSwapchain();
+            break;
+        default:
+            assert( !"failed to present" );
+        }
+
+        vkQueueWaitIdle( queue );
     }
 
     if ( const uint64_t packedResolution = m_pendingResolutionChange.exchange( 0 ); packedResolution ) [[unlikely]] {
@@ -753,7 +781,6 @@ void RendererVK::present()
         };
         recreateRenderTargets( res );
     }
-    vkQueueWaitIdle( queue );
 }
 
 void RendererVK::render( const RenderInfo& ri )
@@ -765,6 +792,7 @@ void RendererVK::render( const RenderInfo& ri )
     Frame& fr = m_frames[ m_currentFrame ];
     fr.switchState( Frame::State::eGraphics );
     fr.processPendingOperations();
+
     PipelineVK& currentPipeline = m_pipelines[ ri.m_pipeline - 1 ];
 
     const bool rebindPipeline = m_lastPipeline != &currentPipeline;
