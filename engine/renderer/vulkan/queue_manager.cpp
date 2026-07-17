@@ -221,20 +221,35 @@ std::pmr::vector<VkDeviceQueueCreateInfo> QueueManager::createInfo() const
     return ret;
 }
 
-std::tuple<VkQueue, std::mutex*> QueueManager::graphics()
+VkResult QueueManager::submitGraphics( const VkSubmitInfo& submitInfo )
 {
-    auto [ q, idx ] = m_graphics;
-    return { q, &m_mutexes[ idx ] };
+    ZoneScoped;
+    auto&& [ queue, mutex ] = m_graphics;
+    assert( queue );
+    Bottleneck lock{ m_mutexes[ mutex ] };
+    const VkResult submitOK = vkQueueSubmit( queue, 1, &submitInfo, VK_NULL_HANDLE );
+    vkQueueWaitIdle( queue );
+    return submitOK;
 }
 
-std::tuple<VkQueue, std::mutex*> QueueManager::present()
+VkResult QueueManager::submitTransfer( const VkSubmitInfo& submitInfo )
 {
-    auto [ q, idx ] = m_present;
-    return { q, &m_mutexes[ idx ] };
+    ZoneScoped;
+    auto&& [ queue, mutex ] = m_transfer;
+    assert( queue );
+    Bottleneck lock{ m_mutexes[ mutex ] };
+    const VkResult submitOK = vkQueueSubmit( queue, 1, &submitInfo, VK_NULL_HANDLE );
+    vkQueueWaitIdle( queue );
+    return submitOK;
 }
 
-std::tuple<VkQueue, std::mutex*> QueueManager::transfer()
+VkResult QueueManager::submitPresent( const VkPresentInfoKHR& presentInfo )
 {
-    auto [ q, idx ] = m_transfer;
-    return { q, &m_mutexes[ idx ] };
+    ZoneScoped;
+    auto&& [ queue, mutex ] = m_present;
+    assert( queue );
+    Bottleneck lock{ m_mutexes[ mutex ] };
+    const VkResult submitOK = vkQueuePresentKHR( queue, &presentInfo );
+    vkQueueWaitIdle( queue );
+    return submitOK;
 }

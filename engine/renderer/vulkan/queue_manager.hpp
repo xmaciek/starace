@@ -23,6 +23,7 @@ private:
     std::tuple<VkQueue, uint32_t> m_present{};
     std::tuple<VkQueue, uint32_t> m_transfer{};
 
+    using Bottleneck = std::scoped_lock<std::mutex>;
     std::array<std::mutex, 3> m_mutexes{};
 
     Family m_graphicsFamily{};
@@ -42,9 +43,9 @@ public:
     inline uint32_t presentFamily() const { return m_presentFamily.index; }
     inline uint32_t transferFamily() const { return m_transferFamily.index; }
 
-    std::tuple<VkQueue, std::mutex*> graphics();
-    std::tuple<VkQueue, std::mutex*> present();
-    std::tuple<VkQueue, std::mutex*> transfer();
+    VkResult submitGraphics( const VkSubmitInfo& );
+    VkResult submitTransfer( const VkSubmitInfo& );
+    VkResult submitPresent( const VkPresentInfoKHR& );
 
     std::pmr::vector<VkDeviceQueueCreateInfo> createInfo() const;
     void acquire( VkDevice );

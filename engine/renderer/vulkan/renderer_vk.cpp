@@ -378,23 +378,14 @@ Buffer RendererVK::createBuffer( std::span<const uint8_t> data )
         .pCommandBuffers = &cmd,
     };
 
-    {
-        ZoneScopedN( "queue submit" );
-        auto [ queue, bottleneck ] = m_queueManager.transfer();
-        assert( queue );
-        assert( bottleneck );
-        Bottleneck lock{ *bottleneck };
+    m_transferCommandPool.reset();
+    beginRecording( cmd );
+    vkCmdCopyBuffer( cmd, staging, *buff, 1, &copyRegion );
+    vkEndCommandBuffer( cmd );
 
-        m_transferCommandPool.reset();
-        beginRecording( cmd );
-        vkCmdCopyBuffer( cmd, staging, *buff, 1, &copyRegion );
-        vkEndCommandBuffer( cmd );
-
-        [[maybe_unused]]
-        const VkResult submitOK = vkQueueSubmit( queue, 1, &submitInfo, VK_NULL_HANDLE );
-        assert( submitOK == VK_SUCCESS );
-        vkQueueWaitIdle( queue );
-    }
+    [[maybe_unused]]
+    const VkResult submitOK = m_queueManager.submitTransfer( submitInfo );
+    assert( submitOK == VK_SUCCESS );
 
     releaseStagingBuffer( std::move( staging ) );
 
@@ -427,23 +418,14 @@ Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::span<const
         .pCommandBuffers = &cmd,
     };
 
-    {
-        ZoneScopedN( "queue submit" );
-        auto [ queue, bottleneck ] = m_queueManager.transfer();
-        assert( queue );
-        assert( bottleneck );
-        Bottleneck lock{ *bottleneck };
+    m_transferCommandPool.reset();
+    beginRecording( cmd );
+    tex->transferFrom( cmd, staging, tci.mip0ByteCount );
+    vkEndCommandBuffer( cmd );
 
-        m_transferCommandPool.reset();
-        beginRecording( cmd );
-        tex->transferFrom( cmd, staging, tci.mip0ByteCount );
-        vkEndCommandBuffer( cmd );
-
-        [[maybe_unused]]
-        const VkResult submitOK = vkQueueSubmit( queue, 1, &submitInfo, VK_NULL_HANDLE );
-        assert( submitOK == VK_SUCCESS );
-        vkQueueWaitIdle( queue );
-    }
+    [[maybe_unused]]
+    const VkResult submitOK = m_queueManager.submitTransfer( submitInfo );
+    assert( submitOK == VK_SUCCESS );
 
     const uint32_t idx = static_cast<uint32_t>( m_textureIndexer.next() );
     [[maybe_unused]]
@@ -628,25 +610,20 @@ void RendererVK::recreateRenderTargets( VkExtent2D resolution )
         };
         it.m_renderTargetTmp.transfer( cmd, constants::copyFrom );
     }
-    {
-        [[maybe_unused]]
-        const VkResult cmdEndD = vkEndCommandBuffer( cmd );
-        assert( cmdEndD == VK_SUCCESS );
-        const VkSubmitInfo submitInfo{
-            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-            .waitSemaphoreCount = 0,
-            .commandBufferCount = 1,
-            .pCommandBuffers = &cmd,
-        };
-        auto [ queue, bottleneck ] = m_queueManager.graphics();
-        assert( queue );
-        assert( bottleneck );
-        Bottleneck lock{ *bottleneck };
-        [[maybe_unused]]
-        const VkResult submitOK = vkQueueSubmit( queue, 1, &submitInfo, VK_NULL_HANDLE );
-        assert( submitOK == VK_SUCCESS );
-        vkQueueWaitIdle( queue );
-    }
+
+    [[maybe_unused]]
+    const VkResult cmdEndD = vkEndCommandBuffer( cmd );
+    assert( cmdEndD == VK_SUCCESS );
+    const VkSubmitInfo submitInfo{
+        .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+        .waitSemaphoreCount = 0,
+        .commandBufferCount = 1,
+        .pCommandBuffers = &cmd,
+    };
+    [[maybe_unused]]
+    const VkResult submitOK = m_queueManager.submitGraphics( submitInfo );
+    assert( submitOK == VK_SUCCESS );
+
     vkDeviceWaitIdle( m_device );
 }
 
@@ -723,16 +700,7 @@ void RendererVK::endFrame()
         .pSignalSemaphores = renderSemaphores.data(),
     };
 
-    {
-        auto [ queue, bottleneck ] = m_queueManager.graphics();
-        assert( queue );
-        assert( bottleneck );
-        Bottleneck lock{ *bottleneck };
-        [[maybe_unused]]
-        const VkResult submitOK = vkQueueSubmit( queue, 1, &submitInfo, VK_NULL_HANDLE );
-        assert( submitOK == VK_SUCCESS );
-        vkQueueWaitIdle( queue );
-    }
+    m_queueManager.submitGraphics( submitInfo );
 
     decltype(m_resourceDelete) tmp{ m_resourceDelete.get_allocator() };
     {
@@ -757,21 +725,15 @@ void RendererVK::present()
         .pImageIndices = &m_currentFrame,
     };
 
-    {
-        auto [ queue, bottleneck ] = m_queueManager.present();
-        Bottleneck lock{ *bottleneck };
-        switch ( vkQueuePresentKHR( queue, &presentInfo ) ) {
-        [[likely]]
-        case VK_SUCCESS: break;
-        case VK_ERROR_OUT_OF_DATE_KHR:
-        case VK_SUBOPTIMAL_KHR:
-            recreateSwapchain();
-            break;
-        default:
-            assert( !"failed to present" );
-        }
-
-        vkQueueWaitIdle( queue );
+    switch ( m_queueManager.submitPresent( presentInfo ) ) {
+    [[likely]]
+    case VK_SUCCESS: break;
+    case VK_ERROR_OUT_OF_DATE_KHR:
+    case VK_SUBOPTIMAL_KHR:
+        recreateSwapchain();
+        break;
+    default:
+        assert( !"failed to present" );
     }
 
     if ( const uint64_t packedResolution = m_pendingResolutionChange.exchange( 0 ); packedResolution ) [[unlikely]] {
