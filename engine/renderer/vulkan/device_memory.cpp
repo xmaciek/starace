@@ -47,15 +47,28 @@ static uint32_t memoryType( VkPhysicalDevice device, uint32_t typeBits, VkMemory
     return 0;
 }
 
-DeviceMemory::DeviceMemory( VkPhysicalDevice physDevice, VkDevice device, VkBuffer buffer, VkMemoryPropertyFlags flags ) noexcept
+struct GetRequirements {
+    VkDevice device{};
+    auto operator () ( VkBuffer buffer ) const
+    {
+        VkMemoryRequirements memRequirements{};
+        vkGetBufferMemoryRequirements( device, buffer, &memRequirements );
+        return memRequirements;
+    }
+    auto operator () ( VkImage image ) const
+    {
+        VkMemoryRequirements memRequirements{};
+        vkGetImageMemoryRequirements( device, image, &memRequirements );
+        return memRequirements;
+    }
+};
+
+DeviceMemory::DeviceMemory( VkPhysicalDevice physDevice, VkDevice device, std::variant<VkBuffer, VkImage> buffer, VkMemoryPropertyFlags flags ) noexcept
 : m_device{ device }
 {
     ZoneScoped;
     assert( device );
-    assert( buffer );
-
-    VkMemoryRequirements memRequirements{};
-    vkGetBufferMemoryRequirements( device, buffer, &memRequirements );
+    VkMemoryRequirements memRequirements = std::visit( GetRequirements{ device }, buffer );
     m_size = memRequirements.size;
 
     const VkMemoryAllocateInfo allocInfo{
@@ -67,29 +80,6 @@ DeviceMemory::DeviceMemory( VkPhysicalDevice physDevice, VkDevice device, VkBuff
     [[maybe_unused]]
     const VkResult allocOK = vkAllocateMemory( device, &allocInfo, nullptr, &m_memory );
     assert( allocOK == VK_SUCCESS );
-
-}
-
-DeviceMemory::DeviceMemory( VkPhysicalDevice physDevice, VkDevice device, VkImage image, VkMemoryPropertyFlags flags ) noexcept
-: m_device{ device }
-{
-    assert( device );
-    assert( image );
-
-    VkMemoryRequirements memRequirements{};
-    vkGetImageMemoryRequirements( m_device, image, &memRequirements );
-    m_size = memRequirements.size;
-
-    const VkMemoryAllocateInfo allocInfo{
-        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-        .allocationSize = memRequirements.size,
-        .memoryTypeIndex = memoryType( physDevice, memRequirements.memoryTypeBits, flags ),
-    };
-
-    [[maybe_unused]]
-    const VkResult allocOK = vkAllocateMemory( m_device, &allocInfo, nullptr, &m_memory );
-    assert( allocOK == VK_SUCCESS );
-
 }
 
 DeviceMemory::operator VkDeviceMemory () const noexcept

@@ -3,6 +3,7 @@
 #include "vk.hpp"
 
 #include <cstdint>
+#include <variant>
 
 class DeviceMemory {
     VkDevice m_device = VK_NULL_HANDLE;
@@ -12,8 +13,7 @@ class DeviceMemory {
 public:
     ~DeviceMemory() noexcept;
     DeviceMemory() noexcept = default;
-    DeviceMemory( VkPhysicalDevice physDevice, VkDevice, VkBuffer, VkMemoryPropertyFlags ) noexcept;
-    DeviceMemory( VkPhysicalDevice physDevice, VkDevice, VkImage, VkMemoryPropertyFlags ) noexcept;
+    DeviceMemory( VkPhysicalDevice physDevice, VkDevice, std::variant<VkBuffer, VkImage>, VkMemoryPropertyFlags ) noexcept;
 
     DeviceMemory( const DeviceMemory& ) = delete;
     DeviceMemory& operator = ( const DeviceMemory& ) = delete;
