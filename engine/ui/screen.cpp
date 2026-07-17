@@ -245,6 +245,8 @@ static UniquePointer<Widget> makeFooter( std::pmr::memory_resource* alloc, const
         switch ( h ) {
         case "eMenuApply"_hash: return Action::eMenuApply;
         case "eMenuCancel"_hash: return Action::eMenuCancel;
+        case "eMenuRight"_hash: return Action::eMenuRight;
+        case "eMenuLeft"_hash: return Action::eMenuLeft;
         default:
             assert( !"unknown input action" );
             return {};
