@@ -84,8 +84,9 @@ struct Compiler {
             ccmd::Command{ []( ccmd::Vm*, void* ){ return 0u; }, nullptr },
         };
 
-        auto data = cooker::readText( path );
-        auto bytecode = ccmd::compile( data );
+        auto data = cooker::readAll<char>( path );
+        std::string_view view{ data.data(), data.size() };
+        auto bytecode = ccmd::compile( view );
         if ( bytecode.empty() ) cooker::error( "failed to compile", path );
         auto ec = ccmd::run( commands, bytecode );
         if ( ec != ccmd::eSuccess ) cooker::error( "failed to parse", path );

@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
-#include <iostream>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -25,7 +24,7 @@ static std::string preparePakPath( const std::string& str, uint32_t includeDirec
     return std::string( pakName );
 }
 
-std::vector<std::pair<std::string, std::string>> preparePathPairs( std::string_view list )
+static std::vector<std::pair<std::string, std::string>> preparePathPairs( std::string_view list )
 {
     std::vector<std::pair<std::string,std::string>> ret;
     std::istringstream input;
@@ -36,18 +35,18 @@ std::vector<std::pair<std::string, std::string>> preparePathPairs( std::string_v
         ret.emplace_back( std::make_pair( filePath, std::move( pakPath ) ) );
     }
     auto cmp = []( const auto& lhs, const auto& rhs ) { return lhs.second < rhs.second; };
-    std::sort( ret.begin(), ret.end(), cmp );
+    std::ranges::sort( ret, cmp );
     return ret;
 }
 
-bool strcpyIntoBuffer( const auto& src, auto& dst )
+static bool strcpyIntoBuffer( const auto& src, auto& dst )
 {
     if ( std::size( src ) > std::size( dst ) ) return false;
-    std::copy( std::begin( src ), std::end( src ), std::begin( dst ) );
+    std::ranges::copy( src, std::begin( dst ) );
     return true;
 }
 
-std::ofstream& align( std::ofstream& o, size_t a )
+static std::ofstream& align( std::ofstream& o, size_t a )
 {
     uint64_t pos = static_cast<uint64_t>( o.tellp() );
     pos = ( pos + ( a - 1 ) ) & ~( a - 1 );
@@ -71,16 +70,9 @@ int main( int argc, const char** argv )
     for ( auto&& [ src, dst ] : fileList ) {
         auto& entry = entries.emplace_back();
         strcpyIntoBuffer( dst, entry.name ) || cooker::error( "path too long to fit into .name field", dst );
-
-        std::ifstream ifs( src, std::ios::binary | std::ios::ate );
-        ifs.is_open() || cooker::error( "cannot open file for reading:", src );
-
-        const std::streamsize size = ifs.tellg();
-        tmp.resize( static_cast<std::pmr::vector<char>::size_type>( size ) );
-        ifs.seekg( 0 );
-        ifs.read( tmp.data(), size );
-        ifs.close();
-
+        auto&& [ifs, size] = cooker::openRead( src );
+        tmp.resize( size );
+        cooker::read( ifs, tmp );
         align( ofs, 16 );
 
         entry.offset = static_cast<uint32_t>( ofs.tellp() );

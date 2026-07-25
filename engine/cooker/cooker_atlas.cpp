@@ -9,7 +9,6 @@
 #include <cassert>
 #include <cstdint>
 #include <cstring>
-#include <fstream>
 #include <iostream>
 #include <span>
 #include <string_view>
@@ -48,17 +47,7 @@ int main( int argc, const char** argv )
     args.read( "-t", argsAtlasTexture ) || cooker::error( "\t-t \"asset/texture.dds\" \u2012 argument not specified" );
     const bool argsRemap = args.read( "--remap" );
 
-    std::ifstream ifs{ (std::string)argsSrcAtlas, std::ios::binary | std::ios::ate };
-    if ( !ifs.is_open() ) {
-        cooker::error( "Cannot open source atlas:", argsSrcAtlas );
-    }
-
-    auto fileSize = ifs.tellg();
-    std::vector<uint8_t> src( static_cast<size_t>( fileSize ) );
-    ifs.seekg(0);
-    ifs.read( reinterpret_cast<char*>( src.data() ), fileSize );
-    ifs.close();
-
+    auto src = cooker::readAll<char>( argsSrcAtlas );
     cfg::Entry entry = cfg::Entry::fromData( src );
     struct GlpyhInfo {
         char32_t ch;

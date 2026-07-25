@@ -53,21 +53,32 @@ std::ofstream openWrite( std::string_view path )
     return ofs;
 }
 
+
 [[nodiscard]]
-std::pmr::string readText( std::string_view path )
+static inline auto openRead( std::string_view path )
 {
     std::ifstream ifs( (std::string)path, std::ios::binary | std::ios::ate );
     ifs.is_open() || cooker::error( "cannot open file for reading", path );
-    auto size = ifs.tellg();
+    auto size = static_cast<size_t>( ifs.tellg() );
     ifs.seekg( 0 );
-    std::pmr::string ret;
-    ret.resize( static_cast<size_t>( size ) );
-    ifs.read( ret.data(), size );
+    return std::make_pair( std::move( ifs ), size );
+}
+
+
+template <typename T = uint8_t>
+requires ( sizeof( T ) == 1 )
+[[nodiscard]]
+auto readAll( std::string_view path )
+{
+    auto&& [ ifs, size ] = openRead( path );
+    std::pmr::vector<T> ret;
+    ret.resize( size );
+    ifs.read( reinterpret_cast<char*>( ret.data() ), static_cast<std::streamsize>( size ) );
     return ret;
 }
 
 [[nodiscard]]
-std::pmr::vector<uint8_t> read( std::ifstream& ifs, size_t size )
+static inline std::pmr::vector<uint8_t> read( std::ifstream& ifs, size_t size )
 {
     std::pmr::vector<uint8_t> tmp( size );
     ifs.read( reinterpret_cast<char*>( tmp.data() ), static_cast<std::streamsize>( size ) );
@@ -125,7 +136,7 @@ std::span<T> cast( std::span<uint8_t> data )
 }
 
 [[nodiscard]]
-std::string_view baseName( std::string_view str, uint32_t includeDirectoryCount )
+static inline std::string_view baseName( std::string_view str, uint32_t includeDirectoryCount )
 {
     auto rit = std::find_if( str.rbegin(), str.rend(), [includeDirectoryCount]( char c ) mutable
     {

@@ -16,7 +16,6 @@
 #include <cstdint>
 #include <cstring>
 #include <deque>
-#include <fstream>
 #include <iostream>
 #include <numeric>
 #include <span>
@@ -176,20 +175,6 @@ static fnta::Glyph getGlyphMetrics( FT_GlyphSlot slot )
     return glyph;
 }
 
-static std::vector<FT_Byte> loadFontFile( std::string_view path )
-{
-    std::ifstream ifs( (std::string)path, std::ios::binary | std::ios::ate );
-    if ( !ifs.is_open() ) {
-        cooker::error( "Font file cannot be open:", path );
-    }
-    auto size = ifs.tellg();
-    ifs.seekg( 0 );
-    std::vector<FT_Byte> data{};
-    data.resize( (decltype(data)::size_type)size );
-    ifs.read( (char*)data.data(), size );
-    return data;
-}
-
 int main( int argc, const char** argv )
 {
     Args args{ argc, argv };
@@ -222,7 +207,7 @@ int main( int argc, const char** argv )
     args.read( "--name", argsName ) || cooker::error( "--name \"theName\" \u2012 argument not specified" );
 
     auto ranges = splitRanges( argsRanges );
-    auto fontData = loadFontFile( argsSrcFont );
+    auto fontData = cooker::readAll<FT_Byte>( argsSrcFont );
 
     struct DestroyOnExit {
         FT_Library library{};

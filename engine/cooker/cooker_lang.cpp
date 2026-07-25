@@ -6,7 +6,6 @@
 
 #include <algorithm>
 #include <cstdint>
-#include <fstream>
 #include <span>
 #include <string_view>
 #include <tuple>
@@ -125,13 +124,7 @@ int main( int argc, const char** argv )
     if ( argsId.empty() || argsId.size() > 8 )
         cooker::error( "--id \u2012 invalid argument:", argsId );
 
-    std::ifstream ifs( (std::string)argsSrc, std::ios::binary | std::ios::ate );
-    ifs.is_open() || cooker::error( "source file cannot be open", argsSrc );
-    std::pmr::vector<char> data( (size_t)ifs.tellg() );
-    ifs.seekg( 0 );
-    ifs.read( data.data(), (std::streamsize)data.size() );
-    ifs.close();
-
+    auto data = cooker::readAll<char>( argsSrc );
     ParserCSV parser( data );
     parser.process();
     parser.sort();
