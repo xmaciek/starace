@@ -23,4 +23,5 @@ target_link_libraries( input
     math
     profiler
     unicode
+    shared
 )

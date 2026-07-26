@@ -12,39 +12,39 @@
 
 namespace input {
 
-static constexpr uint32_t XBOX_REMAP_OFFSET = 32;
-static constexpr uint32_t PS4_REMAP_OFFSET = 64;
+static constexpr char32_t XBOX_REMAP_OFFSET = 32;
+static constexpr char32_t PS4_REMAP_OFFSET = 64;
 
-static uint32_t mapController( Actuator a, uint32_t remapOffset, std::span<char32_t> out )
+static char32_t mapController( Actuator a, char32_t remapOffset )
 {
     switch ( a.typed.type ) {
     case Actuator::BUTTONCODE:
         switch ( a.typed.id ) {
-        case SDL_CONTROLLER_BUTTON_A: *out.begin() = remapOffset + fnta::Input::A; return 1;
-        case SDL_CONTROLLER_BUTTON_B: *out.begin() = remapOffset + fnta::Input::B; return 1;
-        case SDL_CONTROLLER_BUTTON_X: *out.begin() = remapOffset + fnta::Input::X; return 1;
-        case SDL_CONTROLLER_BUTTON_Y: *out.begin() = remapOffset + fnta::Input::Y; return 1;
-        case SDL_CONTROLLER_BUTTON_BACK: *out.begin() = remapOffset + fnta::Input::Select; return 1;
-        case SDL_CONTROLLER_BUTTON_START: *out.begin() = remapOffset + fnta::Input::Start; return 1;
-        case SDL_CONTROLLER_BUTTON_LEFTSTICK: *out.begin() = remapOffset + fnta::Input::L; return 1;
-        case SDL_CONTROLLER_BUTTON_RIGHTSTICK: *out.begin() = remapOffset + fnta::Input::R; return 1;
-        case SDL_CONTROLLER_BUTTON_LEFTSHOULDER: *out.begin() = remapOffset + fnta::Input::LB; return 1;
-        case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER: *out.begin() = remapOffset + fnta::Input::RB; return 1;
-        case SDL_CONTROLLER_BUTTON_DPAD_UP: *out.begin() = remapOffset + fnta::Input::Up; return 1;
-        case SDL_CONTROLLER_BUTTON_DPAD_DOWN: *out.begin() = remapOffset + fnta::Input::Down; return 1;
-        case SDL_CONTROLLER_BUTTON_DPAD_LEFT: *out.begin() = remapOffset + fnta::Input::Left; return 1;
-        case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: *out.begin() = remapOffset + fnta::Input::Right; return 1;
+        case SDL_CONTROLLER_BUTTON_A: return remapOffset + fnta::Input::A;
+        case SDL_CONTROLLER_BUTTON_B: return remapOffset + fnta::Input::B;
+        case SDL_CONTROLLER_BUTTON_X: return remapOffset + fnta::Input::X;
+        case SDL_CONTROLLER_BUTTON_Y: return remapOffset + fnta::Input::Y;
+        case SDL_CONTROLLER_BUTTON_BACK: return remapOffset + fnta::Input::Select;
+        case SDL_CONTROLLER_BUTTON_START: return remapOffset + fnta::Input::Start;
+        case SDL_CONTROLLER_BUTTON_LEFTSTICK: return remapOffset + fnta::Input::L;
+        case SDL_CONTROLLER_BUTTON_RIGHTSTICK: return remapOffset + fnta::Input::R;
+        case SDL_CONTROLLER_BUTTON_LEFTSHOULDER: return remapOffset + fnta::Input::LB;
+        case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER: return remapOffset + fnta::Input::RB;
+        case SDL_CONTROLLER_BUTTON_DPAD_UP: return remapOffset + fnta::Input::Up;
+        case SDL_CONTROLLER_BUTTON_DPAD_DOWN: return remapOffset + fnta::Input::Down;
+        case SDL_CONTROLLER_BUTTON_DPAD_LEFT: return remapOffset + fnta::Input::Left;
+        case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: return remapOffset + fnta::Input::Right;
         default: assert( !"unhandled button enum" ); return 0;
         }
 
     case Actuator::AXISCODE:
         switch ( a.typed.id ) {
-        case SDL_CONTROLLER_AXIS_LEFTX: *out.begin() = remapOffset + fnta::Input::LX; return 1;
-        case SDL_CONTROLLER_AXIS_LEFTY: *out.begin() = remapOffset + fnta::Input::LY; return 1;
-        case SDL_CONTROLLER_AXIS_RIGHTX: *out.begin() = remapOffset + fnta::Input::RX; return 1;
-        case SDL_CONTROLLER_AXIS_RIGHTY: *out.begin() = remapOffset + fnta::Input::RY; return 1;
-        case SDL_CONTROLLER_AXIS_TRIGGERLEFT: *out.begin() = remapOffset + fnta::Input::LT; return 1;
-        case SDL_CONTROLLER_AXIS_TRIGGERRIGHT: *out.begin() = remapOffset + fnta::Input::RT; return 1;
+        case SDL_CONTROLLER_AXIS_LEFTX: return remapOffset + fnta::Input::LX;
+        case SDL_CONTROLLER_AXIS_LEFTY: return remapOffset + fnta::Input::LY;
+        case SDL_CONTROLLER_AXIS_RIGHTX: return remapOffset + fnta::Input::RX;
+        case SDL_CONTROLLER_AXIS_RIGHTY: return remapOffset + fnta::Input::RY;
+        case SDL_CONTROLLER_AXIS_TRIGGERLEFT: return remapOffset + fnta::Input::LT;
+        case SDL_CONTROLLER_AXIS_TRIGGERRIGHT: return remapOffset + fnta::Input::RT;
         default: assert( !"unhandled axis enum" ); return 0;
         }
 
@@ -54,7 +54,7 @@ static uint32_t mapController( Actuator a, uint32_t remapOffset, std::span<char3
     }
 }
 
-uint32_t Remapper::apply( Actuator::Source source, char32_t chr, std::span<char32_t> out ) const
+void Remapper::apply( Actuator::Source source, char32_t chr, StackVector<char32_t, 20>& out ) const
 {
     const bool isController = source == Actuator::Source::eKBM;
     auto it = std::ranges::find_if( m_data, [chr, isController]( const auto& p )
@@ -63,34 +63,33 @@ uint32_t Remapper::apply( Actuator::Source source, char32_t chr, std::span<char3
         const bool c = p.m_max.source == Actuator::Source::eKBM;
         return c == isController;
     } );
-    if ( it == m_data.end() ) return 0;
+    if ( it == m_data.end() ) return;
 
     using Source = Actuator::Source;
     switch ( source ) {
     case Source::eKBM: {
         const SDL_Keycode vk = SDL_GetKeyFromScancode( (SDL_Scancode)it->m_max.typed.id );
         const char* keyName = SDL_GetKeyName( vk );
-        if ( !keyName ) return 0;
+        if ( !keyName ) return;
 
 
         std::string_view sv{ keyName };
-        assert( sv.size() + 2 < out.size() );
-        auto kit = out.begin();
-        *kit = U'['; kit++;
+        assert( sv.size() + 2 < out.capacity() );
         unicode::Transcoder transcoder{ sv };
-        // TODO: std::copy
-        auto length = std::clamp( (uint32_t)out.size() - 2u, 0u, transcoder.length() );
-        std::for_each( kit, kit + length, transcoder );
-        std::advance( kit, length );
-        *kit = U']';
-        kit++;
-        return (uint32_t)std::distance( out.begin(), kit );
+        out.emplace_back( U'[' );
+        out.resize( 1u + transcoder.length() );
+        std::generate_n( out.begin() + 1u, transcoder.length(), transcoder );
+        out.emplace_back( U']' );
+        return;
     }
-    case Source::ePS4: return mapController( it->m_max, PS4_REMAP_OFFSET, out );
-    case Source::eXBoxOne: return mapController( it->m_max, XBOX_REMAP_OFFSET, out );
+    case Source::ePS4:
+        if ( auto c = mapController( it->m_max, PS4_REMAP_OFFSET ) ) out.emplace_back( c );
+        return;
+    case Source::eXBoxOne:
+        if ( auto c = mapController( it->m_max, XBOX_REMAP_OFFSET ) ) out.emplace_back( c );
+        return;
     default: assert( !"unhandled enum" );
     }
-    return 0;
 }
 
 void Remapper::add( Action::Enum e, Actuator a )

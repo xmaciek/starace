@@ -40,12 +40,12 @@ static std::pmr::u32string textUnmap( std::u32string_view s )
     auto it = std::ranges::find_if( s, isAction );
     if ( it == s.end() ) [[likely]] return ret;
 
-    std::array<char32_t, 20> remapped;
     auto begin = s.begin();
     do {
         ret.append( begin, it );
-        uint32_t remappedCount = g_uiProperty.remapper()->apply( g_uiProperty.inputSource(), *it, remapped );
-        ret.append( remapped.begin(), remappedCount );
+        StackVector<char32_t, 20> remapped;
+        g_uiProperty.remapper()->apply( g_uiProperty.inputSource(), *it, remapped );
+        ret.append( remapped.begin(), remapped.size() );
         begin = it;
         std::advance( begin, 1 );
         it = std::find_if( begin, s.end(), isAction );

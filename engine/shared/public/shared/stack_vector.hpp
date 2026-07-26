@@ -34,6 +34,7 @@ public:
     void clear() { m_size = 0; }
 
     reference_type push_back( const T& t ) { m_data[ m_size ] = t; return m_data[ m_size++ ]; }
+    reference_type emplace_back( const T& t ) { m_data[ m_size ] = t; return m_data[ m_size++ ]; }
 
     reference_type front() { return *begin(); }
     const_reference_type front() const { return *begin(); }

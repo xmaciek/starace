@@ -4,11 +4,10 @@
 #include <span>
 #include <input/actuator.hpp>
 #include <input/action.hpp>
+#include <shared/stack_vector.hpp>
 
 #include <memory_resource>
 #include <vector>
-#include <span>
-
 
 namespace input {
 
@@ -30,7 +29,7 @@ class Remapper {
 public:
     ~Remapper() = default;
     Remapper() = default;
-    uint32_t apply( Actuator::Source, char32_t, std::span<char32_t> ) const;
+    void apply( Actuator::Source, char32_t, StackVector<char32_t, 20>& ) const;
 
     void add( Action::Enum, Actuator );
     void add( Action::Enum, Actuator, Actuator );
