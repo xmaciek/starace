@@ -232,7 +232,7 @@ static Image downscale( const Image& img )
     std::span<const T> pixels{ reinterpret_cast<const T*>( img.pixels.data() ), img.pixels.size() / sizeof( T ) };
     std::span<T> mip{ reinterpret_cast<T*>( ret.data() ), mipPixelCount };
 
-    std::generate( mip.begin(), mip.end(), Generator<T>{ pixels, img.width } );
+    std::ranges::generate( mip, Generator<T>{ pixels, img.width } );
     return Image{
         .format = img.format,
         .width = img.width >> 1,
