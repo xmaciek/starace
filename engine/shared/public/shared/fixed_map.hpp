@@ -11,6 +11,36 @@
 #include <tuple>
 #include <span>
 
+namespace {
+namespace detail {
+
+template <typename TKey, typename TValue>
+inline TValue* find( std::span<TKey> keys, std::span<TValue> values, auto k )
+{
+    assert( std::ranges::is_sorted( keys ) );
+    auto it = std::ranges::lower_bound( keys, k );
+    if ( it == keys.end() ) [[unlikely]] { return nullptr; }
+    if ( *it != k ) [[unlikely]] { return nullptr; }
+    auto dist = it - keys.begin();
+    auto ptr = &*values.begin();
+    return ptr + dist;
+}
+
+template <typename TKey, typename TValue>
+inline std::tuple<TValue*, TValue*> equalRange( std::span<TKey> keys, std::span<TValue> values, auto k  )
+{
+    assert( std::ranges::is_sorted( keys ) );
+    auto [ b, e ] = std::ranges::equal_range( keys, k );
+    if ( b == e || b == keys.end() ) [[unlikely]] { return {}; }
+    auto diffBegin = b - keys.begin();
+    auto diffEnd = e - keys.begin();
+    auto ptr = &*values.begin();
+    return std::make_tuple<TValue*, TValue*>( ptr + diffBegin, ptr + diffEnd );
+}
+
+}
+}
+
 template <typename TKey, typename TValue>
 class FixedMapView {
 public:
@@ -31,55 +61,23 @@ public:
 
     const TValue* find( const TKey& k ) const noexcept
     {
-        auto begin = m_keys.begin();
-        auto end = m_keys.end();
-        assert( std::is_sorted( begin, end ) );
-        auto it = std::lower_bound( begin, end, k );
-        if ( it == end ) [[unlikely]] { return nullptr; }
-        if ( *it != k ) [[unlikely]] { return nullptr; }
-        const difference_type dist = it - begin;
-        auto ptr = &*m_values.begin();
-        return ptr + dist;
+        return detail::find( m_keys, m_values, k );
     }
 
     TValue* find( const TKey& k ) noexcept
     {
-        auto begin = m_keys.begin();
-        auto end = m_keys.end();
-        assert( std::is_sorted( begin, end ) );
-        auto it = std::lower_bound( begin, end, k );
-        if ( it == end ) [[unlikely]] { return nullptr; }
-        if ( *it != k ) [[unlikely]] { return nullptr; }
-        const difference_type dist = it - begin;
-        auto ptr = &*m_values.begin();
-        return ptr + dist;
+        return detail::find( m_keys, m_values, k );
     }
 
     std::tuple<const TValue*, const TValue*> equalRange( const TKey& k ) const noexcept
     {
-        auto begin = m_keys.begin();
-        auto end = m_keys.end();
-        assert( std::is_sorted( begin, end ) );
-        auto [ b, e ] = std::equal_range( begin, end, k );
-        if ( b == e || b == end ) [[unlikely]] { return {}; }
-        const difference_type diffBegin = b - begin;
-        const difference_type diffEnd = e - begin;
-        auto ptr = &*m_values.begin();
-        return std::make_tuple<const TValue*, const TValue*>( ptr + diffBegin, ptr + diffEnd );
+        return detail::equalRange( m_keys, m_values, k );
     }
 
 
     std::tuple<TValue*, TValue*> equalRange( const TKey& k ) noexcept
     {
-        auto begin = m_keys.begin();
-        auto end = m_keys.end();
-        assert( std::is_sorted( begin, end ) );
-        auto [ b, e ] = std::equal_range( begin, end, k );
-        if ( b == e || b == end ) [[unlikely]] { return {}; }
-        const difference_type diffBegin = b - begin;
-        const difference_type diffEnd = e - begin;
-        auto ptr = &*m_values.begin();
-        return std::make_tuple<TValue*, TValue*>( ptr + diffBegin, ptr + diffEnd );
+        return detail::equalRange( m_keys, m_values, k );
     }
 
 };
@@ -106,6 +104,12 @@ class FixedMap {
     std::array<TValueStorage, TCapacity> m_valueList{};
     size_type m_currentSize = 0;
 
+    std::span<TKey> keys() noexcept { return std::span{ reinterpret_cast<TKey*>( &m_keyList[ 0 ] ), m_currentSize }; }
+    std::span<const TKey> keys() const noexcept { return std::span{ reinterpret_cast<const TKey*>( &m_keyList[ 0 ] ), m_currentSize }; }
+
+    std::span<TValue> values() noexcept { return std::span{ reinterpret_cast<TValue*>( &m_valueList[ 0 ] ), m_currentSize }; }
+    std::span<const TValue> values() const noexcept { return std::span{ reinterpret_cast<const TValue*>( &m_valueList[ 0 ] ), m_currentSize }; }
+
     auto keyBegin() const noexcept { return reinterpret_cast<const TKey*>( &m_keyList[ 0 ] ); }
     auto keyBegin() noexcept { return reinterpret_cast<TKey*>( &m_keyList[ 0 ] ); }
     auto keyEnd() const noexcept { return keyBegin() + m_currentSize; }
@@ -120,25 +124,14 @@ public:
 
     ~FixedMap() noexcept
     {
-        if constexpr ( !isTrivial<TValue>() ) { std::destroy( valueBegin(), valueEnd() ); }
-        if constexpr ( !isTrivial<TKey>() ) { std::destroy( keyBegin(), keyEnd() ); }
+        std::ranges::destroy( keys() );
+        std::ranges::destroy( values() );
     }
 
     FixedMap() noexcept = default;
 
     FixedMap( const FixedMap& ) noexcept requires ( isTrivial<TKey>() && isTrivial<TValue>() ) = default;
     FixedMap& operator = ( const FixedMap& ) noexcept requires ( isTrivial<TKey>() && isTrivial<TValue>() ) = default;
-
-
-    FixedMapView<TKey, TValue> makeView()
-    {
-        return { std::span<TKey>{ keyBegin(), keyEnd() }, std::span<TValue>{ valueBegin(), valueEnd() } };
-    }
-
-    FixedMapView<const TKey, const TValue> makeView() const
-    {
-        return { std::span<TKey>{ keyBegin(), keyEnd() }, std::span<TValue>{ valueBegin(), valueEnd() } };
-    }
 
     size_type size() const noexcept
     {
@@ -147,85 +140,61 @@ public:
 
     const TValue* find( const TKey& k ) const noexcept
     {
-        assert( std::is_sorted( keyBegin(), keyEnd() ) );
-        auto it = std::lower_bound( keyBegin(), keyEnd(), k );
-        if ( it == keyEnd() ) { return nullptr; }
-        const difference_type dist = it - keyBegin();
-        return valueBegin() + dist;
+        return detail::find( keys(), values(), k );
     }
 
     TValue* find( const TKey& k ) noexcept
     {
-        assert( std::is_sorted( keyBegin(), keyEnd() ) );
-        auto it = std::lower_bound( keyBegin(), keyEnd(), k );
-        if ( it == keyEnd() ) { return nullptr; }
-        const difference_type dist = it - keyBegin();
-        return valueBegin() + dist;
+        return detail::find( keys(), values(), k );
     }
 
     std::tuple<TValue*, TValue*> equalRange( const TKey& k ) noexcept
     {
-        assert( std::is_sorted( keyBegin(), keyEnd() ) );
-        auto [ begin, end ] = std::equal_range( keyBegin(), keyEnd(), k );
-        if ( begin == end || begin == keyEnd() ) { return {}; }
-        const difference_type diffBegin = begin - keyBegin();
-        const difference_type diffEnd = end - keyBegin();
-        return { valueBegin() + diffBegin, valueBegin() + diffEnd };
+        return detail::equalRange( keys(), values(), k );
     }
 
     std::tuple<const TValue*, const TValue*> equalRange( const TKey& k ) const noexcept
     {
-        assert( std::is_sorted( keyBegin(), keyEnd() ) );
-        auto [ begin, end ] = std::equal_range( keyBegin(), keyEnd(), k );
-        if ( begin == end || begin == keyEnd() ) { return {}; }
-        const difference_type diffBegin = begin - keyBegin();
-        const difference_type diffEnd = end - keyBegin();
-        return { valueBegin() + diffBegin, valueBegin() + diffEnd };
+        return detail::equalRange( keys(), values(), k );
     }
 
     void pushBack( const TKey& k, const TValue& v ) noexcept
     {
-        assert( m_currentSize < TCapacity );
-        assert( m_currentSize == 0 || *reinterpret_cast<TKey*>(&m_keyList[ m_currentSize - 1 ]) < k );
-        new ( &m_keyList[ m_currentSize ] ) TKey ( k );
-        new ( &m_valueList[ m_currentSize ] ) TValue ( v );
-        m_currentSize += 1;
+        pushBack2( std::forward<decltype(k)>( k ), std::forward<decltype(v)>( v ) );
     }
 
     void pushBack( TKey&& k, TValue&& v ) noexcept
     {
-        assert( m_currentSize < TCapacity );
-        assert( m_currentSize == 0 || *reinterpret_cast<TKey*>(&m_keyList[ m_currentSize - 1 ]) < k );
-        new ( &m_keyList[ m_currentSize ] ) TKey ( k );
-        new ( &m_valueList[ m_currentSize ] ) TValue ( v );
-        m_currentSize += 1;
+        pushBack2( std::forward<decltype(k)>( k ), std::forward<decltype(v)>( v ) );
     }
 
     void insert( TKey&& k, TValue&& v ) noexcept
     {
-        assert( m_currentSize < TCapacity );
-        const auto oldEnd = keyEnd();
-        auto it = std::lower_bound( keyBegin(), oldEnd, k );
-        new ( &m_keyList[ m_currentSize ] ) TKey( k );
-        new ( &m_valueList[ m_currentSize ] ) TValue( v );
-        m_currentSize += 1;
-        if ( it == oldEnd ) {
-            return;
-        }
-
-        const difference_type dist = it - keyBegin();
-        std::rotate( keyBegin() + dist, keyEnd() - 1, keyEnd() );
-        std::rotate( valueBegin() + dist, valueEnd() - 1, valueEnd() );
-        assert( std::is_sorted( keyBegin(), keyEnd() ) );
+        insert2( std::forward<decltype(k)>( k ), std::forward<decltype(v)>( v ) );
     }
 
     void insert( const TKey& k, const TValue& v ) noexcept
     {
+        insert2( std::forward<decltype(k)>( k ), std::forward<decltype(v)>( v ) );
+    }
+
+private:
+    inline void pushBack2( auto k, auto v ) noexcept
+    {
+        assert( m_currentSize < TCapacity );
+        assert( m_currentSize == 0 || *reinterpret_cast<TKey*>(&m_keyList[ m_currentSize - 1 ]) < k );
+        new ( &m_keyList[ m_currentSize ] ) TKey( std::forward<decltype(k)>( k ) );
+        new ( &m_valueList[ m_currentSize ] ) TValue( std::forward<decltype(v)>( v ) );
+        m_currentSize += 1;
+    }
+
+    inline void insert2( auto k, auto v ) noexcept
+    {
         assert( m_currentSize < TCapacity );
         const auto oldEnd = keyEnd();
         auto it = std::lower_bound( keyBegin(), oldEnd, k );
-        new ( &m_keyList[ m_currentSize ] ) TKey( k );
-        new ( &m_valueList[ m_currentSize ] ) TValue( v );
+        new ( &m_keyList[ m_currentSize ] ) TKey( std::forward<decltype(k)>( k ) );
+        new ( &m_valueList[ m_currentSize ] ) TValue( std::forward<decltype(v)>( v ) );
         m_currentSize += 1;
         if ( it == oldEnd ) {
             return;
@@ -236,5 +205,4 @@ public:
         std::rotate( valueBegin() + dist, valueEnd() - 1, valueEnd() );
         assert( std::is_sorted( keyBegin(), keyEnd() ) );
     }
-
 };
