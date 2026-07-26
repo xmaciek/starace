@@ -43,8 +43,7 @@ static std::pmr::u32string textUnmap( std::u32string_view s )
     auto begin = s.begin();
     do {
         ret.append( begin, it );
-        StackVector<char32_t, 20> remapped;
-        g_uiProperty.remapper()->apply( g_uiProperty.inputSource(), *it, remapped );
+        auto remapped = g_uiProperty.remapper()->apply( g_uiProperty.inputSource(), *it );
         ret.append( remapped.begin(), remapped.size() );
         begin = it;
         std::advance( begin, 1 );

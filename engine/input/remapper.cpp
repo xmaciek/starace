@@ -54,7 +54,7 @@ static char32_t mapController( Actuator a, char32_t remapOffset )
     }
 }
 
-void Remapper::apply( Actuator::Source source, char32_t chr, StackVector<char32_t, 20>& out ) const
+Remapper::StackVector Remapper::apply( Actuator::Source source, char32_t chr ) const
 {
     const bool isController = source == Actuator::Source::eKBM;
     auto it = std::ranges::find_if( m_data, [chr, isController]( const auto& p )
@@ -63,33 +63,35 @@ void Remapper::apply( Actuator::Source source, char32_t chr, StackVector<char32_
         const bool c = p.m_max.source == Actuator::Source::eKBM;
         return c == isController;
     } );
-    if ( it == m_data.end() ) return;
+    if ( it == m_data.end() ) return {};
 
     using Source = Actuator::Source;
+    StackVector ret;
     switch ( source ) {
     case Source::eKBM: {
         const SDL_Keycode vk = SDL_GetKeyFromScancode( (SDL_Scancode)it->m_max.typed.id );
         const char* keyName = SDL_GetKeyName( vk );
-        if ( !keyName ) return;
+        if ( !keyName ) return ret;
 
 
         std::string_view sv{ keyName };
-        assert( sv.size() + 2 < out.capacity() );
+        assert( sv.size() + 2 < ret.capacity() );
         unicode::Transcoder transcoder{ sv };
-        out.emplace_back( U'[' );
-        out.resize( 1u + transcoder.length() );
-        std::generate_n( out.begin() + 1u, transcoder.length(), transcoder );
-        out.emplace_back( U']' );
-        return;
+        ret.emplace_back( U'[' );
+        ret.resize( 1u + transcoder.length() );
+        std::generate_n( ret.begin() + 1u, transcoder.length(), transcoder );
+        ret.emplace_back( U']' );
+        return ret;
     }
     case Source::ePS4:
-        if ( auto c = mapController( it->m_max, PS4_REMAP_OFFSET ) ) out.emplace_back( c );
-        return;
+        if ( auto c = mapController( it->m_max, PS4_REMAP_OFFSET ) ) ret.emplace_back( c );
+        return ret;
     case Source::eXBoxOne:
-        if ( auto c = mapController( it->m_max, XBOX_REMAP_OFFSET ) ) out.emplace_back( c );
-        return;
+        if ( auto c = mapController( it->m_max, XBOX_REMAP_OFFSET ) ) ret.emplace_back( c );
+        return ret;
     default: assert( !"unhandled enum" );
     }
+    return ret;
 }
 
 void Remapper::add( Action::Enum e, Actuator a )

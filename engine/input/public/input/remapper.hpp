@@ -27,10 +27,12 @@ class Remapper {
 
 
 public:
+    using StackVector = StackVector<char32_t, 20>;
+
     ~Remapper() = default;
     Remapper() = default;
-    void apply( Actuator::Source, char32_t, StackVector<char32_t, 20>& ) const;
 
+    StackVector apply( Actuator::Source, char32_t ) const;
     void add( Action::Enum, Actuator );
     void add( Action::Enum, Actuator, Actuator );
     std::pmr::vector<Action> updateAndResolve( Actuator );
