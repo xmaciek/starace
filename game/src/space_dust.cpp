@@ -23,7 +23,7 @@ SpaceDust::SpaceDust() noexcept
 {
     ZoneScoped;
     m_particles.resize( 100 );
-    std::generate( m_particles.begin(), m_particles.end(), &randomPosition );
+    std::ranges::generate( m_particles, &randomPosition );
 }
 
 void SpaceDust::setVelocity( const math::vec3& v )
@@ -52,12 +52,13 @@ void SpaceDust::update( const UpdateContext& uctx )
     const math::vec4 velocity{ m_velocity * uctx.deltaTime, 0.0f };
     const math::vec4 center{ m_center, 0.0f };
 
-    for ( auto& it : m_particles ) {
+    std::ranges::for_each( m_particles, [velocity, center, r=m_range]( auto& it )
+    {
         it += velocity;
-        if ( math::distance( it, center ) >= m_range ) {
+        if ( math::distance( it, center ) >= r ) {
             it = randomPosition() + center;
         }
-    }
+    });
 }
 
 void SpaceDust::render( const RenderContext& rctx ) const

@@ -25,8 +25,8 @@ GameScene::GameScene( const CreateInfo& ci ) noexcept
     m_enemies.resize( 20 );
 
     std::pmr::vector<uint16_t> callsigns( ci.enemyCallsigns.size() );
-    std::iota( callsigns.begin(), callsigns.end(), 0 );
-    std::shuffle( callsigns.begin(), callsigns.end(), Random{ std::random_device()() } );
+    std::ranges::iota( callsigns, 0 );
+    std::ranges::shuffle( callsigns, Random{ std::random_device()() } );
 
     std::ranges::generate( m_enemies, [&ci, &callsigns, i=0u]() mutable
     {

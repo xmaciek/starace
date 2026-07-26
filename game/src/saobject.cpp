@@ -65,6 +65,6 @@ Signal SAObject::scanSignals( math::vec3 position, std::span<const Signal> signa
     {
         return math::distance( position, lhs.position ) < math::distance( position, rhs.position );
     };
-    return *std::min_element( signals.begin(), signals.end(), std::move( proc ) );
+    return *std::ranges::min_element( signals, std::move( proc ) );
 }
 
