@@ -235,7 +235,7 @@ Font::RenderText Font::composeText( std::u32string_view text, const math::vec2& 
         if ( canWordWrap( chr ) ) [[unlikely]] {
             lastBreakCursorPos = (uint32_t)cursor.x;
             lastBreakPosition = i;
-            lastInstanceCount = ret.pushData.m_instanceCount;
+            lastInstanceCount = (uint32_t)ret.data.size();
         }
         switch ( chr ) {
         case '\n':
@@ -261,8 +261,8 @@ Font::RenderText Font::composeText( std::u32string_view text, const math::vec2& 
         sprite.m_whichAtlas = findOrAdd( ret.pushData.m_fragmentTexture, t );
 
         if ( ( cursor.x > geometry.x ) && ( lastBreakCursorPos != 0 ) ) [[unlikely]] {
-            ret.pushData.m_instanceCount = lastInstanceCount;
-            i = lastBreakPosition - 1;
+            i = lastBreakPosition;
+            ret.data.resize( lastInstanceCount );
             lastBreakCursorPos = 0;
             breakLine();
         }
