@@ -9,3 +9,11 @@ TEST( Shared, maxScoreElement )
 
     EXPECT_EQ( *it, 45342u );
 }
+
+TEST( Shared, minScoreElement )
+{
+    std::array data{ 4u, 123u, 45u, 423u, 54u, 1u, 123u, 12u, 45u, 77u, 4u, 23u, 2u, 45342u, 3u, 8u };
+    auto it = minScoreElement( data, []( auto r ) -> size_t { return r; } );
+
+    EXPECT_EQ( *it, 1u );
+}

@@ -2,6 +2,7 @@
 
 #include <extra/dds.hpp>
 #include <platform/utils.hpp>
+#include <shared/max_score_element.hpp>
 
 #include "controller_state.hpp"
 #include "material_setup.hpp"
@@ -449,18 +450,14 @@ void Engine::setDisplayMode( const DisplayMode& displayMode )
 {
     ZoneScoped;
     auto modes = getDisplayModes( m_monitors[ displayMode.monitor ] );
-    auto cmp = [ displayMode ]( const auto& a, const auto& b )
+    auto cmp = [ displayMode ]( const auto& a ) -> size_t
     {
-        const int w1 = static_cast<int>( displayMode.width ) - a.w;
-        const int w2 = static_cast<int>( displayMode.width ) - b.w;
-        if ( w1 != w2 ) { return std::abs( w1 ) < std::abs( w2 ); }
-
-        const int h1 = static_cast<int>( displayMode.height ) - a.h;
-        const int h2 = static_cast<int>( displayMode.height ) - b.h;
-        return std::abs( h1 ) < std::abs( h2 );
+        const int w = static_cast<int>( displayMode.width ) - a.w;
+        const int h = static_cast<int>( displayMode.height ) - a.h;
+        return (size_t)std::abs( w ) + (size_t)std::abs( h );
     };
 
-    auto it = std::ranges::min_element( modes, cmp );
+    auto it = minScoreElement( modes, cmp );
     assert( it != modes.end() );
 
     const SDL_DisplayMode nearestMode = *it;
