@@ -477,8 +477,11 @@ void RendererVK::beginFrame()
     const VkResult acquireOK = vkAcquireNextImageKHR( m_device, m_swapchain, timeout, m_semaphoreAvailableImage, VK_NULL_HANDLE, &imageIndex );
     switch ( acquireOK ) {
     case VK_SUCCESS:
-    case VK_SUBOPTIMAL_KHR: // will recreate swapchain later
         break;
+    case VK_ERROR_OUT_OF_DATE_KHR:
+    case VK_SUBOPTIMAL_KHR:
+        recreateSwapchain();
+        return beginFrame();
     default:
         assert( !"unhandled error from vkAcquireNextImageKHR" );
         break;

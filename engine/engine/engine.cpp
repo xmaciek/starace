@@ -469,6 +469,8 @@ void Engine::setDisplayMode( const DisplayMode& displayMode )
     SDL_Event e{};
     e.type = SDL_EVENT_WINDOW_RESIZED;
 
+    SDL_SetWindowBordered( m_window, !displayMode.fullscreen );
+    SDL_SetWindowFullscreen( m_window, displayMode.fullscreen );
     if ( displayMode.fullscreen ) {
         auto desktopMode = SDL_GetDesktopDisplayMode( m_monitors[ displayMode.monitor ] );
         assert( desktopMode );
@@ -482,7 +484,6 @@ void Engine::setDisplayMode( const DisplayMode& displayMode )
         e.window.data2 = nearestMode.h;
     }
 
-    SDL_SetWindowFullscreen( m_window, displayMode.fullscreen );
     SDL_PushEvent( &e );
 
 }
