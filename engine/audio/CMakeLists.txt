@@ -19,5 +19,5 @@ target_link_libraries( audio
     profiler
     platform
     cxx::flags
-    SDL2::SDL2
+    SDL3::SDL3
 )

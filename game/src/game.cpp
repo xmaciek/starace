@@ -22,38 +22,38 @@
 #include <numeric>
 
 constexpr std::tuple<GameAction, input::Actuator> inputActions[] = {
-    { GameAction::eGamePause, SDL_CONTROLLER_BUTTON_START },
+    { GameAction::eGamePause, SDL_GAMEPAD_BUTTON_START },
     { GameAction::eGamePause, SDL_SCANCODE_ESCAPE },
-    { GameAction::eJetPitch, SDL_CONTROLLER_AXIS_LEFTY },
-    { GameAction::eJetRoll, SDL_CONTROLLER_AXIS_RIGHTX },
-    { GameAction::eJetShoot1, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER },
+    { GameAction::eJetPitch, SDL_GAMEPAD_AXIS_LEFTY },
+    { GameAction::eJetRoll, SDL_GAMEPAD_AXIS_RIGHTX },
+    { GameAction::eJetShoot1, SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER },
     { GameAction::eJetShoot1, SDL_SCANCODE_J },
-    { GameAction::eJetShoot2, SDL_CONTROLLER_BUTTON_X },
+    { GameAction::eJetShoot2, SDL_GAMEPAD_BUTTON_WEST },
     { GameAction::eJetShoot2, SDL_SCANCODE_K },
-    { GameAction::eJetTarget, SDL_CONTROLLER_BUTTON_Y },
+    { GameAction::eJetTarget, SDL_GAMEPAD_BUTTON_NORTH },
     { GameAction::eJetTarget, SDL_SCANCODE_I },
-    { GameAction::eJetLookAt, SDL_CONTROLLER_BUTTON_LEFTSHOULDER },
+    { GameAction::eJetLookAt, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER },
     { GameAction::eJetLookAt, SDL_SCANCODE_SPACE },
-    { GameAction::eJetYaw, SDL_CONTROLLER_AXIS_LEFTX },
+    { GameAction::eJetYaw, SDL_GAMEPAD_AXIS_LEFTX },
 };
 
 constexpr std::tuple<ui::Action::Enum, input::Actuator> UI_INPUT[] = {
-    { ui::Action::eMenuApply, SDL_CONTROLLER_BUTTON_START },
+    { ui::Action::eMenuApply, SDL_GAMEPAD_BUTTON_START },
     { ui::Action::eMenuApply, SDL_SCANCODE_SPACE },
-    { ui::Action::eMenuCancel, SDL_CONTROLLER_BUTTON_B },
+    { ui::Action::eMenuCancel, SDL_GAMEPAD_BUTTON_EAST },
     { ui::Action::eMenuCancel, SDL_SCANCODE_ESCAPE },
-    { ui::Action::eMenuConfirm, SDL_CONTROLLER_BUTTON_A },
+    { ui::Action::eMenuConfirm, SDL_GAMEPAD_BUTTON_SOUTH },
     { ui::Action::eMenuConfirm, SDL_SCANCODE_RETURN },
-    { ui::Action::eMenuDown, SDL_CONTROLLER_BUTTON_DPAD_DOWN },
+    { ui::Action::eMenuDown, SDL_GAMEPAD_BUTTON_DPAD_DOWN },
     { ui::Action::eMenuDown, SDL_SCANCODE_DOWN },
     { ui::Action::eMenuDown, SDL_SCANCODE_S },
-    { ui::Action::eMenuLeft, SDL_CONTROLLER_BUTTON_DPAD_LEFT },
+    { ui::Action::eMenuLeft, SDL_GAMEPAD_BUTTON_DPAD_LEFT },
     { ui::Action::eMenuLeft, SDL_SCANCODE_A },
     { ui::Action::eMenuLeft, SDL_SCANCODE_LEFT },
-    { ui::Action::eMenuRight, SDL_CONTROLLER_BUTTON_DPAD_RIGHT },
+    { ui::Action::eMenuRight, SDL_GAMEPAD_BUTTON_DPAD_RIGHT },
     { ui::Action::eMenuRight, SDL_SCANCODE_D },
     { ui::Action::eMenuRight, SDL_SCANCODE_RIGHT },
-    { ui::Action::eMenuUp, SDL_CONTROLLER_BUTTON_DPAD_UP },
+    { ui::Action::eMenuUp, SDL_GAMEPAD_BUTTON_DPAD_UP },
     { ui::Action::eMenuUp, SDL_SCANCODE_UP },
     { ui::Action::eMenuUp, SDL_SCANCODE_W },
 };
@@ -63,7 +63,7 @@ constexpr std::tuple<GameAction, input::Actuator, input::Actuator> inputActions2
     { GameAction::eJetYaw, SDL_SCANCODE_Q, SDL_SCANCODE_E },
     { GameAction::eJetRoll, SDL_SCANCODE_A, SDL_SCANCODE_D },
     { GameAction::eJetSpeed, SDL_SCANCODE_U, SDL_SCANCODE_O },
-    { GameAction::eJetSpeed, SDL_CONTROLLER_AXIS_TRIGGERLEFT, SDL_CONTROLLER_AXIS_TRIGGERRIGHT },
+    { GameAction::eJetSpeed, SDL_GAMEPAD_AXIS_LEFT_TRIGGER, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER },
 };
 
 Game::Game( int argc, char** argv )
@@ -224,7 +224,6 @@ void Game::setupUI()
         m_optionsGFX.m_vsyncUI = ui::Option<VSync>{ 1, std::move( v ), &OptionsGFX::toString<VSync> };
     };
 
-    m_optionsAudio.m_driverNameUI.setData( 0, m_audio->listDrivers() );
     m_optionsAudio.m_deviceNameUI.setData( 0, m_audio->listDevices() );
 
     m_optionsGFX.settings2ui( m_gameSettings );
@@ -237,7 +236,6 @@ void Game::setupUI()
     g_uiProperty.addDataModel( "$data:settings.display.vsync"_hash, &m_optionsGFX.m_vsyncUI );
     g_uiProperty.addDataModel( "$data:settings.display.antialias"_hash, &m_optionsGFX.m_antialiasUI );
     g_uiProperty.addDataModel( "$data:settings.display.fpsLimiter"_hash, &m_optionsGFX.m_fpsLimiterUI );
-    g_uiProperty.addDataModel( "$data:settings.audio.driver"_hash, &m_optionsAudio.m_driverNameUI );
     g_uiProperty.addDataModel( "$data:settings.audio.device"_hash, &m_optionsAudio.m_deviceNameUI );
     g_uiProperty.addDataModel( "$data:settings.audio.master"_hash, &m_optionsAudio.m_masterUI );
     g_uiProperty.addDataModel( "$data:settings.audio.ui"_hash, &m_optionsAudio.m_uiUI );
@@ -451,7 +449,7 @@ void Game::changeScreen( Hash::value_type screenId )
     auto [ w, h, a ] = viewport();
     math::vec2 vp{ w, h };
 
-    SDL_ShowCursor( screenId != "gameplay"_hash );
+    setCursorVisible( screenId != "gameplay"_hash );
     switch ( screenId ) {
     case "lose"_hash:
         m_uiMissionResult = std::pmr::u32string{ g_uiProperty.localize( "missionLost"_hash ) };
@@ -595,7 +593,6 @@ void Game::applyAudio()
     m_audio->setVolume( Audio::Channel::eMaster, m_gameSettings.audioMaster );
     m_audio->setVolume( Audio::Channel::eSFX, m_gameSettings.audioSFX );
     m_audio->setVolume( Audio::Channel::eUI, m_gameSettings.audioUI );
-    m_audio->selectDriver( m_gameSettings.audioDriverName );
     m_audio->selectDevice( m_gameSettings.audioDeviceName );
 }
 
@@ -636,12 +633,6 @@ void Game::loadSettings()
         assert( !devs.empty() );
         if ( !devs.empty() ) {
             copySecure( devs.front(), m_gameSettings.audioDeviceName );
-        }
-    }
-    if ( auto&& devs = m_audio->listDrivers(); !validate( m_gameSettings.audioDriverName, devs ) ) {
-        assert( !devs.empty() );
-        if ( !devs.empty() ) {
-            copySecure( devs.front(), m_gameSettings.audioDriverName );
         }
     }
     applyDisplay();

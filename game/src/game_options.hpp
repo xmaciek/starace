@@ -25,7 +25,7 @@ struct Percent {
 
 struct GameSettings {
     static constexpr inline const uint32_t MAGIC = 'GGFC';
-    static constexpr inline const uint32_t VERSION = 3;
+    static constexpr inline const uint32_t VERSION = 4;
     uint32_t magic = MAGIC;
     uint32_t version = VERSION;
 
@@ -37,7 +37,6 @@ struct GameSettings {
     bool fpsLimiter = 1;
 
     char audioDeviceName[ 256 ]{};
-    char audioDriverName[ 256 ]{};
     Percent audioMaster{ 100 };
     Percent audioSFX{ 100 };
     Percent audioUI{ 100 };
@@ -75,7 +74,6 @@ struct OptionsGFX {
 };
 
 struct OptionsAudio {
-    ui::Option<std::pmr::string> m_driverNameUI{ 0 };
     ui::Option<std::pmr::string> m_deviceNameUI{ 0 };
     ui::Option<Percent> m_masterUI{ 20, Percent::makeRange( 5 ) };
     ui::Option<Percent> m_sfxUI{ 20, Percent::makeRange( 5 ) };

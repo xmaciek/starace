@@ -84,7 +84,6 @@ bool OptionsGFX::hasChanges( const GameSettings& gs ) const
 
 void OptionsAudio::ui2settings( GameSettings& gs ) const
 {
-    copySecure( m_driverNameUI.value(), gs.audioDriverName );
     copySecure( m_deviceNameUI.value(), gs.audioDeviceName );
     gs.audioMaster = m_masterUI.value();
     gs.audioSFX = m_sfxUI.value();
@@ -94,7 +93,6 @@ void OptionsAudio::ui2settings( GameSettings& gs ) const
 
 void OptionsAudio::settings2ui( const GameSettings& gs )
 {
-    m_driverNameUI.assign( gs.audioDriverName );
     m_deviceNameUI.assign( gs.audioDeviceName );
     m_masterUI.assign( gs.audioMaster );
     m_sfxUI.assign( gs.audioSFX );
@@ -106,7 +104,6 @@ bool OptionsAudio::hasChanges( const GameSettings& gs ) const
     return m_masterUI.value() != gs.audioMaster
         || m_sfxUI.value() != gs.audioSFX
         || m_uiUI.value() != gs.audioUI
-        || m_driverNameUI.value() != gs.audioDriverName
         || m_deviceNameUI.value() != gs.audioDeviceName
     ;
 }

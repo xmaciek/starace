@@ -26,7 +26,7 @@ target_link_libraries( engine
     cxx::flags
     Threads::Threads
     glm::glm
-    SDL2::SDL2
+    SDL3::SDL3
     audio
     ccmd
     extra

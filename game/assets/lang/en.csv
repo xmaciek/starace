@@ -24,7 +24,6 @@
 "settings.audio.unsaved","Audio settings unsaved.\n\nExit without save?"
 "settings.audio","Audio"
 "settings.audio.device","Device"
-"settings.audio.driver","Driver"
 "settings.audio.master","Master"
 "settings.audio.sfx","SFX"
 "settings.audio.ui","UI"

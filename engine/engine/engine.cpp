@@ -1,6 +1,7 @@
 #include <engine/engine.hpp>
 
 #include <extra/dds.hpp>
+#include <platform/utils.hpp>
 
 #include "controller_state.hpp"
 #include "material_setup.hpp"
@@ -15,9 +16,9 @@
 #include <thread>
 
 static std::array<ControllerState, 4> g_controllers{};
-using AxisState = std::array<int16_t, SDL_CONTROLLER_AXIS_MAX>;
+using AxisState = std::array<int16_t, SDL_GAMEPAD_AXIS_COUNT>;
 static std::array<AxisState, 4> g_axisStates{};
-static std::array<bool, SDL_NUM_SCANCODES> g_keyboardState{};
+static std::array<bool, SDL_SCANCODE_COUNT> g_keyboardState{};
 
 
 Engine::~Engine() noexcept
@@ -27,6 +28,16 @@ Engine::~Engine() noexcept
     m_rendererPtr.reset();
     SDL_DestroyWindow( m_window );
     SDL_Quit();
+}
+
+static auto getMonitors()
+{
+    int count = 0;
+    SDL_DisplayID* id = SDL_GetDisplays( &count );
+    std::pmr::vector<SDL_DisplayID> ret( (size_t)count );
+    std::copy_n( id, count, ret.begin() );
+    SDL_free( id );
+    return ret;
 }
 
 Engine::Engine( const CreateInfo& ci ) noexcept
@@ -42,22 +53,26 @@ Engine::Engine( const CreateInfo& ci ) noexcept
         SDL_SetHint( SDL_HINT_GAMECONTROLLERCONFIG_FILE, "SDL2_gamecontrollerdb.txt" );
 
         [[maybe_unused]]
-        const int initOK = SDL_Init( SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER );
+        const int initOK = SDL_Init( SDL_INIT_VIDEO | SDL_INIT_GAMEPAD );
         assert( initOK >= 0 );
     }
+
+    m_monitors = getMonitors();
+    if ( m_monitors.empty() ) platform::showFatalError( "ERROR", "no monitors found" );
+
     SDL_DisplayMode desktop{};
-    SDL_GetDesktopDisplayMode( 0, &desktop );
+    auto d = SDL_GetDesktopDisplayMode( m_monitors.front() );
+    if ( d ) desktop = *d;
 
     {
         ZoneScopedN( "create window" );
         m_window = SDL_CreateWindow( ci.gameName.data()
-            , SDL_WINDOWPOS_CENTERED
-            , SDL_WINDOWPOS_CENTERED
             , desktop.w
             , desktop.h
             , Renderer::windowFlag
                 | SDL_WINDOW_RESIZABLE
-                | SDL_WINDOW_FULLSCREEN_DESKTOP
+                | SDL_WINDOW_MAXIMIZED
+                | SDL_WINDOW_BORDERLESS
         );
         assert( m_window );
     }
@@ -77,7 +92,7 @@ Engine::Engine( const CreateInfo& ci ) noexcept
     m_audio = Audio::create();
     m_audioPtr = std::unique_ptr<Audio>( m_audio );
 
-    setViewport( (uint32_t)desktop.w, (uint32_t)desktop.h ); // SDL does not fire window resize event on windows upon window creation
+    setViewport( (uint32_t)desktop.w, (uint32_t)desktop.h ); // SDL does not fire window resize event upon window creation
     setTargetFPS( 200, FpsLimiter::eSpinLock );
 }
 
@@ -170,16 +185,15 @@ void Engine::gameThread()
     }
 }
 
-static input::Actuator::Source mapControllerType( SDL_GameControllerType t )
+static input::Actuator::Source mapControllerType( SDL_GamepadType t )
 {
     switch ( t ) {
     default:
-    case SDL_CONTROLLER_TYPE_XBOX360:
-    case SDL_CONTROLLER_TYPE_XBOXONE:
+    case SDL_GAMEPAD_TYPE_XBOXONE:
         return input::Actuator::Source::eXBoxOne;
 
-    case SDL_CONTROLLER_TYPE_PS4:
-    case SDL_CONTROLLER_TYPE_PS5:
+    case SDL_GAMEPAD_TYPE_PS4:
+    case SDL_GAMEPAD_TYPE_PS5:
         return input::Actuator::Source::ePS4;
     }
 }
@@ -195,21 +209,17 @@ void Engine::processEvents()
 
     for ( SDL_Event& event : events ) {
         switch ( event.type ) {
-        case SDL_QUIT:
+        case SDL_EVENT_QUIT:
             quit();
             return;
 
-        case SDL_WINDOWEVENT:
-            switch ( event.window.event ) {
-            case SDL_WINDOWEVENT_RESIZED:
-                setViewport( static_cast<uint32_t>( event.window.data1 ), static_cast<uint32_t>( event.window.data2 ) );
-                onResize( static_cast<uint32_t>( event.window.data1 ), static_cast<uint32_t>( event.window.data2 ) );
-                break;
-            }
+        case SDL_EVENT_WINDOW_RESIZED:
+            setViewport( static_cast<uint32_t>( event.window.data1 ), static_cast<uint32_t>( event.window.data2 ) );
+            onResize( static_cast<uint32_t>( event.window.data1 ), static_cast<uint32_t>( event.window.data2 ) );
             break;
 
-        case SDL_MOUSEBUTTONUP:
-        case SDL_MOUSEBUTTONDOWN: {
+        case SDL_EVENT_MOUSE_BUTTON_UP:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN: {
             MouseEvent mouse{};
             switch ( event.button.button ) {
             case SDL_BUTTON_LEFT: mouse.type = MouseEvent::eClick; break;
@@ -217,37 +227,36 @@ void Engine::processEvents()
             case SDL_BUTTON_MIDDLE: mouse.type = MouseEvent::eClickMiddle; break;
             default: break;
             }
-            mouse.value = event.type == SDL_MOUSEBUTTONDOWN ? Actuator::MAX : Actuator::NOMINAL;
+            mouse.value = event.type == SDL_EVENT_MOUSE_BUTTON_DOWN ? Actuator::MAX : Actuator::NOMINAL;
             mouse.position = math::vec2{ static_cast<float>( event.button.x ), static_cast<float>( event.button.y ) };
             onMouseEvent( mouse );
         } break;
-        case SDL_MOUSEMOTION:
+        case SDL_EVENT_MOUSE_MOTION:
             onMouseEvent( MouseEvent{
                 .type = MouseEvent::eMove,
                 .position = math::vec2{ event.motion.x, event.motion.y },
             } );
             break;
 
-        case SDL_CONTROLLERDEVICEADDED:
-            controllerAdd( event.cdevice.which );
+        case SDL_EVENT_GAMEPAD_ADDED:
+            controllerAdd( event.gdevice.which );
             break;
-        case SDL_CONTROLLERDEVICEREMOVED:
-            controllerRemove( event.cdevice.which );
+        case SDL_EVENT_GAMEPAD_REMOVED:
+            controllerRemove( event.gdevice.which );
             break;
 
-        case SDL_CONTROLLERBUTTONDOWN:
-        case SDL_CONTROLLERBUTTONUP:
+        case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
+        case SDL_EVENT_GAMEPAD_BUTTON_UP:
         {
-            const bool state = event.cbutton.state == SDL_PRESSED;
-            Actuator a{ static_cast<Actuator::Buttoncode>( event.cbutton.button ) };
-            a.value = state ? Actuator::MAX : Actuator::NOMINAL;
-            a.source = mapControllerType( SDL_GameControllerTypeForIndex( event.cbutton.which ) );
+            Actuator a{ static_cast<Actuator::Buttoncode>( event.gbutton.button ) };
+            a.value = event.gbutton.down ? Actuator::MAX : Actuator::NOMINAL;
+            a.source = mapControllerType( SDL_GetGamepadTypeForID( event.gbutton.which ) );
             onActuator( a );
         } break;
 
-        case SDL_CONTROLLERAXISMOTION:
+        case SDL_EVENT_GAMEPAD_AXIS_MOTION:
         {
-            auto it = std::find( g_controllers.begin(), g_controllers.end(), static_cast<SDL_JoystickID>( event.caxis.which ) );
+            auto it = std::ranges::find_if( g_controllers, ControllerState::ByID{ event.gaxis.which } );
             if ( it == g_controllers.end() ) {
                 assert( !"controller not found" );
                 break;
@@ -255,71 +264,71 @@ void Engine::processEvents()
             auto& state = *it;
             auto& axes = g_axisStates[ (uint32_t)std::distance( g_controllers.begin(), it ) ];
 
-            switch ( event.caxis.axis ) {
-            case SDL_CONTROLLER_AXIS_LEFTX: state.lx = event.caxis.value; break;
-            case SDL_CONTROLLER_AXIS_LEFTY: state.ly = event.caxis.value; break;
-            case SDL_CONTROLLER_AXIS_RIGHTX: state.rx = event.caxis.value; break;
-            case SDL_CONTROLLER_AXIS_RIGHTY: state.ry = event.caxis.value; break;
-            case SDL_CONTROLLER_AXIS_TRIGGERLEFT: state.lt = event.caxis.value; break;
-            case SDL_CONTROLLER_AXIS_TRIGGERRIGHT: state.rt = event.caxis.value; break;
+            switch ( event.gaxis.axis ) {
+            case SDL_GAMEPAD_AXIS_LEFTX: state.lx = event.gaxis.value; break;
+            case SDL_GAMEPAD_AXIS_LEFTY: state.ly = event.gaxis.value; break;
+            case SDL_GAMEPAD_AXIS_RIGHTX: state.rx = event.gaxis.value; break;
+            case SDL_GAMEPAD_AXIS_RIGHTY: state.ry = event.gaxis.value; break;
+            case SDL_GAMEPAD_AXIS_LEFT_TRIGGER: state.lt = event.gaxis.value; break;
+            case SDL_GAMEPAD_AXIS_RIGHT_TRIGGER: state.rt = event.gaxis.value; break;
             }
-            switch ( event.caxis.axis ) {
-            case SDL_CONTROLLER_AXIS_LEFTX:
-            case SDL_CONTROLLER_AXIS_LEFTY: {
+            switch ( event.gaxis.axis ) {
+            case SDL_GAMEPAD_AXIS_LEFTX:
+            case SDL_GAMEPAD_AXIS_LEFTY: {
                 int16_t x = state.lx_dzone();
                 int16_t y = state.ly_dzone();
-                int16_t ox = std::exchange( axes[ SDL_CONTROLLER_AXIS_LEFTX ], x );
-                int16_t oy = std::exchange( axes[ SDL_CONTROLLER_AXIS_LEFTY ], y );
-                Actuator ax{ static_cast<Actuator::Axiscode>( SDL_CONTROLLER_AXIS_LEFTX ), x };
-                ax.source = mapControllerType( SDL_GameControllerTypeForIndex( event.cbutton.which ) );
-                Actuator ay{ static_cast<Actuator::Axiscode>( SDL_CONTROLLER_AXIS_LEFTY ), y };
+                int16_t ox = std::exchange( axes[ SDL_GAMEPAD_AXIS_LEFTY ], x );
+                int16_t oy = std::exchange( axes[ SDL_GAMEPAD_AXIS_LEFTY ], y );
+                Actuator ax{ static_cast<Actuator::Axiscode>( SDL_GAMEPAD_AXIS_LEFTX ), x };
+                ax.source = mapControllerType( SDL_GetGamepadTypeForID( event.gaxis.which ) );
+                Actuator ay{ static_cast<Actuator::Axiscode>( SDL_GAMEPAD_AXIS_LEFTY ), y };
                 ay.source = ax.source;
                 if ( x != ox ) onActuator( ax );
                 if ( y != oy ) onActuator( ay );
             } continue;
 
-            case SDL_CONTROLLER_AXIS_RIGHTX:
-            case SDL_CONTROLLER_AXIS_RIGHTY: {
+            case SDL_GAMEPAD_AXIS_RIGHTX:
+            case SDL_GAMEPAD_AXIS_RIGHTY: {
                 int16_t x = state.rx_dzone();
                 int16_t y = state.ry_dzone();
-                int16_t ox = std::exchange( axes[ SDL_CONTROLLER_AXIS_RIGHTX ], x );
-                int16_t oy = std::exchange( axes[ SDL_CONTROLLER_AXIS_RIGHTY ], y );
-                Actuator ax{ static_cast<Actuator::Axiscode>( SDL_CONTROLLER_AXIS_RIGHTX ), x };
-                ax.source = mapControllerType( SDL_GameControllerTypeForIndex( event.cbutton.which ) );
-                Actuator ay{ static_cast<Actuator::Axiscode>( SDL_CONTROLLER_AXIS_RIGHTY ), y };
+                int16_t ox = std::exchange( axes[ SDL_GAMEPAD_AXIS_RIGHTX ], x );
+                int16_t oy = std::exchange( axes[ SDL_GAMEPAD_AXIS_RIGHTY ], y );
+                Actuator ax{ static_cast<Actuator::Axiscode>( SDL_GAMEPAD_AXIS_RIGHTX ), x };
+                ax.source = mapControllerType( SDL_GetGamepadTypeForID( event.gaxis.which ) );
+                Actuator ay{ static_cast<Actuator::Axiscode>( SDL_GAMEPAD_AXIS_RIGHTY ), y };
                 ay.source = ax.source;
                 if ( x != ox ) onActuator( ax );
                 if ( y != oy ) onActuator( ay );
             } continue;
 
-            case SDL_CONTROLLER_AXIS_TRIGGERLEFT: {
+            case SDL_GAMEPAD_AXIS_LEFT_TRIGGER: {
                 int16_t t = state.lt_dzone();
-                int16_t ot = std::exchange( axes[ event.caxis.axis ], t );
-                Actuator a{ static_cast<Actuator::Axiscode>( event.caxis.axis ), t };
-                a.source = mapControllerType( SDL_GameControllerTypeForIndex( event.caxis.which ) );
+                int16_t ot = std::exchange( axes[ event.gaxis.axis ], t );
+                Actuator a{ static_cast<Actuator::Axiscode>( event.gaxis.axis ), t };
+                a.source = mapControllerType( SDL_GetGamepadTypeForID( event.gaxis.which ) );
                 if ( t != ot ) onActuator( a );
             } continue;
-            case SDL_CONTROLLER_AXIS_TRIGGERRIGHT: {
+            case SDL_GAMEPAD_AXIS_RIGHT_TRIGGER: {
                 int16_t t = state.rt_dzone();
-                int16_t ot = std::exchange( axes[ event.caxis.axis ], t );
-                Actuator a{ static_cast<Actuator::Axiscode>( event.caxis.axis ), t };
-                a.source = mapControllerType( SDL_GameControllerTypeForIndex( event.caxis.which ) );
+                int16_t ot = std::exchange( axes[ event.gaxis.axis ], t );
+                Actuator a{ static_cast<Actuator::Axiscode>( event.gaxis.axis ), t };
+                a.source = mapControllerType( SDL_GetGamepadTypeForID( event.gaxis.which ) );
                 if ( t != ot ) onActuator( a );
             } continue;
             }
 
         } break;
 
-        case SDL_KEYDOWN:
-        case SDL_KEYUP:
+        case SDL_EVENT_KEY_DOWN:
+        case SDL_EVENT_KEY_UP:
         {
-            const bool newState = event.key.state == SDL_PRESSED;
-            const bool oldState = std::exchange( g_keyboardState[ event.key.keysym.scancode ], newState );
+            const bool newState = event.key.down;
+            const bool oldState = std::exchange( g_keyboardState[ event.key.scancode ], newState );
             if ( oldState == newState ) {
                 break;
             }
 
-            Actuator a{ static_cast<Actuator::Scancode>( event.key.keysym.scancode ) };
+            Actuator a{ static_cast<Actuator::Scancode>( event.key.scancode ) };
             a.value = newState ? Actuator::MAX : Actuator::NOMINAL;
             onActuator( a );
         } break;
@@ -357,33 +366,33 @@ std::tuple<uint32_t, uint32_t, float> Engine::viewport() const
     return m_viewport;
 }
 
-void Engine::controllerAdd( int idx )
+void Engine::controllerAdd( SDL_JoystickID idx )
 {
-    if ( SDL_FALSE == SDL_GetHintBoolean( "SDL_GAMECONTROLLER_ALLOW_STEAM_VIRTUAL_GAMEPAD", SDL_FALSE ) ) {
-        const char* name = SDL_GameControllerNameForIndex( idx );
+    if ( !SDL_GetHintBoolean( "SDL_GAMECONTROLLER_ALLOW_STEAM_VIRTUAL_GAMEPAD", false ) ) {
+        const char* name = SDL_GetGamepadNameForID( idx );
         const std::string_view namesv = name ? name : "";
         if ( namesv == "Steam Virtual Gamepad" ) {
             return;
         }
     }
-    if ( SDL_GameControllerTypeForIndex( idx ) == SDL_CONTROLLER_TYPE_VIRTUAL ) {
+    if ( SDL_IsJoystickVirtual( idx ) ) {
         return;
     }
-    auto it = std::find( g_controllers.begin(), g_controllers.end(), nullptr );
+    auto it = std::ranges::find_if( g_controllers, &ControllerState::isUnassigned );
     if ( it == g_controllers.end() ) {
         // controllers full
         return;
     }
 
-    it->controller = SDL_GameControllerOpen( idx );
-    it->id = SDL_JoystickGetDeviceInstanceID( idx );
+    it->controller = SDL_OpenGamepad( idx );
+    it->id = idx;
     assert( it->controller );
-    assert( it->id > -1 );
+    assert( it->id < ~0u );
 }
 
-void Engine::controllerRemove( int id )
+void Engine::controllerRemove( SDL_JoystickID id )
 {
-    auto it = std::find( g_controllers.begin(), g_controllers.end(), static_cast<SDL_JoystickID>( id ) );
+    auto it = std::ranges::find_if( g_controllers, ControllerState::ByID{ id } );
     if ( it == g_controllers.end() ) {
         assert( !"controller to remove not found" );
         return;
@@ -391,26 +400,23 @@ void Engine::controllerRemove( int id )
     g_axisStates[ (uint32_t)std::distance( g_controllers.begin(), it ) ] = {};
     auto controller = it->controller;
     *it = {};
-    SDL_GameControllerClose( controller );
+    SDL_CloseGamepad( controller );
 }
 
 static std::pmr::vector<SDL_DisplayMode> getDisplayModes( uint32_t monitor )
 {
     ZoneScoped;
-    const int displayModeCount = SDL_GetNumDisplayModes( static_cast<int>( monitor ) );
-    if ( displayModeCount < 1 ) {
+    int count = 0;
+    auto modes = SDL_GetFullscreenDisplayModes( monitor, &count );
+    if ( count < 1 ) {
+        SDL_free( modes );
+        assert( !"no display modes" );
         return {};
     }
 
-    std::pmr::vector<SDL_DisplayMode> ret( static_cast<size_t>( displayModeCount ) );
-
-    auto genMode = [ i = 0, monitor ]() mutable
-    {
-        SDL_DisplayMode mode{};
-        SDL_GetDisplayMode( static_cast<int>( monitor ), i++, &mode );
-        return mode;
-    };
-    std::generate_n( ret.begin(), displayModeCount, genMode );
+    std::pmr::vector<SDL_DisplayMode> ret( static_cast<size_t>( count ) );
+    std::copy_n( *modes, count, ret.data() );
+    SDL_free( modes );
 
     auto eq = []( const auto& lhs, const auto& rhs )
     {
@@ -419,15 +425,16 @@ static std::pmr::vector<SDL_DisplayMode> getDisplayModes( uint32_t monitor )
     auto last = std::unique( ret.begin(), ret.end(), eq );
     if ( last != ret.end() ) ret.erase( last, ret.end() );
 
+    assert( !ret.empty() || !"no display modes" );
     return ret;
 }
 
 std::pmr::vector<DisplayMode> Engine::displayModes( uint32_t monitor ) const
 {
     ZoneScoped;
-    auto modes = getDisplayModes( monitor );
+    auto modes = getDisplayModes( m_monitors[ monitor ] );
     std::pmr::vector<DisplayMode> ret{ modes.size() };
-    std::transform( modes.begin(), modes.end(), ret.begin(), [monitor]( const auto& it ) -> DisplayMode
+    std::ranges::transform( modes, ret.begin(), [monitor]( const auto& it ) -> DisplayMode
     {
         return {
             .width = static_cast<uint16_t>( it.w ),
@@ -441,7 +448,7 @@ std::pmr::vector<DisplayMode> Engine::displayModes( uint32_t monitor ) const
 void Engine::setDisplayMode( const DisplayMode& displayMode )
 {
     ZoneScoped;
-    auto modes = getDisplayModes( displayMode.monitor );
+    auto modes = getDisplayModes( m_monitors[ displayMode.monitor ] );
     auto cmp = [ displayMode ]( const auto& a, const auto& b )
     {
         const int w1 = static_cast<int>( displayMode.width ) - a.w;
@@ -453,31 +460,29 @@ void Engine::setDisplayMode( const DisplayMode& displayMode )
         return std::abs( h1 ) < std::abs( h2 );
     };
 
-    auto it = std::min_element( modes.begin(), modes.end(), cmp );
+    auto it = std::ranges::min_element( modes, cmp );
     assert( it != modes.end() );
 
     const SDL_DisplayMode nearestMode = *it;
     m_renderer->setResolution( static_cast<uint32_t>( nearestMode.w ), static_cast<uint32_t>( nearestMode.h ) );
 
     SDL_Event e{};
-    e.type = SDL_WINDOWEVENT;
-    e.window.event = SDL_WINDOWEVENT_RESIZED;
+    e.type = SDL_EVENT_WINDOW_RESIZED;
 
     if ( displayMode.fullscreen ) {
-        SDL_DisplayMode desktopMode{};
-        SDL_GetDesktopDisplayMode( displayMode.monitor, &desktopMode );
-        SDL_SetWindowFullscreen( m_window, SDL_WINDOW_FULLSCREEN_DESKTOP );
-        e.window.data1 = desktopMode.w;
-        e.window.data2 = desktopMode.h;
+        auto desktopMode = SDL_GetDesktopDisplayMode( m_monitors[ displayMode.monitor ] );
+        assert( desktopMode );
+        e.window.data1 = desktopMode->w;
+        e.window.data2 = desktopMode->h;
     }
     else {
-        SDL_SetWindowFullscreen( m_window, 0 );
         SDL_SetWindowSize( m_window, nearestMode.w, nearestMode.h );
         SDL_SetWindowPosition( m_window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED );
         e.window.data1 = nearestMode.w;
         e.window.data2 = nearestMode.h;
     }
 
+    SDL_SetWindowFullscreen( m_window, displayMode.fullscreen );
     SDL_PushEvent( &e );
 
 }
@@ -569,4 +574,10 @@ void Engine::loadWAV( Asset&& asset )
     assert( soundID );
     [[maybe_unused]] // TODO duplicates
     auto&& [ it, inserted ] = m_sounds.insert( std::make_pair( asset.path, soundID ) );
+}
+
+void Engine::setCursorVisible( bool b )
+{
+    if ( b ) SDL_ShowCursor();
+    else SDL_HideCursor();
 }

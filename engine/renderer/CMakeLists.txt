@@ -16,7 +16,7 @@ set_target_properties( renderer PROPERTIES
 target_link_libraries( renderer
     INTERFACE
     cxx::flags
-    SDL2::SDL2
+    SDL3::SDL3
     math
 )
 

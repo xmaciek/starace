@@ -18,5 +18,5 @@ set_target_properties( platform PROPERTIES
 
 target_link_libraries( platform
     cxx::flags
-    SDL2::SDL2
+    SDL3::SDL3
 )

@@ -47,6 +47,8 @@ private:
     PipelineSlot m_gammaMaterial{};
     float m_gammaValue = 2.2f;
 
+    std::pmr::vector<SDL_DisplayID> m_monitors{};
+
 protected:
     std::unique_ptr<SaveSystem> m_saveSystem{};
     Filesystem* m_io = nullptr;
@@ -92,12 +94,14 @@ protected:
     void setTargetFPS( uint32_t, FpsLimiter::Mode );
     inline void setGamma( float f ) { m_gammaValue = f; }
 
+    void setCursorVisible( bool );
+
 private:
     void gameThread();
     void processEvents();
 
-    void controllerAdd( int );
-    void controllerRemove( int );
+    void controllerAdd( SDL_JoystickID );
+    void controllerRemove( SDL_JoystickID );
 
 public:
     int run();

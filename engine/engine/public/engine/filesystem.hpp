@@ -15,7 +15,7 @@
 
 struct Asset {
     std::string_view path{};
-    std::span<const uint8_t> data{};
+    std::span<uint8_t> data{};
 
     template <typename T>
     requires ( std::is_trivially_copyable_v<T> )

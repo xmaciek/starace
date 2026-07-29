@@ -1,6 +1,6 @@
 #pragma once
 
-#include <SDL_gamecontroller.h>
+#include <SDL_gamepad.h>
 #include <SDL_scancode.h>
 
 #include <compare>
@@ -12,8 +12,8 @@ namespace input {
 struct Actuator {
     // TODO: use custom unified enum, while for now i'll keep these
     using Scancode = SDL_Scancode;
-    using Buttoncode = SDL_GameControllerButton;
-    using Axiscode = SDL_GameControllerAxis;
+    using Buttoncode = SDL_GamepadButton;
+    using Axiscode = SDL_GamepadAxis;
 
     enum class Source : uint16_t {
         eKBM,
@@ -35,9 +35,9 @@ struct Actuator {
         uint16_t type : 2;
         uint16_t id : 14;
         static constexpr inline auto MAXID = 0x3FFF;
-        static_assert( SDL_NUM_SCANCODES <= MAXID );
-        static_assert( SDL_CONTROLLER_BUTTON_MAX <= MAXID );
-        static_assert( SDL_CONTROLLER_AXIS_MAX <= MAXID );
+        static_assert( SDL_SCANCODE_COUNT <= MAXID );
+        static_assert( SDL_GAMEPAD_BUTTON_COUNT <= MAXID );
+        static_assert( SDL_GAMEPAD_AXIS_COUNT <= MAXID );
     };
 
     union {

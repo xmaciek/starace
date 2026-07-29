@@ -61,12 +61,12 @@ constexpr std::size_t operator ""_MiB( unsigned long long v ) noexcept
     return v << 20;
 }
 
-static std::pmr::vector<const char*> windowExtensions( SDL_Window* window )
+static std::pmr::vector<const char*> windowExtensions()
 {
     uint32_t count = 0;
-    SDL_Vulkan_GetInstanceExtensions( window, &count, nullptr );
+    auto ptr = SDL_Vulkan_GetInstanceExtensions( &count );
     std::pmr::vector<const char*> ret( count );
-    SDL_Vulkan_GetInstanceExtensions( window, &count, ret.data() );
+    std::copy_n( ptr, count, ret.data() );
     return ret;
 }
 
@@ -124,9 +124,9 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
 
     assert( !Renderer::s_instance );
     Renderer::s_instance = this;
-    m_instance = Instance{ createInfo, windowExtensions( createInfo.window ) };
+    m_instance = Instance{ createInfo, windowExtensions() };
 
-    if ( !SDL_Vulkan_CreateSurface( m_window, m_instance, &m_surface ) ) {
+    if ( !SDL_Vulkan_CreateSurface( m_window, m_instance, nullptr, &m_surface ) ) {
         platform::showFatalError( "Vulkan error", "Failed to create SDL Vulkan surface" );
         return;
     }
@@ -279,7 +279,7 @@ RendererVK::~RendererVK()
     destroy<vkDestroySemaphore, VkSemaphore>( m_device, m_semaphoreAvailableImage );
     m_swapchain = {};
     if ( m_surface ) {
-        vkDestroySurfaceKHR( m_instance, m_surface, nullptr );
+        SDL_Vulkan_DestroySurface( m_instance, m_surface, nullptr );
     }
 }
 

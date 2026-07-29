@@ -1,51 +1,39 @@
-function( sdl2FromDirectory rootDir includeDir binDir libDir )
-    if ( TARGET SDL2::SDL2 )
+function( sdl3FromDirectory rootDir includeDir binDir libDir )
+    if ( TARGET SDL3::SDL3 )
         return()
     endif()
     if ( NOT EXISTS "${rootDir}/${includeDir}/SDL.h" )
         return()
     endif()
 
-    add_library( sdl2 UNKNOWN IMPORTED GLOBAL )
-    add_library( SDL2::SDL2 ALIAS sdl2 )
-    set_target_properties( sdl2 PROPERTIES
+    add_library( sdl3 UNKNOWN IMPORTED GLOBAL )
+    add_library( SDL3::SDL3 ALIAS sdl3 )
+    set_target_properties( sdl3 PROPERTIES
         INTERFACE_INCLUDE_DIRECTORIES "${rootDir}/${includeDir}"
-        LINK_LIBRARIES "${rootDir}/${binDir}/SDL2.dll"
-        IMPORTED_LOCATION "${rootDir}/${libDir}/SDL2.lib"
+        LINK_LIBRARIES "${rootDir}/${binDir}/SDL3.dll"
+        IMPORTED_LOCATION "${rootDir}/${libDir}/SDL3.lib"
     )
-    configure_file( "${rootDir}/${binDir}/SDL2.dll" "${CMAKE_BINARY_DIR}/SDL2.dll" COPYONLY )
+    configure_file( "${rootDir}/${binDir}/SDL3.dll" "${CMAKE_BINARY_DIR}/SDL3.dll" COPYONLY )
 
-    add_library( sdl2main UNKNOWN IMPORTED GLOBAL )
-    add_library( SDL2::main ALIAS sdl2main )
-    set_target_properties( sdl2main PROPERTIES
-        IMPORTED_LOCATION "${rootDir}/${libDir}/SDL2main.lib"
-    )
 endfunction()
 
-sdl2FromDirectory( "${CMAKE_CURRENT_SOURCE_DIR}/SDL2" "include" "lib/x64" "lib/x64" )
-sdl2FromDirectory( "$ENV{VK_SDK_PATH}/Third-Party" "include/SDL2" "bin" "bin" )
-sdl2FromDirectory( "$ENV{VK_SDK_PATH}" "include/SDL2" "bin" "lib" )
+sdl3FromDirectory( "${CMAKE_CURRENT_SOURCE_DIR}/SDL3" "include" "lib/x64" "lib/x64" )
+sdl3FromDirectory( "$ENV{VK_SDK_PATH}/Third-Party" "include/SDL3" "bin" "bin" )
+sdl3FromDirectory( "$ENV{VK_SDK_PATH}" "include/SDL3" "bin" "lib" )
 
-if ( NOT TARGET SDL2::SDL2 AND UNIX )
-    if ( NOT EXISTS "/usr/include/SDL2/SDL.h" )
+if ( NOT TARGET SDL3::SDL3 AND UNIX )
+    if ( NOT EXISTS "/usr/include/SDL3/SDL.h" )
         return()
     endif()
-    add_library( sdl2 UNKNOWN IMPORTED GLOBAL )
-    add_library( SDL2::SDL2 ALIAS sdl2 )
-    set_target_properties( sdl2 PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "/usr/include/SDL2"
-        IMPORTED_LOCATION "/usr/lib/libSDL2.so"
-    )
-
-    add_library( sdl2main UNKNOWN IMPORTED GLOBAL )
-    add_library( SDL2::main ALIAS sdl2main )
-    set_target_properties( sdl2main PROPERTIES
-        LINK_LIBRARIES "/usr/lib/libSDL2main.a"
-        IMPORTED_LOCATION "/usr/lib/libSDL2main.a"
+    add_library( sdl3 UNKNOWN IMPORTED GLOBAL )
+    add_library( SDL3::SDL3 ALIAS sdl3 )
+    set_target_properties( sdl3 PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "/usr/include/SDL3"
+        IMPORTED_LOCATION "/usr/lib/libSDL3.so"
     )
 endif()
 
 
-if ( NOT TARGET SDL2::SDL2 )
-    message( FATAL_ERROR "SDL2 not found" )
+if ( NOT TARGET SDL3::SDL3 )
+    message( FATAL_ERROR "SDL3 not found" )
 endif()

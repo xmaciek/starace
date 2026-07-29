@@ -64,7 +64,6 @@ target_link_libraries( starace
     extra
     ui
     profiler
-    SDL2::SDL2
-    SDL2::main
+    SDL3::SDL3
     glm::glm
 )

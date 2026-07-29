@@ -2,13 +2,13 @@
 
 #include <math.hpp>
 
-#include <SDL_gamecontroller.h>
+#include <SDL_gamepad.h>
 
 #include <cstdint>
 
 struct ControllerState {
-    SDL_GameController* controller = nullptr;
-    SDL_JoystickID id = -1;
+    SDL_Gamepad* controller = nullptr;
+    SDL_JoystickID id = ~0u;
     uint32_t btns = 0;
     int16_t lx = 0;
     int16_t ly = 0;
@@ -18,37 +18,32 @@ struct ControllerState {
     int16_t rt = 0;
 
     // operator ~= would be much appreciated
-    inline ControllerState& operator ^= ( SDL_GameControllerButton btn ) noexcept
+    inline ControllerState& operator ^= ( SDL_GamepadButton btn ) noexcept
     {
         btns &= ~( 1u << btn );
         return *this;
     }
 
-    inline ControllerState& operator |= ( SDL_GameControllerButton btn ) noexcept
+    inline ControllerState& operator |= ( SDL_GamepadButton btn ) noexcept
     {
         btns |= 1u << btn;
         return *this;
     }
 
-    inline bool operator & ( SDL_GameControllerButton btn ) const noexcept
+    inline bool operator & ( SDL_GamepadButton btn ) const noexcept
     {
         return !!( btns & ( 1u << btn ) );
     }
 
-    inline bool operator == ( std::nullptr_t ) const noexcept
-    {
-        return !controller;
-    }
+    static bool isUnassigned( const ControllerState& r ) noexcept { return !r.controller; }
 
-    inline bool operator == ( SDL_GameController* rhs ) const noexcept
-    {
-        return controller == rhs;
-    }
-
-    inline bool operator == ( SDL_JoystickID rhs ) const noexcept
-    {
-        return id == rhs;
-    }
+    struct ByID {
+        SDL_JoystickID id{};
+        inline bool operator () ( const ControllerState& r ) const noexcept
+        {
+            return id == r.id;
+        }
+    };
 
     inline static int16_t ret_magnitude( int16_t x, int16_t y, int16_t ret, int16_t dzone ) noexcept
     {

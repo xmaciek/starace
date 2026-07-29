@@ -17,7 +17,7 @@ set_target_properties( input PROPERTIES
 )
 
 target_link_libraries( input
-    SDL2::SDL2
+    SDL3::SDL3
     cxx::flags
     extra
     math

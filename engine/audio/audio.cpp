@@ -9,70 +9,185 @@
 
 #include <algorithm>
 #include <array>
-#include <atomic>
 #include <cassert>
+#include <map>
 #include <memory_resource>
 #include <mutex>
 #include <string>
 #include <string_view>
 #include <variant>
 #include <vector>
+#include <utility>
 
+static constexpr inline bool operator < ( const SDL_AudioSpec& l, const SDL_AudioSpec& r ) noexcept
+{
+    if ( l.format != r.format ) return l.format < r.format;
+    if ( l.channels != r.channels ) return l.channels < r.channels;
+    return l.freq < r.freq;
+}
+
+namespace {
 constexpr unsigned long long operator""_Hz( unsigned long long hz ) noexcept
 {
     return hz;
 }
 
-class SDLAudio;
-
-using Buffer = std::pmr::vector<Uint8>;
-
-struct PlayerWav {
-    SDLAudio* m_instance{};
-    uint32_t m_position{};
-    Audio::Slot m_slot{};
-    Audio::Channel m_channel{};
-
-    void operator () ( std::span<Uint8> );
-    inline operator bool () const { return !!m_instance; }
+static constexpr SDL_AudioSpec DEFAULT_SPEC{
+    .format = SDL_AUDIO_S16LE,
+    .channels = 2,
+    .freq = 48000_Hz,
 };
 
-using Player = std::variant<PlayerWav>;
+class DeviceVector {
+    SDL_AudioDeviceID* m_ptr{};
+    int m_size{};
+
+    inline DeviceVector( SDL_AudioDeviceID* ptr, int size ) : m_ptr{ ptr }, m_size{ size } {}
+
+public:
+    ~DeviceVector() { SDL_free( m_ptr ); }
+    DeviceVector() = default;
+    DeviceVector( const DeviceVector& ) = delete;
+    DeviceVector& operator = ( const DeviceVector& ) = delete;
+    DeviceVector( DeviceVector&& );
+    DeviceVector& operator = ( DeviceVector&& );
+
+    static DeviceVector getPlayback();
+
+    inline auto begin() { return m_ptr; };
+    inline auto end() { return m_ptr + m_size; };
+
+    std::pmr::vector<std::pmr::string> getNames();
+
+    SDL_AudioDeviceID find( std::string_view );
+};
+
+
+SDL_AudioDeviceID DeviceVector::find( std::string_view sv )
+{
+    auto it = std::ranges::find_if( *this, [sv]( auto ptr ) { return sv == SDL_GetAudioDeviceName( ptr ); } );
+    return it != end() ? *it : 0;
+}
+
+DeviceVector::DeviceVector( DeviceVector&& r )
+: m_ptr{ std::exchange( r.m_ptr, {} ) }
+, m_size{ std::exchange( r.m_size, {} ) }
+{}
+
+DeviceVector& DeviceVector::operator = ( DeviceVector&& r )
+{
+    std::swap( m_ptr, r.m_ptr );
+    std::swap( m_size, r.m_size );
+    return *this;
+}
+
+DeviceVector DeviceVector::getPlayback()
+{
+    DeviceVector ret{};
+    ret.m_ptr = SDL_GetAudioPlaybackDevices( &ret.m_size );
+    assert( ret.m_ptr );
+    assert( ret.m_size );
+    return ret;
+}
+
+std::pmr::vector<std::pmr::string> DeviceVector::getNames()
+{
+    std::pmr::vector<std::pmr::string> ret( (size_t)m_size );
+    std::ranges::transform( *this, ret.begin(), &SDL_GetAudioDeviceName );
+    return ret;
+}
+
+class Device {
+    SDL_AudioDeviceID m_id{};
+
+public:
+    inline ~Device() { if ( m_id ) SDL_CloseAudioDevice( m_id ); }
+    Device() = default;
+    explicit inline Device( SDL_AudioDeviceID id ) { assert( id ); m_id = SDL_OpenAudioDevice( id, &DEFAULT_SPEC ); }
+    inline Device( Device&& r ) : m_id{ std::exchange( r.m_id, {} ) } {}
+    inline Device& operator = ( Device&& r ) { std::swap( m_id, r.m_id ); return * this; }
+    Device( const Device& ) = delete;
+    Device& operator = ( const Device& ) = delete;
+
+    inline operator SDL_AudioDeviceID () const { return m_id; }
+    inline operator bool () const { return !!m_id; }
+};
+
+struct WavSound {
+    Uint8* m_ptr{};
+    Uint32 m_size{};
+    SDL_IOStream* m_stream{};
+    SDL_AudioSpec m_spec{};
+
+    ~WavSound();
+    WavSound() = default;
+    WavSound( std::span<uint8_t> );
+    WavSound( WavSound&& );
+    WavSound( const WavSound& ) = delete;
+    WavSound& operator = ( WavSound&& );
+    WavSound& operator = ( const WavSound& ) = delete;
+};
+
+WavSound::~WavSound()
+{
+    SDL_CloseIO( m_stream );
+    SDL_free( m_ptr );
+}
+
+WavSound::WavSound( std::span<uint8_t> data )
+{
+    m_stream = SDL_IOFromMem( data.data(), data.size() );
+    assert( m_stream );
+    [[maybe_unused]]
+    bool loadOK = SDL_LoadWAV_IO( m_stream, false, &m_spec, &m_ptr, &m_size );
+    assert( loadOK );
+}
+
+WavSound::WavSound( WavSound&& r )
+: m_ptr{ std::exchange( r.m_ptr, {} ) }
+, m_size{ std::exchange( r.m_size, {} ) }
+, m_stream{ std::exchange( r.m_stream, {} ) }
+, m_spec{ std::exchange( r.m_spec, {} ) }
+{}
+
+WavSound& WavSound::operator = ( WavSound&& r )
+{
+    std::swap( m_ptr, r.m_ptr );
+    std::swap( m_size, r.m_size );
+    std::swap( m_stream, r.m_stream );
+    std::swap( m_spec, r.m_spec );
+    return *this;
+}
+
+}
 
 class SDLAudio : public Audio {
 public:
-    SDL_AudioSpec m_spec{};
-    std::array<float, (size_t)Audio::Channel::count> m_volumeChannels{};
+    std::pmr::map<SDL_AudioSpec, std::pmr::vector<SDL_AudioStream*>> m_streams{};
 
-    std::mutex m_bottleneck;
-    std::pmr::vector<Player> m_players;
+    std::array<float, (size_t)Audio::Channel::count> m_volumeChannels;
+    static constexpr uint64_t MAX_SLOTS = 8;
+    Indexer<MAX_SLOTS> m_slotMachine{};
+    std::array<WavSound, MAX_SLOTS> m_audioSlots{};
 
-    static constexpr uint64_t c_maxSlots = 8;
-    Indexer<c_maxSlots> m_slotMachine{};
-    std::array<Buffer, c_maxSlots> m_audioSlots{};
-
-
-    SDL_AudioDeviceID m_device{};
+    Device m_device{};
+    DeviceVector m_devices{};
     std::pmr::string m_deviceName{};
     std::pmr::string m_driverName{};
-
-    static void callback( void*, Uint8*, int );
-
-    std::pmr::memory_resource* allocator();
 
     float volume( Channel c ) const
     {
         return m_volumeChannels[ 0 ] * m_volumeChannels[ (size_t)c ];
     }
 
+    SDL_AudioStream* findStream( const SDL_AudioSpec& );
+
     virtual ~SDLAudio() override;
     SDLAudio();
 
     virtual void play( Slot, Channel ) override;
-    virtual Slot load( std::span<const uint8_t> ) override;
+    virtual Slot load( std::span<uint8_t> ) override;
     virtual void setVolume( Channel, float ) override;
-    virtual std::pmr::vector<std::pmr::string> listDrivers() override;
-    virtual bool selectDriver( std::string_view ) override;
     virtual std::pmr::vector<std::pmr::string> listDevices() override;
     virtual bool selectDevice( std::string_view ) override;
 };
@@ -82,104 +197,47 @@ Audio* Audio::create()
     return new SDLAudio();
 }
 
-
-void PlayerWav::operator () ( std::span<Uint8> stream )
-{
-    assert( m_instance );
-    assert( m_slot < m_instance->m_audioSlots.size() );
-    const Buffer& buffer = m_instance->m_audioSlots[ m_slot ];
-    const uint32_t bufferSize = static_cast<uint32_t>( buffer.size() );
-    assert( m_position < bufferSize );
-
-    const Uint32 sizeRemaining = static_cast<Uint32>( bufferSize - m_position );
-    const Uint32 playLength = std::min( static_cast<Uint32>( stream.size() ), sizeRemaining );
-    SDL_MixAudioFormat( stream.data()
-        , buffer.data() + m_position
-        , m_instance->m_spec.format
-        , playLength
-        , static_cast<decltype(SDL_MIX_MAXVOLUME)>( SDL_MIX_MAXVOLUME * m_instance->volume( m_channel ) )
-    );
-    m_position += playLength;
-    if ( m_position == bufferSize ) m_instance = nullptr;
-}
-
 SDLAudio::~SDLAudio()
 {
     ZoneScoped;
-    SDL_PauseAudioDevice( m_device, 1 );
-    SDL_CloseAudioDevice( m_device );
-    SDL_AudioQuit();
+    if ( m_device ) SDL_PauseAudioDevice( m_device );
+    std::ranges::for_each( m_streams, []( auto& v ) {
+        std::ranges::for_each( v.second, &SDL_DestroyAudioStream );
+    });
 }
 
 SDLAudio::SDLAudio()
 {
     ZoneScoped;
-    std::ranges::fill( m_volumeChannels, 1.0f );
+    m_volumeChannels.fill( 1.0f );
     SDL_InitSubSystem( SDL_INIT_AUDIO );
 
-    auto drivers = listDrivers();
-    if ( drivers.empty() ) return;
-    selectDriver( drivers.front() );
+    m_devices = DeviceVector::getPlayback();
 
     auto devices = listDevices();
     if ( devices.empty() ) return;
     selectDevice( devices.front() );
 }
 
-std::pmr::memory_resource* SDLAudio::allocator()
+SDL_AudioStream* SDLAudio::findStream( const SDL_AudioSpec& spec )
 {
-    return std::pmr::get_default_resource();
+    auto& vec = m_streams[ spec ];
+    auto it = std::ranges::find_if( vec, []( auto* s ) { return 0 == SDL_GetAudioStreamQueued( s ); } );
+    if ( it != vec.end() ) return *it;
+
+    auto stream = SDL_CreateAudioStream( &spec, &DEFAULT_SPEC );
+    assert( stream );
+    SDL_BindAudioStream( m_device, stream );
+    vec.emplace_back( stream );
+    return stream;
 }
 
-void SDLAudio::callback( void* userData, Uint8* data, int len )
+Audio::Slot SDLAudio::load( std::span<uint8_t> data )
 {
     ZoneScoped;
-    assert( userData );
-    assert( data );
-
-    std::fill_n( data, len, (Uint8)0 );
-    SDLAudio* instance = reinterpret_cast<SDLAudio*>( userData );
-    auto& toPlay = instance->m_players;
-    std::span<Uint8> stream( data, data + len );
-    std::scoped_lock bottleneck( instance->m_bottleneck );
-    std::ranges::for_each( toPlay, [stream]( auto& p ) { std::visit( [stream]( auto& pp ) { pp( stream ); }, p ); } );
-    std::erase_if( toPlay, []( const auto& p ) { return std::visit( []( const auto& pp ) -> bool { return !pp; }, p ); } );
-}
-
-Audio::Slot SDLAudio::load( std::span<const uint8_t> data )
-{
-    ZoneScoped;
-    Buffer buffer{ allocator() };
-    Uint8* tmpBuff = nullptr;
-    Uint32 tmpLen = 0;
-
-    SDL_RWops* rwops = SDL_RWFromConstMem( data.data(), static_cast<int>( data.size() ) );
-    SDL_AudioSpec spec{};
-    [[maybe_unused]]
-    SDL_AudioSpec* specPtr = SDL_LoadWAV_RW( rwops, 0, &spec, &tmpBuff, &tmpLen );
-    assert( &spec == specPtr );
-
-    SDL_AudioCVT cvt{};
-    SDL_BuildAudioCVT( &cvt, spec.format, spec.channels, spec.freq, m_spec.format, m_spec.channels, m_spec.freq );
-    if ( cvt.needed ) {
-
-        buffer.resize( static_cast<Buffer::size_type>( tmpLen ) * static_cast<Buffer::size_type>( cvt.len_mult ) );
-        cvt.buf = buffer.data();
-        cvt.len = static_cast<int>( tmpLen );
-        std::copy( tmpBuff, tmpBuff + tmpLen, buffer.begin() );
-
-        [[maybe_unused]]
-        const int convertErr = SDL_ConvertAudio( &cvt );
-        assert( convertErr == 0 );
-        buffer.resize( static_cast<Buffer::size_type>( cvt.len_cvt ) );
-
-    }
-    SDL_FreeWAV( tmpBuff );
-
     uint16_t slot = static_cast<uint16_t>( m_slotMachine.next() );
     assert( slot < m_audioSlots.size() );
-    m_audioSlots[ slot ] = std::move( buffer );
-    SDL_RWclose( rwops );
+    m_audioSlots[ slot ] = WavSound{ data };
     return slot + 1;
 }
 
@@ -189,15 +247,12 @@ void SDLAudio::play( Audio::Slot idx, Audio::Channel c )
     assert( idx > 0 );
     idx--;
     assert( idx < m_audioSlots.size() );
-
-    PlayerWav play{
-        .m_instance = this,
-        .m_position = 0,
-        .m_slot = idx,
-        .m_channel = c,
-    };
-    std::scoped_lock bottleneck( m_bottleneck );
-    m_players.emplace_back( play );
+    auto& audio = m_audioSlots[ idx ];
+    auto stream = findStream( audio.m_spec );
+    assert( stream );
+    SDL_SetAudioStreamGain( stream, volume( c ) );
+    SDL_PutAudioStreamDataNoCopy( stream, audio.m_ptr, (int)audio.m_size, nullptr, nullptr );
+    SDL_FlushAudioStream( stream );
 }
 
 void SDLAudio::setVolume( Audio::Channel c, float v )
@@ -206,59 +261,20 @@ void SDLAudio::setVolume( Audio::Channel c, float v )
     m_volumeChannels[ (size_t)c ] = std::clamp( v, 0.0f, 1.0f );
 }
 
-std::pmr::vector<std::pmr::string> SDLAudio::listDrivers()
-{
-    std::pmr::vector<std::pmr::string> drivers( (size_t)SDL_GetNumAudioDrivers() );
-    std::ranges::generate( drivers, [i=0]() mutable { return SDL_GetAudioDriver( i++ ); } );
-    return drivers;
-}
-
-bool SDLAudio::selectDriver( std::string_view name )
-{
-    auto drivers = listDrivers();
-    auto it = std::find( drivers.begin(), drivers.end(), name );
-    if ( it == drivers.end() ) return false;
-    if ( !m_deviceName.empty() ) {
-        SDL_PauseAudioDevice( m_device, 0 );
-        SDL_CloseAudioDevice( m_device );
-    }
-    if ( !m_driverName.empty() ) {
-        SDL_AudioQuit();
-    }
-    m_driverName = *it;
-    SDL_AudioInit( it->c_str() );
-    selectDevice( m_deviceName );
-    return true;
-}
-
-
 std::pmr::vector<std::pmr::string> SDLAudio::listDevices()
 {
-    int i = SDL_GetNumAudioDevices( false );
-    std::pmr::vector<std::pmr::string> devices( (size_t)i );
-    std::ranges::generate( devices, [i]() mutable { return SDL_GetAudioDeviceName( --i, false ); } );
-    return devices;
+    return m_devices.getNames();
 }
 
 bool SDLAudio::selectDevice( std::string_view name )
 {
-    auto devices = listDevices();
-    auto it = std::ranges::find( devices, name );
-    if ( it == devices.end() ) return false;
-
-    const SDL_AudioSpec want{
-        .freq = 48000_Hz,
-        .format = AUDIO_S16LSB,
-        .channels = 2,
-        .samples = 512,
-        .callback = &SDLAudio::callback,
-        .userdata = this,
-    };
-    if ( m_device ) SDL_CloseAudioDevice( m_device );
-    m_device = SDL_OpenAudioDevice( it->c_str(), 0, &want, &m_spec, SDL_AUDIO_ALLOW_FORMAT_CHANGE );
-    if ( m_device == 0 ) platform::showFatalError( "Failed to initialize audio device", (std::string)name );
-    SDL_PauseAudioDevice( m_device, 0 );
-    m_deviceName = *it;
+    auto deviceID = m_devices.find( name );
+    m_device = Device{ deviceID ? deviceID : SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK };
+    if ( !m_device ) platform::showFatalError( "Failed to initialize audio device", (std::string)name );
+    [[maybe_unused]]
+    bool resumeOK = SDL_ResumeAudioDevice( m_device );
+    assert( resumeOK );
+    m_deviceName = SDL_GetAudioDeviceName( m_device );
     return true;
 
 }
