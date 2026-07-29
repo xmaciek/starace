@@ -21,8 +21,11 @@ Renderer::FNCreate* Renderer::create = []( const Renderer::CreateInfo& ci ) -> R
 Renderer* Renderer::s_instance = nullptr;
 
 struct ResourceDeleter {
-    void operator () ( TextureVK* t ) { assert( t ); delete t; }
-    void operator () ( BufferVK* b ) { assert( b ); delete b; }
+    void operator () ( RendererVK::ResourceDelete& r ) { r.visit( *this ); }
+    void operator () ( TextureVK*& t ) { delete std::exchange( t, nullptr ); }
+    void operator () ( std::atomic<TextureVK*>& t ) { delete t.exchange( nullptr ); }
+    void operator () ( BufferVK*& b ) { delete std::exchange( b, nullptr ); }
+    void operator () ( std::atomic<BufferVK*>& b ) { delete b.exchange( nullptr ); }
 };
 
 struct TextureExtra {
@@ -109,13 +112,65 @@ struct FormatSupportTest {
 
     static VkFormat pick( std::span<const Info> table, VkPhysicalDevice physicalDevice )
     {
-        auto it = std::find_if( table.begin(), table.end(), FormatSupportTest{ physicalDevice } );
+        auto it = std::ranges::find_if( table, FormatSupportTest{ physicalDevice } );
         assert( it != table.end() );
         assert( it->format != VK_FORMAT_UNDEFINED );
         return it->format;
     };
 };
 
+Surface::~Surface()
+{
+    if ( m_surface ) SDL_Vulkan_DestroySurface( m_instance, m_surface, nullptr );
+}
+
+Surface::Surface( SDL_Window* window, VkInstance inst )
+: m_instance( inst )
+{
+    if ( !SDL_Vulkan_CreateSurface( window, inst, nullptr, &m_surface ) ) {
+        platform::showFatalError( "Vulkan error", "Failed to create SDL Vulkan surface" );
+    }
+}
+
+Surface::Surface( Surface&& r )
+: m_surface{ std::exchange( r.m_surface, {} ) }
+, m_instance{ std::exchange( r.m_instance, {} ) }
+{}
+
+Surface& Surface::operator = ( Surface&& r )
+{
+    std::swap( m_surface, r.m_surface );
+    std::swap( m_instance, r.m_instance );
+    return *this;
+}
+
+Semaphore::~Semaphore()
+{
+    destroy<vkDestroySemaphore, VkSemaphore>( m_device, m_semaphore );
+}
+
+Semaphore::Semaphore( VkDevice device )
+: m_device{ device }
+{
+    static constexpr VkSemaphoreCreateInfo semaphoreInfo{
+        .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+    };
+    [[maybe_unused]]
+    const VkResult createOK = vkCreateSemaphore( m_device, &semaphoreInfo, nullptr, &m_semaphore );
+    assert( createOK == VK_SUCCESS );
+}
+
+Semaphore::Semaphore( Semaphore&& r )
+: m_semaphore{ std::exchange( r.m_semaphore, {} ) }
+, m_device{ std::exchange( r.m_device, {} ) }
+{}
+
+Semaphore& Semaphore::operator = ( Semaphore&& r )
+{
+    std::swap( m_semaphore, r.m_semaphore );
+    std::swap( m_device, r.m_device );
+    return *this;
+}
 
 RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
 : m_window{ createInfo.window }
@@ -125,12 +180,7 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
     assert( !Renderer::s_instance );
     Renderer::s_instance = this;
     m_instance = Instance{ createInfo, windowExtensions() };
-
-    if ( !SDL_Vulkan_CreateSurface( m_window, m_instance, nullptr, &m_surface ) ) {
-        platform::showFatalError( "Vulkan error", "Failed to create SDL Vulkan surface" );
-        return;
-    }
-
+    m_surface = Surface{ m_window, m_instance };
     m_debugMsg = DebugMsg{ m_instance };
 
     VkPhysicalDeviceProperties physicalProperties{};
@@ -160,8 +210,8 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
 
     m_queueManager = QueueManager{ m_physicalDevice, m_surface };
     m_device = Device{ m_physicalDevice, m_queueManager.createInfo() };
-
     m_queueManager.acquire( m_device );
+
     m_swapchain = Swapchain( m_window
         , m_physicalDevice
         , m_device
@@ -170,19 +220,8 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
         , createInfo.vsync
     );
 
-    {
-        static constexpr VkSemaphoreCreateInfo semaphoreInfo{
-            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
-        };
-        [[maybe_unused]]
-        const VkResult imgOK = vkCreateSemaphore( m_device, &semaphoreInfo, nullptr, &m_semaphoreAvailableImage );
-        assert( imgOK == VK_SUCCESS );
-
-        [[maybe_unused]]
-        const VkResult renderOK = vkCreateSemaphore( m_device, &semaphoreInfo, nullptr, &m_semaphoreRender );
-        assert( renderOK == VK_SUCCESS );
-    }
-
+    m_semaphoreAvailableImage = Semaphore{ m_device };
+    m_semaphoreRender = Semaphore{ m_device };
     m_transferCommandPool = CommandPool{ m_device, 1, m_queueManager.transferFamily() };
     m_transferCmd = m_transferCommandPool[ 0 ];
 
@@ -267,20 +306,9 @@ PipelineSlot RendererVK::createPipeline( const PipelineCreateInfo& pci )
 RendererVK::~RendererVK()
 {
     ZoneScoped;
-    std::ranges::for_each( m_frames, []( auto& f ) { f = {}; } );
-    m_transferCommandPool = {};
-
-    std::ranges::for_each( m_stagingBuffersCache, []( auto& b ) { b = {}; } );
-    std::ranges::for_each( m_textureSlots, []( auto& t ) { delete t.load(); } );
-    std::ranges::for_each( m_bufferSlots, []( auto& b ) { delete b.load(); } );
-    std::ranges::for_each( m_resourceDelete, []( auto& a ) { std::visit( ResourceDeleter{}, a ); } );
-    std::ranges::for_each( m_pipelines, []( auto& p ) { p = {}; } );
-    destroy<vkDestroySemaphore, VkSemaphore>( m_device, m_semaphoreRender );
-    destroy<vkDestroySemaphore, VkSemaphore>( m_device, m_semaphoreAvailableImage );
-    m_swapchain = {};
-    if ( m_surface ) {
-        SDL_Vulkan_DestroySurface( m_instance, m_surface, nullptr );
-    }
+    std::ranges::for_each( m_textureSlots, ResourceDeleter{} );
+    std::ranges::for_each( m_bufferSlots, ResourceDeleter{} );
+    std::ranges::for_each( m_resourceDelete, ResourceDeleter{} );
 }
 
 void RendererVK::setVSync( VSync v )
@@ -672,10 +700,7 @@ void RendererVK::endFrame()
     const VkResult cmdEnd = vkEndCommandBuffer( fr.m_cmdColorPass );
     assert( cmdEnd == VK_SUCCESS );
 
-    std::array renderSemaphores{ m_semaphoreRender };
-    std::array presentSemaphores{ m_semaphoreAvailableImage };
     VkPipelineStageFlags waitStages[]{ VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-
 
     beginRecording( fr.m_cmdUniform );
     fr.m_uniformBuffer.transfer( fr.m_cmdUniform  );
@@ -691,13 +716,13 @@ void RendererVK::endFrame()
 
     const VkSubmitInfo submitInfo{
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-        .waitSemaphoreCount = (uint32_t)presentSemaphores.size(),
-        .pWaitSemaphores = presentSemaphores.data(),
+        .waitSemaphoreCount = 1,
+        .pWaitSemaphores = m_semaphoreAvailableImage,
         .pWaitDstStageMask = waitStages,
         .commandBufferCount = cmds.size(),
         .pCommandBuffers = cmds.data(),
-        .signalSemaphoreCount = (uint32_t)renderSemaphores.size(),
-        .pSignalSemaphores = renderSemaphores.data(),
+        .signalSemaphoreCount = 1,
+        .pSignalSemaphores = m_semaphoreRender,
     };
 
     m_queueManager.submitGraphics( submitInfo );
@@ -708,18 +733,17 @@ void RendererVK::endFrame()
         std::swap( tmp, m_resourceDelete );
     }
 
-    std::ranges::for_each( tmp, []( auto& a ) { std::visit( ResourceDeleter{}, a ); } );
+    std::ranges::for_each( tmp, ResourceDeleter{} );
 }
 
 void RendererVK::present()
 {
     ZoneScoped;
-    std::array waitSemaphores{ m_semaphoreRender };
     VkSwapchainKHR swapchain[] = { m_swapchain };
     const VkPresentInfoKHR presentInfo{
         .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-        .waitSemaphoreCount = waitSemaphores.size(),
-        .pWaitSemaphores = waitSemaphores.data(),
+        .waitSemaphoreCount = 1,
+        .pWaitSemaphores = m_semaphoreRender,
         .swapchainCount = 1,
         .pSwapchains = swapchain,
         .pImageIndices = &m_currentFrame,

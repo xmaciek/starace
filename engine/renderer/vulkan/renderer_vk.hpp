@@ -24,6 +24,38 @@
 #include <optional>
 #include <variant>
 
+class Surface {
+    VkSurfaceKHR m_surface{};
+    VkInstance m_instance{};
+public:
+    ~Surface();
+    Surface() = default;
+    Surface( const Surface& ) = delete;
+    Surface& operator = ( const Surface& ) = delete;
+    Surface( Surface&& );
+    Surface& operator = ( Surface&& );
+    Surface( SDL_Window*, VkInstance );
+
+    inline operator VkSurfaceKHR () const { return m_surface; }
+};
+
+class Semaphore {
+    VkSemaphore m_semaphore{};
+    VkDevice m_device{};
+
+public:
+    ~Semaphore();
+    Semaphore() = default;
+    Semaphore( const Semaphore& ) = delete;
+    Semaphore& operator = ( const Semaphore& ) = delete;
+    Semaphore( Semaphore&& );
+    Semaphore& operator = ( Semaphore&& );
+    Semaphore( VkDevice );
+
+    inline operator VkSemaphore () const { return m_semaphore; }
+    inline operator VkSemaphore* () { return &m_semaphore; }
+};
+
 class RendererVK : public Renderer {
 public:
     enum : uint32_t {
@@ -38,7 +70,7 @@ public:
     VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
     Device m_device{};
 
-    VkSurfaceKHR m_surface = VK_NULL_HANDLE;
+    Surface m_surface{};
 
     using Bottleneck = std::scoped_lock<std::mutex>;
     QueueManager m_queueManager{};
@@ -47,8 +79,8 @@ public:
 
     Swapchain m_swapchain{};
 
-    VkSemaphore m_semaphoreAvailableImage = VK_NULL_HANDLE;
-    VkSemaphore m_semaphoreRender = VK_NULL_HANDLE;
+    Semaphore m_semaphoreAvailableImage{};
+    Semaphore m_semaphoreRender{};
 
     float m_lastLineWidth = 0.0f;
     uint32_t m_currentFrame = 0;
