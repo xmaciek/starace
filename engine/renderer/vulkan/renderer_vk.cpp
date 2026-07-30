@@ -799,7 +799,9 @@ void RendererVK::render( const RenderInfo& ri )
 
     m_lastPipeline = &currentPipeline;
 
-    const VkDescriptorBufferInfo uniformInfo = fr.m_uniformBuffer.copy( ri.m_uniform.ptr, ri.m_uniform.size );
+    std::array uniformInfo = {
+        fr.m_uniformBuffer.copy( ri.m_uniform.ptr, ri.m_uniform.size )
+    };
     const VkDescriptorSet descriptorSet = descriptorPool.next();
     assert( descriptorSet != VK_NULL_HANDLE );
 
@@ -824,7 +826,7 @@ void RendererVK::render( const RenderInfo& ri )
     std::array<VkDescriptorImageInfo, RenderInfo::MAX_TEXTURES> imageInfo;
     // TODO: limit to image count in pipeline
     std::ranges::transform( ri.m_fragmentTexture, imageInfo.begin(), find );
-    currentPipeline.updateDescriptorSet( descriptorSet, uniformInfo, imageInfo );
+    currentPipeline.updateDescriptorSet( descriptorSet, uniformInfo, imageInfo, {} );
 
     if ( depthWrite ) vkCmdBindDescriptorSets( fr.m_cmdDepthPrepass, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
     vkCmdBindDescriptorSets( fr.m_cmdColorPass, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
@@ -878,7 +880,9 @@ void RendererVK::dispatch( const DispatchInfo& dispatchInfo )
     PipelineVK& currentPipeline = m_pipelines[ dispatchInfo.m_pipeline - 1 ];
 
     auto& descriptorPool = fr.m_descriptorSets[ currentPipeline.descriptorSetPoolId() ];
-    const VkDescriptorBufferInfo uniformInfo = fr.m_uniformBuffer.copy( dispatchInfo.m_uniform.ptr, dispatchInfo.m_uniform.size );
+    const std::array uniformInfo = {
+        fr.m_uniformBuffer.copy( dispatchInfo.m_uniform.ptr, dispatchInfo.m_uniform.size )
+    };
     const VkDescriptorSet descriptorSet = descriptorPool.next();
     assert( descriptorSet != VK_NULL_HANDLE );
 
@@ -886,7 +890,7 @@ void RendererVK::dispatch( const DispatchInfo& dispatchInfo )
         fr.m_renderTarget.imageInfo(),
         fr.m_renderTargetTmp.imageInfo(),
     };
-    currentPipeline.updateDescriptorSet( descriptorSet, uniformInfo, imageInfo );
+    currentPipeline.updateDescriptorSet( descriptorSet, uniformInfo, imageInfo, {} );
 
     vkCmdBindDescriptorSets( fr.m_cmdColorPass, VK_PIPELINE_BIND_POINT_COMPUTE, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
     vkCmdBindPipeline( fr.m_cmdColorPass, VK_PIPELINE_BIND_POINT_COMPUTE, currentPipeline );

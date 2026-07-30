@@ -15,10 +15,8 @@ class DescriptorSet {
     std::pmr::vector<VkDescriptorPool> m_pools{};
     std::pmr::vector<VkDescriptorSet> m_set;
     uint32_t m_current = 0;
-    uint32_t m_uniformCount = 0;
-    uint32_t m_imagesCount = 0;
-    VkDescriptorType m_imageType{};
 
+    StackVector<VkDescriptorSetLayoutBinding, 8> m_bindingInfo{};
     void expandCapacityBy( uint32_t );
 
 public:

@@ -6,6 +6,7 @@
 
 #include <profiler.hpp>
 
+#include <algorithm>
 #include <array>
 #include <cassert>
 
@@ -27,8 +28,6 @@ PipelineVK::PipelineVK( PipelineVK&& rhs ) noexcept
     std::swap( m_descriptorWrites, rhs.m_descriptorWrites );
     std::swap( m_depthWrite, rhs.m_depthWrite );
     std::swap( m_useLines, rhs.m_useLines );
-    std::swap( m_hasUniform, rhs.m_hasUniform );
-    std::swap( m_hasImage, rhs.m_hasImage );
 }
 
 PipelineVK& PipelineVK::operator = ( PipelineVK&& rhs ) noexcept
@@ -42,8 +41,6 @@ PipelineVK& PipelineVK::operator = ( PipelineVK&& rhs ) noexcept
     std::swap( m_descriptorWrites, rhs.m_descriptorWrites );
     std::swap( m_depthWrite, rhs.m_depthWrite );
     std::swap( m_useLines, rhs.m_useLines );
-    std::swap( m_hasUniform, rhs.m_hasUniform );
-    std::swap( m_hasImage, rhs.m_hasImage );
     return *this;
 }
 
@@ -162,6 +159,38 @@ static VkPipelineColorBlendAttachmentState blendAttachment( PipelineCreateInfo::
     return ret;
 };
 
+static VkWriteDescriptorSet convertBinding( const PipelineCreateInfo::BindInfo& bindInfo )
+{
+    using enum PipelineCreateInfo::Stage;
+    auto type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    switch ( bindInfo.m_stage ) {
+    case eVertexUniform:
+    case eFragmentUniform:
+    case eComputeUniform:
+        type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; break;
+    case eVertexImage:
+    case eComputeImage:
+        type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE; break;
+    case eFragmentImage:
+        type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; break;
+    case eVertexStorage:
+    case eFragmentStorage:
+    case eComputeStorage:
+        type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER; break;
+    default:
+        assert( !"pipeline bind info has invalid data" );
+        break;
+    }
+
+    return {
+        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+        .dstBinding = bindInfo.m_location,
+        .dstArrayElement = 0,
+        .descriptorCount = bindInfo.m_count,
+        .descriptorType = type,
+    };
+}
+
 PipelineVK::PipelineVK(
     const PipelineCreateInfo& pci
     , const Device& device
@@ -175,8 +204,6 @@ PipelineVK::PipelineVK(
 , m_descriptorSetPoolId{ descriptorSetPoolId }
 , m_depthWrite{ pci.m_enableDepthWrite }
 , m_useLines{ usesLines( pci.m_topology ) }
-, m_hasUniform{ pci.m_vertexUniformCount || pci.m_computeUniformCount }
-, m_hasImage{ pci.m_fragmentImageCount || pci.m_computeImageCount }
 {
     ZoneScoped;
     assert( device );
@@ -204,22 +231,9 @@ PipelineVK::PipelineVK(
         const VkResult pipelineOK = vkCreateComputePipelines( device, nullptr, 1, &info, nullptr, &m_pipeline );
         assert( pipelineOK == VK_SUCCESS );
 
-        if ( m_hasUniform )
-            m_descriptorWrites.push_back( {
-                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                .dstBinding = 0,
-                .dstArrayElement = 0,
-                .descriptorCount = pci.m_computeUniformCount,
-                .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            } );
-        if ( m_hasImage )
-            m_descriptorWrites.push_back( {
-                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                .dstBinding = 1,
-                .dstArrayElement = 0,
-                .descriptorCount = pci.m_computeImageCount,
-                .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-            } );
+        assert( m_descriptorWrites.capacity() >= pci.m_bindInfo.size() );
+        m_descriptorWrites.resize( pci.m_bindInfo.size() );
+        std::ranges::transform( pci.m_bindInfo, m_descriptorWrites.begin(), &convertBinding );
         return;
     }
 
@@ -359,22 +373,9 @@ PipelineVK::PipelineVK(
     m_pipeline = pipelines[ 0 ];
     m_pipelineDepthPrepass = pipelines[ 1 ];
 
-    if ( m_hasUniform )
-        m_descriptorWrites.push_back( {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstBinding = 0,
-            .dstArrayElement = 0,
-            .descriptorCount = pci.m_vertexUniformCount,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-        } );
-    if ( m_hasImage )
-        m_descriptorWrites.push_back( {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstBinding = 1,
-            .dstArrayElement = 0,
-            .descriptorCount = pci.m_fragmentImageCount,
-            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-        } );
+    assert( m_descriptorWrites.capacity() >= pci.m_bindInfo.size() );
+    m_descriptorWrites.resize( pci.m_bindInfo.size() );
+    std::ranges::transform( pci.m_bindInfo, m_descriptorWrites.begin(), &convertBinding );
 }
 
 PipelineVK::operator VkPipeline () const
@@ -415,23 +416,41 @@ uint32_t PipelineVK::descriptorSetPoolId() const
 }
 
 
-void PipelineVK::updateDescriptorSet( VkDescriptorSet set, const VkDescriptorBufferInfo& buf, std::span<const VkDescriptorImageInfo> img )
+void PipelineVK::updateDescriptorSet( VkDescriptorSet set
+    , std::span<const VkDescriptorBufferInfo> uniform
+    , std::span<const VkDescriptorImageInfo> image
+    , std::span<const VkDescriptorBufferInfo> storage
+)
 {
-    if ( m_hasUniform ) {
-        auto& write = m_descriptorWrites.front();
+    if ( m_descriptorWrites.empty() ) return;
+    for ( auto&& write : m_descriptorWrites ) {
         write.dstSet = set;
-        write.pBufferInfo = &buf;
+        switch ( write.descriptorType ) {
+        case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+            assert( !uniform.empty() );
+            write.pBufferInfo = uniform.data();
+            uniform = uniform.subspan( 1 );
+            break;
+        case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+        case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
+            assert( !image.empty() );
+            write.pImageInfo = image.data();
+            image = image.subspan( 1 );
+            break;
+        case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
+            assert( !storage.empty() );
+            write.pBufferInfo = storage.data();
+            storage = storage.subspan( 1 );
+            break;
+        default:
+            assert( !"unhandled descriptor type when binding resources to piepline" );
+            break;
+        }
     }
-    if ( m_hasImage ) {
-        auto& write = m_descriptorWrites.back();
-        write.dstSet = set;
-        write.pImageInfo = img.data();
-    }
-    if ( m_hasUniform || m_hasImage ) {
-        vkUpdateDescriptorSets( m_device
+    vkUpdateDescriptorSets( m_device
         , static_cast<uint32_t>( m_descriptorWrites.size() )
         , m_descriptorWrites.data()
         , 0
-        , nullptr );
-    }
+        , nullptr
+    );
 }

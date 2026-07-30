@@ -6,4 +6,4 @@ frontFace ccw
 name 9slice
 topology triangleFan
 vertexShader shaders/9slice.vert.spv
-vertexUniform 1
+vertexUniform 0

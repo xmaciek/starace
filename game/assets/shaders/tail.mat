@@ -6,4 +6,4 @@ frontFace ccw
 name tail
 topology triangleStrip
 vertexShader shaders/tail.vert.spv
-vertexUniform 1
+vertexUniform 0

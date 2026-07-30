@@ -25,29 +25,29 @@ private:
 
 public:
     StackVector() = default;
-    StackVector( uint32_t s ) : m_size{ s } { assert( s <= capacity() ); }
+    StackVector( size_type s ) : m_size{ s } { assert( s <= capacity() ); }
 
     [[nodiscard]]
     bool empty() const { return m_size == 0; };
     size_type size() const { assert( m_size <= capacity() ); return m_size; }
-    size_type capacity() const { return CAPACITY; }
+    constexpr size_type capacity() const { return CAPACITY; }
     void clear() { m_size = 0; }
 
-    reference_type push_back( const T& t ) { m_data[ m_size ] = t; return m_data[ m_size++ ]; }
-    reference_type emplace_back( const T& t ) { m_data[ m_size ] = t; return m_data[ m_size++ ]; }
+    reference_type push_back( const T& t ) { assert( m_size < capacity() ); return m_data[ m_size++ ] = t; }
+    reference_type emplace_back( auto... t ) { assert( m_size < capacity() ); return m_data[ m_size++ ] = value_type( t... ); }
 
-    reference_type front() { return *begin(); }
-    const_reference_type front() const { return *begin(); }
-    reference_type back() { return *( end() - 1 ); }
-    const_reference_type back() const { return *( end() - 1 ); }
+    reference_type front() { assert( size() ); return *begin(); }
+    const_reference_type front() const { assert( size() ); return *begin(); }
+    reference_type back() { assert( size() ); return *( end() - 1 ); }
+    const_reference_type back() const { assert( size() ); return *( end() - 1 ); }
     void resize( std::size_t s ) { assert( s <= capacity() ); m_size = s; }
 
-    auto begin() { assert( size() > 0 ); return m_data.begin(); }
-    auto begin() const { assert( size() > 0 ); return m_data.begin(); }
+    auto begin() { return m_data.begin(); }
+    auto begin() const { return m_data.begin(); }
     auto end() { return begin() + size(); }
     auto end() const { return begin() + size(); }
-    value_type* data() { return begin(); }
-    const value_type* data() const { return begin(); }
+    value_type* data() { return m_data.data(); }
+    const value_type* data() const { return m_data.data(); }
     reference_type operator [] ( std::size_t i ) { assert( i < size() ); return m_data[ i ]; }
     const_reference_type operator [] ( std::size_t i ) const { assert( i < size() ); return m_data[ i ]; }
 

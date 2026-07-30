@@ -21,103 +21,93 @@ DescriptorSet::DescriptorSet( DescriptorSet&& rhs ) noexcept
 {
     std::swap( m_device, rhs.m_device );
     std::swap( m_layout, rhs.m_layout );
+    std::swap( m_pools, rhs.m_pools );
     std::swap( m_set, rhs.m_set );
     std::swap( m_current, rhs.m_current );
-    std::swap( m_pools, rhs.m_pools );
-    std::swap( m_uniformCount, rhs.m_uniformCount );
-    std::swap( m_imagesCount, rhs.m_imagesCount );
-    std::swap( m_imageType, rhs.m_imageType );
+    std::swap( m_bindingInfo, rhs.m_bindingInfo );
 }
 
 DescriptorSet& DescriptorSet::operator = ( DescriptorSet&& rhs ) noexcept
 {
     std::swap( m_device, rhs.m_device );
     std::swap( m_layout, rhs.m_layout );
+    std::swap( m_pools, rhs.m_pools );
     std::swap( m_set, rhs.m_set );
     std::swap( m_current, rhs.m_current );
-    std::swap( m_pools, rhs.m_pools );
-    std::swap( m_uniformCount, rhs.m_uniformCount );
-    std::swap( m_imagesCount, rhs.m_imagesCount );
-    std::swap( m_imageType, rhs.m_imageType );
+    std::swap( m_bindingInfo, rhs.m_bindingInfo );
     return *this;
 }
 
-[[maybe_unused]]
-static constexpr bool validateDescriptorTypeIsSupportedImage( VkDescriptorType d )
+static VkDescriptorSetLayoutBinding convertBinding( const PipelineCreateInfo::BindInfo& bindInfo )
 {
-    switch ( d ) {
-    case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
-    case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
-        return true;
-    default:
-        return false;
-    }
-}
-
-static VkDescriptorSetLayout createLayout( VkDevice device, const PipelineCreateInfo& pci )
-{
-    ZoneScoped;
-    assert( device );
-
-    std::pmr::vector<VkDescriptorSetLayoutBinding> layoutBinding;
-    layoutBinding.reserve( 2 );
-    auto push = [&layoutBinding]( uint8_t bind, uint8_t count, auto type, auto stage )
+    VkDescriptorSetLayoutBinding ret{
+        .binding = bindInfo.m_location,
+        .descriptorCount = bindInfo.m_count,
+    };
+    auto set = [&ret]( auto stage, auto type )
     {
-        if ( !count ) return;
-        layoutBinding.emplace_back( VkDescriptorSetLayoutBinding{
-            .binding = bind,
-            .descriptorType = type,
-            .descriptorCount = count,
-            .stageFlags = static_cast<VkShaderStageFlags>( stage ),
-        } );
+        ret.stageFlags = stage;
+        ret.descriptorType = type;
     };
-    push( 0, pci.m_vertexUniformCount, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT );
-    push( 1, pci.m_fragmentImageCount, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT );
-    push( 0, pci.m_computeUniformCount, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT );
-    push( 1, pci.m_computeImageCount, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT );
-
-    const VkDescriptorSetLayoutCreateInfo layoutInfo{
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-        .bindingCount = (uint32_t)layoutBinding.size(),
-        .pBindings = layoutBinding.data(),
-    };
-
-    VkDescriptorSetLayout ret = VK_NULL_HANDLE;
-    [[maybe_unused]]
-    const VkResult layoutOK = vkCreateDescriptorSetLayout( device, &layoutInfo, nullptr, &ret );
-    assert( layoutOK == VK_SUCCESS );
+    using enum PipelineCreateInfo::Stage;
+    switch ( bindInfo.m_stage ) {
+    case eVertexUniform: set( VK_SHADER_STAGE_VERTEX_BIT, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER ); break;
+    case eVertexImage:   set( VK_SHADER_STAGE_VERTEX_BIT, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE ); break;
+    case eVertexStorage: set( VK_SHADER_STAGE_VERTEX_BIT, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER ); break;
+    case eFragmentUniform: set( VK_SHADER_STAGE_FRAGMENT_BIT, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER ); break;
+    case eFragmentImage:   set( VK_SHADER_STAGE_FRAGMENT_BIT, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER ); break;
+    case eFragmentStorage: set( VK_SHADER_STAGE_FRAGMENT_BIT, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER ); break;
+    case eComputeUniform: set( VK_SHADER_STAGE_COMPUTE_BIT, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER ); break;
+    case eComputeImage:   set( VK_SHADER_STAGE_COMPUTE_BIT, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE ); break;
+    case eComputeStorage: set( VK_SHADER_STAGE_COMPUTE_BIT, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER ); break;
+    default: assert( "invalid pipeline creation binding info" ); break;
+    }
     return ret;
-}
+};
 
 DescriptorSet::DescriptorSet( VkDevice device, const PipelineCreateInfo& pci ) noexcept
 : m_device{ device }
 {
     ZoneScoped;
-    m_layout = createLayout( m_device, pci );
-    bool compute = !pci.m_computeShaderData.empty();
-    m_uniformCount = compute ? pci.m_computeUniformCount : pci.m_vertexUniformCount;
-    m_imagesCount = compute ? pci.m_computeImageCount : pci.m_fragmentImageCount;
-    if ( m_imagesCount > 0 ) {
-        m_imageType = compute ? VK_DESCRIPTOR_TYPE_STORAGE_IMAGE : VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    }
+    assert( m_bindingInfo.capacity() >= pci.m_bindInfo.size() );
+    m_bindingInfo.resize( pci.m_bindInfo.size() );
+    std::ranges::transform( pci.m_bindInfo, m_bindingInfo.begin(), &convertBinding );
+
+    const VkDescriptorSetLayoutCreateInfo layoutInfo{
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+        .bindingCount = (uint32_t)m_bindingInfo.size(),
+        .pBindings = m_bindingInfo.data(),
+    };
+
+    [[maybe_unused]]
+    const VkResult layoutOK = vkCreateDescriptorSetLayout( device, &layoutInfo, nullptr, &m_layout );
+    assert( layoutOK == VK_SUCCESS );
+
     expandCapacityBy( 50 );
 }
 
 void DescriptorSet::expandCapacityBy( uint32_t v )
 {
     ZoneScoped;
-    assert( m_imagesCount == 0 || validateDescriptorTypeIsSupportedImage( m_imageType ) );
     auto currentCapacity = m_set.size();
-    uint32_t poolSizeCount = 0;
-    std::array<VkDescriptorPoolSize, 2> poolSizes;
-    if ( m_uniformCount ) poolSizes[ poolSizeCount++ ] = VkDescriptorPoolSize{ .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, .descriptorCount = v * m_uniformCount };
-    if ( m_imagesCount ) poolSizes[ poolSizeCount++ ] = VkDescriptorPoolSize{ .type = m_imageType, .descriptorCount = v * m_imagesCount };
-    assert( poolSizeCount != 0 );
+    StackVector<VkDescriptorPoolSize, 8> poolSizes{};
+    assert( poolSizes.capacity() >= m_bindingInfo.size() );
+
+    auto convertToPoolSize = [v]( const auto& bindInfo )
+    {
+        return VkDescriptorPoolSize{
+            .type = bindInfo.descriptorType,
+            .descriptorCount = v * bindInfo.descriptorCount,
+        };
+    };
+    poolSizes.resize( m_bindingInfo.size() );
+    std::ranges::transform( m_bindingInfo, poolSizes.begin(), convertToPoolSize );
+    assert( poolSizes.size() != 0 );
 
     const VkDescriptorPoolCreateInfo poolInfo{
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
         .maxSets = v,
-        .poolSizeCount = poolSizeCount,
+        .poolSizeCount = (uint32_t)poolSizes.size(),
         .pPoolSizes = poolSizes.data(),
     };
 
@@ -143,6 +133,7 @@ void DescriptorSet::expandCapacityBy( uint32_t v )
 
 VkDescriptorSetLayout DescriptorSet::layout() const
 {
+    assert( m_layout );
     return m_layout;
 }
 
@@ -163,10 +154,12 @@ void DescriptorSet::reset()
 uint64_t DescriptorSet::createBindingID( const PipelineCreateInfo& pci )
 {
     uint64_t ret = 0;
-    ret |= pci.m_vertexUniformCount; ret <<= 8;
-    ret |= pci.m_fragmentImageCount; ret <<= 8;
-    ret |= pci.m_computeUniformCount; ret <<= 8;
-    ret |= pci.m_computeImageCount;
+    auto mix = [&ret]( const auto& v )
+    {
+        ret = std::rotl( ret, 5 ); ret ^= v.m_location;
+        ret = std::rotl( ret, 5 ); ret ^= v.m_count;
+    };
+    std::ranges::for_each( pci.m_bindInfo, mix );
     return ret;
 }
 

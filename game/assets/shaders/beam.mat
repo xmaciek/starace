@@ -6,4 +6,4 @@ frontFace ccw
 name beam
 topology triangleList
 vertexShader shaders/beam_blob.vert.spv
-vertexUniform 1
+vertexUniform 0

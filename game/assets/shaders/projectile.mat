@@ -7,6 +7,6 @@ name projectile
 topology triangleList
 vertexShader shaders/projectile.vert.spv
 vertexStride 32
-vertexUniform 1
+vertexUniform 0
 vertexAssembly f3 0 0
 vertexAssembly f2 1 12

@@ -5,4 +5,4 @@ frontFace ccw
 name afterglow
 topology triangleList
 vertexShader shaders/afterglow.vert.spv
-vertexUniform 1
+vertexUniform 0

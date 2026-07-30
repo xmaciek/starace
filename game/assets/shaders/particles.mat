@@ -7,4 +7,4 @@ frontFace ccw
 name particles
 topology triangleList
 vertexShader shaders/particles_blob.vert.spv
-vertexUniform 1
+vertexUniform 0

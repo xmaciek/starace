@@ -147,6 +147,41 @@ uint32_t vertexAssembly( ccmd::Vm* vm, void* ctx )
     return 0;
 }
 
+template <PipelineCreateInfo::Stage stage>
+uint32_t binding( ccmd::Vm* vm, void* ctx )
+{
+    assert( vm );
+    assert( ctx );
+    auto instance = reinterpret_cast<PipelineCreateInfo*>( ctx );
+    auto& bindInfo = instance->m_bindInfo.emplace_back();
+    bindInfo.m_stage = stage;
+    bindInfo.m_count = 1;
+    ccmd::argv( vm, 0, bindInfo.m_location );
+    ccmd::argv( vm, 1, bindInfo.m_count );
+    return 0;
+}
+
+[[maybe_unused]]
+static constexpr bool isUnique( const auto& r, auto&& cmp )
+{
+    if ( r.begin() == r.end() ) {
+        return true;
+    }
+
+    auto begin = r.begin();
+    auto it = begin;
+    while ( ++begin != r.end() ) {
+        if ( !cmp( *it, *begin ) ) {
+            return false;
+        }
+        ++it;
+    }
+    return true;
+}
+
+static_assert( isUnique( std::array{ 0, 1, 2, 3 }, []( int a, int b ) { return a < b; } ) );
+static_assert( !isUnique( std::array{ 0, 1, 3, 3 }, []( int a, int b ) { return a < b; } ) );
+
 }
 
 void MaterialSetup::operator () ( Asset&& a )
@@ -157,23 +192,29 @@ void MaterialSetup::operator () ( Asset&& a )
     std::pmr::string fragmentShader{};
     std::pmr::string computeShader{};
 
+    using enum PipelineCreateInfo::Stage;
     const std::array cmds {
         Command{ "blendMode", &blendMode, &pci },
-        Command{ "computeUniform", &readU8, &pci.m_computeUniformCount },
-        Command{ "computeImage", &readU8, &pci.m_computeImageCount },
+        Command{ "computeImage", &binding<eComputeImage>, &pci },
         Command{ "computeShader", &readString, &computeShader },
+        Command{ "computeStorage", &binding<eComputeStorage>, &pci },
+        Command{ "computeUniform", &binding<eComputeUniform>, &pci },
         Command{ "cullMode", &cullMode, &pci },
         Command{ "depthTest", &depthTest, &pci },
         Command{ "depthWrite", &depthWrite, &pci },
-        Command{ "fragmentImage", &readU8, &pci.m_fragmentImageCount },
+        Command{ "fragmentImage", &binding<eFragmentImage>, &pci },
         Command{ "fragmentShader", &readString, &fragmentShader },
+        Command{ "fragmentStorage", &binding<eFragmentStorage>, &pci },
+        Command{ "fragmentUniform", &binding<eFragmentUniform>, &pci },
         Command{ "frontFace", &frontFace, &pci },
         Command{ "name", &name, &pci },
         Command{ "topology", &topology, &pci },
-        Command{ "vertexShader", &readString, &vertexShader },
-        Command{ "vertexUniform", &readU8, &pci.m_vertexUniformCount },
-        Command{ "vertexStride", &readU8, &pci.m_vertexStride },
         Command{ "vertexAssembly", &vertexAssembly, &pci },
+        Command{ "vertexImage", &binding<eVertexImage>, &pci },
+        Command{ "vertexShader", &readString, &vertexShader },
+        Command{ "vertexStorage", &binding<eVertexStorage>, &pci },
+        Command{ "vertexStride", &readU8, &pci.m_vertexStride },
+        Command{ "vertexUniform", &binding<eVertexUniform>, &pci },
     };
     auto bytecode = compile( std::string_view{ (const char*)a.data.data(), a.data.size() } );
     assert( !bytecode.empty() );
@@ -183,6 +224,12 @@ void MaterialSetup::operator () ( Asset&& a )
     if ( vertexShader.size() ) pci.m_vertexShaderData = m_filesystem->viewWait( vertexShader );
     if ( fragmentShader.size() ) pci.m_fragmentShaderData = m_filesystem->viewWait( fragmentShader );
     if ( computeShader.size() ) pci.m_computeShaderData = m_filesystem->viewWait( computeShader );
+
+    auto cmp = []( const auto& l, const auto& r ) { return l.m_location < r.m_location; };
+    std::ranges::sort( pci.m_bindInfo, cmp );
+    assert( std::ranges::is_sorted( pci.m_bindInfo, cmp ) );
+    assert( isUnique( pci.m_bindInfo, cmp ) );
+
     auto pip = m_renderer->createPipeline( pci );
     assert( pip );
     assert( pci.m_userHint );

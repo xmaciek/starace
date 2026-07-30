@@ -2,6 +2,7 @@
 
 #include <renderer/buffer.hpp>
 #include <renderer/texture.hpp>
+#include <shared/stack_vector.hpp>
 
 #include <array>
 #include <cstdint>
@@ -15,6 +16,23 @@ struct PipelineCreateInfo {
     enum class FrontFace : uint8_t { eCW, eCCW };
     enum class InputType : uint8_t { eNone, eF2, eF3, eU, eU2 };
     enum class BlendMode : uint8_t { eNone, eAlpha, eAdditive };
+    enum class Stage : uint8_t {
+        eVertexUniform,
+        eVertexImage,
+        eVertexStorage,
+        eFragmentUniform,
+        eFragmentImage,
+        eFragmentStorage,
+        eComputeUniform,
+        eComputeImage,
+        eComputeStorage,
+    };
+    struct BindInfo {
+        Stage m_stage;
+        uint8_t m_location;
+        uint8_t m_count;
+    };
+
     struct Assembly {
         InputType m_input{};
         uint8_t m_location{};
@@ -36,8 +54,5 @@ struct PipelineCreateInfo {
     BlendMode m_blendMode{};
     uint8_t m_vertexStride = 0;
     std::array<Assembly, 3> m_vertexAssembly{};
-    uint8_t m_vertexUniformCount = 0;
-    uint8_t m_fragmentImageCount = 0;
-    uint8_t m_computeUniformCount = 0;
-    uint8_t m_computeImageCount = 0;
+    StackVector<BindInfo, 8> m_bindInfo{};
 };
