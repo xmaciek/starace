@@ -26,23 +26,17 @@ namespace colorscheme {
 
 inline const ColorScheme ion{
     math::vec4{ 0.0f, 0.7f, 1.0f, 1.0f },
-    math::vec4{ 0.0f, 0.0f, 0.5f, 0.0f },
-    math::vec4{ 0.0f, 0.75f, 1.0f, 0.6f },
-    math::vec4{ 0.0f, 0.0f, 0.5f, 0.0f },
+    math::vec4{ 0.0f, 0.4f, 1.0f, 0.4f },
 };
 
 inline const ColorScheme chartreuse{
     math::vec4{ 0.9f, 1.0f, 0.0f, 1.0f },
-    math::vec4{ 0.25f, 0.5f, 0.0f, 0.0f },
     math::vec4{ 0.6f, 1.0f, 0.0f, 0.618f },
-    math::vec4{ 0.1f, 0.3f, 0.0f, 0.0f },
 };
 
 inline const ColorScheme coral{
     math::vec4{ 1.0f, 0.5f, 0.313f, 1.0f },
-    math::vec4{ 0.5f, 0.0f, 0.0f, 0.0f },
     math::vec4{ 1.0f, 0.894f, 0.710f, 0.618f },
-    math::vec4{ 0.5f, 0.161f, 0.0f, 0.0f },
 };
 
 } // namespace colorscheme

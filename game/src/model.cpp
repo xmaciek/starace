@@ -54,10 +54,6 @@ void Model::render( const RenderContext& rctx ) const
             .m_model = math::scale( rctx.model, math::vec3{ meter, meter, meter } ),
             .m_view = rctx.view,
             .m_projection = rctx.projection,
-            .m_colorInner1 = colorscheme::ion[ 1 ],
-            .m_colorInner2 = colorscheme::ion[ 0 ],
-            .m_colorOutter1 = colorscheme::ion[ 3 ],
-            .m_colorOutter2 = colorscheme::ion[ 2 ],
         };
         ri.m_pipeline = g_pipelines[ Pipeline::eThruster2 ];
         ri.m_vertexBuffer = m_thruster;
@@ -82,7 +78,6 @@ void Model::render( const RenderContext& rctx ) const
         .m_view = rctx.view,
         .m_projection = rctx.projection,
         .m_zSizeCutoff = zSizeCutoff,
-        .m_colorScheme = colorscheme::ion,
     };
     ri.m_uniform = aci;
 

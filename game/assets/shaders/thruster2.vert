@@ -1,8 +1,6 @@
 struct ColorScheme {
-    vec4 inner1;
-    vec4 inner2;
-    vec4 outter1;
-    vec4 outter2;
+    vec4 inner;
+    vec4 outter;
 };
 
 layout( binding = 0 ) uniform ubo {

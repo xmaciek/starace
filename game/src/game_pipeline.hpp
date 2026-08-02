@@ -1,5 +1,7 @@
 #pragma once
 
+#include "colors.hpp"
+
 #include <renderer/pipeline.hpp>
 #include <math.hpp>
 
@@ -57,10 +59,7 @@ struct PushConstant<Pipeline::eThruster2> {
     math::mat4 m_model{};
     math::mat4 m_view{};
     math::mat4 m_projection{};
-    math::vec4 m_colorInner1{};
-    math::vec4 m_colorInner2{};
-    math::vec4 m_colorOutter1{};
-    math::vec4 m_colorOutter2{};
+    ColorScheme m_color = colorscheme::ion;
 };
 
 template <>
@@ -72,7 +71,7 @@ struct PushConstant<Pipeline::eAfterglow> {
     math::mat4 m_projection{};
     alignas( 16 ) math::vec3 m_modelOffset{};
     std::array<math::vec4, INSTANCES> m_zSizeCutoff{};
-    std::array<math::vec4, 4> m_colorScheme;
+    ColorScheme m_color = colorscheme::ion;
 };
 
 template <>

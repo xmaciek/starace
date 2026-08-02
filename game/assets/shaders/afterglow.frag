@@ -1,8 +1,6 @@
 struct ColorScheme {
-    vec4 inner1;
-    vec4 inner2;
-    vec4 outter1;
-    vec4 outter2;
+    vec4 inner;
+    vec4 outter;
 };
 
 layout( location = 0 ) in vec2 fragUV;
@@ -23,9 +21,9 @@ void main()
 
     float x = smoothstep( 0.0, 1.0, cutoff );
     float y = smoothstep( 0.0, 1.0, cutoff );
-    vec4 color1 = mix( fragColor.inner1, fragColor.inner2, x );
-    vec4 color2 = mix( fragColor.outter2, fragColor.outter2, y );
-    vec4 color = mix( color1, color2, x * 2.0 );
+    vec4 color1 = mix( fragColor.inner, fragColor.outter, x );
+    vec4 color2 = mix( fragColor.inner, fragColor.outter, y );
+    vec4 color = mix( color1, color2, x );
     colorOut = vec4( color.rgb, calpha * 0.518 );
 
 }
