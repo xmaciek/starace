@@ -838,9 +838,6 @@ void RendererVK::render( const RenderInfo& ri )
 
     descriptorPool.update( descriptorSet, uniformInfo, imageInfo, storageInfo );
 
-    if ( depthWrite ) vkCmdBindDescriptorSets( fr.m_cmdDepthPrepass, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
-    vkCmdBindDescriptorSets( fr.m_cmdColorPass, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
-
     if ( currentPipeline.useLines() && ( updateLineWidth || rebindPipeline ) ) [[unlikely]] {
         m_lastLineWidth = ri.m_lineWidth;
         if ( depthWrite ) vkCmdSetLineWidth( fr.m_cmdDepthPrepass, ri.m_lineWidth );
@@ -871,10 +868,25 @@ void RendererVK::render( const RenderInfo& ri )
 
     assert( verticeCount );
     switch ( cmd ) {
-    case fDepth: vkCmdDraw( fr.m_cmdDepthPrepass, verticeCount, ri.m_instanceCount, 0, 0 ); [[fallthrough]];
-    case 0:      vkCmdDraw( fr.m_cmdColorPass, verticeCount, ri.m_instanceCount, 0, 0 ); break;
-    case fDepth | fIndexed: vkCmdDrawIndexed( fr.m_cmdDepthPrepass, verticeCount, ri.m_instanceCount, 0, 0, 0 ); [[fallthrough]];
-    case fIndexed:          vkCmdDrawIndexed( fr.m_cmdColorPass, verticeCount, ri.m_instanceCount, 0, 0, 0 ); break;
+    case fDepth:
+        vkCmdBindDescriptorSets( fr.m_cmdDepthPrepass, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
+        vkCmdDraw( fr.m_cmdDepthPrepass, verticeCount, ri.m_instanceCount, 0, 0 );
+        [[fallthrough]];
+
+    case 0:
+        vkCmdBindDescriptorSets( fr.m_cmdColorPass, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
+        vkCmdDraw( fr.m_cmdColorPass, verticeCount, ri.m_instanceCount, 0, 0 );
+        break;
+
+    case fDepth | fIndexed:
+        vkCmdBindDescriptorSets( fr.m_cmdDepthPrepass, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
+        vkCmdDrawIndexed( fr.m_cmdDepthPrepass, verticeCount, ri.m_instanceCount, 0, 0, 0 );
+         [[fallthrough]];
+
+    case fIndexed:
+        vkCmdBindDescriptorSets( fr.m_cmdColorPass, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
+        vkCmdDrawIndexed( fr.m_cmdColorPass, verticeCount, ri.m_instanceCount, 0, 0, 0 );
+        break;
     }
 }
 
