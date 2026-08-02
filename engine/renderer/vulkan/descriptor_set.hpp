@@ -33,7 +33,7 @@ public:
     VkDescriptorSet next();
     void reset();
 
-    static uint64_t createBindingID( const PipelineCreateInfo& );
+    static uint64_t createBindingHash( const PipelineCreateInfo& );
 
     void update( VkDescriptorSet
         , std::span<const VkDescriptorBufferInfo> uniform

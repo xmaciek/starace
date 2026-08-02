@@ -189,11 +189,12 @@ void DescriptorSet::reset()
     m_current = 0;
 }
 
-uint64_t DescriptorSet::createBindingID( const PipelineCreateInfo& pci )
+uint64_t DescriptorSet::createBindingHash( const PipelineCreateInfo& pci )
 {
     uint64_t ret = 0;
     auto mix = [&ret]( const auto& v )
     {
+        ret = std::rotl( ret, 5 ); ret ^= (uint8_t)v.m_stage;
         ret = std::rotl( ret, 5 ); ret ^= v.m_location;
         ret = std::rotl( ret, 5 ); ret ^= v.m_count;
     };

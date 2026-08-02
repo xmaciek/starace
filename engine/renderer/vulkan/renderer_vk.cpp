@@ -283,8 +283,8 @@ PipelineSlot RendererVK::createPipeline( const PipelineCreateInfo& pci )
         return { static_cast<uint32_t>( std::distance( array.begin(), it ) ), true };
     };
 
-    uint64_t binding = DescriptorSet::createBindingID( pci );
-    auto [ descriptorId, add ] = findOrAddDescriptorId( m_pipelineDescriptorIds, binding );
+    uint64_t hash = DescriptorSet::createBindingHash( pci );
+    auto [ descriptorId, add ] = findOrAddDescriptorId( m_pipelineDescriptorIds, hash );
     if ( add ) {
         for ( auto& fr : m_frames ) {
             fr.m_descriptorSets[ descriptorId ] = DescriptorSet{ m_device, pci };
