@@ -24,6 +24,7 @@ DescriptorSet::DescriptorSet( DescriptorSet&& rhs ) noexcept
     std::swap( m_pools, rhs.m_pools );
     std::swap( m_set, rhs.m_set );
     std::swap( m_current, rhs.m_current );
+    std::swap( m_descriptorWrites, rhs.m_descriptorWrites );
     std::swap( m_bindingInfo, rhs.m_bindingInfo );
 }
 
@@ -34,11 +35,12 @@ DescriptorSet& DescriptorSet::operator = ( DescriptorSet&& rhs ) noexcept
     std::swap( m_pools, rhs.m_pools );
     std::swap( m_set, rhs.m_set );
     std::swap( m_current, rhs.m_current );
+    std::swap( m_descriptorWrites, rhs.m_descriptorWrites );
     std::swap( m_bindingInfo, rhs.m_bindingInfo );
     return *this;
 }
 
-static VkDescriptorSetLayoutBinding convertBinding( const PipelineCreateInfo::BindInfo& bindInfo )
+static VkDescriptorSetLayoutBinding convertBindingToLayout( const PipelineCreateInfo::BindInfo& bindInfo )
 {
     VkDescriptorSetLayoutBinding ret{
         .binding = bindInfo.m_location,
@@ -65,13 +67,49 @@ static VkDescriptorSetLayoutBinding convertBinding( const PipelineCreateInfo::Bi
     return ret;
 };
 
+static VkWriteDescriptorSet convertBindingToWrites( const PipelineCreateInfo::BindInfo& bindInfo )
+{
+    using enum PipelineCreateInfo::Stage;
+    auto type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    switch ( bindInfo.m_stage ) {
+    case eVertexUniform:
+    case eFragmentUniform:
+    case eComputeUniform:
+        type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; break;
+    case eVertexImage:
+    case eComputeImage:
+        type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE; break;
+    case eFragmentImage:
+        type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; break;
+    case eVertexStorage:
+    case eFragmentStorage:
+    case eComputeStorage:
+        type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER; break;
+    default:
+        assert( !"pipeline bind info has invalid data" );
+        break;
+    }
+
+    return {
+        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+        .dstBinding = bindInfo.m_location,
+        .dstArrayElement = 0,
+        .descriptorCount = bindInfo.m_count,
+        .descriptorType = type,
+    };
+}
+
 DescriptorSet::DescriptorSet( VkDevice device, const PipelineCreateInfo& pci ) noexcept
 : m_device{ device }
 {
     ZoneScoped;
     assert( m_bindingInfo.capacity() >= pci.m_bindInfo.size() );
     m_bindingInfo.resize( pci.m_bindInfo.size() );
-    std::ranges::transform( pci.m_bindInfo, m_bindingInfo.begin(), &convertBinding );
+    std::ranges::transform( pci.m_bindInfo, m_bindingInfo.begin(), &convertBindingToLayout );
+
+    assert( m_descriptorWrites.capacity() >= pci.m_bindInfo.size() );
+    m_descriptorWrites.resize( pci.m_bindInfo.size() );
+    std::ranges::transform( pci.m_bindInfo, m_descriptorWrites.begin(), &convertBindingToWrites );
 
     const VkDescriptorSetLayoutCreateInfo layoutInfo{
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
@@ -163,3 +201,41 @@ uint64_t DescriptorSet::createBindingID( const PipelineCreateInfo& pci )
     return ret;
 }
 
+void DescriptorSet::update( VkDescriptorSet set
+    , std::span<const VkDescriptorBufferInfo> uniform
+    , std::span<const VkDescriptorImageInfo> image
+    , std::span<const VkDescriptorBufferInfo> storage
+)
+{
+    if ( m_descriptorWrites.empty() ) [[unlikely]] return;
+    for ( auto&& write : m_descriptorWrites ) {
+        write.dstSet = set;
+        switch ( write.descriptorType ) {
+        case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+            assert( write.descriptorCount <= uniform.size() );
+            write.pBufferInfo = uniform.data();
+            uniform = uniform.subspan( write.descriptorCount );
+            break;
+        case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+        case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
+            assert( write.descriptorCount <= image.size() );
+            write.pImageInfo = image.data();
+            image = image.subspan( write.descriptorCount );
+            break;
+        case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
+            assert( write.descriptorCount <= storage.size() );
+            write.pBufferInfo = storage.data();
+            storage = storage.subspan( write.descriptorCount );
+            break;
+        default:
+            assert( !"unhandled descriptor type when upadting" );
+            break;
+        }
+    }
+    vkUpdateDescriptorSets( m_device
+        , static_cast<uint32_t>( m_descriptorWrites.size() )
+        , m_descriptorWrites.data()
+        , 0
+        , nullptr
+    );
+}

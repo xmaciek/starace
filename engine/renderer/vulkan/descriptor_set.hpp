@@ -16,6 +16,7 @@ class DescriptorSet {
     std::pmr::vector<VkDescriptorSet> m_set;
     uint32_t m_current = 0;
 
+    StackVector<VkWriteDescriptorSet, 8> m_descriptorWrites{};
     StackVector<VkDescriptorSetLayoutBinding, 8> m_bindingInfo{};
     void expandCapacityBy( uint32_t );
 
@@ -33,4 +34,10 @@ public:
     void reset();
 
     static uint64_t createBindingID( const PipelineCreateInfo& );
+
+    void update( VkDescriptorSet
+        , std::span<const VkDescriptorBufferInfo> uniform
+        , std::span<const VkDescriptorImageInfo> image
+        , std::span<const VkDescriptorBufferInfo> storage
+    );
 };

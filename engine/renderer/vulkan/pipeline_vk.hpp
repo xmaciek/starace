@@ -19,7 +19,6 @@ private:
     VkPipelineLayout m_layout = VK_NULL_HANDLE;
     VkPipeline m_pipeline = VK_NULL_HANDLE;
     VkPipeline m_pipelineDepthPrepass = VK_NULL_HANDLE;
-    StackVector<VkWriteDescriptorSet, 8> m_descriptorWrites{};
     uint32_t m_vertexStride = 0;
     uint32_t m_descriptorSetPoolId = 0;
     bool m_depthWrite = false;
@@ -47,11 +46,7 @@ public:
     VkPipelineLayout layout() const;
     uint32_t vertexStride() const;
     uint32_t descriptorSetPoolId() const;
-    void updateDescriptorSet( VkDescriptorSet
-        , std::span<const VkDescriptorBufferInfo> uniform
-        , std::span<const VkDescriptorImageInfo> image
-        , std::span<const VkDescriptorBufferInfo> storage
-    );
+
 
     bool depthWrite() const;
     bool useLines() const;

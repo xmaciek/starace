@@ -824,7 +824,7 @@ void RendererVK::render( const RenderInfo& ri )
     imageInfo.fill( m_defaultTexture->imageInfo() );
     std::ranges::transform( ri.m_fragmentTexture, imageInfo.begin(), find );
 
-    currentPipeline.updateDescriptorSet( descriptorSet, uniformInfo, imageInfo, {} );
+    descriptorPool.update( descriptorSet, uniformInfo, imageInfo, {} );
 
     if ( depthWrite ) vkCmdBindDescriptorSets( fr.m_cmdDepthPrepass, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
     vkCmdBindDescriptorSets( fr.m_cmdColorPass, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
@@ -888,7 +888,7 @@ void RendererVK::dispatch( const DispatchInfo& dispatchInfo )
         fr.m_renderTarget.imageInfo(),
         fr.m_renderTargetTmp.imageInfo(),
     };
-    currentPipeline.updateDescriptorSet( descriptorSet, uniformInfo, imageInfo, {} );
+    descriptorPool.update( descriptorSet, uniformInfo, imageInfo, {} );
 
     vkCmdBindDescriptorSets( fr.m_cmdColorPass, VK_PIPELINE_BIND_POINT_COMPUTE, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
     vkCmdBindPipeline( fr.m_cmdColorPass, VK_PIPELINE_BIND_POINT_COMPUTE, currentPipeline );

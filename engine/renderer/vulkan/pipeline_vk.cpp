@@ -25,7 +25,6 @@ PipelineVK::PipelineVK( PipelineVK&& rhs ) noexcept
     std::swap( m_pipelineDepthPrepass, rhs.m_pipelineDepthPrepass );
     std::swap( m_vertexStride, rhs.m_vertexStride );
     std::swap( m_descriptorSetPoolId, rhs.m_descriptorSetPoolId );
-    std::swap( m_descriptorWrites, rhs.m_descriptorWrites );
     std::swap( m_depthWrite, rhs.m_depthWrite );
     std::swap( m_useLines, rhs.m_useLines );
 }
@@ -38,7 +37,6 @@ PipelineVK& PipelineVK::operator = ( PipelineVK&& rhs ) noexcept
     std::swap( m_pipelineDepthPrepass, rhs.m_pipelineDepthPrepass );
     std::swap( m_vertexStride, rhs.m_vertexStride );
     std::swap( m_descriptorSetPoolId, rhs.m_descriptorSetPoolId );
-    std::swap( m_descriptorWrites, rhs.m_descriptorWrites );
     std::swap( m_depthWrite, rhs.m_depthWrite );
     std::swap( m_useLines, rhs.m_useLines );
     return *this;
@@ -159,38 +157,6 @@ static VkPipelineColorBlendAttachmentState blendAttachment( PipelineCreateInfo::
     return ret;
 };
 
-static VkWriteDescriptorSet convertBinding( const PipelineCreateInfo::BindInfo& bindInfo )
-{
-    using enum PipelineCreateInfo::Stage;
-    auto type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    switch ( bindInfo.m_stage ) {
-    case eVertexUniform:
-    case eFragmentUniform:
-    case eComputeUniform:
-        type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; break;
-    case eVertexImage:
-    case eComputeImage:
-        type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE; break;
-    case eFragmentImage:
-        type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; break;
-    case eVertexStorage:
-    case eFragmentStorage:
-    case eComputeStorage:
-        type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER; break;
-    default:
-        assert( !"pipeline bind info has invalid data" );
-        break;
-    }
-
-    return {
-        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-        .dstBinding = bindInfo.m_location,
-        .dstArrayElement = 0,
-        .descriptorCount = bindInfo.m_count,
-        .descriptorType = type,
-    };
-}
-
 PipelineVK::PipelineVK(
     const PipelineCreateInfo& pci
     , const Device& device
@@ -230,10 +196,6 @@ PipelineVK::PipelineVK(
         [[maybe_unused]]
         const VkResult pipelineOK = vkCreateComputePipelines( device, nullptr, 1, &info, nullptr, &m_pipeline );
         assert( pipelineOK == VK_SUCCESS );
-
-        assert( m_descriptorWrites.capacity() >= pci.m_bindInfo.size() );
-        m_descriptorWrites.resize( pci.m_bindInfo.size() );
-        std::ranges::transform( pci.m_bindInfo, m_descriptorWrites.begin(), &convertBinding );
         return;
     }
 
@@ -372,10 +334,6 @@ PipelineVK::PipelineVK(
     assert( pipelineOK == VK_SUCCESS );
     m_pipeline = pipelines[ 0 ];
     m_pipelineDepthPrepass = pipelines[ 1 ];
-
-    assert( m_descriptorWrites.capacity() >= pci.m_bindInfo.size() );
-    m_descriptorWrites.resize( pci.m_bindInfo.size() );
-    std::ranges::transform( pci.m_bindInfo, m_descriptorWrites.begin(), &convertBinding );
 }
 
 PipelineVK::operator VkPipeline () const
@@ -416,41 +374,3 @@ uint32_t PipelineVK::descriptorSetPoolId() const
 }
 
 
-void PipelineVK::updateDescriptorSet( VkDescriptorSet set
-    , std::span<const VkDescriptorBufferInfo> uniform
-    , std::span<const VkDescriptorImageInfo> image
-    , std::span<const VkDescriptorBufferInfo> storage
-)
-{
-    if ( m_descriptorWrites.empty() ) return;
-    for ( auto&& write : m_descriptorWrites ) {
-        write.dstSet = set;
-        switch ( write.descriptorType ) {
-        case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
-            assert( !uniform.empty() );
-            write.pBufferInfo = uniform.data();
-            uniform = uniform.subspan( 1 );
-            break;
-        case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
-        case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
-            assert( !image.empty() );
-            write.pImageInfo = image.data();
-            image = image.subspan( 1 );
-            break;
-        case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
-            assert( !storage.empty() );
-            write.pBufferInfo = storage.data();
-            storage = storage.subspan( 1 );
-            break;
-        default:
-            assert( !"unhandled descriptor type when binding resources to piepline" );
-            break;
-        }
-    }
-    vkUpdateDescriptorSets( m_device
-        , static_cast<uint32_t>( m_descriptorWrites.size() )
-        , m_descriptorWrites.data()
-        , 0
-        , nullptr
-    );
-}
