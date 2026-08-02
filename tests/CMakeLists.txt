@@ -28,4 +28,5 @@ target_sources( tests
     test_savesystem.cpp
     test_stack_vector.cpp
     test_unicode.cpp
+    test_unique_add.cpp
 )
