@@ -93,7 +93,7 @@ DeviceVector DeviceVector::getPlayback()
 std::pmr::vector<std::pmr::string> DeviceVector::getNames()
 {
     std::pmr::vector<std::pmr::string> ret( (size_t)m_size );
-    std::ranges::transform( *this, ret.begin(), &SDL_GetAudioDeviceName );
+    std::ranges::transform( *this, ret.begin(), []( auto d ) { auto name = SDL_GetAudioDeviceName( d ); return name ? name : "NULL"; } );
     return ret;
 }
 
