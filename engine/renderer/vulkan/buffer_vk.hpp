@@ -40,5 +40,11 @@ public:
     void copyData( std::span<const uint8_t> );
     uint32_t sizeInBytes() const;
 
+    VkDescriptorBufferInfo bindInfo() const;
+
     operator VkBuffer () const;
+
+    void bind( VkCommandBuffer );
+    void bindAsIndex( VkCommandBuffer );
+
 };

@@ -85,3 +85,22 @@ uint32_t BufferVK::sizeInBytes() const
 {
     return m_memory.size();
 }
+
+VkDescriptorBufferInfo BufferVK::bindInfo() const
+{
+    return {
+        .buffer = m_buffer,
+        .range = m_memory.size(),
+    };
+}
+
+void BufferVK::bind( VkCommandBuffer cmd )
+{
+    VkDeviceSize offset{};
+    vkCmdBindVertexBuffers( cmd, 0, 1, &m_buffer, &offset );
+}
+
+void BufferVK::bindAsIndex( VkCommandBuffer cmd )
+{
+    vkCmdBindIndexBuffer( cmd, m_buffer, 0, VK_INDEX_TYPE_UINT16 );
+}

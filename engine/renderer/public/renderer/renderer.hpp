@@ -41,6 +41,7 @@ struct RenderInfo {
     };
     enum : uint32_t {
         MAX_TEXTURES = 9,
+        MAX_STORAGES = 4,
     };
     PipelineSlot m_pipeline{};
     uint32_t m_verticeCount = 0;
@@ -50,6 +51,7 @@ struct RenderInfo {
     Buffer m_vertexBuffer{};
     Buffer m_indexBuffer{};
     StackVector<Texture, MAX_TEXTURES> m_fragmentTexture{};
+    StackVector<Buffer, MAX_STORAGES> m_storageBuffers{};
 };
 
 class Engine;

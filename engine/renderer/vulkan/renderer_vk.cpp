@@ -787,7 +787,6 @@ void RendererVK::render( const RenderInfo& ri )
     const bool rebindPipeline = m_lastPipeline != &currentPipeline;
     const bool depthWrite = currentPipeline.depthWrite();
     const bool updateLineWidth = currentPipeline.useLines() && ri.m_lineWidth != m_lastLineWidth;
-    const bool bindBuffer = ri.m_vertexBuffer;
     uint32_t verticeCount = ri.m_verticeCount;
 
     enum : uint32_t {
@@ -812,7 +811,7 @@ void RendererVK::render( const RenderInfo& ri )
     }
 
 
-    auto find = [this]( Texture t )
+    auto findTexture = [this]( Texture t )
     {
         const auto tex = std::bit_cast<TextureExtra>( t );
         if ( tex ) [[likely]] {
@@ -820,11 +819,24 @@ void RendererVK::render( const RenderInfo& ri )
         }
         return m_defaultTexture->imageInfo();
     };
+
+    auto findBuffer = [this]( Buffer buf )
+    {
+        const auto buffer = std::bit_cast<BufferExtra>( buf );
+        assert( buffer );
+        const BufferVK* b = m_bufferSlots[ buffer.index ];
+        assert( b );
+        return b->bindInfo();
+    };
+
     std::array<VkDescriptorImageInfo, RenderInfo::MAX_TEXTURES> imageInfo;
     imageInfo.fill( m_defaultTexture->imageInfo() );
-    std::ranges::transform( ri.m_fragmentTexture, imageInfo.begin(), find );
+    std::ranges::transform( ri.m_fragmentTexture, imageInfo.begin(), findTexture );
 
-    descriptorPool.update( descriptorSet, uniformInfo, imageInfo, {} );
+    std::array<VkDescriptorBufferInfo, RenderInfo::MAX_STORAGES> storageInfo{};
+    std::ranges::transform( ri.m_storageBuffers, storageInfo.begin(), findBuffer );
+
+    descriptorPool.update( descriptorSet, uniformInfo, imageInfo, storageInfo );
 
     if ( depthWrite ) vkCmdBindDescriptorSets( fr.m_cmdDepthPrepass, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
     vkCmdBindDescriptorSets( fr.m_cmdColorPass, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );
@@ -835,26 +847,24 @@ void RendererVK::render( const RenderInfo& ri )
         vkCmdSetLineWidth( fr.m_cmdColorPass, ri.m_lineWidth );
     }
 
-    auto getBuffer = [this]( Buffer buf )
+    auto getBuffer = [this]( Buffer buf ) -> BufferVK*
     {
+        if ( !buf ) return nullptr;
         const auto buffer = std::bit_cast<BufferExtra>( buf );
         assert( buffer );
-        const BufferVK* b = m_bufferSlots[ buffer.index ];
+        BufferVK* b = m_bufferSlots[ buffer.index ];
         assert( b );
-        std::array<VkBuffer, 1> buffers{ *b };
-        const std::array<VkDeviceSize, 1> offsets{ 0 };
-        return std::make_tuple( buffers, offsets, b->sizeInBytes() );
+        return b;
     };
-    if ( bindBuffer ) {
-        auto [ buffers, offsets, vCount ] = getBuffer( ri.m_vertexBuffer );
-        if ( depthWrite ) vkCmdBindVertexBuffers( fr.m_cmdDepthPrepass, 0, 1, buffers.data(), offsets.data() );
-        vkCmdBindVertexBuffers( fr.m_cmdColorPass, 0, 1, buffers.data(), offsets.data() );
-        verticeCount = vCount / currentPipeline.vertexStride();
-        if ( ri.m_indexBuffer ) {
-            auto [ ibuffers, ioffsets, ivCount ] = getBuffer( ri.m_indexBuffer );
-            if ( depthWrite ) vkCmdBindIndexBuffer( fr.m_cmdDepthPrepass, ibuffers.front(), ioffsets.front(), VK_INDEX_TYPE_UINT16 );
-            vkCmdBindIndexBuffer( fr.m_cmdColorPass, ibuffers.front(), ioffsets.front(), VK_INDEX_TYPE_UINT16 );
-            verticeCount = ivCount / sizeof( uint16_t );
+    if ( auto b = getBuffer( ri.m_vertexBuffer ) ) {
+        if ( depthWrite ) b->bind( fr.m_cmdDepthPrepass );
+        b->bind( fr.m_cmdColorPass );
+        verticeCount = b->sizeInBytes() / currentPipeline.vertexStride();
+
+        if ( auto bi = getBuffer( ri.m_indexBuffer ) ) {
+            if ( depthWrite ) bi->bindAsIndex( fr.m_cmdDepthPrepass );
+            bi->bindAsIndex( fr.m_cmdColorPass );
+            verticeCount = b->sizeInBytes() / sizeof( uint16_t );
             cmd |= fIndexed;
         }
     }
