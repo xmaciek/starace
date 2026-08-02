@@ -31,7 +31,7 @@ void Progressbar::render( const RenderContext& rctx ) const
 {
     using Instanced = InstancedRendering<PushConstant<Pipeline::eSpriteSequenceColors>>;
     Instanced instanced{ rctx.renderer, m_pipeline };
-    instanced.renderInfo.m_fragmentTexture[ 0 ] = m_sprite.texture;
+    instanced.renderInfo.m_fragmentTexture.emplace_back( m_sprite.texture );
     instanced.pushConstant.m_model = rctx.model;
     instanced.pushConstant.m_view = rctx.view;
     instanced.pushConstant.m_projection = rctx.projection;

@@ -814,9 +814,6 @@ void RendererVK::render( const RenderInfo& ri )
 
     auto find = [this]( Texture t )
     {
-        if ( !t ) [[likely]]
-            return m_defaultTexture->imageInfo();
-
         const auto tex = std::bit_cast<TextureExtra>( t );
         if ( tex ) [[likely]] {
             return m_textureSlots[ tex.index ].load()->imageInfo();
@@ -824,8 +821,9 @@ void RendererVK::render( const RenderInfo& ri )
         return m_defaultTexture->imageInfo();
     };
     std::array<VkDescriptorImageInfo, RenderInfo::MAX_TEXTURES> imageInfo;
-    // TODO: limit to image count in pipeline
+    imageInfo.fill( m_defaultTexture->imageInfo() );
     std::ranges::transform( ri.m_fragmentTexture, imageInfo.begin(), find );
+
     currentPipeline.updateDescriptorSet( descriptorSet, uniformInfo, imageInfo, {} );
 
     if ( depthWrite ) vkCmdBindDescriptorSets( fr.m_cmdDepthPrepass, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline.layout(), 0, 1, &descriptorSet, 0, nullptr );

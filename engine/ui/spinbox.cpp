@@ -2,7 +2,7 @@
 
 #include <ui/property.hpp>
 #include <ui/pipeline.hpp>
-
+#include <shared/unique_add.hpp>
 #include <renderer/renderer.hpp>
 
 #include <cassert>
@@ -56,9 +56,9 @@ void SpinBox::render( const RenderContext& r ) const
         .m_verticeCount = PushConstant::VERTICES,
         .m_instanceCount = 2u,
     };
-    const bool diffTex = m_arrowLeft.texture != m_arrowRight.texture;
-    ri.m_fragmentTexture[ 0 ] = m_arrowLeft.texture;
-    ri.m_fragmentTexture[ 1 ] = diffTex ? m_arrowRight.texture : Texture{};
+    unique_add( ri.m_fragmentTexture, m_arrowLeft.texture );
+    unique_add( ri.m_fragmentTexture, m_arrowRight.texture );
+    const bool diffTex = ri.m_fragmentTexture.size() == 2;
 
     PushConstant pushConstant{
         .m_model = rctx.model,

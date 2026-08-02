@@ -120,7 +120,7 @@ void ComboBoxList::render( const RenderContext& rctx ) const
         .m_verticeCount = PushConstant::VERTICES,
         .m_instanceCount = 1u,
     };
-    ri.m_fragmentTexture[ 0 ] = m_hover.texture;
+    ri.m_fragmentTexture.emplace_back( m_hover.texture );
     PushConstant pushConstant{
         .m_model = rctx.model,
         .m_view = rctx.view,

@@ -35,7 +35,7 @@ void MenuScene::render( Renderer* renderer, math::vec2 viewport )
         .m_verticeCount = 4,
         .m_uniform = pushConstant,
     };
-    ri.m_fragmentTexture[ 0 ] = m_background.texture;
+    ri.m_fragmentTexture.emplace_back( m_background.texture );
     renderer->render( ri );
 
     const math::vec3 cameraPos = math::normalize( math::vec3{ -4, -3, -3 } ) * 24.0_m;

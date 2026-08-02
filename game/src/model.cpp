@@ -37,7 +37,7 @@ void Model::render( const RenderContext& rctx ) const
         .m_pipeline = g_pipelines[ Pipeline::eMesh ],
         .m_uniform = pushConstant,
     };
-    ri.m_fragmentTexture[ 0 ] = m_texture;
+    ri.m_fragmentTexture.emplace_back( m_texture );
     auto renderMesh = [&ri, &rctx]( Buffer b )
     {
         if ( !b ) return;

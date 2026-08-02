@@ -4,6 +4,7 @@
 #include <renderer/display_mode.hpp>
 #include <renderer/texture.hpp>
 #include <renderer/pipeline.hpp>
+#include <shared/stack_vector.hpp>
 #include <math.hpp>
 
 #include <SDL.h>
@@ -48,7 +49,7 @@ struct RenderInfo {
     Uniform m_uniform{};
     Buffer m_vertexBuffer{};
     Buffer m_indexBuffer{};
-    std::array<Texture, MAX_TEXTURES> m_fragmentTexture{};
+    StackVector<Texture, MAX_TEXTURES> m_fragmentTexture{};
 };
 
 class Engine;

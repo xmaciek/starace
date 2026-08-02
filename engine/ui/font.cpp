@@ -3,7 +3,7 @@
 #include <ui/input.hpp>
 #include <ui/pipeline.hpp>
 #include <ui/property.hpp>
-
+#include <shared/unique_add.hpp>
 #include <renderer/renderer.hpp>
 
 #include <profiler.hpp>
@@ -51,17 +51,6 @@ static std::pmr::u32string textUnmap( std::u32string_view s )
     } while ( it != s.end() );
     ret.append( begin, it );
 
-    return ret;
-}
-
-static uint32_t findOrAdd( auto& container, Texture t )
-{
-    auto it = std::ranges::find( container, t );
-    if ( it != container.end() ) return (uint32_t)std::distance( container.begin(), it );
-    it = std::ranges::find( container, Texture{} );
-    assert( it != container.end() );
-    uint32_t ret = std::min( (uint32_t)std::distance( container.begin(), it ), (uint32_t)container.size() - 1 );
-    container[ ret ] = t;
     return ret;
 }
 
@@ -258,7 +247,8 @@ Font::RenderText Font::composeText( std::u32string_view text, const math::vec2& 
 
         auto&& sprite = ret.data.emplace_back();
         Texture t = appendRenderText( cursor, sprite, chr );
-        sprite.m_whichAtlas = findOrAdd( ret.pushData.m_fragmentTexture, t );
+        auto& textures = ret.pushData.m_fragmentTexture;
+        sprite.m_whichAtlas = (uint32_t)std::distance( textures.begin(), unique_add( textures, t ) );
 
         if ( ( cursor.x > geometry.x ) && ( lastBreakCursorPos != 0 ) ) [[unlikely]] {
             i = lastBreakPosition;

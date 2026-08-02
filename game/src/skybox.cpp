@@ -17,6 +17,7 @@ void Skybox::render( const RenderContext& rctx ) const
         .m_verticeCount = pushConstant.VERTICES,
         .m_instanceCount = pushConstant.INSTANCES,
         .m_uniform = pushConstant,
+        .m_fragmentTexture = 6,
     };
 
     using Wall = MapCreateInfo::Wall;

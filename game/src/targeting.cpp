@@ -9,6 +9,7 @@
 #include <ui/pipeline.hpp>
 #include <ui/property.hpp>
 #include <ui/label.hpp>
+#include <shared/unique_add.hpp>
 
 #include <profiler.hpp>
 
@@ -104,22 +105,19 @@ void Targeting::render( const RenderContext& rctx ) const
     auto pushReticle = [&ri, &pushConstant, &rctx]( const std::array<ui::Sprite, 4>& sprite, const std::array<math::vec4, 4>& geo, math::vec2 pos2d, math::vec4 color )
     {
         math::vec4 offset{ pos2d.x, rctx.viewport.y - pos2d.y, 0.0f, 0.0f };
-        std::array<Texture, 4> tex;
-        std::ranges::transform( sprite, tex.begin(), []( const auto& s ) { return s.texture; } );
-        std::fill( std::unique( tex.begin(), tex.end() ), tex.end(), Texture{} );
-        std::ranges::copy( tex, ri.m_fragmentTexture.begin() );
-
-        std::array<uint32_t, 4> tex2;
-        std::ranges::transform( sprite, tex2.begin(), [&tex]( const auto& s )
+        std::array<uint32_t, 4> texIndex;
+        std::ranges::transform( sprite, texIndex.begin(), [&ri]( const auto& s )
         {
-            return (uint32_t)std::distance( tex.begin(), std::ranges::find( tex, s.texture ) );
-        });
+            auto it = unique_add( ri.m_fragmentTexture, s.texture );
+            return (uint32_t)std::distance( ri.m_fragmentTexture.begin(), it );
+        } );
+
         for ( uint32_t i = 0; i < 4; ++i ) {
             pushConstant.m_sprites[ i ] = Sprite{
                 .m_color = color,
                 .m_xywh = geo[ i ] + offset,
                 .m_uvwh = sprite[ i ],
-                .m_whichAtlas = tex2[ i ],
+                .m_whichAtlas = texIndex[ i ],
             };
         }
         rctx.renderer->render( ri );

@@ -28,7 +28,7 @@ void AnimFrame::render( const RenderContext& rctx ) const
         .m_pipeline = m_pipeline,
         .m_verticeCount = PushConstant::VERTICES,
     };
-    ri.m_fragmentTexture[ 0 ] = m_uvwh[ m_index ].texture;
+    ri.m_fragmentTexture.emplace_back( m_uvwh[ m_index ].texture );
 
     PushConstant pushConstant{
         .m_model = rctx.model,

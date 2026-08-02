@@ -37,13 +37,14 @@ void Bullet::renderAll( const RenderContext& rctx, std::span<Bullet> span, Textu
     instanced.pushConstant.m_model = rctx.model;
     instanced.pushConstant.m_view = rctx.view;
     instanced.pushConstant.m_projection = rctx.projection;
+    instanced.renderInfo.m_fragmentTexture.emplace_back();
 
     InstancedRendering<PushConstant<Pipeline::eTail>> instancedTail{ rctx.renderer, g_pipelines[ Pipeline::eTail ] };
     instancedTail.pushConstant.m_view = rctx.view;
     instancedTail.pushConstant.m_projection = rctx.projection;
     instancedTail.pushConstant.m_cameraDirection = rctx.cameraDirection;
     instancedTail.pushConstant.m_cameraUp = rctx.cameraUp;
-    instancedTail.renderInfo.m_fragmentTexture[ 0 ] = tail;
+    instancedTail.renderInfo.m_fragmentTexture.emplace_back( tail );
 
 
     const math::mat4 mvp = rctx.projection * rctx.view * rctx.model;

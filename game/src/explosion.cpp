@@ -18,7 +18,7 @@ void Explosion::renderAll( const RenderContext& rctx, const std::pmr::vector<Exp
     instanced.pushConstant.m_projection = rctx.projection;
     instanced.pushConstant.m_cameraPosition = rctx.cameraPosition;
     instanced.pushConstant.m_cameraUp = rctx.cameraUp;
-    instanced.renderInfo.m_fragmentTexture[ 0 ] = explosions.front().m_texture; // TODO sort + split by texture
+    instanced.renderInfo.m_fragmentTexture.emplace_back( explosions.front().m_texture ); // TODO sort + split by texture
 
 
     auto makeParticle = []( const Explosion& expl ) -> Instanced::Instance
