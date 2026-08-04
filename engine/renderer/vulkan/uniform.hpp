@@ -28,7 +28,7 @@ public:
     UniformVK& operator = ( const UniformVK& ) = delete;
 
     [[nodiscard]]
-    VkDescriptorBufferInfo copy( const void*, std::size_t ) noexcept;
+    VkDescriptorBufferInfo copy( const void*, std::size_t size, std::size_t sizeHint ) noexcept;
     void reset();
     void transfer( VkCommandBuffer cmd );
 };

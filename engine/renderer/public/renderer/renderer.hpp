@@ -17,23 +17,29 @@
 #include <span>
 #include <string_view>
 
+template <typename T>
+concept IsSpanLike = requires ( T t ) {
+    requires std::is_trivially_copyable_v<typename T::value_type>;
+    t.data();
+    t.size();
+};
+
 struct Uniform {
     const void* ptr{};
     size_t size{};
+    size_t sizeHint{}; // NOTE: used for a case when submitting uniform data is less than shader expected - as in instanced rendering
     inline Uniform() = default;
     inline Uniform( const Uniform& ) = default;
     inline Uniform& operator = ( const Uniform& ) = default;
 
     template <typename T>
-    inline Uniform( const T& u ) requires std::is_trivially_copyable_v<T> : ptr{ &u }, size{ sizeof( u ) } {}
+    inline Uniform( const T& t ) requires ( std::is_trivially_copyable_v<T> && !IsSpanLike<T> )
+    : ptr{ &t }, size{ sizeof( t ) } {}
 
     template <typename T>
-    inline Uniform( const std::pmr::vector<T>& u ) requires std::is_trivially_copyable_v<T>
-    : ptr{ u.data() }, size{ u.size() * sizeof( T ) } {}
+    inline Uniform( const T& t ) requires IsSpanLike<T>
+    : ptr{ t.data() }, size{ t.size() * sizeof( typename T::value_type ) } {}
 
-    template <typename T>
-    inline Uniform( std::span<const T>& u ) requires std::is_trivially_copyable_v<T>
-    : ptr{ u.data() }, size{ u.size() * sizeof( T ) } {}
 };
 
 struct DispatchInfo {
@@ -53,6 +59,7 @@ struct RenderInfo {
     float m_lineWidth = 1.0f;
     Buffer m_vertexBuffer{};
     Buffer m_indexBuffer{};
+    Uniform m_uniform{};
     StackVector<Uniform, MAX_UNIFORMS> m_uniforms{};
     StackVector<Texture, MAX_TEXTURES> m_fragmentTexture{};
     StackVector<Buffer, MAX_STORAGES> m_storageBuffers{};

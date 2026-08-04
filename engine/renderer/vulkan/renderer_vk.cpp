@@ -810,7 +810,7 @@ void RendererVK::render( const RenderInfo& ri )
 
     auto pushUniforms = [&fr]( const Uniform& u )
     {
-        return fr.m_uniformBuffer.copy( u.ptr, u.size );
+        return fr.m_uniformBuffer.copy( u.ptr, u.size, u.sizeHint );
     };
 
     auto findTexture = [this]( Texture t )
@@ -906,7 +906,7 @@ void RendererVK::dispatch( const DispatchInfo& dispatchInfo )
 
     auto& descriptorPool = fr.m_descriptorSets[ currentPipeline.descriptorSetPoolId() ];
     const std::array uniformInfo = {
-        fr.m_uniformBuffer.copy( dispatchInfo.m_uniform.ptr, dispatchInfo.m_uniform.size )
+        fr.m_uniformBuffer.copy( dispatchInfo.m_uniform.ptr, dispatchInfo.m_uniform.size, dispatchInfo.m_uniform.sizeHint )
     };
     const VkDescriptorSet descriptorSet = descriptorPool.next();
     assert( descriptorSet != VK_NULL_HANDLE );

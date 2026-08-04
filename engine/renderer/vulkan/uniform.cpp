@@ -4,6 +4,7 @@
 
 #include <profiler.hpp>
 
+#include <algorithm>
 #include <cassert>
 #include <cstring>
 #include <utility>
@@ -93,10 +94,10 @@ static std::uintptr_t align( std::uintptr_t p, std::size_t a )
     return ( p + bitmask ) & ~bitmask;
 }
 
-VkDescriptorBufferInfo UniformVK::copy( const void* data, std::size_t size ) noexcept
+VkDescriptorBufferInfo UniformVK::copy( const void* data, std::size_t size, std::size_t sizeHint ) noexcept
 {
     const std::uintptr_t offset = align( m_currentOffset, m_minAlign );
-    m_currentOffset = offset + size;
+    m_currentOffset = offset + std::max( size, sizeHint );
     assert( m_currentOffset <= m_size );
     auto* ptr = reinterpret_cast<std::byte*>( m_mapped ) + offset;
     std::memcpy( ptr, data, size );
@@ -104,7 +105,7 @@ VkDescriptorBufferInfo UniformVK::copy( const void* data, std::size_t size ) noe
     return {
         .buffer = m_buffer,
         .offset = offset,
-        .range = size,
+        .range = std::max( size, sizeHint ),
     };
 }
 
