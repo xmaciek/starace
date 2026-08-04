@@ -139,7 +139,7 @@ void ComboBoxList::render( const RenderContext& rctx ) const
         .m_xywh{ 12.0f, m_topPadding + m_lineHeight * static_cast<float>( m_index.currentVisible() ), width - 24.0f, m_lineHeight },
         .m_uvwh = m_hover,
     };
-    ri.m_uniform = pushConstant;
+    ri.m_uniforms.emplace_back( pushConstant );
     rctx.renderer->render( ri );
 
     Label::CreateInfo ci{

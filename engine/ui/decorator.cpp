@@ -57,8 +57,8 @@ void Decorator::render( const RenderContext& rctx ) const
     RenderInfo ri{
         .m_pipeline = m_pipeline,
         .m_verticeCount = PushConstant<Pipeline::e9Slice>::VERTICES,
-        .m_uniform = pushConstant,
     };
+    ri.m_uniforms.emplace_back( pushConstant );
     ri.m_fragmentTexture.emplace_back( m_texture );
     rctx.renderer->render( ri );
 }

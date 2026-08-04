@@ -80,7 +80,7 @@ void SpinBox::render( const RenderContext& r ) const
     pushConstant.m_sprites[ 1 ].m_whichAtlas = diffTex;
     pushConstant.m_sprites[ 1 ].m_sampleRGBA = textureIs4Channel( m_arrowRight.texture );
 
-    ri.m_uniform = pushConstant;
+    ri.m_uniforms.emplace_back( pushConstant );
     rctx.renderer->render( ri );
 }
 

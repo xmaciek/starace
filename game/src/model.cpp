@@ -35,8 +35,8 @@ void Model::render( const RenderContext& rctx ) const
 
     RenderInfo ri{
         .m_pipeline = g_pipelines[ Pipeline::eMesh ],
-        .m_uniform = pushConstant,
     };
+    ri.m_uniforms.emplace_back( pushConstant );
     ri.m_fragmentTexture.emplace_back( m_texture );
     auto renderMesh = [&ri, &rctx]( Buffer b )
     {
@@ -57,7 +57,7 @@ void Model::render( const RenderContext& rctx ) const
         };
         ri.m_pipeline = g_pipelines[ Pipeline::eThruster2 ];
         ri.m_vertexBuffer = m_thruster;
-        ri.m_uniform = p;
+        ri.m_uniforms[ 0 ] = p;
         rctx.renderer->render( ri );
     }
     if ( m_thrusterAfterglow.empty() ) return;
@@ -79,7 +79,7 @@ void Model::render( const RenderContext& rctx ) const
         .m_projection = rctx.projection,
         .m_zSizeCutoff = zSizeCutoff,
     };
-    ri.m_uniform = aci;
+    ri.m_uniforms[ 0 ] = aci;
 
     for ( auto&& it : m_thrusterAfterglow ) {
         aci.m_modelOffset = it * (float)meter;

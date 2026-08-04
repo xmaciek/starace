@@ -77,8 +77,8 @@ void SpaceDust::render( const RenderContext& rctx ) const
         .m_verticeCount = pushConstant.VERTICES,
         .m_instanceCount = static_cast<uint32_t>( m_particles.size() ),
         .m_lineWidth = m_lineWidth * ( rctx.viewport.y / 720.0f ),
-        .m_uniform = pushConstant,
     };
+    ri.m_uniforms.emplace_back( pushConstant );
 
     assert( m_particles.size() <= pushConstant.m_particles.size() );
 

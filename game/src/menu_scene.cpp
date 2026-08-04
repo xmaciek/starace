@@ -33,8 +33,8 @@ void MenuScene::render( Renderer* renderer, math::vec2 viewport )
     RenderInfo ri{
         .m_pipeline = m_pipeline,
         .m_verticeCount = 4,
-        .m_uniform = pushConstant,
     };
+    ri.m_uniforms.emplace_back( pushConstant );
     ri.m_fragmentTexture.emplace_back( m_background.texture );
     renderer->render( ri );
 

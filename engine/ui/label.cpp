@@ -37,7 +37,7 @@ void Label::render( const RenderContext& rctx ) const
     pushConstant.m_color = m_color;
 
     RenderInfo ri = m_renderText.pushData;
-    ri.m_uniform = pushConstant;
+    ri.m_uniforms.emplace_back( pushConstant );
     using Span = std::span<const PushConstant<ui::Pipeline::eSpriteSequence>::Sprite>;
     Span span = static_cast<Span>( m_renderText.data );
     while ( !span.empty() ) {

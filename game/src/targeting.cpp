@@ -99,8 +99,8 @@ void Targeting::render( const RenderContext& rctx ) const
         .m_pipeline = m_pipeline,
         .m_verticeCount = PushConstant::VERTICES,
         .m_instanceCount = 4,
-        .m_uniform = pushConstant,
     };
+    ri.m_uniforms.emplace_back( pushConstant );
 
     auto pushReticle = [&ri, &pushConstant, &rctx]( const std::array<ui::Sprite, 4>& sprite, const std::array<math::vec4, 4>& geo, math::vec2 pos2d, math::vec4 color )
     {

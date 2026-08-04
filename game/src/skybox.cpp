@@ -16,9 +16,9 @@ void Skybox::render( const RenderContext& rctx ) const
         .m_pipeline = g_pipelines[ Pipeline::eSkybox ],
         .m_verticeCount = pushConstant.VERTICES,
         .m_instanceCount = pushConstant.INSTANCES,
-        .m_uniform = pushConstant,
         .m_fragmentTexture = 6,
     };
+    ri.m_uniforms.emplace_back( pushConstant );
 
     using Wall = MapCreateInfo::Wall;
     ri.m_fragmentTexture[ 0 ] = m_texture[ Wall::eBack ];

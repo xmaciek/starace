@@ -53,7 +53,6 @@ struct RenderInfo {
     float m_lineWidth = 1.0f;
     Buffer m_vertexBuffer{};
     Buffer m_indexBuffer{};
-    Uniform m_uniform{};
     StackVector<Uniform, MAX_UNIFORMS> m_uniforms{};
     StackVector<Texture, MAX_TEXTURES> m_fragmentTexture{};
     StackVector<Buffer, MAX_STORAGES> m_storageBuffers{};
@@ -125,7 +124,7 @@ struct InstancedRendering {
     {
         renderInfo.m_pipeline = p;
         renderInfo.m_verticeCount = pushConstant.VERTICES;
-        renderInfo.m_uniform = pushConstant;
+        renderInfo.m_uniforms.emplace_back( pushConstant );
     }
 
     ~InstancedRendering()

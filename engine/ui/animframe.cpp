@@ -44,7 +44,7 @@ void AnimFrame::render( const RenderContext& rctx ) const
         .m_sampleRGBA = textureIs4Channel( ri.m_fragmentTexture[ 0 ] ),
     };
 
-    ri.m_uniform = pushConstant;
+    ri.m_uniforms.emplace_back( pushConstant );
     rctx.renderer->render( ri );
 }
 

@@ -38,7 +38,7 @@ void Glow::render( const RenderContext& rctx ) const
     pushConstant.m_xyuv[ 2 ] = math::vec4{ xw, yh, 1.0f, 1.0f };
     pushConstant.m_xyuv[ 3 ] = math::vec4{ xw, y, 1.0f, 0.0f };
 
-    ri.m_uniform = pushConstant;
+    ri.m_uniforms.emplace_back( pushConstant );
     rctx.renderer->render( ri );
 }
 
