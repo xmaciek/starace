@@ -43,6 +43,7 @@ struct DispatchInfo {
 
 struct RenderInfo {
     enum : uint32_t {
+        MAX_UNIFORMS = 4,
         MAX_TEXTURES = 9,
         MAX_STORAGES = 4,
     };
@@ -53,6 +54,7 @@ struct RenderInfo {
     Buffer m_vertexBuffer{};
     Buffer m_indexBuffer{};
     Uniform m_uniform{};
+    StackVector<Uniform, MAX_UNIFORMS> m_uniforms{};
     StackVector<Texture, MAX_TEXTURES> m_fragmentTexture{};
     StackVector<Buffer, MAX_STORAGES> m_storageBuffers{};
 };

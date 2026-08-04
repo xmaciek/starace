@@ -798,9 +798,6 @@ void RendererVK::render( const RenderInfo& ri )
 
     m_lastPipeline = &currentPipeline;
 
-    std::array uniformInfo = {
-        fr.m_uniformBuffer.copy( ri.m_uniform.ptr, ri.m_uniform.size )
-    };
     const VkDescriptorSet descriptorSet = descriptorPool.next();
     assert( descriptorSet != VK_NULL_HANDLE );
 
@@ -810,6 +807,11 @@ void RendererVK::render( const RenderInfo& ri )
         vkCmdBindPipeline( fr.m_cmdColorPass, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipeline );
     }
 
+
+    auto pushUniforms = [&fr]( const Uniform& u )
+    {
+        return fr.m_uniformBuffer.copy( u.ptr, u.size );
+    };
 
     auto findTexture = [this]( Texture t )
     {
@@ -828,6 +830,10 @@ void RendererVK::render( const RenderInfo& ri )
         assert( b );
         return b->bindInfo();
     };
+
+    std::array<VkDescriptorBufferInfo, RenderInfo::MAX_UNIFORMS + 1> uniformInfo{};
+    uniformInfo[ 0 ] = pushUniforms( ri.m_uniform );
+    std::ranges::transform( ri.m_uniforms, uniformInfo.begin() + 1, pushUniforms );
 
     std::array<VkDescriptorImageInfo, RenderInfo::MAX_TEXTURES> imageInfo;
     imageInfo.fill( m_defaultTexture->imageInfo() );
