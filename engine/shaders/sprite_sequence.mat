@@ -7,3 +7,4 @@ name spriteSequence
 topology triangleFan
 vertexShader shaders/sprite_sequence.vert.spv
 vertexUniform 0
+vertexUniform 2

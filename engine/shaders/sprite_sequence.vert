@@ -18,6 +18,9 @@ layout( binding = 0 ) uniform ubo {
     mat4 viewMatrix;
     mat4 projectionMatrix;
     vec4 color;
+};
+
+layout( binding = 2 ) uniform ubo2 {
     Sprite sprites[ INSTANCES ];
 };
 

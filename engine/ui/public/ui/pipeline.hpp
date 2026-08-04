@@ -23,21 +23,18 @@ template <>
 struct PushConstant<Pipeline::eSpriteSequence> {
     static constexpr uint32_t INSTANCES = 16;
     static constexpr uint32_t VERTICES = 4;
+
     struct Instance {
         math::vec4 m_xywh;
         math::vec4 m_uvwh;
         uint32_t m_whichAtlas;
         uint32_t m_sampleRGBA;
     };
+
     math::mat4 m_model{};
     math::mat4 m_view{};
     math::mat4 m_projection{};
     math::vec4 m_color{};
-    using Sprite = Instance;
-    union {
-        alignas( 16 ) std::array<Instance, INSTANCES> m_instances{};
-        alignas( 16 ) std::array<Sprite, INSTANCES> m_sprites;
-    };
 };
 
 template <>

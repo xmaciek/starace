@@ -30,20 +30,22 @@ Label::Label( const Label::CreateInfo& ci )
 void Label::render( const RenderContext& rctx ) const
 {
     if ( m_renderText.pushData.m_instanceCount == 0 ) [[unlikely]] return;
-    PushConstant<ui::Pipeline::eSpriteSequence> pushConstant;
-    pushConstant.m_model = rctx.model;
-    pushConstant.m_view = rctx.view;
-    pushConstant.m_projection = rctx.projection;
-    pushConstant.m_color = m_color;
-
+    PushConstant<ui::Pipeline::eSpriteSequence> pushConstant{
+        .m_model = rctx.model,
+        .m_view = rctx.view,
+        .m_projection = rctx.projection,
+        .m_color = m_color,
+    };
     RenderInfo ri = m_renderText.pushData;
     ri.m_uniforms.emplace_back( pushConstant );
-    using Span = std::span<const PushConstant<ui::Pipeline::eSpriteSequence>::Sprite>;
+    ri.m_uniforms.emplace_back();
+    using Span = std::span<const PushConstant<ui::Pipeline::eSpriteSequence>::Instance>;
+
     Span span = static_cast<Span>( m_renderText.data );
     while ( !span.empty() ) {
         auto n = std::min( pushConstant.INSTANCES, (uint32_t)span.size() );
-        auto view = span.subspan( 0, n );
-        std::ranges::copy( view, pushConstant.m_sprites.begin() );
+        ri.m_uniforms.back() = span.subspan( 0, n );
+        ri.m_uniforms.back().sizeHint = sizeof( Span::value_type ) * pushConstant.INSTANCES;
         ri.m_instanceCount = n;
         rctx.renderer->render( ri );
         span = span.subspan( n );

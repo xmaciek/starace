@@ -59,7 +59,7 @@ public:
     Sprite find( Hash::value_type ) const;
     Sprite find( char32_t ) const;
 
-    using RenderInstance = ui::PushConstant<ui::Pipeline::eSpriteSequence>::Sprite;
+    using RenderInstance = ui::PushConstant<ui::Pipeline::eSpriteSequence>::Instance;
     struct RenderText {
         RenderInfo pushData{};
         std::pmr::vector<RenderInstance> data;

@@ -38,13 +38,15 @@ void AnimFrame::render( const RenderContext& rctx ) const
     };
 
     math::vec2 s = size();
-    pushConstant.m_sprites[ 0 ] = PushConstant::Sprite{
+    PushConstant::Instance Sprite{
         .m_xywh{ 0.0f, 0.0f, s.x, s.y },
         .m_uvwh = m_uvwh[ m_index ],
         .m_sampleRGBA = textureIs4Channel( ri.m_fragmentTexture[ 0 ] ),
     };
 
     ri.m_uniforms.emplace_back( pushConstant );
+    ri.m_uniforms.emplace_back( Sprite );
+
     rctx.renderer->render( ri );
 }
 
