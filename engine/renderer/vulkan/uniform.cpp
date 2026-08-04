@@ -10,7 +10,7 @@
 #include <bit>
 
 
-Uniform::~Uniform() noexcept
+UniformVK::~UniformVK() noexcept
 {
     if ( m_device && m_memoryStaging ) {
         vkUnmapMemory( m_device, m_memoryStaging );
@@ -19,7 +19,7 @@ Uniform::~Uniform() noexcept
     destroy<vkDestroyBuffer>( m_device, m_staging );
 }
 
-Uniform::Uniform( Uniform&& rhs ) noexcept
+UniformVK::UniformVK( UniformVK&& rhs ) noexcept
 {
     std::swap( m_device, rhs.m_device );
     std::swap( m_memoryStaging, rhs.m_memoryStaging );
@@ -32,7 +32,7 @@ Uniform::Uniform( Uniform&& rhs ) noexcept
     std::swap( m_size, rhs.m_size );
 }
 
-Uniform& Uniform::operator = ( Uniform&& rhs ) noexcept
+UniformVK& UniformVK::operator = ( UniformVK&& rhs ) noexcept
 {
     std::swap( m_device, rhs.m_device );
     std::swap( m_memoryStaging, rhs.m_memoryStaging );
@@ -62,7 +62,7 @@ static VkBuffer createBuffer( VkDevice device, std::size_t size, VkBufferUsageFl
     return buffer;
 }
 
-Uniform::Uniform( VkPhysicalDevice physDevice, VkDevice device, std::size_t size, std::size_t minAlign ) noexcept
+UniformVK::UniformVK( VkPhysicalDevice physDevice, VkDevice device, std::size_t size, std::size_t minAlign ) noexcept
 : m_device{ device }
 , m_minAlign{ minAlign }
 , m_size{ size }
@@ -93,7 +93,7 @@ static std::uintptr_t align( std::uintptr_t p, std::size_t a )
     return ( p + bitmask ) & ~bitmask;
 }
 
-VkDescriptorBufferInfo Uniform::copy( const void* data, std::size_t size ) noexcept
+VkDescriptorBufferInfo UniformVK::copy( const void* data, std::size_t size ) noexcept
 {
     const std::uintptr_t offset = align( m_currentOffset, m_minAlign );
     m_currentOffset = offset + size;
@@ -108,12 +108,12 @@ VkDescriptorBufferInfo Uniform::copy( const void* data, std::size_t size ) noexc
     };
 }
 
-void Uniform::reset()
+void UniformVK::reset()
 {
     m_currentOffset = 0;
 }
 
-void Uniform::transfer( VkCommandBuffer cmd )
+void UniformVK::transfer( VkCommandBuffer cmd )
 {
     if ( m_currentOffset == 0 ) {
         return;

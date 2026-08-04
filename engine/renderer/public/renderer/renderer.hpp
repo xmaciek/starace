@@ -17,28 +17,31 @@
 #include <span>
 #include <string_view>
 
+struct Uniform {
+    const void* ptr{};
+    size_t size{};
+    inline Uniform() = default;
+    inline Uniform( const Uniform& ) = default;
+    inline Uniform& operator = ( const Uniform& ) = default;
+
+    template <typename T>
+    inline Uniform( const T& u ) requires std::is_trivially_copyable_v<T> : ptr{ &u }, size{ sizeof( u ) } {}
+
+    template <typename T>
+    inline Uniform( const std::pmr::vector<T>& u ) requires std::is_trivially_copyable_v<T>
+    : ptr{ u.data() }, size{ u.size() * sizeof( T ) } {}
+
+    template <typename T>
+    inline Uniform( std::span<const T>& u ) requires std::is_trivially_copyable_v<T>
+    : ptr{ u.data() }, size{ u.size() * sizeof( T ) } {}
+};
+
 struct DispatchInfo {
-    struct Uniform {
-        const void* ptr{};
-        size_t size{};
-        inline Uniform() = default;
-        inline Uniform( const Uniform& ) = default;
-        inline Uniform& operator = ( const Uniform& ) = default;
-        inline Uniform( const auto& u ) : ptr{ &u }, size{ sizeof( u ) } {}
-    };
     PipelineSlot m_pipeline = 0;
     Uniform m_uniform{};
 };
 
 struct RenderInfo {
-    struct Uniform {
-        const void* ptr{};
-        size_t size{};
-        inline Uniform() = default;
-        inline Uniform( const Uniform& ) = default;
-        inline Uniform& operator = ( const Uniform& ) = default;
-        inline Uniform( const auto& u ) : ptr{ &u }, size{ sizeof( u ) } {}
-    };
     enum : uint32_t {
         MAX_TEXTURES = 9,
         MAX_STORAGES = 4,
@@ -47,9 +50,9 @@ struct RenderInfo {
     uint32_t m_verticeCount = 0;
     uint32_t m_instanceCount = 1;
     float m_lineWidth = 1.0f;
-    Uniform m_uniform{};
     Buffer m_vertexBuffer{};
     Buffer m_indexBuffer{};
+    Uniform m_uniform{};
     StackVector<Texture, MAX_TEXTURES> m_fragmentTexture{};
     StackVector<Buffer, MAX_STORAGES> m_storageBuffers{};
 };

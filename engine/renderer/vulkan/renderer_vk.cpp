@@ -228,7 +228,7 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
     m_frames.resize( m_swapchain.imageCount() );
 
     for ( auto& it : m_frames ) {
-        it.m_uniformBuffer = Uniform{ m_physicalDevice, m_device, 2_MiB, physicalProperties.limits.minUniformBufferOffsetAlignment };
+        it.m_uniformBuffer = UniformVK{ m_physicalDevice, m_device, 2_MiB, physicalProperties.limits.minUniformBufferOffsetAlignment };
         it.m_commandPool = CommandPool{ m_device, 3, m_queueManager.graphicsFamily() };
         it.m_cmdUniform = it.m_commandPool[ 0 ];
         it.m_cmdDepthPrepass = it.m_commandPool[ 1 ];

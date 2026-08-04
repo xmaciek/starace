@@ -25,7 +25,7 @@ struct Frame
     Image m_renderDepthTarget{};
     Image m_renderTarget{};
     Image m_renderTargetTmp{};
-    Uniform m_uniformBuffer{};
+    UniformVK m_uniformBuffer{};
     RenderPass m_depthPrepass{};
     RenderPass m_mainPass{};
     std::array<DescriptorSet, 32> m_descriptorSets{};

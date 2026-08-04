@@ -6,7 +6,7 @@
 #include <cstddef>
 #include <cstdint>
 
-class Uniform {
+class UniformVK {
     DeviceMemory m_memoryStaging{};
     DeviceMemory m_memoryDeviceLocal{};
     VkDevice m_device = VK_NULL_HANDLE;
@@ -18,14 +18,14 @@ class Uniform {
     std::size_t m_size = 0;
 
 public:
-    ~Uniform() noexcept;
-    Uniform() noexcept = default;
-    Uniform( VkPhysicalDevice, VkDevice, std::size_t size, std::size_t minAlign ) noexcept;
+    ~UniformVK() noexcept;
+    UniformVK() noexcept = default;
+    UniformVK( VkPhysicalDevice, VkDevice, std::size_t size, std::size_t minAlign ) noexcept;
 
-    Uniform( Uniform&& ) noexcept;
-    Uniform& operator = ( Uniform&& ) noexcept;
-    Uniform( const Uniform& ) = delete;
-    Uniform& operator = ( const Uniform& ) = delete;
+    UniformVK( UniformVK&& ) noexcept;
+    UniformVK& operator = ( UniformVK&& ) noexcept;
+    UniformVK( const UniformVK& ) = delete;
+    UniformVK& operator = ( const UniformVK& ) = delete;
 
     [[nodiscard]]
     VkDescriptorBufferInfo copy( const void*, std::size_t ) noexcept;
