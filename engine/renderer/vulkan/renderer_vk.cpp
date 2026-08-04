@@ -832,8 +832,12 @@ void RendererVK::render( const RenderInfo& ri )
     };
 
     std::array<VkDescriptorBufferInfo, RenderInfo::MAX_UNIFORMS + 1> uniformInfo{};
-    uniformInfo[ 0 ] = pushUniforms( ri.m_uniform );
-    std::ranges::transform( ri.m_uniforms, uniformInfo.begin() + 1, pushUniforms );
+    int uidx = 0;
+    if ( ri.m_uniform.ptr ) {
+        uniformInfo[ 0 ] = pushUniforms( ri.m_uniform );
+        uidx++;
+    }
+    std::ranges::transform( ri.m_uniforms, uniformInfo.begin() + uidx, pushUniforms );
 
     std::array<VkDescriptorImageInfo, RenderInfo::MAX_TEXTURES> imageInfo;
     imageInfo.fill( m_defaultTexture->imageInfo() );

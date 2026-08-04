@@ -22,7 +22,7 @@ public:
 private:
     struct Storage {
         alignas( alignof( value_type ) ) std::byte data[ sizeof( value_type ) ];
-        value_type* emplace( auto... v )
+        value_type* emplace( auto&&... v )
         {
             return std::construct_at<value_type>( std::launder( reinterpret_cast<value_type*>( this ) ), std::forward<decltype(v)>( v )... );
         }
@@ -102,7 +102,7 @@ public:
     constexpr size_type capacity() const { return CAPACITY; }
     void clear() { std::destroy_n( data(), std::exchange( m_size, 0 ) ); }
 
-    reference_type emplace_back( auto... t ) { assert( m_size < capacity() ); return *m_data[ m_size++ ].emplace( std::forward<decltype(t)>( t )... ); }
+    reference_type emplace_back( auto&&... t ) { assert( m_size < capacity() ); return *m_data[ m_size++ ].emplace( std::forward<decltype(t)>( t )... ); }
     reference_type push_back( const T& t ) requires ( std::is_copy_constructible_v<value_type> ) { return emplace_back( t ); }
 
     reference_type front() { assert( size() ); return *begin(); }
