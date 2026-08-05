@@ -5,3 +5,4 @@ name space_dust
 topology lineList
 vertexShader "shaders/space_dust.vert.spv"
 vertexUniform 0
+vertexUniform 1

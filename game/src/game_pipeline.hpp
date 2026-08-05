@@ -39,12 +39,12 @@ template <>
 struct PushConstant<Pipeline::eSpaceDust> {
     static constexpr uint32_t INSTANCES = 100;
     static constexpr uint32_t VERTICES = 2;
+    using Instance = math::vec4;
     math::mat4 m_model{};
     math::mat4 m_view{};
     math::mat4 m_projection{};
     math::vec4 m_color{};
     math::vec4 m_particleOffset{};
-    std::array<math::vec4, INSTANCES> m_particles{};
 };
 
 template <>

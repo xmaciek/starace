@@ -79,9 +79,6 @@ void SpaceDust::render( const RenderContext& rctx ) const
         .m_lineWidth = m_lineWidth * ( rctx.viewport.y / 720.0f ),
     };
     ri.m_uniforms.emplace_back( pushConstant );
-
-    assert( m_particles.size() <= pushConstant.m_particles.size() );
-
-    std::ranges::copy( m_particles, pushConstant.m_particles.begin() );
+    ri.m_uniforms.emplace_back( m_particles );
     rctx.renderer->render( ri );
 }
