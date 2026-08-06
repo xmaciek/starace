@@ -6,6 +6,7 @@
 
 #include <cassert>
 #include <algorithm>
+#include <ranges>
 
 namespace ui {
 
@@ -30,7 +31,8 @@ Label::Label( const Label::CreateInfo& ci )
 void Label::render( const RenderContext& rctx ) const
 {
     if ( m_renderText.pushData.m_instanceCount == 0 ) [[unlikely]] return;
-    PushConstant<ui::Pipeline::eSpriteSequence> pushConstant{
+    using PushConstant = PushConstant<Pipeline::eSpriteSequence>;
+    PushConstant pushConstant{
         .m_model = rctx.model,
         .m_view = rctx.view,
         .m_projection = rctx.projection,
@@ -39,17 +41,16 @@ void Label::render( const RenderContext& rctx ) const
     RenderInfo ri = m_renderText.pushData;
     ri.m_uniforms.emplace_back( pushConstant );
     ri.m_uniforms.emplace_back();
-    using Span = std::span<const PushConstant<ui::Pipeline::eSpriteSequence>::Instance>;
 
-    Span span = static_cast<Span>( m_renderText.data );
-    while ( !span.empty() ) {
-        auto n = std::min( pushConstant.INSTANCES, (uint32_t)span.size() );
-        ri.m_uniforms.back() = span.subspan( 0, n );
-        ri.m_uniforms.back().sizeHint = sizeof( Span::value_type ) * pushConstant.INSTANCES;
-        ri.m_instanceCount = n;
+    auto renderChunk = [&ri, &rctx]( std::span<const PushConstant::Instance> chunk )
+    {
+        ri.m_uniforms.back() = chunk;
+        ri.m_uniforms.back().sizeHint = sizeof( PushConstant::Instance ) * PushConstant::INSTANCES;
+        ri.m_instanceCount = (uint32_t)chunk.size();
         rctx.renderer->render( ri );
-        span = span.subspan( n );
-    }
+    };
+    auto chunks = m_renderText.data | std::views::chunk( pushConstant.INSTANCES );
+    std::ranges::for_each( chunks, renderChunk );
 }
 
 void Label::refreshInput()
