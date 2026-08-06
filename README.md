@@ -17,8 +17,7 @@ Hello Vulkan and few more improvements that should be there from the beginning :
 ### Requirments:
 * C++26 compiler
 * Vulkan >= 1.4
-* SDL 2 >= 2.30 (comes with LunarG Vulkan SDK)
-  * or sdl2-compat (Linux)
+* SDL 3 >= 3.4.12 (comes with LunarG Vulkan SDK)
 * GLM >= 1.0.1 (comes with LunarG Vulkan SDK)
 * Freetype 2 >= 2.10
 
@@ -30,7 +29,7 @@ Hello Vulkan and few more improvements that should be there from the beginning :
 `cmake <path/to/repo/> --preset release; make -j 15`
 
 ### Example build instructions (Windows):
-* Download and install LunarG Vulkan SDK with GLM and SDL2 `https://www.lunarg.com/vulkan-sdk/`
+* Download and install LunarG Vulkan SDK with GLM and SDL3 `https://www.lunarg.com/vulkan-sdk/`
 * Download precompiled Freetype 2 library `https://github.com/ubawurinna/freetype-windows-binaries`
   * `cd <path/to/repo>/sdk`
   * `git clone https://github.com/ubawurinna/freetype-windows-binaries.git`
