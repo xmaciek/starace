@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <ranges>
 
 Bullet::Bullet( const WeaponCreateInfo& bp, const math::vec3& position, const math::vec3& direction )
 : m_tail{ position }
@@ -51,9 +52,12 @@ void Bullet::renderAll( const RenderContext& rctx, std::span<Bullet> span, Textu
     Buffer lastMesh{};
     Texture lastTexture{};
 
-    for ( auto&& bullet : span ) {
-        if ( bullet.m_type == Type::eLaser ) continue;
-        if ( !isOnScreen( mvp, bullet.m_position, rctx.viewport ) ) continue;
+    auto culling = [mvp, viewport = rctx.viewport] ( const Bullet& b )
+    {
+        return b.m_type != Type::eLaser && isOnScreen( mvp, b.m_position, viewport );
+    };
+
+    for ( auto&& bullet : span | std::views::filter( culling ) ) {
         assert( bullet.m_mesh );
         assert( bullet.m_texture );
         if ( ( lastMesh != bullet.m_mesh ) || ( lastTexture != bullet.m_texture ) ) {
