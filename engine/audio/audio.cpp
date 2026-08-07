@@ -122,7 +122,7 @@ struct WavSound {
     ~WavSound();
     WavSound() = default;
     WavSound( std::span<uint8_t> );
-    WavSound( WavSound&& );
+    [[maybe_unused]] WavSound( WavSound&& );
     WavSound( const WavSound& ) = delete;
     WavSound& operator = ( WavSound&& );
     WavSound& operator = ( const WavSound& ) = delete;

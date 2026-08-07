@@ -790,10 +790,11 @@ void RendererVK::render( const RenderInfo& ri )
     uint32_t verticeCount = ri.m_verticeCount;
 
     enum : uint32_t {
+        fNone = 0,
         fDepth = 0b1,
         fIndexed = 0b10,
     };
-    uint32_t cmd = depthWrite ? fDepth : 0;
+    uint32_t cmd = depthWrite ? fDepth : fNone;
     auto& descriptorPool = fr.m_descriptorSets[ currentPipeline.descriptorSetPoolId() ];
 
     m_lastPipeline = &currentPipeline;

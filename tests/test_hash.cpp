@@ -29,7 +29,7 @@ TEST( Hash, weird_msvc_switch_suffix_operator_bug__maybe )
         EXPECT_EQ( h, "testx"_hash );
         break;
     default:
-        EXPECT_EQ( "bug", "exists" );
+        EXPECT_EQ( true, false ); // the bug exists
         break;
     }
 }

@@ -96,3 +96,14 @@ TEST( StackVector, clear )
     EXPECT_EQ( data.size(), 0 );
     EXPECT_EQ( counter, 0 );
 }
+
+TEST( StackVector, sortable )
+{
+    StackVector<int, 4> data( 4 );
+    data[ 0 ] = 4;
+    data[ 1 ] = 1;
+    data[ 2 ] = 7;
+    data[ 3 ] = 3;
+    std::ranges::sort( data );
+    EXPECT_TRUE( std::ranges::is_sorted( data ) );
+}

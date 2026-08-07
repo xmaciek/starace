@@ -31,7 +31,7 @@ template <typename T>
 requires ( std::is_integral_v<T> || std::is_same_v<T, float> )
 inline std::pmr::u32string toString( T t )
 {
-    std::array<char32_t, 20> ret;
+    std::array<char32_t, 20> ret{};
     char32_t* end = toChars( ret.data(), ret.data() + ret.size(), t );
     return std::pmr::u32string{ ret.data(), end };
 }

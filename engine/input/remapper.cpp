@@ -54,7 +54,7 @@ static char32_t mapController( Actuator a, char32_t remapOffset )
     }
 }
 
-Remapper::StackVector Remapper::apply( Actuator::Source source, char32_t chr ) const
+Remapper::Vector Remapper::apply( Actuator::Source source, char32_t chr ) const
 {
     const bool isController = source == Actuator::Source::eKBM;
     auto it = std::ranges::find_if( m_data, [chr, isController]( const auto& p )
@@ -66,7 +66,7 @@ Remapper::StackVector Remapper::apply( Actuator::Source source, char32_t chr ) c
     if ( it == m_data.end() ) return {};
 
     using Source = Actuator::Source;
-    StackVector ret;
+    Vector ret;
     switch ( source ) {
     case Source::eKBM: {
         const SDL_Keycode vk = SDL_GetKeyFromScancode( (SDL_Scancode)it->m_max.typed.id, SDL_KMOD_NONE, false );

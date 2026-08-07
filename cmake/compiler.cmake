@@ -13,6 +13,7 @@ target_compile_options( cxx::flags INTERFACE
     # -Wshadow # disabled because false-positive shadowing in lambdas
     -fno-exceptions
     -fno-rtti
+    -Wno-psabi
 )
 
 elseif ( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" )
