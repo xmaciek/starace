@@ -1,14 +1,20 @@
-layout( binding = 0 ) uniform ubo {
-    mat4 modelMatrix;
-    mat4 viewMatrix;
-    mat4 projectionMatrix;
+const int INSTANCES = 16;
 
+struct Instance {
     vec4 color;
     vec4 xywh;
     vec4 uvwh;
     vec2 spriteExtent;
     uint sampleRGBA;
     float range;
+};
+
+layout( binding = 0 ) uniform ubo {
+    mat4 modelMatrix;
+    mat4 viewMatrix;
+    mat4 projectionMatrix;
+
+    Instance instances[ INSTANCES ];
 };
 
 layout( location = 0 ) out flat vec4 outColor;
@@ -28,17 +34,18 @@ const vec2 vertmult[] = {
 
 void main()
 {
-    vec2 vertPos = xywh.xy + xywh.zw * vertmult[ gl_VertexIndex ];
+    Instance inst = instances[ gl_InstanceIndex ];
+    vec2 vertPos = inst.xywh.xy + inst.xywh.zw * vertmult[ gl_VertexIndex ];
     gl_Position = projectionMatrix
         * viewMatrix
         * modelMatrix
         * vec4( vertPos, 0.0, 1.0 );
 
-    outColor = color;
-    outSpriteUVWH = uvwh;
-    outSpriteExtent = spriteExtent;
-    outQuadExtent = xywh.zw;
-    outRange = vec2( range, range );
+    outColor = inst.color;
+    outSpriteUVWH = inst.uvwh;
+    outSpriteExtent = inst.spriteExtent;
+    outQuadExtent = inst.xywh.zw;
+    outRange = vec2( inst.range, inst.range );
     outUV = vertmult[ gl_VertexIndex ];
-    outSampleRGBA = sampleRGBA;
+    outSampleRGBA = inst.sampleRGBA;
 }

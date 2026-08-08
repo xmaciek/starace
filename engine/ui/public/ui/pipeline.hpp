@@ -60,9 +60,10 @@ struct PushConstant<Pipeline::eSpriteSequenceColors> {
 
 template <>
 struct PushConstant<Pipeline::e9Slice> {
-    static constexpr uint32_t INSTANCES = 1;
+    static constexpr uint32_t INSTANCES = 16;
     static constexpr uint32_t VERTICES = 4;
     struct Instance {
+        math::vec4 m_color;
         math::vec4 m_xywh;
         math::vec4 m_uvwh;
         math::vec2 m_spriteExtent;
@@ -72,7 +73,6 @@ struct PushConstant<Pipeline::e9Slice> {
     math::mat4 m_model{};
     math::mat4 m_view{};
     math::mat4 m_projection{};
-    math::vec4 m_color;
     std::array<Instance, INSTANCES> m_instances{};
 };
 

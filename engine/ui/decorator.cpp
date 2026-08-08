@@ -51,9 +51,9 @@ void Decorator::render( const RenderContext& rctx ) const
         .m_model = rctx.model,
         .m_view = rctx.view,
         .m_projection = rctx.projection,
-        .m_color = color( rctx ),
         .m_instances{ m_data },
     };
+    pushConstant.m_instances[ 0 ].m_color = color( rctx );
     RenderInfo ri{
         .m_pipeline = m_pipeline,
         .m_verticeCount = PushConstant<Pipeline::e9Slice>::VERTICES,
