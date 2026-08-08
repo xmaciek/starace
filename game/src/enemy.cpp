@@ -7,6 +7,7 @@
 #include <profiler.hpp>
 
 #include <cassert>
+#include <ranges>
 
 Enemy::Enemy( const CreateInfo& ci )
 : m_weapon{ ci.weapon }
@@ -51,15 +52,19 @@ Signal Enemy::signal() const
 void Enemy::renderAll( const RenderContext& rctx, std::span<const Enemy> span )
 {
     ZoneScoped;
-    auto r = rctx;
-    for ( auto&& e : span ) {
-        assert( e.status() == Status::eAlive );
+    auto culling = [&rctx]( const Enemy& e )
+    {
         const math::vec3 screenPos = project3dTo2d( rctx.camera3d, e.m_position, rctx.viewport );
-        if ( !isOnScreen( screenPos, rctx.viewport ) ) { continue; }
-
+        return isOnScreen( screenPos, rctx.viewport );
+    };
+    auto r = rctx;
+    auto render = [&rctx, &r]( const Enemy& e )
+    {
+        assert( e.status() == Status::eAlive );
         r.model = math::translate( rctx.model, e.m_position ) * math::toMat4( e.quat() );
         e.m_model.render( r );
-    }
+    };
+    std::ranges::for_each( span | std::views::filter( culling ), render );
 }
 
 void Enemy::updateAll( const UpdateContext& uctx, std::span<Enemy> enemies )
@@ -72,9 +77,7 @@ void Enemy::updateAll( const UpdateContext& uctx, std::span<Enemy> enemies )
         e.m_position += e.velocity() * uctx.deltaTime;
         e.m_health -= std::min( e.m_health, e.m_pendingDamage );
         e.m_pendingDamage = 0;
-        if ( e.m_health == 0 ) {
-            e.m_status = Status::eDead;
-        }
+        e.m_status = e.m_health ? e.m_status : Status::eDead;
     };
     std::ranges::for_each( enemies, update );
 }
