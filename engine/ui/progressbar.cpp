@@ -5,6 +5,7 @@
 #include <renderer/renderer.hpp>
 
 #include <algorithm>
+#include <ranges>
 
 namespace ui {
 
@@ -29,20 +30,35 @@ static const math::vec4 crimson{ 0.863f, 0.078f,  0.234f, 1.0f };
 
 void Progressbar::render( const RenderContext& rctx ) const
 {
-    using Instanced = InstancedRendering<PushConstant<Pipeline::eSpriteSequenceColors>>;
-    Instanced instanced{ rctx.renderer, m_pipeline };
-    instanced.renderInfo.m_fragmentTexture.emplace_back( m_sprite.texture );
-    instanced.pushConstant.m_model = rctx.model;
-    instanced.pushConstant.m_view = rctx.view;
-    instanced.pushConstant.m_projection = rctx.projection;
+    using Uniform = PushConstant<Pipeline::eSpriteSequenceColors>;
+    Uniform uniform{
+        .m_model = rctx.model,
+        .m_view = rctx.view,
+        .m_projection = rctx.projection,
+    };
+    RenderInfo ri{
+        .m_pipeline = m_pipeline,
+        .m_verticeCount = Uniform::VERTICES,
+    };
+    ri.m_uniforms.emplace_back( uniform );
+    ri.m_fragmentTexture.emplace_back( m_sprite.texture );
 
-    for ( auto i = m_count; i--; ) {
-        instanced.append( Instanced::Instance{
+    auto makeInstance = [this]( uint32_t i )
+    {
+        return Uniform::Instance{
             .m_color = (float)i < ( m_value * (float)m_count ) ? winScreen : crimson,
             .m_xywh{ math::vec2{ m_spacing * i, 0.0f }, m_wh },
             .m_uvwh = m_sprite,
-        } );
-    }
+        };
+    };
+    auto submitBatch = [&rctx, &uniform, &ri, makeInstance]( auto&& batch )
+    {
+        std::ranges::transform( batch, uniform.m_instances.begin(), makeInstance );
+        ri.m_instanceCount = static_cast<uint32_t>( batch.size() );
+        rctx.renderer->render( ri );
+    };
+    auto batches = std::views::iota( 0u, m_count ) | std::views::chunk( uniform.INSTANCES );
+    std::ranges::for_each( batches, submitBatch );
 }
 
 void Progressbar::update( const UpdateContext& )
