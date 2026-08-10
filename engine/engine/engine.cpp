@@ -278,7 +278,7 @@ void Engine::processEvents()
             case SDL_GAMEPAD_AXIS_LEFTY: {
                 int16_t x = state.lx_dzone();
                 int16_t y = state.ly_dzone();
-                int16_t ox = std::exchange( axes[ SDL_GAMEPAD_AXIS_LEFTY ], x );
+                int16_t ox = std::exchange( axes[ SDL_GAMEPAD_AXIS_LEFTX ], x );
                 int16_t oy = std::exchange( axes[ SDL_GAMEPAD_AXIS_LEFTY ], y );
                 Actuator ax{ static_cast<Actuator::Axiscode>( SDL_GAMEPAD_AXIS_LEFTX ), x };
                 ax.source = mapControllerType( SDL_GetGamepadTypeForID( event.gaxis.which ) );
