@@ -20,7 +20,7 @@ Enemy::Enemy( const CreateInfo& ci )
         randomRange( -10.0f, 10.0f )
     };
 
-    m_speed = 700_kmph;
+    m_speed = 900_kmph;
     setStatus( Status::eAlive );
     m_health = 100;
     m_direction = math::vec3( 0.0f, 0.0f, 1.0f );

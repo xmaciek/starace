@@ -2,6 +2,8 @@
 
 static constexpr long double meter = 0.02415;
 static constexpr long double kmph = ( 1.0 / 3600.0 ) * 1000.0 * meter;
+static constexpr long double mph = kmph * 0.621371;
+static constexpr long double knot = kmph * 0.539957;
 
 constexpr float operator ""_kmph( long double v ) noexcept
 {
@@ -25,5 +27,20 @@ constexpr float operator ""_m( long double v ) noexcept
 
 constexpr static float operator ""_deg ( long double f ) noexcept
 {
-    return static_cast<float>( f * 0.01745329251994329576923690768489 );
+    return static_cast<float>( f * 0.01745329251994329576923690768489l );
+}
+
+constexpr static float operator ""_kN ( long double f ) noexcept
+{
+    return static_cast<float>( f * 1000.0l );
+}
+
+constexpr static float operator ""_kN ( unsigned long long f ) noexcept
+{
+    return static_cast<float>( f * 1000ull );
+}
+
+constexpr static float operator ""_kg ( unsigned long long f ) noexcept
+{
+    return static_cast<float>( f );
 }

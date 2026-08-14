@@ -106,6 +106,7 @@ struct OptionsCustomize {
 struct GameplayUIData {
     ui::Var<float> m_playerHP{ 0.0f };
     ui::Var<float> m_jetSpeed{ 0.0f };
+    ui::Var<float> m_jetEngine{ 0.0f };
     ui::Var<float> m_playerReloadPrimary{ 0.0f };
     ui::Var<float> m_playerReloadSecondary{ 0.0f };
     ui::Var<uint32_t> m_playerWeaponPrimaryCount{ 0 };

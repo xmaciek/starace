@@ -28,9 +28,7 @@ Player::Player( const CreateInfo& ci ) noexcept
 {
     m_direction.z = -1;
     m_health = static_cast<uint8_t>( 100.0f * pointsToMultiplier( m_points.hp ) );
-    m_speedCurveMax *= pointsToMultiplier( m_points.speedMax );
-    m_speed = math::curve( m_speedCurveMin, m_speedCurveNorm, m_speedCurveMax, 0.5f );
-    m_speedTarget = { m_speed, m_speed, m_accell };
+    m_speed = 800_kmph;
     setStatus( Status::eAlive );
     for ( uint32_t i = 0; i < MAX_SUPPORTED_WEAPON_COUNT; ++i ) {
         m_weapons[ i ] = ci.weapons[ i ];
@@ -94,20 +92,14 @@ void Player::update( const UpdateContext& uctx )
     const math::vec3 pyrTarget = pyrControl * m_pyrLimits;
     m_angleState.setTarget( pyrTarget );
     m_angleState.update( uctx.deltaTime );
+    m_craft.setEngineTrigger( m_input.speed );
+    m_craft.update( uctx.deltaTime );
 
-    {
-        const float speedPos = ( 1.0f + m_input.speed ) * 0.5f;
-        m_speedTarget.setTarget( math::curve( m_speedCurveMin, m_speedCurveNorm, m_speedCurveMax, speedPos ) );
-
-        const uint8_t accell = m_input.speed > 0.01f;
-        const uint8_t deaccell = m_input.speed < -0.01f;
-        const uint8_t accellPoints[ 3 ]{ 0, m_points.accell, m_points.deaccell };
-        const float accellMultiplier = pointsToMultiplier( accellPoints[ accell + deaccell * 2 ] );
-        m_speedTarget.setVelocity( ( accell ? m_accell : m_deaccell ) * accellMultiplier );
-        m_speedTarget.update( uctx.deltaTime + uctx.deltaTime * uctx.deltaTime );
-        m_speed = m_speedTarget.value();
-    }
-
+    float ss = m_speed / (float)meter;
+    float drag = 0.40425f * ( ss * ss );
+    float accel = m_craft.acceleration( drag );
+    const float GAMEPLAY_ENHANCE = 100.0f;
+    m_speed += GAMEPLAY_ENHANCE * accel * uctx.deltaTime;
     m_quaternion *= math::quat{ m_angleState.value() * uctx.deltaTime };
     m_direction = math::normalize( math::rotate( m_quaternion, math::vec3{ 0.0f, 0.0f, -1.0f } ) );
 
@@ -155,6 +147,11 @@ Signal Player::signal() const
         .position = position(),
         .team = 1,
     };
+}
+
+float Player::enginePowerNormalized() const
+{
+    return m_craft.m_enginePowerCurrent / m_craft.m_enginePower.back();
 }
 
 float Player::targetingState() const

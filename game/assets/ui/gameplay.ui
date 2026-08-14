@@ -42,7 +42,7 @@ Progressbar = {
     path = "barBackslash"
     spriteSpacing = -6.0
     color = green
-    data = $var:jetSpeed
+    data = $var:jetEngine
     anchor = midLeft
 }
 

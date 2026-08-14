@@ -10,6 +10,7 @@ target_sources( starace PRIVATE
     bullet.cpp
     bullet.hpp
     colors.hpp
+    craft.hpp
     enemy.cpp
     enemy.hpp
     explosion.cpp

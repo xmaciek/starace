@@ -2,6 +2,7 @@
 
 #include "autolerp.hpp"
 #include "bullet.hpp"
+#include "craft.hpp"
 #include "model.hpp"
 #include "saobject.hpp"
 #include "units.hpp"
@@ -60,13 +61,7 @@ private:
     AutoLerp<math::vec3> m_camOffset{ { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0.2f };
     AutoLerp<math::vec3, math::vec3> m_angleState{};
 
-    float m_speedCurveMax = 1600_kmph;
-    float m_speedCurveNorm = 300_kmph;
-    float m_speedCurveMin = 200_kmph;
-    float m_accell = 256_kmph;
-    float m_deaccell = 256_kmph;
-    AutoLerp<> m_speedTarget{};
-
+    Craft m_craft{};
     PointInfo m_points{};
     Input m_input{};
 
@@ -95,6 +90,7 @@ public:
     Signal target() const;
     Signal signal() const;
 
+    float enginePowerNormalized() const;
     math::vec3 cameraPosition() const;
     math::vec3 cameraDirection() const;
     math::vec2 reloadState() const;

@@ -254,6 +254,7 @@ void Game::setupUI()
     g_uiProperty.addDataModel( "$var:playerWeaponPrimary"_hash, &m_gameplayUIData.m_playerWeaponIconPrimary );
     g_uiProperty.addDataModel( "$var:playerWeaponSecondary"_hash, &m_gameplayUIData.m_playerWeaponIconSecondary );
     g_uiProperty.addDataModel( "$var:jetSpeed"_hash, &m_gameplayUIData.m_jetSpeed );
+    g_uiProperty.addDataModel( "$var:jetEngine"_hash, &m_gameplayUIData.m_jetEngine );
     g_uiProperty.addDataModel( "$var:missionResult"_hash, &m_uiMissionResult );
     g_uiProperty.addDataModel( "$var:missionScore"_hash, &m_uiMissionScore );
     g_uiProperty.addCallback( "$function:goto_missionBriefing"_hash,  [this](){ changeScreen( "missionBriefing"_hash ); } );
@@ -414,7 +415,7 @@ void Game::updateGame( UpdateContext& updateContext )
     const math::vec2 reloadState = m_gameScene.player().reloadState();
     m_gameplayUIData.m_playerReloadPrimary = reloadState.x;
     m_gameplayUIData.m_playerReloadSecondary = reloadState.y;
-    m_gameplayUIData.m_jetSpeed = m_gameScene.player().speed() / 1600_kmph;
+    m_gameplayUIData.m_jetEngine = m_gameScene.player().enginePowerNormalized();
     auto [ primary, secondary ] = m_gameScene.player().weaponClip();
     m_gameplayUIData.m_playerWeaponPrimaryCount = primary;
     m_gameplayUIData.m_playerWeaponSecondaryCount = secondary;
