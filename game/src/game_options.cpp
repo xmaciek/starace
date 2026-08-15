@@ -1,5 +1,7 @@
 #include "game_options.hpp"
 
+#include "units.hpp"
+
 #include <algorithm>
 #include <cassert>
 
@@ -8,6 +10,36 @@ Percent::operator std::pmr::u32string () const
     auto r = std::to_string( value );
     r.append( "%" );
     return std::pmr::u32string{ r.begin(), r.end() };
+}
+
+SpeedString::operator std::pmr::u32string () const
+{
+    uint32_t v = 0;
+    switch ( speedUnit ) {
+    default:
+    case eKMPH: v = (uint32_t)( ( value / meter ) * kmph ); break;
+    case eMPH: v = (uint32_t)( ( value / meter ) * mph ); break;
+    case eKnots: v = (uint32_t)( ( value / meter ) * knot ); break;
+    }
+    auto tmp = std::to_string( v );
+    auto r = std::pmr::u32string{ tmp.begin(), tmp.end() };
+    switch ( speedUnit ) {
+    case eKMPH: r.append( U" km/h" ); break;
+    case eMPH: r.append( U" mph" ); break;
+    case eKnots: r.append( U" kn" ); break;
+    }
+    return r;
+}
+
+std::pmr::u32string speedUnitToString( SpeedUnit e )
+{
+    using enum SpeedUnit;
+    switch ( e ) {
+    default:
+    case eKMPH: return U"km/h";
+    case eMPH: return U"mph";
+    case eKnots: return std::pmr::u32string{ g_uiProperty.localize( "ui.speedunit.knots"_hash ) };
+    }
 }
 
 std::pmr::vector<Percent> Percent::makeRange( uint32_t step, uint32_t extra )
@@ -111,14 +143,18 @@ bool OptionsAudio::hasChanges( const GameSettings& gs ) const
 void OptionsGame::ui2settings( GameSettings& gs ) const
 {
     gs.gameLang = m_languageUI.value().id;
+    gs.speedUnit = m_gameSpeedUnit.value();
 }
 
 void OptionsGame::settings2ui( const GameSettings& gs )
 {
     m_languageUI.assignIf( [id=gs.gameLang]( const auto& info ) { return info.id == id; } );
+    m_gameSpeedUnit.assign( gs.speedUnit );
 }
 
 bool OptionsGame::hasChanges( const GameSettings& gs ) const
 {
-    return gs.gameLang != m_languageUI.value().id;
+    return gs.gameLang != m_languageUI.value().id
+        || gs.speedUnit != m_gameSpeedUnit.value()
+        ;
 }

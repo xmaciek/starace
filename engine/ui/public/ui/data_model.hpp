@@ -13,6 +13,9 @@
 
 namespace ui {
 
+template <typename T>
+concept HasU32StringCastOperator = requires ( const T& t ) { static_cast<std::pmr::u32string>( t ); };
+
 namespace detail {
 template <typename T>
 struct GetT {

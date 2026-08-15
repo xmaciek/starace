@@ -12,9 +12,6 @@
 namespace ui {
 
 template <typename T>
-concept HasU32StringCastOperator = requires ( const T& t ) { static_cast<std::pmr::u32string>( t ); };
-
-template <typename T>
 class Option : public DataModel {
 public:
     using FnToString = std::function<std::pmr::u32string(const T&)>;
@@ -42,7 +39,6 @@ public:
     requires HasU32StringCastOperator<T>
     : m_currentIndex{ currentIndex }
     , m_values( std::move( values ) )
-    , m_toString( []( const T& t ) { return static_cast<std::pmr::u32string>( t ); } )
     {}
 
     inline Option( size_type currentIndex, std::pmr::vector<T>&& values, FnToString&& toString ) noexcept
@@ -116,6 +112,9 @@ public:
         assert( i < m_values.size() );
         if constexpr ( std::is_same_v<T, std::pmr::u32string> ) {
             return m_values[ i ];
+        }
+        else if constexpr ( HasU32StringCastOperator<T> ) {
+            return static_cast<std::pmr::u32string>( m_values[ i ] );
         }
         else {
             if ( m_toString ) return m_toString( m_values[ i ] );

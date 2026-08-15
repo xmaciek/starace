@@ -34,9 +34,10 @@ public:
 
     operator T () const noexcept { return m_value; }
 
-    Var& operator = ( T value ) noexcept
+    template <typename U>
+    Var& operator = ( U&& value ) noexcept
     {
-        m_value = std::forward<T>( value );
+        m_value = std::forward<U>( value );
         m_current++;
         m_revision++;
         return *this;
@@ -61,6 +62,9 @@ public:
     {
         if constexpr ( std::is_same_v<T, std::pmr::u32string> ) {
             return m_value;
+        }
+        else if constexpr ( HasU32StringCastOperator<T> ) {
+            return static_cast<std::pmr::u32string>( m_value );
         }
         else if constexpr ( std::is_same_v<T, Sprite> ) {
             return m_value;

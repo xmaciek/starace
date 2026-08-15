@@ -225,6 +225,9 @@ void Game::setupUI()
     };
 
     m_optionsAudio.m_deviceNameUI.setData( 0, m_audio->listDevices() );
+    m_optionsGame.m_gameSpeedUnit.addOption( SpeedUnit::eKMPH );
+    m_optionsGame.m_gameSpeedUnit.addOption( SpeedUnit::eMPH );
+    m_optionsGame.m_gameSpeedUnit.addOption( SpeedUnit::eKnots );
 
     m_optionsGFX.settings2ui( m_gameSettings );
     m_optionsAudio.settings2ui( m_gameSettings );
@@ -241,6 +244,7 @@ void Game::setupUI()
     g_uiProperty.addDataModel( "$data:settings.audio.ui"_hash, &m_optionsAudio.m_uiUI );
     g_uiProperty.addDataModel( "$data:settings.audio.sfx"_hash, &m_optionsAudio.m_sfxUI );
     g_uiProperty.addDataModel( "$data:settings.game.language"_hash, &m_optionsGame.m_languageUI );
+    g_uiProperty.addDataModel( "$data:settings.speedUnit"_hash, &m_optionsGame.m_gameSpeedUnit );
     g_uiProperty.addDataModel( "$data:weaponPrimary"_hash, &m_optionsCustomize.m_weaponPrimary );
     g_uiProperty.addDataModel( "$data:weaponSecondary"_hash, &m_optionsCustomize.m_weaponSecondary );
     g_uiProperty.addDataModel( "$data:jet"_hash, &m_optionsCustomize.m_jet );
@@ -416,6 +420,7 @@ void Game::updateGame( UpdateContext& updateContext )
     m_gameplayUIData.m_playerReloadPrimary = reloadState.x;
     m_gameplayUIData.m_playerReloadSecondary = reloadState.y;
     m_gameplayUIData.m_jetEngine = m_gameScene.player().enginePowerNormalized();
+    m_gameplayUIData.m_jetSpeed = m_gameScene.player().speed();
     auto [ primary, secondary ] = m_gameScene.player().weaponClip();
     m_gameplayUIData.m_playerWeaponPrimaryCount = primary;
     m_gameplayUIData.m_playerWeaponSecondaryCount = secondary;
@@ -607,6 +612,7 @@ void Game::applyGameSettings()
         auto id = g_uiProperty.changeLockit( m_gameSettings.gameLang );
         m_optionsGame.m_languageUI.select( (uint16_t)id );
     }
+    m_gameplayUIData.m_jetSpeed = SpeedString{ 0.0f, m_gameSettings.speedUnit };
 }
 
 void Game::loadSettings()

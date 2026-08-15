@@ -47,6 +47,15 @@ Progressbar = {
 }
 
 Label = {
+    x = 220
+    y = 600
+    data = $var:jetSpeed
+    font = medium
+    anchor = midLeft
+    color = green
+}
+
+Label = {
     x = 1070
     y = 600
     data = $var:playerWeaponPrimaryCount

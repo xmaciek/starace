@@ -16,6 +16,22 @@ enum class AntiAlias : uint32_t {
     eVRSAA,
 };
 
+enum class SpeedUnit {
+    eKMPH,
+    eMPH,
+    eKnots,
+};
+
+std::pmr::u32string speedUnitToString( SpeedUnit );
+
+struct SpeedString {
+    float value = 0;
+    using enum SpeedUnit;
+    SpeedUnit speedUnit = eKMPH;
+    operator std::pmr::u32string () const;
+    SpeedString& operator = ( float f ) { value = f; return *this; }
+};
+
 struct Percent {
     uint8_t value = 0;
     inline operator float () const { return static_cast<float>( value ) / 100.0f; }
@@ -25,7 +41,7 @@ struct Percent {
 
 struct GameSettings {
     static constexpr inline const uint32_t MAGIC = 'GGFC';
-    static constexpr inline const uint32_t VERSION = 4;
+    static constexpr inline const uint32_t VERSION = 5;
     uint32_t magic = MAGIC;
     uint32_t version = VERSION;
 
@@ -42,6 +58,7 @@ struct GameSettings {
     Percent audioUI{ 100 };
 
     std::array<char, 8> gameLang{};
+    SpeedUnit speedUnit{};
 
     inline operator std::span<const uint8_t> () const
     {
@@ -91,6 +108,7 @@ struct OptionsGame {
         inline operator std::pmr::u32string () const { return display; }
     };
     ui::Option<LanguageInfo> m_languageUI{ 0 };
+    ui::Option<SpeedUnit> m_gameSpeedUnit{ 0, &speedUnitToString };
 
     void settings2ui( const GameSettings& );
     void ui2settings( GameSettings& ) const;
@@ -105,7 +123,7 @@ struct OptionsCustomize {
 
 struct GameplayUIData {
     ui::Var<float> m_playerHP{ 0.0f };
-    ui::Var<float> m_jetSpeed{ 0.0f };
+    ui::Var<SpeedString> m_jetSpeed{};
     ui::Var<float> m_jetEngine{ 0.0f };
     ui::Var<float> m_playerReloadPrimary{ 0.0f };
     ui::Var<float> m_playerReloadSecondary{ 0.0f };
