@@ -17,7 +17,7 @@ GameScene::GameScene( const CreateInfo& ci ) noexcept
     ZoneScoped;
     m_explosions.reserve( 3000 );
     m_bullets.reserve( 200 );
-    m_spacedust.setVelocity( math::vec3{ 0.0f, 0.0f, 26.0_m } );
+    m_spacedust.setVelocity( math::vec3{ 0.0f, 0.0f, 90_kmph } );
     m_spacedust.setCenter( {} );
     m_spacedust.setLineWidth( 2.0f );
     m_spacedust.setPipeline( ci.spaceDustPipeline );
@@ -218,7 +218,7 @@ std::tuple<math::mat4, math::mat4> GameScene::getCameraMatrix( float aspect ) co
     const auto [ cameraPos, cameraUp, cameraTgt ] = getCamera();
     return {
         math::lookAt( cameraPos, cameraTgt, cameraUp ),
-        math::perspective( math::lerp( 55_deg, 90_deg, m_player.enginePowerNormalized()), aspect, 0.001f, 2000.0f )
+        math::perspective( math::lerp( 55_deg, 90_deg, m_player.enginePowerNormalized()), aspect, 0.01_m, 80_km )
     };
 }
 

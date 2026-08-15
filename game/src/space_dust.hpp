@@ -2,6 +2,7 @@
 
 #include "update_context.hpp"
 #include "render_context.hpp"
+#include "units.hpp"
 
 #include <math.hpp>
 #include <renderer/pipeline.hpp>
@@ -17,7 +18,7 @@ class SpaceDust
     math::vec3 m_velocity{};
     PipelineSlot m_pipeline{};
     float m_lineWidth = 2.0f;
-    float m_range = 1.5f;
+    float m_range = 60_m;
 
 public:
     ~SpaceDust() noexcept = default;

@@ -58,7 +58,7 @@ private:
     // pitch yaw roll controls
     math::vec3 m_pyrLimits{};
 
-    AutoLerp<math::vec3> m_camOffset{ { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0.2f };
+    AutoLerp<math::vec3> m_camOffset{ { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 8_m };
     AutoLerp<math::vec3, math::vec3> m_angleState{};
 
     Craft m_craft{};

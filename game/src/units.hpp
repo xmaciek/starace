@@ -27,6 +27,16 @@ constexpr float operator ""_m( long double v ) noexcept
     return static_cast<float>( v * meter );
 }
 
+constexpr float operator ""_m( unsigned long long v ) noexcept
+{
+    return static_cast<float>( static_cast<long double>( v ) * meter );
+}
+
+constexpr float operator ""_km( unsigned long long v ) noexcept
+{
+    return static_cast<float>( ( static_cast<long double>( v ) * 1000.0l ) * meter );
+}
+
 constexpr static float operator ""_deg ( unsigned long long f ) noexcept
 {
     return static_cast<float>( static_cast<float>( f ) * math::rad );

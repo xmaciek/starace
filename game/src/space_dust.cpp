@@ -2,6 +2,7 @@
 
 #include "game_pipeline.hpp"
 #include "utils.hpp"
+#include "units.hpp"
 
 #include <renderer/renderer.hpp>
 
@@ -12,9 +13,9 @@
 static math::vec4 randomPosition()
 {
     return {
-        randomRange( -1.0f, 1.0f ),
-        randomRange( -1.0f, 1.0f ),
-        randomRange( -1.0f, 1.0f ),
+        randomRange( -40_m, 40_m ),
+        randomRange( -40_m, 40_m ),
+        randomRange( -40_m, 40_m ),
         1.0f,
     };
 }

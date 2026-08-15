@@ -9,7 +9,9 @@ layout( location = 1 ) out flat uint texID;
 
 const float uvmin = 0.00125;
 const float uvmax = 0.99875;
-const float s = 1000.0;
+const float dist = 40000.0;
+const float meter = 0.02415;
+const float s = dist * meter;
 
 const vec4 WALL[ 6 ][ 4 ] = {
     { vec4( -s, -s,  s, 0.0 ), vec4(  s, -s,  s, 0.0 ), vec4(  s,  s,  s, 0.0 ), vec4( -s,  s,  s, 0.0 ) },

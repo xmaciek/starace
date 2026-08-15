@@ -15,9 +15,9 @@ Enemy::Enemy( const CreateInfo& ci )
 , m_callsign { ci.callsign }
 {
     m_position = math::vec3{
-        randomRange( -10.0f, 10.0f ),
-        randomRange( -10.0f, 10.0f ),
-        randomRange( -10.0f, 10.0f )
+        randomRange( -400_m, 400_m ),
+        randomRange( -400_m, 400_m ),
+        randomRange( -400_m, 400_m )
     };
 
     m_speed = 900_kmph;
