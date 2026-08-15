@@ -218,7 +218,7 @@ std::tuple<math::mat4, math::mat4> GameScene::getCameraMatrix( float aspect ) co
     const auto [ cameraPos, cameraUp, cameraTgt ] = getCamera();
     return {
         math::lookAt( cameraPos, cameraTgt, cameraUp ),
-        math::perspective( math::radians( 55.0f + m_player.speed() * 3 ), aspect, 0.001f, 2000.0f )
+        math::perspective( math::lerp( 55_deg, 90_deg, m_player.enginePowerNormalized()), aspect, 0.001f, 2000.0f )
     };
 }
 

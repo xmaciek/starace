@@ -1,5 +1,7 @@
 #pragma once
 
+#include <math.hpp>
+
 static constexpr long double meter = 0.02415;
 static constexpr long double kmph = 3.6;
 static constexpr long double mph = 2.23693629;
@@ -25,9 +27,14 @@ constexpr float operator ""_m( long double v ) noexcept
     return static_cast<float>( v * meter );
 }
 
+constexpr static float operator ""_deg ( unsigned long long f ) noexcept
+{
+    return static_cast<float>( static_cast<float>( f ) * math::rad );
+}
+
 constexpr static float operator ""_deg ( long double f ) noexcept
 {
-    return static_cast<float>( f * 0.01745329251994329576923690768489l );
+    return static_cast<float>( f * math::rad );
 }
 
 constexpr static float operator ""_kN ( long double f ) noexcept

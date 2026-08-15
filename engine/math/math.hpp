@@ -32,6 +32,7 @@ static_assert( sizeof( mat4 ) == 64 );
 static_assert( sizeof( quat ) == 16 );
 
 static constexpr inline float pi = std::numbers::pi_v<float>;
+static constexpr inline float rad = (float)0.01745329251994329576923690768489l;
 
 using glm::abs;
 using glm::acos;
