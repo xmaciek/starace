@@ -119,14 +119,14 @@ TextureVK& TextureVK::operator = ( TextureVK&& rhs ) noexcept
 }
 
 struct RegionGenerator {
-    uint32_t m_bufferSize = 0;
+    VkDeviceSize m_bufferSize = 0;
     uint32_t m_mipSize = 0;
     uint32_t m_width = 0;
     uint32_t m_height = 0;
     uint32_t m_mips = 0;
     uint32_t m_arrays = 0;
 
-    uint32_t m_offset = 0;
+    VkDeviceSize m_offset = 0;
     uint32_t m_id = 0;
 
     VkBufferImageCopy operator () ();
@@ -134,7 +134,7 @@ struct RegionGenerator {
 
 VkBufferImageCopy RegionGenerator::operator () ()
 {
-    const uint32_t bufferOffset = m_offset;
+    const VkDeviceSize bufferOffset = m_offset;
     const uint32_t id = m_id++;
     const uint32_t mipLevel = id % m_mips;
     const uint32_t arrayId = id / m_mips;

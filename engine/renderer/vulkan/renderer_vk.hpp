@@ -115,6 +115,7 @@ public:
     std::atomic<uint64_t> m_pendingResolutionChange = {};
     std::optional<VSync> m_pendingVSyncChange{};
 
+    VkPhysicalDeviceProperties m_properties{};
     void recreateSwapchain();
     void recreateRenderTargets( VkExtent2D );
     void refreshResolution();

@@ -3,6 +3,8 @@
 #include "device_memory.hpp"
 #include "vk.hpp"
 
+#include <shared/stack_vector.hpp>
+
 #include <cstdint>
 #include <span>
 
@@ -26,25 +28,34 @@ private:
     DeviceMemory m_memory{};
     VkDevice m_device = VK_NULL_HANDLE;
     VkBuffer m_buffer = VK_NULL_HANDLE;
+    StackVector<VkDescriptorBufferInfo, 16> m_subAllocations{};
 
 public:
     ~BufferVK() noexcept;
     BufferVK() noexcept = default;
-    BufferVK( VkPhysicalDevice, VkDevice, const Purpose&, uint32_t ) noexcept;
+    BufferVK( VkPhysicalDevice, VkDevice, const Purpose&, uint32_t size ) noexcept;
     BufferVK( const BufferVK& ) = delete;
     BufferVK& operator = ( const BufferVK& ) = delete;
     BufferVK( BufferVK&& ) noexcept;
     BufferVK& operator = ( BufferVK&& ) noexcept;
 
+
     void transferFrom( const BufferVK&, VkCommandBuffer );
     void copyData( std::span<const uint8_t> );
-    uint32_t sizeInBytes() const;
+    void copyDatas( std::span<std::span<const uint8_t>>, uint32_t minAlignment );
+
+    VkDeviceSize sizeInBytes() const;
+    VkDeviceSize subAllocationSize() const;
+    static VkDeviceSize computeSize( std::span<std::span<const uint8_t>> datas, uint32_t minAlignment );
 
     VkDescriptorBufferInfo bindInfo() const;
+    std::span<const VkDescriptorBufferInfo> subAllocations() const;
+    [[nodiscard]]
+    bool empty() const;
 
     operator VkBuffer () const;
+    void release( const VkDescriptorBufferInfo& );
 
     void bind( VkCommandBuffer );
     void bindAsIndex( VkCommandBuffer );
-
 };

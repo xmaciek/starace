@@ -183,8 +183,7 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
     m_surface = Surface{ m_window, m_instance };
     m_debugMsg = DebugMsg{ m_instance };
 
-    VkPhysicalDeviceProperties physicalProperties{};
-    m_physicalDevice = selectPhysicalDevice( m_instance, &physicalProperties );
+    m_physicalDevice = selectPhysicalDevice( m_instance, &m_properties );
     assert( m_physicalDevice );
 
     {
@@ -228,7 +227,7 @@ RendererVK::RendererVK( const Renderer::CreateInfo& createInfo )
     m_frames.resize( m_swapchain.imageCount() );
 
     for ( auto& it : m_frames ) {
-        it.m_uniformBuffer = UniformVK{ m_physicalDevice, m_device, 2_MiB, physicalProperties.limits.minUniformBufferOffsetAlignment };
+        it.m_uniformBuffer = UniformVK{ m_physicalDevice, m_device, 2_MiB, m_properties.limits.minUniformBufferOffsetAlignment };
         it.m_commandPool = CommandPool{ m_device, 3, m_queueManager.graphicsFamily() };
         it.m_cmdUniform = it.m_commandPool[ 0 ];
         it.m_cmdDepthPrepass = it.m_commandPool[ 1 ];
@@ -392,12 +391,7 @@ Buffer RendererVK::createBuffer( std::span<const uint8_t> data )
     BufferVK staging = getStagingBuffer( size );
     assert( staging.sizeInBytes() >= data.size() );
     staging.copyData( data );
-
     BufferVK* buff = new BufferVK{ m_physicalDevice, m_device, BufferVK::DEVICE_LOCAL, size };
-
-    const VkBufferCopy copyRegion{
-        .size = size,
-    };
 
     VkCommandBuffer cmd = m_transferCmd;
     const VkSubmitInfo submitInfo{
@@ -408,7 +402,7 @@ Buffer RendererVK::createBuffer( std::span<const uint8_t> data )
 
     m_transferCommandPool.reset();
     beginRecording( cmd );
-    vkCmdCopyBuffer( cmd, staging, *buff, 1, &copyRegion );
+    buff->transferFrom( staging, cmd );
     vkEndCommandBuffer( cmd );
 
     [[maybe_unused]]
@@ -529,8 +523,7 @@ BufferVK RendererVK::getStagingBuffer( uint32_t size )
         std::ranges::transform( m_stagingBuffersCache, score.begin(), [size]( const auto& buff )
         {
             if ( buff.sizeInBytes() < size ) return 0u;
-            static_assert( std::is_same_v<decltype( buff.sizeInBytes() ), uint32_t> );
-            return 0xFFFFFFFFu - buff.sizeInBytes();
+            return 0xFFFFFFFFu - (uint32_t)buff.sizeInBytes();
         } );
         auto it = std::ranges::max_element( score );
         assert( it != score.end() );
@@ -862,12 +855,12 @@ void RendererVK::render( const RenderInfo& ri )
     if ( auto b = getBuffer( ri.m_vertexBuffer ) ) {
         if ( depthWrite ) b->bind( fr.m_cmdDepthPrepass );
         b->bind( fr.m_cmdColorPass );
-        verticeCount = b->sizeInBytes() / currentPipeline.vertexStride();
+        verticeCount = (uint32_t)( b->sizeInBytes() / currentPipeline.vertexStride() );
 
         if ( auto bi = getBuffer( ri.m_indexBuffer ) ) {
             if ( depthWrite ) bi->bindAsIndex( fr.m_cmdDepthPrepass );
             bi->bindAsIndex( fr.m_cmdColorPass );
-            verticeCount = b->sizeInBytes() / sizeof( uint16_t );
+            verticeCount = (uint32_t)( b->sizeInBytes() / sizeof( uint16_t ) );
             cmd |= fIndexed;
         }
     }
