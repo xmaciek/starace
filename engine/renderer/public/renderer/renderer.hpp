@@ -84,6 +84,7 @@ public:
 
     [[nodiscard]] virtual PipelineSlot createPipeline( const PipelineCreateInfo& ) = 0;
     [[nodiscard]] virtual Buffer createBuffer( std::span<const uint8_t> ) = 0;
+    virtual void createBuffers( std::span<std::span<const uint8_t>>, std::span<Buffer> ) = 0;
     virtual void deleteBuffer( Buffer ) = 0;
 
     [[nodiscard]] virtual Texture createTexture( const TextureCreateInfo&, std::span<const uint8_t> ) = 0;

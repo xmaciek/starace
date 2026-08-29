@@ -93,17 +93,22 @@ void BufferVK::copyDatas( std::span<std::span<const uint8_t>> datas, VkDeviceSiz
 {
     ZoneScoped;
     m_subAllocations.resize( datas.size() );
-    auto copyRange = [this, minAlignment, offset=VkDeviceSize{}]( std::span<const uint8_t> s ) mutable
+
+    void* ptr = nullptr;
+    [[maybe_unused]]
+    const VkResult mapOK = vkMapMemory( m_device, m_memory, 0, sizeInBytes(), 0, &ptr );
+    assert( mapOK == VK_SUCCESS );
+    assert( ptr );
+
+    auto copyRange = [this, minAlignment, ptr, offset=VkDeviceSize{}]( std::span<const uint8_t> s ) mutable
     {
         assert( !s.empty() );
         assert( offset + s.size() <= sizeInBytes() );
-        void* ptr = nullptr;
-        [[maybe_unused]]
-        const VkResult mapOK = vkMapMemory( m_device, m_memory, offset, s.size(), 0, &ptr );
-        assert( mapOK == VK_SUCCESS );
         std::memcpy( ptr, s.data(), s.size() );
         auto offsetRet = offset;
         offset = align( offset + s.size(), minAlignment );
+        ptr = ((uint8_t*)ptr) + align( s.size(), minAlignment );
+
         return VkDescriptorBufferInfo{
             .buffer = m_buffer,
             .offset = offsetRet,

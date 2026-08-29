@@ -5,7 +5,9 @@
 
 #include <profiler.hpp>
 
+#include <cassert>
 #include <cstring>
+#include <ranges>
 
 Mesh::Mesh( std::span<const uint8_t> data, Renderer* renderer ) noexcept
 : m_renderer{ renderer }
@@ -31,6 +33,9 @@ Mesh::Mesh( std::span<const uint8_t> data, Renderer* renderer ) noexcept
             std::advance( ptr, sizeof( float ) * 3 );
         }
     };
+    std::pmr::vector<Buffer> buffers;
+    std::pmr::vector<std::span<const uint8_t>> datas;
+    std::pmr::vector<std::pmr::string> names;
     for ( uint32_t i = 0; i < header.chunkCount; ++i ) {
         obj::Chunk chunk{};
         assert( ptr + sizeof( chunk ) <= end );
@@ -61,10 +66,14 @@ Mesh::Mesh( std::span<const uint8_t> data, Renderer* renderer ) noexcept
 
         const uint8_t* floats = reinterpret_cast<const uint8_t*>( ptr );
         const uint32_t bytesToLoad = chunk.floatCount * sizeof( float );
-        std::span<const uint8_t> span{ floats, bytesToLoad };
+        datas.emplace_back( std::span<const uint8_t>{ floats, bytesToLoad } );
+        names.emplace_back( chunk.name );
         std::advance( ptr, bytesToLoad );
-        Buffer buffer = renderer->createBuffer( span );
-        m_map.emplace( std::make_pair( std::pmr::string{ chunk.name }, buffer ) );
+    }
+    buffers.resize( datas.size() );
+    renderer->createBuffers( datas, buffers );
+    for ( auto&& [ name, buffer ] : std::ranges::zip_view( names, buffers ) ) {
+        m_map.emplace( std::make_pair( std::move( name ), buffer ) );
     }
 }
 

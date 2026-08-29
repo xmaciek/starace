@@ -135,7 +135,7 @@ public:
 
     virtual PipelineSlot createPipeline( const PipelineCreateInfo& ) override;
     virtual Buffer createBuffer( std::span<const uint8_t> ) override;
-    void createBuffers( std::span<std::span<const uint8_t>>, std::span<Buffer> );
+    virtual void createBuffers( std::span<std::span<const uint8_t>>, std::span<Buffer> ) override;
     virtual Texture createTexture( const TextureCreateInfo&, std::span<const uint8_t> ) override;
     virtual void beginFrame() override;
     virtual void endFrame() override;
