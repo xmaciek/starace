@@ -26,6 +26,7 @@ struct ResourceDeleter {
     void operator () ( std::atomic<TextureVK*>& t ) { delete t.exchange( nullptr ); }
     void operator () ( BufferVK*& b ) { delete std::exchange( b, nullptr ); }
     void operator () ( std::atomic<BufferVK*>& b ) { delete b.exchange( nullptr ); }
+    void operator () ( BufferVK& b ) { b = {}; }
 };
 
 struct TextureExtra {
@@ -306,7 +307,6 @@ RendererVK::~RendererVK()
 {
     ZoneScoped;
     std::ranges::for_each( m_textureSlots, ResourceDeleter{} );
-    std::ranges::for_each( m_bufferSlots, ResourceDeleter{} );
     std::ranges::for_each( m_resourceDelete, ResourceDeleter{} );
 }
 
@@ -386,12 +386,22 @@ static void beginRecording( VkCommandBuffer cmd )
 
 Buffer RendererVK::createBuffer( std::span<const uint8_t> data )
 {
+    Buffer ret;
+    std::span out = { &ret, 1 };
+    std::span datas = { &data, 1 };
+    createBuffers( datas, out );
+    return ret;
+}
+
+void RendererVK::createBuffers( std::span<std::span<const uint8_t>> datas, std::span<Buffer> out )
+{
     ZoneScoped;
-    const uint32_t size = static_cast<uint32_t>( data.size() );
+    assert( datas.size() == out.size() );
+    const auto size = BufferVK::computeSize( datas, m_properties.limits.minStorageBufferOffsetAlignment );
     BufferVK staging = getStagingBuffer( size );
-    assert( staging.sizeInBytes() >= data.size() );
-    staging.copyData( data );
-    BufferVK* buff = new BufferVK{ m_physicalDevice, m_device, BufferVK::DEVICE_LOCAL, size };
+    assert( staging.sizeInBytes() >= size );
+    staging.copyDatas( datas, m_properties.limits.minStorageBufferOffsetAlignment );
+    BufferVK buff{ m_physicalDevice, m_device, BufferVK::DEVICE_LOCAL, size };
 
     VkCommandBuffer cmd = m_transferCmd;
     const VkSubmitInfo submitInfo{
@@ -402,7 +412,7 @@ Buffer RendererVK::createBuffer( std::span<const uint8_t> data )
 
     m_transferCommandPool.reset();
     beginRecording( cmd );
-    buff->transferFrom( staging, cmd );
+    buff.transferFrom( staging, cmd );
     vkEndCommandBuffer( cmd );
 
     [[maybe_unused]]
@@ -411,11 +421,17 @@ Buffer RendererVK::createBuffer( std::span<const uint8_t> data )
 
     releaseStagingBuffer( std::move( staging ) );
 
-    const uint32_t idx = static_cast<uint32_t>( m_bufferIndexer.next() );
+    auto subAllocations = buff.subAllocations();
+    std::ranges::transform( subAllocations, out.begin(), [this]( const auto& it )
+    {
+        auto idx = m_buffers.emplace( it );
+        assert( idx < 0x10000u );
+        return BufferExtra{ .index = (uint16_t)idx };
+    } );
+    VkBuffer b = buff;
     [[maybe_unused]]
-    BufferVK* oldBuff = m_bufferSlots[ idx ].exchange( buff );
-    assert( !oldBuff );
-    return BufferExtra{ .index = (uint16_t)idx };
+    auto&& [ _, inserted ] = m_buffersMap.insert( std::make_pair( b, std::move( buff ) ) );
+    assert( inserted );
 }
 
 Texture RendererVK::createTexture( const TextureCreateInfo& tci, std::span<const uint8_t> data )
@@ -494,11 +510,17 @@ void RendererVK::deleteBuffer( Buffer b )
     ZoneScoped;
     auto buf = std::bit_cast<BufferExtra>( b );
     assert( buf );
-    BufferVK* ptr = m_bufferSlots[ buf.index ].exchange( nullptr );
-    assert( ptr );
-    m_bufferIndexer.release( buf.index );
-    Bottleneck bottleneck{ m_resourceDeleteBottleneck };
-    m_resourceDelete.emplace_back( ptr );
+    auto buffInfo = m_buffers[ buf.index ];
+    m_buffers.release( buf.index );
+    auto it = m_buffersMap.find( buffInfo.buffer );
+    assert( it != m_buffersMap.end() );
+    it->second.release( buffInfo );
+    if ( !it->second.empty() ) return;
+    {
+        Bottleneck bottleneck{ m_resourceDeleteBottleneck };
+        m_resourceDelete.emplace_back( std::move( it->second ) );
+    }
+    m_buffersMap.erase( it );
 }
 
 void RendererVK::deleteTexture( Texture t )
@@ -514,7 +536,7 @@ void RendererVK::deleteTexture( Texture t )
     m_resourceDelete.emplace_back( ptr );
 }
 
-BufferVK RendererVK::getStagingBuffer( uint32_t size )
+BufferVK RendererVK::getStagingBuffer( VkDeviceSize size )
 {
     ZoneScoped;
     std::array<uint32_t, STAGING_BUFFER_CACHE_COUNT> score{};
@@ -820,9 +842,14 @@ void RendererVK::render( const RenderInfo& ri )
     {
         const auto buffer = std::bit_cast<BufferExtra>( buf );
         assert( buffer );
-        const BufferVK* b = m_bufferSlots[ buffer.index ];
-        assert( b );
-        return b->bindInfo();
+        return m_buffers[ buffer.index ];
+    };
+    auto findBufferNoCheck = [this]( Buffer buf ) -> VkDescriptorBufferInfo
+    {
+        if ( !buf ) return {};
+        const auto buffer = std::bit_cast<BufferExtra>( buf );
+        assert( buffer );
+        return m_buffers[ buffer.index ];
     };
 
     std::array<VkDescriptorBufferInfo, RenderInfo::MAX_UNIFORMS> uniformInfo{};
@@ -843,24 +870,24 @@ void RendererVK::render( const RenderInfo& ri )
         vkCmdSetLineWidth( fr.m_cmdColorPass, ri.m_lineWidth );
     }
 
-    auto getBuffer = [this]( Buffer buf ) -> BufferVK*
+    auto bindVertex = []( VkCommandBuffer cmd, const VkDescriptorBufferInfo& bufferInfo )
     {
-        if ( !buf ) return nullptr;
-        const auto buffer = std::bit_cast<BufferExtra>( buf );
-        assert( buffer );
-        BufferVK* b = m_bufferSlots[ buffer.index ];
-        assert( b );
-        return b;
+        vkCmdBindVertexBuffers( cmd, 0, 1, &bufferInfo.buffer, &bufferInfo.offset );
     };
-    if ( auto b = getBuffer( ri.m_vertexBuffer ) ) {
-        if ( depthWrite ) b->bind( fr.m_cmdDepthPrepass );
-        b->bind( fr.m_cmdColorPass );
-        verticeCount = (uint32_t)( b->sizeInBytes() / currentPipeline.vertexStride() );
+    auto bindIndex = []( VkCommandBuffer cmd, const VkDescriptorBufferInfo& bufferInfo )
+    {
+        vkCmdBindIndexBuffer( cmd, bufferInfo.buffer, bufferInfo.offset, VK_INDEX_TYPE_UINT16 );
+    };
 
-        if ( auto bi = getBuffer( ri.m_indexBuffer ) ) {
-            if ( depthWrite ) bi->bindAsIndex( fr.m_cmdDepthPrepass );
-            bi->bindAsIndex( fr.m_cmdColorPass );
-            verticeCount = (uint32_t)( b->sizeInBytes() / sizeof( uint16_t ) );
+    if ( auto b = findBufferNoCheck( ri.m_vertexBuffer ); b.buffer ) {
+        if ( depthWrite ) bindVertex( fr.m_cmdDepthPrepass, b );
+        bindVertex( fr.m_cmdColorPass, b );
+        verticeCount = (uint32_t)( b.range / currentPipeline.vertexStride() );
+
+        if ( auto bi = findBufferNoCheck( ri.m_indexBuffer ); bi.buffer ) {
+            if ( depthWrite ) bindIndex( fr.m_cmdDepthPrepass, bi );
+            bindIndex( fr.m_cmdColorPass, bi );
+            verticeCount = (uint32_t)( bi.range / sizeof( uint16_t ) );
             cmd |= fIndexed;
         }
     }

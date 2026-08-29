@@ -16,10 +16,12 @@
 
 #include <renderer/renderer.hpp>
 #include <shared/indexer.hpp>
+#include <shared/pool.hpp>
 
 #include <array>
 #include <memory_resource>
 #include <vector>
+#include <map>
 #include <mutex>
 #include <optional>
 #include <variant>
@@ -98,15 +100,16 @@ public:
     Indexer<MAX_TEXTURES> m_textureIndexer{};
     std::array<std::atomic<TextureVK*>, MAX_TEXTURES> m_textureSlots{};
 
-    Indexer<MAX_BUFFERS> m_bufferIndexer{};
-    std::array<std::atomic<BufferVK*>, MAX_BUFFERS> m_bufferSlots{};
+    Pool<VkDescriptorBufferInfo, MAX_BUFFERS> m_buffers;
+    std::pmr::map<VkBuffer, BufferVK> m_buffersMap{};
 
     std::mutex m_resourceDeleteBottleneck{};
-    using ResourceDelete = std::variant<TextureVK*, BufferVK*>;
+    using ResourceDelete = std::variant<TextureVK*, BufferVK*, BufferVK>;
     std::pmr::vector<ResourceDelete> m_resourceDelete{};
 
     std::mutex m_stagingBuffersCacheBottleneck{};
     std::array<BufferVK, STAGING_BUFFER_CACHE_COUNT> m_stagingBuffersCache{};
+
 
     VkFormat m_colorFormat = VK_FORMAT_UNDEFINED;
     VkFormat m_depthFormat = VK_FORMAT_UNDEFINED;
@@ -120,7 +123,7 @@ public:
     void recreateRenderTargets( VkExtent2D );
     void refreshResolution();
 
-    BufferVK getStagingBuffer( uint32_t );
+    BufferVK getStagingBuffer( VkDeviceSize );
     void releaseStagingBuffer( BufferVK&& );
 
 public:
@@ -132,6 +135,7 @@ public:
 
     virtual PipelineSlot createPipeline( const PipelineCreateInfo& ) override;
     virtual Buffer createBuffer( std::span<const uint8_t> ) override;
+    void createBuffers( std::span<std::span<const uint8_t>>, std::span<Buffer> );
     virtual Texture createTexture( const TextureCreateInfo&, std::span<const uint8_t> ) override;
     virtual void beginFrame() override;
     virtual void endFrame() override;

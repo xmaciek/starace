@@ -32,7 +32,7 @@ BufferVK& BufferVK::operator = ( BufferVK&& rhs ) noexcept
     return *this;
 }
 
-BufferVK::BufferVK( VkPhysicalDevice physicalDevice, VkDevice device, const Purpose& purpose, uint32_t size ) noexcept
+BufferVK::BufferVK( VkPhysicalDevice physicalDevice, VkDevice device, const Purpose& purpose, VkDeviceSize size ) noexcept
 : m_device( device )
 {
     ZoneScoped;
@@ -67,14 +67,14 @@ void BufferVK::transferFrom( const BufferVK& from, VkCommandBuffer cmd )
     std::ranges::for_each( m_subAllocations, [this]( auto& desc ) { desc.buffer = m_buffer; } );
 }
 
-static VkDeviceSize align( VkDeviceSize p, uint32_t a )
+static VkDeviceSize align( VkDeviceSize p, VkDeviceSize a )
 {
     assert( std::popcount( a ) == 1 );
     const VkDeviceSize bitmask = a - 1;
     return ( p + bitmask ) & ~bitmask;
 }
 
-VkDeviceSize BufferVK::computeSize( std::span<std::span<const uint8_t>> datas, uint32_t minAlignment )
+VkDeviceSize BufferVK::computeSize( std::span<std::span<const uint8_t>> datas, VkDeviceSize minAlignment )
 {
     auto comp = [minAlignment]( VkDeviceSize r, const auto& s )
     {
@@ -89,7 +89,7 @@ void BufferVK::copyData( std::span<const uint8_t> data )
     copyDatas( datas, 1 );
 }
 
-void BufferVK::copyDatas( std::span<std::span<const uint8_t>> datas, uint32_t minAlignment )
+void BufferVK::copyDatas( std::span<std::span<const uint8_t>> datas, VkDeviceSize minAlignment )
 {
     ZoneScoped;
     m_subAllocations.resize( datas.size() );

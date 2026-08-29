@@ -33,20 +33,19 @@ private:
 public:
     ~BufferVK() noexcept;
     BufferVK() noexcept = default;
-    BufferVK( VkPhysicalDevice, VkDevice, const Purpose&, uint32_t size ) noexcept;
+    BufferVK( VkPhysicalDevice, VkDevice, const Purpose&, VkDeviceSize size ) noexcept;
     BufferVK( const BufferVK& ) = delete;
     BufferVK& operator = ( const BufferVK& ) = delete;
     BufferVK( BufferVK&& ) noexcept;
     BufferVK& operator = ( BufferVK&& ) noexcept;
 
-
     void transferFrom( const BufferVK&, VkCommandBuffer );
     void copyData( std::span<const uint8_t> );
-    void copyDatas( std::span<std::span<const uint8_t>>, uint32_t minAlignment );
+    void copyDatas( std::span<std::span<const uint8_t>>, VkDeviceSize minAlignment );
 
     VkDeviceSize sizeInBytes() const;
     VkDeviceSize subAllocationSize() const;
-    static VkDeviceSize computeSize( std::span<std::span<const uint8_t>> datas, uint32_t minAlignment );
+    static VkDeviceSize computeSize( std::span<std::span<const uint8_t>> datas, VkDeviceSize minAlignment );
 
     VkDescriptorBufferInfo bindInfo() const;
     std::span<const VkDescriptorBufferInfo> subAllocations() const;
