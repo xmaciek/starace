@@ -6,13 +6,14 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <numeric>
 
 template <size_t TCapacity>
 class Indexer {
 protected:
     using Atomic = std::atomic<uint64_t>;
     static constexpr uint64_t c_invalidIndex = ~(uint64_t)0;
-    static constexpr size_t c_atomicCount = ( TCapacity >> 6 ) + 1;
+    static constexpr size_t c_atomicCount = ( TCapacity >> 7 ) + 1;
     static constexpr size_t c_objectsPerChunk = 64;
     static constexpr uint64_t c_bitMax = c_objectsPerChunk - 1;
     static constexpr uint64_t c_bit = 1;
@@ -76,4 +77,11 @@ public:
             it.store( 0 );
         }
     }
+
+    size_t size() const
+    {
+        return std::accumulate( m_indexes.begin(), m_indexes.end(), 0uz, []( size_t r, const auto& a ) { return r + (uint64_t)std::popcount( a.load() ); } );
+    }
 };
+
+static_assert( sizeof( Indexer<64> ) == 8 );

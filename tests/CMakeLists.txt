@@ -25,6 +25,7 @@ target_sources( tests
     test_fixed_map_view.cpp
     test_hash.cpp
     test_max_score_element.cpp
+    test_pool.cpp
     test_savesystem.cpp
     test_stack_vector.cpp
     test_unicode.cpp

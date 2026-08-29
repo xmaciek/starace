@@ -4,85 +4,49 @@
 
 #include <array>
 #include <cassert>
-#include <cstddef>
 #include <cstdint>
 #include <type_traits>
-#include <memory_resource>
 
-#include <profiler.hpp>
-
-template <typename T, std::size_t TCapacity>
-class Pool : protected Indexer<TCapacity>, public std::pmr::memory_resource {
+template <typename T, size_t TCapacity>
+requires ( std::is_trivially_constructible_v<T> && std::is_trivially_copyable_v<T> && std::is_trivially_destructible_v<T> )
+class Pool : protected Indexer<TCapacity> {
     using Super = Indexer<TCapacity>;
-    using Storage = std::aligned_storage_t<sizeof( T ), alignof( T )>;
-
-    typename Super::Atomic m_numAllocs = 0;
-    std::array<Storage, TCapacity> m_data{};
-
-    virtual void* do_allocate( [[maybe_unused]] std::size_t bytes, [[maybe_unused]] std::size_t alignment ) override
-    {
-        assert( bytes <= sizeof( T ) );
-        assert( alignment <= alignof( T ) );
-        return alloc();
-    }
-
-    virtual void do_deallocate( void* ptr, [[maybe_unused]] std::size_t bytes, [[maybe_unused]] std::size_t alignment ) override
-    {
-        assert( bytes <= sizeof( T ) );
-        assert( alignment <= alignof( T ) );
-        dealloc( ptr );
-    }
-
-    virtual bool do_is_equal( const std::pmr::memory_resource& rhs ) const noexcept override
-    {
-        return &rhs == this;
-    }
-
+    std::array<T, TCapacity> m_data{};
 public:
-    virtual ~Pool() noexcept override = default;
+    using index_type = uint64_t;
+    using value_type = T;
+    using size_type = size_t;
+
+    virtual ~Pool() noexcept = default;
     Pool() noexcept = default;
 
     [[nodiscard]]
-    void* alloc() noexcept
+    index_type emplace( const T& t )
     {
-        const uint64_t index = Super::next();
-        assert( index < TCapacity );
-        if ( index >= TCapacity ) {
-            return nullptr;
-        }
-        assert( index != Super::c_invalidIndex );
-        if ( index == Super::c_invalidIndex ) {
-            return nullptr;
-        }
-
-        [[maybe_unused]]
-        const auto [ chunk, bitMask ] = Super::split( index );
-        assert( ( Super::m_indexes[ chunk ].load() & bitMask ) == bitMask );
-        m_numAllocs.fetch_add( 1 );
-        void* ret = &m_data[ index ];
-        TracyAlloc( ret, sizeof( T ) );
-        return ret;
+        index_type i = Super::next();
+        m_data[ i ] = t;
+        return i;
     }
 
-    void dealloc( void* ptr ) noexcept
+    void release( index_type i )
     {
-        TracyFree( ptr );
-        m_numAllocs.fetch_sub( 1 );
-        const std::uintptr_t index = static_cast<std::uintptr_t>(
-            reinterpret_cast<const Storage*>( ptr ) - &m_data.front()
-        );
-        assert( index < m_data.size() );
-        Super::release( index );
+        Super::release( i );
     }
 
-    uint64_t allocCount() const noexcept
+    T& operator [] ( index_type i )
     {
-        return m_numAllocs.load();
+        assert( i < TCapacity );
+        return m_data[ i ];
     }
 
-    void discardAll() noexcept
+    const T& operator [] ( index_type i ) const
     {
-        m_numAllocs.store( 0 );
-        Super::releaseAll();
+        assert( i < TCapacity );
+        return m_data[ i ];
     }
+
+    size_type size() const { return Super::size(); }
+
 };
+
+
