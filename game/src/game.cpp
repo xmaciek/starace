@@ -577,10 +577,9 @@ void Game::loadCSG( Asset&& asset )
     }
     assert( header.magic == header.MAGIC );
     assert( header.version == header.VERSION );
-    std::pmr::vector<csg::Callsign> callsigns{};
     auto size = m_callsigns.size();
     m_callsigns.resize( size + header.count );
-    std::memcpy( m_callsigns.data() + size, asset.data.data(), header.count * sizeof( csg::Callsign ) );
+    asset.read( std::span<csg::Callsign>{ m_callsigns.data() + size, header.count } );
 }
 
 void Game::applyDisplay()

@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include <cassert>
 #include <filesystem>
 #include <list>
 #include <map>
@@ -24,6 +25,20 @@ struct Asset {
         if ( data.size() < sizeof( T ) ) return false;
         std::memcpy( &t, data.data(), sizeof( T ) );
         data = data.subspan( sizeof( T ) );
+        return true;
+    }
+
+    template <typename T>
+    requires ( std::is_trivially_copyable_v<T> )
+    bool read( std::span<T> t )
+    {
+        auto bytes = sizeof( T ) * t.size();
+        if ( data.size() < bytes ) {
+            assert( !"too much data requested to read" );
+            return false;
+        }
+        std::memcpy( t.data(), data.data(), bytes );
+        data = data.subspan( bytes );
         return true;
     }
 };
