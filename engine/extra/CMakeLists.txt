@@ -1,9 +1,6 @@
-add_library( extra STATIC )
+add_library( extra INTERFACE )
 
 target_sources( extra
-    PRIVATE
-    obj.cpp
-
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/public/extra/args.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/public/extra/csg.hpp
@@ -18,9 +15,4 @@ set_vs_directory( extra "libs" )
 set_target_properties( extra PROPERTIES
     INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/public/
     INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/public/
-)
-
-target_link_libraries( extra
-    profiler
-    cxx::flags
 )
