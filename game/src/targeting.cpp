@@ -49,18 +49,8 @@ Targeting::Targeting( const Targeting::CreateInfo& ci )
     std::ranges::transform( reticleSprites, m_xyuvReticle.begin(), unpack );
 }
 
-static const std::array<math::vec4, 4> A{
-    math::vec4{ -68.0f, -68.0f, 16.0f, 16.0f },
-    math::vec4{  52.0f, -68.0f, 16.0f, 16.0f },
-    math::vec4{ -68.0f,  52.0f, 16.0f, 16.0f },
-    math::vec4{  52.0f,  52.0f, 16.0f, 16.0f },
-};
-static const std::array<math::vec4, 4> B{
-    math::vec4{ -16.0f, -16.0, 16.0f, 16.0f },
-    math::vec4{   0.0f, -16.0, 16.0f, 16.0f },
-    math::vec4{ -16.0f,   0.0, 16.0f, 16.0f },
-    math::vec4{   0.0f,   0.0, 16.0f, 16.0f },
-};
+static const math::vec4 SIZE_NORMAL{ -64.0f, -64.0f, 128.0f, 128.0f };
+static const math::vec4 SIZE_SMALL{ -16.0f, -16.0f, 32.0f, 32.0f };
 
 static const std::array<math::vec4, 4> C{
     math::vec4{ -8.0f, 150.0, 16.0f, 16.0f },
@@ -102,6 +92,36 @@ void Targeting::render( const RenderContext& rctx ) const
     };
     ri.m_uniforms.emplace_back( pushConstant );
 
+    using Reticles = InstancedRendering<ui::PushConstant<ui::Pipeline::e9Slice>>;
+    auto&& spriteTracking = g_uiProperty.sprite( "reticle.tracking"_hash );
+    auto&& spriteLocked = g_uiProperty.sprite( "reticle.locked"_hash );
+    assert( spriteTracking.texture == spriteLocked.texture );
+    Reticles reticles{ rctx.renderer, g_uiProperty.findMaterial( "9slice"_hash ) };
+    reticles.renderInfo.m_fragmentTexture.emplace_back( spriteTracking.texture );
+    reticles.pushConstant.m_model = rctx.model;
+    reticles.pushConstant.m_view = rctx.view;
+    reticles.pushConstant.m_projection = rctx.projection;
+    auto makeInstanceTracking = [&spriteTracking, &rctx]( math::vec2 pos2d ) -> Reticles::Instance
+    {
+        return {
+            .m_color = color::lightSteelBlue,
+            .m_xywh = SIZE_NORMAL + math::vec4{ pos2d.x, rctx.viewport.y - pos2d.y, 0.0f, 0.0f },
+            .m_uvwh = spriteTracking.uvwh(),
+            .m_spriteExtent = spriteTracking.extent(),
+            .m_range = 0.5f,
+        };
+    };
+    auto makeInstanceLocked = [&spriteLocked, &rctx]( math::vec2 pos2d, float n ) -> Reticles::Instance
+    {
+        return {
+            .m_color = math::lerp(color::winScreen, color::crimson, n ),
+            .m_xywh = math::lerp( SIZE_NORMAL, SIZE_SMALL, n ) + math::vec4{ pos2d.x, rctx.viewport.y - pos2d.y, 0.0f, 0.0f },
+            .m_uvwh = spriteLocked.uvwh(),
+            .m_spriteExtent = spriteLocked.extent(),
+            .m_range = 0.5f,
+        };
+    };
+
     auto pushReticle = [&ri, &pushConstant, &rctx]( const std::array<ui::Sprite, 4>& sprite, const std::array<math::vec4, 4>& geo, math::vec2 pos2d, math::vec4 color )
     {
         math::vec4 offset{ pos2d.x, rctx.viewport.y - pos2d.y, 0.0f, 0.0f };
@@ -129,7 +149,7 @@ void Targeting::render( const RenderContext& rctx ) const
         .view = rctx.view,
         .projection = rctx.projection,
     };
-    auto renderSignal = [this, &rr, &rctx, &pushReticle, value=m_state.value()]( Signal signal )
+    auto renderSignal = [this, &rr, &rctx, &pushReticle, value=m_state.value(), &reticles, &makeInstanceLocked, &makeInstanceTracking]( Signal signal )
     {
         const math::vec3 pos2d = project3dTo2d( rctx.camera3d, signal.position, rctx.viewport );
         if ( !isOnScreen( pos2d, rctx.viewport ) ) return;
@@ -144,15 +164,14 @@ void Targeting::render( const RenderContext& rctx ) const
         lbl.setText( std::move( txt ) );
         lbl.onRender( rr );
         if ( m_targetSignal.callsign != signal.callsign ) [[likely]] {
-            pushReticle( m_xyuvReticle, A, math::vec2{ pos2d.x, pos2d.y }, color::lightSteelBlue );
+            reticles.append( makeInstanceTracking( pos2d ) );
             return;
         }
         static const math::vec4 white0 = color::white * math::vec4{ 1.0f, 1.0f, 1.0f, 0.0f };
-        const math::vec4 targetColor = math::lerp( color::winScreen, color::crimson, value );
         const math::vec4 targetColor2 = math::lerp( white0, color::crimson, value );
         const math::vec2 position{ pos2d.x, pos2d.y };
         pushReticle( m_xyuvTarget2, lerp( C, D, value ), position, targetColor2 );
-        pushReticle( m_xyuvTarget, lerp( A, B, value ), position, targetColor );
+        reticles.append( makeInstanceLocked( position, value ) );
     };
     std::ranges::for_each( m_signals, std::move( renderSignal ) );
 }

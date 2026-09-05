@@ -12,16 +12,11 @@ icon.cannon = { x = 192 y = 0 w = 64 h = 32 }
 icon.blaster = { x = 128 y = 32 w = 64 h = 32 }
 icon.rocket = { x = 128 y = 0 w = 64 h = 32 }
 
-reticle.t.topleft  = { x = 0 y = 64  w = 16 h = 16 }
-reticle.t.topright = { x = 16 y = 64  w = 16 h = 16 }
-reticle.t.botleft  = { x = 0 y = 80 w = 16 h = 16 }
-reticle.t.botright = { x = 16 y = 80 w = 16 h = 16 }
+reticle.locked = { x = 0 y = 64 w = 32 h = 32 }
+reticle.tracking = { x = 64 y = 64 w = 32 h = 32 }
+
 reticle.t.down  = { x = 32 y = 64  w = 16 h = 16 }
 reticle.t.up = { x = 48 y = 64  w = 16 h = 16 }
 reticle.t.right  = { x = 32 y = 80 w = 16 h = 16 }
 reticle.t.left = { x = 48 y = 80 w = 16 h = 16 }
 
-reticle.r.topleft  = { x = 64 y = 64  w = 16 h = 16 }
-reticle.r.topright = { x = 80 y = 64  w = 16 h = 16 }
-reticle.r.botleft  = { x = 64 y = 80 w = 16 h = 16 }
-reticle.r.botright = { x = 80 y = 80 w = 16 h = 16 }
