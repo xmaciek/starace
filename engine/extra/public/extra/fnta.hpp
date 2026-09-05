@@ -29,7 +29,7 @@ struct Header {
     uint32_t textureHash = 0;
 };
 
-struct Glyph {
+struct alignas( 16 ) Glyph {
     uint16_t position[ 2 ]{};
     uint16_t size[ 2 ]{};
     int16_t advance[ 2 ]{};
