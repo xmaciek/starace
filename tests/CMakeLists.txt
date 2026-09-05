@@ -3,31 +3,31 @@ if ( NOT GTest_FOUND )
     return()
 endif()
 
-add_executable( tests )
+function( add_run_test )
+    cmake_parse_arguments( TEST "" "SRC" "LINK" ${ARGN} )
+    get_filename_component( TEST_NAME ${TEST_SRC} NAME_WE )
+    add_executable( ${TEST_NAME} )
+    target_sources( ${TEST_NAME} PRIVATE ${TEST_SRC} )
+    target_link_libraries( ${TEST_NAME}
+        cxx::flags
+        GTest::GTest
+        GTest::Main
+        ${TEST_LINK}
+    )
+    add_custom_command( TARGET ${TEST_NAME}
+        POST_BUILD
+        COMMAND ${TEST_NAME} --gtest_brief=1
+    )
+endfunction()
 
-target_link_libraries( tests
-    cxx::flags
-    GTest::GTest
-    GTest::Main
-    shared
-    config
-    extra
-    engine
-    ccmd
-    unicode
-)
-
-target_sources( tests
-    PRIVATE
-    test_ccmd.cpp
-    test_config.cpp
-    test_fixed_map.cpp
-    test_fixed_map_view.cpp
-    test_hash.cpp
-    test_max_score_element.cpp
-    test_pool.cpp
-    test_savesystem.cpp
-    test_stack_vector.cpp
-    test_unicode.cpp
-    test_unique_add.cpp
-)
+add_run_test( SRC test_ccmd.cpp LINK ccmd )
+add_run_test( SRC test_config.cpp LINK config )
+add_run_test( SRC test_fixed_map.cpp LINK shared )
+add_run_test( SRC test_fixed_map_view.cpp LINK shared )
+add_run_test( SRC test_hash.cpp LINK shared )
+add_run_test( SRC test_max_score_element.cpp LINK shared )
+add_run_test( SRC test_pool.cpp LINK shared )
+add_run_test( SRC test_savesystem.cpp LINK engine )
+add_run_test( SRC test_stack_vector.cpp LINK shared )
+add_run_test( SRC test_unicode.cpp LINK unicode )
+add_run_test( SRC test_unique_add.cpp LINK shared )
