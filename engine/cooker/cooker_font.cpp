@@ -388,9 +388,7 @@ int main( int argc, const char** argv )
     ofs = cooker::openWrite( argsDstFont );
     cooker::write( ofs, fntaHeader );
     cooker::write( ofs, charset );
-    for ( auto&& slot : slots ) {
-        ofs.write( (const char*)&slot.glyph, sizeof( slot.glyph ) );
-    }
+    std::ranges::for_each( slots, [&ofs]( auto& slot ) { cooker::write( ofs, slot.glyph ); } );
 
     return 0;
 }
