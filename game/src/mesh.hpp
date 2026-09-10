@@ -3,6 +3,7 @@
 #include <math.hpp>
 #include <renderer/buffer.hpp>
 #include <shared/stack_vector.hpp>
+#include <shared/resource_map.hpp>
 
 #include <array>
 #include <cstdint>
@@ -21,8 +22,7 @@ struct Hardpoints {
 
 class Mesh {
     Renderer* m_renderer = nullptr;
-    // TODO revisit with complying map __cpp_lib_generic_unordered_lookup, or drop key altogether
-    std::pmr::unordered_map<std::pmr::string, Buffer> m_map{};
+    ResourceMap<Buffer> m_map{};
 public:
     Hardpoints hardpoints{};
     StackVector<math::vec3, 2> thrusterAfterglow{};

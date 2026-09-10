@@ -37,4 +37,9 @@ public:
         auto it = m_map.find( h );
         return it == m_map.end() ? T{} : it->second;
     }
+
+    auto begin() const { return m_map.begin(); }
+    auto begin() { return m_map.begin(); }
+    auto end() const { return m_map.end(); }
+    auto end() { return m_map.end(); }
 };

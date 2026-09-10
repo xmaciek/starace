@@ -72,15 +72,12 @@ Mesh::Mesh( std::span<const uint8_t> data, Renderer* renderer ) noexcept
     }
     buffers.resize( datas.size() );
     renderer->createBuffers( datas, buffers );
-    for ( auto&& [ name, buffer ] : std::ranges::zip_view( names, buffers ) ) {
-        m_map.emplace( std::make_pair( std::move( name ), buffer ) );
-    }
+    std::ranges::for_each( std::ranges::zip_view( names, buffers ), [this]( auto&& it ) { m_map.insert( std::move( it ) ); } );
 }
 
 Buffer Mesh::operator [] ( std::string_view v ) const noexcept
 {
-    auto it = m_map.find( std::pmr::string{ v.begin(), v.end() } );
-    return it != m_map.end() ? it->second : Buffer{};
+    return m_map[ v ];
 }
 
 Mesh::~Mesh() noexcept
