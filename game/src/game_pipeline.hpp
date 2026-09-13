@@ -86,7 +86,7 @@ struct PushConstant<Pipeline::eSkybox> {
 template <>
 struct PushConstant<Pipeline::eParticleBlob> {
     static constexpr uint32_t INSTANCES = 320;
-    static constexpr uint32_t VERTICES = 6;
+    static constexpr uint32_t VERTICES = 4;
     struct Instance {
         math::vec4 m_position{};
         math::vec4 m_uvxywh{};

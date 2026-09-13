@@ -5,6 +5,6 @@ fragmentShader shaders/particles_blob.frag.spv
 fragmentImage 1
 frontFace ccw
 name particles
-topology triangleList
+topology triangleFan
 vertexShader shaders/particles_blob.vert.spv
 vertexUniform 0
