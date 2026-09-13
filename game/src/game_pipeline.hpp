@@ -64,7 +64,7 @@ struct PushConstant<Pipeline::eThruster2> {
 
 template <>
 struct PushConstant<Pipeline::eAfterglow> {
-    static constexpr uint32_t VERTICES = 6;
+    static constexpr uint32_t VERTICES = 4;
     static constexpr uint32_t INSTANCES = 4;
     math::mat4 m_model{};
     math::mat4 m_view{};

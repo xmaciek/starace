@@ -3,6 +3,6 @@ depthTest 1
 fragmentShader shaders/afterglow.frag.spv
 frontFace ccw
 name afterglow
-topology triangleList
+topology triangleFan
 vertexShader shaders/afterglow.vert.spv
 vertexUniform 0

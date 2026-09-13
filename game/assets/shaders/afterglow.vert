@@ -18,22 +18,18 @@ layout( location = 0 ) out vec2 fragUV;
 layout( location = 1 ) out flat float fragCutoff;
 layout( location = 2 ) out flat ColorScheme fragColor;
 
-const vec3 vertexPos[ 6 ] = {
+const vec3 vertexPos[ 4 ] = {
     vec3( -1.0, -1.0, 0.0 ),
     vec3( -1.0, 1.0, 0.0 ),
     vec3( 1.0, 1.0, 0.0 ),
-    vec3( 1.0, 1.0, 0.0 ),
-    vec3( 1.0, -1.0, 0.0 ),
-    vec3( -1.0, -1.0, 0.0 )
+    vec3( 1.0, -1.0, 0.0 )
 };
 
-const vec2 vertexUV[ 6 ] = {
+const vec2 vertexUV[ 4 ] = {
     vec2( 0.0, 0.0 ),
     vec2( 0.0, 1.0 ),
     vec2( 1.0, 1.0 ),
-    vec2( 1.0, 1.0 ),
-    vec2( 1.0, 0.0 ),
-    vec2( 0.0, 0.0 )
+    vec2( 1.0, 0.0 )
 };
 
 void main()
