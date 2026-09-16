@@ -11,7 +11,13 @@ MessageBox::MessageBox( const CreateInfo& ci )
 : Widget{ ci.position, ci.size, Anchor::fMiddle | Anchor::fCenter  }
 {
     emplace_child<Decorator>( Decorator::CreateInfo{ .size = ci.size } );
-    emplace_child<Label>( Label::CreateInfo{ .text = ci.text, .font = "medium"_hash, .position = ci.size * 0.5f, .anchor = Anchor::fMiddle | Anchor::fCenter, } );
+    emplace_child<Label>( Label::CreateInfo{
+        .text = ci.text,
+        .font = "medium"_hash,
+        .position = ci.size * math::vec2{ 0.5f, 0.4f },
+        .size = ci.size - math::vec2{ 8.0f, ci.size.y - 64.0f },
+        .anchor = Anchor::fMiddle | Anchor::fCenter,
+    } );
     m_blur = g_uiProperty.findMaterial( "blur"_hash );
 }
 

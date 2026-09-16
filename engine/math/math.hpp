@@ -61,6 +61,16 @@ using glm::tan;
 using glm::toMat4;
 using glm::translate;
 
+inline float right( const vec4& v )
+{
+    return v.x + v.z;
+}
+
+inline float bottom( const vec4& v )
+{
+    return v.y + v.w;
+}
+
 inline float angle( const auto& a, const auto&b )
 {
     return acos( dot( a, b ) );

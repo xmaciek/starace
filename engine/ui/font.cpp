@@ -159,13 +159,11 @@ Font::RenderText Font::composeText( std::u32string_view text, const math::vec2& 
     uint32_t lastBreakCursorPos = 0;
     uint32_t lastInstanceCount = 0;
 
-    auto breakLine = [&ret, &cursor, lineHeight = (float)m_lineHeight * m_scale]()
+    auto breakLine = [&cursor, lineHeight = (float)m_lineHeight * m_scale]()
     {
-        ret.extent.x = std::max( ret.extent.x, cursor.x );
         cursor.x = 0.0f;
         cursor.y += lineHeight * 1.5f;
     };
-    ret.extent.x = std::max( ret.extent.x, cursor.x );
     cursor.x = 0.0f;
     cursor.y = (float)m_lineHeight * m_scale;
 
@@ -257,7 +255,10 @@ Font::RenderText Font::composeText( std::u32string_view text, const math::vec2& 
             breakLine();
         }
     }
-    ret.extent.x = std::max( ret.extent.x, cursor.x );
+    ret.extent.x = std::accumulate( ret.data.begin(), ret.data.end(), 0.0f, [](float r, const auto& obj )
+    {
+        return std::max( r, math::right( obj.m_xywh ) );
+    });
     ret.extent.y = cursor.y;
     ret.pushData.m_instanceCount = (uint32_t)ret.data.size();
     return ret;

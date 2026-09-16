@@ -23,7 +23,7 @@ Footer::Footer( const Footer::CreateInfo& ci ) noexcept
     } );
     m_label = emplace_child<Label>( Label::CreateInfo{
         .font = "medium"_hash,
-        .position = math::vec2{ ci.size.x - 8.0f, ci.size.y * 0.5f },
+        .position = math::vec2{ ci.size.x - 32.0f, ci.size.y * 0.5f },
         .anchor = Anchor::fMiddle | Anchor::fRight
     } );
     uint32_t idx = 0;
