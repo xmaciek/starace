@@ -6,6 +6,8 @@
 
 #include <profiler.hpp>
 
+#include <ranges>
+
 GameScene::GameScene( const CreateInfo& ci ) noexcept
 : m_skybox{ ci.skybox }
 , m_player{ ci.player }
@@ -13,6 +15,8 @@ GameScene::GameScene( const CreateInfo& ci ) noexcept
 , m_plasma{ ci.textures->find( "textures/plasma.dds"_hash ) }
 , m_tail{ ci.textures->find( "textures/tail.dds"_hash ) }
 , m_audio{ ci.audio }
+, m_enemyCI{ .weapon = ci.enemyWeapon, .model = ci.enemyModel, }
+
 {
     ZoneScoped;
     m_explosions.reserve( 3000 );
@@ -27,7 +31,6 @@ GameScene::GameScene( const CreateInfo& ci ) noexcept
     std::pmr::vector<uint16_t> callsigns( ci.enemyCallsigns.size() );
     std::ranges::iota( callsigns, 0 );
     std::ranges::shuffle( callsigns, Random{ std::random_device()() } );
-
     std::ranges::generate( m_enemies, [&ci, &callsigns, i=0u]() mutable
     {
         return Enemy::CreateInfo{
@@ -131,7 +134,11 @@ void GameScene::update( UpdateContext uctx )
         m_explosions.emplace_back( e.position(), e.velocity(), color::yellowBlaster, m_plasma, 64.0_m, 0.0f, 1.0f );
         return true;
     };
-    std::erase_if( m_enemies, extraExplosions );
+    auto respawn = m_enemies | std::views::filter( extraExplosions );
+    std::ranges::for_each( respawn, [ci=m_enemyCI]( auto& e ) mutable {
+        ci.callsign = e.callsign();
+        e = Enemy{ ci };
+    } );
     std::ranges::for_each( m_enemies, [this]( Enemy& e ) { e.shoot( m_bullets ); } );
 
     m_targeting.setSignals( std::move( sgs ) );

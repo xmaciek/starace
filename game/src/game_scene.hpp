@@ -34,7 +34,7 @@ class GameScene {
     Audio* m_audio{};
     AutoLerp<float> m_look{ 0.0f, 1.0f, 3.0f };
     uint32_t m_score = 0;
-
+    Enemy::CreateInfo m_enemyCI{};
     void retarget();
 
 public:

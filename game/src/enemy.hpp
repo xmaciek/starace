@@ -31,6 +31,7 @@ public:
 
     void shoot( std::pmr::vector<Bullet>& );
     Signal signal() const;
+    uint16_t callsign() const { return m_callsign; }
 
     static void renderAll( const RenderContext&, std::span<const Enemy> );
     static void updateAll( const UpdateContext&, std::span<Enemy> );
