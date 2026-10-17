@@ -7,6 +7,9 @@ function( add_run_test )
     cmake_parse_arguments( TEST "" "SRC" "LINK" ${ARGN} )
     get_filename_component( TEST_NAME ${TEST_SRC} NAME_WE )
     add_executable( ${TEST_NAME} )
+    set_target_properties( ${TEST_NAME} PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
+    )
     target_sources( ${TEST_NAME} PRIVATE ${TEST_SRC} )
     target_link_libraries( ${TEST_NAME}
         cxx::flags
@@ -22,6 +25,7 @@ endfunction()
 
 add_run_test( SRC test_ccmd.cpp LINK ccmd )
 add_run_test( SRC test_config.cpp LINK config )
+add_run_test( SRC test_config_json.cpp LINK config )
 add_run_test( SRC test_fixed_map.cpp LINK shared )
 add_run_test( SRC test_fixed_map_view.cpp LINK shared )
 add_run_test( SRC test_hash.cpp LINK shared )

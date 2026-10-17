@@ -14,6 +14,8 @@ public:
     static Entry fromData( std::span<const char> );
     static Entry fromData( std::span<const uint8_t> );
     static Entry fromData( std::pmr::vector<uint8_t>&& );
+    static Entry fromJSON( std::string_view );
+    static Entry fromJSON( std::span<const char> );
 
     std::pmr::string m_name{};
     std::pmr::string m_value{};
@@ -22,6 +24,8 @@ public:
     const Entry& operator [] ( std::string_view ) const;
     const Entry* begin() const;
     const Entry* end() const;
+
+    inline operator bool () const { return !m_name.empty() || !m_value.empty() || !m_data.empty(); }
 
     std::string_view toString() const;
     std::pmr::u32string toString32() const;
@@ -42,6 +46,8 @@ public:
 
     float toFloat() const;
 
+    inline std::span<const Entry> toArray() const { return m_data; };
+    inline auto size() const { return m_data.size(); }
     std::string_view name() const;
 };
 

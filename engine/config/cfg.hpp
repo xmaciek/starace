@@ -54,6 +54,8 @@ struct Token {
     {
         return { data, data + length };
     }
+    inline auto begin() const { return data; }
+    inline auto end() const { return data + length; }
 };
 
 class TokenIterator {

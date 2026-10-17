@@ -3,6 +3,7 @@ add_library( config STATIC )
 target_sources( config
     PRIVATE
     config.cpp
+    config_json.cpp
     cfg.hpp
 
     PUBLIC
