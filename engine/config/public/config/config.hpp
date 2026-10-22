@@ -16,6 +16,7 @@ public:
     static Entry fromData( std::pmr::vector<uint8_t>&& );
     static Entry fromJSON( std::string_view );
     static Entry fromJSON( std::span<const char> );
+    static Entry fromJSON( std::span<const uint8_t> );
 
     std::pmr::string m_name{};
     std::pmr::string m_value{};
@@ -42,6 +43,21 @@ public:
             std::from_chars( m_value.c_str(), m_value.c_str() + m_value.size(), t );
             return t;
         }
+    }
+
+    bool toValue( std::pmr::string& ) const;
+    bool toValue( int32_t& ) const;
+    bool toValue( uint32_t& ) const;
+    bool toValue( float& ) const;
+
+    template <typename T>
+    requires ( std::is_enum_v<T> )
+    bool toValue( T& t ) const
+    {
+        std::underlying_type_t<T> v{};
+        if ( !toValue( v ) ) return false;
+        t = static_cast<T>( v );
+        return true;
     }
 
     float toFloat() const;

@@ -31,6 +31,47 @@ float Entry::toFloat() const
     return f;
 }
 
+template <typename T>
+static bool fromValue( std::string_view sv, T& v )
+{
+    T t{};
+    auto end = sv.data() + sv.size();
+    auto res = std::from_chars( sv.data(), end, t );
+    if ( res && res.ptr == end ) [[likely]] {
+        v = t;
+        return true;
+    }
+    if constexpr ( !std::is_same_v<double, T> ) {
+        double d{};
+        bool b = fromValue<double>( sv, d );
+        if ( b ) v = static_cast<T>( d );
+        return b;
+    }
+    return false;
+}
+
+bool Entry::toValue( int32_t& v ) const
+{
+    return fromValue( m_value, v );
+}
+
+bool Entry::toValue( uint32_t& v ) const
+{
+    return fromValue( m_value, v );
+}
+
+bool Entry::toValue( float& v ) const
+{
+    return fromValue( m_value, v );
+}
+
+bool Entry::toValue( std::pmr::string& v ) const
+{
+    v.resize( m_value.size() );
+    std::ranges::copy( m_value, v.begin() );
+    return true;
+}
+
 const Entry* Entry::begin() const
 {
     return m_data.data();

@@ -62,19 +62,13 @@ struct Detokenizer {
     static RetVal fromString( TokenIterator& );
 };
 
-
 Detokenizer::RetVal Detokenizer::fromString( TokenIterator& it )
 {
     auto token = *it;
     if ( !token ) return std::unexpected( eEndOfStream );
     if ( token.userEnum != '"' ) return std::unexpected( eToken );
-    token = *++it;
-    if ( !token ) return std::unexpected( eEndOfStream );
-    std::pmr::string ret{ *token };
-    token = *++it;
-    if ( !token ) return std::unexpected( eEndOfStream );
-    if ( token.userEnum != '"' ) return std::unexpected( eToken );
-    return ret;
+    auto str = it.advanceAsString();
+    return std::pmr::string{ str.begin(), str.end() };
 }
 
 Detokenizer::ComplexVal Detokenizer::fromObject( TokenIterator& it )
@@ -267,6 +261,12 @@ Entry cfg::Entry::fromJSON( std::span<const char> data )
 Entry cfg::Entry::fromJSON( std::string_view data )
 {
     std::span<const char> span{ data.data(), data.size() };
+    return fromJSON( span );
+}
+
+Entry cfg::Entry::fromJSON( std::span<const uint8_t> data )
+{
+    std::span<const char> span{ reinterpret_cast<const char*>( data.data() ), data.size() };
     return fromJSON( span );
 }
 

@@ -85,6 +85,7 @@ public:
     inline const_iterator begin() const;
     inline const_iterator end() const;
     inline void advance( uint32_t );
+    inline std::string_view advanceAsString();
 };
 
 
@@ -138,6 +139,19 @@ void TokenIterator::advance( uint32_t v )
     auto d = std::distance( begin(), end() );
     assert( v <= d );
     std::advance( m_begin, v );
+}
+
+std::string_view TokenIterator::advanceAsString()
+{
+    auto strBegin = begin();
+    auto strEnd = std::find_if( strBegin, end(), EndQuote{} );
+
+    if ( strEnd == end() ) { return {}; }
+
+    if ( *strEnd != '"' ) { return {}; }
+    auto ret = std::string_view{ strBegin, strEnd };
+    advance( (uint32_t)std::distance( begin(), strEnd + 1 ) );
+    return ret;
 }
 
 }
