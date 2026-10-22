@@ -41,6 +41,15 @@ struct Asset {
         data = data.subspan( bytes );
         return true;
     }
+
+    std::span<const uint8_t> subspan( size_t size )
+    {
+        assert( size <= data.size() );
+        size = std::min( data.size(), size );
+        auto ret = data.subspan( 0, size );
+        data = data.subspan( size );
+        return ret;
+    }
 };
 
 class Filesystem {
