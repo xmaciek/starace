@@ -236,6 +236,15 @@ struct Compiler {
         return 0;
     }
 
+    void write( std::string_view argDst ) const
+    {
+        obj::Header header{};
+        header.chunkCount = static_cast<uint32_t>( m_objects.size() );
+
+        auto ofs = cooker::openWrite( argDst );
+        cooker::write( ofs, header );
+        std::ranges::for_each( m_objects, [&ofs]( const auto& f ) { ofs << f; } );
+    }
 };
 
 int main( int argc, const char** argv )
@@ -258,12 +267,6 @@ int main( int argc, const char** argv )
 
     Compiler compiler{};
     compiler.readObj( argObj );
-
-    obj::Header header{};
-    header.chunkCount = static_cast<uint32_t>( compiler.m_objects.size() );
-
-    auto ofs = cooker::openWrite( argDst );
-    cooker::write( ofs, header );
-    std::ranges::for_each( compiler.m_objects, [&ofs]( const auto& f ) { ofs << f; } );
+    compiler.write( argDst );
     return 0;
 }
