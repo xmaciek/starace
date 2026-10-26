@@ -253,20 +253,20 @@ int main( int argc, const char** argv )
     if ( !args || args.read( "-h" ) || args.read( "--help" ) ) {
         std::cout <<
             "Required arguments:\n"
-            "\t--obj \"<file/path.obj>\" \u2012 specifies source object\n"
+            "\t--src \"<file/path.obj>\" \u2012 specifies source object\n"
             "\t--dst \"<file/path.objc>\" \u2012 specifies output object\n"
             "\nOptional arguments:\n"
             "\t-h --help \u2012 prints this message\n"
             ;
     }
 
-    std::string_view argObj{};
+    std::string_view argSrc{};
     std::string_view argDst{};
-    args.read( "--obj", argObj ) || cooker::error( "--obj <file/path.obj> \u2012 argument not specified" );
+    args.read( "--src", argSrc ) || cooker::error( "--src <file/path.obj> \u2012 argument not specified" );
     args.read( "--dst", argDst ) || cooker::error( "--dst <file/path.objc> \u2012 argument not specified" );
 
     Compiler compiler{};
-    compiler.readObj( argObj );
+    compiler.readObj( argSrc );
     compiler.write( argDst );
     return 0;
 }

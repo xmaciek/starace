@@ -64,6 +64,20 @@ function( cook_lang )
     pak_file_cooked( ${DEFAULT_PACK} "${file_out}" "lang.${COOK_LANG_DST}" )
 endfunction()
 
+function( cook_objc file )
+    cmake_path( GET file STEM filename )
+    set( file_out "${CMAKE_CURRENT_BINARY_DIR}/${filename}.objc" )
+    add_custom_target( "model.${file}" DEPENDS "${file_out}" )
+    add_custom_command(
+        OUTPUT "${file_out}"
+        DEPENDS cooker_objc
+        DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${file}"
+        COMMAND cooker_objc --src "${CMAKE_CURRENT_SOURCE_DIR}/${file}" --dst "${file_out}"
+    )
+    set_vs_directory( "model.${file}" "assets/models" )
+    pak_file_cooked( ${DEFAULT_PACK} "${file_out}" "model.${file}" )
+endfunction()
+
 function( cook_dds )
     cmake_parse_arguments( COOK_DDS "MIPGEN;CUBEMAP" "DST;FORMAT;PACK" "SRC" ${ARGN} )
     if ( COOK_DDS_MIPGEN )

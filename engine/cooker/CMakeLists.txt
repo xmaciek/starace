@@ -24,6 +24,10 @@ declare_cooker( NAME cooker_lang
     SRC cooker_lang.cpp
     LINK shared unicode
 )
+declare_cooker( NAME cooker_objc
+    SRC cooker_objc.cpp
+    LINK ccmd
+)
 declare_cooker( NAME cooker_pak
     SRC cooker_pak.cpp
 )
