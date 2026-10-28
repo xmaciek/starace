@@ -74,6 +74,7 @@ auto readAll( std::string_view path )
     std::pmr::vector<T> ret;
     ret.resize( size );
     ifs.read( reinterpret_cast<char*>( ret.data() ), static_cast<std::streamsize>( size ) );
+    if ( ifs.gcount() != (std::streamsize)size ) cooker::error( "failed to read data from file" );
     return ret;
 }
 
@@ -82,6 +83,7 @@ static inline std::pmr::vector<uint8_t> read( std::ifstream& ifs, size_t size )
 {
     std::pmr::vector<uint8_t> tmp( size );
     ifs.read( reinterpret_cast<char*>( tmp.data() ), static_cast<std::streamsize>( size ) );
+    if ( ifs.gcount() != (std::streamsize)size ) cooker::error( "failed to read data from file" );
     return tmp;
 }
 
@@ -89,14 +91,18 @@ template <typename T>
 requires ( std::is_trivially_copyable_v<T> )
 void read( std::ifstream& ifs, T& t )
 {
-    ifs.read( reinterpret_cast<char*>( &t ), (std::streamsize)sizeof( T ) );
+    auto size = static_cast<std::streamsize>( sizeof( T ) );
+    ifs.read( reinterpret_cast<char*>( &t ), size );
+    if ( ifs.gcount() != size ) cooker::error( "failed to read data from file" );
 }
 
 template <typename T>
 requires ( std::is_trivially_copyable_v<T> )
 void read( std::ifstream& ifs, std::pmr::vector<T>& t )
 {
-    ifs.read( reinterpret_cast<char*>( t.data() ), (std::streamsize)( sizeof( T ) * t.size() ) );
+    auto size = static_cast<std::streamsize>( sizeof( T ) * t.size() );
+    ifs.read( reinterpret_cast<char*>( t.data() ), size );
+    if ( ifs.gcount() != size ) cooker::error( "failed to read data from file" );
 }
 
 template <typename T>
