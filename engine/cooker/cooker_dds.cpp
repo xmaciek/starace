@@ -320,10 +320,10 @@ int main( int argc, const char** argv )
         cooker::error( "--format has unsupported value \u2012", argsFormat );
     }();
 
-    auto commaSeparate = []( std::string_view sv ) -> std::pmr::vector<std::filesystem::path>
+    auto commaSeparate = []( std::string_view sv ) -> std::pmr::vector<std::string_view>
     {
         const char separator = ',';
-        std::pmr::vector<std::filesystem::path> ret;
+        std::pmr::vector<std::string_view> ret;
         ret.reserve( 6 );
         size_t i = 0;
         do {
@@ -333,7 +333,7 @@ int main( int argc, const char** argv )
         } while ( i != sv.npos );
         return ret;
     };
-    std::pmr::vector<std::filesystem::path> src = commaSeparate( argSrc );
+    std::pmr::vector<std::string_view> src = commaSeparate( argSrc );
     src.empty() && cooker::error( "--src argument requires valid paths" );
 
     std::list<Image> images;

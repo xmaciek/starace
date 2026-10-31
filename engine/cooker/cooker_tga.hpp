@@ -78,14 +78,11 @@ struct Unmap {
 
 namespace tga {
 
-static Image read( const std::filesystem::path& filePath )
+static Image read( std::string_view filePath )
 {
     using enum dds::dxgi::Format;
     using namespace tga::detail;
-    std::ifstream ifs( filePath, std::ios::binary | std::ios::ate );
-    if ( !ifs.is_open() ) cooker::error( "cannot open file:", filePath );
-    size_t fileSize = static_cast<size_t>( ifs.tellg() );
-    ifs.seekg( 0 );
+    auto [ifs, fileSize] = cooker::openRead( filePath );
 
     tga::Header header;
     if ( fileSize < sizeof( header ) ) cooker::error( "cannot read tga header:", filePath );
@@ -115,6 +112,7 @@ static Image read( const std::filesystem::path& filePath )
 
     std::pmr::vector<uint8_t> colorMap( colorMapCount * colorMapBpp / 8 );
     cooker::read( ifs, colorMap );
+    fileSize -= colorMap.size();
 
     // NOTE: convert color map format to expected color format to preserve sanity
     if ( colorMapBpp && colorMapBpp != header.bitsPerPixel ) {
