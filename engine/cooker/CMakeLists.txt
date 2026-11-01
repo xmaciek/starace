@@ -26,7 +26,7 @@ declare_cooker( NAME cooker_lang
 )
 declare_cooker( NAME cooker_objc
     SRC cooker_objc.cpp
-    LINK ccmd
+    LINK ccmd config shared
 )
 declare_cooker( NAME cooker_pak
     SRC cooker_pak.cpp

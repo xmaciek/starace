@@ -11,12 +11,14 @@ namespace obj {
 enum class VertexAssembly : uint32_t {
     invalid,
     v = 'v',
-    vtn = 'ntv',
+    vt = 'tv',
+    vnt = 'tnv',
+    vntt = 'ttnv',
 };
 
 struct Header {
     static constexpr uint32_t MAGIC = 'CJBO';
-    static constexpr uint32_t VERSION = 2;
+    static constexpr uint32_t VERSION = 3;
     uint32_t magic = MAGIC;
     uint32_t version = VERSION;
     uint32_t chunkCount = 0;

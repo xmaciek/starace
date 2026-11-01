@@ -2,17 +2,29 @@
 
 #include <extra/obj.hpp>
 #include <extra/args.hpp>
+#include <extra/gltf.hpp>
+#include <config/config.hpp>
 #include <ccmd/ccmd.hpp>
+#include <shared/hash.hpp>
 
-#include <array>
 #include <algorithm>
-#include <fstream>
-#include <iostream>
+#include <array>
+#include <cassert>
+#include <generator>
+#include <memory_resource>
 #include <string>
 #include <string_view>
 #include <vector>
-#include <memory_resource>
-#include <cassert>
+
+using std::literals::string_view_literals::operator""sv;
+
+static uint32_t format( std::string_view argSrc )
+{
+    if ( argSrc.ends_with( ".obj" ) ) return 'obj';
+    if ( argSrc.ends_with( ".glb" ) ) return 'glb';
+    cooker::error( "unknown source format, expected .obj .glb" );
+    return 0;
+}
 
 struct Vec2 { float data[ 2 ]{}; };
 struct Vec3 { float data[ 3 ]{}; };
@@ -52,6 +64,17 @@ std::ofstream& operator << ( std::ofstream& o, const FullObject& fo )
     cooker::write( o, fo.data );
     return o;
 }
+
+static void write( std::string_view argDst, std::span<const FullObject> objects )
+{
+    obj::Header header{};
+    header.chunkCount = static_cast<uint32_t>( objects.size() );
+
+    auto ofs = cooker::openWrite( argDst );
+    cooker::write( ofs, header );
+    std::ranges::for_each( objects, [&ofs]( const auto& f ) { ofs << f; } );
+}
+
 
 struct Compiler {
 
@@ -168,8 +191,8 @@ struct Compiler {
 
         if ( instance->m_objects.empty() ) cooker::error( "requesting to add face to null object" );
         auto& o = instance->m_objects.back();
-        if ( o.dataType == obj::VertexAssembly::invalid ) { o.dataType = obj::VertexAssembly::vtn; };
-        if ( o.dataType != obj::VertexAssembly::vtn ) cooker::error( "mixing face with non-face element in object", o.name );
+        if ( o.dataType == obj::VertexAssembly::invalid ) { o.dataType = obj::VertexAssembly::vnt; };
+        if ( o.dataType != obj::VertexAssembly::vnt ) cooker::error( "mixing face with non-face element in object", o.name );
 
         auto doVert = [size=instance->m_vertex.size(), &o]( auto& u )
         {
@@ -236,15 +259,266 @@ struct Compiler {
         return 0;
     }
 
-    void write( std::string_view argDst ) const
+    static int process( std::string_view argSrc, std::string_view argDst )
     {
-        obj::Header header{};
-        header.chunkCount = static_cast<uint32_t>( m_objects.size() );
-
-        auto ofs = cooker::openWrite( argDst );
-        cooker::write( ofs, header );
-        std::ranges::for_each( m_objects, [&ofs]( const auto& f ) { ofs << f; } );
+        Compiler compiler{};
+        compiler.readObj( argSrc );
+        write( argDst, compiler.m_objects );
+        return 0;
     }
+};
+
+static auto readBulk( const cfg::Entry& e, auto&& parser )
+{
+    if ( !e ) cooker::error( "Failed to bulk read" );
+    using Ret = decltype(parser(e));
+    std::pmr::vector<Ret> ret( e.size() );
+    std::ranges::transform( e.toArray(), ret.begin(), parser );
+    return ret;
+}
+
+static gltf::BufferView parseBuffer( const cfg::Entry& e )
+{
+    gltf::BufferView b{};
+    e[ "buffer"sv ].toValue( b.buffer );
+    e[ "byteOffset"sv ].toValue( b.byteOffset );
+    e[ "byteLength"sv ].toValue( b.byteLength );
+    e[ "target"sv ].toValue( b.target );
+    return b;
+}
+
+static gltf::Accessor parseAccessor( const cfg::Entry& e )
+{
+    gltf::Accessor a{};
+    e[ "bufferView"sv ].toValue( a.bufferView );
+    e[ "count"sv ].toValue( a.count );
+    e[ "componentType"sv ].toValue( a.componentType );
+
+    auto&& eType = e[ "type"sv ].toString();
+    switch ( Hash{}( eType ) ) {
+    case "VEC2"_hash: a.type = gltf::Type::eVec2; break;
+    case "VEC3"_hash: a.type = gltf::Type::eVec3; break;
+    case "SCALAR"_hash: a.type = gltf::Type::eScalar; break;
+    default:
+        cooker::error( "unhandled accessor enum type", e );
+        break;
+    }
+    return a;
+}
+
+static gltf::Mesh parseMesh( const cfg::Entry& e )
+{
+    gltf::Mesh m{};
+    e[ "name"sv ].toValue( m.name );
+    if ( m.name.empty() ) cooker::error( "mesh has no name field" );
+
+    auto&& arr = e[ "primitives"sv ].toArray();
+    if ( arr.empty() ) return m;
+    arr[ 0 ][ "indices"sv ].toValue( m.indices );
+
+    auto&& attrib = arr[ 0 ][ "attributes"sv ];
+    attrib[ "POSITION"sv ].toValue( m.position );
+    if ( m.position < 0 ) cooker::error( "mesh has no POSITION field" );
+    attrib[ "NORMAL"sv ].toValue( m.normal );
+    attrib[ "TEXCOORD_0"sv ].toValue( m.texcoord0 );
+
+    return m;
+}
+
+static auto&& fromIndex( auto& container, auto i )
+{
+    if ( i < 0 ) cooker::error( "index below 0" );
+    size_t index = static_cast<size_t>( i );
+    if ( index >= container.size() ) cooker::error( "index out of range" );
+    return container[ index ];
+}
+
+enum Flags : int {
+    eVertex = 0,
+    fIndexed = 0b1,
+    fNormal = 0b10,
+    fTexcoord0 = 0b100,
+    fTexcoord1 = 0b1000,
+
+    eN0 = fNormal | fTexcoord0,
+    eI0= fIndexed | fTexcoord0,
+    eIN0 = fIndexed | fNormal | fTexcoord0,
+    eIN01 = fIndexed | fNormal | fTexcoord0 | fTexcoord1,
+};
+
+constexpr Flags operator | ( Flags a, Flags b )
+{
+    return (Flags)((int)a | (int)b);
+}
+constexpr Flags operator |= ( Flags& a, Flags b )
+{
+    return a = ( a | b );
+}
+
+template <typename T> constexpr auto ComponentTypeType = gltf::ComponentType{};
+template<> constexpr auto ComponentTypeType<float> = gltf::ComponentType::eFloat;
+template<> constexpr auto ComponentTypeType<uint32_t> = gltf::ComponentType::eU32;
+template<> constexpr auto ComponentTypeType<uint16_t> = gltf::ComponentType::eU16;
+
+
+struct Swizzler {
+    uint32_t vertexCount = 0;
+    std::span<const uint16_t> indexes;
+    std::span<const float> position;
+    std::span<const float> normal;
+    std::span<const float> texcoord0;
+    std::span<const float> texcoord1;
+
+    Swizzler( std::span<const uint16_t> i, std::span<const float> p )
+    : indexes{ i }
+    , position{ p }
+    {
+        if ( !indexes.empty() ) {
+            vertexCount = (uint32_t)indexes.size();
+        }
+        else {
+            vertexCount = (uint32_t)position.size() / 3;
+        }
+    }
+
+    template <Flags F>
+    std::generator<float> coro() const
+    {
+        for ( uint32_t i = 0; i < vertexCount; ++i ) {
+            size_t col = ( F & fIndexed ) ? fromIndex( indexes, i ) : i;
+            co_yield fromIndex( position, col * 3 + 0 );
+            co_yield fromIndex( position, col * 3 + 1 );
+            co_yield fromIndex( position, col * 3 + 2 );
+            if constexpr ( F & fNormal ) {
+                co_yield fromIndex( normal, col * 3 + 0 );
+                co_yield fromIndex( normal, col * 3 + 1 );
+                co_yield fromIndex( normal, col * 3 + 2 );
+            }
+            if constexpr ( F & fTexcoord0 ) {
+                co_yield fromIndex( texcoord0, col * 2 + 0 );
+                co_yield fromIndex( texcoord0, col * 2 + 1 );
+            }
+            if constexpr ( F & fTexcoord1 ) {
+                co_yield fromIndex( texcoord1, col * 2 + 0 );
+                co_yield fromIndex( texcoord1, col * 2 + 1 );
+            }
+        }
+        co_return;
+    }
+
+    template <Flags F>
+    auto& exec( auto& ret, obj::VertexAssembly va )
+    {
+        ret.dataType = va;
+        size_t count = 3;
+        if constexpr ( F & fNormal ) count += 3;
+        if constexpr ( F & fTexcoord0 ) count += 2;
+        if constexpr ( F & fTexcoord1 ) count += 2;
+        count *= vertexCount;
+        ret.data.resize( count );
+        std::ranges::copy( coro<F>(), ret.data.begin() );
+        return ret;
+    }
+};
+
+
+struct GltfCompiler {
+    std::pmr::vector<std::pmr::vector<uint8_t>> m_bins;
+    std::pmr::vector<gltf::BufferView> m_bufferViews;
+    std::pmr::vector<gltf::Accessor> m_accessors;
+    std::pmr::vector<gltf::Mesh> m_meshes;
+
+    template <typename T>
+    std::span<const T> accessorToRawData( int32_t i )
+    {
+        if ( i < 0 ) return {};
+        auto&& accessor = fromIndex( m_accessors, i );
+        if ( ComponentTypeType<T> != accessor.componentType ) cooker::error( "unexpected accessor component type", std::to_string( (uint32_t)accessor.componentType ) );
+        auto&& bufferView = fromIndex( m_bufferViews, accessor.bufferView );
+        auto&& bin = fromIndex( m_bins, bufferView.buffer );
+        size_t end = (size_t)bufferView.byteOffset + (size_t)bufferView.byteLength;
+        if ( end > bin.size() ) cooker::error( "bufferView endpoint out of range" );
+        std::span span = bin;
+        span = span.subspan( bufferView.byteOffset, bufferView.byteLength );
+        return cooker::cast<T>( span );
+    }
+
+    FullObject convertMesh( const gltf::Mesh& mesh )
+    {
+        if ( mesh.position < 0 ) cooker::error( "mesh accessor for position below 0" );
+        if ( mesh.name.empty() ) cooker::error( "mesh does not have name" );
+        FullObject o;
+        if ( mesh.name.size() >= std::size( o.name ) ) cooker::error( "mesh name cannot fit into obj.chunk.name field", mesh.name );
+        std::ranges::copy( mesh.name, std::begin( o.name ) );
+
+        Flags flags{};
+        if ( mesh.indices >= 0 ) flags |= fIndexed;
+        if ( mesh.normal >= 0 ) flags |= fNormal;
+        if ( mesh.texcoord0 >= 0 ) flags |= fTexcoord0;
+        if ( mesh.texcoord1 >= 0 ) flags |= fTexcoord1;
+        Swizzler swizzler{
+            accessorToRawData<uint16_t>( mesh.indices ),
+            accessorToRawData<float>( mesh.position )
+        };
+        swizzler.normal = accessorToRawData<float>( mesh.normal );
+        swizzler.texcoord0 = accessorToRawData<float>( mesh.texcoord0 );
+        swizzler.texcoord1 = accessorToRawData<float>( mesh.texcoord1 );
+
+        switch ( flags ) {
+        case eVertex: return swizzler.exec<eVertex>( o, obj::VertexAssembly::v );
+        case fIndexed: return swizzler.exec<fIndexed>( o, obj::VertexAssembly::v );
+        case eI0: return swizzler.exec<eI0>( o, obj::VertexAssembly::vt );
+        case eIN0: return swizzler.exec<eIN0>( o, obj::VertexAssembly::vnt );
+        case eIN01: return swizzler.exec<eIN01>( o, obj::VertexAssembly::vntt );
+        case fTexcoord0: return swizzler.exec<fTexcoord0>( o, obj::VertexAssembly::vt );
+        default: cooker::error( "unhandled mesh vertex assembly combination", std::to_string( flags ) );
+        }
+        return o;
+    }
+
+    int process( std::string_view argSrc, std::string_view argDst )
+    {
+        auto&& [ ifs, sizeLeft ] = cooker::openRead( argSrc );
+        gltf::glb::Header header{};
+        cooker::read( ifs, header );
+        if ( header.magic != gltf::glb::Magic::eGltf ) cooker::error( "glb wrong header magic" );
+        if ( header.version != 2 ) cooker::error( "glb wrong header version" );
+        if ( header.size != sizeLeft ) cooker::error( "glb wrong header size" );
+        sizeLeft -= sizeof( header );
+
+        while ( sizeLeft ) {
+            gltf::glb::Chunk chunk{};
+            cooker::read( ifs, chunk );
+            sizeLeft -= sizeof( chunk );
+            if ( sizeLeft < chunk.size ) cooker::error( "not enoguh file data to process further glb chunks, .glb file possibly corrupted" );
+            sizeLeft -= chunk.size;
+            switch ( chunk.magic ) {
+            default:
+                cooker::error( "unknown glb chunk magic:", std::to_string( chunk.magic ) );
+
+            case gltf::glb::Magic::eBin:
+                m_bins.emplace_back( cooker::read( ifs, (size_t)chunk.size ) );
+                continue;
+
+            case gltf::glb::Magic::eJson: {
+                auto blob = cooker::read( ifs, (size_t)chunk.size );
+                auto root = cfg::Entry::fromJSON( blob );
+                if ( !root ) cooker::error( "failed to parse JSON chunk" );
+                m_bufferViews = readBulk( root[ "bufferViews"sv ], &parseBuffer );
+                m_accessors = readBulk( root[ "accessors"sv ], &parseAccessor );
+                m_meshes = readBulk( root[ "meshes"sv ], &parseMesh );
+                continue;
+            }
+            }
+        };
+
+        std::pmr::vector<FullObject> objects;
+        objects.resize( m_meshes.size() );
+        std::ranges::transform( m_meshes, objects.begin(), [this]( auto& m ) { return convertMesh( m ); } );
+        write( argDst, objects );
+        return 0;
+    }
+
 };
 
 int main( int argc, const char** argv )
@@ -264,9 +538,11 @@ int main( int argc, const char** argv )
     std::string_view argDst{};
     args.read( "--src", argSrc ) || cooker::error( "--src <file/path.obj> \u2012 argument not specified" );
     args.read( "--dst", argDst ) || cooker::error( "--dst <file/path.objc> \u2012 argument not specified" );
+    switch ( format( argSrc ) ) {
+    case 'obj': return Compiler::process( argSrc, argDst );
+    case 'glb': return GltfCompiler{}.process( argSrc, argDst );
+    }
 
-    Compiler compiler{};
-    compiler.readObj( argSrc );
-    compiler.write( argDst );
-    return 0;
+    cooker::error( "unknown source format, expected .obj .glb" );
+    return 1;
 }
