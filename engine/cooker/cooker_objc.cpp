@@ -387,7 +387,7 @@ struct Swizzler {
         for ( uint32_t i = 0; i < vertexCount; ++i ) {
             size_t col = ( F & fIndexed ) ? fromIndex( indexes, i ) : i;
             co_yield fromIndex( position, col * 3 + 0 );
-            co_yield fromIndex( position, col * 3 + 1 );
+            co_yield -fromIndex( position, col * 3 + 1 );
             co_yield fromIndex( position, col * 3 + 2 );
             if constexpr ( F & fNormal ) {
                 co_yield fromIndex( normal, col * 3 + 0 );
