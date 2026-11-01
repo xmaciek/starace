@@ -6,7 +6,7 @@ frontFace ccw
 name projectile
 topology triangleList
 vertexShader shaders/projectile.vert.spv
-vertexStride 32
+vertexStride 20
 vertexUniform 0
 vertexAssembly f3 0 0
 vertexAssembly f2 1 12
