@@ -321,8 +321,17 @@ static gltf::Mesh parseMesh( const cfg::Entry& e )
     if ( m.position < 0 ) cooker::error( "mesh has no POSITION field" );
     attrib[ "NORMAL"sv ].toValue( m.normal );
     attrib[ "TEXCOORD_0"sv ].toValue( m.texcoord0 );
+    attrib[ "TEXCOORD_1"sv ].toValue( m.texcoord1 );
 
     return m;
+}
+
+static gltf::Node parseNode( const cfg::Entry& e )
+{
+    gltf::Node n{};
+    e[ "name"sv ].toValue( n.name );
+    e[ "mesh"sv ].toValue( n.mesh );
+    return n;
 }
 
 static auto&& fromIndex( auto& container, auto i )
@@ -427,6 +436,7 @@ struct GltfCompiler {
     std::pmr::vector<gltf::BufferView> m_bufferViews;
     std::pmr::vector<gltf::Accessor> m_accessors;
     std::pmr::vector<gltf::Mesh> m_meshes;
+    std::pmr::vector<gltf::Node> m_nodes;
 
     template <typename T>
     std::span<const T> accessorToRawData( int32_t i )
@@ -443,13 +453,15 @@ struct GltfCompiler {
         return cooker::cast<T>( span );
     }
 
-    FullObject convertMesh( const gltf::Mesh& mesh )
+    FullObject convertNode( const gltf::Node& node )
     {
-        if ( mesh.position < 0 ) cooker::error( "mesh accessor for position below 0" );
-        if ( mesh.name.empty() ) cooker::error( "mesh does not have name" );
+        if ( node.name.empty() ) cooker::error( "node does not have name" );
         FullObject o;
-        if ( mesh.name.size() >= std::size( o.name ) ) cooker::error( "mesh name cannot fit into obj.chunk.name field", mesh.name );
-        std::ranges::copy( mesh.name, std::begin( o.name ) );
+        if ( node.name.size() >= std::size( o.name ) ) cooker::error( "node name cannot fit into obj.chunk.name field", node.name );
+        std::ranges::copy( node.name, std::begin( o.name ) );
+
+        auto&& mesh = fromIndex( m_meshes, node.mesh );
+        if ( mesh.position < 0 ) cooker::error( "mesh accessor for position below 0" );
 
         Flags flags{};
         if ( mesh.indices >= 0 ) flags |= fIndexed;
@@ -507,14 +519,15 @@ struct GltfCompiler {
                 m_bufferViews = readBulk( root[ "bufferViews"sv ], &parseBuffer );
                 m_accessors = readBulk( root[ "accessors"sv ], &parseAccessor );
                 m_meshes = readBulk( root[ "meshes"sv ], &parseMesh );
+                m_nodes = readBulk( root[ "nodes"sv ], &parseNode );
                 continue;
             }
             }
         };
 
         std::pmr::vector<FullObject> objects;
-        objects.resize( m_meshes.size() );
-        std::ranges::transform( m_meshes, objects.begin(), [this]( auto& m ) { return convertMesh( m ); } );
+        objects.resize( m_nodes.size() );
+        std::ranges::transform( m_nodes, objects.begin(), [this]( auto& n ) { return convertNode( n ); } );
         write( argDst, objects );
         return 0;
     }

@@ -57,6 +57,11 @@ struct Mesh {
     int32_t texcoord1 = -1;
 };
 
+struct Node {
+    std::pmr::string name{};
+    int32_t mesh = -1;
+};
+
 }
 
 namespace gltf::glb {
