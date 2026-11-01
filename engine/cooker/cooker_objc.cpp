@@ -231,11 +231,11 @@ struct Compiler {
             o.data.emplace_back( instance->m_vertex[ f.vert[ i ] ].data[ 0 ] );
             o.data.emplace_back( instance->m_vertex[ f.vert[ i ] ].data[ 1 ] );
             o.data.emplace_back( instance->m_vertex[ f.vert[ i ] ].data[ 2 ] );
-            o.data.emplace_back( instance->m_uv[ f.uv[ i ] ].data[ 0 ] );
-            o.data.emplace_back( instance->m_uv[ f.uv[ i ] ].data[ 1 ] );
             o.data.emplace_back( instance->m_normal[ f.norm[ i ] ].data[ 0 ] );
             o.data.emplace_back( instance->m_normal[ f.norm[ i ] ].data[ 1 ] );
             o.data.emplace_back( instance->m_normal[ f.norm[ i ] ].data[ 2 ] );
+            o.data.emplace_back( instance->m_uv[ f.uv[ i ] ].data[ 0 ] );
+            o.data.emplace_back( instance->m_uv[ f.uv[ i ] ].data[ 1 ] );
         }
         return 0;
     }

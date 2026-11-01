@@ -5,8 +5,8 @@ layout( binding = 0 ) uniform ubo {
 };
 
 layout( location = 0 ) in vec3 vertVert;
-layout( location = 1 ) in vec2 vertUV;
-layout( location = 2 ) in vec3 vertNormal;
+layout( location = 1 ) in vec3 vertNormal;
+layout( location = 2 ) in vec2 vertUV;
 
 layout( location = 0 ) out vec2 fragUV;
 layout( location = 1 ) out vec3 fragNormal;
