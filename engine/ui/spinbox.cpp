@@ -71,14 +71,12 @@ void SpinBox::render( const RenderContext& r ) const
     pushConstant.m_sprites[ 0 ].m_xywh.x += math::nonlerp( -5.0f, 0.0f, m_animL );
     pushConstant.m_sprites[ 0 ].m_uvwh = m_arrowLeft;
     pushConstant.m_sprites[ 0 ].m_whichAtlas = 0;
-    pushConstant.m_sprites[ 0 ].m_sampleRGBA = textureIs4Channel( m_arrowLeft.texture );
 
     pushConstant.m_sprites[ 1 ].m_color = m_focusR ? rctx.colorFocus : rctx.colorMain;
     pushConstant.m_sprites[ 1 ].m_xywh = m_arrowRight.geometry();
     pushConstant.m_sprites[ 1 ].m_xywh.x += math::nonlerp( 5.0f, 0.0f, m_animR );
     pushConstant.m_sprites[ 1 ].m_uvwh =  m_arrowRight;
     pushConstant.m_sprites[ 1 ].m_whichAtlas = diffTex;
-    pushConstant.m_sprites[ 1 ].m_sampleRGBA = textureIs4Channel( m_arrowRight.texture );
 
     ri.m_uniforms.emplace_back( pushConstant );
     rctx.renderer->render( ri );

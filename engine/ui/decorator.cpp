@@ -30,7 +30,6 @@ void Decorator::setSprite( const Sprite& sprite, float range )
         .m_xywh = math::vec4{ math::vec2{}, size() },
         .m_uvwh = sprite,
         .m_spriteExtent{ sprite.w, sprite.h },
-        .m_sampleRGBA = textureIs4Channel( sprite.texture ),
         .m_range = range,
     };
     m_texture = sprite.texture;

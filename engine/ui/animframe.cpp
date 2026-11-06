@@ -41,7 +41,6 @@ void AnimFrame::render( const RenderContext& rctx ) const
     PushConstant::Instance Sprite{
         .m_xywh{ 0.0f, 0.0f, s.x, s.y },
         .m_uvwh = m_uvwh[ m_index ],
-        .m_sampleRGBA = textureIs4Channel( ri.m_fragmentTexture[ 0 ] ),
     };
 
     ri.m_uniforms.emplace_back( pushConstant );

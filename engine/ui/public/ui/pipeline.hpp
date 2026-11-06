@@ -28,7 +28,6 @@ struct PushConstant<Pipeline::eSpriteSequence> {
         math::vec4 m_xywh;
         math::vec4 m_uvwh;
         uint32_t m_whichAtlas;
-        uint32_t m_sampleRGBA;
     };
 
     math::mat4 m_model{};
@@ -46,7 +45,6 @@ struct PushConstant<Pipeline::eSpriteSequenceColors> {
         math::vec4 m_xywh;
         math::vec4 m_uvwh;
         uint32_t m_whichAtlas;
-        uint32_t m_sampleRGBA;
     };
     math::mat4 m_model{};
     math::mat4 m_view{};
@@ -67,7 +65,6 @@ struct PushConstant<Pipeline::e9Slice> {
         math::vec4 m_xywh;
         math::vec4 m_uvwh;
         math::vec2 m_spriteExtent;
-        uint32_t m_sampleRGBA;
         float m_range;
     };
     math::mat4 m_model{};

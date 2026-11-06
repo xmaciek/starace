@@ -5,7 +5,6 @@ struct Instance {
     vec4 xywh;
     vec4 uvwh;
     vec2 spriteExtent;
-    uint sampleRGBA;
     float range;
 };
 
