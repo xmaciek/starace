@@ -18,6 +18,12 @@ enum class TextureFormat : uint8_t {
     eB4G4R4A4_unorm,
 };
 
+enum class SwizzleMode : uint8_t
+{
+    eIdentity,
+    eAlphaMask,
+};
+
 enum class TextureAddressMode : uint8_t {
     eRepeat,
     eClamp,
@@ -33,4 +39,5 @@ struct TextureCreateInfo {
     TextureFormat format{};
     TextureAddressMode u{};
     TextureAddressMode v{};
+    SwizzleMode swizzleMode{};
 };

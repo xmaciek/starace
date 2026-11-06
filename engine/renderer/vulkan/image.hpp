@@ -22,6 +22,20 @@ public:
         .aspectFlags = VK_IMAGE_ASPECT_DEPTH_BIT,
     };
 
+    static constexpr inline VkComponentMapping SWIZZLE_IDENTITY{
+        VK_COMPONENT_SWIZZLE_IDENTITY,
+        VK_COMPONENT_SWIZZLE_IDENTITY,
+        VK_COMPONENT_SWIZZLE_IDENTITY,
+        VK_COMPONENT_SWIZZLE_IDENTITY,
+    };
+
+    static constexpr inline VkComponentMapping SWIZZLE_ALPHAMASK{
+        VK_COMPONENT_SWIZZLE_ONE,
+        VK_COMPONENT_SWIZZLE_ONE,
+        VK_COMPONENT_SWIZZLE_ONE,
+        VK_COMPONENT_SWIZZLE_R,
+    };
+
 protected:
     DeviceMemory m_deviceMemory{};
     VkDevice m_device = VK_NULL_HANDLE;
@@ -48,6 +62,7 @@ public:
         , VkImageUsageFlags
         , VkMemoryPropertyFlags
         , VkImageAspectFlagBits
+        , const VkComponentMapping& components = SWIZZLE_IDENTITY
     ) noexcept;
 
     Image( Image&& ) noexcept;

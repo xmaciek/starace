@@ -88,6 +88,7 @@ Image::Image( VkPhysicalDevice physDevice
     , VkImageUsageFlags usageFlags
     , VkMemoryPropertyFlags memoryFlags
     , VkImageAspectFlagBits aspectFlags
+    , const VkComponentMapping& components
 ) noexcept
 : m_device{ device }
 , m_extent{ extent }
@@ -127,12 +128,6 @@ Image::Image( VkPhysicalDevice physDevice
     const VkResult bindOK = vkBindImageMemory( m_device, m_image, m_deviceMemory, 0 );
     assert( bindOK == VK_SUCCESS );
 
-    static constexpr VkComponentMapping components{
-        VK_COMPONENT_SWIZZLE_IDENTITY,
-        VK_COMPONENT_SWIZZLE_IDENTITY,
-        VK_COMPONENT_SWIZZLE_IDENTITY,
-        VK_COMPONENT_SWIZZLE_IDENTITY,
-    };
     const VkImageSubresourceRange subresourceRange{
         .aspectMask = static_cast<VkImageAspectFlags>( aspectFlags ),
         .baseMipLevel = 0,

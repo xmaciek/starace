@@ -59,6 +59,18 @@ static uint32_t formatToChannels( VkFormat f )
     }
 }
 
+static VkComponentMapping swizzleModeToComponentMapping( SwizzleMode m )
+{
+    using enum SwizzleMode;
+    switch ( m ) {
+    default:
+    case eIdentity:
+        return Image::SWIZZLE_IDENTITY;
+    case eAlphaMask:
+        return Image::SWIZZLE_ALPHAMASK;
+    }
+}
+
 TextureVK::~TextureVK()
 {
     destroy<vkDestroySampler>( m_device, m_sampler );
@@ -75,6 +87,7 @@ TextureVK::TextureVK( const TextureCreateInfo& tci, VkPhysicalDevice physDevice,
     , VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT
     , VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
     , VK_IMAGE_ASPECT_COLOR_BIT
+    , swizzleModeToComponentMapping( tci.swizzleMode )
 }
 {
     ZoneScoped;

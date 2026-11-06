@@ -535,6 +535,11 @@ void Engine::loadDDS( Asset&& asset )
         return;
     }
 
+    tci.swizzleMode = header.pixelFormat.flags & dds::PixelFormat::Flags::fAlpha
+        ? SwizzleMode::eAlphaMask
+        : SwizzleMode::eIdentity
+        ;
+
     dds::dxgi::Header dxgiHeader{};
     if ( !asset.read( dxgiHeader ) ) {
         assert( !"not enough data to read DXGI subheader" );

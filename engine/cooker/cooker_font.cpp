@@ -25,6 +25,12 @@
 
 static constexpr float EXTRA_SLACK = 1.0f;
 
+inline dds::PixelFormat::Flags operator | ( dds::PixelFormat::Flags a, dds::PixelFormat::Flags b )
+{
+    using T = std::underlying_type_t<dds::PixelFormat::Flags>;
+    return static_cast<dds::PixelFormat::Flags>( static_cast<T>( a ) | static_cast<T>( b ) );
+}
+
 static std::vector<std::pair<char32_t, char32_t>> splitRanges( std::span<uint32_t> args )
 {
     std::vector<std::pair<char32_t, char32_t>> ret;
@@ -358,7 +364,7 @@ int main( int argc, const char** argv )
         .pitchOrLinearSize = (uint32_t)texture.size() * (uint32_t)sizeof(dds::BC4),
         .mipMapCount = 1,
         .pixelFormat{
-            .flags = dds::PixelFormat::Flags::fFourCC,
+            .flags = dds::PixelFormat::Flags::fFourCC | dds::PixelFormat::Flags::fAlpha,
             .fourCC = dds::DXGI,
         },
         .caps = Caps::fTexture,

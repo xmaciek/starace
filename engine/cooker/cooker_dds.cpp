@@ -276,6 +276,12 @@ inline dds::Header::Flags operator | ( dds::Header::Flags a, dds::Header::Flags 
     return static_cast<dds::Header::Flags>( static_cast<T>( a ) | static_cast<T>( b ) );
 }
 
+inline dds::PixelFormat::Flags operator | ( dds::PixelFormat::Flags a, dds::PixelFormat::Flags b )
+{
+    using T = std::underlying_type_t<dds::PixelFormat::Flags>;
+    return static_cast<dds::PixelFormat::Flags>( static_cast<T>( a ) | static_cast<T>( b ) );
+}
+
 inline dds::Header::Flags& operator |= ( dds::Header::Flags& a, dds::Header::Flags b )
 {
     a = a | b;
@@ -300,6 +306,7 @@ int main( int argc, const char** argv )
             "\nOptional arguments:\n"
             "\t-h --help \u2012 prints this message and exits\n"
             "\t--mipgen \u2012 generate mipmaps\n"
+            "\t--alphaMask \u2012 specifies usage as alpha mask"
             "\t--format <value> \u2012 specifiy output image format, supported formats: BC4\n"
             ;
         return !args;
@@ -311,6 +318,9 @@ int main( int argc, const char** argv )
     args.read( "--dst", argDst ) || cooker::error( "--dst <file/path.dds> \u2012 argument not specified" );
     const bool argMipgen = args.read( "--mipgen" );
     const bool argCubemap = args.read( "--cubemap" );
+
+    using PFlags = dds::PixelFormat::Flags;
+    const PFlags aFlag = args.read( "--alphaMask" ) ? PFlags::fAlpha : PFlags{};
     const Format argsFormat = [&args]()
     {
         std::string_view argsFormat{};
@@ -380,7 +390,7 @@ int main( int argc, const char** argv )
         .pitchOrLinearSize = static_cast<uint32_t>( mips.front().pixels.size() ),
         .mipMapCount = mipCount + 1,
         .pixelFormat{
-            .flags = dds::PixelFormat::Flags::fFourCC,
+            .flags = dds::PixelFormat::Flags::fFourCC | aFlag,
             .fourCC = dds::DXGI,
         },
         .caps = dds::Header::Caps::fTexture,

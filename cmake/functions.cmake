@@ -79,12 +79,15 @@ function( cook_objc file )
 endfunction()
 
 function( cook_dds )
-    cmake_parse_arguments( COOK_DDS "MIPGEN;CUBEMAP" "DST;FORMAT;PACK" "SRC" ${ARGN} )
+    cmake_parse_arguments( COOK_DDS "MIPGEN;CUBEMAP;ALPHAMASK" "DST;FORMAT;PACK" "SRC" ${ARGN} )
     if ( COOK_DDS_MIPGEN )
         set( COOK_DDS_MIPGEN "--mipgen" )
     endif()
     if ( COOK_DDS_CUBEMAP )
         set( COOK_DDS_CUBEMAP "--cubemap" )
+    endif()
+    if ( COOK_DDS_ALPHAMASK )
+        set( COOK_DDS_ALPHAMASK "--alphaMask" )
     endif()
     if ( COOK_DDS_FORMAT )
         set( COOK_DDS_FORMAT_PARAM "--format" )
@@ -118,6 +121,7 @@ function( cook_dds )
             --dst "${file_out}"
             ${COOK_DDS_MIPGEN}
             ${COOK_DDS_CUBEMAP}
+            ${COOK_DDS_ALPHAMASK}
             ${COOK_DDS_FORMAT_PARAM} ${COOK_DDS_FORMAT}
     )
     set_vs_directory( "texture.${COOK_DDS_DST}" "assets/textures" )
