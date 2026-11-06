@@ -12,7 +12,7 @@ layout( binding = 1 ) uniform ubo2 {
     vec4 particle[ INSTANCES ];
 };
 
-layout( location = 0 ) out vec4 colorOut;
+layout( location = 0 ) out flat vec4 colorOut;
 
 void main()
 {

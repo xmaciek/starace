@@ -15,7 +15,7 @@ layout( binding = 0 ) uniform ubo {
 };
 
 layout( location = 0 ) out vec2 fragmentUV;
-layout( location = 1 ) out vec4 colorOut;
+layout( location = 1 ) out flat vec4 colorOut;
 
 mat4 billboardModelMatrix( vec3 position )
 {

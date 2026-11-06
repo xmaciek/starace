@@ -6,7 +6,7 @@ layout( binding = 0 ) uniform ubo {
     vec4 xyuv[ 4 ];
 };
 
-layout( location = 0 ) out vec4 colorFrag;
+layout( location = 0 ) out flat vec4 colorFrag;
 layout( location = 1 ) out vec2 uv;
 
 void main()
