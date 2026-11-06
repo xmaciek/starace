@@ -23,7 +23,6 @@ layout( location = 2 ) out flat vec2 outSpriteExtent;
 layout( location = 3 ) out flat vec2 outQuadExtent;
 layout( location = 4 ) out flat vec2 outRange;
 layout( location = 5 ) out vec2 outUV;
-layout( location = 6 ) out flat uint outSampleRGBA;
 
 const vec2 vertmult[] = {
     vec2( 0.0, 0.0 ),
@@ -47,5 +46,4 @@ void main()
     outQuadExtent = inst.xywh.zw;
     outRange = vec2( inst.range, inst.range );
     outUV = vertmult[ gl_VertexIndex ];
-    outSampleRGBA = inst.sampleRGBA;
 }

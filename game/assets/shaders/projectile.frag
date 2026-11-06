@@ -4,5 +4,5 @@ layout( location = 0 ) out vec4 outColor;
 
 void main()
 {
-    outColor = texture( textureSampler, fragUV ).rgba;
+    outColor = texture( textureSampler, fragUV );
 }

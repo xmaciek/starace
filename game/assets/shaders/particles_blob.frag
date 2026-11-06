@@ -6,5 +6,5 @@ layout( location = 0 ) out vec4 outColor;
 
 void main()
 {
-    outColor = texture( textureSampler, fragmentUV ).r * colorIn;
+    outColor = texture( textureSampler, fragmentUV ) * colorIn;
 }

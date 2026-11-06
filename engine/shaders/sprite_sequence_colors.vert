@@ -24,7 +24,6 @@ layout( binding = 0 ) uniform ubo {
 layout( location = 0 ) out flat vec4 outColor;
 layout( location = 1 ) out vec2 outUV;
 layout( location = 2 ) out flat uint outWhichAtlas;
-layout( location = 3 ) out flat uint outSampleRGBA;
 
 void main()
 {
@@ -38,5 +37,4 @@ void main()
     outColor = sprites[ gl_InstanceIndex ].color;
     outUV = uvPos;
     outWhichAtlas = sprites[ gl_InstanceIndex ].sampleInfo.x;
-    outSampleRGBA = sprites[ gl_InstanceIndex ].sampleInfo.y;
 }

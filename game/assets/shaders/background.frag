@@ -13,6 +13,5 @@ void main()
 {
     vec2 xy = mod( ( inSlice * inViewport ) / inGeometry.zw, 1.0 );
     vec2 uv = inUV.xy + xy * inUV.zw;
-    vec3 rrr = texture( textureSampler, uv ).rrr;
-    outColor = vec4( rrr, 1.0 ) * inColor;
+    outColor = texture( textureSampler, uv ) * inColor;
 }

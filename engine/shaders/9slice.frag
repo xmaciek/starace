@@ -6,7 +6,6 @@ layout( location = 2 ) in flat vec2 spriteExtent;
 layout( location = 3 ) in flat vec2 quadExtent;
 layout( location = 4 ) in flat vec2 range;
 layout( location = 5 ) in vec2 inUV;
-layout( location = 6 ) in flat uint sampleRGBA;
 
 layout( location = 0 ) out vec4 outColor;
 
@@ -34,9 +33,5 @@ void main()
     vec2 border = spriteExtent * range / quadExtent;
     vec2 uv9 = slice9( inUV, border );
     vec2 newUV = mix( spriteUVWH.xy, spriteUVWH.xy + spriteUVWH.zw, uv9 );
-
-    vec4 colorSelect[ 2 ];
-    colorSelect[ 1 ] = texture( atlasTexture, newUV ).rgba;
-    colorSelect[ 0 ] = vec4( 1.0, 1.0, 1.0, colorSelect[ 1 ].r );
-    outColor = colorSelect[ sampleRGBA ] * inColor;
+    outColor = texture( atlasTexture, newUV ) * inColor;
 }
